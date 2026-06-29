@@ -90,6 +90,23 @@ pub struct ValidationResult {
 }
 
 impl ValidationResult {
+    /// The focus node's value as a plain string: the IRI for a named node, the label
+    /// for a blank node, the lexical form for a literal, and the canonical rendering for
+    /// a triple term.
+    ///
+    /// This lets a consumer render the focus without naming the (oxigraph) [`Term`] type
+    /// in its own surface (EPIC #906) — it is the exact value-extraction the GMEOW
+    /// scoreboard's `shacl_term_to_str` performed.
+    #[must_use]
+    pub fn focus_value(&self) -> String {
+        match &self.focus_node {
+            Term::NamedNode(n) => n.as_str().to_owned(),
+            Term::BlankNode(b) => b.as_str().to_owned(),
+            Term::Literal(l) => l.value().to_owned(),
+            Term::Triple(t) => t.to_string(),
+        }
+    }
+
     /// Apply optional GMEOW graph-box role metadata to this result.
     pub fn apply_box_roles(&mut self, source_roles: &[NamedNode], path_roles: &[NamedNode]) {
         self.source_box_roles = dedup_roles(source_roles);

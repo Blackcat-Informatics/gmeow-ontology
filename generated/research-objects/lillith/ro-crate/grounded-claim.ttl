@@ -10,7 +10,7 @@
 <https://blackcatinformatics.ca/gmeow/examples/ai/card-assistant>
     a <https://blackcatinformatics.ca/gmeow/ModelCard> ;
     <https://blackcatinformatics.ca/gmeow/describesModel> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
-    <https://blackcatinformatics.ca/gmeow/modelContextWindow> 200000 ;
+    <https://blackcatinformatics.ca/gmeow/modelContextWindow> "200000"^^<http://www.w3.org/2001/XMLSchema#positiveInteger> ;
     <https://blackcatinformatics.ca/gmeow/modelProvider> "Example Labs" ;
     <https://blackcatinformatics.ca/gmeow/modelTrainingCutoff> "2026-01-31"^^<http://www.w3.org/2001/XMLSchema#date> ;
     <https://blackcatinformatics.ca/gmeow/modelVersionTag> "assistant-2026-05-01" .
@@ -19,8 +19,8 @@
     a <https://blackcatinformatics.ca/gmeow/Chunk> ;
     <https://blackcatinformatics.ca/gmeow/chunkOf> <https://blackcatinformatics.ca/gmeow/examples/ai/handbook> ;
     <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
-    <https://blackcatinformatics.ca/gmeow/spanEnd> 18950 ;
-    <https://blackcatinformatics.ca/gmeow/spanStart> 18200 .
+    <https://blackcatinformatics.ca/gmeow/spanEnd> "18950"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+    <https://blackcatinformatics.ca/gmeow/spanStart> "18200"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200>
     a <https://blackcatinformatics.ca/gmeow/MemoryItem> ,
@@ -71,7 +71,7 @@
     <https://blackcatinformatics.ca/gmeow/atTime> "2026-05-15T10:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
     <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
     <https://blackcatinformatics.ca/gmeow/hasPrompt> <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract> ;
-    <https://blackcatinformatics.ca/gmeow/samplingTemperature> "0"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    <https://blackcatinformatics.ca/gmeow/samplingTemperature> 0.0 ;
     <https://blackcatinformatics.ca/gmeow/usedModel> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract>
@@ -82,9 +82,9 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/span-close-2200>
     a <https://blackcatinformatics.ca/gmeow/EvidenceSpan> ;
-    <https://blackcatinformatics.ca/gmeow/spanEnd> 366 ;
+    <https://blackcatinformatics.ca/gmeow/spanEnd> "366"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
     <https://blackcatinformatics.ca/gmeow/spanOfChunk> <https://blackcatinformatics.ca/gmeow/examples/ai/chunk-042> ;
-    <https://blackcatinformatics.ca/gmeow/spanStart> 310 ;
+    <https://blackcatinformatics.ca/gmeow/spanStart> "310"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
     <https://blackcatinformatics.ca/gmeow/supportPolarity> <https://blackcatinformatics.ca/gmeow/polaritySupports> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200>

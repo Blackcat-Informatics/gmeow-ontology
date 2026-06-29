@@ -405,18 +405,26 @@ fn graphs_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
 fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
     // Try Turtle first, then N-Quads — the leaves emit one of these.
     // Native text ingress (#909) + native full RDFC-1.0 (#910): no oxigraph::io
-    // parse, no oxrdf `Dataset::canonicalize`.
+    // parse, no oxrdf `Dataset::canonicalize`. The parsed IR is FLATTENED back to its
+    // un-folded plain-quad stream (`flat_rdf_quads_from_dataset`) before re-freezing
+    // and canonicalizing, so the RDF 1.2 statement overlay canonicalizes as the same
+    // flat `rdf:reifies` / annotation triple set the prior oxigraph-flat path produced
+    // — NOT the native folded overlay sentinels. The canonical N-Quads lines are then
+    // collected into the order-independent set (each already `.`-terminated).
     for media_type in ["text/turtle", "application/n-quads"] {
         let Ok(ir) = gmeow_rdf::parse_dataset(bytes, media_type, None) else {
             continue;
         };
-        let Ok(quads) = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(&ir) else {
-            continue;
-        };
+        // The full flat quad stream (base ∪ un-folded reifier/annotation rows) — the
+        // same emptiness predicate the prior `flat_oxigraph_quads_from_dataset` guarded.
+        let quads = gmeow_rdf::flat_rdf_quads_from_dataset(&ir);
         if !quads.is_empty() {
-            let canonical = gmeow_rdf::canonicalize_quads(quads).ok()?;
-            let set: std::collections::BTreeSet<String> =
-                canonical.iter().map(|q| format!("{q} .")).collect();
+            let flat = gmeow_rdf::flat_dataset_from_quads(&quads).ok()?;
+            let set: std::collections::BTreeSet<String> = gmeow_rdf::canonicalize(&flat)
+                .nquads
+                .lines()
+                .map(str::to_owned)
+                .collect();
             return Some(set);
         }
     }

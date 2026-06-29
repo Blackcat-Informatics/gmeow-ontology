@@ -42,9 +42,8 @@ use gmeow_logic_compile::projections::{
 };
 use gmeow_rdf::loss::pair_loss_ledger;
 use gmeow_rdf::{
-    dataset_from_bytes, dataset_from_oxigraph_quads, import_gts_events,
-    serialize_dataset_base_only, serialize_dataset_to_format, NativeRdfFormat, RdfDataset,
-    RdfLookaside, SerializeGraph, TermId,
+    dataset_from_bytes, import_gts_events, serialize_dataset_base_only,
+    serialize_dataset_to_format, NativeRdfFormat, RdfDataset, RdfLookaside, SerializeGraph, TermId,
 };
 
 /// A supported transcode codec (source or target).
@@ -286,15 +285,11 @@ pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, Tra
             Ok(bundle.dataset)
         }
         // JSON-LD has no single `NativeRdfFormat` variant: decode it with the
-        // hand-rolled native JSON-LD(-star) parser (no `oxigraph::io`), then fold the
-        // resulting oxigraph model quads into the frozen IR through the shared path.
-        Codec::JsonLd => {
-            let dataset = crate::stages::yaml_ld::parse_jsonld_star(input)
-                .map_err(|e| TranscodeError::Codec(format!("jsonld parse: {e}")))?;
-            let quads: Vec<oxigraph::model::Quad> =
-                dataset.iter().map(|q| q.into_owned()).collect();
-            dataset_from_oxigraph_quads(&quads).map_err(TranscodeError::Codec)
-        }
+        // hand-rolled native JSON-LD(-star) parser (no `oxigraph::io`), which now
+        // returns the frozen IR directly — the RDF 1.2 statement layer is folded at
+        // `dataset_from_quads` freeze time inside the parser (no oxigraph quad bridge).
+        Codec::JsonLd => crate::stages::yaml_ld::parse_jsonld_star(input)
+            .map_err(|e| TranscodeError::Codec(format!("jsonld parse: {e}"))),
         _ => {
             let fmt = codec_to_native_format(from).ok_or_else(|| {
                 TranscodeError::Codec(format!("no native format mapping for `{}`", from.name()))

@@ -2,7 +2,7 @@
     a <https://blackcatinformatics.ca/gmeow/Assessment> ;
     <https://blackcatinformatics.ca/gmeow/assessmentCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-abstention> ;
     <https://blackcatinformatics.ca/gmeow/assessmentRubric> <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
-    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> 1.0 ;
     <https://blackcatinformatics.ca/gmeow/assessmentTarget> <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
     <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/evals/harness> .
 
@@ -26,7 +26,7 @@
     a <https://blackcatinformatics.ca/gmeow/Assessment> ;
     <https://blackcatinformatics.ca/gmeow/assessmentCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-grounding-recall> ;
     <https://blackcatinformatics.ca/gmeow/assessmentRubric> <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
-    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> 1.0 ;
     <https://blackcatinformatics.ca/gmeow/assessmentTarget> <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
     <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/evals/harness> .
 

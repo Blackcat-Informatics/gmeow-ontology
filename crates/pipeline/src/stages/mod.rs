@@ -39,6 +39,7 @@ pub mod lpg;
 pub mod mappings;
 pub mod matrix;
 pub mod metadata;
+pub mod native_query;
 pub mod okf;
 pub mod parquet;
 pub mod profiles;

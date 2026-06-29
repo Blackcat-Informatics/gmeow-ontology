@@ -45,6 +45,11 @@ pub mod gts_view;
 // always-on `gts` feature so every Rust consumer parses/serializes RDF text natively.
 #[cfg(feature = "gts")]
 pub mod native_codecs;
+// Oxigraph-free `RdfQuad` ⇄ `RdfDataset` conversions (EPIC #906): the native twins of
+// the oxigraph-quad helpers, available to every Rust consumer that holds the `gts`
+// feature WITHOUT pulling the oxigraph Store adapter.
+#[cfg(feature = "gts")]
+pub mod native_quads;
 // The pyo3-free GTS snapshot compose core (#861 P6): SnapshotBuilder + emit_gts +
 // BlobRow, lifted out of the python-gated py_gts surface so gmeow-pipeline can
 // author a full multi-named-graph snapshot without pulling pyo3. It ingests a flat
@@ -82,7 +87,9 @@ pub mod py_gts_view;
 // serialize), replacing the `sssom` PyPI package (#848). Python-only, like `py`.
 #[cfg(feature = "python")]
 pub mod py_sssom;
-#[cfg(feature = "oxigraph")]
+// The native OWL ↔ RDF 1.2 statement codec is fully oxigraph-free (it folds over the
+// native flat-quad stream), so it rides the always-on `gts` feature (EPIC #906).
+#[cfg(feature = "gts")]
 pub mod statements;
 // Shared corpus-classification helpers (EPIC #906 Task 2): one definition for the
 // differential parity sweep (tests/sparql_eval_parity.rs) and the golden-capture
@@ -129,6 +136,10 @@ pub use gmeow_rdf_core::{import_gts_events, import_gts_graph};
 pub use native_codecs::{
     classify, parse_dataset, serialize_dataset, serialize_dataset_base_only,
     serialize_dataset_to_format, GtsCodecBackend, NativeRdfFormat, SerializeOutcome,
+};
+#[cfg(feature = "gts")]
+pub use native_quads::{
+    canonical_flat_nquads, dataset_from_quads, flat_dataset_from_quads, flat_rdf_quads_from_dataset,
 };
 #[cfg(feature = "oxigraph")]
 pub use oxigraph::backend::OxigraphBackend;

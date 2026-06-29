@@ -13,14 +13,16 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use std::sync::Arc;
+
 use gmeow_logic_compile::result_shape::{
     ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality, TermKind,
 };
-use oxigraph::sparql::{QueryResults, QuerySolution, SparqlEvaluator};
-use oxigraph::store::Store;
+use gmeow_rdf::{RdfDataset, TermValue};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::stages::native_query::{self, Solutions};
 use crate::stages::result_shapes::competency_files;
 
 // ── Namespace constants ────────────────────────────────────────────────────────
@@ -29,49 +31,69 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
 // ── Internal SPARQL helpers ────────────────────────────────────────────────────
 
-fn run_select(store: &Store, query: &str) -> Result<Vec<QuerySolution>, PipelineError> {
-    let results = SparqlEvaluator::new()
-        .parse_query(query)
-        .map_err(|e| PipelineError::Parse(format!("composition query parse: {e}")))?
-        .on_store(store)
-        .execute()
-        .map_err(|e| PipelineError::Parse(format!("composition query eval: {e}")))?;
-    match results {
-        QueryResults::Solutions(s) => s
-            .map(|sol| sol.map_err(|e| PipelineError::Parse(format!("composition solution: {e}"))))
-            .collect(),
-        _ => Err(PipelineError::Parse(
-            "composition query must be a SELECT".to_owned(),
-        )),
+/// A single solution row paired with its variable schema (column-indexed access).
+struct Row<'a> {
+    vars: &'a [String],
+    cells: &'a [Option<TermValue>],
+}
+
+impl Row<'_> {
+    fn cell(&self, var: &str) -> Option<&TermValue> {
+        self.vars
+            .iter()
+            .position(|v| v == var)
+            .and_then(|i| self.cells.get(i))
+            .and_then(Option::as_ref)
     }
 }
 
-fn sol_iri(sol: &QuerySolution, var: &str) -> Option<String> {
-    sol.get(var).and_then(|t| match t {
-        oxigraph::model::Term::NamedNode(n) => Some(n.as_str().to_owned()),
+fn run_select(dataset: &Arc<RdfDataset>, query: &str) -> Result<Solutions, PipelineError> {
+    native_query::select(dataset, query)
+}
+
+fn sol_iri(row: &Row<'_>, var: &str) -> Option<String> {
+    match row.cell(var) {
+        Some(TermValue::Iri(iri)) => Some(iri.clone()),
         _ => None,
+    }
+}
+
+fn sol_str(row: &Row<'_>, var: &str) -> Option<String> {
+    row.cell(var).map(|t| match t {
+        TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+        TermValue::Iri(n) => n.clone(),
+        TermValue::Blank { label, .. } => format!("_:{label}"),
+        TermValue::Triple { .. } => native_query_term_to_string(t),
     })
 }
 
-fn sol_str(sol: &QuerySolution, var: &str) -> Option<String> {
-    sol.get(var).map(|t| match t {
-        oxigraph::model::Term::Literal(l) => l.value().to_owned(),
-        oxigraph::model::Term::NamedNode(n) => n.as_str().to_owned(),
-        other => other.to_string(),
-    })
-}
-
-fn sol_u64(sol: &QuerySolution, var: &str) -> Result<Option<u64>, PipelineError> {
-    match sol.get(var) {
+fn sol_u64(row: &Row<'_>, var: &str) -> Result<Option<u64>, PipelineError> {
+    match row.cell(var) {
         None => Ok(None),
-        Some(oxigraph::model::Term::Literal(l)) => {
-            l.value().parse::<u64>().map(Some).map_err(|e| {
+        Some(TermValue::Literal { lexical_form, .. }) => {
+            lexical_form.parse::<u64>().map(Some).map_err(|e| {
                 PipelineError::Parse(format!("?{var} is not a non-negative integer: {e}"))
             })
         }
         Some(other) => Err(PipelineError::Parse(format!(
-            "?{var} expected a literal, got {other}"
+            "?{var} expected a literal, got {}",
+            native_query_term_to_string(other)
         ))),
+    }
+}
+
+/// A debug-ish string form of a term for error messages (never on the byte-exact path).
+fn native_query_term_to_string(t: &TermValue) -> String {
+    match t {
+        TermValue::Iri(iri) => format!("<{iri}>"),
+        TermValue::Blank { label, .. } => format!("_:{label}"),
+        TermValue::Literal { lexical_form, .. } => format!("{lexical_form:?}"),
+        TermValue::Triple { s, p, o } => format!(
+            "<< {} {} {} >>",
+            native_query_term_to_string(s),
+            native_query_term_to_string(p),
+            native_query_term_to_string(o)
+        ),
     }
 }
 
@@ -83,7 +105,10 @@ fn logic_local(iri: &str) -> &str {
 
 /// Parse a `logic:ResultShape` individual from the competency store into the
 /// canonical [`ResultShape`] type.  Hard-fails on any structural defect.
-fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, PipelineError> {
+fn parse_result_shape(
+    store: &Arc<RdfDataset>,
+    shape_iri: &str,
+) -> Result<ResultShape, PipelineError> {
     // Columns — use OPTIONAL so a missing required field is an observable NULL.
     let cols_q = format!(
         "PREFIX logic: <{LOGIC_NS}>\n\
@@ -96,10 +121,15 @@ fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, Pip
          }}"
     );
     let mut columns: Vec<ResultColumn> = Vec::new();
-    for sol in run_select(store, &cols_q)? {
+    let cols_sol = run_select(store, &cols_q)?;
+    for cells in &cols_sol.rows {
+        let sol = Row {
+            vars: &cols_sol.variables,
+            cells,
+        };
         let col = sol
-            .get("col")
-            .map(|t| t.to_string())
+            .cell("col")
+            .map(native_query_term_to_string)
             .unwrap_or_else(|| "<unknown>".to_owned());
 
         let var = sol_str(&sol, "var").ok_or_else(|| {
@@ -156,12 +186,16 @@ fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, Pip
          }}"
     );
     let card_sols = run_select(store, &card_q)?;
-    let card_sol = card_sols.first().ok_or_else(|| {
+    let card_cells = card_sols.rows.first().ok_or_else(|| {
         PipelineError::InvalidDeclaration(format!(
             "ResultShape <{shape_iri}> has no logic:shapeCardinality"
         ))
     })?;
-    let card_iri = sol_iri(card_sol, "card").ok_or_else(|| {
+    let card_sol = Row {
+        vars: &card_sols.variables,
+        cells: card_cells,
+    };
+    let card_iri = sol_iri(&card_sol, "card").ok_or_else(|| {
         PipelineError::InvalidDeclaration(format!(
             "ResultShape <{shape_iri}>: logic:shapeCardinality did not bind an IRI"
         ))
@@ -171,7 +205,7 @@ fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, Pip
         "RowsExact" => RowCardinality::Exact,
         "RowsContains" => RowCardinality::Contains,
         "RowsCount" => {
-            let count = sol_u64(card_sol, "count")?.ok_or_else(|| {
+            let count = sol_u64(&card_sol, "count")?.ok_or_else(|| {
                 PipelineError::InvalidDeclaration(format!(
                     "ResultShape <{shape_iri}>: logic:RowsCount requires logic:shapeRowCount"
                 ))
@@ -189,16 +223,11 @@ fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, Pip
 
 // ── Core validation logic ──────────────────────────────────────────────────────
 
-/// Load every competency file into one store (same approach as `result_shapes`).
-fn load_competency_store(root: &Path) -> Result<Store, PipelineError> {
-    use crate::stages::source_load::turtle_bytes_into_store_scoped;
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for path in competency_files(root)? {
-        let bytes = std::fs::read(&path).map_err(PipelineError::Io)?;
-        turtle_bytes_into_store_scoped(&store, &bytes, &path.display().to_string())?;
-    }
-    Ok(store)
+/// Load every competency file into one native dataset (same approach as `result_shapes`):
+/// each file parsed through the canonical native codec and unioned (blanks standardized
+/// apart per source).
+fn load_competency_store(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
+    native_query::dataset_from_files(&competency_files(root)?)
 }
 
 /// Validate every `gmeow:cqConsumes` composition link in the given store.
@@ -213,7 +242,7 @@ fn load_competency_store(root: &Path) -> Result<Store, PipelineError> {
 /// All violations are collected and returned as a single combined error message
 /// (sorted by consumer IRI for determinism).  Returns `Ok(())` when every link
 /// is structurally compatible.
-pub fn validate_store(store: &Store) -> Result<(), PipelineError> {
+pub fn validate_store(store: &Arc<RdfDataset>) -> Result<(), PipelineError> {
     // Find all cqConsumes links.
     let links_q = "\
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
@@ -225,13 +254,17 @@ pub fn validate_store(store: &Store) -> Result<(), PipelineError> {
     // Collect violations keyed by consumer IRI for deterministic output.
     let mut violations: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
-    for sol in &links {
-        let consumer_iri = sol_iri(sol, "consumer").ok_or_else(|| {
+    for cells in &links.rows {
+        let sol = Row {
+            vars: &links.variables,
+            cells,
+        };
+        let consumer_iri = sol_iri(&sol, "consumer").ok_or_else(|| {
             PipelineError::InvalidDeclaration(
                 "cqConsumes: ?consumer did not bind an IRI".to_owned(),
             )
         })?;
-        let producer_iri = sol_iri(sol, "producer").ok_or_else(|| {
+        let producer_iri = sol_iri(&sol, "producer").ok_or_else(|| {
             PipelineError::InvalidDeclaration(
                 "cqConsumes: ?producer did not bind an IRI".to_owned(),
             )
@@ -246,8 +279,17 @@ pub fn validate_store(store: &Store) -> Result<(), PipelineError> {
         );
         let input_sols = run_select(store, &input_shape_iri_q)?;
         let input_shape_iri = input_sols
+            .rows
             .first()
-            .and_then(|s| sol_iri(s, "shape"))
+            .and_then(|cells| {
+                sol_iri(
+                    &Row {
+                        vars: &input_sols.variables,
+                        cells,
+                    },
+                    "shape",
+                )
+            })
             .ok_or_else(|| {
                 PipelineError::InvalidDeclaration(format!(
                     "composition: <{consumer_iri}> has gmeow:cqConsumes \
@@ -264,8 +306,17 @@ pub fn validate_store(store: &Store) -> Result<(), PipelineError> {
         );
         let result_sols = run_select(store, &result_shape_iri_q)?;
         let result_shape_iri = result_sols
+            .rows
             .first()
-            .and_then(|s| sol_iri(s, "shape"))
+            .and_then(|cells| {
+                sol_iri(
+                    &Row {
+                        vars: &result_sols.variables,
+                        cells,
+                    },
+                    "shape",
+                )
+            })
             .ok_or_else(|| {
                 PipelineError::InvalidDeclaration(format!(
                     "composition: <{consumer_iri}> consumes <{producer_iri}> \
@@ -347,7 +398,6 @@ impl Stage for ResultShapeCompositionStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::turtle_bytes_into_store_scoped;
 
     fn repo_root() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -370,7 +420,6 @@ mod tests {
     fn incompatible_composition_hard_fails() {
         // Producer declares only column ?x (IRI); consumer requires ?x AND ?y (IRI).
         // is_satisfiable_by must reject the link.
-        let store = Store::new().unwrap();
         let ttl = "\
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
@@ -400,7 +449,7 @@ mod tests {
                     logic:columnTermKind logic:TermKindIri ;\n\
                     logic:columnBinding  logic:BindingRequired\n\
                 ] .\n";
-        turtle_bytes_into_store_scoped(&store, ttl.as_bytes(), "test").unwrap();
+        let store = native_query::dataset_from_turtle(ttl.as_bytes(), "test").unwrap();
         let result = validate_store(&store);
         assert!(
             result.is_err(),
@@ -417,7 +466,6 @@ mod tests {
     #[test]
     fn compatible_composition_passes() {
         // Producer declares ?x (IRI, Required); consumer requires exactly ?x (IRI).
-        let store = Store::new().unwrap();
         let ttl = "\
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
@@ -442,7 +490,7 @@ mod tests {
                     logic:columnTermKind logic:TermKindIri ;\n\
                     logic:columnBinding  logic:BindingRequired\n\
                 ] .\n";
-        turtle_bytes_into_store_scoped(&store, ttl.as_bytes(), "test").unwrap();
+        let store = native_query::dataset_from_turtle(ttl.as_bytes(), "test").unwrap();
         validate_store(&store).expect("compatible composition must pass");
     }
 }

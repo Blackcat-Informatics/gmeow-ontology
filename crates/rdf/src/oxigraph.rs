@@ -159,31 +159,6 @@ fn rescope_quad_blanks(quad: &Quad, prefix: &str) -> Quad {
     )
 }
 
-/// Flatten a frozen [`RdfDataset`] into the source-faithful flat [`RdfQuad`] stream —
-/// the `gmeow-rdf` owned-model twin of [`flat_oxigraph_quads_from_dataset`], for
-/// consumers (e.g. the native `statements` codec) that fold over [`RdfQuad`] rather
-/// than oxigraph quads. Base quads first, then the re-materialized `rdf:reifies` rows
-/// and annotation rows.
-pub fn flat_rdf_quads_from_dataset(dataset: &RdfDataset) -> Vec<RdfQuad> {
-    let mut quads: Vec<RdfQuad> = dataset.owned_quads().collect();
-    for reifier in dataset.owned_reifiers() {
-        let statement = RdfTerm::triple(reifier.statement.clone());
-        quads.push(RdfQuad::new(
-            reifier.reifier.clone(),
-            RDF_REIFIES,
-            statement,
-        ));
-    }
-    for annotation in dataset.owned_annotations() {
-        quads.push(RdfQuad::new(
-            annotation.reifier.clone(),
-            annotation.predicate.clone(),
-            annotation.object.clone(),
-        ));
-    }
-    quads
-}
-
 /// Materialize an in-memory oxigraph [`Store`] back into the frozen [`RdfDataset`]
 /// IR, text-free.
 ///

@@ -27,7 +27,7 @@ python = ["dep:pyo3"]
 [dependencies]
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
-gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
+gmeow-rdf = { path = "../rdf", features = ["gts"] }
 # The native, zero-dependency XSD value space (#906): the snapshot carrier
 # canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
 # `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +
@@ -35,6 +35,17 @@ gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
 # normalizer (#1132 carrier-purity). DIRECT + NON-optional: the snapshot carrier
 # path is always on, so this must not be feature-gated.
 gmeow-xsd = { path = "../xsd" }
+# The native SPARQL engine (#906): the single required impl of the gmeow-rdf-core
+# `SparqlEngine` seam. The result-shape / research-object export leaves run their
+# introspection SELECTs and CONSTRUCT over the native `RdfDataset` carrier through
+# this engine, replacing the transient oxigraph `Store` + `SparqlEvaluator`. DIRECT
+# + NON-optional: those export leaves are always on, so this must not be gated.
+gmeow-sparql-eval = { path = "../sparql-eval" }
+# Native, oxigraph-free term-IRI validator (`NamedNode::new` → `gmeow_iri::parse`,
+# absolute-IRI in term position). The `yaml_ld` export leaf's JSON-LD-star inverse
+# validates `@id`/`@type`/predicate/graph IRIs through this, preserving the old
+# `oxigraph::model::NamedNode::new` Ok/Err discrimination (EPIC #906).
+gmeow-sparql-algebra = { path = "../sparql-algebra" }
 # The gts ARCHIVE BOUNDARY only (#1132): GTS is exit-only — never an internal
 # pipeline transport. Every internal export leaf (export / yaml_ld / parquet /
 # schemas / okf / transcode) now reads the native `RdfDataset` carrier off the
@@ -74,10 +85,6 @@ gmeow-docs = { path = "../docs" }
 # OpenAPI natively (gmeow_shacl::shape_union::load_shapes + json_schema::compile),
 # replacing the Python LinkML JSON-Schema/OpenAPI generators (#700).
 gmeow-shacl = { path = "../shacl" }
-# The DAG loader reads the dogfooded build graph from the same lenient oxigraph
-# Turtle parser the slice crate uses (accepts @x-gmeow-* language tags). Mirror
-# the slice/rdf crates' exact oxigraph build for a clean lockfile resolution.
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # Stage DAG: cycle detection (tarjan_scc) + topological levelling. `petgraph` is
 # a published registry crate (no `path`), so it is an external boundary, not a
 # first-party layering edge — the crate-layering gate (#820 S0) is unaffected.

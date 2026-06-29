@@ -107,5 +107,5 @@
 <https://blackcatinformatics.ca/gmeow/evals/scale-unit>
     a <https://blackcatinformatics.ca/gmeow/ScoreScale> ;
     <http://www.w3.org/2000/01/rdf-schema#label> "unit interval"@en ;
-    <https://blackcatinformatics.ca/gmeow/scaleMax> "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
-    <https://blackcatinformatics.ca/gmeow/scaleMin> "0"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+    <https://blackcatinformatics.ca/gmeow/scaleMax> 1.0 ;
+    <https://blackcatinformatics.ca/gmeow/scaleMin> 0.0 .

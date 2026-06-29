@@ -16,16 +16,27 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use oxigraph::model::Term;
-use oxigraph::store::Store;
+use gmeow_rdf::{
+    parse_dataset, DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, TermRef, TermValue,
+};
 
 use crate::error::PipelineError;
 use crate::graph::StageGraph;
 use crate::node::{Stage, StageKind, GMEOW};
 use crate::registry::StageRegistry;
-use crate::stages::source_load::turtle_bytes_into_store;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// An RDF object term surfaced from the native IR (the oxigraph-free replacement
+/// for the `oxigraph::model::Term` discrimination the loader relied on).
+enum ObjTerm {
+    /// An IRI object.
+    Named(String),
+    /// A literal object, by its lexical value.
+    Literal(String),
+    /// Any other term kind (blank / triple) — the loader never reads inside one.
+    Other,
+}
 
 /// One `gmeow:PipelineStage` individual, parsed but not yet bound to its impl.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -111,34 +122,39 @@ impl PipelineSpec {
     }
 
     /// Parse a `PipelineSpec` from one or more Turtle documents (the slice
-    /// `module.ttl` and any example DAG). Uses the same lenient oxigraph parser
-    /// the slice crate uses, so `@x-gmeow-*` language tags are accepted.
+    /// `module.ttl` and any example DAG). Uses the native lenient codecs, so
+    /// `@x-gmeow-*` language tags are accepted. Each document is merged under a
+    /// fresh blank scope (`push_dataset`); quads dedup at freeze.
     pub fn from_turtle(docs: &[&str]) -> Result<Self, PipelineError> {
-        let store = Store::new()
-            .map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+        let mut builder = RdfDatasetBuilder::new();
         for doc in docs {
-            turtle_bytes_into_store(&store, doc.as_bytes(), "pipeline-spec")?;
+            let parsed = parse_dataset(doc.as_bytes(), "text/turtle", None)
+                .map_err(|e| PipelineError::Parse(format!("syntax error in pipeline-spec: {e}")))?;
+            builder.push_dataset(&parsed);
         }
-        Self::from_store(&store)
+        let ds = builder
+            .freeze()
+            .map_err(|e| PipelineError::Parse(format!("dataset freeze failed: {e}")))?;
+        Self::from_dataset(&ds)
     }
 
-    /// Extract the (single) `gmeow:Pipeline` and its stages from a parsed store.
-    pub fn from_store(store: &Store) -> Result<Self, PipelineError> {
-        let pipeline_iri = single_subject_of_type(store, &iri(GMEOW, "Pipeline"))?
+    /// Extract the (single) `gmeow:Pipeline` and its stages from a parsed dataset.
+    pub fn from_dataset(ds: &RdfDataset) -> Result<Self, PipelineError> {
+        let pipeline_iri = single_subject_of_type(ds, &iri(GMEOW, "Pipeline"))?
             .ok_or_else(|| PipelineError::Parse("no `a gmeow:Pipeline` individual found".into()))?;
 
         // Collect the hasStage members.
         let has_stage = iri(GMEOW, "hasStage");
         let mut stage_iris: BTreeSet<String> = BTreeSet::new();
-        for o in objects(store, &pipeline_iri, &has_stage)? {
-            if let Term::NamedNode(nn) = o {
-                stage_iris.insert(nn.as_str().to_string());
+        for o in objects(ds, &pipeline_iri, &has_stage) {
+            if let ObjTerm::Named(nn) = o {
+                stage_iris.insert(nn);
             }
         }
 
         let mut stages: Vec<StageSpec> = Vec::new();
         for stage_iri in &stage_iris {
-            stages.push(parse_stage(store, stage_iri)?);
+            stages.push(parse_stage(ds, stage_iri)?);
         }
         stages.sort_by(|a, b| a.id.cmp(&b.id));
 
@@ -150,14 +166,14 @@ impl PipelineSpec {
 }
 
 /// Parse one `gmeow:PipelineStage` individual into a [`StageSpec`].
-fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineError> {
+fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, PipelineError> {
     let id = local_name(stage_iri);
 
     // gmeow:stageKind (exactly one).
-    let kind_iri = objects(store, stage_iri, &iri(GMEOW, "stageKind"))?
+    let kind_iri = objects(ds, stage_iri, &iri(GMEOW, "stageKind"))
         .into_iter()
         .find_map(|t| match t {
-            Term::NamedNode(nn) => Some(nn.as_str().to_string()),
+            ObjTerm::Named(nn) => Some(nn),
             _ => None,
         })
         .ok_or_else(|| PipelineError::Parse(format!("stage {id} has no gmeow:stageKind")))?;
@@ -166,13 +182,13 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
     })?;
 
     // gmeow:stageImpl (exactly one string).
-    let impl_key = objects(store, stage_iri, &iri(GMEOW, "stageImpl"))?
+    let impl_key = objects(ds, stage_iri, &iri(GMEOW, "stageImpl"))
         .into_iter()
         .find_map(literal_string)
         .ok_or_else(|| PipelineError::Parse(format!("stage {id} has no gmeow:stageImpl")))?;
 
     // gmeow:carriesEngineLock (exactly one boolean).
-    let engine_lock = objects(store, stage_iri, &iri(GMEOW, "carriesEngineLock"))?
+    let engine_lock = objects(ds, stage_iri, &iri(GMEOW, "carriesEngineLock"))
         .into_iter()
         .find_map(literal_bool)
         .ok_or_else(|| {
@@ -180,10 +196,10 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
         })?;
 
     // gmeow:dataflowConsumes (zero or more stage IRIs → local names).
-    let mut consumes: Vec<String> = objects(store, stage_iri, &iri(GMEOW, "dataflowConsumes"))?
+    let mut consumes: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "dataflowConsumes"))
         .into_iter()
         .filter_map(|t| match t {
-            Term::NamedNode(nn) => Some(local_name(nn.as_str())),
+            ObjTerm::Named(nn) => Some(local_name(&nn)),
             _ => None,
         })
         .collect();
@@ -191,7 +207,7 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
     consumes.dedup();
 
     // gmeow:producesFormat (zero or more strings).
-    let mut formats: Vec<String> = objects(store, stage_iri, &iri(GMEOW, "producesFormat"))?
+    let mut formats: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "producesFormat"))
         .into_iter()
         .filter_map(literal_string)
         .collect();
@@ -262,37 +278,41 @@ fn local_name(iri: &str) -> String {
     iri.rsplit(['/', '#']).next().unwrap_or(iri).to_string()
 }
 
-/// All objects of `(subject, predicate, _)`.
-fn objects(store: &Store, subject: &str, predicate: &str) -> Result<Vec<Term>, PipelineError> {
-    let s = oxigraph::model::NamedNode::new(subject)
-        .map_err(|e| PipelineError::Parse(format!("invalid subject IRI {subject}: {e}")))?;
-    let p = oxigraph::model::NamedNode::new(predicate)
-        .map_err(|e| PipelineError::Parse(format!("invalid predicate IRI {predicate}: {e}")))?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(Some(s.as_ref().into()), Some(p.as_ref()), None, None) {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        out.push(quad.object);
-    }
-    Ok(out)
+/// All objects of `(subject, predicate, _)`, in dataset order. An IRI subject or
+/// predicate absent from the dataset's term table yields no matches (its id does
+/// not exist), matching the old empty-pattern scan.
+fn objects(ds: &RdfDataset, subject: &str, predicate: &str) -> Vec<ObjTerm> {
+    let (Some(s), Some(p)) = (
+        ds.term_id_by_value(&TermValue::iri(subject)),
+        ds.term_id_by_value(&TermValue::iri(predicate)),
+    ) else {
+        return Vec::new();
+    };
+    ds.quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
+        .map(|q| match ds.resolve(q.o) {
+            TermRef::Iri(iri) => ObjTerm::Named(iri.to_owned()),
+            TermRef::Literal { lexical, .. } => ObjTerm::Literal(lexical.to_owned()),
+            _ => ObjTerm::Other,
+        })
+        .collect()
 }
 
-/// The single subject of `(_, rdf:type, class)`, or `None` if there are none.
+/// The single named subject of `(_, rdf:type, class)`, or `None` if there are none.
 /// HARD-fails if there is more than one.
-fn single_subject_of_type(store: &Store, class_iri: &str) -> Result<Option<String>, PipelineError> {
-    let rdf_type = oxigraph::model::NamedNode::new(RDF_TYPE)
-        .map_err(|e| PipelineError::Parse(format!("invalid rdf:type IRI: {e}")))?;
-    let class = oxigraph::model::NamedNode::new(class_iri)
-        .map_err(|e| PipelineError::Parse(format!("invalid class IRI {class_iri}: {e}")))?;
+fn single_subject_of_type(
+    ds: &RdfDataset,
+    class_iri: &str,
+) -> Result<Option<String>, PipelineError> {
+    let (Some(p), Some(o)) = (
+        ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
+        ds.term_id_by_value(&TermValue::iri(class_iri)),
+    ) else {
+        return Ok(None);
+    };
     let mut subjects: BTreeSet<String> = BTreeSet::new();
-    for quad in store.quads_for_pattern(
-        None,
-        Some(rdf_type.as_ref()),
-        Some(class.as_ref().into()),
-        None,
-    ) {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let oxigraph::model::NamedOrBlankNode::NamedNode(nn) = &quad.subject {
-            subjects.insert(nn.as_str().to_string());
+    for q in ds.quads_for_pattern(None, Some(p), Some(o), GraphMatch::Default) {
+        if let TermRef::Iri(iri) = ds.resolve(q.s) {
+            subjects.insert(iri.to_owned());
         }
     }
     match subjects.len() {
@@ -304,16 +324,16 @@ fn single_subject_of_type(store: &Store, class_iri: &str) -> Result<Option<Strin
     }
 }
 
-fn literal_string(term: Term) -> Option<String> {
+fn literal_string(term: ObjTerm) -> Option<String> {
     match term {
-        Term::Literal(l) => Some(l.value().to_string()),
+        ObjTerm::Literal(v) => Some(v),
         _ => None,
     }
 }
 
-fn literal_bool(term: Term) -> Option<bool> {
+fn literal_bool(term: ObjTerm) -> Option<bool> {
     match term {
-        Term::Literal(l) => match l.value() {
+        ObjTerm::Literal(v) => match v.as_str() {
             "true" | "1" => Some(true),
             "false" | "0" => Some(false),
             _ => None,

@@ -2,8 +2,8 @@
     a <https://blackcatinformatics.ca/gmeow/Chunk> ;
     <https://blackcatinformatics.ca/gmeow/chunkOf> <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> ;
     <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" ;
-    <https://blackcatinformatics.ca/gmeow/spanEnd> 6100 ;
-    <https://blackcatinformatics.ca/gmeow/spanStart> 5200 .
+    <https://blackcatinformatics.ca/gmeow/spanEnd> "6100"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+    <https://blackcatinformatics.ca/gmeow/spanStart> "5200"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/cluster-run>
     a <https://blackcatinformatics.ca/gmeow/Activity> ;
@@ -14,7 +14,7 @@
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/community-infra>
     a <https://blackcatinformatics.ca/gmeow/Community> ;
     <http://www.w3.org/2000/01/rdf-schema#label> "infrastructure community"@en ;
-    <https://blackcatinformatics.ca/gmeow/communityLevel> 0 ;
+    <https://blackcatinformatics.ca/gmeow/communityLevel> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
     <https://blackcatinformatics.ca/gmeow/communityMember> <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys> ,
         <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-mara> ;
     <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44" ;
@@ -54,7 +54,7 @@
     a <https://blackcatinformatics.ca/gmeow/Embedding> ;
     <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" ;
     <https://blackcatinformatics.ca/gmeow/distanceMetric> <https://blackcatinformatics.ca/gmeow/distanceMetricCosine> ;
-    <https://blackcatinformatics.ca/gmeow/embeddingDimensions> 1024 ;
+    <https://blackcatinformatics.ca/gmeow/embeddingDimensions> "1024"^^<http://www.w3.org/2001/XMLSchema#positiveInteger> ;
     <https://blackcatinformatics.ca/gmeow/embeddingModel> <https://blackcatinformatics.ca/gmeow/examples/graphrag/embedder> ;
     <https://blackcatinformatics.ca/gmeow/embeddingOf> <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
     <https://blackcatinformatics.ca/gmeow/vectorRef> "s3://lillith/vectors/chunk-7"^^<http://www.w3.org/2001/XMLSchema#anyURI> ;
@@ -84,7 +84,7 @@
     a <https://blackcatinformatics.ca/gmeow/ModelInvocation> ;
     <https://blackcatinformatics.ca/gmeow/atTime> "2026-06-01T12:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
     <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
-    <https://blackcatinformatics.ca/gmeow/samplingTemperature> "0"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    <https://blackcatinformatics.ca/gmeow/samplingTemperature> 0.0 ;
     <https://blackcatinformatics.ca/gmeow/usedModel> <https://blackcatinformatics.ca/gmeow/examples/graphrag/extractor> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive>
