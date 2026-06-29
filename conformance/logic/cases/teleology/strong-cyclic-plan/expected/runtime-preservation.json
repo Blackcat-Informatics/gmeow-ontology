@@ -1,6 +1,8 @@
 {
   "polarities": [
-    "ExactPreservation"
+    "SoundUnderApproximation"
   ],
-  "unsupported_constructs": []
+  "unsupported_constructs": [
+    "logic:Plan flow-graph cycle is unsupported under the DAG-workflow profile (logic:DagWorkflowResource): the offending cycle members are disclosed by logic:dagCycleWitness; the plan stays valid under a non-DAG contract"
+  ]
 }
