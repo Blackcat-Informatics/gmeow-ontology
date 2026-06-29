@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The scoped coherence certificate (ME13).
+//! The scoped coherence certificate.
 //!
 //! A coherence check over a bundle yields a CONTRACT-SCOPED assertion:
 //!

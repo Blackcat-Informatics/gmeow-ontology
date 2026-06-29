@@ -47,7 +47,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// of the `admissible_valuation` facet (the four `logic:AdmissibleValuationPolicy`
 /// individuals). It is the pivot that classifies a within-world glut as a permitted,
 /// disclosed conflict or a forbidden integrity violation for the scoped coherence
-/// certificate (ME13).
+/// certificate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ContradictionPolicy {
     /// Belnap's four-valued algebra: both truth-value gaps AND gluts are admitted.
