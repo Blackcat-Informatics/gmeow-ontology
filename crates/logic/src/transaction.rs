@@ -271,7 +271,7 @@ pub(crate) fn parse_program(
     // The recognized combinator classes among this node's rdf:type.
     let types: Vec<String> = facts
         .objects(node, RDF_TYPE)
-        .iter()
+        .into_iter()
         .filter_map(|t| t.strip_prefix(LOGIC_NAMESPACE).map(str::to_owned))
         .filter(|local| COMBINATOR_CLASSES.contains(&local.as_str()))
         .collect();
@@ -360,8 +360,8 @@ fn mint_state(root: &str, node: &str, base_state: &str) -> String {
 fn preconditions_hold(facts: &WorldFacts, schema: &str, sits: &BTreeSet<String>) -> bool {
     facts
         .objects(schema, &logic(PRECONDITION))
-        .iter()
-        .all(|p| sits.contains(*p))
+        .into_iter()
+        .all(|p| sits.contains(p))
 }
 
 /// Execute `program` from `state` (with support `sits`) under executional entailment.
@@ -505,7 +505,7 @@ pub(crate) fn program_roots(facts: &WorldFacts) -> Vec<String> {
     }
     typed
         .difference(&used)
-        .filter(|n| facts.object(n, &logic(TRANSITION_FROM_STATE)).is_some())
+        .filter(|&n| facts.object(n, &logic(TRANSITION_FROM_STATE)).is_some())
         .cloned()
         .collect()
 }
@@ -523,8 +523,8 @@ pub(crate) fn root_start(
     let start = require_one(facts, root, TRANSITION_FROM_STATE)?;
     let sits: BTreeSet<String> = facts
         .objects(&start, &logic(SITUATION_OBTAINS))
-        .iter()
-        .map(|s| (*s).to_owned())
+        .into_iter()
+        .map(ToOwned::to_owned)
         .collect();
     Ok((start, sits))
 }
