@@ -212,7 +212,7 @@ ex:g {
         // binding and the annotation re-appear as ordinary N-Quads lines, and the
         // canonical document carries NO native overlay sentinel.
         assert!(
-            canon.contains("/reifies>"),
+            canon.contains("#reifies>"),
             "the reifier binding must re-appear as a plain rdf:reifies triple:\n{canon}"
         );
         assert!(
