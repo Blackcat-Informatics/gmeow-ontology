@@ -14,16 +14,17 @@
 # Compiled to mappings/gmeow-procedures.sssom.tsv by `gmeow compile-mappings`.
 # Projections live in mapping-dsl/projections/schema-org-procedures.ttl.
 #
-# NOTE: BPMN 2.0, CWL, WDL, and RO-Crate Workflow-Run do not publish canonical
-# RDF ontologies with stable term IRIs; alignments to them are carried as
-# skos:relatedMatch to informal concept URIs and will be refined when stable
-# vocabularies emerge.
+# NOTE: BPMN 2.0, CWL, WDL, RO-Crate Workflow-Run, and the workflow engines
+# Airflow / Temporal / Nextflow do not publish canonical RDF ontologies with
+# stable term IRIs; alignments to them are carried as skos:relatedMatch to
+# informal concept URIs (by-reference logic:BridgeView lowerings of logic:Plan)
+# and will be refined when stable vocabularies emerge.
 
 gmeow:mapsetProcedures a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-procedures.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/procedures" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Plan ⟂ execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, and OBI. GMEOW models the distinction natively and bridges by reference (Principle 5)." .
+    gmeow:setComment "Plan ⟂ execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, OBI, BPMN, RO-Crate, and the workflow engines Airflow / CWL / WDL / Temporal / Nextflow. gmeow:Procedure is a logic:Plan; every engine surface is a lossy by-reference lowering of that canonical process model (Principle 5)." .
 
 # --------------------------------------------------------------------------- #
 # P-Plan — the closest peer model for plan / step / input / output / precedence
@@ -285,4 +286,111 @@ gmeow:eqProc026 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:comment "RO-Crate Workflow-Run CreateAction; GMEOW Execution is the event that enacts a procedure." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Workflow-engine surfaces — Airflow / CWL / WDL / Temporal / Nextflow.        #
+#                                                                              #
+# These engines publish no canonical RDF ontologies with stable term IRIs, so  #
+# each alignment is a BY-REFERENCE bridge (logic:BridgeView, Principle 5):     #
+# skos:relatedMatch to an informal concept IRI (a full IRI, not a registered   #
+# CURIE), NOT an equivalence. As lowerings of the canonical logic:Plan process #
+# model they are commitment-shifting and lossy — preservation polarity         #
+# validation-only, never exact. The recurring drops the engine surfaces impose #
+# on the canonical model: a logic:Iteration loop is unrolled or rejected (most #
+# DAG engines forbid cycles), a logic:ConcurrentComposition is serialized where #
+# the engine has no parallel gateway, and a per-outcome logic:compensation is  #
+# omitted where the engine has no compensation primitive. The structured       #
+# per-correspondence residue ledger is assembled by the mappings stage into    #
+# generated/logic/projection-report.                                          #
+# --------------------------------------------------------------------------- #
+
+gmeow:eqProc027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Procedure ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://airflow.apache.org/concept/DAG> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Apache Airflow DAG (by reference, no canonical RDF): a procedure is a DAG of tasks. Lossy lowering — Airflow forbids cycles (a logic:Iteration loop must unroll or error) and has no per-outcome compensation (omitted)." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProcedureStep ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://airflow.apache.org/concept/Task> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Apache Airflow Task (by reference): a procedure step is an Airflow task node in the DAG." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Procedure ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://w3id.org/cwl/cwl#Workflow> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Common Workflow Language Workflow (by reference, no stable RDF term IRIs): a procedure is a CWL workflow. Lossy — CWL is acyclic dataflow (a logic:Iteration loop must unroll) and carries no compensation (omitted)." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProcedureStep ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://w3id.org/cwl/cwl#WorkflowStep> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Common Workflow Language WorkflowStep (by reference): a procedure step is a CWL workflow step." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Procedure ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://openwdl.org/concept/Workflow> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Workflow Description Language (WDL) workflow (by reference, no canonical RDF): a procedure is a WDL workflow of calls. Lossy lowering of the canonical plan." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProcedureStep ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://openwdl.org/concept/Task> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Workflow Description Language (WDL) task (by reference): a procedure step is a WDL task." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Procedure ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://temporal.io/concept/Workflow> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "Temporal Workflow (by reference, no canonical RDF): a procedure is a Temporal workflow definition. Temporal DOES express loops and compensation (saga) imperatively, so the lowering is closer for control flow but is a code surface, not a declarative spec — carried by reference only." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProcedureStep ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://temporal.io/concept/Activity> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.55 ;
+    gmeow:comment "Temporal Activity (by reference): a procedure step is a Temporal activity invoked by the workflow." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Procedure ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://www.nextflow.io/concept/Workflow> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Nextflow workflow (by reference, no canonical RDF): a procedure is a Nextflow dataflow workflow of processes. Lossy — Nextflow concurrency is channel-implicit (a logic:ConcurrentComposition serializes in the spec view) and there is no compensation primitive (omitted)." ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProcedureStep ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://www.nextflow.io/concept/Process> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Nextflow process (by reference): a procedure step is a Nextflow process node consuming/producing channels." ;
     gmeow:sssomFile "gmeow-procedures.sssom.tsv" .

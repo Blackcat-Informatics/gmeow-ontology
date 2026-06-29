@@ -9,13 +9,19 @@
 # the procedure, with an gmeow:executionStatus and its participant. The same model
 # covers a recipe, a lab protocol, a CI build, and an agent flow (procedureType).
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/procedures/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
-# --- The procedure and its three steps.
+# --- The procedure and its three steps. A gmeow:Procedure IS a logic:Plan, so it
+#     carries its success criterion: a goal and a success mode.
+ex:goalLoadedEvents a gmeow:Goal ; rdfs:label "Loaded events"@x-gmeow-english .
+
 ex:pipeline a gmeow:Procedure ;
     rdfs:label             "Nightly events ETL"@x-gmeow-english ;
     gmeow:procedureType    gmeow:procedureTypeDataPipeline ;
+    logic:planGoal         ex:goalLoadedEvents ;
+    logic:planSuccessMode  logic:StrongPlanSuccess ;
     gmeow:hasProcedureStep ex:extract , ex:transform , ex:load .
 
 ex:extract   a gmeow:ProcedureStep ; rdfs:label "Extract"@x-gmeow-english ;   gmeow:procedureStepType gmeow:stepTypeStart .
