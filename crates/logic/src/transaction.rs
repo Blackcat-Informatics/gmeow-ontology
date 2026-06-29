@@ -579,12 +579,27 @@ pub(crate) enum ExecutionMode {
 /// # Errors
 ///
 /// A MALFORMED declaration is a HARD ERROR: a root naming more than one governing contract, a
-/// contract carrying more than one `logic:executionMode` value, or an `executionMode` value that
-/// is neither `logic:CommittedExecution` nor `logic:HypotheticalExecution`.
+/// non-IRI (literal) `logic:executedUnderContract` or `logic:executionMode` value, a contract
+/// carrying more than one `logic:executionMode` value, or an `executionMode` value that is
+/// neither `logic:CommittedExecution` nor `logic:HypotheticalExecution`.
 pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<ExecutionMode, String> {
     let contracts = facts.objects(root, &logic(EXECUTED_UNDER_CONTRACT));
     let contract = match contracts.len() {
-        0 => return Ok(ExecutionMode::Committed),
+        // `WorldFacts::objects` returns only IRI-valued objects, so a present-but-non-IRI link
+        // is invisible here. That is malformed sandbox input — NOT an absent contract — and must
+        // hard-fail rather than silently default to committed (which would commit a run authored
+        // to be discarded).
+        0 => {
+            if facts
+                .object_n3(root, &logic(EXECUTED_UNDER_CONTRACT))
+                .is_some()
+            {
+                return Err(format!(
+                    "transaction-program node {root:?} names a non-IRI logic:executedUnderContract value (a governing contract must be an IRI)"
+                ));
+            }
+            return Ok(ExecutionMode::Committed);
+        }
         1 => contracts[0],
         n => {
             return Err(format!(
@@ -594,7 +609,15 @@ pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<Exec
     };
     let modes = facts.objects(contract, &logic(EXECUTION_MODE));
     match modes.len() {
-        0 => Ok(ExecutionMode::Committed),
+        // Same fail-closed discipline for the mode value: a non-IRI literal is malformed, not absent.
+        0 => {
+            if let Some(value) = facts.object_n3(contract, &logic(EXECUTION_MODE)) {
+                return Err(format!(
+                    "logic:ReasoningContract {contract:?} names a non-IRI logic:executionMode value {value:?} (expected logic:CommittedExecution or logic:HypotheticalExecution)"
+                ));
+            }
+            Ok(ExecutionMode::Committed)
+        }
         1 => {
             let value = modes[0];
             if value == logic(COMMITTED_EXECUTION) {
@@ -616,6 +639,74 @@ pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<Exec
 /// BLAKE3 digest (32 raw bytes) of a string, for content-addressing a hypothetical run.
 fn blake3_32(s: &str) -> [u8; 32] {
     *blake3::hash(s.as_bytes()).as_bytes()
+}
+
+/// A canonical, layout-independent serialization of a transaction program — the stable
+/// content-address input for the hypothetical-run key.
+///
+/// Unlike `format!("{program:?}")`, this encoding is a committed contract: each combinator is
+/// named and every operand is length-prefixed, so a refactor of the IR's field order or its
+/// `Debug` impl cannot silently renumber persisted witnesses. This mirrors the canonical-
+/// serialization discipline the counterfactual keys use (never `Debug`).
+fn canonical_program(program: &TransactionProgram) -> String {
+    /// Length-prefix a leaf string so no concatenation boundary can collide.
+    fn field(out: &mut String, s: &str) {
+        out.push_str(&s.len().to_string());
+        out.push(':');
+        out.push_str(s);
+        out.push(';');
+    }
+    fn encode(out: &mut String, program: &TransactionProgram) {
+        match program {
+            TransactionProgram::Primitive { node, schema } => {
+                out.push_str("(primitive ");
+                field(out, node);
+                field(out, schema);
+                out.push(')');
+            }
+            TransactionProgram::Serial { node, left, right } => {
+                out.push_str("(serial ");
+                field(out, node);
+                encode(out, left);
+                encode(out, right);
+                out.push(')');
+            }
+            TransactionProgram::Choice {
+                node,
+                guard,
+                left,
+                right,
+            } => {
+                out.push_str("(choice ");
+                field(out, node);
+                field(out, guard);
+                encode(out, left);
+                encode(out, right);
+                out.push(')');
+            }
+            TransactionProgram::Fallback { node, left, right } => {
+                out.push_str("(fallback ");
+                field(out, node);
+                encode(out, left);
+                encode(out, right);
+                out.push(')');
+            }
+            TransactionProgram::Iteration {
+                node,
+                condition,
+                body,
+            } => {
+                out.push_str("(iteration ");
+                field(out, node);
+                field(out, condition);
+                encode(out, body);
+                out.push(')');
+            }
+        }
+    }
+    let mut out = String::new();
+    encode(&mut out, program);
+    out
 }
 
 // ── Materialization: the executional-entailment outcome surface ──────────────────
@@ -732,7 +823,7 @@ pub(crate) fn emit_transaction_outcome(
                         .collect::<Vec<_>>()
                         .join("\n"),
                 ),
-                program_hash: blake3_32(&format!("{program:?}")),
+                program_hash: blake3_32(&canonical_program(&program)),
                 world: world.to_owned(),
                 solver_version: crate::counterfactual::SOLVER_VERSION.to_owned(),
             });

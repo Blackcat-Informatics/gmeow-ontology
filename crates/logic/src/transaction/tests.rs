@@ -738,3 +738,76 @@ fn root_execution_mode_hard_fails_on_unknown_value() {
     let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
     assert!(err.contains("unknown logic:executionMode"), "{err}");
 }
+
+#[test]
+fn root_execution_mode_defaults_to_committed_when_contract_has_no_mode() {
+    // One governing contract, but it carries no logic:executionMode at all: the distinct
+    // "one contract, zero modes" branch must resolve to the committed default.
+    let nq = format!(
+        "{}{}",
+        choice_world(true),
+        q(&e("ch"), &l("executedUnderContract"), &e("k")),
+    );
+    assert_eq!(
+        root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap(),
+        ExecutionMode::Committed,
+        "a governing contract without logic:executionMode still defaults to committed"
+    );
+}
+
+#[test]
+fn root_execution_mode_hard_fails_on_non_iri_contract() {
+    // A literal logic:executedUnderContract is malformed sandbox input: it is invisible to
+    // objects() (IRIs only), so it must be detected and hard-fail rather than silently commit.
+    let nq = format!(
+        "{}{}",
+        choice_world(true),
+        q(&e("ch"), &l("executedUnderContract"), "\"hypoContract\""),
+    );
+    let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
+    assert!(err.contains("non-IRI logic:executedUnderContract"), "{err}");
+}
+
+#[test]
+fn root_execution_mode_hard_fails_on_non_iri_execution_mode() {
+    // A literal logic:executionMode must NOT be mistaken for an absent mode (which would
+    // silently default to committed) — a run authored as a sandbox would otherwise commit.
+    let nq = format!(
+        "{}{}{}",
+        choice_world(true),
+        q(&e("ch"), &l("executedUnderContract"), &e("k")),
+        q(&e("k"), &l("executionMode"), "\"HypotheticalExecution\""),
+    );
+    let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
+    assert!(err.contains("non-IRI logic:executionMode"), "{err}");
+}
+
+#[test]
+fn canonical_program_is_stable_and_distinguishes_structure() {
+    // The hypothetical-run key hashes this encoding, so it is a committed content-address
+    // contract: identical for equal programs, distinct for structurally different ones, and
+    // never derived from Debug formatting.
+    let a = TransactionProgram::Primitive {
+        node: "n".into(),
+        schema: "s".into(),
+    };
+    let b = TransactionProgram::Primitive {
+        node: "n".into(),
+        schema: "s".into(),
+    };
+    assert_eq!(canonical_program(&a), canonical_program(&b));
+
+    let other_schema = TransactionProgram::Primitive {
+        node: "n".into(),
+        schema: "other".into(),
+    };
+    assert_ne!(canonical_program(&a), canonical_program(&other_schema));
+
+    // Length-prefixing prevents adjacent leaf fields from colliding across a boundary
+    // ("ns" + "" must not encode the same as "n" + "s").
+    let boundary = TransactionProgram::Primitive {
+        node: "ns".into(),
+        schema: String::new(),
+    };
+    assert_ne!(canonical_program(&a), canonical_program(&boundary));
+}
