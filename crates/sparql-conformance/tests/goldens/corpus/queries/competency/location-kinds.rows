@@ -1,0 +1,9 @@
+kind
+[Some(Iri("https://blackcatinformatics.ca/gmeow/BiologicalSequenceLocation"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/CelestialLocation"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Location"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Place"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/SpatialBin"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/StorageLocation"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/VirtualLocation"))]
+[Some(Iri("https://schema.org/Country"))]

@@ -1,0 +1,7 @@
+medium
+[Some(Iri("https://blackcatinformatics.ca/gmeow/storageMediumCloudService"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/storageMediumContentAddressed"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/storageMediumLocalFilesystem"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/storageMediumObjectStore"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/storageMediumPhysicalDisk"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/storageMediumRemovableMedia"))]

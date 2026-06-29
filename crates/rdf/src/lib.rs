@@ -84,6 +84,11 @@ pub mod py_gts_view;
 pub mod py_sssom;
 #[cfg(feature = "oxigraph")]
 pub mod statements;
+// Shared corpus-classification helpers (EPIC #906 Task 2): one definition for the
+// differential parity sweep (tests/sparql_eval_parity.rs) and the golden-capture
+// binary (src/bin/capture_sparql_goldens.rs).
+#[cfg(feature = "oxigraph")]
+pub mod capture_support;
 // Canonical, review-friendly Turtle serializer over the IR (#819 Task 9): the
 // native replacement for rdflib `longturtle` in `gmeow normalize`.
 #[cfg(feature = "oxigraph")]

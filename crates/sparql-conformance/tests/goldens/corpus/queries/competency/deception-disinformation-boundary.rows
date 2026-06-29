@@ -1,0 +1,9 @@
+event	label	hopType
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureKiranaTransmissionEvent")), None, Some(Literal { lexical_form: "unknown", datatype: "http://www.w3.org/2001/XMLSchema#string", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureKlavierstuckPerformanceOne")), None, Some(Literal { lexical_form: "unknown", datatype: "http://www.w3.org/2001/XMLSchema#string", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureKlavierstuckPerformanceTwo")), None, Some(Literal { lexical_form: "unknown", datatype: "http://www.w3.org/2001/XMLSchema#string", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureSessionEvent")), None, Some(Literal { lexical_form: "unknown", datatype: "http://www.w3.org/2001/XMLSchema#string", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureSessionOverdubEvent")), None, Some(Literal { lexical_form: "unknown", datatype: "http://www.w3.org/2001/XMLSchema#string", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureSessionTake1Event")), None, Some(Literal { lexical_form: "unknown", datatype: "http://www.w3.org/2001/XMLSchema#string", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureSessionTake2Event")), None, Some(Literal { lexical_form: "unknown", datatype: "http://www.w3.org/2001/XMLSchema#string", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureSessionTake3Event")), None, Some(Literal { lexical_form: "unknown", datatype: "http://www.w3.org/2001/XMLSchema#string", language: None, direction: None })]

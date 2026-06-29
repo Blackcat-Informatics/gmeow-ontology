@@ -17,6 +17,10 @@
 
 #![cfg(feature = "oxigraph")]
 
+use gmeow_rdf::capture_support::{
+    collect_corpus_files, corpus_repo_root, is_deferred_construct, is_multi_query_file,
+    is_nondeterministic, row_key,
+};
 use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
 use gmeow_rdf::{
     canonicalize, dataset_from_bytes, NativeRdfFormat, OxigraphBackend, SparqlRequest, SparqlResult,
@@ -59,11 +63,6 @@ fn run_both(dataset: &Arc<RdfDataset>, store: &Store, query: &str) -> (SparqlRes
         .query(dataset, request)
         .unwrap_or_else(|e| panic!("native query failed for {query:?}: {e:?}"));
     (ox, native)
-}
-
-/// A stable, order-insensitive key for a solution row.
-fn row_key(row: &[Option<gmeow_rdf::TermValue>]) -> String {
-    format!("{row:?}")
 }
 
 /// Assert the two results agree. SELECT solutions are compared as a multiset
@@ -185,120 +184,6 @@ fn order_by_matches_oxigraph_in_sequence() {
 //       Set to the real count observed on the first run minus a small margin.
 //       Raising scope (fixing a DEFERRED construct) MUST raise this floor.
 
-/// Nondeterministic SPARQL builtins: results vary per-call, so parity against
-/// oxigraph is not meaningful. We run native only and assert well-formed output.
-fn is_nondeterministic(query_text: &str) -> bool {
-    let lower = query_text.to_lowercase();
-    lower.contains("now(")
-        || lower.contains("rand(")
-        || lower.contains("uuid(")
-        || lower.contains("struuid(")
-}
-
-/// Returns true if the error message matches a known-deferred SPARQL construct
-/// (property paths, SERVICE federation, LATERAL, DESCRIBE, RDF-1.2 triple terms in
-/// patterns). These are in-scope for later S8 (#914) / S6b (#928) / SPARQL-1.2 work;
-/// an Err here is expected, not a gap.
-fn is_deferred_construct(err_msg: &str) -> bool {
-    let lower = err_msg.to_lowercase();
-    lower.contains("property path")
-        || lower.contains("path expression")
-        || lower.contains("service")
-        || lower.contains("lateral")
-        || lower.contains("describe")
-        // The algebra type names the parser surfaces for path operators:
-        || lower.contains("pathexpr")
-        || lower.contains("unsupported path")
-        || lower.contains("path operator")
-        // Catch-all: any "not supported" / "not implemented" mentioning path
-        || (lower.contains("not support") && lower.contains("path"))
-        || (lower.contains("not implement") && lower.contains("path"))
-        // The algebra uses ZeroOrMore / OneOrMore / ZeroOrOne for * + ? paths
-        || lower.contains("zeroormore")
-        || lower.contains("oneormore")
-        || lower.contains("zeroorone")
-        || lower.contains("alternative path")
-        || lower.contains("inverse path")
-        || lower.contains("sequence path")
-        || lower.contains("negated path")
-        // RDF-1.2 / SPARQL 1.2: variable inside a quoted triple term (triple term
-        // pattern matching with unbound variables). The native engine explicitly scopes
-        // this out of S6 — "S6 scope" in the error. Deferred to SPARQL-1.2 work.
-        || lower.contains("variable inside a quoted triple")
-        || lower.contains("quoted triple term")
-        || (lower.contains("s6 scope") && lower.contains("quoted"))
-}
-
-/// Returns true if the query text is a multi-query file (contains more than one
-/// top-level SPARQL query statement). SPARQL allows only one query per invocation;
-/// some corpus files contain multiple queries separated by comments (e.g. for
-/// documentation purposes). Such files cannot be run by a single engine invocation
-/// and are skipped with a log note. Counted separately in the tally.
-///
-/// Detection: count top-level SELECT/CONSTRUCT/ASK/DESCRIBE keywords that appear
-/// at the start of a non-comment line (after stripping leading whitespace).
-fn is_multi_query_file(query_text: &str) -> bool {
-    let mut count = 0usize;
-    for line in query_text.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with('#') {
-            continue;
-        }
-        let upper = trimmed.to_uppercase();
-        if upper.starts_with("SELECT ")
-            || upper.starts_with("SELECT\t")
-            || upper.starts_with("CONSTRUCT ")
-            || upper.starts_with("CONSTRUCT\t")
-            || upper.starts_with("CONSTRUCT{")
-            || upper.starts_with("ASK ")
-            || upper.starts_with("ASK\t")
-            || upper.starts_with("ASK{")
-            || upper.starts_with("DESCRIBE ")
-            || upper.starts_with("DESCRIBE\t")
-        {
-            count += 1;
-            if count > 1 {
-                return true;
-            }
-        }
-    }
-    false
-}
-
-/// Collect every *.rq file under the two corpus roots, sorted for determinism.
-fn collect_corpus_files() -> Vec<std::path::PathBuf> {
-    let manifest = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let repo_root = manifest.join("..").join("..");
-    let roots = [
-        repo_root.join("queries"),
-        repo_root.join("generated").join("queries"),
-    ];
-    let mut files = Vec::new();
-    for root in &roots {
-        if !root.exists() {
-            continue;
-        }
-        collect_rq_recursive(root, &mut files);
-    }
-    files.sort();
-    files
-}
-
-fn collect_rq_recursive(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
-    let entries = match std::fs::read_dir(dir) {
-        Ok(e) => e,
-        Err(_) => return,
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            collect_rq_recursive(&path, out);
-        } else if path.extension().is_some_and(|e| e == "rq") {
-            out.push(path);
-        }
-    }
-}
-
 /// Corpus must not shrink below 141 queries (the count at Gap 5 authoring time).
 const CORPUS_MIN_TOTAL: usize = 141;
 
@@ -353,14 +238,6 @@ fn shard_of(rel_path: &str) -> usize {
         h = h.wrapping_mul(0x0000_0100_0000_01b3);
     }
     (h % NUM_SHARDS as u64) as usize
-}
-
-/// Repo root as the corpus enumerator builds it (`crates/rdf/../..`), used to derive
-/// the stable repo-relative shard key.
-fn corpus_repo_root() -> std::path::PathBuf {
-    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
 }
 
 #[test]

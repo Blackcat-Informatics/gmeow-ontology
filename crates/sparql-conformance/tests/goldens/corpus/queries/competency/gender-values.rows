@@ -1,0 +1,12 @@
+gender	label
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderAgender")), Some(Literal { lexical_form: "agender", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderBigender")), Some(Literal { lexical_form: "bigender", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderDemiboy")), Some(Literal { lexical_form: "demiboy", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderDemigirl")), Some(Literal { lexical_form: "demigirl", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderGenderfluid")), Some(Literal { lexical_form: "genderfluid", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderGenderqueer")), Some(Literal { lexical_form: "genderqueer", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderMan")), Some(Literal { lexical_form: "man", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderNonBinary")), Some(Literal { lexical_form: "non-binary", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderQuestioning")), Some(Literal { lexical_form: "questioning", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderTwoSpirit")), Some(Literal { lexical_form: "Two-Spirit", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/genderWoman")), Some(Literal { lexical_form: "woman", datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString", language: Some("x-gmeow-english"), direction: None })]

@@ -1,0 +1,7 @@
+<https://blackcatinformatics.ca/gmeow/self#logo-svg> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://iiif.io/api/presentation/3#Canvas> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-png> <http://iiif.io/api/presentation/3#height> "640"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-png> <http://iiif.io/api/presentation/3#width> "1280"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-png> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://iiif.io/api/presentation/3#Canvas> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-svg> <http://iiif.io/api/presentation/3#height> "640"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-svg> <http://iiif.io/api/presentation/3#width> "1280"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-svg> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://iiif.io/api/presentation/3#Canvas> .
