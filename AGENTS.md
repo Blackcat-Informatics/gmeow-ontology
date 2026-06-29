@@ -254,65 +254,34 @@ JUnit report and **hard-fails if any test exceeds the budget**
 The nextest `slow-timeout` (`.config/nextest.toml`) stays at the 120 s terminate
 cliff purely as a runaway/hang backstop; the 25 s **policy** is the JUnit gate.
 
-A test that is *irreducibly* heavier than the budget (full-fold reasoning, full-DAG
-parity, snapshot codec round-trips, Nemo closures, the native-pathological corpus
-parity query) does NOT get a per-test timeout override. Instead it is **carved out of the default/ci profiles and runs on
-the `maint-heavy` profile** (`make maint-rust-heavy`), so its coverage still runs —
-off the per-commit gate, on a maint/scheduled lane. The single source of truth for
-what is off-gate is the **`default-filter` expression in `.config/nextest.toml`**;
-every excluded group is justified by an inline comment there. Adding a new off-gate
-exception requires a comment in that filter AND a one-line entry here.
+A test that is *irreducibly* heavier than the budget does NOT get a per-test
+timeout override. Instead it is **carved out of the default/ci profiles and runs
+on the `maint-heavy` profile** (`make maint-rust-heavy`), so its coverage still
+runs — off the per-commit gate, on a maint/scheduled lane. Correctness failures
+stay in the normal gate, even when they were first discovered during
+`maint-heavy` evaluation. The single source of truth for what is off-gate is the
+**`default-filter` expression in `.config/nextest.toml`**; every excluded group
+is justified by an inline comment there. Adding a new off-gate exception requires
+a comment in that filter AND a one-line entry here.
 
-Default off-gate groups (2026-06-27, #1045): `gmeow-logic::ontology_entailments`
-(Nemo RL); the `gmeow-logic`
-`sparql_path_parity` binary + `sparql_path_lower::tests` module (#914 S8 property
-paths — every case drives `run_scryer`, paying a ~9-10 s Scryer
-machine-construction floor that process-per-test cannot share; several reach
-19-34 s; engine-construction-bound like `ontology_entailments`); the
-`gmeow-pipeline` `end_to_end`/`fold_parity`/full-fold/snapshot-codec/mapping-parity
-tests, including the correspondence-parity oracle family — the whole
-`edoal_sparql_correspondence_parity`, `fno_correspondence_parity`, and
-`sssom_correspondence_parity` binaries (every test lowers the full DSL+ontology
-correspondence corpus from one shared get-leg model — irreducibly O(ontology-size);
-off-gated by binary so no oracle's twin slips through); scoreboards-acceptance
-tests; the `gmeow-pipeline`
-`dist_jsonld_roundtrips_through_oxigraph` + `product_routing`
-`compiler_products_are_first_class_dag_artifacts` tests (both round-trip / route the
-full shipped bundle, which now carries the signal-dense per-correspondence
-preservation loss ledger — ~5 residue notes per alignment correspondence — so the
-artifact is irreducibly large) and `reason_produces_nonempty_artifacts` (the reason
-stage's O(ontology-size) full-graph native reason, ~14 s solo, crosses the 25 s
-budget under gate contention as the ontology grows — fast per-commit reason coverage
-is `make reason` + the gmeow-logic unit reason tests); a Nemo conformance case; a few whole-ontology
-`gmeow-slice`/`gmeow-slicetest` emit/closure checks; the off-gate corpus parity
-queries (`OFF_GATE_HEAVY` in `crates/rdf/tests/sparql_eval_parity.rs` — now six:
-the ~107 s `ontolex` projection outlier, the heaviest generated CONSTRUCT
-projections `schema-org`/`vcard`/`foaf`/`missing-definitions`, and the
-`axis-not-disjoint` anti-join (~9 s native, carved as the ontology grew) whose
-per-shard aggregate × CI slowdown blew the budget);
-`gmeow-rdf-capi::c_smoke` (self-builds the libpurrdf cdylib, ~33 s cold
-compile on CI — build-time-bound, already covered by the dedicated `capi` CI job);
-`w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
-~5.3 s on the call-budget guard — the rest of the W3C suite is sharded+gated, each
-shard under 1 s); and the `gmeow-validate`
-`deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate` test (the consumer
-`gmeow validate --deep` AC1: reasons over user data merged with the whole bundled
-TBox via the native Nemo chase, ~50 s full-fold — engine-bound like
-`ontology_entailments`; the same merge→inconsistency path is covered on-gate by the
-fast tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
-`deep_pass_failure_*`/`deep_false_*` validate tests); and the `gmeow-pipeline`
-`stages::yaml_ld::tests::dist_jsonld_roundtrips_through_oxigraph` test (parses the
-entire dist JSON-LD into oxigraph and serializes it back — an O(ontology size)
-round-trip at ~27 s that crosses the zero-headroom 25 s budget as the ontology
-grows, the same growth pattern as the docs live-renders; build/parse-bound, and the
-JSON-LD codec is exercised on-gate by the cheaper per-vocab round-trips); and the two
-`gmeow-pipeline` `stages::carrier` heavy tests —
-`ustar_tests::build_docs_archive_packs_the_rendered_site` (~60-110 s, renders and packs
-the whole embedded ontology-docs site into the carrier archive) and
-`native_assembly_tests::authored_default_assembles_natively` (~72 s, assembles the
-entire authored bundle from the real tree) — both O(ontology-size) render/assembly +
-I-O, not engine-bound, irreducibly over budget and growing with the ontology (they live
-under `stages::carrier` after the snapshot→carrier refactor).
+Default off-gate groups (reevaluated 2026-06-29, #1045): `gmeow-validate`
+`deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate` (30.705 s
+locally in `make maint-rust-heavy`; the consumer `gmeow validate --deep` AC1
+reasons over user data merged with the whole bundled TBox via the native Nemo
+chase; the same merge->inconsistency path is covered on-gate by the fast
+tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
+`deep_pass_failure_*`/`deep_false_*` validate tests), and the `gmeow-pipeline`
+`fold_parity` binary (32.231 s locally; the full real-repo terminal sink vs
+committed `generated/dist/gmeow.gts` fold-isomorphism oracle). The formerly
+off-gate pipeline correctness failures are back in the default/ci profile: the
+focused terminal sink unit test covers GTS archive emission, and the
+snapshot-bound end-to-end executor test still runs the real production spine
+through `stage-snapshot` under the 25 s policy. Former off-gate groups such as
+ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
+correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
+acceptance, JSON-LD round-trips, product routing, slice/slicetest parity,
+`gmeow-rdf-capi::c_smoke`, and docs live-render guards are in the default/ci
+profile.
 
 Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
 `DocsModel` *and* the rendered site for every available language from the
@@ -320,17 +289,13 @@ content-addressed `gmeow_docs::fixture` cache instead of rebuilding or re-render
 The cache is primed once before the run — the `prime-docs-fixture` example, run by
 the Makefile test lanes and the CI test job ahead of `nextest` — so no test pays the
 ~12 s build, the cold concurrent-rebuild contention, or a per-language site render. A
-plain `cargo test` still works (a miss falls through to a build/render). The exception
-is the **live-full-render guards** — `render_site_is_byte_stable` and
-`english_carrier_tree_matches_render_site`: each performs a LIVE whole-site render of
-the full model and compares it to the cached render. The live render IS the thing
-under test (render determinism and the carrier-vs-`render_site` identity), so it
-cannot be served from cache; that O(terms) render sits at ~23-26 s and crosses the
-zero-headroom 25 s budget as the ontology grows, so the two stay off-gate (still run
-on maint-heavy). The language-comparison round-trips (`french_tree`, `chinese_tree`,
-and the translated no-dangling-link check) only need a render's *output*, so they read
-the per-language cache and are on-gate; every single-page / single-term docs test
-stays on-gate.
+plain `cargo test` still works (a miss falls through to a build/render). The
+live-full-render guards — `render_site_is_byte_stable` and
+`english_carrier_tree_matches_render_site` — measured around 2.1 s locally on
+2026-06-29 and are now on-gate too. The language-comparison round-trips
+(`french_tree`, `chinese_tree`, and the translated no-dangling-link check) only
+need a render's *output*, so they read the per-language cache and are on-gate;
+every single-page / single-term docs test stays on-gate.
 
 The bias is **fix, don't off-gate**: prefer making a test fast (shard it like the
 corpus parity sweep in `crates/rdf/tests/sparql_eval_parity.rs`, or share an

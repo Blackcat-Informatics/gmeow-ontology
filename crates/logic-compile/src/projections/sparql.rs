@@ -7,9 +7,10 @@
 //! This is the faithful executable down-projection of the correspondence calculus;
 //! profile losses are explicit (the `# Lossy and directional by design` header + the
 //! per-binding `lossyDrop` list), so the ledger-row preservation is `SoundUnder`. It
-//! renders from the SAME [`get_leg`] model the EDOAL lowering uses, so the two cannot
-//! drift. Extraction of the suppression vocabulary runs over the oxigraph-free ontology
-//! [`DslView`]; the render is pure over the get-leg model.
+//! renders from the SAME [`crate::projections::get_leg`] model the EDOAL
+//! lowering uses, so the two cannot drift. Extraction of the suppression
+//! vocabulary runs over the oxigraph-free ontology [`DslView`]; the render is
+//! pure over the get-leg model.
 
 use std::collections::{BTreeMap, BTreeSet};
 

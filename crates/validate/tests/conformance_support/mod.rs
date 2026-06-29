@@ -19,8 +19,10 @@ use std::sync::OnceLock;
 
 use gmeow_rdf::oxigraph::{dataset_from_store, flat_oxigraph_quads_from_dataset};
 use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
-use gmeow_shacl::engine::validate_graphs;
+use gmeow_shacl::engine::{parse_shapes, validate as validate_store};
 use gmeow_shacl::report::{Severity, ValidationReport};
+use gmeow_shacl::shapes::Shapes;
+use gmeow_shacl::text_ingest::parse_ntriples_to_store;
 use oxigraph::store::Store;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
@@ -197,6 +199,16 @@ fn collect_module_ttls(dir: &Path, paths: &mut Vec<PathBuf>) {
 /// Cached via [`OnceLock`] so disk I/O happens at most once per test process.
 pub fn base_ontology_nt() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
+    CACHE.get_or_init(|| store_dataset_to_nt(base_ontology_store()))
+}
+
+/// Merged ontology as an oxigraph store.
+///
+/// This is the store-native twin of [`base_ontology_nt`]. The conformance tests
+/// use it directly so `validate_with_ontology` does not serialize the full
+/// ontology to N-Triples and immediately parse it back for every case.
+pub fn base_ontology_store() -> &'static Store {
+    static CACHE: OnceLock<Store> = OnceLock::new();
     CACHE.get_or_init(|| {
         let root = repo_root();
         let slices_dir = root.join("slices");
@@ -226,8 +238,23 @@ pub fn base_ontology_nt() -> &'static str {
             }
         }
 
-        store_dataset_to_nt(&store)
+        store
     })
+}
+
+/// Parsed SHACL shape model for the whole conformance corpus.
+///
+/// `gmeow_shacl::engine::validate_graphs` parses shapes on every call. These
+/// tests repeatedly validate small fixture graphs against the same shape model,
+/// so cache the parsed `Shapes` inside each test process.
+pub fn whole_shapes() -> &'static Shapes {
+    static CACHE: OnceLock<Shapes> = OnceLock::new();
+    CACHE.get_or_init(|| parse_shapes(whole_shapes_ttl()).expect("whole SHACL shapes parse"))
+}
+
+fn nt_to_store(nt: &str) -> Store {
+    parse_ntriples_to_store(nt)
+        .unwrap_or_else(|errors| panic!("N-Triples parse failed:\n{}", errors.join("\n")))
 }
 
 /// Validate `base_ontology_nt() + "\n" + fixture_nt` against `whole_shapes_ttl()`.
@@ -235,8 +262,13 @@ pub fn base_ontology_nt() -> &'static str {
 /// Use this variant when the fixture triples rely on class/property declarations
 /// from the merged ontology to pass SHACL class-constraint checks.
 pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
-    let combined = format!("{}\n{}", base_ontology_nt(), fixture_nt);
-    validate_graphs(&combined, whole_shapes_ttl()).expect("validate_graphs must not error")
+    let store = base_ontology_store().clone();
+    let fixture_store = nt_to_store(fixture_nt);
+    for quad in fixture_store.quads_for_pattern(None, None, None, None) {
+        let quad = quad.expect("fixture store iteration must succeed");
+        store.insert(&quad).expect("store insert is infallible");
+    }
+    validate_store(&store, whole_shapes())
 }
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
@@ -334,7 +366,8 @@ pub fn ok(report: &ValidationReport) -> bool {
 
 /// Run validation of `data_nt` (N-Triples) against the whole shapes corpus.
 pub fn validate(data_nt: &str) -> ValidationReport {
-    validate_graphs(data_nt, whole_shapes_ttl()).expect("validate_graphs must not error")
+    let store = nt_to_store(data_nt);
+    validate_store(&store, whole_shapes())
 }
 
 // ── Parameterized case harness (#1051) ──────────────────────────────────────────

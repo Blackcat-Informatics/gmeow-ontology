@@ -8,6 +8,7 @@ edition = "2021"
 license = "AGPL-3.0-only"
 publish = false
 description = "Post-run JUnit per-test duration budget gate for the Rust suite (#1045)."
+readme = "README.md"
 
 [[bin]]
 name = "gmeow-test-budget"
