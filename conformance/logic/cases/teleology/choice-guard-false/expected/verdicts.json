@@ -1,6 +1,6 @@
 {
   "https://example.org/teleology/choice-guard-false/world": {
-    "quads": 21,
+    "quads": 25,
     "status": "consistent"
   }
 }
