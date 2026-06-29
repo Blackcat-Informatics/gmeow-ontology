@@ -8,9 +8,18 @@
 # stage — and the loader HARD-fails if an asserted value disagrees.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/pipeline/> .
 
+# A gmeow:Pipeline IS a logic:Plan, so it carries the plan's success criterion: a
+# goal (logic:planGoal) and a success mode (logic:planSuccessMode). The acyclic
+# dataflow closure is certified under the DAG-workflow profile.
+ex:goalMinimalBundle a gmeow:Goal .
+
 ex:minimalBuild a gmeow:Pipeline ;
+    logic:planGoal ex:goalMinimalBundle ;
+    logic:planSuccessMode logic:StrongPlanSuccess ;
+    logic:executedUnderContract logic:DagWorkflowProfile ;
     gmeow:hasStage ex:load , ex:reason , ex:sink .
 
 ex:load a gmeow:PipelineStage ;
