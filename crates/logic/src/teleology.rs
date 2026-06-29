@@ -2735,7 +2735,11 @@ fn emit_history_anomaly(
 
 /// Mint a deterministic serialization-anomaly finding IRI (content-addressed over the
 /// history and the canonical cycle), so re-running yields the same finding node.
-fn mint_anomaly_finding_iri(history: &str, cycle: &[String]) -> String {
+///
+/// Exposed `pub(crate)` so the transaction family ([`crate::transaction`]) mints the finding
+/// IRI for a DERIVED concurrent history through the SAME content-address recipe the authored
+/// Family-4 path uses — one recipe, no drift.
+pub(crate) fn mint_anomaly_finding_iri(history: &str, cycle: &[String]) -> String {
     let payload = format!("anomaly\n{history}\n{}", cycle.join("\n"));
     format!(
         "{LOGIC_NS}finding/{}",

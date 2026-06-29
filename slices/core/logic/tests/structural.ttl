@@ -114,6 +114,23 @@ ASK {
 }""" ;
     gmeow:saRationale "The hypothetical-operator wiring terms MUST exist: logic:executedUnderContract (the program-to-contract link by which the interpreter reads the execution-commitment facet) and logic:executedHypotheticallyAs (the content-addressed witness a hypothetical run records on its logic:TransactionOutcome). Without the link the contract-level logic:executionMode cannot select commit-versus-discard for a concrete run; the witness is what keeps the discarded run observable under suppression-never-erasure." .
 
+# --- 6c. Concurrent-transaction (CTR) wiring terms exist (MUST) ---------------
+ex:saConcurrentHistoryWiringTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:ConcurrentHistory a owl:Class .
+    logic:precedes a owl:ObjectProperty .
+    logic:serializabilityCriterion a owl:ObjectProperty .
+    logic:concurrentComposedFrom a owl:ObjectProperty .
+    logic:derivedHistory a owl:ObjectProperty .
+    logic:violatedCriterion a owl:ObjectProperty .
+    logic:anomalyCycle a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "The concurrent-transaction (CTR) surface MUST be declared: the native evaluator executes a logic:ConcurrentComposition and DERIVES a logic:ConcurrentHistory whose logic:precedes conflict edges (oriented by the witnessed interleaving), logic:serializabilityCriterion, logic:concurrentComposedFrom audit edges, and logic:derivedHistory link to the run's outcome carry the schedule; a cycle surfaces as a logic:SerializationAnomaly recording logic:violatedCriterion and logic:anomalyCycle. The serialization-anomaly engine consumes these terms, so they MUST exist with their declared rdf types -- a serialization anomaly stays a history-level finding, never a contradiction witness." .
+
 # === Occurrent-refinement terms (YAMATO/Galton process-not-equal-event) =======
 
 # --- 7. causalPartOf is a transitive object property (MUST hold) --------------

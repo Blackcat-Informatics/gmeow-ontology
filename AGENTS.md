@@ -286,9 +286,10 @@ budget under gate contention as the ontology grows — fast per-commit reason co
 is `make reason` + the gmeow-logic unit reason tests); a Nemo conformance case; a few whole-ontology
 `gmeow-slice`/`gmeow-slicetest` emit/closure checks; the off-gate corpus parity
 queries (`OFF_GATE_HEAVY` in `crates/rdf/tests/sparql_eval_parity.rs` — now six:
-the `class-without-stereotype` anti-join, the ~107 s `ontolex` projection outlier,
-and the heaviest generated CONSTRUCT projections `schema-org`/`vcard`/`foaf`/
-`missing-definitions` whose per-shard aggregate × CI slowdown blew the budget);
+the ~107 s `ontolex` projection outlier, the heaviest generated CONSTRUCT
+projections `schema-org`/`vcard`/`foaf`/`missing-definitions`, and the
+`axis-not-disjoint` anti-join (~9 s native, carved as the ontology grew) whose
+per-shard aggregate × CI slowdown blew the budget);
 `gmeow-rdf-capi::c_smoke` (self-builds the libpurrdf cdylib, ~33 s cold
 compile on CI — build-time-bound, already covered by the dedicated `capi` CI job);
 `w3c_rdfc10_heavy_offgate` (the sole RDFC-1.0 negative/poison vector `test074`,
@@ -305,14 +306,13 @@ entire dist JSON-LD into oxigraph and serializes it back — an O(ontology size)
 round-trip at ~27 s that crosses the zero-headroom 25 s budget as the ontology
 grows, the same growth pattern as the docs live-renders; build/parse-bound, and the
 JSON-LD codec is exercised on-gate by the cheaper per-vocab round-trips); and the two
-`gmeow-pipeline` carrier whole-bundle tests
-`stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site` (~40 s — renders
-and packs the entire embedded ontology-docs site, a LIVE O(terms) full render in the same
-irreducible class as the docs live-render guards) and
-`stages::carrier::native_assembly_tests::authored_default_assembles_natively` (~32 s — folds
-the whole authored default graph and re-runs it for a byte-determinism check, an
-O(ontology-size) assembly ×2); both are build/I-O-bound, grow with the ontology, and cross
-the zero-headroom 25 s budget while the cheaper per-member/per-stage assertions stay on-gate.
+`gmeow-pipeline` `stages::carrier` heavy tests —
+`ustar_tests::build_docs_archive_packs_the_rendered_site` (~60-110 s, renders and packs
+the whole embedded ontology-docs site into the carrier archive) and
+`native_assembly_tests::authored_default_assembles_natively` (~72 s, assembles the
+entire authored bundle from the real tree) — both O(ontology-size) render/assembly +
+I-O, not engine-bound, irreducibly over budget and growing with the ontology (they live
+under `stages::carrier` after the snapshot→carrier refactor).
 
 Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
 `DocsModel` *and* the rendered site for every available language from the
