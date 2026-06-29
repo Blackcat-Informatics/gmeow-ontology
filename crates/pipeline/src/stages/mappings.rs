@@ -440,19 +440,30 @@ impl Stage for MappingsStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v7: assemble the final projection-report loss ledger here, over the union of
-        // the logic projection rows (from compile-logic) and the per-correspondence
-        // residue ledger. Bump busts the stage cache.
-        "mappings.v7-union-projection-report"
+        // v8: also folds the gate-derived 591-term up-projection audit (proved/claimed/
+        // red_excluded ledger) into the projection report. Bump busts the stage cache so
+        // existing cached reports are invalidated.
+        "mappings.v8-gate-derived-up-projection-audit"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
         // tree plus the per-slice mapping cells in the slice modules — none of which
-        // any upstream product reflects. Declare them ALL so a mapping edit busts the
+        // any upstream product reflects. The vendored coverage corpus
+        // (tests/fixtures/coverage/external/*.ttl) is also a raw source input that
+        // feeds the committed audit ledger. Declare them ALL so any edit busts the
         // cache. `consumes() == []` (the leaf reads sources, not upstream products).
         let mut files = Vec::new();
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         files.extend(crate::stages::source_load::module_files(root)?);
+        for name in ["bii", "paudley"] {
+            files.push(
+                root.join("tests")
+                    .join("fixtures")
+                    .join("coverage")
+                    .join("external")
+                    .join(format!("{name}.ttl")),
+            );
+        }
         files.sort();
         files.dedup();
         Ok(files)
