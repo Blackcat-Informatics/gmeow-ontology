@@ -1094,6 +1094,11 @@ enum GeometryTypeEnum {
   geometryTypePolygon
 }
 
+enum GoalEnum {
+  goalCanonicalIngestion
+  goalShippableBundle
+}
+
 enum GovernanceModelEnum {
   governanceBDFL
   governanceCorporate
