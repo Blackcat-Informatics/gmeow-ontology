@@ -15,16 +15,16 @@
 //!
 //! The renderer itself ([`render`]) is the oxigraph-free half and lives in the
 //! wasm-clean kernel ([`gmeow_rdf_core::turtle_render`]); it is re-exported here so
-//! existing `gmeow_rdf::turtle_normalize::render` callers resolve unchanged. What
-//! remains in this module is the oxigraph-coupled text *parser* edge
-//! ([`canonical_turtle`] / `ingest`).
+//! existing `gmeow_rdf::turtle_normalize::render` callers resolve unchanged. The text
+//! *parser* edge ([`canonical_turtle`] / `ingest`) is the native codec — fully
+//! oxigraph-free (EPIC #906), so the whole module rides the always-on `gts` feature.
 
-#![cfg(feature = "oxigraph")]
+#![cfg(feature = "gts")]
 
 use std::sync::Arc;
 
 use crate::ir::{RdfDataset, RdfDatasetBuilder, TermId};
-use crate::oxigraph::flat_rdf_quads_from_dataset;
+use crate::native_quads::flat_rdf_quads_from_dataset;
 use crate::{parse_dataset, BlankScope, NativeRdfFormat, RdfTerm};
 
 /// The canonical, review-friendly Turtle renderer — the oxigraph-free half, now in

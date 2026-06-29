@@ -28,8 +28,8 @@ use gmeow_rdf_core::{BlankScope, DatasetView, GraphMatch, TermValue};
 use gmeow_sparql_algebra::{Expression, Function, GmeowFn, GraphPattern, Variable};
 use gmeow_xsd::{
     effective_boolean_value, numeric_abs, numeric_add, numeric_ceil, numeric_div, numeric_floor,
-    numeric_mul, numeric_round, numeric_sub, numeric_unary_minus, numeric_unary_plus, parse_by_iri,
-    value_cmp, XsdValue,
+    numeric_mul, numeric_round, numeric_sub, numeric_unary_minus, numeric_unary_plus, parse,
+    parse_by_iri, value_cmp, XsdDatatype, XsdValue,
 };
 use sha2::Digest; // brings the Digest trait in scope for all RustCrypto hash calls
 
@@ -1260,12 +1260,39 @@ fn eval_function(
         // function is a list function, so this arm is total over the registry.
         Function::Gmeow(list_func) => crate::list_fn::dispatch(*list_func, &vals, ctx),
 
-        // ---- permanent hard errors (never a wrong answer) -----------------
-        Function::Custom(iri) => Err(EvalError::unsupported(format!(
-            "custom SPARQL function <{}>",
-            iri.as_str()
-        ))),
+        // ---- XSD constructor casts (SPARQL 1.1 §17.1) ---------------------
+        // An IRI in call position whose IRI is an XSD value-space datatype is the
+        // standard cast constructor (`xsd:decimal(?x)`, `xsd:integer(?x)`, …), NOT an
+        // unknown custom function. It builds a target-typed literal from the argument's
+        // lexical form (an IRI argument casts to `xsd:string`). A lexical form that is
+        // not valid for the target type is a SPARQL expression error (`Ok(None)`).
+        Function::Custom(iri) => {
+            if let Some(target) = XsdDatatype::from_iri(iri.as_str()) {
+                return Ok(eval_xsd_cast(ctx, target, arg(&vals, 0)));
+            }
+            Err(EvalError::unsupported(format!(
+                "custom SPARQL function <{}>",
+                iri.as_str()
+            )))
+        }
     }
+}
+
+/// Evaluate an XSD constructor cast: parse the source literal's lexical form against
+/// the `target` datatype (an IRI source casts to `xsd:string`), returning the
+/// target-typed literal in canonical form, or `None` on a type/lexical error.
+fn eval_xsd_cast(
+    ctx: &mut EvalCtx<'_>,
+    target: XsdDatatype,
+    source: Option<&TermValue>,
+) -> Option<SolutionTerm> {
+    let lexical = match source? {
+        TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+        TermValue::Iri(iri) if target == XsdDatatype::String => iri.clone(),
+        _ => return None,
+    };
+    let value = parse(&lexical, target).ok()?;
+    Some(xsd_to_term(ctx, &value))
 }
 
 /// The canonical gmeow vocabulary IRIs the `gmeow:heldIn` evaluator reads.

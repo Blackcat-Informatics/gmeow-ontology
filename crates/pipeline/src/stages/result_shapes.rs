@@ -26,13 +26,13 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use oxigraph::sparql::{QueryResults, QuerySolution, SparqlEvaluator};
-use oxigraph::store::Store;
+use gmeow_rdf::{RdfDataset, TermValue};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::turtle_bytes_into_store_scoped;
+use crate::stages::native_query;
 
 /// Committed logical path of the generated result-shape projection.
 pub const RESULT_SHAPES_PATH: &str = "generated/shapes/result-shapes.ttl";
@@ -88,30 +88,27 @@ fn collect_competency(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), Pipeline
     Ok(())
 }
 
-/// Load every competency spec into one store (scoped so per-file blanks stay disjoint).
-fn load_competency_store(root: &Path) -> Result<Store, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for path in competency_files(root)? {
-        let bytes = std::fs::read(&path).map_err(PipelineError::Io)?;
-        turtle_bytes_into_store_scoped(&store, &bytes, &path.display().to_string())?;
+/// Load every competency spec into one native dataset (each parsed through the
+/// canonical native codec and unioned so per-file blanks stay disjoint).
+fn load_competency_store(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
+    native_query::dataset_from_files(&competency_files(root)?)
+}
+
+/// The lexical string of `cells[i]` (a literal's lexical form or an IRI's text).
+fn lit(cells: &[Option<TermValue>], i: Option<usize>) -> Option<String> {
+    match i.and_then(|i| cells.get(i)).and_then(Option::as_ref) {
+        Some(TermValue::Literal { lexical_form, .. }) => Some(lexical_form.clone()),
+        Some(TermValue::Iri(n)) => Some(n.clone()),
+        _ => None,
     }
-    Ok(store)
 }
 
-fn lit(sol: &QuerySolution, var: &str) -> Option<String> {
-    sol.get(var).and_then(|t| match t {
-        oxigraph::model::Term::Literal(l) => Some(l.value().to_owned()),
-        oxigraph::model::Term::NamedNode(n) => Some(n.as_str().to_owned()),
+/// The IRI of `cells[i]`, or `None` if unbound / not an IRI.
+fn iri(cells: &[Option<TermValue>], i: Option<usize>) -> Option<String> {
+    match i.and_then(|i| cells.get(i)).and_then(Option::as_ref) {
+        Some(TermValue::Iri(n)) => Some(n.clone()),
         _ => None,
-    })
-}
-
-fn iri(sol: &QuerySolution, var: &str) -> Option<String> {
-    sol.get(var).and_then(|t| match t {
-        oxigraph::model::Term::NamedNode(n) => Some(n.as_str().to_owned()),
-        _ => None,
-    })
+    }
 }
 
 fn local_kind(kind_iri: &str) -> Result<Kind, PipelineError> {
@@ -125,8 +122,8 @@ fn local_kind(kind_iri: &str) -> Result<Kind, PipelineError> {
     }
 }
 
-/// Extract `shape IRI -> sorted columns` from the competency store.
-fn shapes(store: &Store) -> Result<BTreeMap<String, Vec<Column>>, PipelineError> {
+/// Extract `shape IRI -> sorted columns` from the competency dataset.
+fn shapes(store: &Arc<RdfDataset>) -> Result<BTreeMap<String, Vec<Column>>, PipelineError> {
     let query = "\
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
         PREFIX logic: <https://blackcatinformatics.ca/logic/>\n\
@@ -138,34 +135,28 @@ fn shapes(store: &Store) -> Result<BTreeMap<String, Vec<Column>>, PipelineError>
                logic:columnBinding ?binding .\n\
           OPTIONAL { ?col logic:columnDatatype ?datatype }\n\
         }";
-    let results = SparqlEvaluator::new()
-        .parse_query(query)
-        .map_err(|e| PipelineError::Parse(format!("result-shapes introspection parse: {e}")))?
-        .on_store(store)
-        .execute()
-        .map_err(|e| PipelineError::Parse(format!("result-shapes introspection eval: {e}")))?;
-    let QueryResults::Solutions(solutions) = results else {
-        return Err(PipelineError::Parse(
-            "result-shapes introspection must be a SELECT".to_owned(),
-        ));
-    };
+    let solutions = native_query::select(store, query)?;
+    let c_shape = solutions.col("shape");
+    let c_var = solutions.col("var");
+    let c_kind = solutions.col("kind");
+    let c_binding = solutions.col("binding");
+    let c_datatype = solutions.col("datatype");
 
     let mut by_shape: BTreeMap<String, BTreeMap<String, Column>> = BTreeMap::new();
-    for sol in solutions {
-        let sol = sol.map_err(|e| PipelineError::Parse(format!("result-shapes solution: {e}")))?;
-        let shape = iri(&sol, "shape").ok_or_else(|| {
+    for cells in &solutions.rows {
+        let shape = iri(cells, c_shape).ok_or_else(|| {
             PipelineError::Parse("result-shapes: ?shape did not bind an IRI".to_owned())
         })?;
-        let var = lit(&sol, "var").ok_or_else(|| {
+        let var = lit(cells, c_var).ok_or_else(|| {
             PipelineError::Parse("result-shapes: a column has no logic:columnVariable".to_owned())
         })?;
-        let kind = local_kind(&iri(&sol, "kind").ok_or_else(|| {
+        let kind = local_kind(&iri(cells, c_kind).ok_or_else(|| {
             PipelineError::Parse("result-shapes: ?kind did not bind an IRI".to_owned())
         })?)?;
-        let required = iri(&sol, "binding")
+        let required = iri(cells, c_binding)
             .map(|b| b.rsplit(['/', '#']).next().unwrap_or(&b) == "BindingRequired")
             .unwrap_or(false);
-        let datatype = iri(&sol, "datatype");
+        let datatype = iri(cells, c_datatype);
         by_shape.entry(shape).or_default().insert(
             var.clone(),
             Column {
@@ -381,7 +372,7 @@ mod tests {
         // Prove the projection is NOT vacuous: the generated SHACL must FAIL a row
         // that binds the wrong term-kind and PASS a conforming row. We synthesise a
         // tiny shape + two rows and validate them with the native engine.
-        use gmeow_shacl::engine::{parse_shapes, validate};
+        use gmeow_shacl::engine::{parse_shapes, validate_dataset};
 
         let shapes_ttl = "\
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -398,9 +389,8 @@ mod tests {
             ex:cq gmeow:cqResultShape <https://example.org/s> ; gmeow:cqExpectRow ex:good, ex:bad .\n\
             ex:good gmeow:rowCell [ gmeow:cellVar \"x\" ; gmeow:cellValueIri ex:a ] .\n\
             ex:bad  gmeow:rowCell [ gmeow:cellVar \"x\" ; gmeow:cellValueLiteral \"oops\" ] .\n";
-        let store = Store::new().unwrap();
-        turtle_bytes_into_store_scoped(&store, data.as_bytes(), "test").unwrap();
-        let report = validate(&store, &shapes);
+        let store = native_query::dataset_from_turtle(data.as_bytes(), "test").unwrap();
+        let report = validate_dataset(&store, &shapes).unwrap();
 
         let flagged: Vec<String> = report
             .results
@@ -427,13 +417,13 @@ mod tests {
     /// projection was designed to provide.
     #[test]
     fn generated_shapes_conform_to_every_authored_row() {
-        use gmeow_shacl::engine::{parse_shapes, validate};
+        use gmeow_shacl::engine::{parse_shapes, validate_dataset};
 
         let root = repo_root();
         let shapes_ttl = render_result_shapes(&root).expect("render_result_shapes");
         let store = load_competency_store(&root).expect("load_competency_store");
         let shapes = parse_shapes(&shapes_ttl).expect("parse generated result-shapes");
-        let report = validate(&store, &shapes);
+        let report = validate_dataset(&store, &shapes).unwrap();
 
         if !report.conforms {
             let detail: Vec<String> = report
@@ -465,7 +455,7 @@ mod tests {
     /// diagnostic rather than silently vacuously passing.
     #[test]
     fn generated_shapes_flag_a_planted_wrong_kind_row() {
-        use gmeow_shacl::engine::{parse_shapes, validate};
+        use gmeow_shacl::engine::{parse_shapes, validate_dataset};
 
         let root = repo_root();
         let shapes_ttl = render_result_shapes(&root).expect("render_result_shapes");
@@ -504,17 +494,14 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
 "
         );
 
-        // Start from the real competency store data so the SPARQLTarget SELECT can
-        // also find the real `?cq gmeow:cqResultShape <real_shape_iri>` triples.
-        let combined = Store::new().unwrap();
-        for path in competency_files(&root).expect("competency_files") {
-            let bytes = std::fs::read(&path).unwrap();
-            turtle_bytes_into_store_scoped(&combined, &bytes, &path.display().to_string()).unwrap();
-        }
-        turtle_bytes_into_store_scoped(&combined, planted_ttl.as_bytes(), "planted").unwrap();
+        // Start from the real competency dataset so the SPARQLTarget SELECT can also
+        // find the real `?cq gmeow:cqResultShape <real_shape_iri>` triples, unioned
+        // with the planted bad row (blanks standardized apart per source).
+        let planted = native_query::dataset_from_turtle(planted_ttl.as_bytes(), "planted").unwrap();
+        let combined = Arc::new(RdfDataset::union(&[store.as_ref(), planted.as_ref()]));
 
         let shapes = parse_shapes(&shapes_ttl).expect("parse generated result-shapes");
-        let report = validate(&combined, &shapes);
+        let report = validate_dataset(&combined, &shapes).unwrap();
 
         let flagged: Vec<String> = report
             .results
@@ -534,7 +521,7 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
         // A literal column with logic:columnDatatype xsd:string must:
         //   - FAIL a row whose cell binds a literal with a different datatype (xsd:integer)
         //   - PASS a row whose cell binds a literal of exactly the pinned datatype
-        use gmeow_shacl::engine::{parse_shapes, validate};
+        use gmeow_shacl::engine::{parse_shapes, validate_dataset};
 
         // Hand-built projection for a single literal column "tag" pinned to xsd:string.
         let xsd_string = "http://www.w3.org/2001/XMLSchema#string";
@@ -556,9 +543,8 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
             ex:cq gmeow:cqResultShape <https://example.org/dt> ; gmeow:cqExpectRow ex:good, ex:bad .\n\
             ex:good gmeow:rowCell [ gmeow:cellVar \"tag\" ; gmeow:cellValueLiteral \"hello\"^^xsd:string ] .\n\
             ex:bad  gmeow:rowCell [ gmeow:cellVar \"tag\" ; gmeow:cellValueLiteral \"5\"^^xsd:integer ] .\n";
-        let store = Store::new().unwrap();
-        turtle_bytes_into_store_scoped(&store, data.as_bytes(), "test").unwrap();
-        let report = validate(&store, &shapes);
+        let store = native_query::dataset_from_turtle(data.as_bytes(), "test").unwrap();
+        let report = validate_dataset(&store, &shapes).unwrap();
 
         let flagged: Vec<String> = report
             .results

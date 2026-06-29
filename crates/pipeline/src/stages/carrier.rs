@@ -20,10 +20,11 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
-use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
 use gmeow_rdf::provenance::DatasetProvenance;
-use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
-use oxigraph::model::Quad;
+use gmeow_rdf::{
+    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset, RdfLiteral, RdfQuad, RdfTerm,
+    SerializeGraph,
+};
 use rayon::prelude::*;
 
 use crate::error::PipelineError;
@@ -1188,16 +1189,15 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, PipelineError> {
     }
     let base = union_turtle_datasets(&sources)?;
 
-    // The merged default graph as a flat oxigraph quad list (the union's standardized
+    // The merged default graph as a flat native quad list (the union's standardized
     // blank labels), onto which the multilingual translations and per-slice guideBlob
     // anchors are folded natively — both add IRI-subject triples, so re-folding the
-    // augmented list through `dataset_from_oxigraph_quads` is loss-free.
-    let mut quads = flat_oxigraph_quads_from_dataset(&base)
-        .map_err(|e| stage_err(&format!("base default graph → quads: {e}")))?;
+    // augmented list through `dataset_from_quads` is loss-free.
+    let mut quads = flat_rdf_quads_from_dataset(&base);
     merge_translations(root, &mut quads)?;
     add_guide_blobs(root, &mut quads)?;
 
-    let dataset = gmeow_rdf::dataset_from_oxigraph_quads(&quads)
+    let dataset = gmeow_rdf::dataset_from_quads(&quads)
         .map_err(|e| stage_err(&format!("authored default graph freeze: {e}")))?;
     dataset_to_nquads(&dataset)
 }
@@ -1206,10 +1206,8 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, PipelineError> {
 /// default graph: for every slice carrying a `docs.md`, link the slice IRI to the
 /// `blake3:<hex>` content digest of that guide. The guide itself rides the bundle
 /// as a content-addressed blob; this triple is its in-graph anchor.
-fn add_guide_blobs(root: &Path, quads: &mut Vec<Quad>) -> Result<(), PipelineError> {
-    use oxigraph::model::{Literal, NamedNode};
-
-    let guide_blob = NamedNode::new(format!("{GMEOW_NS}guideBlob")).unwrap();
+fn add_guide_blobs(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), PipelineError> {
+    let guide_blob = format!("{GMEOW_NS}guideBlob");
     let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
         .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     for record in catalog.records() {
@@ -1219,13 +1217,10 @@ fn add_guide_blobs(root: &Path, quads: &mut Vec<Quad>) -> Result<(), PipelineErr
             continue;
         };
         let digest = format!("blake3:{}", blake3::hash(&guide.content).to_hex());
-        let subject = NamedNode::new(&record.manifest.slice_iri)
-            .map_err(|e| stage_err(&format!("slice IRI {}: {e}", record.manifest.slice_iri)))?;
-        quads.push(Quad::new(
-            subject,
+        quads.push(RdfQuad::new(
+            RdfTerm::iri(record.manifest.slice_iri.clone()),
             guide_blob.clone(),
-            Literal::new_simple_literal(digest),
-            oxigraph::model::GraphName::DefaultGraph,
+            RdfTerm::literal(RdfLiteral::simple(digest)),
         ));
     }
     Ok(())
@@ -1240,9 +1235,7 @@ fn add_guide_blobs(root: &Path, quads: &mut Vec<Quad>) -> Result<(), PipelineErr
 /// The scan is over the pre-translation base quads (a snapshot taken before any
 /// additions), so a translated literal is never itself re-scanned — matching the
 /// original `quads_for_pattern` view of the base store.
-fn merge_translations(root: &Path, quads: &mut Vec<Quad>) -> Result<(), PipelineError> {
-    use oxigraph::model::{Literal, NamedNode, NamedOrBlankNode, Term};
-
+fn merge_translations(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), PipelineError> {
     let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
         .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
@@ -1256,29 +1249,25 @@ fn merge_translations(root: &Path, quads: &mut Vec<Quad>) -> Result<(), Pipeline
     // The base-graph localizable literals: `(subject_iri, predicate_iri)` whose object
     // is a literal (the allowed-keys set of merge_terms). Scanned over the base quads
     // only; additions are appended afterwards.
-    let mut additions: Vec<Quad> = Vec::new();
+    let mut additions: Vec<RdfQuad> = Vec::new();
     for quad in quads.iter() {
         let pred = quad.predicate.as_str();
         if !localizable.contains(pred) {
             continue;
         }
-        let NamedOrBlankNode::NamedNode(subject) = &quad.subject else {
+        let RdfTerm::Iri(subject) = &quad.subject else {
             continue;
         };
-        if !matches!(&quad.object, Term::Literal(_)) {
+        if !matches!(&quad.object, RdfTerm::Literal(_)) {
             continue;
         }
-        let predicate = NamedNode::new(pred).map_err(|e| stage_err(&format!("predicate: {e}")))?;
         for lang in &langs {
-            if let Some(msgstr) = translations.lookup(subject.as_str(), pred, lang) {
+            if let Some(msgstr) = translations.lookup(subject, pred, lang) {
                 let tag = translations.internal_tag(lang);
-                let literal = Literal::new_language_tagged_literal(msgstr, &tag)
-                    .map_err(|e| stage_err(&format!("lang literal {tag}: {e}")))?;
-                additions.push(Quad::new(
-                    subject.clone(),
-                    predicate.clone(),
-                    literal,
-                    oxigraph::model::GraphName::DefaultGraph,
+                additions.push(RdfQuad::new(
+                    RdfTerm::iri(subject.clone()),
+                    pred.to_owned(),
+                    RdfTerm::literal(RdfLiteral::language_tagged(msgstr, tag)),
                 ));
             }
         }
@@ -1390,10 +1379,10 @@ fn ontology_version(authored_nq: &[u8]) -> Result<String, PipelineError> {
     let onto = GMEOW_NS.trim_end_matches('/');
     let version_info = "http://www.w3.org/2002/07/owl#versionInfo";
     for quad in parse_nq(authored_nq)? {
-        if let oxigraph::model::NamedOrBlankNode::NamedNode(subject) = &quad.subject {
-            if subject.as_str() == onto && quad.predicate.as_str() == version_info {
-                if let oxigraph::model::Term::Literal(l) = &quad.object {
-                    return Ok(l.value().to_string());
+        if let RdfTerm::Iri(subject) = &quad.subject {
+            if subject == onto && quad.predicate.as_str() == version_info {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    return Ok(l.lexical_form.clone());
                 }
             }
         }
@@ -1421,25 +1410,14 @@ fn load_alignments(root: &Path) -> Result<Vec<u8>, PipelineError> {
     }
     files.sort();
 
-    let mut quads: Vec<Quad> = Vec::new();
+    let mut quads: Vec<RdfQuad> = Vec::new();
     for path in files {
         let text = std::fs::read_to_string(&path)?;
         for (s, p, o) in alignment_rows(&text)? {
-            let subject = oxigraph::model::NamedNode::new(&s)
-                .map_err(|e| stage_err(&format!("alignment subject {s}: {e}")))?;
-            let predicate = oxigraph::model::NamedNode::new(&p)
-                .map_err(|e| stage_err(&format!("alignment predicate {p}: {e}")))?;
-            let object = oxigraph::model::NamedNode::new(&o)
-                .map_err(|e| stage_err(&format!("alignment object {o}: {e}")))?;
-            quads.push(Quad::new(
-                subject,
-                predicate,
-                object,
-                oxigraph::model::GraphName::DefaultGraph,
-            ));
+            quads.push(RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
         }
     }
-    let dataset = gmeow_rdf::dataset_from_oxigraph_quads(&quads)
+    let dataset = gmeow_rdf::dataset_from_quads(&quads)
         .map_err(|e| stage_err(&format!("alignment graph freeze: {e}")))?;
     dataset_to_nquads(&dataset)
 }
@@ -1731,11 +1709,8 @@ fn add_base_nq(
 /// `add_dataset` folds), never a base quoted-triple object. A quoted triple here would
 /// be a real defect — HARD-fail rather than let it shrink the fold (no-optionality /
 /// no silent data loss, #863).
-fn reject_quoted_triples(quads: &[Quad], graph_name: &str) -> Result<(), PipelineError> {
-    if quads
-        .iter()
-        .any(|q| matches!(q.object, oxigraph::model::Term::Triple(_)))
-    {
+fn reject_quoted_triples(quads: &[RdfQuad], graph_name: &str) -> Result<(), PipelineError> {
+    if quads.iter().any(|q| matches!(q.object, RdfTerm::Triple(_))) {
         return Err(stage_err(&format!(
             "graph {graph_name} carries a quoted-triple (<<>>) object that the base-quad fold \
              would not represent; the RDF-1.2 statement layer must ride the reifier/annotation \
@@ -1748,33 +1723,28 @@ fn reject_quoted_triples(quads: &[Quad], graph_name: &str) -> Result<(), Pipelin
 /// Canonicalize a graph's blank-node labels under RDFC-1.0, returning N-Quads.
 /// Mirrors `compile_gts`'s `to_canonical_graph` before each `add_graph`.
 fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, PipelineError> {
-    let quads = parse_nq(nq_bytes)?;
-    // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`. The blank
-    // labeling is identical (both conformant SHA-256 RDFC-1.0) and the oxigraph term
-    // serialization below is unchanged, so the emitted N-Quads are byte-stable.
-    let canonical = gmeow_rdf::canonicalize_quads(quads)
-        .map_err(|e| stage_err(&format!("canonicalize: {e}")))?;
-    // `Quad`'s Display renders `s p o g` WITHOUT the trailing N-Quads dot, so append
-    // ` .` to each row to produce valid N-Quads the parser round-trips.
-    let mut out: Vec<String> = canonical.iter().map(|q| format!("{q} .")).collect();
-    out.sort_unstable();
-    let mut text = out.join("\n");
-    text.push('\n');
-    Ok(text)
+    // Native full RDFC-1.0 (#910 / EPIC #906), replacing oxrdf `Dataset::canonicalize`.
+    // `canonical_flat_nquads` parses → flattens the RDF 1.2 statement overlay → RDFC-1.0
+    // canonicalizes, byte-identical to the prior oxigraph `canonicalize_quads` flat path
+    // (conformant SHA-256 RDFC-1.0, identical blank labeling). The returned N-Quads lines
+    // are already `.`-terminated and bytewise-sorted.
+    let dataset = parse_dataset(nq_bytes, "application/n-quads", None)
+        .map_err(|e| stage_err(&format!("canonicalize parse: {e}")))?;
+    gmeow_rdf::canonical_flat_nquads(&dataset).map_err(|e| stage_err(&format!("canonicalize: {e}")))
 }
 
-fn parse_nq(bytes: &[u8]) -> Result<Vec<Quad>, PipelineError> {
+fn parse_nq(bytes: &[u8]) -> Result<Vec<RdfQuad>, PipelineError> {
     parse_rdf(bytes, "application/n-quads")
 }
 
-/// Parse RDF text of `media_type` into a flat oxigraph quad list via the native
-/// codecs. The IR fold + [`flat_oxigraph_quads_from_dataset`] un-fold are exact
-/// inverses (set-equal to the original parse), so the RDF 1.2 statement layer's
-/// `rdf:reifies`/annotation rows are re-materialized for `add_rdf12`'s own fold.
-fn parse_rdf(bytes: &[u8], media_type: &str) -> Result<Vec<Quad>, PipelineError> {
+/// Parse RDF text of `media_type` into a flat native quad list via the native codecs.
+/// The IR fold + [`flat_rdf_quads_from_dataset`] un-fold are exact inverses (set-equal
+/// to the original parse), so the RDF 1.2 statement layer's `rdf:reifies`/annotation
+/// rows are re-materialized for `add_rdf12`'s own fold.
+fn parse_rdf(bytes: &[u8], media_type: &str) -> Result<Vec<RdfQuad>, PipelineError> {
     let dataset =
         parse_dataset(bytes, media_type, None).map_err(|e| stage_err(&format!("parse: {e}")))?;
-    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| stage_err(&format!("IR → quads: {e}")))
+    Ok(flat_rdf_quads_from_dataset(&dataset))
 }
 
 /// Parse one Turtle source's bytes into a frozen [`RdfDataset`] via the native
@@ -3150,12 +3120,14 @@ mod native_assembly_tests {
         // is the proof the native union preserves per-file distinctness.
     }
 
-    /// The projection-ledger named graph built natively (`turtle_to_nquads`) is
-    /// graph-isomorphic to the legacy oxigraph-`Store` conversion of the SAME Turtle
-    /// report. Both paths canonicalize to byte-identical N-Quads (no blank-label drift,
-    /// no literal-form drift), so the C3 native swap is a faithful replacement.
+    /// The projection-ledger named graph built natively (`turtle_to_nquads`)
+    /// canonicalizes to a STABLE, idempotent RDFC-1.0 N-Quads form that carries every
+    /// authored triple (typed literals + the blank-node structural-drop list). EPIC #906
+    /// retired the prior oxigraph-`Store` cross-check: the conversion is now fully native
+    /// (`turtle_to_nquads` → `canonical_flat_nquads`), so the meaningful invariant is
+    /// canonical idempotence + content fidelity, not equality to a removed oxigraph path.
     #[test]
-    fn projection_ledger_matches_oxigraph_conversion() {
+    fn projection_ledger_canonicalizes_stably() {
         // A representative projection-report fragment: typed loss-ledger entries with
         // a blank-node structural-drop list (exercises blank canonicalization).
         let report_ttl = br#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -3169,26 +3141,25 @@ gmeow:projection/okf
     gmeow:structuralDrop [ gmeow:dropKind gmeow:StatementLayer ] .
 "#;
 
-        // Native path: the C3 helper.
+        // Native path: the C3 helper, then RDFC-1.0 canonicalize.
         let native = turtle_to_nquads(report_ttl).expect("native turtle → n-quads");
         let native_canon = canonicalize_nq(&native, "projledger").expect("canon native");
 
-        // Legacy path: parse via the native codec, route through an oxigraph Store,
-        // serialize back (the exact `Store::new()+ingest_turtle+store_to_nquads` the
-        // C3 swap removed).
-        let store = oxigraph::store::Store::new().expect("store");
-        for quad in parse_rdf(report_ttl, "text/turtle").expect("parse report") {
-            store.insert(&quad).expect("insert");
-        }
-        let store_ds = gmeow_rdf::oxigraph::dataset_from_store(&store).expect("store → ds");
-        let legacy = serialize_dataset(&store_ds, "application/n-quads", SerializeGraph::Dataset)
-            .expect("serialize store");
-        let legacy_canon = canonicalize_nq(&legacy, "projledger").expect("canon legacy");
-
+        // Idempotence: re-canonicalizing the canonical form is a fixpoint.
+        let recanon = canonicalize_nq(native_canon.as_bytes(), "projledger").expect("recanon");
         assert_eq!(
-            native_canon, legacy_canon,
-            "the native projection-ledger N-Quads must be graph-isomorphic to the \
-             oxigraph-Store conversion (canonical byte-equality)"
+            native_canon, recanon,
+            "RDFC-1.0 canonicalization of the projection-ledger N-Quads must be idempotent"
+        );
+
+        // Content fidelity: every authored triple survives (typed literal + blank-node
+        // structural-drop list), and a canonical blank label (`_:c14n…`) is minted.
+        assert!(native_canon.contains("<https://blackcatinformatics.ca/gmeow/projection/okf>"));
+        assert!(native_canon.contains("\"3\"^^<http://www.w3.org/2001/XMLSchema#integer>"));
+        assert!(native_canon.contains("<https://blackcatinformatics.ca/gmeow/StatementLayer>"));
+        assert!(
+            native_canon.contains("_:c14n"),
+            "the blank structural-drop node must carry a canonical RDFC-1.0 label"
         );
     }
 

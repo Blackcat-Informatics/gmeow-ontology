@@ -17,7 +17,7 @@ use serde_json::json;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::{parse_base_graph, BASE_GRAPH_PATH};
+use crate::stages::source_load::BASE_GRAPH_PATH;
 
 /// Committed JSON projection of the DAG SHACL diagnostics report.
 pub const SHACL_JSON_PATH: &str = "generated/diagnostics/shacl.json";
@@ -79,10 +79,14 @@ fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
 
 /// Run SHACL over source-graph N-Quads bytes and return deterministic diagnostics.
 pub fn validate_source_graph(root: &Path, source_nquads: &[u8]) -> Result<Report, PipelineError> {
-    let store = parse_base_graph(source_nquads)?;
+    // Parse the source graph into the native IR and validate it directly through the
+    // native SHACL engine (`validate_dataset`), oxigraph-free (EPIC #906).
+    let dataset = gmeow_rdf::parse_dataset(source_nquads, "application/n-quads", None)
+        .map_err(|e| PipelineError::Parse(format!("source graph parse: {e}")))?;
     let (_shape_store, shapes) =
         gmeow_shacl::shape_union::load_shapes(root).map_err(PipelineError::Parse)?;
-    let report = gmeow_shacl::engine::validate(&store, &shapes);
+    let report =
+        gmeow_shacl::engine::validate_dataset(&dataset, &shapes).map_err(PipelineError::Parse)?;
     Ok(diagnostics_report(&report))
 }
 

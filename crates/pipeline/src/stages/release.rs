@@ -862,9 +862,10 @@ mod tests {
     /// would be correctness no gate validates.
     #[test]
     fn minted_attestations_satisfy_the_assertional_contract() {
-        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
         use gmeow_rdf::parse_dataset;
-        use gmeow_validate::lint::{default_annotation_predicates, structural_lint, LintConfig};
+        use gmeow_validate::lint::{
+            default_annotation_predicates, structural_lint_dataset, LintConfig,
+        };
 
         let mut sorted: Vec<(String, EvidenceInput)> = evidence_inputs()
             .into_iter()
@@ -883,8 +884,11 @@ mod tests {
         let doc = format!(
             "{nq}<{GMEOW_NS}boxABox> <{RDF_TYPE}> <{GMEOW_NS}GraphBoxRole> <{GRAPH_ATTESTATIONS}> .\n"
         );
+        // The doc is N-Quads with the attestations in a named graph. The native
+        // `structural_lint_dataset` reads across all graphs (GraphMatch::Any), so the
+        // dataset is linted exactly as the old `store_from_dataset(.., FlattenToDefaultGraph)`
+        // flattened store was — no oxigraph round-trip.
         let dataset = parse_dataset(doc.as_bytes(), "application/n-quads", None).unwrap();
-        let store = store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap();
 
         let cfg = LintConfig {
             namespace: GMEOW_NS.to_string(),
@@ -893,7 +897,7 @@ mod tests {
             core_slice_iris: Default::default(),
             annotation_predicates: default_annotation_predicates().into_iter().collect(),
         };
-        let report = structural_lint(&store, &cfg);
+        let report = structural_lint_dataset(&dataset, &cfg);
         let attestation_errors: Vec<&String> = report
             .errors
             .iter()
