@@ -114,7 +114,7 @@ pub(crate) struct Fact {
 }
 
 /// The dedup key of a fact: the N3 surfaces of `(subject, predicate, object)`.
-type FactKey = (String, String, String);
+pub(crate) type FactKey = (String, String, String);
 
 impl Fact {
     /// The dedup / membership key `(s.to_string(), p.as_str(), o.to_string())`.
@@ -402,13 +402,13 @@ pub(crate) fn parse_eval_rules(rules: &str) -> Result<Vec<EvalRule>, String> {
 /// A candidate solution: variable→N3-surface bindings plus the matched positive
 /// body facts (their full [`Fact`]s, for provenance recovery).
 #[derive(Clone)]
-struct Solution {
-    bindings: Vec<(String, String)>,
-    source_facts: Vec<Fact>,
+pub(crate) struct Solution {
+    pub(crate) bindings: Vec<(String, String)>,
+    pub(crate) source_facts: Vec<Fact>,
 }
 
 impl Solution {
-    fn get(&self, var_name: &str) -> Option<&str> {
+    pub(crate) fn get(&self, var_name: &str) -> Option<&str> {
         self.bindings
             .iter()
             .find(|(k, _)| k == var_name)
@@ -417,7 +417,7 @@ impl Solution {
 }
 
 /// The N3 surface of an [`EvalTerm`] under bindings, or `None` if an unbound var.
-fn ground(term: &EvalTerm, sol: &Solution) -> Option<String> {
+pub(crate) fn ground(term: &EvalTerm, sol: &Solution) -> Option<String> {
     match term {
         EvalTerm::ConstNamed(nn) => Some(format!("<{}>", nn.as_str())),
         EvalTerm::ConstLit(t) => Some(t.to_string()),
@@ -437,7 +437,7 @@ fn const_surface(term: &EvalTerm) -> Option<String> {
 /// Try to match `atom` against fact `f`, extending `base`; return the merged
 /// solution or `None`.  A repeated variable must agree; a constant must equal the
 /// fact term's N3 surface exactly.  Mirrors `foundation.rs::match_atom`.
-fn match_atom(atom: &EvalAtom, f: &Fact, base: &Solution) -> Option<Solution> {
+pub(crate) fn match_atom(atom: &EvalAtom, f: &Fact, base: &Solution) -> Option<Solution> {
     let fact_surfaces = [
         f.subject.to_string(),
         format!("<{}>", f.predicate.as_str()),
@@ -500,7 +500,7 @@ fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, reference: &FactStore
 
 /// Whether every inequality guard holds (N3-surface inequality).  An unbound guard
 /// variable is a hard error.  Mirrors `foundation.rs::distinct_pairs_satisfied`.
-fn distinct_pairs_satisfied(
+pub(crate) fn distinct_pairs_satisfied(
     distinct_pairs: &[(String, String)],
     sol: &Solution,
 ) -> Result<bool, String> {
@@ -649,22 +649,22 @@ fn join_body(
 /// tiebreaker, and finally uses `rule_iri` as a total-order backstop (since rule IRIs
 /// vary per rule, unlike `foundation.rs` where a single anonymous IRI is used).
 #[derive(Clone)]
-struct RuleRoundCandidate {
-    head: Fact,
-    key: FactKey,
+pub(crate) struct RuleRoundCandidate {
+    pub(crate) head: Fact,
+    pub(crate) key: FactKey,
     /// Reifiers of matched positive body facts, in body (scan) order — goes into
     /// `DerivedRow.source_quad_ids`.
-    sources: Vec<String>,
+    pub(crate) sources: Vec<String>,
     /// Sorted copy of `sources`, used only for deterministic winner comparison.
-    sorted_sources: Vec<String>,
+    pub(crate) sorted_sources: Vec<String>,
     /// Content-addressed derivation IRI.
-    deriv: String,
+    pub(crate) deriv: String,
     /// The firing rule IRI (carried for comparison and output).
-    rule_iri: String,
+    pub(crate) rule_iri: String,
     /// Maximum derivation depth across matched source facts (depth 0 = asserted).
-    max_src_depth: u32,
+    pub(crate) max_src_depth: u32,
     /// Sum of derivation depths across matched source facts.
-    sum_src_depth: u64,
+    pub(crate) sum_src_depth: u64,
 }
 
 /// The least model of the Gelfond-Lifschitz reduct of `rules` w.r.t. `reference`,
@@ -817,7 +817,7 @@ pub(crate) fn least_model_of_reduct(
 
 /// Ground a rule head into a [`Fact`], failing hard on an unbound head variable or
 /// a literal subject/predicate.
-fn ground_head(head: &EvalAtom, sol: &Solution) -> Result<Fact, String> {
+pub(crate) fn ground_head(head: &EvalAtom, sol: &Solution) -> Result<Fact, String> {
     let subject = ground_term_to_oxi(&head.subject, sol, "head subject")?;
     let object = ground_term_to_oxi(&head.object, sol, "head object")?;
     // The subject must be an IRI/blank node, never a literal.
