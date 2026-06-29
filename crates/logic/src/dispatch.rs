@@ -6,13 +6,17 @@
 //! # Primary path + fallback router
 //!
 //! `dispatch_query` resolves a `QProgram` native-first, falling back to the legacy
-//! two-path router only for a declared native gap:
+//! two-path router for a declared native gap OR a step budget:
 //!
 //! - **Native physical core** (the primary path): `crate::physical::resolve_native`
 //!   magic-transforms the query and evaluates it bottom-up over the columnar
 //!   `RelationStore`. It is authoritative for the binary positive query fragment it
 //!   decides; a `NativeOutcome::Unsupported` (cut / arithmetic / non-binary / demand-
 //!   breaks-stratification) is a declared gap that falls through to the router below.
+//!   The native core has no step governor, so a `budget.max_steps` request is also
+//!   demoted to the fallback (which honours it) before native runs; a `max_answers`-only
+//!   budget stays native. A step budget further forces the EDB `Fast` path to Scryer,
+//!   since `fast_path` honours only `max_answers`.
 //!
 //! - **Fast path** (`Dispatch::Fast`): the goal contains only EDB atoms (no rule in the
 //!   program defines any goal predicate). Resolved directly via a single SPARQL
