@@ -11,6 +11,17 @@
 # would require at least one non-recoverable non-reaching outcome) and NOT
 # StrongPlanSuccess (which would require EVERY outcome to reach the goal).
 #
+# The SAME plan also carries a reified control-flow graph (logic:planFlowEdge:
+# probe → recover → probe is a retry back-edge, plus probe → commit on success) and
+# runs logic:executedUnderContract logic:DagWorkflowContract. So the plan is valid
+# CANONICALLY (StrongCyclicPlanSuccess) yet resolves to `unsupported` under the
+# DAG-workflow profile: the evaluator emits a logic:ReasoningResult with
+# logic:resultEvaluation logic:EvaluationUnsupported and discloses the offending
+# cycle members (probe, recover) through logic:dagCycleWitness — never silently
+# truncated — and the run's preservation claim turns SoundUnder, naming the dropped
+# loop. The acyclicity verdict comes from the SAME shared certifier the build
+# pipeline delegates to (gmeow_logic::dag_profile::certify_acyclic).
+#
 # CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
 # input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
 # the projections need (no asserted teleology triples here — the world facts live in

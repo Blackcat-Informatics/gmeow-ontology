@@ -21,7 +21,7 @@ gmeow:ControlFlow
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Control Flow"@x-gmeow-english ;
-    rdfs:subClassOf logic:Relator ,
+    rdfs:subClassOf logic:ControlFlowEdge ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:flowSource ;
@@ -32,7 +32,7 @@ gmeow:ControlFlow
             owl:onProperty gmeow:flowTarget ;
             owl:someValuesFrom gmeow:ProcedureStep ;
         ] ;
-    skos:definition "A reified relator that connects two ProcedureSteps in a control-flow relationship — sequencing, branching, or looping. Reuses the Participation idiom: mediates a source step, a target step, and an optional guard condition (gmeow:flowGuard). The actual guard evaluation is solver-side (Principle 12)."@x-gmeow-english ;
+    skos:definition "A reified relator that connects two ProcedureSteps in a control-flow relationship — sequencing, branching, or looping. A specialization of the canonical logic:ControlFlowEdge (itself a logic:Relator), so a procedure's control flow is the same flow-graph form the DAG-workflow certifier reads, not a parallel one. Reuses the Participation idiom: mediates a source step, a target step, and an optional guard condition (gmeow:flowGuard). The actual guard evaluation is solver-side (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DataFlow
@@ -40,7 +40,7 @@ gmeow:DataFlow
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Data Flow"@x-gmeow-english ;
-    rdfs:subClassOf logic:Relator ,
+    rdfs:subClassOf logic:DataFlowEdge ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:dataFlowSource ;
@@ -51,7 +51,7 @@ gmeow:DataFlow
             owl:onProperty gmeow:dataFlowTarget ;
             owl:someValuesFrom gmeow:ProcedureStep ;
         ] ;
-    skos:definition "A reified relator that connects a ProcedureStep's output to another ProcedureStep's input. Mediates a source step, a target step, and the data entity that flows between them."@x-gmeow-english ;
+    skos:definition "A reified relator that connects a ProcedureStep's output to another ProcedureStep's input. A specialization of the canonical logic:DataFlowEdge (the reified counterpart of logic:dataflowConsumes), so a procedure's dataflow is the same canonical edge family the pipeline and the certifier use. Mediates a source step, a target step, and the data entity that flows between them."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Execution
@@ -87,14 +87,14 @@ gmeow:Procedure
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Procedure"@x-gmeow-english ;
-    rdfs:subClassOf logic:Object ,
+    rdfs:subClassOf logic:Plan ,
         gmeow:InformationObject ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:hasProcedureStep ;
             owl:someValuesFrom gmeow:ProcedureStep ;
         ] ;
-    skos:definition "A prescriptive specification — a template, recipe, protocol, blueprint, workflow definition, or pipeline spec. The plan side of the plan ⟂ execution de-conflation: an InformationObject that describes how to do something, distinct from any Execution that enacts it. The kind of procedure is a gmeow:procedureType value, never a subclass."@x-gmeow-english ;
+    skos:definition "A prescriptive specification — a template, recipe, protocol, blueprint, workflow definition, or pipeline spec. A logic:Plan: the plan side of the plan ⟂ execution de-conflation, an InformationObject that describes how to do something, distinct from any Execution that enacts it. As a logic:Plan it carries a logic:planGoal (what the procedure accomplishes) and a logic:planSuccessMode; its steps are the plan's steps and its control/dataflow edges (gmeow:ControlFlow / gmeow:DataFlow) specialize the canonical logic: edges, so procedures are a projection of the one canonical process model rather than a parallel one. The direct logic:Object parent is dropped as redundant — gmeow:InformationObject is already a logic:Object. The kind of procedure is a gmeow:procedureType value, never a subclass."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ProcedureStep
@@ -168,7 +168,8 @@ gmeow:dataFlowSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "data flow source"@x-gmeow-english ;
     rdfs:range gmeow:ProcedureStep ;
-    skos:definition "The producing ProcedureStep of a data-flow relator. Functional: one source per data-flow edge."@x-gmeow-english ;
+    rdfs:subPropertyOf logic:flowFrom ;
+    skos:definition "The producing ProcedureStep of a data-flow relator — a specialization of the canonical logic:flowFrom leg. Functional: one source per data-flow edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
@@ -178,7 +179,8 @@ gmeow:dataFlowTarget
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "data flow target"@x-gmeow-english ;
     rdfs:range gmeow:ProcedureStep ;
-    skos:definition "The consuming ProcedureStep of a data-flow relator. Functional: one target per data-flow edge."@x-gmeow-english ;
+    rdfs:subPropertyOf logic:flowTo ;
+    skos:definition "The consuming ProcedureStep of a data-flow relator — a specialization of the canonical logic:flowTo leg. Functional: one target per data-flow edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:executesProcedure
@@ -333,7 +335,8 @@ gmeow:flowSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "flow source"@x-gmeow-english ;
     rdfs:range gmeow:ProcedureStep ;
-    skos:definition "The source ProcedureStep of a control-flow relator. Functional: one source per control-flow edge."@x-gmeow-english ;
+    rdfs:subPropertyOf logic:flowFrom ;
+    skos:definition "The source ProcedureStep of a control-flow relator — a specialization of the canonical logic:flowFrom leg. Functional: one source per control-flow edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
@@ -343,7 +346,8 @@ gmeow:flowTarget
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "flow target"@x-gmeow-english ;
     rdfs:range gmeow:ProcedureStep ;
-    skos:definition "The target ProcedureStep of a control-flow relator. Functional: one target per control-flow edge."@x-gmeow-english ;
+    rdfs:subPropertyOf logic:flowTo ;
+    skos:definition "The target ProcedureStep of a control-flow relator — a specialization of the canonical logic:flowTo leg. Functional: one target per control-flow edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasProcedureStep
@@ -405,12 +409,23 @@ gmeow:inquiryTheme
     skos:definition "The thematic area or topic of a research inquiry. Applies to Procedures of type researchPlan. Open vocabulary — any literal is valid."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# The ingestion procedure's success criterion (logic:planGoal): a Procedure IS a
+# logic:Plan, so it declares the goal it accomplishes and its success mode.
+gmeow:goalCanonicalIngestion
+    a gmeow:Goal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
+    rdfs:label "canonical ingestion goal"@x-gmeow-english ;
+    skos:definition "The success criterion of gmeow:procedureIngestionCanonical: raw sources acquired, copied, OCR-extracted, and assessed into derived claims, unresolved leads, and a privacy posture — the canonical ingested state the procedure's steps are arranged to reach."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:procedureIngestionCanonical
     a gmeow:Procedure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Canonical Ingestion Procedure"@x-gmeow-english ;
-    skos:definition "A worked-example ingestion procedure that supersedes the 'source-packet bundle' idea. Six sequential steps from raw-root acquisition to privacy-posture assessment."@x-gmeow-english ;
+    skos:definition "A worked-example ingestion procedure that supersedes the 'source-packet bundle' idea. Six sequential steps from raw-root acquisition to privacy-posture assessment. As a logic:Plan it carries its success criterion: logic:planGoal gmeow:goalCanonicalIngestion and logic:planSuccessMode logic:StrongPlanSuccess (every execution reaches the ingested state)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    logic:planGoal gmeow:goalCanonicalIngestion ;
+    logic:planSuccessMode logic:StrongPlanSuccess ;
     gmeow:hasProcedureStep gmeow:stepIngestionDerivedClaims ,
         gmeow:stepIngestionFileCopy ,
         gmeow:stepIngestionOcrExtract ,
