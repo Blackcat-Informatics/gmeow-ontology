@@ -28,7 +28,7 @@ use oxigraph::store::Store;
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::profiles::{
     dependency_closure, discover_slices, group_named_profiles, SliceMeta,
 };
@@ -651,9 +651,6 @@ impl Default for MetadataStage {
 impl Stage for MetadataStage {
     fn id(&self) -> &str {
         "stage-export-metadata"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

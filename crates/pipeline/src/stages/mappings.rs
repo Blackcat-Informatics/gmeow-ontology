@@ -37,7 +37,7 @@ use gmeow_slice::{
 };
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::compile_logic::{
     LogicProjectionsChannel, LOGIC_PROJECTIONS_CHANNEL, PROJECTION_REPORT_PATH,
 };
@@ -429,9 +429,6 @@ impl Default for MappingsStage {
 impl Stage for MappingsStage {
     fn id(&self) -> &str {
         "stage-mappings"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
     }
     fn consumes(&self) -> &[String] {
         // Reads dsl/mappings + slice mapping cells from the root, AND the compile-logic

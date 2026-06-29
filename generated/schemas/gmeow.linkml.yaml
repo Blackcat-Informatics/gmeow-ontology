@@ -2929,10 +2929,10 @@ classes:
     slots:
     - dataflowConsumes
     - dataflowProduces
+    - hasCapability
     - producesFormat
     - requiresResource
     - stageImpl
-    - stageKind
   PitchAnchor:
     class_uri: https://blackcatinformatics.ca/gmeow/PitchAnchor
     title: Pitch Anchor
@@ -3769,9 +3769,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Spectrum
     title: Spectrum
     is_a: InformationObject
-  StageKind:
-    class_uri: https://blackcatinformatics.ca/gmeow/StageKind
-    title: Stage Kind
+  StageCapability:
+    class_uri: https://blackcatinformatics.ca/gmeow/StageCapability
+    title: Stage Capability
   Standpoint:
     class_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     title: Standpoint
@@ -7652,6 +7652,12 @@ slots:
     title: has calendar method
     range: CalendarMethod
     domain: EmailMessage
+    multivalued: true
+  hasCapability:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasCapability
+    title: has capability
+    range: StageCapability
+    domain: PipelineStage
     multivalued: true
   hasCapacity:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasCapacity
@@ -12275,12 +12281,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/stageImpl
     title: stage impl
     range: string
-    domain: PipelineStage
-    multivalued: true
-  stageKind:
-    slot_uri: https://blackcatinformatics.ca/gmeow/stageKind
-    title: stage kind
-    range: StageKind
     domain: PipelineStage
     multivalued: true
   standpointAssertoricForce:
@@ -20558,30 +20558,18 @@ enums:
       spectrumExample:
         meaning: https://blackcatinformatics.ca/gmeow/spectrumExample
         title: example spectrum
-  StageKindEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/StageKind
+  StageCapabilityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/StageCapability
     permissible_values:
-      kindDocsRender:
-        meaning: https://blackcatinformatics.ca/gmeow/kindDocsRender
-        title: docs render
-      kindExportLeaf:
-        meaning: https://blackcatinformatics.ca/gmeow/kindExportLeaf
-        title: export leaf
-      kindReason:
-        meaning: https://blackcatinformatics.ca/gmeow/kindReason
-        title: reason
-      kindSink:
-        meaning: https://blackcatinformatics.ca/gmeow/kindSink
-        title: sink
-      kindSourceLoad:
-        meaning: https://blackcatinformatics.ca/gmeow/kindSourceLoad
-        title: source load
-      kindTransform:
-        meaning: https://blackcatinformatics.ca/gmeow/kindTransform
-        title: transform
-      kindValidate:
-        meaning: https://blackcatinformatics.ca/gmeow/kindValidate
-        title: validate
+      sinkCapability:
+        meaning: https://blackcatinformatics.ca/gmeow/sinkCapability
+        title: sink capability
+      sourceOrigin:
+        meaning: https://blackcatinformatics.ca/gmeow/sourceOrigin
+        title: source origin
+      stageExecutorCapability:
+        meaning: https://blackcatinformatics.ca/gmeow/stageExecutorCapability
+        title: stage executor capability
   StandpointEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     permissible_values:

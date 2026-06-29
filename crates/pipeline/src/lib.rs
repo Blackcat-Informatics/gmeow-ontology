@@ -11,7 +11,7 @@
 //!
 //! # Layout
 //!
-//! * [`node`] — the [`Stage`] trait, the [`StageKind`] taxonomy, the in-memory
+//! * [`node`] — the [`Stage`] trait, the capability IRIs, the in-memory
 //!   product / input / output handles.
 //! * [`graph`] — acyclicity (`tarjan_scc`) + deterministic topological levelling.
 //! * [`loader`] — parse the dogfooded DAG, validate it, bind stages to impls.
@@ -24,8 +24,9 @@
 //!
 //! Invariants the [`loader`] proves before any stage runs (no-optionality): the
 //! DAG is acyclic and complete, there is exactly one `Sink` (the gts narrow
-//! waist), and every bound stage's `kind` / `consumes` / `resources` agree with
-//! its RDF declaration (single source of truth).
+//! waist — the stage holding `gmeow:sinkCapability`), and every bound stage's
+//! `capabilities` / `consumes` / `resources` agree with its RDF declaration
+//! (single source of truth).
 
 pub mod bundle;
 pub mod cache;
@@ -55,7 +56,9 @@ pub use cache::PipelineCache;
 pub use error::PipelineError;
 pub use graph::StageGraph;
 pub use loader::{bind, PipelineSpec, StageSpec};
-pub use node::{Stage, StageInput, StageKind, StageOutput, StageProduct, ENGINE_RESOURCE};
+pub use node::{
+    Stage, StageInput, StageOutput, StageProduct, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+};
 pub use registry::{default_registry, StageRegistry};
 pub use run::{full_spec, run_full, RunMode, RunReport};
 pub use scheduler::{run, RunContext, RunResult};

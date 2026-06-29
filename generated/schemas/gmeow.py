@@ -2840,14 +2840,10 @@ class SpectrumEnum(str, Enum):
     spectrumExample = "spectrumExample"
 
 
-class StageKindEnum(str, Enum):
-    kindDocsRender = "kindDocsRender"
-    kindExportLeaf = "kindExportLeaf"
-    kindReason = "kindReason"
-    kindSink = "kindSink"
-    kindSourceLoad = "kindSourceLoad"
-    kindTransform = "kindTransform"
-    kindValidate = "kindValidate"
+class StageCapabilityEnum(str, Enum):
+    sinkCapability = "sinkCapability"
+    sourceOrigin = "sourceOrigin"
+    stageExecutorCapability = "stageExecutorCapability"
 
 
 class StandpointEnum(str, Enum):
@@ -6645,10 +6641,10 @@ class PipelineStage(SocialObject):
     is_a: ClassVar[str] = "SocialObject"
     dataflowConsumes: list[PipelineStage] | None = Field(default=None)
     dataflowProduces: list[PipelineStage] | None = Field(default=None)
+    hasCapability: list[StageCapability] | None = Field(default=None)
     producesFormat: list[str] | None = Field(default=None)
     requiresResource: list[Resource] | None = Field(default=None)
     stageImpl: list[str] | None = Field(default=None)
-    stageKind: list[StageKind] | None = Field(default=None)
 
 
 class PitchAnchor(Entity):
@@ -7594,8 +7590,8 @@ class Spectrum(InformationObject):
     pass
 
 
-class StageKind(ConfiguredBaseModel):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/StageKind"
+class StageCapability(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/StageCapability"
     pass
 
 

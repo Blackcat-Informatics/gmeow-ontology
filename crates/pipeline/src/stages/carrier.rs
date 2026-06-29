@@ -27,7 +27,7 @@ use oxigraph::model::Quad;
 use rayon::prelude::*;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::statements::RDF12_PATH;
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -898,9 +898,6 @@ impl Default for SnapshotStage {
 impl Stage for SnapshotStage {
     fn id(&self) -> &str {
         "stage-snapshot"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

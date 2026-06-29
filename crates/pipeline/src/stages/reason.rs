@@ -29,7 +29,7 @@ use gmeow_rdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct, ENGINE_RESOURCE};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, ENGINE_RESOURCE};
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
 /// the SOLE reasoning pass: it reasons once over the object-level EDB
@@ -193,9 +193,6 @@ impl Default for ReasonStage {
 impl Stage for ReasonStage {
     fn id(&self) -> &str {
         "stage-reason"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Reason
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

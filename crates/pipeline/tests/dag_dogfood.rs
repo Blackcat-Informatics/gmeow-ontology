@@ -27,7 +27,7 @@ fn slice_dag_binds_and_matches_full_spec() {
     let spec = PipelineSpec::from_turtle(&[&ttl]).expect("parse the dogfooded build DAG");
 
     // The slice DAG validates (acyclic, complete, one Sink) and binds against the
-    // default registry (every stageImpl resolves; kind + consumes + resources
+    // default registry (every stageImpl resolves; capabilities + consumes + resources
     // agree with the Rust impl).
     let graph = spec.validate().expect("slice DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("slice DAG binds to registry");
@@ -35,8 +35,8 @@ fn slice_dag_binds_and_matches_full_spec() {
 
     // The slice DAG is IDENTICAL to the authoritative Rust full_spec — the single
     // authoritative graph the run uses. We compare every field the loader fills
-    // authoritatively from `module.ttl`: id, impl_key, consumes, kind, AND
-    // resources. (`kind` is `gmeow:stageKind`; `resources` is
+    // authoritatively from `module.ttl`: id, impl_key, consumes, capabilities, AND
+    // resources. (`capabilities` is `gmeow:hasCapability`; `resources` is
     // `gmeow:requiresResource` — both are loaded from the slice, so a drift in
     // either must surface here, not just in id/impl_key/consumes.)
     //
@@ -50,7 +50,7 @@ fn slice_dag_binds_and_matches_full_spec() {
         String,
         String,
         Vec<String>,
-        &'static str,
+        Vec<String>,
         Vec<String>,
         Vec<(String, Vec<String>)>,
     );
@@ -59,7 +59,7 @@ fn slice_dag_binds_and_matches_full_spec() {
             s.id.clone(),
             s.impl_key.clone(),
             s.consumes.clone(),
-            s.kind.tag(),
+            s.capabilities.clone(),
             s.resources.clone(),
             s.dataflow_entities.clone(),
         )
@@ -72,6 +72,6 @@ fn slice_dag_binds_and_matches_full_spec() {
     assert_eq!(
         slice, rust,
         "the dogfooded slice DAG and the Rust full_spec must be identical \
-         (id, impl_key, consumes, kind, resources, dataflow_entities)"
+         (id, impl_key, consumes, capabilities, resources, dataflow_entities)"
     );
 }

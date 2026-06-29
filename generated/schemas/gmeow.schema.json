@@ -15050,6 +15050,37 @@
             }
           ]
         },
+        "gmeow:hasCapability": {
+          "anyOf": [
+            {
+              "$comment": "gmeow:StageCapability has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:StageCapability has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          ]
+        },
         "gmeow:requiresResource": {
           "anyOf": [
             {
@@ -15099,23 +15130,10 @@
               "type": "object"
             }
           ]
-        },
-        "gmeow:stageKind": {
-          "$comment": "gmeow:StageKind has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
         }
       },
       "required": [
-        "gmeow:stageImpl",
-        "gmeow:stageKind"
+        "gmeow:stageImpl"
       ],
       "type": "object"
     },

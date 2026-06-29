@@ -2816,14 +2816,10 @@ enum SpectrumEnum {
   spectrumExample
 }
 
-enum StageKindEnum {
-  kindDocsRender
-  kindExportLeaf
-  kindReason
-  kindSink
-  kindSourceLoad
-  kindTransform
-  kindValidate
+enum StageCapabilityEnum {
+  sinkCapability
+  sourceOrigin
+  stageExecutorCapability
 }
 
 enum StandpointEnum {
@@ -6500,10 +6496,10 @@ type PipelineStage {
   iri: String
   dataflowConsumes: [PipelineStage!]
   dataflowProduces: [PipelineStage!]
+  hasCapability: [StageCapability!]
   producesFormat: [String!]
   requiresResource: [Resource!]
   stageImpl: [String!]
-  stageKind: [StageKind!]
 }
 
 type PitchAnchor {
@@ -7484,7 +7480,7 @@ type Spectrum {
   iri: String
 }
 
-type StageKind {
+type StageCapability {
   id: String
   iri: String
 }

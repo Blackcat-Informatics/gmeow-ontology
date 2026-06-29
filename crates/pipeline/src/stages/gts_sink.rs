@@ -17,7 +17,7 @@
 use std::collections::BTreeMap;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, SINK_CAPABILITY};
 use crate::stages::carrier::SNAPSHOT_PATH;
 
 /// Committed logical path of the serialized GTS bundle.
@@ -28,12 +28,16 @@ pub const GTS_PATH: &str = SNAPSHOT_PATH;
 /// The `gts_sink` pipeline stage — the single serialization exit.
 pub struct GtsSinkStage {
     consumes: Vec<String>,
+    capabilities: Vec<String>,
 }
 
 impl GtsSinkStage {
     /// Construct the sink. It consumes the assembled carrier (`stage-snapshot`) and the
     /// by-reference blob sources it folds into the terminal `gmeow.gts` package
     /// (#1132 Stage C): the in-memory JSON-Schema/axiom/reasoning/SHACL-report products.
+    /// It holds [`SINK_CAPABILITY`] — the sole serialization exit the loader requires
+    /// exactly one stage to hold (mirrored by the slice
+    /// `gmeow:stage-gts-sink gmeow:hasCapability gmeow:sinkCapability`).
     pub fn new() -> Self {
         Self {
             consumes: vec![
@@ -43,6 +47,7 @@ impl GtsSinkStage {
                 "stage-reason".to_string(),
                 "stage-validate".to_string(),
             ],
+            capabilities: vec![SINK_CAPABILITY.to_string()],
         }
     }
 }
@@ -57,11 +62,11 @@ impl Stage for GtsSinkStage {
     fn id(&self) -> &str {
         "stage-gts-sink"
     }
-    fn kind(&self) -> StageKind {
-        StageKind::Sink
-    }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn capabilities(&self) -> &[String] {
+        &self.capabilities
     }
     fn impl_version(&self) -> &str {
         "gts_sink.v3-snapshot"

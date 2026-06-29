@@ -20,7 +20,7 @@
 use std::collections::BTreeMap;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::{collect_term_surface, read_fold_upstream, Term};
 
 /// The bundle directory name under `dist/`.
@@ -613,9 +613,6 @@ impl Default for OkfStage {
 impl Stage for OkfStage {
     fn id(&self) -> &str {
         "stage-export-okf"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

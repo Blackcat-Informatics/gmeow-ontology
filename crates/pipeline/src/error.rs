@@ -65,14 +65,18 @@ pub enum PipelineError {
         /// The dependency ids the Rust impl declares via `consumes()`, sorted.
         rust: Vec<String>,
     },
-    /// The registry stage's `kind()` disagrees with the RDF `gmeow:stageKind`.
-    KindMismatch {
-        /// The stage whose kind disagrees.
+    /// The registry stage's `capabilities()` disagrees with the RDF
+    /// `gmeow:hasCapability` declaration (Rust/RDF capability agreement). A stage and
+    /// its executable twin cannot claim different capabilities — that would let the
+    /// executor read a sink/source role the authored model never declared (single
+    /// source of truth, ETHOS one-path).
+    CapabilityMismatch {
+        /// The stage whose declarations disagree.
         stage: String,
-        /// The RDF-declared kind tag.
-        rdf: String,
-        /// The Rust-declared kind tag.
-        rust: String,
+        /// The capability IRIs declared in RDF (`gmeow:hasCapability`), sorted.
+        rdf: Vec<String>,
+        /// The capability IRIs the Rust impl declares via `capabilities()`, sorted.
+        rust: Vec<String>,
     },
     /// A cached `StageProduct` failed its self-verifying digest recheck. The
     /// cache is never silently repaired (no-optionality, #861 P2).
@@ -107,9 +111,9 @@ impl std::fmt::Display for PipelineError {
                 f,
                 "stage {stage}: RDF dataflowConsumes {rdf:?} disagrees with the Rust impl consumes() {rust:?}"
             ),
-            PipelineError::KindMismatch { stage, rdf, rust } => write!(
+            PipelineError::CapabilityMismatch { stage, rdf, rust } => write!(
                 f,
-                "stage {stage}: RDF gmeow:stageKind {rdf} disagrees with the Rust impl kind() {rust}"
+                "stage {stage}: RDF gmeow:hasCapability {rdf:?} disagrees with the Rust impl capabilities() {rust:?}"
             ),
             PipelineError::CacheMismatch { expected, actual } => {
                 write!(f, "pipeline cache digest mismatch: expected {expected}, got {actual}")

@@ -8,27 +8,25 @@
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 # =========================================================================== #
-# Build-DAG well-formedness: every stage carries exactly one kind and exactly  #
-# one stageImpl, every gmeow:requiresResource target is a gmeow:Resource, and   #
-# every pipeline holds at least one stage — closed-world cardinality the        #
-# executor relies on before scheduling (the acyclicity / single-Sink / resource #
-# -agreement invariants are enforced in the Rust loader, which reads across the #
-# whole graph).                                                                 #
+# Build-DAG well-formedness: every stage carries exactly one stageImpl, every   #
+# gmeow:hasCapability target is a gmeow:StageCapability, every                   #
+# gmeow:requiresResource target is a gmeow:Resource, and every pipeline holds   #
+# at least one stage — closed-world cardinality the executor relies on before   #
+# scheduling (the acyclicity / single-sinkCapability / agreement invariants are #
+# enforced in the Rust loader, which reads across the whole graph).             #
 # =========================================================================== #
 
 gmeow:PipelineStageShape
     a sh:NodeShape ;
     rdfs:label "Pipeline stage well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:PipelineStage: exactly one gmeow:stageKind (a gmeow:StageKind), exactly one xsd:string gmeow:stageImpl, and every gmeow:requiresResource target a gmeow:Resource, so the gmeow-pipeline loader can bind and schedule every stage without holes."@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:PipelineStage: exactly one xsd:string gmeow:stageImpl, every gmeow:hasCapability target a gmeow:StageCapability, and every gmeow:requiresResource target a gmeow:Resource, so the gmeow-pipeline loader can bind and schedule every stage without holes."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     sh:targetClass gmeow:PipelineStage ;
     sh:property [
-        sh:path gmeow:stageKind ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:class gmeow:StageKind ;
+        sh:path gmeow:hasCapability ;
+        sh:class gmeow:StageCapability ;
         sh:severity sh:Violation ;
-        sh:message "A PipelineStage must carry exactly one gmeow:stageKind (a gmeow:StageKind)." ;
+        sh:message "Every gmeow:hasCapability target must be a gmeow:StageCapability." ;
     ] ;
     sh:property [
         sh:path gmeow:stageImpl ;

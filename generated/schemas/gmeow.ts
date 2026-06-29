@@ -2816,14 +2816,10 @@ export enum SpectrumEnum {
     spectrumExample = "spectrumExample",
 }
 
-export enum StageKindEnum {
-    kindDocsRender = "kindDocsRender",
-    kindExportLeaf = "kindExportLeaf",
-    kindReason = "kindReason",
-    kindSink = "kindSink",
-    kindSourceLoad = "kindSourceLoad",
-    kindTransform = "kindTransform",
-    kindValidate = "kindValidate",
+export enum StageCapabilityEnum {
+    sinkCapability = "sinkCapability",
+    sourceOrigin = "sourceOrigin",
+    stageExecutorCapability = "stageExecutorCapability",
 }
 
 export enum StandpointEnum {
@@ -5600,10 +5596,10 @@ export interface Pipeline extends SocialObject {
 export interface PipelineStage extends SocialObject {
     dataflowConsumes?: PipelineStage[],
     dataflowProduces?: PipelineStage[],
+    hasCapability?: StageCapability[],
     producesFormat?: string[],
     requiresResource?: Resource[],
     stageImpl?: string[],
-    stageKind?: StageKind[],
 }
 
 export interface PitchAnchor extends Entity {
@@ -6286,7 +6282,7 @@ export interface SpatialMeasurement extends Measurement {
 export interface Spectrum extends InformationObject {
 }
 
-export interface StageKind {
+export interface StageCapability {
 }
 
 export interface Standpoint extends Entity {

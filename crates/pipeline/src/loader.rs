@@ -10,7 +10,7 @@
 //! the parsed-but-unbound shape; [`PipelineSpec::validate`] proves the structure
 //! (acyclic, complete, exactly one sink); [`bind`] resolves each `gmeow:stageImpl`
 //! against the [`StageRegistry`] and proves the Rust impl agrees with the RDF
-//! declaration (kind + consumes + resources + typed dataflow). Every check
+//! declaration (capabilities + consumes + resources + typed dataflow). Every check
 //! HARD-fails before any stage runs.
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -21,7 +21,7 @@ use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::graph::StageGraph;
-use crate::node::{Stage, StageKind, GMEOW};
+use crate::node::{Stage, GMEOW, SINK_CAPABILITY};
 use crate::registry::StageRegistry;
 use crate::stages::source_load::turtle_bytes_into_store;
 
@@ -38,8 +38,11 @@ pub type DataFlowEntities = Vec<(String, Vec<String>)>;
 pub struct StageSpec {
     /// The stage id — the `gmeow:PipelineStage` individual's local name.
     pub id: String,
-    /// `gmeow:stageKind` resolved to a [`StageKind`].
-    pub kind: StageKind,
+    /// `gmeow:hasCapability` — the capability IRIs this stage holds (e.g.
+    /// [`crate::node::SINK_CAPABILITY`], [`crate::node::SOURCE_ORIGIN`]), sorted and
+    /// deduplicated. Validated against the Rust impl's `capabilities()` at bind time
+    /// (Rust/RDF agreement); the executor reads these in place of a kind enum.
+    pub capabilities: Vec<String>,
     /// `gmeow:stageImpl` — the registry key binding this to a Rust [`Stage`].
     pub impl_key: String,
     /// `gmeow:dataflowConsumes` — upstream stage ids, sorted, deduplicated.
@@ -79,11 +82,12 @@ impl PipelineSpec {
     /// than one `Sink`. (Rust/RDF resource agreement is proven at `bind` time,
     /// once the executable twin is resolved.)
     pub fn validate(&self) -> Result<StageGraph, PipelineError> {
-        // ── Exactly one Sink (the gts narrow waist). ──
+        // ── Exactly one Sink (the gts narrow waist): the stage holding
+        //    gmeow:sinkCapability. ──
         let sinks: Vec<&str> = self
             .stages
             .iter()
-            .filter(|s| s.kind == StageKind::Sink)
+            .filter(|s| s.capabilities.iter().any(|c| c == SINK_CAPABILITY))
             .map(|s| s.id.as_str())
             .collect();
         match sinks.len() {
@@ -164,17 +168,17 @@ impl PipelineSpec {
 fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineError> {
     let id = local_name(stage_iri);
 
-    // gmeow:stageKind (exactly one).
-    let kind_iri = objects(store, stage_iri, &iri(GMEOW, "stageKind"))?
+    // gmeow:hasCapability (zero or more capability IRIs, kept whole — capabilities are
+    // not stages, so they are not reduced to local names).
+    let mut capabilities: Vec<String> = objects(store, stage_iri, &iri(GMEOW, "hasCapability"))?
         .into_iter()
-        .find_map(|t| match t {
+        .filter_map(|t| match t {
             Term::NamedNode(nn) => Some(nn.as_str().to_string()),
             _ => None,
         })
-        .ok_or_else(|| PipelineError::Parse(format!("stage {id} has no gmeow:stageKind")))?;
-    let kind = StageKind::from_iri(&kind_iri).ok_or_else(|| {
-        PipelineError::Parse(format!("stage {id} has unknown stageKind {kind_iri}"))
-    })?;
+        .collect();
+    capabilities.sort();
+    capabilities.dedup();
 
     // gmeow:stageImpl (exactly one string).
     let impl_key = objects(store, stage_iri, &iri(GMEOW, "stageImpl"))?
@@ -215,7 +219,7 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
 
     Ok(StageSpec {
         id,
-        kind,
+        capabilities,
         impl_key,
         consumes,
         resources,
@@ -314,8 +318,8 @@ fn parse_dataflow_edges(
 }
 
 /// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
-/// Rust impl agrees with the RDF declaration (kind + consumes). Returns the
-/// bound stages in the validated topological order.
+/// Rust impl agrees with the RDF declaration (capabilities + consumes + resources +
+/// typed dataflow). Returns the bound stages in the validated topological order.
 pub fn bind(
     spec: &PipelineSpec,
     graph: &StageGraph,
@@ -331,12 +335,17 @@ pub fn bind(
                 impl_key: s.impl_key.clone(),
             })?;
 
-        // Kind agreement.
-        if stage.kind() != s.kind {
-            return Err(PipelineError::KindMismatch {
+        // Capability agreement (both sides sorted+deduped): the executable twin must
+        // declare exactly the capabilities the RDF does, or the executor would read a
+        // sink/source role the authored model never declared (single source of truth).
+        let mut rust_caps: Vec<String> = stage.capabilities().to_vec();
+        rust_caps.sort();
+        rust_caps.dedup();
+        if rust_caps != s.capabilities {
+            return Err(PipelineError::CapabilityMismatch {
                 stage: s.id.clone(),
-                rdf: s.kind.tag().to_string(),
-                rust: stage.kind().tag().to_string(),
+                rdf: s.capabilities.clone(),
+                rust: rust_caps,
             });
         }
 
