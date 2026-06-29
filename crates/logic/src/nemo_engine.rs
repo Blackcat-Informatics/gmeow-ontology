@@ -9,10 +9,12 @@
 //! materialization path. This Nemo bridge is now the not-yet-native fallback and the
 //! conformance oracle for the forward fragments the native core does not yet decide:
 //! `materialize_routed` routes a stratifiable Datalog± program to the native engine
-//! first and only delegates here when the native core declares the program a gap
-//! (`NativeOutcome::Unsupported`). The code is retained — not deleted — precisely so it
-//! can keep checking the native engine for equivalence before the native core absorbs
-//! the remaining fragments.
+//! first and delegates here when the native core declares the program a gap
+//! (`NativeOutcome::Unsupported`) OR when the call carries a budget
+//! (`max_rule_firings` / `max_answers` / `time_ms`) — the native core has no post-hoc
+//! budget governor, so a budgeted materialization is a declared native gap routed to
+//! Nemo. The code is retained — not deleted — precisely so it can keep checking the
+//! native engine for equivalence before the native core absorbs the remaining fragments.
 //!
 //! This module provides the surface that links the Nemo crate into
 //! `gmeow-logic`.  Rule materialization is driven by [`run_chase`], which
