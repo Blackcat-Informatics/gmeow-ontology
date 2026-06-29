@@ -304,7 +304,14 @@ fast tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
 entire dist JSON-LD into oxigraph and serializes it back — an O(ontology size)
 round-trip at ~27 s that crosses the zero-headroom 25 s budget as the ontology
 grows, the same growth pattern as the docs live-renders; build/parse-bound, and the
-JSON-LD codec is exercised on-gate by the cheaper per-vocab round-trips).
+JSON-LD codec is exercised on-gate by the cheaper per-vocab round-trips); and the two
+`gmeow-pipeline` `stages::carrier` heavy tests —
+`ustar_tests::build_docs_archive_packs_the_rendered_site` (~60-110 s, renders and packs
+the whole embedded ontology-docs site into the carrier archive) and
+`native_assembly_tests::authored_default_assembles_natively` (~72 s, assembles the
+entire authored bundle from the real tree) — both O(ontology-size) render/assembly +
+I-O, not engine-bound, irreducibly over budget and growing with the ontology (they live
+under `stages::carrier` after the snapshot→carrier refactor).
 
 Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared
 `DocsModel` *and* the rendered site for every available language from the
