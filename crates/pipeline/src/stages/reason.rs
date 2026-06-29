@@ -21,6 +21,7 @@ use std::sync::Arc;
 use gmeow_logic::reason::artifacts::{
     build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
 };
+use gmeow_logic::reason::perf_ledger::perf_ledger;
 use gmeow_logic::reason::reason_all;
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::result_rdf::{project_reasoning_result, GRAPH_REASONING};
@@ -41,6 +42,11 @@ pub const CLOSURE_PATH: &str = "generated/logic/inferred-closure.rdf12.ttl";
 pub const EXPLANATIONS_PATH: &str = "generated/logic/reasoning-explanations.rdf12.ttl";
 /// COMMITTED logical path of the report-only native DL/EL crosscheck ledger.
 pub const LEDGER_PATH: &str = "generated/logic/dl-el-crosscheck-report.ttl";
+/// COMMITTED logical path of the report-only native physical-engine performance
+/// ledger — the flag-don't-build record of the deferred / non-incremental levers.
+/// Canonical static content (a property of the engine, not of this run's data), so
+/// it is byte-identical run to run.
+pub const PERF_LEDGER_PATH: &str = "generated/logic/perf-ledger.ttl";
 
 /// The reasoned artifacts a single `reason_all` produces: the three committed-style
 /// Turtle blobs plus the typed [`ReasoningResult`] itself (the C7 typed handle's
@@ -52,6 +58,9 @@ pub struct ReasonArtifacts {
     pub explanations: String,
     /// The native DL·EL crosscheck ledger Turtle.
     pub ledger: String,
+    /// The native physical-engine performance ledger Turtle — the flag-don't-build
+    /// record of the deferred / non-incremental levers. Canonical static content.
+    pub perf_ledger: String,
     /// The typed five-axis result (#1132 C7 handle payload).
     pub result: ReasoningResult,
 }
@@ -100,10 +109,15 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, Pipeline
         message: format!("explanations serialization failed: {e}"),
     })?;
     let ledger = build_dl_el_ledger_ttl(&result);
+    // The performance ledger is canonical static content (a property of the native
+    // physical engine's lever staging, not of this run's data), so it is byte-stable
+    // run to run regardless of the reasoned result.
+    let perf = perf_ledger().to_turtle();
     Ok(ReasonArtifacts {
         closure,
         explanations,
         ledger,
+        perf_ledger: perf,
         result,
     })
 }
@@ -207,6 +221,10 @@ impl Stage for ReasonStage {
             reasoned.explanations.into_bytes(),
         );
         artifacts.insert(LEDGER_PATH.to_string(), reasoned.ledger.into_bytes());
+        artifacts.insert(
+            PERF_LEDGER_PATH.to_string(),
+            reasoned.perf_ledger.into_bytes(),
+        );
 
         // Attach the typed Reasoning handle, pinned to the `graph/reasoning` named
         // graph's canonical digest. `pin_handle` HARD-fails on a digest mismatch, so a
@@ -253,10 +271,18 @@ mod tests {
             ("closure", &reasoned.closure),
             ("explanations", &reasoned.explanations),
             ("ledger", &reasoned.ledger),
+            ("perf_ledger", &reasoned.perf_ledger),
         ] {
             assert!(!ttl.trim().is_empty(), "{name} artifact is empty");
         }
         assert!(reasoned.closure.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
+        // The perf ledger flags the deferred / non-incremental levers (static content).
+        assert!(
+            reasoned
+                .perf_ledger
+                .contains("https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental"),
+            "the perf ledger flags the non-incremental hard parts"
+        );
     }
 
     #[test]
