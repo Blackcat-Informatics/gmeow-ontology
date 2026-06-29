@@ -5,7 +5,7 @@
 //! narrow waist.
 //!
 //! Exactly one Sink per pipeline. The STRUCTURED multi-named-graph `dist`
-//! snapshot is ASSEMBLED upstream by [`crate::stages::snapshot::SnapshotStage`]
+//! snapshot is ASSEMBLED upstream by [`crate::stages::carrier::SnapshotStage`]
 //! (fold-isomorphic to the committed `generated/dist/gmeow.gts`, #861 P6 parity
 //! gate). This sink consumes that one `stage-snapshot` product and re-emits its
 //! `gmeow.gts` bytes as the sink artifact — the single, well-defined disk-write
@@ -18,7 +18,7 @@ use std::collections::BTreeMap;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::snapshot::{snapshot_bytes, SNAPSHOT_PATH};
+use crate::stages::carrier::SNAPSHOT_PATH;
 
 /// Committed logical path of the serialized GTS bundle.
 pub const GTS_PATH: &str = SNAPSHOT_PATH;
@@ -31,11 +31,18 @@ pub struct GtsSinkStage {
 }
 
 impl GtsSinkStage {
-    /// Construct the sink. It consumes the single `stage-snapshot` product (the
-    /// fully-assembled structured snapshot) and re-emits its `gmeow.gts` bytes.
+    /// Construct the sink. It consumes the assembled carrier (`stage-snapshot`) and the
+    /// by-reference blob sources it folds into the terminal `gmeow.gts` package
+    /// (#1132 Stage C): the in-memory JSON-Schema/axiom/reasoning/SHACL-report products.
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-snapshot".to_string()],
+            consumes: vec![
+                "stage-snapshot".to_string(),
+                "stage-export-json-schema".to_string(),
+                "stage-compile-logic".to_string(),
+                "stage-reason".to_string(),
+                "stage-validate".to_string(),
+            ],
         }
     }
 }
@@ -60,25 +67,23 @@ impl Stage for GtsSinkStage {
         "gts_sink.v3-snapshot"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let gts = snapshot_bytes(input.upstream)?;
+        // The terminal gts ARCHIVE writer (#1132 Stage C): serialize THIS run's carrier
+        // into the single `gmeow.gts` package. GTS is exit-only — produced HERE and
+        // nowhere else; every internal export leaf reads the carrier dataset off the
+        // snapshot product's bundle, never these bytes. The carrier is taken off the
+        // bundle (no re-assembly — the razor: transform transport→form once), and the
+        // by-reference blob archives are folded in alongside it.
+        let carrier = crate::stages::carrier::snapshot_dataset(input.upstream)?;
+        let gts = crate::stages::carrier::serialize_carrier_snapshot(
+            input.root,
+            input.upstream,
+            carrier.as_ref(),
+        )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(GTS_PATH.to_string(), gts);
-        let product = StageProduct::from_artifacts(self.id(), artifacts);
-        // Forward the snapshot's parse-once shared views (#1132 C5) onto the sink
-        // product. The sink re-emits the snapshot bytes VERBATIM, so the snapshot's
-        // parsed views ARE the parse of the sink's bytes — `stage-export-schemas`
-        // (which consumes the sink, the narrow-waist exit) thus shares the same parse
-        // instead of re-parsing. When the snapshot was cache-served (no views), the
-        // schemas leaf falls back to parsing the sink's lane bytes (byte-identical).
-        let product = match input
-            .upstream
-            .get("stage-snapshot")
-            .and_then(|p| p.snapshot_views())
-        {
-            Some(views) => product.with_snapshot_views(views.clone()),
-            None => product,
-        };
-        Ok(StageOutput { product })
+        Ok(StageOutput {
+            product: StageProduct::from_artifacts(self.id(), artifacts),
+        })
     }
 }
 
@@ -164,7 +169,7 @@ mod tests {
         snap_upstream.insert("stage-conformance".to_string(), conformance.product);
 
         let gts =
-            crate::stages::snapshot::build_snapshot(&root, &snap_upstream, Vec::new(), Vec::new())
+            crate::stages::carrier::build_snapshot(&root, &snap_upstream, Vec::new(), Vec::new())
                 .expect("build_snapshot");
         assert!(
             gts.len() > 1024,

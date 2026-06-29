@@ -75,6 +75,69 @@ pub fn build_snapshot(
     serialize_snapshot(&carrier, blobs, report_blobs)
 }
 
+/// Gather the by-reference archive blobs (#699/#746/#897/#940) + the SHACL report
+/// blobs from `upstream`, and serialize the ALREADY-ASSEMBLED `carrier` into the
+/// terminal `gmeow.gts` package — the SINGLE serialization the terminal gts sink
+/// performs (#1132 Stage C). The carrier is taken off the snapshot product's bundle,
+/// never re-assembled (the razor: transform transport→form at most once per pipeline).
+///
+/// Mirrors the former snapshot-stage blob gathering exactly: REP_AXIOMS/schemas from
+/// the in-memory `stage-compile-logic` / `stage-export-json-schema` products (one-pass
+/// freshness), the reasoning reports from `stage-reason`, and the SHACL SARIF/findings
+/// from `stage-validate`. Every missing artifact HARD-fails (no-optionality).
+pub(crate) fn serialize_carrier_snapshot(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &gmeow_rdf::RdfDataset,
+) -> Result<Vec<u8>, PipelineError> {
+    // THIS run's freshly-emitted JSON Schema + OpenAPI bytes (from the in-memory
+    // product, not the on-disk files which are not written until phase 1 returns).
+    let schema_json = upstream
+        .get("stage-export-json-schema")
+        .and_then(|p| p.artifact(crate::stages::json_schema::JSON_SCHEMA_PATH))
+        .ok_or_else(|| stage_err("missing stage-export-json-schema gmeow.schema.json artifact"))?
+        .to_vec();
+    let openapi_json = upstream
+        .get("stage-export-json-schema")
+        .and_then(|p| p.artifact(crate::stages::json_schema::OPENAPI_PATH))
+        .ok_or_else(|| stage_err("missing stage-export-json-schema gmeow.openapi.json artifact"))?
+        .to_vec();
+    // THIS run's compiled axiom surface (REP_AXIOMS), from the stage-compile-logic
+    // product so it never lags a regenerate.
+    let compile_artifacts = upstream
+        .get("stage-compile-logic")
+        .ok_or_else(|| stage_err("missing stage-compile-logic product"))?
+        .artifacts();
+    let mut blobs = build_archive_blobs(root, &schema_json, &openapi_json, &compile_artifacts)?;
+    blobs.extend(build_guide_blobs(root)?);
+    blobs.push(build_docs_archive(root)?);
+    blobs.push(build_reasoning_blob(upstream)?);
+
+    let shacl_json = upstream
+        .get("stage-validate")
+        .and_then(|p| p.artifact(crate::stages::validate::SHACL_JSON_PATH))
+        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics JSON"))?
+        .to_vec();
+    let shacl_sarif = upstream
+        .get("stage-validate")
+        .and_then(|p| p.artifact(crate::stages::validate::SHACL_SARIF_PATH))
+        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics SARIF"))?
+        .to_vec();
+    let report_blobs = vec![
+        BlobRow {
+            data: shacl_sarif,
+            media_type: "application/sarif+json".to_string(),
+            rep: REP_SHACL_SARIF.to_string(),
+        },
+        BlobRow {
+            data: shacl_json,
+            media_type: "application/json".to_string(),
+            rep: REP_SHACL_FINDINGS.to_string(),
+        },
+    ];
+    serialize_snapshot(carrier, blobs, report_blobs)
+}
+
 /// Assemble the FULL snapshot carrier: every named graph parsed into ONE native
 /// `RdfDataset` and unioned once. The carried logic / relational-core / correspondence
 /// / reasoning graphs ride in from the upstream producers' carriers (no re-derivation);
@@ -222,9 +285,10 @@ fn serialize_snapshot(
     builder
         .add_dataset(carrier)
         .map_err(|e| stage_err(&format!("fold carrier into snapshot: {e}")))?;
-    // The JSON-LD-star + OKF archive blobs read THIS builder's snapshot graph.
-    let yaml_ld_blob = build_yaml_ld_blob_from_builder(&builder)?;
-    let okf_blob = build_okf_blob_from_builder(&builder)?;
+    // The JSON-LD-star + OKF archive blobs serialize the SAME native carrier dataset
+    // (the value just folded into the builder) — no gts round-trip.
+    let yaml_ld_blob = build_yaml_ld_blob_from_dataset(carrier)?;
+    let okf_blob = build_okf_blob_from_dataset(carrier)?;
     let mut blobs = blobs;
     blobs.push(yaml_ld_blob);
     blobs.push(okf_blob);
@@ -254,21 +318,6 @@ fn parse_into_graph(
     rooted_in_graph(&parsed, graph_iri)
 }
 
-/// Read this run's freshly-composed `gmeow.gts` snapshot bytes from the
-/// `stage-snapshot` upstream product. Every fold-reading export leaf calls this
-/// instead of `std::fs::read("generated/dist/gmeow.gts")`, so a single-pass run
-/// reads THIS run's fold rather than the (potentially stale) committed file. The
-/// bytes are fold-isomorphic to the committed snapshot (proven by `fold_parity`).
-pub(crate) fn snapshot_bytes(
-    upstream: &BTreeMap<String, StageProduct>,
-) -> Result<Vec<u8>, PipelineError> {
-    upstream
-        .get("stage-snapshot")
-        .and_then(|p| p.artifact(SNAPSHOT_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing stage-snapshot gmeow.gts artifact"))
-}
-
 /// Borrow the upstream `stage-snapshot` product (or HARD-fail if a leaf forgot to
 /// declare the consumes edge — fail-closed, no-optionality).
 fn snapshot_product(
@@ -279,59 +328,20 @@ fn snapshot_product(
         .ok_or_else(|| stage_err("missing stage-snapshot product"))
 }
 
-/// The shared `import_gts_events` view of THIS run's `gmeow.gts` (#1132 C5).
+/// THIS run's terminal carrier dataset, read DIRECTLY off the `stage-snapshot`
+/// product's bundle (#1132). The single internal transport: every export leaf reads
+/// the carrier here instead of re-parsing the `gmeow.gts` bytes — GTS is exit-only,
+/// produced by the terminal writer (`gts_sink`), never an internal transport.
 ///
-/// Returns the snapshot's parse-once view when present (the fresh-run path, where the
-/// snapshot stage ran and parsed the emitted bytes ONCE), eliminating the leaf's
-/// redundant re-parse. On a cache hit the views are not reconstructed, so this falls
-/// back to parsing the lane bytes — the SAME bytes, so the result is byte-identical
-/// to the former per-leaf `import_gts_events(snapshot_bytes(..))`.
-pub(crate) fn snapshot_events(
+/// The returned `Arc<RdfDataset>` shares the immutable carrier (no copy, no re-parse);
+/// the carrier already holds every named graph the snapshot folds (authored default,
+/// statements, imports, metadata, alignments, slice-analysis, verify, documentation,
+/// diagnostics, conformance, projection-ledger, provenance, logic, relational-core,
+/// correspondence, reasoning).
+pub(crate) fn snapshot_dataset(
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<gmeow_rdf::GtsBundle>, PipelineError> {
-    let product = snapshot_product(upstream)?;
-    if let Some(views) = product.snapshot_views() {
-        return Ok(views.events.clone());
-    }
-    let gts = product
-        .artifact(SNAPSHOT_PATH)
-        .ok_or_else(|| stage_err("missing stage-snapshot gmeow.gts artifact"))?;
-    let bundle = gmeow_rdf::import_gts_events(gts)
-        .map_err(|e| stage_err(&format!("read snapshot gmeow.gts: {e}")))?;
-    Ok(std::sync::Arc::new(bundle))
-}
-
-/// The shared `gts::read_graph` model view of THIS run's `gmeow.gts` (#1132 C5).
-///
-/// Same parse-once-or-fall-back contract as [`snapshot_events`]: returns the
-/// snapshot's shared model view on the fresh-run path, else re-parses the lane bytes
-/// (byte-identical to the former per-leaf `gts::read_graph(snapshot_bytes(..))`).
-pub(crate) fn snapshot_graph(
-    upstream: &BTreeMap<String, StageProduct>,
-) -> Result<std::sync::Arc<gmeow_gts::model::Graph>, PipelineError> {
-    graph_view_of(snapshot_product(upstream)?, SNAPSHOT_PATH)
-}
-
-/// The shared `gts::read_graph` model view carried on (or re-parsed from) `product`,
-/// where `gts_path` is the byte-artifact-lane path holding its `gmeow.gts` bytes.
-///
-/// Returns the product's shared parse-once view when present, else re-parses the lane
-/// bytes (byte-identical). Used by the `stage-export-schemas` leaf, whose upstream is
-/// the narrow-waist `stage-gts-sink` (which forwards the snapshot's views over the
-/// verbatim-re-emitted bytes).
-pub(crate) fn graph_view_of(
-    product: &StageProduct,
-    gts_path: &str,
-) -> Result<std::sync::Arc<gmeow_gts::model::Graph>, PipelineError> {
-    if let Some(views) = product.snapshot_views() {
-        return Ok(views.graph.clone());
-    }
-    let gts = product
-        .artifact(gts_path)
-        .ok_or_else(|| stage_err(&format!("missing gmeow.gts artifact {gts_path}")))?;
-    let graph = gmeow_rdf::gts::read_graph(gts, true)
-        .map_err(|e| stage_err(&format!("read snapshot gmeow.gts: {e}")))?;
-    Ok(std::sync::Arc::new(graph))
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    Ok(snapshot_product(upstream)?.bundle().dataset_arc())
 }
 
 // ── Archive blobs (#861 regression fix) ─────────────────────────────────────────
@@ -553,35 +563,26 @@ fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, PipelineE
     archive_blob(REP_YAMLLD, &members)
 }
 
-/// Build the YAML-LD archive by serializing the snapshot builder's graph in-memory.
-fn build_yaml_ld_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow, PipelineError> {
-    let temp_gts = emit_gts(
-        builder,
-        "dist",
-        Some(vec!["gzip".to_string()]),
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
-    )
-    .map_err(|e| stage_err(&format!("temporary emit for yaml-ld: {e}")))?;
-    let graph = gmeow_rdf::gts::read_graph(&temp_gts, true)
-        .map_err(|e| PipelineError::Parse(format!("read temp snapshot gmeow.gts: {e}")))?;
-    let jsonld = crate::stages::yaml_ld::serialize_graph(&graph)?;
-    let yamlld = crate::stages::yaml_ld::serialize_graph_yaml(&graph, None)?;
+/// Build the YAML-LD archive by serializing the carrier dataset in-memory — the
+/// SAME native carrier every fold-reading export leaf consumes (no gts round-trip).
+fn build_yaml_ld_blob_from_dataset(
+    carrier: &gmeow_rdf::RdfDataset,
+) -> Result<BlobRow, PipelineError> {
+    let jsonld = crate::stages::yaml_ld::serialize_graph(carrier)?;
+    let yamlld = crate::stages::yaml_ld::serialize_graph_yaml(carrier, None)?;
     build_yaml_ld_blob(jsonld.as_bytes(), yamlld.as_bytes())
 }
 
-/// Pack the Rust-rendered OKF bundle into a deterministic archive blob (#940).
+/// Build the OKF archive from the carrier dataset — the SAME native carrier the
+/// fold-reading export leaves consume, avoiding a `stage-snapshot` ↔
+/// `stage-export-okf` DAG cycle (no gts round-trip).
 ///
-/// The public reader (`gmeow_tools.bundle.bundled_okf`) expects members relative
-/// to the bundle root (`gmeow-okf/classes/Foo.md`), while the export leaf product
-/// is a disk artifact under `dist/`. Strip only that leading `dist/` boundary and
-/// hard-fail if a renderer path escapes it.
-fn build_okf_blob_from_graph(graph: &gmeow_gts::model::Graph) -> Result<BlobRow, PipelineError> {
-    let (title, version, terms) = crate::stages::export::collect_term_surface(graph)?;
+/// The public reader (`gmeow_tools.bundle.bundled_okf`) expects members relative to
+/// the bundle root (`gmeow-okf/classes/Foo.md`), while the export leaf product is a
+/// disk artifact under `dist/`. Strip only that leading `dist/` boundary and hard-fail
+/// if a renderer path escapes it.
+fn build_okf_blob_from_dataset(carrier: &gmeow_rdf::RdfDataset) -> Result<BlobRow, PipelineError> {
+    let (title, version, terms) = crate::stages::export::collect_term_surface(carrier)?;
     let artifacts = crate::stages::okf::render_okf(&title, &version, &terms)?;
     let mut members: Vec<(String, Vec<u8>)> = Vec::with_capacity(artifacts.len());
     for (path, bytes) in artifacts {
@@ -591,27 +592,6 @@ fn build_okf_blob_from_graph(graph: &gmeow_gts::model::Graph) -> Result<BlobRow,
         members.push((member.to_string(), bytes));
     }
     archive_blob(REP_OKF, &members)
-}
-
-/// Build the OKF archive by reading the same in-memory snapshot graph that the
-/// fold-reading export leaves consume, avoiding a `stage-snapshot` ↔
-/// `stage-export-okf` DAG cycle.
-fn build_okf_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow, PipelineError> {
-    let temp_gts = emit_gts(
-        builder,
-        "dist",
-        Some(vec!["gzip".to_string()]),
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
-    )
-    .map_err(|e| stage_err(&format!("temporary emit for okf: {e}")))?;
-    let graph = gmeow_rdf::gts::read_graph(&temp_gts, true)
-        .map_err(|e| PipelineError::Parse(format!("read temp snapshot gmeow.gts: {e}")))?;
-    build_okf_blob_from_graph(&graph)
 }
 
 /// Render the full ontology-docs static site and pack it into the single
@@ -907,82 +887,14 @@ impl Stage for SnapshotStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // THIS run's freshly-emitted JSON Schema + OpenAPI bytes, taken from the
-        // `stage-export-json-schema` product rather than the committed on-disk files
-        // (which are not written until phase 1 returns). Missing artifacts HARD-fail
-        // (no-optionality, fail-closed) — the consumes edge guarantees they exist.
-        let schema_json = input
-            .upstream
-            .get("stage-export-json-schema")
-            .and_then(|p| p.artifact(crate::stages::json_schema::JSON_SCHEMA_PATH))
-            .ok_or_else(|| {
-                stage_err("missing stage-export-json-schema gmeow.schema.json artifact")
-            })?
-            .to_vec();
-        let openapi_json = input
-            .upstream
-            .get("stage-export-json-schema")
-            .and_then(|p| p.artifact(crate::stages::json_schema::OPENAPI_PATH))
-            .ok_or_else(|| {
-                stage_err("missing stage-export-json-schema gmeow.openapi.json artifact")
-            })?
-            .to_vec();
-        // THIS run's compiled axiom surface, taken from the stage-compile-logic product
-        // (consumes edge guarantees it exists) so REP_AXIOMS never lags a regenerate.
-        let compile_artifacts = input
-            .upstream
-            .get("stage-compile-logic")
-            .ok_or_else(|| stage_err("missing stage-compile-logic product"))?
-            .artifacts();
-        let mut blobs =
-            build_archive_blobs(input.root, &schema_json, &openapi_json, &compile_artifacts)?;
-        blobs.extend(build_guide_blobs(input.root)?);
-        blobs.push(build_docs_archive(input.root)?);
-        // The native reasoner's explanation + DL/EL cross-check ledger reports, folded
-        // from `stage-reason`'s in-memory product (one-pass, no disk lag) so a repo-free
-        // consumer can read them WITHOUT re-running the engine (#667, wired #746).
-        blobs.push(build_reasoning_blob(input.upstream)?);
-        let shacl_json = input
-            .upstream
-            .get("stage-validate")
-            .and_then(|p| p.artifact(crate::stages::validate::SHACL_JSON_PATH))
-            .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics JSON"))?
-            .to_vec();
-        let shacl_sarif = input
-            .upstream
-            .get("stage-validate")
-            .and_then(|p| p.artifact(crate::stages::validate::SHACL_SARIF_PATH))
-            .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics SARIF"))?
-            .to_vec();
-        let report_blobs = vec![
-            BlobRow {
-                data: shacl_sarif,
-                media_type: "application/sarif+json".to_string(),
-                rep: REP_SHACL_SARIF.to_string(),
-            },
-            BlobRow {
-                data: shacl_json,
-                media_type: "application/json".to_string(),
-                rep: REP_SHACL_FINDINGS.to_string(),
-            },
-        ];
-        // Assemble the snapshot carrier ONCE: the single native RdfDataset that is both
-        // serialized to gmeow.gts AND carried as the product's bundle. No second assembly.
+        // Assemble the terminal carrier ONCE — the single native RdfDataset that every
+        // export leaf (N-Quads/TriG/JSON-LD/OKF/LPG/metadata/logic AND the gts export)
+        // reads off this product's bundle. NOTHING is serialized here: GTS is exit-only,
+        // produced by the `stage-export-gts` leaf like any other export format.
         let carrier = assemble_carrier(input.root, input.upstream)?;
-        let gts = serialize_snapshot(carrier.as_ref(), blobs, report_blobs)?;
-        // Parse-once-and-share (C5): parse the EMITTED bytes ONCE into both views the
-        // fold-reading leaves need, and carry them on the product so each leaf consumes
-        // the shared in-memory view instead of re-parsing `gmeow.gts`. (The bytes still
-        // ride the byte-artifact lane — a cache-restored snapshot has no views.)
-        let views = build_snapshot_views(&gts)?;
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
-        // The product's bundle IS the assembled carrier — the SAME dataset serialized to
-        // gmeow.gts — with the upstream typed handles re-pinned to it.
-        let bundle = build_snapshot_bundle(carrier, input.upstream, artifacts)?;
+        let bundle = build_snapshot_bundle(carrier, input.upstream, BTreeMap::new())?;
         Ok(StageOutput {
-            product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle))
-                .with_snapshot_views(std::sync::Arc::new(views)),
+            product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle)),
         })
     }
 }
@@ -1158,22 +1070,6 @@ fn rooted_in_graph(
     builder
         .freeze()
         .map_err(|e| stage_err(&format!("re-root carrier graph <{graph_iri}>: {e}")))
-}
-
-/// Parse the emitted `gmeow.gts` bytes ONCE into the two shared views the
-/// fold-reading export leaves consume (#1132 C5): the `import_gts_events`
-/// event-import view and the `gts::read_graph` model view. Both are the parse of the
-/// SAME emitted bytes, so a downstream leaf reading either is byte-identical to its
-/// former independent re-parse.
-fn build_snapshot_views(gts: &[u8]) -> Result<crate::bundle::SnapshotViews, PipelineError> {
-    let events = gmeow_rdf::import_gts_events(gts)
-        .map_err(|e| stage_err(&format!("snapshot import_gts_events: {e}")))?;
-    let graph = gmeow_rdf::gts::read_graph(gts, true)
-        .map_err(|e| stage_err(&format!("snapshot read_graph: {e}")))?;
-    Ok(crate::bundle::SnapshotViews::new(
-        std::sync::Arc::new(events),
-        std::sync::Arc::new(graph),
-    ))
 }
 
 // ── default graph (authored ontology, NO imports) ───────────────────────────────
@@ -2379,8 +2275,10 @@ mod ustar_tests {
     fn build_okf_archive_packs_the_rust_rendered_bundle() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gts");
-        let graph = gmeow_rdf::gts::read_graph(&gts, true).expect("read committed gts");
-        let blob = build_okf_blob_from_graph(&graph).expect("okf archive");
+        let dataset = gmeow_rdf::import_gts_events(&gts)
+            .expect("import committed gts")
+            .dataset;
+        let blob = build_okf_blob_from_dataset(dataset.as_ref()).expect("okf archive");
         assert_eq!(blob.rep, REP_OKF);
         assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
 
@@ -2414,7 +2312,7 @@ mod ustar_tests {
             "root OKF index must declare projection loss"
         );
 
-        let blob2 = build_okf_blob_from_graph(&graph).expect("second okf archive");
+        let blob2 = build_okf_blob_from_dataset(dataset.as_ref()).expect("second okf archive");
         assert_eq!(blob.data, blob2.data, "OKF archive must be deterministic");
     }
 

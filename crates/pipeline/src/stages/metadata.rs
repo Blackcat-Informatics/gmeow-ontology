@@ -662,10 +662,10 @@ impl Stage for MetadataStage {
         "metadata.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // The shared parse-once event-import view of THIS run's snapshot fold (#1132
-        // C5) — no re-parse of the gmeow.gts bytes.
-        let events = crate::stages::snapshot::snapshot_events(input.upstream)?;
-        let store = events.dataset.as_ref();
+        // THIS run's snapshot carrier dataset, read DIRECTLY off the product bundle —
+        // no re-parse of the gmeow.gts bytes (GTS is exit-only).
+        let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
+        let store = dataset.as_ref();
 
         let void = build_void_store(store)?;
         let dcat = build_dcat_store(store, input.root)?;

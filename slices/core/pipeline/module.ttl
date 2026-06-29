@@ -378,11 +378,11 @@ gmeow:stage-export-schemas
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: schemas"@x-gmeow-english ;
-    skos:definition "Project the composed dataset to LinkML + downstream schema artifacts."@x-gmeow-english ;
+    skos:definition "Project the carrier dataset to LinkML + downstream schema artifacts. A fold-reading export leaf over the carrier (#1132): reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "schemas" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-sink ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "linkml" ;
     gmeow:carriesEngineLock false .
 
@@ -597,9 +597,14 @@ gmeow:stage-gts-sink
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "gts sink"@x-gmeow-english ;
-    skos:definition "Write the fully-assembled snapshot to generated/dist/gmeow.gts — the ONE canonical exit (narrow waist). Consumes the single gmeow:stage-snapshot product (the structured multi-named-graph bundle) and re-emits its bytes as the disk-write target. The snapshot assembly (a Transform) is split from this serialization exit so every fold-reading export leaf can consume THIS run's freshly-composed fold rather than the committed file."@x-gmeow-english ;
+    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindSink ;
     gmeow:stageImpl "gts_sink" ;
-    gmeow:dataflowConsumes gmeow:stage-snapshot ;
+    gmeow:dataflowConsumes
+        gmeow:stage-snapshot ,
+        gmeow:stage-export-json-schema ,
+        gmeow:stage-compile-logic ,
+        gmeow:stage-reason ,
+        gmeow:stage-validate ;
     gmeow:carriesEngineLock false .

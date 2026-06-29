@@ -59,8 +59,22 @@ pub const LEDGER_PATH: &str = "generated/logic/dl-el-crosscheck-report.ttl";
 fn reason_fold_artifacts(
     dataset: &gmeow_rdf::RdfDataset,
 ) -> Result<(String, String, String), PipelineError> {
-    let result =
-        reason_all(dataset).map_err(|e| stage_err(&format!("native reasoning failed: {e}")))?;
+    // Canonicalize the fold (RDFC-1.0) before reasoning so the content-addressed
+    // Skolem witnesses are independent of carrier-assembly vs gts-round-trip blank
+    // labelling (#1132). The committed goldens are reasoned over the gts-canonical
+    // fold (`native_reason_gen` / the `import_gts_events` test path); reasoning over
+    // the in-memory carrier directly would mint different (but isomorphic) Skolem IRIs.
+    // Canonicalizing here makes the reasoned artifacts transport-independent: the carrier
+    // and a re-imported `gmeow.gts` yield byte-identical bytes. Idempotent on an
+    // already-canonical fold (the test path), so both paths agree.
+    let canon_quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(dataset)
+        .map_err(|e| stage_err(&format!("flatten fold for canonicalization: {e}")))?;
+    let canon_quads = gmeow_rdf::canonicalize_quads(canon_quads)
+        .map_err(|e| stage_err(&format!("RDFC-1.0 canonicalize fold: {e}")))?;
+    let canon = gmeow_rdf::dataset_from_oxigraph_quads(&canon_quads)
+        .map_err(|e| stage_err(&format!("re-fold canonical quads: {e}")))?;
+    let result = reason_all(canon.as_ref())
+        .map_err(|e| stage_err(&format!("native reasoning failed: {e}")))?;
     // Non-merge (the regenerate path): the closure is told-vs-inferred only.
     let closure = build_inferred_closure_ttl(&result, None)
         .map_err(|e| stage_err(&format!("closure serialization failed: {e}")))?;
@@ -114,21 +128,21 @@ impl Stage for LogicStage {
         "logic.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // The shared parse-once event-import view of THIS run's snapshot fold (#1132
-        // C5): the immutable dataset, fetched without re-parsing the gmeow.gts bytes.
-        let events = crate::stages::snapshot::snapshot_events(input.upstream)?;
+        // THIS run's snapshot carrier dataset, read DIRECTLY off the product bundle —
+        // never re-parsing the gmeow.gts bytes (GTS is exit-only).
+        let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
         // Serialize the native reasoner under the pipeline ENGINE_LOCK: this leaf is
         // not a `Reason`-kind stage, so the scheduler will not take the lock for it,
         // but the global Nemo chase must never run concurrently with another
         // reasoner instance (e.g. a sibling-level leaf or the `stage-reason` stage).
-        // `events.dataset` is an immutable `Arc<RdfDataset>`; the reasoned closure is
+        // `dataset` is an immutable `Arc<RdfDataset>`; the reasoned closure is
         // materialized inside `reason_fold_artifacts` and never crosses the lock as a
-        // mutable graph, so the shared view is untouched.
+        // mutable graph, so the shared carrier is untouched.
         let (closure, explanations, ledger) = {
             let _guard = ENGINE_LOCK
                 .lock()
                 .map_err(|e| stage_err(&format!("ENGINE_LOCK poisoned: {e}")))?;
-            reason_fold_artifacts(events.dataset.as_ref())?
+            reason_fold_artifacts(dataset.as_ref())?
         };
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CLOSURE_PATH.to_string(), closure.into_bytes());

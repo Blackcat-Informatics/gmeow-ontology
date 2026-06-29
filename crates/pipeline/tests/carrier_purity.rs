@@ -24,14 +24,14 @@
 //!
 //! There is NO sanctioned-exception carve-out: the carrier's typed-literal value-space
 //! canonicalization is now NATIVE (`gmeow_xsd::parse_by_iri` + `XsdValue::canonical_lexical`
-//! in `snapshot::dataset_to_nquads`), so the former transient-`Store`
+//! in `carrier::dataset_to_nquads`), so the former transient-`Store`
 //! `canonicalize_quad_literals` residual (#1132 C3) is GONE — the carrier path uses NO
 //! oxigraph `Store` at all.
 //!
 //! What this gate FORBIDS — and FAILS on if reintroduced — is a `Store::new()`
 //! accumulation (or a `store_from_dataset` / `dataset_from_store` store round-trip)
 //! creeping back into the CARRIER functions: `gts_compose::compose`'s union path or
-//! `snapshot`'s named-graph assembly (`build_snapshot` / `load_authored_default` /
+//! `carrier`'s named-graph assembly (`build_snapshot` / `load_authored_default` /
 //! `load_imports` / `build_snapshot_bundle` and the native helpers around them). Those
 //! two modules' PRODUCTION source (everything outside their `#[cfg(test)]` region) is
 //! scanned token-by-token; reintroducing oxigraph accumulation there turns this test
@@ -42,7 +42,7 @@ use std::path::{Path, PathBuf};
 
 /// The carrier-transport source files whose PRODUCTION region must stay free of
 /// oxigraph store accumulation. Both are in the pipeline crate's `src/stages/`.
-const CARRIER_MODULES: [&str; 2] = ["src/stages/gts_compose.rs", "src/stages/snapshot.rs"];
+const CARRIER_MODULES: [&str; 2] = ["src/stages/gts_compose.rs", "src/stages/carrier.rs"];
 
 /// Tokens that signal an oxigraph `Store` is being created to ACCUMULATE / UNION /
 /// round-trip the carried RDF — exactly what the native carrier replaced. Any of these
@@ -130,16 +130,16 @@ fn carrier_transport_path_creates_no_oxigraph_store_for_accumulation() {
 #[test]
 fn carrier_literal_canonicalization_is_native_gmeow_xsd_not_an_oxigraph_store() {
     // The carrier's typed-literal value-space canonicalization (#1132 C3) is NATIVE:
-    // `snapshot::dataset_to_nquads` maps each literal through `gmeow_xsd::parse_by_iri`
+    // `carrier::dataset_to_nquads` maps each literal through `gmeow_xsd::parse_by_iri`
     // + `XsdValue::canonical_lexical`, with NO transient oxigraph `Store`. The former
     // `canonicalize_quad_literals` residual is GONE — assert it is neither referenced by
     // the carrier nor present anywhere in the crate, so a reviewer sees the carve-out is
     // genuinely retired (not merely renamed).
     let root = manifest_dir();
-    let snapshot = read_module(&root, "src/stages/snapshot.rs");
+    let snapshot = read_module(&root, "src/stages/carrier.rs");
     assert!(
         snapshot.contains("gmeow_xsd::parse_by_iri"),
-        "carrier-purity: snapshot.rs must canonicalize typed literals via the native \
+        "carrier-purity: carrier.rs must canonicalize typed literals via the native \
          `gmeow_xsd::parse_by_iri` (the oxigraph `canonicalize_quad_literals` residual is retired)."
     );
     assert!(
@@ -198,7 +198,7 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), E> {
     Ok(())
 }
 "#;
-        let violations = scan_violations("src/stages/snapshot.rs", native_canon);
+        let violations = scan_violations("src/stages/carrier.rs", native_canon);
         assert!(
             violations.is_empty(),
             "the native gmeow_xsd literal canonicalization must NOT be flagged as a \
@@ -218,7 +218,7 @@ fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, E> {
     native(bytes)
 }
 "#;
-        let violations = scan_violations("src/stages/snapshot.rs", doc_mention);
+        let violations = scan_violations("src/stages/carrier.rs", doc_mention);
         assert!(
             violations.is_empty(),
             "a doc-comment mention of the OLD store path must not be flagged, got {violations:?}"

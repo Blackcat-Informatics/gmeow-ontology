@@ -251,7 +251,16 @@ impl PropVal {
     fn to_val(&self) -> Val {
         match self {
             PropVal::One(v) => v.clone(),
-            PropVal::Many(vs) => Val::List(vs.clone()),
+            // The objects of a property are an RDF SET — no inherent order. Emit them in
+            // a canonical (deterministic, content-keyed) order so the projection is
+            // independent of carrier-assembly vs gts-round-trip quad ordering (#1132):
+            // the in-memory carrier and a re-imported `gmeow.gts` then yield identical
+            // bytes. Sort by each value's stable JSON rendering.
+            PropVal::Many(vs) => {
+                let mut sorted = vs.clone();
+                sorted.sort_by_key(Val::json);
+                Val::List(sorted)
+            }
         }
     }
 }
@@ -792,10 +801,10 @@ impl Stage for LpgStage {
         "lpg.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // Consume THIS run's shared parse-once event-import view of the snapshot fold
-        // (#1132 C5) — no re-parse of the gmeow.gts bytes.
-        let events = crate::stages::snapshot::snapshot_events(input.upstream)?;
-        let (nodes, edges) = build_lpg(events.dataset.as_ref())?;
+        // Consume THIS run's snapshot carrier dataset DIRECTLY off the product bundle —
+        // no re-parse of the gmeow.gts bytes (GTS is exit-only).
+        let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
+        let (nodes, edges) = build_lpg(dataset.as_ref())?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_all(&nodes, &edges)),
         })

@@ -1,5 +1,6 @@
 ---
-source: crates/pipeline/src/stages/snapshot.rs
+source: crates/pipeline/src/stages/carrier.rs
+assertion_line: 2933
 expression: folded
 ---
 <https://blackcatinformatics.ca/gmeow/provenance/lane/conformance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ProcedureStep> .
