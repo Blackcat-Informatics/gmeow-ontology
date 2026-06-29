@@ -142,6 +142,7 @@ export enum AttestationTypeEnum {
     attestationTypeAIOutput = "attestationTypeAIOutput",
     attestationTypeBlockchainClaim = "attestationTypeBlockchainClaim",
     attestationTypeC2PA = "attestationTypeC2PA",
+    attestationTypeCoherenceCertificate = "attestationTypeCoherenceCertificate",
     attestationTypeConformanceVerdict = "attestationTypeConformanceVerdict",
     attestationTypeCrossCheckAgreement = "attestationTypeCrossCheckAgreement",
     attestationTypeDSSE = "attestationTypeDSSE",
@@ -4395,6 +4396,7 @@ export interface FinancialTransaction extends Event {
 }
 
 export interface Finding extends Observation {
+    findingCategory?: string[],
     findingCode?: string[],
     findingHelpUri?: string[],
     findingLocation?: string[],

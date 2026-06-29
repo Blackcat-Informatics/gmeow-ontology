@@ -31,6 +31,8 @@
 //! bundle is, by definition, signed): all three signer fields are passed to
 //! [`emit_gts`], which itself hard-fails any partial signing config.
 
+use std::collections::BTreeSet;
+
 use gmeow_gts::model::Graph;
 use gmeow_gts::reader::read;
 use gmeow_gts::writer::digest_string;
@@ -38,7 +40,7 @@ use gmeow_rdf::gts_compose::{
     emit_gts, parse_quads_lenient, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD,
     RDF_REIFIES,
 };
-use gmeow_rdf::NativeRdfFormat;
+use gmeow_rdf::{pair_loss_ledger, NativeRdfFormat, PROJECTION_CODECS};
 use oxigraph::model::Quad;
 
 /// The named graph the release-manifest + per-artifact attestations ride in.
@@ -149,6 +151,90 @@ pub fn fold_release_bundle(
         Some(public_key_armor.to_string()),
         DEFAULT_RSYNCABLE_THRESHOLD,
     )
+}
+
+/// The `rep` discriminator the scoped coherence-certificate evidence rides under.
+const COHERENCE_REP: &str = "coherence";
+
+/// Build the scoped coherence-certificate evidence over `snapshot_bytes` — reason
+/// over the bundle, build the [`CoherenceOutcome`], and emit it as N-Quads typed
+/// `logic:CoherenceCertificate` / `logic:CoherenceCheckAttestation`. The result is
+/// folded as one more signed evidence artifact, so the certificate rides the
+/// bundle's Ed25519 signature (Principle 18) — there is NO new signing step and no
+/// key handling here.
+///
+/// The release bundle is reasoned under classical native DL semantics, where a glut
+/// is a forbidden integrity violation. `issued_at` is INJECTED (mirrors the release
+/// timestamp) so the fold stays deterministic.
+///
+/// # Errors
+/// Returns `Err` if the snapshot cannot be read, native reasoning fails, or coherence
+/// is REFUSED — a bundle carrying a forbidden integrity violation must never be signed
+/// as coherent (no-optionality / hard-fail).
+pub fn build_coherence_evidence(
+    snapshot_bytes: &[u8],
+    issued_at: &str,
+) -> Result<EvidenceInput, String> {
+    use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+    let bundle = gmeow_rdf::import_gts_events(snapshot_bytes)
+        .map_err(|e| format!("coherence certificate: GTS read error: {e}"))?;
+    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
+        .map_err(|e| format!("coherence certificate: native reasoning failed: {e}"))?;
+    // The governing contradiction policy is READ from the bundle's declared
+    // logic:ReasoningContract (logic:admissibleValuation), not pinned: no contract /
+    // no valuation ⇒ conservative classical DEFAULT, multiple conflicting valuations
+    // ⇒ the MOST CONSERVATIVE governs, a garbled valuation HARD-FAILS.
+    let policy = ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref())
+        .map_err(|e| format!("coherence certificate: contract resolution failed: {e}"))?;
+    let bundle_hash = digest_string(snapshot_bytes);
+    // Real per-axiom-bearing-graph digests, computed with the SAME digest primitive
+    // as the bundle hash and sorted for determinism, so the certificate pins exactly
+    // which axiom sets it ranged over. Shared with the validate `--deep` lane.
+    let axiom_hashes =
+        gmeow_logic::certificate::per_graph_axiom_hashes(bundle.dataset.as_ref(), digest_string);
+    // Compute genuine projection-loss codes from the static loss ledger: for each
+    // canonical projection target, fold `pair_loss_ledger("gts", to).entries()`
+    // into a sorted set of unique loss codes. This is what actually belongs in
+    // `projection_losses` — NOT the DL-reasoner's unsupported_constructs.
+    let projection_loss_codes: BTreeSet<String> = PROJECTION_CODECS
+        .iter()
+        .flat_map(|&to| {
+            pair_loss_ledger("gts", to)
+                .entries()
+                .iter()
+                .map(|e| e.code.to_owned())
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    let outcome = CoherenceOutcome::from_reasoning_result(
+        &result,
+        bundle_hash,
+        axiom_hashes,
+        policy,
+        issued_at,
+        projection_loss_codes,
+    )
+    .map_err(|e| format!("coherence certificate: build failed: {e}"))?;
+    if outcome.is_refused() {
+        return Err(
+            "coherence certificate: the bundle being released carries a forbidden \
+             integrity violation; an incoherent bundle must not be signed as coherent"
+                .to_owned(),
+        );
+    }
+    let label = if outcome.issues_certificate() {
+        "Scoped coherence certificate"
+    } else {
+        "Coherence check attestation"
+    };
+    Ok(EvidenceInput {
+        data: outcome.to_nquads(GRAPH_ATTESTATIONS).into_bytes(),
+        media_type: "application/n-quads".to_owned(),
+        attestation_type_iri: resolve_attestation_type_iri("attestationTypeCoherenceCertificate"),
+        rep: COHERENCE_REP.to_owned(),
+        subject_label: label.to_owned(),
+    })
 }
 
 /// Consumer-side outcome of verifying a signed release-evidence bundle (#673,
@@ -730,6 +816,55 @@ mod tests {
             &armor,
         )
         .expect("fold release bundle")
+    }
+
+    #[test]
+    fn build_coherence_evidence_emits_a_coherence_artifact() {
+        let snapshot = tiny_snapshot();
+        let evidence = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z")
+            .expect("a consistent snapshot must yield a coherence artifact");
+        assert_eq!(evidence.rep, "coherence");
+        assert!(evidence
+            .attestation_type_iri
+            .ends_with("attestationTypeCoherenceCertificate"));
+        let nq = String::from_utf8(evidence.data.clone()).expect("utf8 nquads");
+        // The native reasoner names no certified fragment, so the strongest HONEST
+        // claim over a consistent bundle is the attestation, never a fragment-less
+        // certificate (the scoped-certificate contract — a certificate must name the
+        // fragment F it ranges over).
+        assert!(
+            nq.contains("<https://blackcatinformatics.ca/logic/CoherenceCheckAttestation>"),
+            "a fragment-less consistent check must yield an attestation, not a certificate: {nq}"
+        );
+        assert!(!nq.contains("<https://blackcatinformatics.ca/logic/CoherenceCertificate>"));
+        assert!(nq.contains("<https://blackcatinformatics.ca/logic/bundleHash>"));
+        // The artifact links to the logic:ReasoningResult it summarizes (M2) and pins
+        // a real per-graph axiom digest (C3).
+        assert!(nq.contains("<https://blackcatinformatics.ca/logic/summarizesResult>"));
+        assert!(nq.contains("<https://blackcatinformatics.ca/logic/axiomHash>"));
+        // Deterministic with the injected timestamp.
+        let again = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap();
+        assert_eq!(evidence.data, again.data);
+    }
+
+    #[test]
+    fn coherence_certificate_folds_into_the_signed_bundle_deterministically() {
+        // Folding the coherence evidence into the signed bundle proves the
+        // certificate rides the existing Ed25519 bundle signature (no new signing
+        // step), and the fold stays byte-deterministic with the injected timestamp.
+        let snapshot = tiny_snapshot();
+        let with_cert = || {
+            let mut evidence = evidence_inputs();
+            evidence.push(build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap());
+            fold(&snapshot, evidence, "2026-06-28T00:00:00Z")
+        };
+        let a = with_cert();
+        let b = with_cert();
+        assert!(!a.is_empty());
+        assert_eq!(
+            a, b,
+            "the coherence-folded signed bundle must be byte-deterministic"
+        );
     }
 
     /// Release attestations are not folded into the dev `gmeow.gts` bundle that
