@@ -122,13 +122,16 @@ pub fn ledger_to_json(entries: &[LedgerEntry]) -> serde_json::Value {
 
 /// Build the certification JSON from the native verdict.
 ///
-/// `{ certified, decidability_class, profile_id, violations }` — identical shape
-/// and (sorted) values to `gmeow_logic.certify`.
+/// `{ certified, decidability_class, evolution_class, profile_id, violations }` —
+/// identical shape and (sorted) values to `gmeow_logic.certify`. Keys stay sorted:
+/// `evolution_class` falls between `decidability_class` and `profile_id`.
 pub fn certification_to_json(verdict: &CertificationVerdict) -> serde_json::Value {
-    let (certified, decidability_class, profile_id, violations) = verdict.to_json_pairs();
+    let (certified, decidability_class, evolution_class, profile_id, violations) =
+        verdict.to_json_pairs();
     serde_json::json!({
         "certified": certified,
         "decidability_class": decidability_class,
+        "evolution_class": evolution_class,
         "profile_id": profile_id,
         "violations": violations,
     })

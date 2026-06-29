@@ -170,7 +170,7 @@ mod tests {
         let rls = project_nemo(&program).unwrap().content;
         let section =
             gmeow_logic_compile::projections::text::extract_nemo_rules_section(&rls).unwrap();
-        let via_rls = crate::certify::certify(&section, "PositiveHornProfile").unwrap();
+        let via_rls = crate::certify::certify(&section, "PositiveHornProfile", None).unwrap();
         assert_eq!(via_canonical.profile_id, "PositiveHornProfile");
         assert_eq!(via_canonical.certified, via_rls.certified);
         assert_eq!(via_canonical.violations, via_rls.violations);
