@@ -18,7 +18,7 @@
 //!
 //! SHACL constructs with no JSON Schema equivalent (`sh:sparql` etc.) are never
 //! silently skipped: the emitter records each as a `LossRecord`, which this leaf
-//! reports on stderr (lossy-projection discipline).
+//! reports on stderr in aggregated form (lossy-projection discipline).
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -56,12 +56,7 @@ impl Stage for JsonSchemaStage {
         let (_store, shapes) =
             gmeow_shacl::shape_union::load_shapes(input.root).map_err(PipelineError::Parse)?;
         let compiled = gmeow_shacl::json_schema::compile(&shapes);
-        for loss in &compiled.losses {
-            eprintln!(
-                "[json-schema] lossy drop: {} on {} — {}",
-                loss.construct, loss.shape_iri, loss.reason
-            );
-        }
+        report_losses(&compiled.losses);
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(
             JSON_SCHEMA_PATH.to_string(),
@@ -71,6 +66,35 @@ impl Stage for JsonSchemaStage {
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), artifacts),
         })
+    }
+}
+
+fn report_losses(losses: &[gmeow_shacl::json_schema::LossRecord]) {
+    let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
+    for loss in losses {
+        grouped
+            .entry((loss.construct.as_str(), loss.reason.as_str()))
+            .or_default()
+            .push(loss.shape_iri.as_str());
+    }
+    for ((construct, reason), mut shapes) in grouped {
+        shapes.sort_unstable();
+        shapes.dedup();
+        let examples = shapes
+            .iter()
+            .take(5)
+            .copied()
+            .collect::<Vec<_>>()
+            .join(", ");
+        let suffix = if shapes.len() > 5 {
+            format!(" (+{} more)", shapes.len() - 5)
+        } else {
+            String::new()
+        };
+        eprintln!(
+            "[json-schema] lossy drop: {construct} on {} shape(s) — {reason}; examples: {examples}{suffix}",
+            shapes.len()
+        );
     }
 }
 

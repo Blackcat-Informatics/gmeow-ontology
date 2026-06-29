@@ -10,7 +10,7 @@
 //! (`source/manifest.ttl`, the W3C `otest:`/`mf:` declared outcome). This stage
 //! grades the frozen native verdict against the frozen published verdict for every
 //! case that carries a published outcome and projects each divergence into a
-//! `gmeow:Finding` N-Quads graph in [`CONFORMANCE_GRAPH`].
+//! `gmeow:Finding` N-Quads graph in [`gmeow_conformance::divergence::CONFORMANCE_GRAPH`].
 //!
 //! The grading reuses the same divergence machinery the `ingest-external`
 //! `--grade-suite` lane drives ([`gmeow_conformance::divergence::emit_divergence_nq`]

@@ -224,7 +224,7 @@ pub fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
     dataset_to_sorted_nquads(&dataset)
 }
 
-/// Serialize a frozen [`RdfDataset`] to the SAME deterministic N-Quads byte form
+/// Serialize a frozen [`gmeow_rdf::RdfDataset`] to the SAME deterministic N-Quads byte form
 /// [`store_to_nquads`] produces (full RDF 1.2 statement layer, lines sorted
 /// bytewise ascending, trailing newline). This is the single dataset → N-Quads
 /// projection the pipeline's in-memory dataflow speaks; the `gts_compose` stage

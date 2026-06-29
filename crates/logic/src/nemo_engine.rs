@@ -19,7 +19,7 @@
 //! - The immediate antecedent facts (direct children in the derivation tree).
 //!
 //! This information is bundled into [`ChaseRowWithProvenance`], which is what
-//! [`py.rs`] uses to populate the full seam-contract metadata.
+//! `py.rs` uses to populate the full seam-contract metadata.
 //!
 //! # Platform note
 //!
@@ -510,7 +510,7 @@ impl NemoParsedRules {
     /// (error 994, "rule without positive literals are currently unsupported").
     /// The certifier must *see* those rules to diagnose them (DL-safety,
     /// PositiveHorn-negation, StratifiedNAF cycles), so it parses with the
-    /// translation-only path [`ProgramHandle::from_file`] + `materialize`, which
+    /// translation-only path `ProgramHandle::from_file` + `materialize`, which
     /// builds the `Program` from the AST translation without the safety
     /// validation that `load_program` applies afterwards.
     ///

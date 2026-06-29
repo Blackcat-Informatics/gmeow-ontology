@@ -7,7 +7,7 @@
 //! the workspace (e.g. `XSD_STRING` in `gmeow-rdf-core`'s `ir/term.rs`). They are
 //! copied here deliberately: `gmeow-xsd` is a leaf crate and does not (yet) share a
 //! symbol with `gmeow-rdf-core` (whose copies are `pub(crate)` and which does not
-//! depend on this crate). The [`tests`] module pins the exact strings so the copies
+//! depend on this crate). The crate tests pin the exact strings so the copies
 //! cannot silently drift; de-duplicating into a single source is a later slice.
 
 /// The XML Schema datatype namespace.

@@ -7,7 +7,7 @@
 //! Discovers `mf:` test manifests, runs each case against the native
 //! [`gmeow_sparql_eval`] engine (zero oxigraph Store), and diffs the result
 //! against the expected SPARQL Results (SRX/SRJ) or canonical N-Quads. The
-//! datatest-stable test harness ([`tests/sparql_conformance.rs`]) emits one
+//! datatest-stable test harness (`tests/sparql_conformance.rs`) emits one
 //! nextest case per `manifest.ttl`; each loops its entries via [`run_manifest`].
 //!
 //! Expected failures are recorded in [`xfail`] — never skipped — and the

@@ -1981,6 +1981,7 @@ dependencies = [
  "oxigraph",
  "petgraph",
  "pyo3",
+ "rayon",
  "regex",
  "serde",
  "sha2",
