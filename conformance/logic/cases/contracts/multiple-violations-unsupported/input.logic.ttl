@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: contracts/multiple-violations-unsupported
+# AC: a single ReasoningContract may violate MORE THAN ONE
+# forbidden-combination rule at once; the compile must still hard-stop. This
+# contract fires TWO rules together:
+#   - RuleNoProbabilisticStableModel: logic:ProbabilisticMeasure + logic:StableModelSemantics
+#   - RuleNoClosedWorldInCounterfactual: logic:ClosedWorldClosure + logic:EntrenchmentRevision
+# The compile MUST emit an UNSUPPORTED_CONTRACT Severity::Error and the harness MUST
+# short-circuit before evaluating — the "unsupported is a hard stop" guarantee,
+# pinned at the corpus level (profile.json declares "expect_unsupported": true).
+#
+# A logic:ProbabilityModel is declared so the graph-dependent
+# RuleProbabilisticRequiresModel does NOT add a third, incidental reason; the case
+# stays precisely about the two intended forbidden combinations co-firing.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/contracts/multiple-violations/> .
+
+ex:UnsupportedContract a logic:ReasoningContract ;
+    logic:modelSemantics logic:StableModelSemantics ;
+    logic:uncertaintyMeasure logic:ProbabilisticMeasure ;
+    logic:defaultClosure logic:ClosedWorldClosure ;
+    logic:revision logic:EntrenchmentRevision .
+
+# Declare a probability model so the only unsupported reasons are the two intended
+# forbidden combinations, not the graph-dependent model-declaration requirement.
+ex:probModel a logic:ProbabilityModel .

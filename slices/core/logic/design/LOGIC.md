@@ -24,6 +24,7 @@
 | [`LOGIC-COGNITION.md`](LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
 | [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts, CLI |
 | [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
+| [`LOGIC-META-SEMANTICS.md`](LOGIC-META-SEMANTICS.md) | meta-semantics | the projection doctrine turned inward; the catalog of orthogonal canonical axes against the simplified surfaces generated from them |
 | [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
 > **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
