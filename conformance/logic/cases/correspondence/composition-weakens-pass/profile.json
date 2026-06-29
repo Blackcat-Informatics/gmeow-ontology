@@ -1,0 +1,11 @@
+{
+  "reasoning_contract": { "preset": "PositiveHornProfile" },
+  "mode": "native",
+  "compositions": [
+    [
+      "https://gmeow.example/corr/cIso",
+      "https://gmeow.example/corr/cLossy",
+      "https://gmeow.example/corr/cComposite"
+    ]
+  ]
+}

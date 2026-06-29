@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://gmeow.example/corr/> .
+@prefix gm: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:lens a logic:Correspondence ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:WellBehavedLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic "true"^^xsd:boolean ;
+    logic:getLeg ex:lensGet .
+
+# The lens get leg body; the mnemomorphism gate verifies the retained witness (the inverse
+# put leg) recovers the source by composing the leg bodies, not by matching IRIs.
+ex:lensGet gm:path ex:lensStep .

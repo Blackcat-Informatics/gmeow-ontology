@@ -492,6 +492,29 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
         );
     }
 
+    // ── Correspondence gates (authors-correspondences ⇒ require-golden) ────────
+    // A case whose input authors `logic:Correspondence` individuals MUST commit the
+    // `correspondence-gates.json` golden — the five-gate verdict report. A missing golden
+    // is a hard failure (like budget / certification), never a silent pass.
+    if let Some(actual_gates) = &out.correspondence_gates {
+        let gates_path = expected.join("correspondence-gates.json");
+        if gates_path.exists() {
+            diff_json_golden(
+                &gates_path,
+                actual_gates,
+                case_id,
+                "correspondence-gates",
+                &mut diffs,
+            );
+        } else {
+            diffs.push(format!(
+                "[{case_id}] correspondence-gates: golden correspondence-gates.json is missing \
+                 from expected/ but the program authors logic:Correspondence individuals — run \
+                 the bless mode to generate it"
+            ));
+        }
+    }
+
     // ── Budget governor markers (declares-budget ⇒ require-golden) ─────────────
     let budget_path = expected.join("budget.json");
     let actual_budget = serde_json::json!({
