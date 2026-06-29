@@ -284,10 +284,17 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             }
             produced += 1;
 
-            // The `gmeow.gts` bundle is compared by the FOLD (per-named-graph quad
-            // set + reifier/annotation counts) elsewhere — CBOR has encoding skew
-            // (#595). Count it produced; the fold gate is `tests/full_parity.rs`.
+            // The `gmeow.gts` bundle: in Regenerate mode WRITE the freshly-assembled
+            // bundle to disk (the terminal's sole output — without this a stale
+            // `merge=ours` bundle survives an `integrate-main` + regenerate, the exact
+            // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
+            // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
+            // has encoding skew (#595) — so it is only counted here; the fold gate is
+            // `tests/full_parity.rs`.
             if path == GTS_PATH {
+                if mode == RunMode::Regenerate {
+                    write_artifact(root, path, bytes)?;
+                }
                 reproduced += 1;
                 continue;
             }
