@@ -118,3 +118,9 @@ ex:ecSatisfiedByUnbacked a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example asserts a conclusive gmeow:satisfiedBy(goal, situation) edge with NO backing logic:GoalEvaluation under any vantage, so the vantage-scoped dual-authority sh:sparql constraint on logic:SatisfiedByBackedByEvaluationShape fires and validation MUST emit shacl.SPARQLConstraintComponent and NO other finding. The check is never a global verdict: it fires only because no vantage backs the edge at all (Principle 9)." .
+
+# --- Conforming: a STRONG-CYCLIC plan is valid canonically (DAG profile case) -
+ex:ecDagStrongCyclicPlan a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/dag-strong-cyclic-plan.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A strong-cyclic logic:Plan (logic:StrongCyclicPlanSuccess) with a retry LOOP in its control flow is valid CANONICALLY: it carries exactly one logic:planGoal and one logic:planSuccessMode, satisfying logic:PlanShape with no findings — a loop is legitimate canonical structure, not a well-formedness defect. The loop only places the plan OUTSIDE the certified acyclic fragment, so under the DAG-workflow profile (logic:DagWorkflowResource) the SAME plan resolves to `unsupported` with the offending back-edge named by logic:dagCycleWitness, never silently truncated. That strong-cyclic-vs-acyclic-projection contrast and its recorded loss are exercised executably by the shared certifier (crates/logic dag_profile::strong_cyclic_plan_vs_its_acyclic_projection): the cyclic edge set certifies as a Cycle (unsupported; the witness names the back-edge that is the recorded loss), and the acyclic projection that drops that back-edge certifies as Certified (complete-for-fragment)." .
