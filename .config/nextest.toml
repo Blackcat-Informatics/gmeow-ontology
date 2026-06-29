@@ -58,6 +58,15 @@
 #     budget under the gate's parallel contention as the ontology grows. Engine/graph-size
 #     bound and irreducible like ontology_entailments; the fast per-commit reason coverage
 #     is `make reason` (native lane) plus the gmeow-logic unit reason tests.
+#   - gmeow-pipeline stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site
+#     (~40 s) and stages::carrier::native_assembly_tests::authored_default_assembles_natively
+#     (~32 s): both whole-bundle, build/I-O-bound (NOT engine-bound). The docs-archive test
+#     renders+packs the entire embedded ontology-docs site (a LIVE O(terms) full render, the
+#     same irreducible class as the gmeow-docs live-render guards below); the native-assembly
+#     test folds the whole authored default graph (union + native translation/guideBlob fold)
+#     and re-runs it for a byte-determinism check, an O(ontology-size) assembly ×2. Both grow
+#     with the ontology and cross the zero-headroom 25 s budget; the cheaper per-member /
+#     per-stage assertions stay on-gate.
 #   - gmeow-slice alignment emit parity + gmeow-slicetest places structural:
 #     whole-ontology emit/closure checks just over budget.
 #   - gmeow-rdf-capi c_smoke binary: self-builds the libpurrdf cdylib (~33 s cold
@@ -85,7 +94,7 @@ default-filter = '''
     | (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-pipeline) & binary(/end_to_end|fold_parity/))
     | (package(gmeow-pipeline) & binary(/edoal_sparql_correspondence_parity|fno_correspondence_parity|sssom_correspondence_parity/))
-    | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::snapshot::ustar_tests::build_docs_archive|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_oxigraph|compiler_products_are_first_class_dag_artifacts|stages::reason::tests::reason_produces_nonempty_artifacts/))
+    | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::carrier::ustar_tests::build_docs_archive|stages::carrier::native_assembly_tests::authored_default_assembles_natively|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_oxigraph|compiler_products_are_first_class_dag_artifacts|stages::reason::tests::reason_produces_nonempty_artifacts/))
     | (package(gmeow-slice) & binary(alignment_parity))
     | (package(gmeow-slicetest) & test(/places.tests.structural/))
     | (package(gmeow-rdf-capi) & binary(c_smoke))
@@ -179,13 +188,13 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # Full-snapshot round-trip tests decode the ~9.3 MB committed `gmeow.gts` and
-# re-emit / extract it back through the native gmeow-gts codecs (#909). Snapshot
-# archive tests also render and pack the embedded ontology-docs site. Under CI
+# re-emit / extract it back through the native gmeow-gts codecs (#909). The carrier
+# archive test also renders and packs the embedded ontology-docs site. Under CI
 # load these can tip past the 120s default terminate cliff. They are codec /
 # I-O-bound — NOT engine-bound — so they stay OUTSIDE the `engine` memory group
 # (no OOM risk) but need a longer terminate cliff: `gts_sink` re-emits the whole
-# snapshot and the snapshot docs-archive test renders/packs the embedded site.
-filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::snapshot::ustar_tests::build_docs_archive_packs_the_rendered_site/)'
+# snapshot and the carrier docs-archive test renders/packs the embedded site.
+filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
