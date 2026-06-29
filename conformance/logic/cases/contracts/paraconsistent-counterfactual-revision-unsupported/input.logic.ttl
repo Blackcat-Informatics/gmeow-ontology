@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 #
 # Conformance case: contracts/paraconsistent-counterfactual-revision-unsupported
-# AC (#767 Gap 2): a ReasoningContract that pairs a paraconsistent
+# AC: a ReasoningContract that pairs a paraconsistent
 # (gap/glut-admitting) admissible valuation (logic:AdmitAllFour) with
 # counterfactual entrenchment revision (logic:EntrenchmentRevision) is a
 # FORBIDDEN facet combination (RuleNoParaconsistentCounterfactualRevision): the

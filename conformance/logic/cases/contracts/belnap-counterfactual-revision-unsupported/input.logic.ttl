@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 #
 # Conformance case: contracts/belnap-counterfactual-revision-unsupported
-# AC (#767 Gap 2 / #766 ME1): a ReasoningContract that pairs the Belnap bilattice
+# AC: a ReasoningContract that pairs the Belnap bilattice
 # truth algebra (logic:BelnapBilattice) with counterfactual entrenchment revision
 # (logic:EntrenchmentRevision) is a FORBIDDEN facet combination
 # (RuleNoParaconsistentCounterfactualRevision): the closest-world selection that
