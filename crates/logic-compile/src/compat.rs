@@ -807,10 +807,7 @@ logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:
 
         // Rule 1: a probabilistic uncertainty measure cannot coexist with stable-model
         // semantics (no calibrated mass over incomparable answer sets).
-        let probabilistic = c
-            .uncertainty_measures
-            .iter()
-            .any(|m| m == "ProbabilisticMeasure");
+        let probabilistic = c.uncertainty_measures.contains("ProbabilisticMeasure");
         let stable_model = c.model_semantics.as_deref() == Some("StableModelSemantics");
         if probabilistic && stable_model {
             ids.insert("RuleNoProbabilisticStableModel");
@@ -846,21 +843,35 @@ logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:
 
     /// Extract the rule-ids `check` actually fired from its verdict, by parsing the
     /// `[{id}] {reason}` prefix each reason carries (the format `check` builds).
+    ///
+    /// A rule may fire AT MOST ONCE per contract: each id appears once in [`RULES`], so a
+    /// verdict carrying the same id twice would be a real diagnostic defect. We assert
+    /// that invariant here (parse to a `Vec` and reject duplicates) BEFORE collapsing to
+    /// a set — otherwise a `BTreeSet` would silently dedupe a double-firing and weaken the
+    /// sweep's "fires EXACTLY the right rules" guarantee.
     fn fired_ids_from_verdict(verdict: &ContractVerdict) -> std::collections::BTreeSet<String> {
-        match verdict {
-            ContractVerdict::Supported => std::collections::BTreeSet::new(),
-            ContractVerdict::Unsupported(reasons) => reasons
-                .iter()
-                .map(|r| {
-                    let id = r
-                        .strip_prefix('[')
-                        .and_then(|s| s.split_once(']'))
-                        .map(|(id, _)| id)
-                        .unwrap_or_else(|| panic!("reason not in `[id] ...` form: {r}"));
-                    id.to_owned()
-                })
-                .collect(),
-        }
+        let reasons = match verdict {
+            ContractVerdict::Supported => return std::collections::BTreeSet::new(),
+            ContractVerdict::Unsupported(reasons) => reasons,
+        };
+        let ids: Vec<String> = reasons
+            .iter()
+            .map(|r| {
+                let id = r
+                    .strip_prefix('[')
+                    .and_then(|s| s.split_once(']'))
+                    .map(|(id, _)| id)
+                    .unwrap_or_else(|| panic!("reason not in `[id] ...` form: {r}"));
+                id.to_owned()
+            })
+            .collect();
+        let set: std::collections::BTreeSet<String> = ids.iter().cloned().collect();
+        assert_eq!(
+            set.len(),
+            ids.len(),
+            "a rule fired more than once in one verdict (each rule must fire at most once): {ids:?}"
+        );
+        set
     }
 
     /// Build every contract in the swept cross-product, invoking `body` on each.
