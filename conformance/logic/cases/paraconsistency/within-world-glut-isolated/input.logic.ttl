@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conformance case: paraconsistency/within-world-glut-isolated
+# AC: paraconsistency — the SAME contradictory pair as within-world-glut, but split
+# across two worlds, stays ISOLATED (each world `consistent`, no explosion).
+#
+# This is the explicit CONTRAST partner of paraconsistency/within-world-glut: the two
+# cases carry the identical contradictory data (CrimePenalty classified both Strict and
+# Lenient, those two disjoint) and differ ONLY in graph placement —
+#
+#   * within-world-glut         : both type-assertions in ONE world  => `inconsistent`
+#                                 (the glut is within-world; the witness is captured).
+#   * within-world-glut-isolated: the two type-assertions in SEPARATE worlds => each
+#                                 world `consistent` (the disjointness never co-occurs
+#                                 with both memberships in one world, so no owl:Nothing
+#                                 clash fires; the contradiction is confined per-world).
+#
+# Together the pair makes the Paraconsistency invariant machine-checked from BOTH sides:
+# a within-world contradiction emits a captured witness, while the same contradiction
+# isolated across worlds does not contaminate either world (cross-world coexistence,
+# mirroring paraconsistency/cross-world-isolation). The behavioral distinction is
+# decided by world placement, GENUINELY by the native DL consistency path
+# (gmeow_logic::reason::dl_consistency), and diffed against expected/verdicts.json.
+#
+# verdict_mode=consistency: the OWL EDB is the world-scoped N-Quads in input.nq; this
+# file exists only to satisfy the per-case anatomy and is NOT compiled.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .

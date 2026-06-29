@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conformance case: paraconsistency/within-world-glut
+# AC: paraconsistency — a WITHIN-world contradiction emits a captured witness (the
+# right-hand half of the Paraconsistency corpus invariant; design/LOGIC-CONFORMANCE.md
+# §"A within-world contradiction emits witnesses", and §"The coherence certificate"
+# §"Undisclosed contradiction, defined").
+#
+# This is the behavioral counterpart to paraconsistency/cross-world-isolation, which
+# proves the LEFT half (a contradiction split across two worlds stays isolated and
+# each world is `consistent`). Here the SAME contradictory pair is confined to a
+# SINGLE world `w`, so the glut is genuinely within-world and the native DL
+# consistency path (gmeow_logic::reason::dl_consistency, folding from the same closure
+# as reason_all) populates an owl:Nothing clash for `w`. The harness diffs the
+# per-world verdict against expected/verdicts.json: the world is `inconsistent`,
+# i.e. the within-world glut was CAPTURED and SURFACED as a contradiction witness
+# rather than silently swallowed or exploded across the bundle.
+#
+# verdict_mode=consistency: the OWL EDB is the world-scoped N-Quads in input.nq,
+# decided by the native DL path; this file exists only to satisfy the per-case
+# anatomy and is NOT compiled in consistency mode.
+#
+# Graph-isolation note (LOGIC-CONFORMANCE §"Tests as ontology data"): this
+# contradiction fixture lives in the conformance corpus, which is OUTSIDE the
+# production owl:imports closure by construction — it can never make the production
+# ontology appear inconsistent. Disclosure here is "capture + surfacing": the witness
+# IS captured (the world is reported `inconsistent`), so the contradiction is
+# disclosed, not undisclosed.
+#
+# What this case GENUINELY checks (harness-observable): the reasoning verdict — a
+# within-world glut yields a captured, surfaced contradiction witness (`inconsistent`).
+# What it does NOT and CANNOT check here: the permitted-vs-forbidden CLASSIFICATION of
+# that disclosed glut (coherent under a glut-admitting contract vs a forbidden integrity
+# violation under a glut-forbidding contract). That classification is computed in Rust
+# off the ReasoningResult by the contract's ContradictionPolicy
+# (crates/logic/src/certificate.rs::CoherenceOutcome::from_reasoning_result) and is NOT
+# folded into the reasoned/materialized graph; the conformance profile surface is closed
+# and carries no admissible_valuation facet, so the harness cannot evaluate it as
+# ontology data. It is pinned by the Rust certificate tests
+# (permitted_glut_is_coherent / forbidden_glut_refuses_and_issues_no_certificate).
+@prefix logic: <https://blackcatinformatics.ca/logic/> .

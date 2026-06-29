@@ -11,6 +11,7 @@
 //! This crate is single-target native only.
 //! Nemo-based rule evaluation and PyO3 bindings are unconditionally included.
 
+pub mod certificate;
 pub mod counterfactual;
 /// Dense-id graph primitives (interner + bitset) for the hot graph algorithms.
 pub(crate) mod dense;
