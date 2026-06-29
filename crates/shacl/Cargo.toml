@@ -3,13 +3,13 @@
 
 [package]
 name = "gmeow-shacl"
-description = "GMEOW SHACL validation engine core: oxigraph-backed RDF 1.2 SHACL Core validator, gated against the SHACL conformance corpus"
+description = "GMEOW SHACL validation engine core: native RDF 1.2 SHACL Core validator, gated against the SHACL conformance corpus"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 readme = "README.md"
-keywords = ["rdf", "shacl", "validation", "knowledge-graph", "oxigraph"]
+keywords = ["rdf", "shacl", "validation", "knowledge-graph", "rdf-12"]
 
 [lib]
 # rlib-only: this crate no longer ships a standalone PyO3 extension. Its bindings
@@ -18,10 +18,6 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# oxigraph in-memory Store with RDF 1.2 (statement-layer quoted triples that
-# rdflib/pySHACL cannot represent). default-features off drops the rocksdb
-# C/C++ backend we never use.
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # Native SPARQL parser (purrdf S5, #911). Used at shape-load to reject non-SELECT
 # SHACL-SPARQL queries (ASK/CONSTRUCT/DESCRIBE) — they parse but cannot bind ?this
 # and would panic at eval. Use SparqlParser to parse and match Query::Select.
@@ -37,8 +33,8 @@ regex = "1"
 # serde_json's default BTreeMap-backed Map so object keys serialize sorted for
 # deterministic, byte-stable output.
 serde_json = "1"
-# Shared PyO3-free RDF 1.2 kernel and GTS/oxigraph adapter boundary (#648).
-gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
+# Shared PyO3-free RDF 1.2 kernel and native GTS/text-codec boundary (#648).
+gmeow-rdf = { path = "../rdf", features = ["gts"] }
 
 # pyo3 native-only: cannot link into wasm. The engine core is PyO3-free; only
 # py.rs uses it, so the rlib links into the future Rust compiler without Python.

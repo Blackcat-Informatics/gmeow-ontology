@@ -1,25 +1,27 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Freeze the oxigraph SPARQL oracle as committed goldens (EPIC #906 Task 2).
+//! Capture the native SPARQL engine as committed goldens (EPIC #906 Task 2/8).
 //!
-//! EPIC #906 removes oxigraph. Before it goes, this maintainer-only binary captures
-//! oxigraph's deterministic SPARQL outputs over OUR corpus (`queries/**` +
-//! `generated/queries/**`) and over the GAP-A `$this`-substitution shapes, writing
-//! them as byte-stable golden files under
-//! `crates/sparql-conformance/tests/goldens/`. The Task-4 native gate then diffs the
-//! oxigraph-free engine against these frozen goldens forever — no live oxigraph
-//! needed. (This binary does NOT build that gate; it only writes the goldens.)
+//! EPIC #906 removed oxigraph; the native [`NativeSparqlEngine`] is now the SOLE
+//! SPARQL authority (the cutover proved native ≡ oxigraph). This maintainer-only
+//! binary captures the native engine's deterministic SPARQL outputs over OUR corpus
+//! (`queries/**` + `generated/queries/**`) and over the GAP-A `$this`-substitution
+//! shapes, writing them as byte-stable golden files under
+//! `crates/sparql-conformance/tests/goldens/`. The Task-4 native gate then byte-diffs
+//! the engine against these frozen goldens forever (native-vs-native = a regression
+//! gate).
 //!
 //! `crates/sparql-conformance` stays oxigraph-free: it merely RECEIVES these data
-//! files. All oxigraph-touching code lives here in `gmeow-rdf`.
+//! files; this binary is oxigraph-free too (it loads gmeow.gts via the oxigraph-free
+//! `flattened_dataset_from_bytes` and runs only the native engine).
 //!
 //! Determinism contract: every golden is byte-stable across runs. CONSTRUCT/DESCRIBE
 //! goldens are RDFC-1.0 canonical N-Quads; SELECT goldens are the SORTED multiset of
 //! `row_key` lines; ASK goldens are `true`/`false`. Re-running the binary must
 //! produce NO git diff.
 
-#![cfg(feature = "oxigraph")]
+#![cfg(feature = "gts")]
 
 use std::path::{Path, PathBuf};
 
@@ -27,10 +29,9 @@ use gmeow_rdf::capture_support::{
     collect_corpus_files, corpus_repo_root, is_deferred_construct, is_multi_query_file,
     is_nondeterministic, row_key,
 };
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
 use gmeow_rdf::{
-    canonicalize, dataset_from_bytes, BlankScope, NativeRdfFormat, OxigraphBackend, RdfDataset,
-    SparqlRequest, SparqlResult, TermRef, TermValue,
+    canonicalize, dataset_from_bytes, BlankScope, NativeRdfFormat, RdfDataset, SparqlRequest,
+    SparqlResult, TermRef, TermValue,
 };
 use gmeow_rdf_core::SparqlEngine;
 use gmeow_sparql_eval::NativeSparqlEngine;
@@ -74,7 +75,7 @@ fn main() {
     // -----------------------------------------------------------------------
     // Tally + hard-fail on any UNEXPECTED capture failure.
     // -----------------------------------------------------------------------
-    println!("---- corpus golden capture (EPIC #906 Task 2) ----");
+    println!("---- corpus golden capture (EPIC #906 Task 2/8, native engine) ----");
     println!("corpus files (.rq):        {}", corpus_tally.total);
     println!("  goldens .nq  (CONSTRUCT): {}", corpus_tally.nq);
     println!("  goldens .rows (SELECT):   {}", corpus_tally.rows);
@@ -93,7 +94,7 @@ fn main() {
 
     if !corpus_tally.unexpected.is_empty() {
         eprintln!(
-            "\nFATAL: {} corpus query(ies) failed UNEXPECTEDLY in the oxigraph oracle \
+            "\nFATAL: {} corpus query(ies) failed UNEXPECTEDLY in the native engine \
              (not nondeterministic, not multi-query, not a known-deferred construct):",
             corpus_tally.unexpected.len()
         );
@@ -105,22 +106,20 @@ fn main() {
     println!("\nOK: all corpus goldens captured with no unexpected failures.");
 }
 
-/// Load the real merged ontology and freeze the oxigraph oracle over every corpus
+/// Load the real merged ontology and freeze the native engine over every corpus
 /// `.rq` file into a golden (or a classification marker).
 fn capture_corpus(goldens: &Path) -> Tally {
-    // Load the merged ontology exactly as the corpus parity shards do.
+    // Load the merged ontology exactly as the corpus conformance gate does: the
+    // oxigraph-free flattened dataset (every named graph folded into the default
+    // graph), so the goldens and the gate share one identical load view.
     let gts_path = corpus_repo_root()
         .join("generated")
         .join("dist")
         .join("gmeow.gts");
     let gts_bytes = std::fs::read(&gts_path)
         .unwrap_or_else(|e| panic!("read gmeow.gts at {}: {e}", gts_path.display()));
-    let store = gmeow_rdf::gts::flattened_oxigraph_store_from_bytes(&gts_bytes)
-        .expect("oxigraph store from gts");
-    // Sanity self-check: the native engine builds a dataset from the SAME store, so a
-    // gross load mismatch surfaces here at capture time rather than in the Task-4 gate.
-    let native_dataset =
-        gmeow_rdf::oxigraph::dataset_from_store(&store).expect("native dataset from store");
+    let dataset = gmeow_rdf::gts::flattened_dataset_from_bytes(&gts_bytes)
+        .expect("native flattened dataset from gts");
     let native = NativeSparqlEngine::new();
 
     let corpus = collect_corpus_files();
@@ -128,7 +127,6 @@ fn capture_corpus(goldens: &Path) -> Tally {
     let corpus_root = goldens.join("corpus");
 
     let mut tally = Tally::default();
-    let ox = OxigraphBackend;
 
     for path in &corpus {
         tally.total += 1;
@@ -165,7 +163,7 @@ fn capture_corpus(goldens: &Path) -> Tally {
                 base_iri: None,
                 substitutions: &[],
             };
-            let note = match native.query(&native_dataset, req) {
+            let note = match native.query(&dataset, req) {
                 Ok(_) => {
                     "nondeterministic (NOW/RAND/UUID/STRUUID): no golden; gate runs native \
                           for well-formedness only\n"
@@ -179,13 +177,13 @@ fn capture_corpus(goldens: &Path) -> Tally {
             continue;
         }
 
-        // --- run the oxigraph oracle. ---
+        // --- run the native engine (the sole SPARQL authority). ---
         let req = SparqlRequest {
             query: &query_text,
             base_iri: None,
             substitutions: &[],
         };
-        match ox.query(&store, req) {
+        match native.query(&dataset, req) {
             Ok(result) => write_result_golden(&stem, &result, &mut tally),
             Err(e) => {
                 let msg = e.to_string();
@@ -207,7 +205,7 @@ fn capture_corpus(goldens: &Path) -> Tally {
     tally
 }
 
-/// Serialize a successful oracle result into the right golden kind.
+/// Serialize a successful native result into the right golden kind.
 fn write_result_golden(stem: &Path, result: &SparqlResult, tally: &mut Tally) {
     match result {
         SparqlResult::Graph(graph) => {
@@ -231,7 +229,7 @@ fn write_result_golden(stem: &Path, result: &SparqlResult, tally: &mut Tally) {
 
 /// Render a SELECT result as a deterministic golden: first line is the tab-joined
 /// variable list (preserving query projection order), then the SORTED `row_key`
-/// lines (a deterministic multiset — oxigraph row order is not contractual).
+/// lines (a deterministic multiset — solution row order is not contractual).
 fn solutions_golden(variables: &[String], rows: &[Vec<Option<TermValue>>]) -> String {
     let mut out = String::new();
     out.push_str(&variables.join("\t"));
@@ -249,10 +247,10 @@ fn solutions_golden(variables: &[String], rows: &[Vec<Option<TermValue>>]) -> St
 // Deliverable 2 — GAP-A substitution goldens.
 // ---------------------------------------------------------------------------
 
-/// The fixed substitution dataset (mirrors `tests/sparql_substitution_parity.rs`).
-/// Written to `goldens/substitution/dataset.nt` once so the Task-4 native gate
-/// replays against the IDENTICAL data. The blank-node focus `_:bn` is captured as a
-/// literal `.nt` line; the gate must parse it back with a stable label.
+/// The fixed substitution dataset (mirrors `corpus_conformance.rs`'s substitution
+/// sub-gate). Written to `goldens/substitution/dataset.nt` once so the Task-4 native
+/// gate replays against the IDENTICAL data. The blank-node focus `_:bn` is captured as
+/// a literal `.nt` line; the gate must parse it back with a stable label.
 const SUBST_DATASET_NT: &str = concat!(
     "<http://ex/alice> <http://ex/knows> <http://ex/bob> .\n",
     "<http://ex/alice> <http://ex/age> \"30\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n",
@@ -283,23 +281,20 @@ fn capture_substitution_goldens(goldens: &Path) -> usize {
     let dir = goldens.join("substitution");
     std::fs::create_dir_all(&dir).expect("mkdir goldens/substitution");
 
-    // Pin the dataset once (text form for the future native gate to parse).
+    // Pin the dataset once (text form for the native gate to parse).
     std::fs::write(dir.join("dataset.nt"), SUBST_DATASET_NT).expect("write substitution dataset");
 
-    // Build BOTH engines from the SAME parsed dataset. The blank-node label is the
-    // text-parsed label (whatever the native parser assigns `_:bn`); both engines see
-    // the identical store/dataset so the captured golden is the cross-engine contract.
+    // Build the native engine from the parsed dataset. The blank-node label is the
+    // text-parsed label (whatever the native parser assigns `_:bn`); the captured
+    // golden is the engine's contract over that dataset.
     let dataset: std::sync::Arc<RdfDataset> =
         dataset_from_bytes(SUBST_DATASET_NT.as_bytes(), NativeRdfFormat::NTriples)
             .expect("parse substitution dataset IR");
-    let store =
-        store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs).expect("substitution store");
     let native = NativeSparqlEngine::new();
-    let ox = OxigraphBackend;
 
-    // The shapes mirror sparql_substitution_parity.rs: subject-position,
-    // object-position, projected-only ?this, FILTER-referenced, into OPTIONAL, into
-    // NOT EXISTS, and an IRI vs a blank focus (the blank uses the parser's label).
+    // The shapes mirror the corpus substitution sub-gate: subject-position,
+    // object-position, projected-only ?this, FILTER-referenced, into NOT EXISTS, and
+    // an IRI vs a blank focus (the blank uses the parser's label).
     let blank_label = blank_label_for_bn(&dataset);
     let shapes: Vec<SubstShape> = vec![
         SubstShape {
@@ -349,24 +344,13 @@ fn capture_substitution_goldens(goldens: &Path) -> usize {
             base_iri: None,
             substitutions: &shape.subst,
         };
-        let ox_result = ox
-            .query(&store, req)
-            .unwrap_or_else(|e| panic!("oxigraph substitution {} failed: {e:?}", shape.name));
-        // Sanity self-check only: the native engine must agree at capture time.
         let nat_result = native
             .query(&dataset, req)
             .unwrap_or_else(|e| panic!("native substitution {} failed: {e:?}", shape.name));
-        let (ox_vars, ox_rows) = expect_solutions(&ox_result, shape.name);
         let (nat_vars, nat_rows) = expect_solutions(&nat_result, shape.name);
-        let ox_golden = solutions_golden(ox_vars, ox_rows);
-        let nat_golden = solutions_golden(nat_vars, nat_rows);
-        assert_eq!(
-            ox_golden, nat_golden,
-            "substitution {} native vs oxigraph mismatch at capture time",
-            shape.name
-        );
+        let golden = solutions_golden(nat_vars, nat_rows);
 
-        std::fs::write(dir.join(format!("{}.rows", shape.name)), &ox_golden)
+        std::fs::write(dir.join(format!("{}.rows", shape.name)), &golden)
             .expect("write substitution .rows golden");
         std::fs::write(
             dir.join(format!("{}.query", shape.name)),

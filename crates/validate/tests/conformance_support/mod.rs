@@ -17,11 +17,14 @@
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use gmeow_rdf::oxigraph::{dataset_from_store, flat_oxigraph_quads_from_dataset};
-use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
+use std::sync::Arc;
+
+use gmeow_rdf::{
+    flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
+    RdfDataset, SerializeGraph,
+};
 use gmeow_shacl::engine::validate_graphs;
 use gmeow_shacl::report::{Severity, ValidationReport};
-use oxigraph::store::Store;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
@@ -191,8 +194,9 @@ fn collect_module_ttls(dir: &Path, paths: &mut Vec<PathBuf>) {
 /// Merged ontology as a single N-Triples string.
 ///
 /// Parses every `slices/*/*/module.ttl` (recursively under `slices/`, files
-/// literally named `module.ttl`) into one oxigraph Store and dumps as N-Triples.
-/// Mirrors `load_merged_graph(include_imports=False)`.
+/// literally named `module.ttl`) into the native IR, flattens every named graph into
+/// the default graph, and dumps as N-Triples. Mirrors
+/// `load_merged_graph(include_imports=False)`.
 ///
 /// Cached via [`OnceLock`] so disk I/O happens at most once per test process.
 pub fn base_ontology_nt() -> &'static str {
@@ -204,21 +208,22 @@ pub fn base_ontology_nt() -> &'static str {
         collect_module_ttls(&slices_dir, &mut module_paths);
         module_paths.sort();
 
-        let store = Store::new().expect("in-memory store creation is infallible");
+        // Accumulate every module's flat quads (graph component re-homed to the
+        // default graph) into one dataset, then serialize as N-Triples.
+        let mut merged: Vec<gmeow_rdf::RdfQuad> = Vec::new();
         for path in &module_paths {
             let ttl = std::fs::read_to_string(path)
                 .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
             // Native codec parse (#909): lenient on private-use language tags.
-            match parse_dataset(ttl.as_bytes(), "text/turtle", None)
-                .and_then(|ds| flat_oxigraph_quads_from_dataset(&ds))
-            {
-                Ok(quads) => {
-                    for quad in quads {
-                        store.insert(&quad).expect("store insert is infallible");
+            match parse_dataset(ttl.as_bytes(), "text/turtle", None) {
+                Ok(ds) => {
+                    for mut quad in flat_rdf_quads_from_dataset(&ds) {
+                        quad.graph_name = None;
+                        merged.push(quad);
                     }
                 }
                 // Warn but continue — some module.ttl files import cross-slice
-                // IRIs that are not resolvable in the local store.
+                // IRIs that are not resolvable in the local parse.
                 Err(e) => eprintln!(
                     "warning: native Turtle parse of {} had errors: {e}",
                     path.display()
@@ -226,7 +231,8 @@ pub fn base_ontology_nt() -> &'static str {
             }
         }
 
-        store_dataset_to_nt(&store)
+        let dataset = flat_dataset_from_quads(&merged).expect("merged flat dataset must freeze");
+        dataset_default_graph_to_nt(&dataset)
     })
 }
 
@@ -264,33 +270,35 @@ pub fn ttl_file_to_nt(path: &Path) -> String {
     ttl_str_to_nt(&ttl)
 }
 
-/// Parse an inline Turtle string into an oxigraph store and emit as N-Triples.
+/// Parse an inline Turtle string into the native IR (flattening every named graph
+/// into the default graph) and emit as N-Triples.
 ///
-/// Uses the lenient parser (same as `gmeow_shacl::engine::validate_graphs`) so
+/// Uses the native codec parser (same as `gmeow_shacl::engine::validate_graphs`) so
 /// private-use `@x-gmeow-*` language tags are accepted.
 pub fn ttl_str_to_nt(ttl: &str) -> String {
     let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("Turtle parse failed: {e}\nInput:\n{ttl}"));
-    let store = gmeow_rdf::oxigraph::store_from_dataset(
-        &dataset,
-        gmeow_rdf::oxigraph::GraphPolicy::FlattenToDefaultGraph,
-    )
-    .unwrap_or_else(|e| panic!("store from dataset failed: {e}"));
-    store_dataset_to_nt(&store)
+    let flattened = flatten_to_default_graph(&dataset);
+    dataset_default_graph_to_nt(&flattened)
 }
 
-/// Fold an oxigraph store back to the IR and serialize its default graph as
-/// N-Triples via the native codec (#909). The `application/n-quads` codec on the
-/// `DefaultGraph` selection emits graphless rows (N-Triples) and is byte-lenient
-/// on private-use language tags.
-fn store_dataset_to_nt(store: &Store) -> String {
-    let dataset = dataset_from_store(store).expect("store folds to the IR");
-    let buf = serialize_dataset(
-        &dataset,
-        "application/n-quads",
-        SerializeGraph::DefaultGraph,
-    )
-    .expect("native N-Triples serialisation is infallible");
+/// Re-home every quad's graph component to the default graph (`None`), returning a
+/// fresh frozen flat dataset — the native twin of the prior oxigraph
+/// `GraphPolicy::FlattenToDefaultGraph`.
+fn flatten_to_default_graph(dataset: &RdfDataset) -> Arc<RdfDataset> {
+    let mut quads = flat_rdf_quads_from_dataset(dataset);
+    for quad in &mut quads {
+        quad.graph_name = None;
+    }
+    flat_dataset_from_quads(&quads).expect("flattened dataset must freeze")
+}
+
+/// Serialize a dataset's default graph as N-Triples via the native codec (#909). The
+/// `application/n-quads` codec on the `DefaultGraph` selection emits graphless rows
+/// (N-Triples) and is byte-lenient on private-use language tags.
+fn dataset_default_graph_to_nt(dataset: &RdfDataset) -> String {
+    let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::DefaultGraph)
+        .expect("native N-Triples serialisation is infallible");
     String::from_utf8(buf).expect("native N-Triples output is valid UTF-8")
 }
 

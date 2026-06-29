@@ -159,39 +159,12 @@ fn is_off_gate_heavy(rel_rq_path: &str) -> bool {
     OFF_GATE_HEAVY.contains(&rel_rq_path.replace('\\', "/").as_str())
 }
 
-/// CONSTRUCT goldens that diverge from native SOLELY because oxigraph applied a lossy
-/// typed-literal **value-space normalization** when it captured the golden, which the
-/// native engine (correctly) does not. EPIC #906 Task 2 froze these goldens through
-/// oxigraph; oxigraph rewrites the datatype IRI of derived numeric literals to their
-/// value-space base (e.g. a passthrough `xsd:nonNegativeInteger` literal becomes
-/// `xsd:integer`). A SPARQL CONSTRUCT that merely COPIES a bound literal must NOT
-/// rewrite its datatype IRI (RDF term identity), so the native output is the MORE
-/// FAITHFUL one and these goldens are the lossy party.
-///
-/// Diagnosed cases (all `gmeow:pixelWidth`/`gmeow:pixelHeight` passthroughs, whose
-/// `rdfs:range` is `xsd:nonNegativeInteger` and whose source literals carry that
-/// datatype):
-/// - `generated/queries/iiif.rq` (shard 2)
-/// - `generated/queries/exif.rq` (shard 3)
-/// - `generated/queries/schema-org.rq` (off-gate-heavy)
-///
-/// For these the gate asserts native returns a WELL-FORMED CONSTRUCT graph (no
-/// silent skip) and logs the divergence, but does NOT byte-compare to the lossy
-/// golden. They are NOT counted as `matched` (so the green floors stay honest).
-///
-/// This list is the orchestrator's signal to RE-CAPTURE these goldens once the
-/// capture canonicalizes literal value-spaces consistently (or to drop them when
-/// oxigraph is removed in Task 8). Remove an entry here the moment its golden is
-/// re-captured value-faithfully — the gate then byte-compares it like any other.
-const KNOWN_OXIGRAPH_VALUE_SPACE_DIVERGENCE: &[&str] = &[
-    "generated/queries/iiif.rq",
-    "generated/queries/exif.rq",
-    "generated/queries/schema-org.rq",
-];
-
-fn is_known_value_space_divergence(rel_rq_path: &str) -> bool {
-    KNOWN_OXIGRAPH_VALUE_SPACE_DIVERGENCE.contains(&rel_rq_path.replace('\\', "/").as_str())
-}
+// EPIC #906 Task 8 — the oxigraph value-space carve-out is RETIRED. The goldens for
+// `iiif.rq` / `exif.rq` / `schema-org.rq` were re-captured value-faithfully from the
+// native engine (oxigraph is gone), so they now carry the SOURCE datatype IRI
+// (`xsd:nonNegativeInteger`) the native engine preserves under RDF term identity,
+// rather than oxigraph's lossy `xsd:integer` value-space rewrite. The gate now
+// byte-compares ALL CONSTRUCT goldens — native-vs-native, a pure regression gate.
 
 // ---------------------------------------------------------------------------
 // Golden enumeration.
@@ -284,9 +257,6 @@ struct Tally {
     nondet_wellformed: usize,
     deferred_ok: usize,
     skipped_multi: usize,
-    /// CONSTRUCTs whose golden is a known lossy oxigraph value-space normalization;
-    /// native is asserted well-formed but NOT byte-compared (not `matched`).
-    known_value_space_divergence: usize,
     /// `(rel_rq, reason)` — any of these HARD-FAILS the gate.
     mismatches: Vec<(String, String)>,
 }
@@ -351,29 +321,6 @@ fn run_subset(include: &dyn Fn(&str) -> bool) -> Tally {
                         golden.rel_rq.clone(),
                         "golden marks deferred but native returned Ok (capture expected an Err)"
                             .to_owned(),
-                    )),
-                }
-            }
-            GoldenKind::Nq if is_known_value_space_divergence(&golden.rel_rq) => {
-                // The golden is a lossy oxigraph value-space normalization (datatype
-                // IRI rewrite); native is the faithful party. Assert well-formed +
-                // log; do NOT byte-compare or count as matched.
-                match result {
-                    Ok(SparqlResult::Graph(_)) => {
-                        tally.known_value_space_divergence += 1;
-                        eprintln!(
-                            "  [oxigraph-value-space-divergence] {} — native well-formed; \
-                             golden is lossy (datatype value-space), not byte-compared",
-                            golden.rel_rq
-                        );
-                    }
-                    Ok(other) => tally.mismatches.push((
-                        golden.rel_rq.clone(),
-                        format!("expected Graph (CONSTRUCT) result, native returned {other:?}"),
-                    )),
-                    Err(e) => tally.mismatches.push((
-                        golden.rel_rq.clone(),
-                        format!("expected Graph (CONSTRUCT) result, native errored: {e}"),
                     )),
                 }
             }
@@ -478,12 +425,11 @@ fn truncate(s: &str) -> String {
 fn assert_tally(scope: &str, tally: &Tally, green_floor: usize) {
     eprintln!(
         "corpus conformance [{scope}]: {} matched, {} nondeterministic-wellformed, \
-         {} deferred-ok, {} skip-multi, {} oxigraph-value-space-divergence, {} mismatches",
+         {} deferred-ok, {} skip-multi, {} mismatches",
         tally.matched,
         tally.nondet_wellformed,
         tally.deferred_ok,
         tally.skipped_multi,
-        tally.known_value_space_divergence,
         tally.mismatches.len()
     );
     assert!(
@@ -510,17 +456,19 @@ fn assert_tally(scope: &str, tally: &Tally, green_floor: usize) {
 // Set from the real run on 2026-06-28; see the gate report.
 // ---------------------------------------------------------------------------
 
-// Observed byte-matched greens on 2026-06-28 (gated subset, after carving off the
-// three oxigraph-value-space divergences and the off-gate-heavy projections):
-// [42, 34, 29, 31]. Floors set one below each for the same drift margin the parity
-// harness uses. Raising scope (re-capturing a value-space divergence so it byte-
-// compares, or fixing a previously-skipped query) MUST raise the affected floor.
-const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [41, 33, 28, 30];
+// Observed byte-matched greens on 2026-06-28 (gated subset). EPIC #906 Task 8
+// re-captured the iiif/exif value-space goldens value-faithfully (oxigraph removed),
+// so they now byte-compare and join their shards' matched counts: shard 2 (`iiif`)
+// 29 → 30, shard 3 (`exif`) 31 → 32. The off-gate-heavy projections are still carved
+// off. Floors set one below each observed for the drift margin the parity harness
+// uses. Raising scope (fixing a previously-skipped query) MUST raise the affected
+// floor.
+const CORPUS_MIN_GREEN_PER_SHARD: [usize; NUM_SHARDS] = [41, 33, 29, 31];
 
-/// Green floor for the off-gate-heavy subset. Observed 4 byte-matched on 2026-06-28
-/// (`ontolex`, `missing-definitions`, `vcard`, `foaf`); `schema-org` is the one
-/// off-gate value-space divergence and is NOT counted. Floor one below.
-const OFF_GATE_HEAVY_MIN_GREEN: usize = 3;
+/// Green floor for the off-gate-heavy subset. EPIC #906 Task 8 re-captured
+/// `schema-org` value-faithfully, so it now byte-compares: observed 5 byte-matched
+/// (`ontolex`, `missing-definitions`, `vcard`, `foaf`, `schema-org`). Floor one below.
+const OFF_GATE_HEAVY_MIN_GREEN: usize = 4;
 
 /// The golden inventory must not shrink (each shard sees only its slice and cannot
 /// detect a missing directory). Observed 145 goldens on 2026-06-28.

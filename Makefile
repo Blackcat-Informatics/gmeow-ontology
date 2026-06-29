@@ -594,8 +594,8 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
 
-maint-capture-sparql-goldens: ## (maintainer) Freeze the oxigraph SPARQL oracle as committed goldens (EPIC #906 Task 2; requires oxigraph present).
-	cargo run -q -p gmeow-rdf --features oxigraph,gts --bin capture_sparql_goldens
+maint-capture-sparql-goldens: ## (maintainer) Freeze the native SPARQL engine as committed goldens (EPIC #906 Task 2/8; native-vs-native regression gate).
+	cargo run -q -p gmeow-rdf --features gts --bin capture_sparql_goldens
 	@echo "wrote goldens under crates/sparql-conformance/tests/goldens/ — verify byte-stable (re-run = no diff), then commit"
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920

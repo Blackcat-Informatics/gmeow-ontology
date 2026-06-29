@@ -1,17 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared corpus-classification helpers for the SPARQL parity sweep and the
-//! oxigraph golden-capture binary (EPIC #906 Task 2).
+//! Shared corpus-classification helpers for the native golden-capture binary
+//! (EPIC #906 Task 2/8).
 //!
 //! These pure helpers — corpus enumeration, the nondeterministic / multi-query /
-//! deferred-construct classifiers, and the stable solution-row key — were factored
-//! out of `tests/sparql_eval_parity.rs` so the `capture_sparql_goldens` binary and
-//! the differential parity test share ONE definition (no drift between the oracle
-//! the goldens are frozen from and the oracle the gate diffs against).
-//!
-//! The module is oxigraph-gated only because its sole consumers (the parity test
-//! and the capture binary) are oxigraph-gated; the helpers themselves are pure.
+//! deferred-construct classifiers, and the stable solution-row key — are used by the
+//! `capture_sparql_goldens` binary to freeze the native engine's outputs as the
+//! committed conformance goldens. They are oxigraph-free and ride the always-on `gts`
+//! feature.
 
 use std::path::{Path, PathBuf};
 

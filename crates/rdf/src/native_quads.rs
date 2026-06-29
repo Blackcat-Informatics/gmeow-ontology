@@ -1,15 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Oxigraph-free [`RdfQuad`] ⇄ [`RdfDataset`] conversions (EPIC #906).
+//! Native [`RdfQuad`] ⇄ [`RdfDataset`] conversions (EPIC #906).
 //!
-//! These are the native, `gts`-gated twins of the oxigraph-quad helpers in
-//! [`crate::dataset_io`] / [`crate::oxigraph`]: a consumer that already holds (or wants)
-//! a flat owned-[`RdfQuad`] stream can fold it into the frozen IR (or un-fold the IR back
-//! into the source-faithful quad stream) WITHOUT pulling oxigraph. The fold routes
-//! through the SAME shared [`fold_statement_layer`] the text codecs and the oxigraph-quad
-//! path use, so the RDF 1.2 statement layer (`rdf:reifies` reifiers + annotations) is
-//! reconstructed identically and the three paths can never drift.
+//! A consumer that already holds (or wants) a flat owned-[`RdfQuad`] stream can fold it
+//! into the frozen IR (or un-fold the IR back into the source-faithful quad stream).
+//! The fold routes through the SAME shared [`fold_statement_layer`] the text codecs use,
+//! so the RDF 1.2 statement layer (`rdf:reifies` reifiers + annotations) is reconstructed
+//! identically and the two paths can never drift.
 
 use std::sync::Arc;
 
@@ -21,10 +19,10 @@ const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 /// Freeze already-built native [`RdfQuad`]s into a validated [`RdfDataset`], folding the
 /// RDF 1.2 statement layer.
 ///
-/// The oxigraph-free twin of [`crate::dataset_from_oxigraph_quads`]: it routes through
-/// the SAME [`fold_statement_layer`] helper (a `rdf:reifies` triple-term object becomes a
-/// reifier binding and a reifier subject's other triples become annotations), differing
-/// only in mapping each native [`RdfQuad`] into the source-agnostic [`FoldRow`] form.
+/// Routes through the SAME [`fold_statement_layer`] helper the text codecs use (a
+/// `rdf:reifies` triple-term object becomes a reifier binding and a reifier subject's
+/// other triples become annotations), mapping each native [`RdfQuad`] into the
+/// source-agnostic [`FoldRow`] form.
 /// Every term is interned under the default blank scope (already-scope-qualified labels,
 /// the same contract the oxigraph-quads twin assumed).
 ///
@@ -79,11 +77,10 @@ fn intern_native_term(builder: &mut RdfDatasetBuilder, term: &RdfTerm) -> TermId
     }
 }
 
-/// Flatten a frozen [`RdfDataset`] into the source-faithful flat [`RdfQuad`] stream —
-/// the owned-model twin of [`crate::oxigraph::flat_oxigraph_quads_from_dataset`], for
-/// consumers that fold over [`RdfQuad`] rather than oxigraph quads, WITHOUT pulling
-/// oxigraph. Base quads first, then the re-materialized `rdf:reifies` reifier rows and
-/// the annotation rows. The IR fold + this un-fold are exact inverses.
+/// Flatten a frozen [`RdfDataset`] into the source-faithful flat [`RdfQuad`] stream, for
+/// consumers that fold over [`RdfQuad`]. Base quads first, then the re-materialized
+/// `rdf:reifies` reifier rows and the annotation rows. The IR fold + this un-fold are
+/// exact inverses.
 #[must_use]
 pub fn flat_rdf_quads_from_dataset(dataset: &RdfDataset) -> Vec<RdfQuad> {
     let mut quads: Vec<RdfQuad> = dataset.owned_quads().collect();
@@ -129,9 +126,8 @@ pub fn flat_dataset_from_quads(quads: &[RdfQuad]) -> Result<Arc<RdfDataset>, Str
 /// statement overlay (reifier bindings + annotations) is re-materialized to plain
 /// `rdf:reifies` / annotation triples BEFORE canonicalizing, with no overlay re-fold.
 ///
-/// Byte-identical to the prior `gmeow_rdf::canonicalize_quads` over a flat oxigraph quad
-/// set (both canonicalize the same flat triple set under conformant SHA-256 RDFC-1.0), so
-/// every committed digest/comparison keyed on this string is preserved. The native folded
+/// Canonicalizes the flat triple set under conformant SHA-256 RDFC-1.0, so every
+/// committed digest/comparison keyed on this string is preserved. The native folded
 /// [`crate::canonicalize`] would instead emit the reserved overlay sentinels.
 ///
 /// # Errors
@@ -139,6 +135,20 @@ pub fn flat_dataset_from_quads(quads: &[RdfQuad]) -> Result<Arc<RdfDataset>, Str
 pub fn canonical_flat_nquads(dataset: &RdfDataset) -> Result<String, String> {
     let flat = flat_dataset_from_quads(&flat_rdf_quads_from_dataset(dataset))?;
     Ok(crate::canonicalize(&flat).nquads)
+}
+
+/// [`canonical_flat_nquads`] with an explicit RDFC-1.0 hash algorithm
+/// ([`CanonHash::Sha384`](crate::CanonHash) selects the SHA-384 variant). Used by the
+/// W3C RDFC-1.0 conformance gate, whose `test075` vector pins SHA-384.
+///
+/// # Errors
+/// Returns the diagnostic string if the flattened quads fail dataset validation.
+pub fn canonical_flat_nquads_with(
+    dataset: &RdfDataset,
+    hash: crate::CanonHash,
+) -> Result<String, String> {
+    let flat = flat_dataset_from_quads(&flat_rdf_quads_from_dataset(dataset))?;
+    Ok(crate::canonicalize_with(&flat, hash).nquads)
 }
 
 #[cfg(test)]
@@ -165,14 +175,19 @@ mod tests {
         assert_eq!(flat.len(), 2);
     }
 
-    /// AIRTIGHT byte-equality gate (EPIC #906): the native `canonical_flat_nquads`
-    /// must produce the EXACT line set the prior oxigraph-flat canonical path emitted
-    /// (`canonicalize_quads(flat_oxigraph_quads) → format!("{q} .")`), over an input that
+    /// Native flat-canonical determinism + shape gate (EPIC #906): over an input that
     /// exercises every literal/term shape (simple, typed, lang, blank-node, and an RDF
-    /// 1.2 reifier with an annotation). Only compiled when the oxigraph oracle is present.
-    #[cfg(feature = "oxigraph")]
+    /// 1.2 reifier with an annotation), `canonical_flat_nquads` must
+    /// (a) re-materialize the RDF 1.2 statement layer as plain `rdf:reifies` /
+    ///     annotation triples (no overlay sentinels), and
+    /// (b) be DETERMINISTIC — the canonical line set is identical when an isomorphic
+    ///     copy (blank labels renamed) is parsed.
+    ///
+    /// This is the native-only successor of the prior oxigraph byte-match gate (the
+    /// oxigraph oracle is removed): the native engine is now the sole authority, so the
+    /// gate asserts the canonical contract directly rather than against oxigraph.
     #[test]
-    fn canonical_flat_nquads_byte_matches_oxigraph_path() {
+    fn canonical_flat_nquads_is_deterministic_and_flattens_statement_layer() {
         // TriG with BOTH a default graph and a NAMED graph (the carrier composes named
         // graphs), exercising every literal/term shape + an RDF 1.2 reifier+annotation.
         const TRIG: &str = r#"
@@ -191,23 +206,43 @@ ex:g {
 }
 "#;
         let ir = crate::parse_dataset(TRIG.as_bytes(), "application/trig", None).expect("parse");
+        let canon = super::canonical_flat_nquads(&ir).expect("native flat canon");
 
-        // Native flat-canonical path.
-        let native: std::collections::BTreeSet<String> = super::canonical_flat_nquads(&ir)
-            .expect("native flat canon")
-            .lines()
-            .map(str::to_owned)
-            .collect();
+        // (a) The statement layer is FLATTENED to plain triples: the `rdf:reifies`
+        // binding and the annotation re-appear as ordinary N-Quads lines, and the
+        // canonical document carries NO native overlay sentinel.
+        assert!(
+            canon.contains("/reifies>"),
+            "the reifier binding must re-appear as a plain rdf:reifies triple:\n{canon}"
+        );
+        assert!(
+            canon.contains("/confidence>"),
+            "the annotation must re-appear as a plain triple:\n{canon}"
+        );
 
-        // Legacy oxigraph flat-canonical path.
-        let ox_quads = crate::oxigraph::flat_oxigraph_quads_from_dataset(&ir).expect("ox flat");
-        let ox_canon = crate::canonicalize_quads(ox_quads).expect("ox canon");
-        let legacy: std::collections::BTreeSet<String> =
-            ox_canon.iter().map(|q| format!("{q} .")).collect();
-
+        // (b) Determinism: an isomorphic dataset (blank labels renamed) canonicalizes
+        // to the EXACT same line set.
+        const TRIG_ISO: &str = r#"
+@prefix ex: <https://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+ex:s ex:p ex:o .
+ex:s ex:label "hello" .
+ex:s ex:n "42"^^xsd:integer .
+ex:s ex:greeting "bonjour"@fr .
+ex:s ex:friend [ ex:name "anon" ] .
+ex:r rdf:reifies <<( ex:s ex:p ex:o )>> .
+ex:r ex:confidence "0.9"^^xsd:decimal .
+ex:g {
+  ex:a ex:b ex:c .
+  ex:a ex:lbl "named" .
+}
+"#;
+        let ir_iso =
+            crate::parse_dataset(TRIG_ISO.as_bytes(), "application/trig", None).expect("parse iso");
+        let canon_iso = super::canonical_flat_nquads(&ir_iso).expect("native flat canon iso");
         assert_eq!(
-            native, legacy,
-            "native flat-canonical N-Quads must byte-match the oxigraph flat-canonical path"
+            canon, canon_iso,
+            "isomorphic datasets must canonicalize to identical flat N-Quads"
         );
     }
 }
