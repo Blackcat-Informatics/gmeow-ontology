@@ -250,7 +250,12 @@ fn choice_guard_true_takes_left() {
     let out = run(&choice_world(true), "ch").expect("choice succeeds");
     assert!(out.succeeded());
     assert_eq!(out.steps.len(), 1);
-    assert_eq!(out.steps[0].attribution, format!("{W}#primL"));
+    // The left branch ran: its schema was instantiated, and the step is a minted runtime
+    // logic:TransactionStep (no longer the static program node).
+    assert_eq!(out.steps[0].schema, format!("{W}#primLSchema"));
+    assert!(out.steps[0]
+        .attribution
+        .starts_with("https://blackcatinformatics.ca/logic/step/"));
     assert!(out.sits_end.contains(&format!("{W}#sit_lft")));
     assert!(!out.sits_end.contains(&format!("{W}#sit_rgt")));
 }
@@ -260,7 +265,10 @@ fn choice_guard_false_takes_right() {
     let out = run(&choice_world(false), "ch").expect("choice succeeds");
     assert!(out.succeeded());
     assert_eq!(out.steps.len(), 1);
-    assert_eq!(out.steps[0].attribution, format!("{W}#primR"));
+    assert_eq!(out.steps[0].schema, format!("{W}#primRSchema"));
+    assert!(out.steps[0]
+        .attribution
+        .starts_with("https://blackcatinformatics.ca/logic/step/"));
     assert!(out.sits_end.contains(&format!("{W}#sit_rgt")));
 }
 
@@ -287,7 +295,10 @@ fn fallback_runs_backup_when_primary_fails() {
     assert!(out.succeeded());
     // Only the backup emitted a step — the failed primary produced nothing (no rollback).
     assert_eq!(out.steps.len(), 1);
-    assert_eq!(out.steps[0].attribution, format!("{W}#primBackup"));
+    assert_eq!(out.steps[0].schema, format!("{W}#primBackupSchema"));
+    assert!(out.steps[0]
+        .attribution
+        .starts_with("https://blackcatinformatics.ca/logic/step/"));
     assert!(out.sits_end.contains(&format!("{W}#sitOk")));
 }
 
@@ -356,6 +367,24 @@ fn iteration_zero_passes_when_condition_false_at_start() {
     assert!(out.succeeded());
     assert!(out.steps.is_empty(), "no body pass");
     assert_eq!(out.path, vec![format!("{W}#s0")]);
+}
+
+#[test]
+fn step_attribution_is_unique_per_pass_and_deterministic() {
+    // The same primitive executed on two iteration passes starts from DISTINCT states, so
+    // its minted logic:TransactionStep — the supersession-quartet attribution — must be
+    // distinct, never collapsing two runtime passes onto one node.
+    let pass_one = mint_step("root", "primBody", "s0");
+    let pass_two = mint_step("root", "primBody", "s1");
+    assert_ne!(
+        pass_one, pass_two,
+        "distinct from-states (passes) mint distinct step nodes"
+    );
+    // Deterministic / content-addressed: same salt → same IRI.
+    assert_eq!(pass_one, mint_step("root", "primBody", "s0"));
+    // And disjoint from the state IRIs minted over the same salt.
+    assert!(pass_one.starts_with("https://blackcatinformatics.ca/logic/step/"));
+    assert_ne!(pass_one, mint_state("root", "primBody", "s0"));
 }
 
 #[test]

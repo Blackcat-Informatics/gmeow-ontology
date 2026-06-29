@@ -62,9 +62,15 @@ that declares its start with `logic:transitionFromState`) and records a **`logic
 it carries `logic:outcomeOfProgram` (the program run), `logic:transactionStart` (the start state),
 and `logic:transactionSucceeds` (the boolean executional-entailment verdict — *a path exists from the
 start*). On success the outcome also carries the executed run as a `logic:Path` of states ordered by
-`logic:temporallySucceeds` and linked through `logic:executedAlongPath`, with each elementary step's
-support recorded as the supersession quartet (§Elementary updates). On failure only the outcome node
-is recorded — the start state is untouched, realizing "failure leaves the start state untouched".
+`logic:temporallySucceeds` and linked through `logic:executedAlongPath`. Each elementary step along the
+path is itself materialized as a first-class **`logic:TransactionStep`** — the schema it runs
+(`logic:instantiatesSchema`) and the path edge it walks (`logic:transitionFromState` →
+`logic:transitionToState`) — and that step is the node the supersession quartet attributes its retirals
+to (`logic:retiredByTransaction` / `logic:supersededBy`, §Elementary updates). The step is minted per
+run position, so every pass of a `logic:Iteration` over the same primitive is a **distinct** step and the
+audit trail never collapses two passes onto one node. Its provenance is grounded on that step's own
+`logic:effect`. On failure only the outcome node is recorded — the start state is untouched, realizing
+"failure leaves the start state untouched".
 
 The outcome is typed apart from neighbouring verdicts it must never be confused with: it is **not** a
 `logic:GoalEvaluation` (at-a-state satisfaction of a goal) and **not** a `logic:PlanSuccessMode` (a

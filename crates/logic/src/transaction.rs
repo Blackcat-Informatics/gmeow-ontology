@@ -86,8 +86,10 @@ const ITERATION_BODY: &str = "iterationBody";
 const ITERATION_CONDITION: &str = "iterationCondition";
 const INSTANTIATES_SCHEMA: &str = "instantiatesSchema";
 const TRANSITION_FROM_STATE: &str = "transitionFromState";
+const TRANSITION_TO_STATE: &str = "transitionToState";
 const SITUATION_OBTAINS: &str = "situationObtains";
 const PRECONDITION: &str = "precondition";
+const EFFECT: &str = "effect";
 
 // ── Determinism / termination bounds ────────────────────────────────────────────
 
@@ -156,7 +158,8 @@ pub(crate) struct PlannedStep {
     pub from_state: String,
     /// The engine-minted successor state the step produced.
     pub to_state: String,
-    /// The primitive program node that produced this step (the retiring attribution).
+    /// The engine-minted runtime `logic:TransactionStep` node — UNIQUE per pass — that
+    /// this step materializes and that the supersession quartet attributes to.
     pub attribution: String,
     /// The action schema whose effect this step applied (grounds the provenance).
     pub schema: String,
@@ -356,6 +359,18 @@ fn mint_state(root: &str, node: &str, base_state: &str) -> String {
     format!("{LOGIC_NAMESPACE}txstate/{digest}")
 }
 
+/// Mint the content-addressed IRI of a RUNTIME `logic:TransactionStep`, salted by the
+/// program ROOT, the primitive node, and the state the step starts FROM.  The `from`
+/// salt makes every pass of a `logic:Iteration` over the same primitive a DISTINCT step
+/// (each pass starts from a different state), so the supersession quartet it attributes
+/// (`logic:retiredByTransaction` / `logic:supersededBy`) never collapses two runtime
+/// passes onto one node.  The `step` discriminator keeps step IRIs disjoint from the
+/// `txstate` IRIs minted over the same salt.
+fn mint_step(root: &str, node: &str, from_state: &str) -> String {
+    let digest = sha1_hex(&format!("{root}\n{node}\n{from_state}\nstep"));
+    format!("{LOGIC_NAMESPACE}step/{digest}")
+}
+
 /// Whether the schema's preconditions all hold in the current support set.
 fn preconditions_hold(facts: &WorldFacts, schema: &str, sits: &BTreeSet<String>) -> bool {
     facts
@@ -401,7 +416,7 @@ pub(crate) fn plan_path(
                 steps: vec![PlannedStep {
                     from_state: state.to_owned(),
                     to_state: succ,
-                    attribution: node.clone(),
+                    attribution: mint_step(root, node, state),
                     schema: schema.clone(),
                     support,
                 }],
@@ -533,6 +548,7 @@ pub(crate) fn root_start(
 
 // Outcome-surface vocabulary local names (declared in slices/core/logic/module.ttl).
 const TRANSACTION_OUTCOME: &str = "TransactionOutcome";
+const TRANSACTION_STEP: &str = "TransactionStep";
 const OUTCOME_OF_PROGRAM: &str = "outcomeOfProgram";
 const TRANSACTION_START: &str = "transactionStart";
 const TRANSACTION_SUCCEEDS: &str = "transactionSucceeds";
@@ -626,17 +642,48 @@ pub(crate) fn emit_transaction_outcome(
             // temporallySucceeds(successor, predecessor): "b succeeds a".
             emit(&pair[1], logic(TEMPORALLY_SUCCEEDS), n3(&pair[0]));
         }
-        // Per-step situation substrate (situationObtains + supersession quartet), reusing
-        // the shared family-6 emitter under the transaction rule IRI.
+        // Per-step substrate. Each runtime step is materialized as a first-class
+        // logic:TransactionStep (the declared contract): typed, instantiating its action
+        // schema, carrying the path edge from→to. Its provenance is grounded PER STEP on
+        // the schema's own `logic:effect` triple — NOT the root program-type triple — so
+        // every step's situationObtains + supersession quartet is attributed to the effect
+        // that actually produced it. This is byte-isomorphic to the authored-step family
+        // (emit_effect_application), differing only in the rule IRI.
         for step in &outcome.steps {
+            let effect = facts.object(&step.schema, &logic(EFFECT)).ok_or_else(|| {
+                format!(
+                    "logic:ActionSchema {:?} names no logic:effect node",
+                    step.schema
+                )
+            })?;
+            let step_source = triple_reifier(&step.schema, &logic(EFFECT), effect)?;
+            let step_deriv = mint_derivation_id(TRANSACTION_RULE_IRI, &[step_source.as_str()]);
+            // Scope the borrow of `out` so it ends before the `effect_quads` extend below.
+            {
+                let mut push_step = |predicate: String, object: String| {
+                    out.push(TeleologyQuad {
+                        graph: world.to_owned(),
+                        subject: step.attribution.clone(),
+                        predicate,
+                        object,
+                        rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+                        source_quad_ids: vec![step_source.clone()],
+                        derivation_id: step_deriv.clone(),
+                    });
+                };
+                push_step(RDF_TYPE.to_owned(), n3(&logic(TRANSACTION_STEP)));
+                push_step(logic(INSTANTIATES_SCHEMA), n3(&step.schema));
+                push_step(logic(TRANSITION_FROM_STATE), n3(&step.from_state));
+                push_step(logic(TRANSITION_TO_STATE), n3(&step.to_state));
+            }
             out.extend(effect_quads(
                 world,
                 &step.support,
                 &step.from_state,
                 &step.to_state,
                 &step.attribution,
-                &source,
-                &deriv,
+                &step_source,
+                &step_deriv,
                 TRANSACTION_RULE_IRI,
             ));
         }
