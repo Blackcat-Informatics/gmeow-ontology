@@ -181,6 +181,37 @@ This is the mechanism that lets the reasoning layer grow new power without the i
 dimensions acquiring incompatible meanings when combined: the engine either has a defined semantics
 for a contract, or it says so plainly.
 
+### Feature-model completeness & coverage
+
+The constraint graph is **authoritative in Rust**: the `RULES` table in `crates/logic-compile/src/compat.rs`
+is the single source of truth, and the `logic:CompatibilityRule` individuals in `module.ttl` are a
+**lossy documentation projection** of it (Principle 17), pinned together by a cross-check in
+`crates/logic-compile/src/ir/tests.rs`. The full catalog (`ALL_RULE_IDS`) is:
+
+| Rule id | Forbidden combination | Why |
+|---|---|---|
+| `RuleNoProbabilisticStableModel` | `logic:ProbabilisticMeasure` + `logic:StableModelSemantics` | no calibrated probability mass over the multiple incomparable answer sets stable-model semantics admits |
+| `RuleNoParaconsistentCounterfactualRevision` | a gap/glut-admitting `logic:admissibleValuation` **or** the `logic:BelnapBilattice` truth algebra + `logic:EntrenchmentRevision` | closest-world selection that generates the counterfactual states is undefined over gappy/glutty valuations |
+| `RuleNoClosedWorldInCounterfactual` | `logic:ClosedWorldClosure` (default closure **or** any per-key closure entry) + `logic:EntrenchmentRevision` | the generated counterfactual states are open-ended, so reading absence as falsehood inside them is unsound |
+| `RuleProbabilisticRequiresModel` | `logic:ProbabilisticMeasure` without a declared `logic:ProbabilityModel` | graph-dependent; enforced in the front-end, where the source graph is available (no `RULES` table entry) |
+
+Because the feature model is *computed* rather than enumerated, its correctness is something to be
+**proved over the whole facet space, not spot-checked**. Three layers guard it:
+
+1. **Exhaustive oracle sweep** (`compat.rs` tests) — enumerates the full cross-product of the
+   rule-participating facet value domains and checks every contract's verdict against an
+   *independent, hand-written* oracle of the forbidden combinations. This pins **both** directions
+   at once: no forbidden contract is ever silently approximated to `Supported` (no false-supported),
+   and no sound contract is ever rejected (no false-unsupported).
+2. **Completeness guard** — the sweep also asserts that **every** table rule fires somewhere in the
+   swept domain. A future rule keying on a facet/value the sweep does not vary fails this guard,
+   forcing the swept domains to be extended in lockstep with the rule table — coverage can never
+   silently fall behind the feature model.
+3. **Property tests** (`crates/logic/tests/proptest_invariants.rs`) — `check` is total and
+   deterministic over arbitrary (junk-included) facet strings, and a contract built from only
+   non-trigger values is always `Supported`: unrecognised facet content never fabricates an
+   `unsupported` verdict.
+
 ## Where a contract is attached
 
 Every reasoning surface carries a contract: each conformance case, the reasoning command, the
