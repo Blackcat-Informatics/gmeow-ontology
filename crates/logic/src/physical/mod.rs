@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native physical execution core (#1090, F3).
+//! Native physical execution core.
 //!
 //! The destination is ONE native Rust engine: Scryer/Nemo/oxigraph are
 //! bootstrap oracles, not the runtime. This module hosts that engine's working
@@ -27,14 +27,14 @@ mod store;
 #[allow(unused_imports)]
 pub(crate) use store::{extract_edb, Bound, RelationStore};
 
-// The forward native evaluator (#1090, F3): the stratified semi-naive core, its
+// The forward native evaluator: the stratified semi-naive core, its
 // `RelationStore`-seeded backward entry, and the declared-gap outcome. `materialize_native`
 // + `NativeOutcome` are the primary forward path consumed by `materialize::materialize_routed`;
 // `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
 pub(crate) use seminaive::{evaluate, materialize_native, NativeOutcome, UnsupportedKind};
 
-// The backward native evaluator (#1090, F3): magic-sets demand transformation +
+// The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
 // backward path consumed by `dispatch::dispatch_query`.
 pub(crate) use magic::resolve_native;

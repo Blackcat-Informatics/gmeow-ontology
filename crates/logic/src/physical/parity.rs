@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native↔oracle parity comparator + the committed native-coverage floor (#1090, F3 T5).
+//! Native↔oracle parity comparator + the committed native-coverage floor.
 //!
 //! The native execution core ([`crate::physical::seminaive::materialize_native`] forward,
 //! [`crate::physical::magic::resolve_native`] backward) is the PRIMARY runtime path;
@@ -271,7 +271,7 @@ fn compare_answers(native: &AnswerSet, oracle: &AnswerSet) -> ParityLedger {
 
 #[cfg(test)]
 mod tests {
-    //! The parity + native-coverage-floor GATE (#1090, F3 T5).
+    //! The parity + native-coverage-floor GATE.
     //!
     //! `materialize_parity_*` invoke Nemo (`materialize_core`) and so MUST run in the `engine`
     //! nextest group (the `materialize` token in the test-fn name matches the engine-group

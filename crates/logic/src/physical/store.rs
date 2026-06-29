@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Columnar `RelationStore` + index selection + the shared EDB extractor (#1090, F3).
+//! Columnar `RelationStore` + index selection + the shared EDB extractor.
 //!
 //! # Why a second store next to `FactStore`
 //!
 //! [`crate::rule_ir::FactStore`] is a *ternary* `(subject, predicate, object)` store
-//! bucketed by predicate only.  The native execution core ([#1090]) joins over
+//! bucketed by predicate only.  The native execution core joins over
 //! *binary* relations — one relation per predicate IRI — and needs to select rows by
 //! a bound **subject** OR a bound **object**, not just by predicate.  This module is
 //! the column-oriented analogue: per predicate it keeps `(subject, object)` tuples in
