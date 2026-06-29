@@ -338,6 +338,10 @@ class BranchConditionTypeEnum(str, Enum):
     branchConditionSwitch = "branchConditionSwitch"
 
 
+class BuildDataFlowEnum(str, Enum):
+    pipeline_dataflow_reason_compile_logic = "pipeline-dataflow-reason-compile-logic"
+
+
 class CadastralReferenceTypeEnum(str, Enum):
     referenceTypeFolio = "referenceTypeFolio"
     referenceTypeLot = "referenceTypeLot"
@@ -3942,6 +3946,13 @@ class BuildActivity(Activity):
     buildConfigUri: str | None = Field(default=None)
     buildOutput: list[Distribution] | None = Field(default=None)
     buildSource: list[str] | None = Field(default=None)
+
+
+class BuildDataFlow(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/BuildDataFlow"
+    buildFlowFrom: list[PipelineStage] | None = Field(default=None)
+    buildFlowTo: list[PipelineStage] | None = Field(default=None)
+    flowEntity: list[str] | None = Field(default=None)
 
 
 class SoftwareAgent(Agent):

@@ -46,7 +46,14 @@ fn slice_dag_binds_and_matches_full_spec() {
     // for it. The slice is the sole formats source; comparing it would compare a
     // populated slice value against an intentionally-empty Rust one. Format
     // coverage is asserted independently against the slice in the loader tests.
-    type StageTuple = (String, String, Vec<String>, &'static str, Vec<String>);
+    type StageTuple = (
+        String,
+        String,
+        Vec<String>,
+        &'static str,
+        Vec<String>,
+        Vec<(String, Vec<String>)>,
+    );
     let project = |s: &gmeow_pipeline::StageSpec| -> StageTuple {
         (
             s.id.clone(),
@@ -54,6 +61,7 @@ fn slice_dag_binds_and_matches_full_spec() {
             s.consumes.clone(),
             s.kind.tag(),
             s.resources.clone(),
+            s.dataflow_entities.clone(),
         )
     };
     let full = full_spec();
@@ -64,6 +72,6 @@ fn slice_dag_binds_and_matches_full_spec() {
     assert_eq!(
         slice, rust,
         "the dogfooded slice DAG and the Rust full_spec must be identical \
-         (id, impl_key, consumes, kind, resources)"
+         (id, impl_key, consumes, kind, resources, dataflow_entities)"
     );
 }

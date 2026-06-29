@@ -102,9 +102,8 @@ pub fn full_spec() -> PipelineSpec {
             "mappings",
             &["stage-compile-logic"],
         ),
-        st_engine(
+        st_reason(
             "stage-reason",
-            StageKind::Reason,
             "reason",
             &[
                 "stage-compile-logic",
@@ -240,15 +239,28 @@ fn st(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         resources: Vec::new(),
+        dataflow_entities: Vec::new(),
         formats: Vec::new(),
     }
 }
 
-/// Like [`st`] but for a stage that requires the exclusive reasoning engine — the
-/// resource-conflict serialization that replaces the former engine-lock flag.
-fn st_engine(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec {
-    let mut s = st(id, kind, impl_key, consumes);
+/// The reasoning stage: it requires the exclusive reasoning engine (resource-conflict
+/// serialization) AND reads only the `logic` / `relational-core` / `correspondence`
+/// named graphs from `stage-compile-logic` (artifact-level typed dataflow). Mirrors
+/// [`crate::stages::reason::ReasonStage`]'s resources() + consumed_entities() so the
+/// dag_dogfood parity and the loader's bind-agreement both hold.
+fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    use crate::stages::compile_logic::{GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE};
+    let mut s = st(id, StageKind::Reason, impl_key, consumes);
     s.resources = vec![ENGINE_RESOURCE.to_string()];
+    s.dataflow_entities = vec![(
+        "stage-compile-logic".to_string(),
+        vec![
+            GRAPH_CORRESPONDENCE.to_string(),
+            GRAPH_LOGIC.to_string(),
+            GRAPH_RELATIONAL_CORE.to_string(),
+        ],
+    )];
     s
 }
 

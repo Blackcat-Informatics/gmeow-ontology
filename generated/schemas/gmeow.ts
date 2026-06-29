@@ -314,6 +314,10 @@ export enum BranchConditionTypeEnum {
     branchConditionSwitch = "branchConditionSwitch",
 }
 
+export enum BuildDataFlowEnum {
+    pipeline_dataflow_reason_compile_logic = "pipeline-dataflow-reason-compile-logic",
+}
+
 export enum CadastralReferenceTypeEnum {
     referenceTypeFolio = "referenceTypeFolio",
     referenceTypeLot = "referenceTypeLot",
@@ -3521,6 +3525,12 @@ export interface BuildActivity extends Activity {
     buildConfigUri?: string,
     buildOutput?: Distribution[],
     buildSource?: string[],
+}
+
+export interface BuildDataFlow {
+    buildFlowFrom?: PipelineStage[],
+    buildFlowTo?: PipelineStage[],
+    flowEntity?: string[],
 }
 
 export interface Builder extends SoftwareAgent {

@@ -35,6 +35,7 @@ fn spec(id: &str, kind: StageKind, consumes: &[&str]) -> StageSpec {
         impl_key: format!("impl:{id}"),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         resources: resources_for(kind),
+        dataflow_entities: Vec::new(),
         formats: Vec::new(),
     }
 }
@@ -607,5 +608,184 @@ fn scheduler_is_order_independent() {
         run_with(1),
         run_with(8),
         "the combined digest is independent of completion order / parallelism"
+    );
+}
+
+// ── P2: artifact-level (typed-dataflow) incremental rebuild ──────────────────
+
+/// IRIs of the two named graphs the synthetic producer emits.
+const G1: &str = "https://example.org/g1";
+const G2: &str = "https://example.org/g2";
+
+/// A producer whose dataset carries TWO named graphs: `g1`'s content tracks an input
+/// file, `g2` is constant. Editing the file changes ONLY g1's canonical digest.
+struct TwoGraphProducer {
+    file: std::path::PathBuf,
+    runs: Arc<AtomicUsize>,
+}
+
+impl Stage for TwoGraphProducer {
+    fn id(&self) -> &str {
+        "producer"
+    }
+    fn kind(&self) -> StageKind {
+        StageKind::Transform
+    }
+    fn consumes(&self) -> &[String] {
+        &[]
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn input_files(
+        &self,
+        _root: &std::path::Path,
+    ) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        Ok(vec![self.file.clone()])
+    }
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+        self.runs.fetch_add(1, Ordering::SeqCst);
+        let content = std::fs::read_to_string(&self.file)?;
+        // g1's object tracks the file; g2 is constant. So an edit moves g1's digest
+        // while g2's stays put — the artifact-level distinction the consumers exploit.
+        let nq = format!(
+            "<https://example.org/s> <https://example.org/p> \"{content}\" <{G1}> .\n\
+             <https://example.org/s> <https://example.org/p> \"const\" <{G2}> .\n"
+        );
+        let dataset = gmeow_rdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+            .map_err(|e| PipelineError::Parse(format!("producer dataset: {e}")))?;
+        Ok(StageOutput {
+            product: StageProduct::from_artifacts_over(
+                "producer",
+                dataset,
+                std::collections::BTreeMap::new(),
+            ),
+        })
+    }
+}
+
+/// A consumer that declares (via typed dataflow) it reads ONLY one named graph from
+/// the producer. Its run counter shows whether it was recomputed.
+struct EntityConsumer {
+    id: String,
+    entities: Vec<(String, Vec<String>)>,
+    runs: Arc<AtomicUsize>,
+}
+
+impl Stage for EntityConsumer {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn kind(&self) -> StageKind {
+        StageKind::Transform
+    }
+    fn consumes(&self) -> &[String] {
+        std::slice::from_ref(&self.entities[0].0)
+    }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+        self.runs.fetch_add(1, Ordering::SeqCst);
+        Ok(StageOutput {
+            product: StageProduct::new(self.id.clone(), "deadbeef"),
+        })
+    }
+}
+
+#[test]
+fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
+    // producer → {cg1 reads only g1, cg2 reads only g2} → sink.
+    // Editing the file changes g1 (not g2): cg1 must re-run, cg2 must CACHE-HIT, even
+    // though the producer itself re-ran and its WHOLE-product digest changed. This is
+    // the artifact-level (not stage-level) invalidation the typed dataflow buys.
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("g1-source.txt");
+    std::fs::write(&file, b"v1").unwrap();
+
+    let prod_runs = Arc::new(AtomicUsize::new(0));
+    let cg1_runs = Arc::new(AtomicUsize::new(0));
+    let cg2_runs = Arc::new(AtomicUsize::new(0));
+
+    let mut s = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("producer", StageKind::Transform, &[]),
+            spec("cg1", StageKind::Transform, &["producer"]),
+            spec("cg2", StageKind::Transform, &["producer"]),
+            spec("sink", StageKind::Sink, &["cg1", "cg2"]),
+        ],
+    };
+    // Declare the typed dataflow on the consumer specs (Rust/RDF agreement at bind).
+    for st in &mut s.stages {
+        if st.id == "cg1" {
+            st.dataflow_entities = vec![("producer".to_string(), vec![G1.to_string()])];
+        } else if st.id == "cg2" {
+            st.dataflow_entities = vec![("producer".to_string(), vec![G2.to_string()])];
+        }
+    }
+    let g = s.validate().unwrap();
+
+    let mut reg = StageRegistry::new();
+    reg.register(
+        "impl:producer".to_string(),
+        Arc::new(TwoGraphProducer {
+            file: file.clone(),
+            runs: Arc::clone(&prod_runs),
+        }) as Arc<dyn Stage>,
+    );
+    reg.register(
+        "impl:cg1".to_string(),
+        Arc::new(EntityConsumer {
+            id: "cg1".to_string(),
+            entities: vec![("producer".to_string(), vec![G1.to_string()])],
+            runs: Arc::clone(&cg1_runs),
+        }) as Arc<dyn Stage>,
+    );
+    reg.register(
+        "impl:cg2".to_string(),
+        Arc::new(EntityConsumer {
+            id: "cg2".to_string(),
+            entities: vec![("producer".to_string(), vec![G2.to_string()])],
+            runs: Arc::clone(&cg2_runs),
+        }) as Arc<dyn Stage>,
+    );
+    reg.register(
+        "impl:sink".to_string(),
+        fake("sink", StageKind::Sink, &["cg1", "cg2"]),
+    );
+    let bound = bind(&s, &g, &reg).expect("binds (resource + dataflow agreement hold)");
+
+    let mut ctx = RunContext::open(dir.path().join("cache"), 4).unwrap();
+    run(&g, &bound, &mut ctx).unwrap();
+    assert_eq!(cg1_runs.load(Ordering::SeqCst), 1, "cold: cg1 runs");
+    assert_eq!(cg2_runs.load(Ordering::SeqCst), 1, "cold: cg2 runs");
+
+    // Warm, unchanged: nothing recomputes (determinism / soundness).
+    run(&g, &bound, &mut ctx).unwrap();
+    assert_eq!(cg1_runs.load(Ordering::SeqCst), 1, "warm: cg1 cache-hits");
+    assert_eq!(cg2_runs.load(Ordering::SeqCst), 1, "warm: cg2 cache-hits");
+
+    // Edit the file: g1 changes, g2 unchanged. The producer re-runs (its input-file
+    // and whole digest change), cg1 re-runs (its consumed graph g1 changed), but cg2
+    // CACHE-HITS — it depends only on g2, which is byte-identical.
+    std::fs::write(&file, b"v2-different").unwrap();
+    run(&g, &bound, &mut ctx).unwrap();
+    assert!(
+        prod_runs.load(Ordering::SeqCst) >= 2,
+        "producer re-runs on the file edit"
+    );
+    assert_eq!(
+        cg1_runs.load(Ordering::SeqCst),
+        2,
+        "artifact-level: cg1 re-runs because g1 (the graph it reads) changed"
+    );
+    assert_eq!(
+        cg2_runs.load(Ordering::SeqCst),
+        1,
+        "artifact-level: cg2 CACHE-HITS — g2 is unchanged though the producer re-ran"
     );
 }

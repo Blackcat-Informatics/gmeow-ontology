@@ -28,14 +28,31 @@ fn repo_root() -> PathBuf {
 }
 
 fn spec(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    use gmeow_pipeline::stages::compile_logic::{
+        GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE,
+    };
+    let is_reason = kind == StageKind::Reason;
     StageSpec {
         id: id.to_string(),
         kind,
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         // Mirror ReasonStage::resources() so bind's resource-agreement holds.
-        resources: if kind == StageKind::Reason {
+        resources: if is_reason {
             vec![ENGINE_RESOURCE.to_string()]
+        } else {
+            Vec::new()
+        },
+        // Mirror ReasonStage::consumed_entities() so bind's dataflow-agreement holds.
+        dataflow_entities: if is_reason {
+            vec![(
+                "stage-compile-logic".to_string(),
+                vec![
+                    GRAPH_CORRESPONDENCE.to_string(),
+                    GRAPH_LOGIC.to_string(),
+                    GRAPH_RELATIONAL_CORE.to_string(),
+                ],
+            )]
         } else {
             Vec::new()
         },

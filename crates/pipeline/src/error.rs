@@ -43,6 +43,18 @@ pub enum PipelineError {
         /// The resource IRIs the Rust impl declares via `resources()`, sorted.
         rust: Vec<String>,
     },
+    /// The registry stage's `consumed_entities()` disagrees with the RDF
+    /// `gmeow:DataFlow` typed-dataflow declaration (Rust/RDF dataflow agreement). A
+    /// divergence would let the cache narrow on a different entity set than the stage
+    /// actually reads — a stale-product hazard (single source of truth).
+    DataFlowMismatch {
+        /// The stage whose declarations disagree.
+        stage: String,
+        /// The typed dataflow declared in RDF (`(producer, entities)`), sorted.
+        rdf: Vec<(String, Vec<String>)>,
+        /// The typed dataflow the Rust impl declares via `consumed_entities()`, sorted.
+        rust: Vec<(String, Vec<String>)>,
+    },
     /// The registry stage's `consumes()` disagrees with the RDF
     /// `dataflowConsumes` declaration (Rust/RDF consumes agreement).
     ConsumesMismatch {
@@ -86,6 +98,10 @@ impl std::fmt::Display for PipelineError {
             PipelineError::ResourceMismatch { stage, rdf, rust } => write!(
                 f,
                 "stage {stage}: RDF gmeow:requiresResource {rdf:?} disagrees with the Rust impl resources() {rust:?}"
+            ),
+            PipelineError::DataFlowMismatch { stage, rdf, rust } => write!(
+                f,
+                "stage {stage}: RDF gmeow:DataFlow typed entities {rdf:?} disagree with the Rust impl consumed_entities() {rust:?}"
             ),
             PipelineError::ConsumesMismatch { stage, rdf, rust } => write!(
                 f,

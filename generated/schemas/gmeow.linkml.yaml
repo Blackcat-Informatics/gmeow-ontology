@@ -422,6 +422,13 @@ classes:
     - buildConfigUri
     - buildOutput
     - buildSource
+  BuildDataFlow:
+    class_uri: https://blackcatinformatics.ca/gmeow/BuildDataFlow
+    title: Build Data Flow
+    slots:
+    - buildFlowFrom
+    - buildFlowTo
+    - flowEntity
   Builder:
     class_uri: https://blackcatinformatics.ca/gmeow/Builder
     title: Builder
@@ -5191,6 +5198,18 @@ slots:
     range: string
     domain: BuildActivity
     multivalued: false
+  buildFlowFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/buildFlowFrom
+    title: build flow from
+    range: PipelineStage
+    domain: BuildDataFlow
+    multivalued: true
+  buildFlowTo:
+    slot_uri: https://blackcatinformatics.ca/gmeow/buildFlowTo
+    title: build flow to
+    range: PipelineStage
+    domain: BuildDataFlow
+    multivalued: true
   buildOutput:
     slot_uri: https://blackcatinformatics.ca/gmeow/buildOutput
     title: build output
@@ -7173,6 +7192,12 @@ slots:
     title: finishes
     range: Event
     domain: Event
+    multivalued: true
+  flowEntity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/flowEntity
+    title: flow entity
+    range: uriorcurie
+    domain: BuildDataFlow
     multivalued: true
   flowGuard:
     slot_uri: https://blackcatinformatics.ca/gmeow/flowGuard
@@ -14383,6 +14408,12 @@ enums:
       branchConditionSwitch:
         meaning: https://blackcatinformatics.ca/gmeow/branchConditionSwitch
         title: switch
+  BuildDataFlowEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/BuildDataFlow
+    permissible_values:
+      pipeline-dataflow-reason-compile-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-compile-logic
+        title: 'dataflow: compile-logic → reason'
   CadastralReferenceTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CadastralReferenceType
     permissible_values:

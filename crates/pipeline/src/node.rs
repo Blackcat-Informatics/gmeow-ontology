@@ -237,6 +237,22 @@ pub trait Stage: Send + Sync {
     fn resources(&self) -> &[String] {
         &[]
     }
+    /// The typed dataflow (`gmeow:DataFlow` reified edges): for each upstream producer
+    /// the stage reads only SPECIFIC named-graph entities from, a
+    /// `(producer_id, sorted entity-graph IRIs)` pair, the whole list sorted by
+    /// producer id. A producer ABSENT here (the default for every producer) is a
+    /// WHOLE-PRODUCT dependency — the cache key folds that producer's entire bundle
+    /// digest, so any change re-runs this stage. A producer PRESENT narrows the
+    /// dependency to those named graphs' content digests, so a change to a graph this
+    /// stage does NOT read no longer re-runs it (artifact-level incremental rebuild).
+    ///
+    /// Narrowing is a CORRECTNESS ASSERTION: declare an entity set only when the stage
+    /// provably reads nothing else from that producer's product — a too-small set would
+    /// serve a stale build. The loader HARD-fails if this disagrees with the RDF
+    /// `gmeow:DataFlow` declaration (single source of truth).
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &[]
+    }
     /// A version string folded into the cache key; bump to invalidate this
     /// stage's cached products when its logic changes.
     fn impl_version(&self) -> &str;

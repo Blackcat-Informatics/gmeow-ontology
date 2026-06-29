@@ -314,6 +314,10 @@ enum BranchConditionTypeEnum {
   branchConditionSwitch
 }
 
+enum BuildDataFlowEnum {
+  pipeline_dataflow_reason_compile_logic
+}
+
 enum CadastralReferenceTypeEnum {
   referenceTypeFolio
   referenceTypeLot
@@ -3653,6 +3657,14 @@ type BuildActivity {
   buildConfigUri: String
   buildOutput: [Distribution!]
   buildSource: [String!]
+}
+
+type BuildDataFlow {
+  id: String
+  iri: String
+  buildFlowFrom: [PipelineStage!]
+  buildFlowTo: [PipelineStage!]
+  flowEntity: [String!]
 }
 
 type Builder {
