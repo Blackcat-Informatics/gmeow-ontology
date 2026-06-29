@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The stage dependency graph: acyclicity (via `petgraph::tarjan_scc`) plus
-//! deterministic topological *levelling* (#861).
+//! The stage dependency graph: acyclicity (delegated to the shared
+//! `gmeow_logic::dag_profile` DAG-workflow certifier) plus deterministic
+//! topological *levelling* (#861).
 //!
 //! An edge runs **producer → consumer**: if stage `A` declares `B` in its
 //! `dataflowConsumes`, then `B` must run before `A`, so the edge is `B → A`.
@@ -16,7 +17,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use petgraph::graph::{DiGraph, NodeIndex};
+use gmeow_logic::dag_profile::{certify_acyclic, DagCertification};
 
 use crate::error::PipelineError;
 
@@ -57,9 +58,10 @@ impl StageGraph {
     ) -> Result<Self, PipelineError> {
         // ── Completeness: every CONSUMER key AND every consumed id must be a
         //    known node. A `consumes` entry whose KEY is not in `nodes` would
-        //    later panic at `index[stage]` / `in_deps[stage]`; reject it here so
-        //    the public `build`/`validate` API hard-fails with a diagnostic
-        //    instead of panicking on a malformed adjacency map. ──
+        //    later panic at `in_deps[stage]`; reject it here so the public
+        //    `build`/`validate` API hard-fails with a diagnostic instead of
+        //    panicking on a malformed adjacency map. (Self-loops and cycles are
+        //    the certifier's job, below.) ──
         for (stage, deps) in consumes {
             if !nodes.contains(stage) {
                 return Err(PipelineError::InvalidDag(format!(
@@ -72,39 +74,27 @@ impl StageGraph {
                         "stage {stage} consumes {dep}, which is not a declared stage"
                     )));
                 }
-                if dep == stage {
-                    return Err(PipelineError::InvalidDag(format!(
-                        "stage {stage} consumes itself (self-loop)"
-                    )));
-                }
             }
         }
 
-        // ── Build a producer → consumer DiGraph with deterministic insertion. ──
-        let mut graph: DiGraph<String, ()> = DiGraph::new();
-        let mut index: BTreeMap<&str, NodeIndex> = BTreeMap::new();
-        for id in nodes {
-            let idx = graph.add_node(id.clone());
-            index.insert(id.as_str(), idx);
-        }
-        let mut seen: BTreeSet<(&str, &str)> = BTreeSet::new();
-        for (stage, deps) in consumes {
-            for dep in deps {
-                // edge producer(dep) → consumer(stage)
-                if !seen.insert((dep.as_str(), stage.as_str())) {
-                    continue;
-                }
-                let (from, to) = (index[dep.as_str()], index[stage.as_str()]);
-                graph.add_edge(from, to, ());
+        // ── Acyclicity: delegate to the shared DAG-workflow certifier
+        //    (`gmeow_logic::dag_profile`) so the build DAG and any logic:Plan run
+        //    the SAME acyclicity authority. Edge orientation producer(dep) →
+        //    consumer(stage); the certifier maps a cyclic verdict to the
+        //    offending witness, which we render as the existing InvalidDag
+        //    diagnostics so callers (and `dag_dogfood`) see identical messages. ──
+        let edges: Vec<(&str, &str)> = consumes
+            .iter()
+            .flat_map(|(stage, deps)| deps.iter().map(move |dep| (dep.as_str(), stage.as_str())))
+            .collect();
+        match certify_acyclic(edges.iter().copied()) {
+            DagCertification::Certified => {}
+            DagCertification::SelfLoop(stage) => {
+                return Err(PipelineError::InvalidDag(format!(
+                    "stage {stage} consumes itself (self-loop)"
+                )));
             }
-        }
-
-        // ── Acyclicity: any SCC with >1 member is a cycle. ──
-        for component in petgraph::algo::tarjan_scc(&graph) {
-            if component.len() > 1 {
-                let mut members: Vec<String> =
-                    component.into_iter().map(|n| graph[n].clone()).collect();
-                members.sort();
+            DagCertification::Cycle(members) => {
                 return Err(PipelineError::InvalidDag(format!(
                     "dependency cycle among stages: {}",
                     members.join(" → ")

@@ -55,12 +55,22 @@ fn spine() -> PipelineSpec {
                 "compile_logic",
                 &[],
             ),
-            spec("stage-mappings", StageKind::Transform, "mappings", &[]),
+            spec(
+                "stage-mappings",
+                StageKind::Transform,
+                "mappings",
+                &["stage-compile-logic"],
+            ),
             spec(
                 "stage-reason",
                 StageKind::Reason,
                 "reason",
-                &["stage-mappings", "stage-source-load", "stage-statements"],
+                &[
+                    "stage-compile-logic",
+                    "stage-mappings",
+                    "stage-source-load",
+                    "stage-statements",
+                ],
             ),
             spec(
                 "stage-gts-compose",
@@ -110,6 +120,7 @@ fn spine() -> PipelineSpec {
                     "stage-docs-render",
                     "stage-export-json-schema",
                     "stage-gts-compose",
+                    "stage-mappings",
                     "stage-reason",
                     "stage-statements",
                     "stage-validate",
@@ -119,7 +130,13 @@ fn spine() -> PipelineSpec {
                 "stage-gts-sink",
                 StageKind::Sink,
                 "gts_sink",
-                &["stage-snapshot"],
+                &[
+                    "stage-compile-logic",
+                    "stage-export-json-schema",
+                    "stage-reason",
+                    "stage-snapshot",
+                    "stage-validate",
+                ],
             ),
         ],
     }
