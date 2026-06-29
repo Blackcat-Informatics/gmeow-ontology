@@ -2186,6 +2186,20 @@ logic:planSuccessMode
     skos:definition "Relates a logic:Plan to the logic:PlanSuccessMode quantifying its success over the nondeterministic outcomes of its action schemas. Domain logic:Plan, range logic:PlanSuccessMode (stated in prose). The quantification exists because the bare executional-success reading of the transaction layer would count one favourable path as success; this declares whether some, every, or every fair execution must reach the goal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:planFlowEdge
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "plan flow edge"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to a reified flow edge (logic:ControlFlowEdge or logic:DataFlowEdge) that constitutes its FLOW-GRAPH — the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over, each edge mediating a source (logic:flowFrom) and a target (logic:flowTo) process node. MULTI-valued: a plan gathers all the control-flow and dataflow edges of its process graph. The canonical-plan counterpart of the build pipeline's gmeow:hasStage stage-membership — where a pipeline gathers gmeow:PipelineStage members whose gmeow:dataflowConsumes edges form its graph, a logic:Plan gathers its reified flow edges directly — so a plan's flow graph is reachable from the plan rather than left as free-standing edges. A plan whose planFlowEdge closure is acyclic is certified logic:CompleteForFragment under logic:DagWorkflowResource; a cyclic closure resolves to the `unsupported` verdict (logic:EvaluationUnsupported) with the offending members disclosed by logic:dagCycleWitness, never silently truncated. Domain logic:Plan, range logic:ControlFlowEdge or logic:DataFlowEdge (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:planCertification
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "plan certification"@x-gmeow-english ;
+    skos:definition "Relates a logic:Plan to the logic:ReasoningResult recording its DAG-workflow certification verdict — the result the acyclicity certifier emits when the plan runs logic:executedUnderContract a contract requesting logic:DagWorkflowResource. The result carries logic:resultEvaluation (logic:EvaluationCompleted on an acyclic plan, logic:EvaluationUnsupported on a cyclic one) and logic:resultCompleteness (logic:CompleteForFragment when certified), and on a cyclic plan it discloses the offending cycle members through logic:dagCycleWitness — so the `unsupported` verdict and its witness are reachable from the plan rather than computed and discarded. Domain logic:Plan, range logic:ReasoningResult (stated in prose). The plan stays valid canonically under a non-DAG contract; this link records only what the DAG profile certified over it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:activationBasis
     a owl:ObjectProperty ;
     rdfs:domain logic:GovernanceRegime ;

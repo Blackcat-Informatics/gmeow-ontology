@@ -779,3 +779,15 @@ ASK {
     logic:flowTo           a owl:ObjectProperty .
 }""" ;
     gmeow:saRationale "The canonical edge family MUST exist so the two parallel process surfaces become projections of one model: logic:dataflowConsumes (+ inverse logic:dataflowProduces) is the binary dataflow dependency a pipeline stage edge specializes; logic:ControlFlowEdge / logic:DataFlowEdge are the reified FLOW-GRAPH relators (mediated by logic:flowFrom / logic:flowTo) the procedures relators specialize and the acyclicity certifier runs over — complementary to the program-tree combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback), not a duplicate of them." .
+
+# --- 43. A plan reaches its flow graph through logic:planFlowEdge (MUST) ------
+ex:saPlanFlowEdgeExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:planFlowEdge a owl:ObjectProperty .
+    logic:planCertification a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "A logic:Plan MUST reach its reified flow graph (its logic:ControlFlowEdge / logic:DataFlowEdge members) through logic:planFlowEdge — the canonical-plan counterpart of the build pipeline's gmeow:hasStage stage-membership. Without it a plan's flow edges are free-standing individuals unreachable from the plan, so the DAG-workflow certifier has no graph to run over and a cyclic plan could never disclose its logic:dagCycleWitness. The companion logic:planCertification relates the plan to the logic:ReasoningResult the certifier emits, so the `unsupported` verdict (logic:EvaluationUnsupported) and its logic:dagCycleWitness are reachable from the plan rather than computed and discarded. This is the membership-plus-verdict pair the teleology evaluator produces: it gathers planFlowEdge to map an acyclic closure to logic:CompleteForFragment and a cyclic one to the unsupported verdict, linked back by planCertification." .
