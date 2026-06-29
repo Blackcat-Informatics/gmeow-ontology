@@ -95,11 +95,16 @@ repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"
 # brings a clean nemo build back into normal-workstation territory.
 
 [profile.dev]
-# Full DWARF (the dev default `debug = 2`) is the debug-build RAM/disk hog and is
-# almost never needed for a Datalog engine; line tables keep usable backtraces.
-debug = "line-tables-only"
-# Keep debuginfo out of the object files handed to the linker.
-split-debuginfo = "unpacked"
+# NO debuginfo. We never run a debugger here, and the DWARF in `target/debug` was the
+# dominant disk hog: a built debug tree is 20–40 GB per worktree (vs ~1.4 GB release),
+# so across ~10 worktrees it is hundreds of GB of symbols nothing consumes. `debug =
+# false` keeps the dev profile otherwise intact — fast unoptimized compile, with
+# `debug-assertions` / `overflow-checks` still on (runtime checks, not debuginfo) — so
+# the test suite is unchanged; only the unused symbol tables are dropped.
+debug = false
+# Strip the residual symbol tables from the linked test binaries / bins too (panic
+# backtraces lose function names — acceptable, we never debug here).
+strip = "symbols"
 
 # Workspace-wide thin-LTO (#828 item 3). `lto` is profile-global — it cannot be
 # scoped away from nemo the way codegen-units is — so enabling it was gated on a
