@@ -193,7 +193,7 @@ fn blank_free_triples_segment() -> Graph {
     g.terms.push(iri("http://example.org/p")); // 1
     g.terms.push(iri("http://example.org/o")); // 2
     g.terms.push(iri("http://example.org/r0")); // 3 inner reifier resource
-    g.reifiers.push((3, (0, 1, 2)));
+    g.reifiers.push((3, (0, 1, 2), None));
     g.terms.push(Term {
         kind: TermKind::Triple,
         value: None,
@@ -211,7 +211,7 @@ fn blank_free_triples_segment() -> Graph {
     g.terms.push(iri("http://example.org/r1")); // 8 outer reifier resource
                                                 // Outer triple << <<ex:s ex:p ex:o>> ex:says ex:o2 >> — inner triple (4) is the
                                                 // SUBJECT.
-    g.reifiers.push((8, (4, 6, 7)));
+    g.reifiers.push((8, (4, 6, 7), None));
     g.terms.push(Term {
         kind: TermKind::Triple,
         value: None,
