@@ -454,12 +454,14 @@ impl CoherenceOutcome {
 
 /// Render a budget usage as a stable, human-readable string.
 fn budget_text(budget: &BudgetUsage) -> String {
-    let mut text = format!("consumed={}", budget.consumed);
+    use std::fmt::Write as _;
+    let mut text = String::new();
+    write!(text, "consumed={}", budget.consumed).expect("write to String is infallible");
     if let Some(allowance) = budget.allowance {
-        text.push_str(&format!(" allowance={allowance}"));
+        write!(text, " allowance={allowance}").expect("write to String is infallible");
     }
     if let Some(limit) = budget.limit {
-        text.push_str(&format!(" limit={}", limit.wire()));
+        write!(text, " limit={}", limit.wire()).expect("write to String is infallible");
     }
     text
 }
@@ -470,52 +472,108 @@ fn short_hash(hash: &str) -> String {
     bare.chars().take(12).collect()
 }
 
-/// A deterministic content-addressed local id for the artifact's subject IRI: a
-/// stable FNV-1a hash (hex) over the class + the scoping identity, so two
-/// certificates over distinct bundles/contracts/timestamps never collide and the
-/// same inputs always reproduce the same IRI. Dependency-free and platform-stable.
+/// Build a deterministic canonical string for blake3 ingestion over the full
+/// certificate payload. Field order is fixed; collections are sorted
+/// (BTreeSet/BTreeMap preserve order; Vec witnesses are sorted below).
+fn content_id_canonical(class_local: &str, payload: &CoherencePayload) -> String {
+    use std::fmt::Write as _;
+    let mut buf = String::new();
+    // class / outcome kind
+    writeln!(buf, "class={class_local}").unwrap();
+    // bundle + contract
+    writeln!(buf, "bundle_hash={}", payload.bundle_hash).unwrap();
+    // axiom_hashes: BTreeSet is already sorted
+    for h in &payload.axiom_hashes {
+        writeln!(buf, "axiom_hash={h}").unwrap();
+    }
+    writeln!(buf, "contract_hash={}", payload.contract_hash).unwrap();
+    // contradiction_policy
+    writeln!(
+        buf,
+        "contradiction_policy={}",
+        payload.contradiction_policy.iri()
+    )
+    .unwrap();
+    // certified_fragment
+    if let Some(fragment) = &payload.certified_fragment {
+        writeln!(buf, "certified_fragment={fragment}").unwrap();
+    }
+    // budget
+    writeln!(buf, "budget={}", budget_text(&payload.consumed_budget)).unwrap();
+    // completeness / evaluation axes
+    writeln!(buf, "completeness={:?}", payload.completeness).unwrap();
+    writeln!(buf, "evaluation={:?}", payload.evaluation).unwrap();
+    // projection_losses: BTreeSet is sorted
+    for loss in &payload.projection_losses {
+        writeln!(buf, "projection_loss={loss}").unwrap();
+    }
+    // unsupported_constructs: BTreeSet is sorted
+    for construct in &payload.unsupported_constructs {
+        writeln!(buf, "unsupported_construct={construct}").unwrap();
+    }
+    // permitted_conflicts: sort by individual IRI for determinism
+    let mut permitted: Vec<&str> = payload
+        .permitted_conflicts
+        .iter()
+        .map(|w| w.individual.as_str())
+        .collect();
+    permitted.sort_unstable();
+    permitted.dedup();
+    for individual in permitted {
+        writeln!(buf, "permitted_conflict={individual}").unwrap();
+    }
+    // forbidden_violations: sort by individual IRI for determinism
+    let mut forbidden: Vec<&str> = payload
+        .forbidden_violations
+        .iter()
+        .map(|w| w.individual.as_str())
+        .collect();
+    forbidden.sort_unstable();
+    forbidden.dedup();
+    for individual in forbidden {
+        writeln!(buf, "forbidden_violation={individual}").unwrap();
+    }
+    // issued_at (last, as a temporal anchor)
+    writeln!(buf, "issued_at={}", payload.issued_at).unwrap();
+    buf
+}
+
+/// A deterministic content-addressed local id for the artifact's subject IRI:
+/// a blake3 digest (hex, first 16 bytes = 32 hex chars) over the FULL canonical
+/// payload. Covers class/outcome kind, bundle_hash, all axiom_hashes (sorted),
+/// contract_hash, contradiction_policy, certified_fragment, budget,
+/// completeness/evaluation status, projection_losses (sorted),
+/// unsupported_constructs (sorted), permitted-conflict and forbidden-violation
+/// witness sets (sorted), and issued_at — eliminating the latent subject-IRI
+/// collision of the former FNV-1a that hashed only four fields.
 fn content_id(class_local: &str, payload: &CoherencePayload) -> String {
-    const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
-    const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
-    let mut hash = FNV_OFFSET;
-    let mut absorb = |part: &str| {
-        for byte in part.as_bytes() {
-            hash ^= u64::from(*byte);
-            hash = hash.wrapping_mul(FNV_PRIME);
-        }
-        hash ^= 0x1f;
-        hash = hash.wrapping_mul(FNV_PRIME);
-    };
-    absorb(class_local);
-    absorb(&payload.bundle_hash);
-    absorb(&payload.contract_hash);
-    absorb(&payload.issued_at);
-    format!("{hash:016x}")
+    let canonical = content_id_canonical(class_local, payload);
+    let digest = blake3::hash(canonical.as_bytes());
+    // 32 hex chars (first 16 bytes of the 32-byte blake3 output) — compact but
+    // still far beyond collision probability for any realistic certificate volume.
+    digest.to_hex()[..32].to_owned()
 }
 
 /// A deterministic content-addressed local id for the minted `logic:ReasoningResult`
 /// individual the certificate's `logic:summarizesResult` points at. Keyed on the
 /// result identity the certificate is scoped by — contract, certified fragment, and
 /// engine — so the same result reproduces the same IRI and two distinct results never
-/// collide. Same FNV-1a primitive as [`content_id`], dependency-free and stable.
+/// collide. Uses blake3 for consistency with [`content_id`].
 fn result_content_id(payload: &CoherencePayload) -> String {
-    const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
-    const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
-    let mut hash = FNV_OFFSET;
-    let mut absorb = |part: &str| {
-        for byte in part.as_bytes() {
-            hash ^= u64::from(*byte);
-            hash = hash.wrapping_mul(FNV_PRIME);
-        }
-        hash ^= 0x1f;
-        hash = hash.wrapping_mul(FNV_PRIME);
-    };
-    absorb("ReasoningResult");
-    absorb(&payload.contract_hash);
-    absorb(payload.certified_fragment.as_deref().unwrap_or(""));
-    absorb(&payload.engine.name);
-    absorb(&payload.engine.version);
-    format!("{hash:016x}")
+    use std::fmt::Write as _;
+    let mut buf = String::new();
+    writeln!(buf, "kind=ReasoningResult").unwrap();
+    writeln!(buf, "contract_hash={}", payload.contract_hash).unwrap();
+    writeln!(
+        buf,
+        "certified_fragment={}",
+        payload.certified_fragment.as_deref().unwrap_or("")
+    )
+    .unwrap();
+    writeln!(buf, "engine_name={}", payload.engine.name).unwrap();
+    writeln!(buf, "engine_version={}", payload.engine.version).unwrap();
+    let digest = blake3::hash(buf.as_bytes());
+    digest.to_hex()[..32].to_owned()
 }
 
 /// Compute a stable, deterministic digest per axiom-bearing named graph of a
@@ -813,7 +871,7 @@ mod tests {
         .unwrap();
         let graph = "https://blackcatinformatics.ca/gmeow/graph/attestations";
         let nquads = outcome.to_nquads(graph);
-        // Re-running with the same inputs is byte-identical.
+        // Re-running with the same inputs is byte-identical (determinism).
         assert_eq!(nquads, outcome.to_nquads(graph));
         // Typed as a certificate, carries the payload, lands in the named graph.
         assert!(nquads.contains("<https://blackcatinformatics.ca/logic/CoherenceCertificate>"));
@@ -829,6 +887,43 @@ mod tests {
                 "line not in graph: {line}"
             );
         }
+    }
+
+    /// Two payloads differing ONLY in their axiom_hashes must produce different
+    /// content_ids — the blake3 digest covers the full payload so the former
+    /// FNV-1a collision (same class/bundle/contract/timestamp, different axioms)
+    /// cannot recur.
+    #[test]
+    fn content_id_discriminates_on_axiom_hashes() {
+        let outcome_a = CoherenceOutcome::from_reasoning_result(
+            &glut_result(),
+            "blake3:bundle",
+            ["blake3:axioms-set-A"],
+            ContradictionPolicy::ForbidGap,
+            "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
+        )
+        .unwrap();
+        let outcome_b = CoherenceOutcome::from_reasoning_result(
+            &glut_result(),
+            "blake3:bundle",
+            ["blake3:axioms-set-B"],
+            ContradictionPolicy::ForbidGap,
+            "2026-06-28T00:00:00Z",
+            BTreeSet::new(),
+        )
+        .unwrap();
+        let graph = "https://blackcatinformatics.ca/gmeow/graph/attestations";
+        let nquads_a = outcome_a.to_nquads(graph);
+        let nquads_b = outcome_b.to_nquads(graph);
+        // The subject IRIs must differ (different axiom hashes → different content_id).
+        assert_ne!(
+            nquads_a, nquads_b,
+            "payloads differing only in axiom_hashes must produce different content_ids"
+        );
+        // Both still carry their respective axiom hashes.
+        assert!(nquads_a.contains("\"blake3:axioms-set-A\""));
+        assert!(nquads_b.contains("\"blake3:axioms-set-B\""));
     }
 
     /// The `projection_losses` payload field comes from the CALLER-SUPPLIED loss

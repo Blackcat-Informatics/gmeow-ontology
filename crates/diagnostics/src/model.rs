@@ -20,14 +20,25 @@ pub enum Severity {
 impl Severity {
     /// Parse a user/tool supplied severity label.
     pub fn parse(value: &str) -> Result<Self, String> {
-        match value.trim().to_ascii_lowercase().as_str() {
-            "error" | "failure" | "fatal" | "violation" => Ok(Self::Error),
-            "warning" | "warn" => Ok(Self::Warning),
-            "note" => Ok(Self::Note),
-            "info" | "information" => Ok(Self::Info),
-            other => Err(format!(
-                "unknown diagnostic severity `{other}`; expected error, warning, note, or info"
-            )),
+        let trimmed = value.trim();
+        if trimmed.eq_ignore_ascii_case("error")
+            || trimmed.eq_ignore_ascii_case("failure")
+            || trimmed.eq_ignore_ascii_case("fatal")
+            || trimmed.eq_ignore_ascii_case("violation")
+        {
+            Ok(Self::Error)
+        } else if trimmed.eq_ignore_ascii_case("warning") || trimmed.eq_ignore_ascii_case("warn") {
+            Ok(Self::Warning)
+        } else if trimmed.eq_ignore_ascii_case("note") {
+            Ok(Self::Note)
+        } else if trimmed.eq_ignore_ascii_case("info")
+            || trimmed.eq_ignore_ascii_case("information")
+        {
+            Ok(Self::Info)
+        } else {
+            Err(format!(
+                "unknown diagnostic severity `{trimmed}`; expected error, warning, note, or info"
+            ))
         }
     }
 
@@ -117,19 +128,28 @@ pub enum FindingCategory {
 impl FindingCategory {
     /// Parse a kebab-case category label.
     pub fn parse(value: &str) -> Result<Self, String> {
-        match value.trim().to_ascii_lowercase().as_str() {
-            "data-shape-violation" => Ok(Self::DataShapeViolation),
-            "modeling-discipline-violation" => Ok(Self::ModelingDisciplineViolation),
-            "contradiction-witness" => Ok(Self::ContradictionWitness),
-            "permitted-epistemic-conflict" => Ok(Self::PermittedEpistemicConflict),
-            "unsupported-semantic-feature" => Ok(Self::UnsupportedSemanticFeature),
-            "incomplete-check" => Ok(Self::IncompleteCheck),
-            "projection-loss" => Ok(Self::ProjectionLoss),
-            "policy-warning" => Ok(Self::PolicyWarning),
-            other => Err(format!(
-                "unknown finding category `{other}`; expected one of the eight \
+        let trimmed = value.trim();
+        if trimmed.eq_ignore_ascii_case("data-shape-violation") {
+            Ok(Self::DataShapeViolation)
+        } else if trimmed.eq_ignore_ascii_case("modeling-discipline-violation") {
+            Ok(Self::ModelingDisciplineViolation)
+        } else if trimmed.eq_ignore_ascii_case("contradiction-witness") {
+            Ok(Self::ContradictionWitness)
+        } else if trimmed.eq_ignore_ascii_case("permitted-epistemic-conflict") {
+            Ok(Self::PermittedEpistemicConflict)
+        } else if trimmed.eq_ignore_ascii_case("unsupported-semantic-feature") {
+            Ok(Self::UnsupportedSemanticFeature)
+        } else if trimmed.eq_ignore_ascii_case("incomplete-check") {
+            Ok(Self::IncompleteCheck)
+        } else if trimmed.eq_ignore_ascii_case("projection-loss") {
+            Ok(Self::ProjectionLoss)
+        } else if trimmed.eq_ignore_ascii_case("policy-warning") {
+            Ok(Self::PolicyWarning)
+        } else {
+            Err(format!(
+                "unknown finding category `{trimmed}`; expected one of the eight \
                  logic:FindingCategory wire values"
-            )),
+            ))
         }
     }
 
