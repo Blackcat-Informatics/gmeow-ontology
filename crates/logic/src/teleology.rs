@@ -1701,8 +1701,8 @@ pub fn apply_effect(
     // authored `from_state` (`logic:situationObtains`).
     let predecessor: BTreeSet<String> = facts
         .objects(from_state, &logic(SITUATION_OBTAINS))
-        .iter()
-        .map(|s| (*s).to_owned())
+        .into_iter()
+        .map(ToOwned::to_owned)
         .collect();
     apply_effect_over(facts, schema, &predecessor)
 }
