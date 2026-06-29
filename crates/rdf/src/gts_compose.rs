@@ -294,43 +294,53 @@ impl SnapshotBuilder {
     /// A conflicting reifier rebind (one reifier id bound to two different statements).
     pub fn add_dataset(&mut self, dataset: &crate::RdfDataset) -> Result<(), String> {
         for quad in dataset.owned_quads() {
-            let Some(sid) = self.intern_native_term(&quad.subject) else {
-                continue;
-            };
+            // FAIL CLOSED (no-optionality): a carrier quad whose subject/object/graph is
+            // not directly representable in the snapshot frame (a quoted-triple term, or
+            // a non-IRI/blank graph name) is NOT silently dropped — that would make the
+            // emitted `gmeow.gts` diverge from the canonical carrier. Quoted triples are
+            // representable ONLY via the reifier/annotation tables (handled below), so a
+            // Triple term in plain-quad position is genuine loss and aborts the emit.
+            let sid = self.intern_required_native_term(&quad.subject, "quad subject")?;
             let pid = self.intern_iri(&quad.predicate);
-            let Some(oid) = self.intern_native_term(&quad.object) else {
-                continue;
+            let oid = self.intern_required_native_term(&quad.object, "quad object")?;
+            let gid = match &quad.graph_name {
+                None => None,
+                Some(graph) => Some(self.intern_required_native_term(graph, "quad graph name")?),
             };
-            let gid = quad
-                .graph_name
-                .as_ref()
-                .and_then(|g| self.intern_native_term(g));
             self.quads.push((sid, pid, oid, gid));
         }
         for reifier in dataset.owned_reifiers() {
-            let Some(rid) = self.intern_native_term(&reifier.reifier) else {
-                continue;
-            };
-            let Some(qs) = self.intern_native_term(&reifier.statement.subject) else {
-                continue;
-            };
+            let rid = self.intern_required_native_term(&reifier.reifier, "reifier term")?;
+            let qs =
+                self.intern_required_native_term(&reifier.statement.subject, "reified subject")?;
             let qp = self.intern_iri(&reifier.statement.predicate);
-            let Some(qo) = self.intern_native_term(&reifier.statement.object) else {
-                continue;
-            };
+            let qo =
+                self.intern_required_native_term(&reifier.statement.object, "reified object")?;
             self.bind_reifier(rid, (qs, qp, qo))?;
         }
         for annot in dataset.owned_annotations() {
-            let Some(rid) = self.intern_native_term(&annot.reifier) else {
-                continue;
-            };
+            let rid = self.intern_required_native_term(&annot.reifier, "annotation reifier")?;
             let pid = self.intern_iri(&annot.predicate);
-            let Some(oid) = self.intern_native_term(&annot.object) else {
-                continue;
-            };
+            let oid = self.intern_required_native_term(&annot.object, "annotation object")?;
             self.annot.push((rid, pid, oid));
         }
         Ok(())
+    }
+
+    /// Intern a native term that MUST be representable in the snapshot frame, or fail
+    /// closed. `position` names the slot for the diagnostic. A quoted-triple term has no
+    /// direct term row (it rides the reifier/annotation tables), so it is an error here.
+    fn intern_required_native_term(
+        &mut self,
+        term: &crate::RdfTerm,
+        position: &str,
+    ) -> Result<usize, String> {
+        self.intern_native_term(term).ok_or_else(|| {
+            format!(
+                "carrier {position} is not directly representable in the gts snapshot frame \
+                 (quoted-triple terms must ride the reifier/annotation tables): {term:?}"
+            )
+        })
     }
 
     /// Intern a native term in subject/object/graph position (triple-terms are NOT
