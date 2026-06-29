@@ -176,6 +176,37 @@ program. It adds:
 This is the level at which several agents acting over a shared memory, or parallel plans touching
 overlapping state, are reasoned about.
 
+### How concurrent composition is executed and classified
+
+The native evaluator makes `logic:ConcurrentComposition` **executable**. It runs each leg
+independently from the shared start state — the composition's executional-entailment verdict is
+*both legs find a path from here* — and then **derives** a `logic:ConcurrentHistory` from the two
+executed step sequences rather than reading an authored conflict graph. Each elementary step has a
+**read set** (its schema's `logic:precondition` situations) and a **write set** (its effect's
+`logic:ins` ∪ `logic:del` situations); two steps **conflict** when they touch a shared situation
+that at least one of them writes. Conflict edges are oriented by a single **deterministic
+index-order interleaving** — `left[0], right[0], left[1], right[1], …` — so the earlier operation
+in that schedule `logic:precedes` the later one. Conflicts at different situations may orient in
+*opposite* directions; between two transactions that is exactly the cycle (lost update / write
+skew) that `detect_serialization_anomaly` classifies, and the derived edges feed the *same*
+serialization-anomaly engine the authored path uses.
+
+Two disciplines are load-bearing. First, **this is classification, not search** (Principle 12):
+the engine evaluates one witnessed interleaving's conflict structure in polynomial time, bounded by
+the same step governor the sequential core uses — it never enumerates schedules. Second, a
+non-serializable run is **never silently linearized**: each leg materializes its own path
+faithfully (there is no merged single chain that would impose a false serial order), the
+`logic:ConcurrentHistory` is linked to its `logic:TransactionOutcome` by `logic:derivedHistory` and
+to its two operands by `logic:concurrentComposedFrom`, and a cycle surfaces loudly as a
+`logic:SerializationAnomaly` finding — a history-level result, never a contradiction witness.
+
+This evaluator decides **conflict-serializability only**. The other two concerns the layer keeps
+separate — whether a schedule meets a declared `logic:IsolationLevel` (a guarantee strength) and
+whether a `logic:ConcurrencyControlProtocol` enforces it (a mechanism) — remain
+declared-but-not-enforced facets, together with the view-serializability edges
+(`logic:readsFrom` / `logic:happensBefore`) that have no consumer yet. Their enforcement is the
+work of [#1153](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/1153).
+
 ## Where it connects, and what it is not
 
 A transaction path says **how state changes**. It is connected to, but never identical with,
