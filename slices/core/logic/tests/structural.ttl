@@ -776,8 +776,10 @@ ASK {
     { logic:DagWorkflowResource a owl:Class . }
     UNION
     { logic:DagWorkflowContract a owl:Class . }
+    UNION
+    { logic:DagWorkflowContract a logic:ReasoningPreset . }
 }""" ;
-    gmeow:saRationale "There MUST be no logic:DagWorkflow class, and neither the resource value nor the requesting contract may be an owl:Class — collapsing the orthogonal Resource facet into a standalone class is exactly the profile-not-contract mistake the reasoning-contract doctrine forbids (design/LOGIC-CONTRACT.md, 'Why a contract, not a profile')." .
+    gmeow:saRationale "There MUST be no logic:DagWorkflow class, and neither the resource value nor the requesting contract may be an owl:Class — collapsing the orthogonal Resource facet into a standalone class is exactly the profile-not-contract mistake the reasoning-contract doctrine forbids (design/LOGIC-CONTRACT.md, 'Why a contract, not a profile'). The contract MUST ALSO NOT be a logic:ReasoningPreset: a preset bundles a model-semantics selection, whereas logic:DagWorkflowContract fixes only the execution-discipline (Resource) facet — this pins the contract-not-profile invariant directly rather than only ruling out the class form." .
 
 # --- 42. The canonical dataflow / control-flow edge family exists (MUST) ------
 ex:saCanonicalFlowEdgesExist a gmeow:StructuralAssertion ;
