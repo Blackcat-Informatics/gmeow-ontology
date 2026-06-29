@@ -786,9 +786,12 @@ pub(crate) fn least_model_of_reduct(
             break; // fixpoint
         }
 
-        // Commit all winners from this round.
+        // Commit all winners from this round in FactKey order, not raw `HashMap`
+        // order, so store/index insertion order is deterministic.
         let mut new_delta: HashSet<FactKey> = HashSet::with_capacity(round.len());
-        for (_key, winner) in round {
+        let mut winners: Vec<_> = round.into_iter().collect();
+        winners.sort_by(|(a, _), (b, _)| a.cmp(b));
+        for (_key, winner) in winners {
             let winner_depth = winner.max_src_depth.saturating_add(1);
             depth.insert(winner.key.clone(), winner_depth);
             store.insert(winner.head.clone());

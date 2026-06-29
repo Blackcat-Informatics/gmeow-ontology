@@ -510,7 +510,12 @@ fn eval_stratum_fixpoint(
         }
 
         let mut new_delta: HashSet<FactKey> = HashSet::with_capacity(round.len());
-        for (_key, winner) in round {
+        // Commit winners in FactKey order, not raw `HashMap` order: store/index
+        // insertion order must be deterministic (the columnar-store determinism
+        // doctrine), matching `least_model_of_reduct`'s commit discipline.
+        let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round.into_iter().collect();
+        winners.sort_by(|(a, _), (b, _)| a.cmp(b));
+        for (_key, winner) in winners {
             let winner_depth = winner.max_src_depth.saturating_add(1);
             depth.insert(winner.key.clone(), winner_depth);
             // Insert into both stores in lockstep so the columnar index order tracks
