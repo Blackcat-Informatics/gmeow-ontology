@@ -33,6 +33,9 @@ pub mod obligations;
 // crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
 #[cfg(test)]
 mod path_projection_tests;
+// Native physical execution core (#1090): columnar RelationStore + engine working
+// representation. Not yet wired into the materialize routing, so it is crate-internal.
+mod physical;
 pub mod probabilistic;
 pub mod profile_gate;
 pub mod provenance;
