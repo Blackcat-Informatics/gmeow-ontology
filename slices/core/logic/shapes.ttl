@@ -322,3 +322,12 @@ logic:NonEntailmentObligationShape
         sh:severity sh:Violation ;
         sh:message "A NonEntailmentObligation must have at least one logic:obligationDischargeCondition from the closed logic:DischargeCondition value set." ;
     ] .
+# NOTE: there is deliberately NO SHACL NodeShape targeting logic:ControlFlowEdge /
+# logic:DataFlowEdge requiring logic:flowFrom / logic:flowTo directly. Downstream
+# reified edges (e.g. gmeow:ControlFlow / gmeow:DataFlow) mediate their relata
+# through SPECIALIZED subproperties (gmeow:flowSource ⊑ logic:flowFrom, …); SHACL
+# validates over the unreasoned graph and does not follow subproperty entailment,
+# so a generic shape on the canonical leg would mis-fire on every specialized
+# instance. Flow-edge well-formedness is enforced where the leg properties are
+# concrete: each subclass declares owl:Restriction someValuesFrom on its own legs,
+# and the structural assertions pin the canonical leg properties' existence.
