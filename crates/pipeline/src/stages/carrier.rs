@@ -668,6 +668,56 @@ fn build_fanout_opaque_blob(
         crate::stages::matrix::render_matrix(root)?.into_bytes(),
     );
 
+    // evals + research-objects: the OPAQUE members only (their `.ttl`/`.dcat.ttl` ride
+    // as named graphs). Recomputed from source — byte-identical to the committed files.
+    take_opaque(&mut members, crate::stages::evals::render_evals(root)?);
+    take_opaque(
+        &mut members,
+        crate::stages::research_objects::render_research_objects(root)?,
+    );
+
+    // diagnostics sidecars (`.json`/`.sarif`/`.html`) ride in from the sink-consumed
+    // validate + compile-logic products; the `.nq` graphs ride as named graphs.
+    for (stage, path) in [
+        ("stage-validate", crate::stages::validate::SHACL_JSON_PATH),
+        ("stage-validate", crate::stages::validate::SHACL_SARIF_PATH),
+        ("stage-validate", crate::stages::validate::SHACL_HTML_PATH),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::DIAG_JSON_PATH,
+        ),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::DIAG_SARIF_PATH,
+        ),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::DIAG_HTML_PATH,
+        ),
+    ] {
+        let bytes = upstream
+            .get(stage)
+            .and_then(|p| p.artifact(path))
+            .map(<[u8]>::to_vec)
+            .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for fanout archive")))?;
+        members.insert(path.to_string(), bytes);
+    }
+
+    // loss matrices: deterministic, code-derived (verified by tests, not stage-built),
+    // recomputed verbatim — the committed files equal the function output exactly.
+    members.insert(
+        "generated/rdf-loss-matrix.json".to_string(),
+        gmeow_rdf::loss_matrix_json().into_bytes(),
+    );
+    members.insert(
+        "generated/transcode-loss-matrix.json".to_string(),
+        gmeow_rdf::transcode_loss_matrix_json().into_bytes(),
+    );
+    members.insert(
+        "generated/transcode-matrix.json".to_string(),
+        crate::transcode::transcode_matrix_json().into_bytes(),
+    );
+
     // n3 rides in from the sink-consumed stage-compile-logic product (no recompute).
     let n3 = upstream
         .get("stage-compile-logic")
