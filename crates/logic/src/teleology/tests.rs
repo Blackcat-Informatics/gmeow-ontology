@@ -1710,6 +1710,142 @@ fn gate_probe_surfaces_invariant_breach_denial() {
     );
 }
 
+// ── DAG-workflow certification (logic:DagWorkflowResource) ───────────────────────
+
+/// N-Quads for `<W#plan>` run under the DAG-workflow contract, gathering one reified
+/// control-flow edge per `(edge, from, to)` through `logic:planFlowEdge`.
+fn dag_plan_nq(edges: &[(&str, &str, &str)]) -> String {
+    let mut s = String::new();
+    let plan = format!("<{W}#plan>");
+    s.push_str(&format!(
+        "{plan} {ty} {pl} <{W}> .\n",
+        ty = rdf_type_tok(),
+        pl = l("Plan")
+    ));
+    s.push_str(&format!(
+        "{plan} {} <{W}#dagContract> <{W}> .\n",
+        l("executedUnderContract")
+    ));
+    s.push_str(&format!(
+        "<{W}#dagContract> {} {} <{W}> .\n",
+        l("resourcePolicy"),
+        l("DagWorkflowResource")
+    ));
+    for (edge, from, to) in edges {
+        s.push_str(&format!(
+            "{plan} {} <{W}#{edge}> <{W}> .\n",
+            l("planFlowEdge")
+        ));
+        s.push_str(&format!(
+            "<{W}#{edge}> {} <{W}#{from}> <{W}> .\n",
+            l("flowFrom")
+        ));
+        s.push_str(&format!(
+            "<{W}#{edge}> {} <{W}#{to}> <{W}> .\n",
+            l("flowTo")
+        ));
+    }
+    s
+}
+
+/// The IRI the plan's `logic:planCertification` points at, given the emitted quads.
+fn dag_result_iri(out: &[TeleologyQuad]) -> String {
+    let edge = out
+        .iter()
+        .find(|q| q.subject == format!("{W}#plan") && q.predicate == logic("planCertification"))
+        .expect("plan links to its DAG certification result");
+    edge.object
+        .trim_start_matches('<')
+        .trim_end_matches('>')
+        .to_owned()
+}
+
+#[test]
+fn dag_certification_acyclic_plan_is_complete_for_fragment() {
+    // a -> b -> c : a DAG, the shape of the build pipeline.
+    let nq = dag_plan_nq(&[("e1", "a", "b"), ("e2", "b", "c")]);
+    let facts = facts_of(&nq);
+    let (out, cyclic) = emit_dag_certification(&facts, W, &format!("{W}#plan")).unwrap();
+    assert!(!cyclic, "an acyclic plan must not be unsupported");
+    let result = dag_result_iri(&out);
+    assert!(
+        out.iter().any(|q| q.subject == result
+            && q.predicate == logic("resultEvaluation")
+            && q.object == n3(&logic("EvaluationCompleted"))),
+        "an acyclic plan certifies EvaluationCompleted"
+    );
+    assert!(
+        out.iter().any(|q| q.subject == result
+            && q.predicate == logic("resultCompleteness")
+            && q.object == n3(&logic("CompleteForFragment"))),
+        "an acyclic plan is CompleteForFragment"
+    );
+    assert!(
+        out.iter().all(|q| q.predicate != logic("dagCycleWitness")),
+        "a certified plan carries no cycle witness"
+    );
+}
+
+#[test]
+fn dag_certification_cyclic_plan_is_unsupported_with_witness() {
+    // probe -> recover -> probe (the retry back-edge) + probe -> commit (success).
+    let nq = dag_plan_nq(&[
+        ("e1", "probe", "recover"),
+        ("e2", "recover", "probe"),
+        ("e3", "probe", "commit"),
+    ]);
+    let facts = facts_of(&nq);
+    let (out, cyclic) = emit_dag_certification(&facts, W, &format!("{W}#plan")).unwrap();
+    assert!(cyclic, "a cyclic plan resolves to unsupported");
+    let result = dag_result_iri(&out);
+    assert!(
+        out.iter().any(|q| q.subject == result
+            && q.predicate == logic("resultEvaluation")
+            && q.object == n3(&logic("EvaluationUnsupported"))),
+        "a cyclic plan resolves to EvaluationUnsupported, never silently truncated"
+    );
+    // The witness names EXACTLY the cycle members (probe, recover) — the dropped back-edge.
+    let witnesses: BTreeSet<String> = out
+        .iter()
+        .filter(|q| q.subject == result && q.predicate == logic("dagCycleWitness"))
+        .map(|q| q.object.clone())
+        .collect();
+    assert_eq!(
+        witnesses,
+        BTreeSet::from([n3(&format!("{W}#probe")), n3(&format!("{W}#recover"))]),
+        "the witness discloses the loop the DAG projection drops"
+    );
+}
+
+#[test]
+fn dag_certification_skips_plan_without_dag_contract() {
+    // A plan with flow edges but NO DAG contract is not certified under the profile.
+    let mut nq = String::new();
+    let plan = format!("<{W}#plan>");
+    nq.push_str(&format!(
+        "{plan} {ty} {pl} <{W}> .\n",
+        ty = rdf_type_tok(),
+        pl = l("Plan")
+    ));
+    nq.push_str(&format!("{plan} {} <{W}#e1> <{W}> .\n", l("planFlowEdge")));
+    nq.push_str(&format!("<{W}#e1> {} <{W}#a> <{W}> .\n", l("flowFrom")));
+    nq.push_str(&format!("<{W}#e1> {} <{W}#b> <{W}> .\n", l("flowTo")));
+    let facts = facts_of(&nq);
+    let (out, cyclic) = emit_dag_certification(&facts, W, &format!("{W}#plan")).unwrap();
+    assert!(
+        out.is_empty() && !cyclic,
+        "a plan with no DAG contract is not certified under the profile"
+    );
+}
+
+#[test]
+fn dag_certification_is_deterministic() {
+    let nq = dag_plan_nq(&[("e1", "probe", "recover"), ("e2", "recover", "probe")]);
+    let a = emit_dag_certification(&facts_of(&nq), W, &format!("{W}#plan")).unwrap();
+    let b = emit_dag_certification(&facts_of(&nq), W, &format!("{W}#plan")).unwrap();
+    assert_eq!(a, b, "DAG certification must be byte-deterministic");
+}
+
 // ── logic:evaluationTime vocabulary completeness ─────────────────────────────
 
 /// `logic:evaluationTime` is the "time of judgment" axis of the GoalEvaluation
