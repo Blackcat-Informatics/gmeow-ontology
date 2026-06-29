@@ -399,7 +399,6 @@ fn eval_world_stratified(
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
     let mut depth: HashMap<FactKey, u32> = HashMap::new();
-    let edb_keys: HashSet<FactKey> = edb_facts.iter().map(Fact::key).collect();
 
     for f in edb_facts {
         depth.insert(f.key(), 0);
@@ -419,7 +418,6 @@ fn eval_world_stratified(
             &mut store,
             &mut rel,
             &mut depth,
-            &edb_keys,
             &mut derivations,
         )?;
     }
@@ -439,7 +437,6 @@ fn eval_stratum_fixpoint(
     store: &mut FactStore,
     rel: &mut RelationStore,
     depth: &mut HashMap<FactKey, u32>,
-    edb_keys: &HashSet<FactKey>,
     derivations: &mut Vec<DerivedRow>,
 ) -> Result<(), String> {
     // Seed delta with ALL currently-known keys so this stratum's rules fire against
@@ -527,17 +524,18 @@ fn eval_stratum_fixpoint(
             }
             new_delta.insert(winner.key.clone());
 
-            if !edb_keys.contains(&winner.key) {
-                derivations.push(DerivedRow {
-                    graph: String::new(),
-                    subject: winner.head.subject,
-                    predicate: winner.head.predicate,
-                    object: winner.head.object,
-                    rule_iri: winner.rule_iri,
-                    source_quad_ids: winner.sources, // body-order, NEVER the sorted copy
-                    derivation_id: winner.deriv,
-                });
-            }
+            // A winner is always a NEW key: heads already present (including every
+            // EDB fact, seeded into `store` before the fixpoint) are skipped above via
+            // `store.contains_key`. So every winner is a genuine derivation.
+            derivations.push(DerivedRow {
+                graph: String::new(),
+                subject: winner.head.subject,
+                predicate: winner.head.predicate,
+                object: winner.head.object,
+                rule_iri: winner.rule_iri,
+                source_quad_ids: winner.sources, // body-order, NEVER the sorted copy
+                derivation_id: winner.deriv,
+            });
         }
 
         delta = new_delta;
@@ -606,7 +604,6 @@ pub(crate) fn evaluate(
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
     let mut depth: HashMap<FactKey, u32> = HashMap::new();
-    let edb_keys: HashSet<FactKey> = edb_facts.iter().map(Fact::key).collect();
 
     for f in &edb_facts {
         depth.insert(f.key(), 0);
@@ -615,6 +612,8 @@ pub(crate) fn evaluate(
         }
     }
 
+    // This leg returns the full fact set (`store.facts()`); the derivation rows are
+    // unused here but the shared fixpoint records them for the forward leg.
     let mut derivations: Vec<DerivedRow> = Vec::new();
     for stratum_rules in &rules_by_stratum {
         if stratum_rules.is_empty() {
@@ -625,7 +624,6 @@ pub(crate) fn evaluate(
             &mut store,
             &mut rel,
             &mut depth,
-            &edb_keys,
             &mut derivations,
         )?;
     }
