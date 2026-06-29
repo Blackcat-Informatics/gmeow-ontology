@@ -180,12 +180,17 @@ fn deep_consistency_findings(
     let user = data_dataset(data_bytes, data_format)?;
     let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
         .map_err(|e| format!("native reasoning failed: {e}"))?;
-    // Classical native DL semantics over the merged data (see fold_reasoning_result).
-    crate::validate_all::fold_reasoning_result(
-        &result,
-        gmeow_logic::certificate::ContradictionPolicy::DEFAULT,
-        report,
-    );
+    // The governing contradiction policy is READ from the bundle's declared
+    // logic:ReasoningContract (logic:admissibleValuation), not pinned: no contract /
+    // no valuation ⇒ conservative classical DEFAULT (a glut IS owl:Nothing); multiple
+    // conflicting valuations ⇒ the MOST CONSERVATIVE governs; a garbled valuation
+    // HARD-FAILS rather than silently relaxing the gate. The policy is read off the
+    // bundle (the authority for the contract), not the user-supplied data graph.
+    let policy = gmeow_logic::certificate::ContradictionPolicy::resolve_from_dataset(
+        bundle.dataset.as_ref(),
+    )
+    .map_err(|e| format!("contract resolution failed: {e}"))?;
+    crate::validate_all::fold_reasoning_result(&result, policy, report);
     Ok(())
 }
 
