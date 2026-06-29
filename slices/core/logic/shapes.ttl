@@ -322,3 +322,26 @@ logic:NonEntailmentObligationShape
         sh:severity sh:Violation ;
         sh:message "A NonEntailmentObligation must have at least one logic:obligationDischargeCondition from the closed logic:DischargeCondition value set." ;
     ] .
+
+logic:FlowEdgeShape
+    a sh:NodeShape ;
+    rdfs:label "Flow-edge well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for the reified canonical flow edges logic:ControlFlowEdge and logic:DataFlowEdge: each must mediate exactly one source node (logic:flowFrom) and exactly one target node (logic:flowTo). The two legs are what make a flow edge a well-formed Relator (it mediates two distinct relata) and what the DAG-workflow acyclicity certifier reads as a graph edge; a flow edge missing either leg is not schedulable and is a governance error."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:ControlFlowEdge , logic:DataFlowEdge ;
+    sh:property [
+        sh:path logic:flowFrom ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A flow edge must have exactly one logic:flowFrom naming its source process node." ;
+    ] ;
+    sh:property [
+        sh:path logic:flowTo ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A flow edge must have exactly one logic:flowTo naming its target process node." ;
+    ] .

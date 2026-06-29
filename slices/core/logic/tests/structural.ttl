@@ -732,3 +732,50 @@ ASK {
     logic:ForbidGapAndGlut a logic:AdmissibleValuationPolicy .
 }""" ;
     gmeow:saRationale "All four logic:AdmissibleValuationPolicy individuals MUST exist: logic:contradictionPolicy ranges over them, and the glut-admitting pair (AdmitAllFour, ForbidGap) versus the glut-forbidding pair (ForbidGlut, ForbidGapAndGlut) is exactly what classifies a witnessed glut as a permitted conflict or a forbidden violation. The Rust gmeow_logic_compile::compat::ContradictionPolicy enum mirrors these four and is wildcard-free so a new valuation is a compile error." .
+
+# --- 40. The DAG-workflow profile is a Resource facet value + preset (MUST) ---
+ex:saDagWorkflowProfileExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:DagWorkflowResource a logic:ResourcePolicy .
+    logic:DagWorkflowProfile  a logic:ReasoningPreset .
+    logic:DagWorkflowProfile  logic:expandsToFacet logic:DagWorkflowResource .
+    logic:dagCycleWitness     a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "DAG-workflow MUST be modelled as a Resource-facet VALUE (logic:DagWorkflowResource, a logic:ResourcePolicy individual, sibling of logic:CertifiedFragmentResource) plus a preset (logic:DagWorkflowProfile, a logic:ReasoningPreset that expands to it) — the contract-not-profile doctrine (design/LOGIC-CONTRACT.md). The Rust certifier maps the resource policy to logic:CompleteForFragment on an acyclic plan and to the `unsupported` verdict (carrying logic:dagCycleWitness) on a cyclic one." .
+
+# --- 41. DAG-workflow is NOT a standalone class (MUST-NOT, contract-not-profile) ---
+ex:saNoDagWorkflowClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { logic:DagWorkflow a owl:Class . }
+    UNION
+    { logic:DagWorkflowResource a owl:Class . }
+    UNION
+    { logic:DagWorkflowProfile a owl:Class . }
+}""" ;
+    gmeow:saRationale "There MUST be no logic:DagWorkflow class, and neither the resource value nor the preset may be an owl:Class — collapsing the orthogonal Resource facet into a standalone class is exactly the profile-not-contract mistake the reasoning-contract doctrine forbids (design/LOGIC-CONTRACT.md, 'Why a contract, not a profile')." .
+
+# --- 42. The canonical dataflow / control-flow edge family exists (MUST) ------
+ex:saCanonicalFlowEdgesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    logic:dataflowConsumes a owl:ObjectProperty .
+    logic:dataflowProduces a owl:ObjectProperty ;
+                           owl:inverseOf logic:dataflowConsumes .
+    logic:ControlFlowEdge  a owl:Class ; rdfs:subClassOf logic:Relator .
+    logic:DataFlowEdge     a owl:Class ; rdfs:subClassOf logic:Relator .
+    logic:flowFrom         a owl:ObjectProperty .
+    logic:flowTo           a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The canonical edge family MUST exist so the two parallel process surfaces become projections of one model: logic:dataflowConsumes (+ inverse logic:dataflowProduces) is the binary dataflow dependency a pipeline stage edge specializes; logic:ControlFlowEdge / logic:DataFlowEdge are the reified FLOW-GRAPH relators (mediated by logic:flowFrom / logic:flowTo) the procedures relators specialize and the acyclicity certifier runs over — complementary to the program-tree combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback), not a duplicate of them." .
