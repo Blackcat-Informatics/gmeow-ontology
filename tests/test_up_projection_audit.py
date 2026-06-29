@@ -101,6 +101,15 @@ def test_binding_surfaces_mirror_and_per_vocab_shape() -> None:
     tests own.
     """
     report = gate_audit()
+    totals = report["totals"]
+    # The convenience top-level figures mirror the nested totals dict.
+    assert report["proved"] == totals["proved"]
+    assert report["claimed"] == totals["claimed"]
+    assert report["red_excluded"] == totals["red_excluded"]
+    assert report["unsupported"] == totals["unsupported"]
+    assert report["liftable"] == totals["liftable"]
+    assert report["total"] == totals["total"]
+    # Every per-vocabulary cell carries the full tier shape.
     tier_keys = {
         "proved",
         "claimed",
@@ -109,10 +118,6 @@ def test_binding_surfaces_mirror_and_per_vocab_shape() -> None:
         "liftable",
         "total",
     }
-    # The convenience top-level figures mirror the nested totals dict.
-    for key in tier_keys:
-        assert report[key] == report["totals"][key], key
-    # Every per-vocabulary cell carries the full tier shape.
     for vocab, counts in report["per_vocab"].items():
         assert set(counts) == tier_keys, vocab
 
