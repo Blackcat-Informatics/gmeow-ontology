@@ -20,7 +20,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use gmeow_gts::model::{Graph, Term as GtsTerm, TermKind};
+use gmeow_rdf::{RdfDataset, TermId, TermRef};
 use gmeow_validate::language_tags::{
     self, filter_literals as authority_filter_literals, is_internal_tag,
     marked as authority_marked, select_literal as authority_select_literal, LitDesc,
@@ -71,7 +71,7 @@ fn curie(iri: &str) -> String {
 // ── FoldView: read-side idioms over a folded gts Graph (mirror gts_views.py) ───
 
 pub(crate) struct FoldView<'a> {
-    graph: &'a Graph,
+    dataset: &'a RdfDataset,
     iri_index: BTreeMap<&'a str, usize>,
     /// scope (graph IRI or "" for default) → subject tid → [(p, o)]
     spo: BTreeMap<String, BTreeMap<usize, Vec<(usize, usize)>>>,
@@ -94,21 +94,20 @@ pub(crate) const ALL_SCOPE: &str = "__all__";
 impl<'a> FoldView<'a> {
     /// The English-only default view — `requested == ["en"]`. Every existing
     /// export-leaf caller keeps this exact behavior.
-    pub(crate) fn new(graph: &'a Graph) -> Self {
-        Self::with_requested(graph, vec!["en".to_string()])
+    pub(crate) fn new(dataset: &'a RdfDataset) -> Self {
+        Self::with_requested(dataset, vec!["en".to_string()])
     }
 
-    /// A selector-aware view: literal selection honors `requested` (public
-    /// BCP-47 tags in precedence order) before the English / first-tagged /
-    /// untagged fallback chain. Mirrors `language_tags.select_literal` /
-    /// `filter_literals`.
-    pub(crate) fn with_requested(graph: &'a Graph, requested: Vec<String>) -> Self {
+    /// A selector-aware view over the in-memory carrier dataset (GTS is exit-only):
+    /// literal selection honors `requested` (public BCP-47 tags in precedence order)
+    /// before the English / first-tagged / untagged fallback chain. Mirrors
+    /// `language_tags.select_literal` / `filter_literals`. The term ids are the
+    /// dataset's frozen [`TermId`] ordinals.
+    pub(crate) fn with_requested(dataset: &'a RdfDataset, requested: Vec<String>) -> Self {
         let mut iri_index: BTreeMap<&'a str, usize> = BTreeMap::new();
-        for (tid, t) in graph.terms.iter().enumerate() {
-            if t.kind == TermKind::Iri {
-                if let Some(v) = &t.value {
-                    iri_index.entry(v.as_str()).or_insert(tid);
-                }
+        for tid in 0..dataset.term_count() {
+            if let TermRef::Iri(v) = dataset.resolve(TermId::from_index(tid as u32)) {
+                iri_index.entry(v).or_insert(tid);
             }
         }
         let requested = if requested.is_empty() {
@@ -117,7 +116,7 @@ impl<'a> FoldView<'a> {
             requested.iter().map(|r| r.to_ascii_lowercase()).collect()
         };
         let mut view = FoldView {
-            graph,
+            dataset,
             iri_index,
             spo: BTreeMap::new(),
             po: BTreeMap::new(),
@@ -139,10 +138,11 @@ impl<'a> FoldView<'a> {
         // Per-scope spo/po, plus an ALL scope spanning every graph.
         let mut spo: BTreeMap<String, BTreeMap<usize, Vec<(usize, usize)>>> = BTreeMap::new();
         let mut po: BTreeMap<String, BTreeMap<(usize, usize), Vec<usize>>> = BTreeMap::new();
-        for &(s, p, o, g) in &self.graph.quads {
-            let scope = match g {
+        for q in self.dataset.quads() {
+            let (s, p, o) = (q.s.index(), q.p.index(), q.o.index());
+            let scope = match q.g {
                 None => DEFAULT_SCOPE.to_string(),
-                Some(gid) => self.graph.terms[gid].value.clone().unwrap_or_default(),
+                Some(gid) => self.iri_or_empty(gid.index()),
             };
             for key in [scope.clone(), ALL_SCOPE.to_string()] {
                 spo.entry(key.clone())
@@ -161,29 +161,69 @@ impl<'a> FoldView<'a> {
         self.po = po;
     }
 
-    fn term(&self, tid: usize) -> &GtsTerm {
-        &self.graph.terms[tid]
+    /// Resolve a term id to its borrowed view over the frozen dataset arena.
+    fn tref(&self, tid: usize) -> TermRef<'a> {
+        self.dataset.resolve(TermId::from_index(tid as u32))
+    }
+    /// The IRI string of `tid` (or `""` for any non-IRI term).
+    fn iri_or_empty(&self, tid: usize) -> String {
+        match self.tref(tid) {
+            TermRef::Iri(s) => s.to_string(),
+            _ => String::new(),
+        }
     }
     pub(crate) fn is_iri(&self, tid: usize) -> bool {
-        self.term(tid).kind == TermKind::Iri
+        matches!(self.tref(tid), TermRef::Iri(_))
     }
     pub(crate) fn is_bnode(&self, tid: usize) -> bool {
-        self.term(tid).kind == TermKind::Bnode
+        matches!(self.tref(tid), TermRef::Blank { .. })
     }
     pub(crate) fn is_literal(&self, tid: usize) -> bool {
-        self.term(tid).kind == TermKind::Literal
+        matches!(self.tref(tid), TermRef::Literal { .. })
     }
-    pub(crate) fn lex(&self, tid: usize) -> &str {
-        self.term(tid).value.as_deref().unwrap_or("")
+    pub(crate) fn lex(&self, tid: usize) -> &'a str {
+        match self.tref(tid) {
+            TermRef::Iri(s) => s,
+            TermRef::Blank { label, .. } => label,
+            TermRef::Literal { lexical, .. } => lexical,
+            TermRef::Triple { .. } => "",
+        }
     }
-    fn lang(&self, tid: usize) -> Option<&str> {
-        self.term(tid).lang.as_deref()
+    fn lang(&self, tid: usize) -> Option<&'a str> {
+        match self.tref(tid) {
+            TermRef::Literal { language, .. } => language,
+            _ => None,
+        }
     }
     fn datatype(&self, tid: usize) -> String {
-        self.graph.datatype_iri(self.term(tid))
+        match self.tref(tid) {
+            TermRef::Literal { datatype, .. } => self.iri_or_empty(datatype.index()),
+            _ => String::new(),
+        }
     }
     pub(crate) fn tid_of_iri(&self, iri: &str) -> Option<usize> {
         self.iri_index.get(iri).copied()
+    }
+
+    /// The RDF-1.2 annotation side-table as `(reifier, predicate, object)` tid triples.
+    pub(crate) fn annotations(&self) -> Vec<(usize, usize, usize)> {
+        self.dataset
+            .annotations()
+            .map(|(r, p, o)| (r.index(), p.index(), o.index()))
+            .collect()
+    }
+
+    /// The RDF-1.2 reifier side-table as `(reifier, (s, p, o))` tid rows.
+    pub(crate) fn reifiers(&self) -> Vec<(usize, (usize, usize, usize))> {
+        self.dataset
+            .reifiers()
+            .filter_map(|(rid, triple)| match self.dataset.resolve(triple) {
+                TermRef::Triple { s, p, o } => {
+                    Some((rid.index(), (s.index(), p.index(), o.index())))
+                }
+                _ => None,
+            })
+            .collect()
     }
 
     /// Subjects with `rdf:type <class_iri>` in scope, id-sorted unique.
@@ -270,16 +310,20 @@ impl<'a> FoldView<'a> {
 
     /// The canonical N-Triples token — stable sort/display key (mirror term_token).
     fn nq_token(&self, tid: usize) -> String {
-        let t = self.term(tid);
-        match t.kind {
-            TermKind::Iri => format!("<{}>", self.lex(tid)),
-            TermKind::Bnode => format!("_:{}", self.lex(tid)),
-            TermKind::Literal => {
-                let lex = nt_escape(self.lex(tid));
-                if let Some(lang) = &t.lang {
+        match self.tref(tid) {
+            TermRef::Iri(s) => format!("<{s}>"),
+            TermRef::Blank { label, .. } => format!("_:{label}"),
+            TermRef::Literal {
+                lexical,
+                language,
+                datatype,
+                ..
+            } => {
+                let lex = nt_escape(lexical);
+                if let Some(lang) = language {
                     format!("\"{lex}\"@{lang}")
                 } else {
-                    let dt = self.datatype(tid);
+                    let dt = self.iri_or_empty(datatype.index());
                     if dt == format!("{XSD}string") {
                         format!("\"{lex}\"")
                     } else {
@@ -287,7 +331,7 @@ impl<'a> FoldView<'a> {
                     }
                 }
             }
-            TermKind::Triple => format!("<<tid:{tid}>>"),
+            TermRef::Triple { .. } => format!("<<tid:{tid}>>"),
         }
     }
 
@@ -1869,96 +1913,110 @@ mod consumer {
     }
 }
 
-// ── dataset forms: N-Quads / TriG (gmeow-gts serializers) ──────────────────────
+// ── dataset forms: N-Quads / TriG (native serializers over the carrier) ─────────
 
-/// A shallow clone of the graph with internal `x-gmeow-*` language tags remapped
-/// to public BCP-47 (the #287 projection boundary). Only literal lang tags change.
-fn graph_with_public_tags(graph: &Graph, tag_map: &BTreeMap<String, String>) -> Graph {
-    let mut clone = clone_graph(graph);
-    for term in &mut clone.terms {
-        if term.kind == TermKind::Literal {
-            if let Some(lang) = &term.lang {
-                if let Some(public) = tag_map.get(lang) {
-                    term.lang = Some(public.clone());
-                }
+/// Rebuild the carrier dataset with internal `x-gmeow-*` language tags remapped to
+/// public BCP-47 (the #287 projection boundary). Only literal language tags change.
+fn dataset_with_public_tags(
+    dataset: &RdfDataset,
+    tag_map: &BTreeMap<String, String>,
+) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
+    use gmeow_rdf::model::RdfTerm;
+    use gmeow_rdf::RdfDatasetBuilder;
+    let retag = |term: RdfTerm| -> RdfTerm {
+        if let RdfTerm::Literal(mut lit) = term {
+            if let Some(public) = lit.language.as_ref().and_then(|l| tag_map.get(l)) {
+                lit.language = Some(public.clone());
             }
+            RdfTerm::Literal(lit)
+        } else {
+            term
         }
-    }
-    clone
-}
-
-/// A field-for-field clone of the parts of `Graph` the serializers consume.
-fn clone_graph(graph: &Graph) -> Graph {
-    let mut out = Graph {
-        terms: graph.terms.clone(),
-        quads: graph.quads.clone(),
-        reifiers: graph.reifiers.clone(),
-        annotations: graph.annotations.clone(),
-        ..Graph::default()
     };
-    for (digest, entry) in &graph.blobs {
-        out.blobs.push((digest.clone(), entry.clone()));
+    let mut b = RdfDatasetBuilder::new();
+    for mut q in dataset.owned_quads() {
+        q.object = retag(q.object);
+        b.push_owned_quad(&q);
     }
-    out.blob_meta = graph.blob_meta.clone();
-    out.meta = graph.meta.clone();
-    out
+    for mut r in dataset.owned_reifiers() {
+        r.statement.object = retag(r.statement.object);
+        b.push_owned_reifier(&r);
+    }
+    for mut a in dataset.owned_annotations() {
+        a.object = retag(a.object);
+        b.push_owned_annotation(&a);
+    }
+    b.freeze()
+        .map_err(|e| PipelineError::Parse(format!("public-tag dataset freeze: {e}")))
 }
 
-fn write_nquads(graph: &Graph, tag_map: &BTreeMap<String, String>) -> Vec<u8> {
-    let public = graph_with_public_tags(graph, tag_map);
-    gmeow_gts::nquads::to_nquads(&public).into_bytes()
+fn write_nquads(
+    dataset: &RdfDataset,
+    tag_map: &BTreeMap<String, String>,
+) -> Result<Vec<u8>, PipelineError> {
+    let public = dataset_with_public_tags(dataset, tag_map)?;
+    gmeow_rdf::serialize_dataset(
+        &public,
+        "application/n-quads",
+        gmeow_rdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PipelineError::Parse(format!("n-quads serialize: {e}")))
 }
 
-fn write_trig(graph: &Graph, tag_map: &BTreeMap<String, String>) -> Vec<u8> {
-    let public = graph_with_public_tags(graph, tag_map);
-    gmeow_gts::trig::to_trig(&public).into_bytes()
+fn write_trig(
+    dataset: &RdfDataset,
+    tag_map: &BTreeMap<String, String>,
+) -> Result<Vec<u8>, PipelineError> {
+    let public = dataset_with_public_tags(dataset, tag_map)?;
+    gmeow_rdf::serialize_dataset(
+        &public,
+        "application/trig",
+        gmeow_rdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PipelineError::Parse(format!("trig serialize: {e}")))
 }
 
 // ── statements JSONL ─────────────────────────────────────────────────────────────
 
 /// `python_value` with public lang-tag remap (mirror `_public_value`).
 fn public_value_json(view: &FoldView, tid: usize) -> J {
-    let t = view.term(tid);
-    match t.kind {
-        TermKind::Literal => {
-            let dt = view.datatype(tid);
-            let lex = view.lex(tid);
-            if dt == format!("{XSD}integer") {
-                // emit the integer lexeme verbatim as a number-ish string is wrong;
-                // statements JSONL keeps numeric values, but for determinism without
-                // a number variant we surface the lexical via a raw token.
-                J::RawNum(lex.to_string())
-            } else if dt == format!("{XSD}decimal")
-                || dt == format!("{XSD}double")
-                || dt == format!("{XSD}float")
-            {
-                J::RawNum(lex.to_string())
-            } else if dt == format!("{XSD}boolean") {
-                J::Bool(matches!(lex.to_ascii_lowercase().as_str(), "true" | "1"))
-            } else if let Some(lang) = &t.lang {
-                let public = view
-                    .tag_map
-                    .get(lang)
-                    .cloned()
-                    .unwrap_or_else(|| lang.clone());
-                J::Obj(vec![
-                    ("value".into(), J::Str(lex.to_string())),
-                    ("lang".into(), J::Str(public)),
-                ])
-            } else {
-                J::Str(lex.to_string())
-            }
+    if view.is_literal(tid) {
+        let dt = view.datatype(tid);
+        let lex = view.lex(tid);
+        if dt == format!("{XSD}integer")
+            || dt == format!("{XSD}decimal")
+            || dt == format!("{XSD}double")
+            || dt == format!("{XSD}float")
+        {
+            J::RawNum(lex.to_string())
+        } else if dt == format!("{XSD}boolean") {
+            J::Bool(matches!(lex.to_ascii_lowercase().as_str(), "true" | "1"))
+        } else if let Some(lang) = view.lang(tid) {
+            let public = view
+                .tag_map
+                .get(lang)
+                .cloned()
+                .unwrap_or_else(|| lang.to_string());
+            J::Obj(vec![
+                ("value".into(), J::Str(lex.to_string())),
+                ("lang".into(), J::Str(public)),
+            ])
+        } else {
+            J::Str(lex.to_string())
         }
-        TermKind::Iri => J::Str(curie(view.lex(tid))),
-        TermKind::Bnode => J::Str(format!("_:{}", view.lex(tid))),
-        TermKind::Triple => J::Str(view.nq_token(tid)),
+    } else if view.is_iri(tid) {
+        J::Str(curie(view.lex(tid)))
+    } else if view.is_bnode(tid) {
+        J::Str(format!("_:{}", view.lex(tid)))
+    } else {
+        J::Str(view.nq_token(tid))
     }
 }
 
 fn write_statements_jsonl(view: &FoldView) -> Vec<u8> {
     // grouped: reifier → predicate-curie → [values]
     let mut grouped: BTreeMap<usize, BTreeMap<String, Vec<J>>> = BTreeMap::new();
-    for &(r, p, v) in &view.graph.annotations {
+    for (r, p, v) in view.annotations() {
         let key = curie(view.lex(p));
         grouped
             .entry(r)
@@ -1968,7 +2026,7 @@ fn write_statements_jsonl(view: &FoldView) -> Vec<u8> {
             .push(public_value_json(view, v));
     }
     // reifiers sorted by nq_token of the reifier id.
-    let mut reifiers: Vec<(usize, (usize, usize, usize))> = view.graph.reifiers.clone();
+    let mut reifiers: Vec<(usize, (usize, usize, usize))> = view.reifiers();
     reifiers.sort_by_key(|a| view.nq_token(a.0));
     let mut rows: Vec<String> = Vec::new();
     for (rid, (s, p, o)) in &reifiers {
@@ -2341,9 +2399,9 @@ fn j_str_key(j: &J) -> String {
 
 // ── render all + Stage impl ──────────────────────────────────────────────────────
 
-/// Render every flat-export artifact from a folded gts graph.
-pub(crate) fn render_all(graph: &Graph) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
-    let view = FoldView::new(graph);
+/// Render every flat-export artifact from the in-memory carrier dataset.
+pub(crate) fn render_all(dataset: &RdfDataset) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+    let view = FoldView::new(dataset);
     let (title, version) = fold_meta(&view)?;
     let terms = collect_terms(&view);
     let languages = ["en"];
@@ -2383,11 +2441,11 @@ pub(crate) fn render_all(graph: &Graph) -> Result<BTreeMap<String, Vec<u8>>, Pip
     );
     out.insert(
         format!("{DIST_DIR}/gmeow.nq"),
-        write_nquads(graph, view.tag_map()),
+        write_nquads(dataset, view.tag_map())?,
     );
     out.insert(
         format!("{DIST_DIR}/gmeow.trig"),
-        write_trig(graph, view.tag_map()),
+        write_trig(dataset, view.tag_map())?,
     );
     out.insert(
         format!("{DIST_DIR}/gmeow-statements.jsonl"),
@@ -2408,34 +2466,35 @@ pub(crate) fn render_all(graph: &Graph) -> Result<BTreeMap<String, Vec<u8>>, Pip
 /// Collect `(title, version, terms)` from a folded gts graph — the shared term
 /// surface consumed by both the flat-export leaf and the OKF leaf (#861 P4).
 pub(crate) fn collect_term_surface(
-    graph: &Graph,
+    dataset: &RdfDataset,
 ) -> Result<(String, String, Vec<Term>), PipelineError> {
-    let view = FoldView::new(graph);
+    let view = FoldView::new(dataset);
     let (title, version) = fold_meta(&view)?;
     let terms = collect_terms(&view);
     Ok((title, version, terms))
 }
 
-/// Read the committed fold from `generated/dist/gmeow.gts` under `root`. Used by
-/// the leaf unit tests (logic-vs-canonical against the committed file); the
-/// runtime path reads THIS run's snapshot via [`read_fold_upstream`].
+/// Read the committed fold from `generated/dist/gmeow.gts` under `root` as a native
+/// `RdfDataset`. Used by the leaf unit tests (logic-vs-canonical against the committed
+/// file); the runtime path reads THIS run's snapshot carrier via [`read_fold_upstream`].
 #[cfg(test)]
-pub(crate) fn read_fold(root: &std::path::Path) -> Result<Graph, PipelineError> {
+pub(crate) fn read_fold(
+    root: &std::path::Path,
+) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
     let gts = std::fs::read(root.join("generated/dist/gmeow.gts"))?;
-    gmeow_rdf::gts::read_graph(&gts, true)
-        .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))
+    let bundle = gmeow_rdf::import_gts_events(&gts)
+        .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))?;
+    Ok(bundle.dataset)
 }
 
-/// Read THIS run's fold from the `stage-snapshot` upstream product. The runtime
-/// path every fold-reading export leaf uses (single-pass): the snapshot bytes are
-/// fold-isomorphic to the committed file (proven by `fold_parity`), so the
-/// imported fold is identical — only the byte source changes.
+/// Borrow THIS run's carrier dataset (#1132). The runtime path every fold-reading
+/// export leaf (export / parquet / okf) uses: the `stage-snapshot` product carries the
+/// terminal carrier `RdfDataset` directly, so the leaves read ONE shared dataset off
+/// the bundle instead of re-parsing the `gmeow.gts` bytes (GTS is exit-only).
 pub(crate) fn read_fold_upstream(
     upstream: &std::collections::BTreeMap<String, StageProduct>,
-) -> Result<Graph, PipelineError> {
-    let gts = crate::stages::snapshot::snapshot_bytes(upstream)?;
-    gmeow_rdf::gts::read_graph(&gts, true)
-        .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))
+) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
+    crate::stages::carrier::snapshot_dataset(upstream)
 }
 
 /// The `stage-export-export` export-leaf stage.
@@ -2474,7 +2533,7 @@ impl Stage for ExportStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let graph = read_fold_upstream(input.upstream)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_all(&graph)?),
+            product: StageProduct::from_artifacts(self.id(), render_all(graph.as_ref())?),
         })
     }
 }

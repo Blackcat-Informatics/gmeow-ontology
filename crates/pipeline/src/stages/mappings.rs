@@ -409,10 +409,44 @@ impl Stage for MappingsStage {
         let report = build_union_report(&channel, &compiled.ledger)?;
         artifacts.insert(PROJECTION_REPORT_PATH.to_string(), report);
 
+        // Carry the union of the RDF outputs (`.ttl` / `.nq` / `.nt` — the alignment
+        // axioms / projections this stage contributes to compose) as the bundle's
+        // frozen dataset; the non-RDF outputs (`.json`, `.jsonld`, `.tsv`, `.rq`) stay
+        // byte-lane only. Each RDF artifact is parsed and the per-input datasets are
+        // unioned (standardize-apart per input), so `gts_compose` folds in this one
+        // dataset instead of re-parsing each byte artifact.
+        let dataset = mappings_rdf_dataset(&artifacts)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })
     }
+}
+
+/// Parse every RDF artifact (`.ttl` / `.nq` / `.nt`) of the mappings byte-artifact
+/// map and union them into one frozen dataset (the native contribution
+/// `gts_compose` folds). Non-RDF artifacts are skipped. Inputs are unioned in
+/// sorted-path order (the `BTreeMap` order) under [`RdfDataset::union`], which
+/// standardizes blank scopes apart per input and canonicalizes on freeze.
+fn mappings_rdf_dataset(
+    artifacts: &BTreeMap<String, Vec<u8>>,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    let mut parsed: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = Vec::new();
+    for (path, bytes) in artifacts {
+        let media_type = if path.ends_with(".nq") {
+            "application/n-quads"
+        } else if path.ends_with(".nt") {
+            "application/n-triples"
+        } else if path.ends_with(".ttl") {
+            "text/turtle"
+        } else {
+            continue;
+        };
+        let ds = gmeow_rdf::parse_dataset(bytes, media_type, None)
+            .map_err(|e| PipelineError::Parse(format!("mappings RDF parse of {path}: {e}")))?;
+        parsed.push(ds);
+    }
+    let refs: Vec<&gmeow_rdf::RdfDataset> = parsed.iter().map(|a| a.as_ref()).collect();
+    Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
 }
 
 #[cfg(test)]
@@ -674,10 +708,11 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             );
         }
 
-        // Byte-stability invariant: drop every correspondence `ProjectionTarget` block
-        // (and its `hasProjection` link) and what remains must be byte-identical to the
-        // committed report — the logic rows are untouched; only correspondence rows are
-        // added.
+        // Byte-stability invariant: dropping every correspondence `ProjectionTarget`
+        // block (and its `hasProjection` link) from the freshly assembled report and
+        // from the committed report must leave byte-identical logic rows — the
+        // correspondence union must never perturb the logic projection. (The committed
+        // report itself carries the union, so both sides are filtered the same way.)
         let committed = std::fs::read_to_string(root.join(PROJECTION_REPORT_PATH))
             .expect("committed projection report");
         let is_correspondence = |line: &str| {
@@ -685,15 +720,17 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
                 .iter()
                 .any(|d| line.contains(&format!("/target/{d}")))
         };
-        let logic_only: String = report
-            .lines()
-            .filter(|l| !is_correspondence(l))
-            .map(|l| format!("{l}\n"))
-            .collect();
+        let strip_correspondence = |text: &str| -> String {
+            text.lines()
+                .filter(|l| !is_correspondence(l))
+                .map(|l| format!("{l}\n"))
+                .collect()
+        };
         assert_eq!(
-            logic_only, committed,
-            "the logic projection rows must be byte-identical to the committed report; \
-             only correspondence rows may be added"
+            strip_correspondence(report),
+            strip_correspondence(&committed),
+            "the logic projection rows must be byte-identical between the freshly \
+             assembled report and the committed report; only correspondence rows differ"
         );
     }
 

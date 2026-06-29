@@ -12,99 +12,135 @@
 //! sole `gts_sink` (the narrow waist); this stage only assembles the value.
 
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
-use oxigraph::store::Store;
+use gmeow_rdf::RdfDataset;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::source_load::{rdf_bytes_into_store, store_to_nquads, BASE_GRAPH_PATH};
-use crate::stages::statements::RDF12_PATH;
+use crate::stages::source_load::dataset_to_sorted_nquads;
 
-/// Logical path of the composed dataset (N-Quads, in-memory dataflow).
-pub const COMPOSED_PATH: &str = "pipeline/composed.nq";
-
-/// Parse an artifact (Turtle or N-Quads, by extension heuristic) into `store`,
-/// tolerating RDF 1.2 triple terms (the statement layer).
-fn ingest(store: &Store, logical_path: &str, bytes: &[u8]) -> Result<(), PipelineError> {
-    let media_type = if logical_path.ends_with(".nq") {
-        "application/n-quads"
-    } else if logical_path.ends_with(".nt") {
-        "application/n-triples"
-    } else {
-        "text/turtle"
-    };
-    rdf_bytes_into_store(
-        store,
-        bytes,
-        media_type,
-        &format!("composing {logical_path}"),
-    )
-}
-
-/// Compose the upstream products into one store: the base graph plus the RDF 1.2
-/// statement layer (and, as they land, mappings + reasoned closure). Returns the
-/// composed N-Quads bytes.
-pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<Vec<u8>, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-
+/// Compose the upstream products into one frozen dataset by [`RdfDataset::union`]
+/// over the four producing stages' `bundle.dataset` handles — the base graph
+/// (`source_load`), the RDF 1.2 statement layer (`statements`), the alignment
+/// axioms (`mappings`), and the reasoned CLOSURE (`reason`).
+///
+/// No oxigraph store, no re-parse of byte artifacts: each producing stage already
+/// carries its RDF contribution as its bundle's frozen dataset (#1132 C2), so this
+/// stage assembles the composed value natively by unioning those handles. The
+/// union standardizes blank scopes apart per input and canonicalizes on freeze, so
+/// the result is order-independent.
+///
+/// The base graph is REQUIRED. When `stage-statements` is an upstream (it always
+/// is in the full DAG), its dataset is REQUIRED and must be non-empty — a missing
+/// or empty statement-layer dataset is a HARD failure, never a silent skip that
+/// would compose a statement-layer-less dataset (no-optionality, #863). The
+/// mappings and reason-closure datasets fold in when present.
+///
+/// The reason stage carries its CLOSURE alone as its dataset; the proof-skeleton
+/// EXPLANATIONS and DL·EL crosscheck LEDGER reports ride its byte lane only and are
+/// therefore EXCLUDED from this union BY CONSTRUCTION (replacing the old path-based
+/// skip) — the composed dataset contains the closure but no report triples.
+pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, PipelineError> {
     // The base graph (required).
     let base = upstream
         .get("stage-source-load")
-        .and_then(|p| p.artifact(BASE_GRAPH_PATH))
         .ok_or_else(|| PipelineError::Stage {
             stage: "stage-gts-compose".to_string(),
-            message: "missing source_load base graph".to_string(),
-        })?;
-    ingest(&store, BASE_GRAPH_PATH, base)?;
-
-    // The RDF 1.2 statement layer. When `stage-statements` is an upstream (it
-    // always is in the full DAG), its artifact is REQUIRED — a missing RDF12
-    // artifact is a HARD failure, never a silent skip that would compose a
-    // statement-layer-less dataset (no-optionality, #863).
-    if let Some(statements) = upstream.get("stage-statements") {
-        let rdf12 = statements
-            .artifact(RDF12_PATH)
-            .ok_or_else(|| PipelineError::Stage {
-                stage: "stage-gts-compose".to_string(),
-                message: format!("stage-statements product is missing its {RDF12_PATH} artifact"),
-            })?;
-        ingest(&store, RDF12_PATH, rdf12)?;
+            message: "missing source_load product".to_string(),
+        })?
+        .bundle()
+        .clone();
+    if base.dataset().quad_count() == 0 {
+        return Err(PipelineError::Stage {
+            stage: "stage-gts-compose".to_string(),
+            message: "source_load base-graph dataset is empty".to_string(),
+        });
     }
 
-    // Every other upstream RDF artifact (mappings, reason) folds in by the same
-    // channel as those stages land — union all *.ttl / *.nq / *.nt artifacts. The
-    // `stage-reason` product carries THREE artifacts (the inferred CLOSURE plus the
-    // proof-skeleton EXPLANATIONS and the DL/EL crosscheck LEDGER report); only the
-    // closure is dataset facts. Folding the explanation/ledger REPORT TTLs into the
-    // composed dataset would pollute it with provenance-reifier / report triples
-    // that are not part of the ontology — so reason contributes ONLY its closure
-    // artifact (#863).
+    // Collect the contributing datasets in a stable id order. The base graph leads;
+    // the statement layer, mappings, and reason closure fold in. `RdfDataset::union`
+    // is order-independent (it canonicalizes on freeze) — the order here is purely
+    // for deterministic accumulation.
+    let mut datasets: Vec<Arc<gmeow_rdf::PipelineBundle<crate::bundle::PipelineHandle>>> =
+        vec![base];
+
+    // The RDF 1.2 statement layer — REQUIRED and non-empty. A declared upstream of
+    // this stage; its absence is a HARD failure, never a silent skip that would
+    // compose a statement-layer-less dataset (no-optionality).
+    let statements = upstream
+        .get("stage-statements")
+        .ok_or_else(|| PipelineError::Stage {
+            stage: "stage-gts-compose".to_string(),
+            message: "missing stage-statements product (the RDF 1.2 statement layer is required)"
+                .to_string(),
+        })?
+        .bundle()
+        .clone();
+    if statements.dataset().quad_count() == 0 {
+        return Err(PipelineError::Stage {
+            stage: "stage-gts-compose".to_string(),
+            message: "stage-statements product carries an empty RDF 1.2 statement-layer dataset"
+                .to_string(),
+        });
+    }
+    datasets.push(statements);
+
+    // Mappings + reasoned closure fold in via their carried datasets. Each looped
+    // contributor's DEFAULT graph is its ontology contribution (the mappings axioms /
+    // the reasoned closure); the reason product ALSO carries a named `graph/reasoning`
+    // graph (the typed-handle's backing projection, #1132 C7) that is NOT an ontology
+    // fact, so the union takes the DEFAULT graph only — keeping the composed dataset
+    // exactly the base ∪ statements ∪ mappings ∪ closure it was, and excluding the
+    // reasoning projection by construction (the same discipline that keeps the
+    // explanations/ledger reports out: they ride the byte/handle lanes, not the union).
+    let mut looped_defaults: Vec<Arc<RdfDataset>> = Vec::new();
     for (id, product) in upstream {
         if id == "stage-source-load" || id == "stage-statements" {
             continue;
         }
-        if id == "stage-reason" {
-            let closure = product
-                .artifact(crate::stages::reason::CLOSURE_PATH)
-                .ok_or_else(|| PipelineError::Stage {
-                    stage: "stage-gts-compose".to_string(),
-                    message: format!(
-                        "stage-reason product is missing its closure artifact {}",
-                        crate::stages::reason::CLOSURE_PATH
-                    ),
-                })?;
-            ingest(&store, crate::stages::reason::CLOSURE_PATH, closure)?;
-            continue;
-        }
-        for (path, bytes) in &product.artifacts {
-            if path.ends_with(".ttl") || path.ends_with(".nq") || path.ends_with(".nt") {
-                ingest(&store, path, bytes)?;
-            }
-        }
+        looped_defaults.push(default_graph_only(product.bundle().dataset())?);
     }
 
-    store_to_nquads(&store)
+    let mut refs: Vec<&RdfDataset> = datasets.iter().map(|b| b.dataset()).collect();
+    refs.extend(looped_defaults.iter().map(|d| d.as_ref()));
+    Ok(RdfDataset::union(&refs))
+}
+
+/// Project `dataset` to a fresh frozen dataset carrying ONLY its default-graph quads
+/// (named-graph quads dropped), preserving the RDF-1.2 reifier/annotation side-tables
+/// (which are standpoint-scoped, never graph-scoped). Used by [`compose`] to fold a
+/// looped contributor's ontology contribution (its default graph) while excluding any
+/// named sidecar graph it carries (the reason product's `graph/reasoning` handle
+/// backing — #1132 C7).
+fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineError> {
+    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    for quad in dataset.owned_quads() {
+        if quad.graph_name.is_none() {
+            builder.push_owned_quad(&quad);
+        }
+    }
+    for reifier in dataset.owned_reifiers() {
+        builder.push_owned_reifier(&reifier);
+    }
+    for annotation in dataset.owned_annotations() {
+        builder.push_owned_annotation(&annotation);
+    }
+    builder.freeze().map_err(|e| PipelineError::Stage {
+        stage: "stage-gts-compose".to_string(),
+        message: format!("default-graph projection freeze: {e}"),
+    })
+}
+
+/// [`compose`] projected to the deterministic sorted N-Quads byte form. The reason
+/// stage uses this to seed the reasoner's input EDB (its `dataset_from_bytes`). This
+/// is the SOLE consumer of the composed value's byte projection: the composed dataset
+/// itself rides the stage product's `bundle.dataset()` carrier (#1132 C2/C11), so there
+/// is no `composed.nq` artifact byte lane — `snapshot` and every other consumer take the
+/// carried dataset, not a re-parsed byte artifact.
+pub fn compose_nquads(upstream: &BTreeMap<String, StageProduct>) -> Result<Vec<u8>, PipelineError> {
+    let composed = compose(upstream)?;
+    dataset_to_sorted_nquads(&composed)
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -151,11 +187,19 @@ impl Stage for GtsComposeStage {
         "gts_compose.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+        // Assemble the composed dataset natively by unioning the upstream stages'
+        // carried datasets (#1132 C2). The stage's product carries the composed
+        // DATASET as its bundle's frozen dataset — the SOLE carrier. The old
+        // `pipeline/composed.nq` byte-transport artifact (#1132 C11) is retired: every
+        // consumer reads the carried dataset, and `reason` re-projects the byte EDB it
+        // needs through `compose_nquads` itself, so the artifact had no reader.
         let composed = compose(input.upstream)?;
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(COMPOSED_PATH.to_string(), composed);
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts_over(
+                self.id(),
+                Arc::new(composed),
+                BTreeMap::new(),
+            ),
         })
     }
 }
@@ -163,7 +207,11 @@ impl Stage for GtsComposeStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::load_authored_store;
+    use crate::stages::source_load::{
+        dataset_to_sorted_nquads, load_authored_store, BASE_GRAPH_PATH,
+    };
+    use crate::stages::statements::RDF12_PATH;
+    use oxigraph::store::Store;
     use std::path::Path;
 
     fn repo_root() -> std::path::PathBuf {
@@ -174,39 +222,99 @@ mod tests {
             .unwrap()
     }
 
-    #[test]
-    fn compose_unions_base_and_statement_layer() {
-        let root = repo_root();
-        // Build the two upstream products the way their stages would.
-        let base_store = load_authored_store(&root).unwrap();
-        let base_nq = store_to_nquads(&base_store).unwrap();
-        let (_, rdf12) = crate::stages::statements::compile_statements(&root).unwrap();
+    /// Build the `source_load` + `statements` upstream products the way their
+    /// stages now do (#1132 C2): each CARRIES its RDF contribution as the bundle's
+    /// frozen dataset (over its byte lane). Returns the upstream map plus the raw
+    /// `(base store, base nq bytes, rdf12 ttl)` for the oracle.
+    fn base_and_statements_upstream(
+        root: &Path,
+    ) -> (BTreeMap<String, StageProduct>, Store, Vec<u8>, String) {
+        let base_store = load_authored_store(root).unwrap();
+        let base_dataset = gmeow_rdf::oxigraph::dataset_from_store(&base_store).unwrap();
+        let base_nq = dataset_to_sorted_nquads(&base_dataset).unwrap();
+        let (_, rdf12) = crate::stages::statements::compile_statements(root).unwrap();
+        let rdf12_dataset =
+            gmeow_rdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None).unwrap();
 
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         let mut sl: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         sl.insert(BASE_GRAPH_PATH.to_string(), base_nq.clone());
         upstream.insert(
             "stage-source-load".to_string(),
-            StageProduct::from_artifacts("stage-source-load", sl),
+            StageProduct::from_artifacts_over("stage-source-load", base_dataset, sl),
         );
         let mut st: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        st.insert(RDF12_PATH.to_string(), rdf12.into_bytes());
+        st.insert(RDF12_PATH.to_string(), rdf12.clone().into_bytes());
         upstream.insert(
             "stage-statements".to_string(),
-            StageProduct::from_artifacts("stage-statements", st),
+            StageProduct::from_artifacts_over("stage-statements", rdf12_dataset, st),
+        );
+        (upstream, base_store, base_nq, rdf12)
+    }
+
+    #[test]
+    fn compose_unions_base_and_statement_layer() {
+        let root = repo_root();
+        let (upstream, base_store, _base_nq, _rdf12) = base_and_statements_upstream(&root);
+
+        // compose() now returns the UNION dataset (no oxigraph store / byte re-parse).
+        let composed = compose(&upstream).expect("compose");
+        // The composed dataset is at least the base graph (the RDF 1.2 statement
+        // layer folds reifier/annotation side-tables in on top).
+        assert!(
+            composed.quad_count() >= base_store.len().unwrap(),
+            "composed ({}) must include the base graph ({})",
+            composed.quad_count(),
+            base_store.len().unwrap()
         );
 
-        let composed = compose(&upstream).expect("compose");
-        // The composed dataset is at least the base graph (RDF 1.2 triple terms
-        // from the statement layer fold in on top).
-        let composed_lines = composed.iter().filter(|&&b| b == b'\n').count();
-        let base_lines = base_nq.iter().filter(|&&b| b == b'\n').count();
-        assert!(
-            composed_lines >= base_lines,
-            "composed ({composed_lines}) must include the base graph ({base_lines})"
-        );
-        // And it re-parses (the RDF 1.2 statement terms survived the union).
-        let reparsed = crate::stages::source_load::parse_base_graph(&composed).expect("reparse");
+        // The N-Quads projection re-parses (the union survived the byte lane).
+        let nq = dataset_to_sorted_nquads(&composed).expect("project");
+        let reparsed = crate::stages::source_load::parse_base_graph(&nq).expect("reparse");
         assert!(reparsed.len().unwrap() >= base_store.len().unwrap());
+    }
+
+    /// Graph-isomorphism oracle: the NEW native union (`compose`) must be
+    /// graph-isomorphic to the OLD byte-path composition (an oxigraph store fed the
+    /// base-graph + RDF-1.2 byte artifacts, then `store_to_nquads`). Both are
+    /// canonicalized with the kernel `canonicalize()`; equal canonical hashes ⇒ the
+    /// union is a faithful, oxigraph-free replacement of the byte-ingest compose.
+    #[test]
+    fn compose_union_is_graph_isomorphic_to_old_byte_path() {
+        use gmeow_rdf::canonicalize;
+        use gmeow_rdf::oxigraph::dataset_from_store;
+
+        let root = repo_root();
+        let (upstream, _base_store, base_nq, rdf12) = base_and_statements_upstream(&root);
+
+        // OLD byte path: ingest the base-graph N-Quads + RDF-1.2 Turtle into one
+        // oxigraph store (exactly what the pre-C2 `gts_compose` did), then take that
+        // store's dataset.
+        let store = Store::new().unwrap();
+        crate::stages::source_load::rdf_bytes_into_store(
+            &store,
+            &base_nq,
+            "application/n-quads",
+            "old-base",
+        )
+        .unwrap();
+        crate::stages::source_load::rdf_bytes_into_store(
+            &store,
+            rdf12.as_bytes(),
+            "text/turtle",
+            "old-rdf12",
+        )
+        .unwrap();
+        let old_dataset = dataset_from_store(&store).unwrap();
+
+        // NEW native union path.
+        let new_dataset = compose(&upstream).expect("compose");
+
+        let old_hash = canonicalize(&old_dataset).nquads;
+        let new_hash = canonicalize(&new_dataset).nquads;
+        assert_eq!(
+            old_hash, new_hash,
+            "native compose union must be graph-isomorphic to the old byte-ingest composition"
+        );
     }
 }

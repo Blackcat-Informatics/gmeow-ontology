@@ -178,7 +178,7 @@ fn non_schemas_leaf_drifts(root: &Path) -> Vec<String> {
 
     let mut drifted: Vec<String> = Vec::new();
     for product in result.products.values() {
-        for (path, bytes) in &product.artifacts {
+        for (path, bytes) in &product.artifacts() {
             if path.starts_with("pipeline/")
                 || path.starts_with("dist/")
                 || path.starts_with(SCHEMAS_PREFIX)
@@ -279,7 +279,7 @@ fn run_dist_artifacts(root: &Path) -> BTreeMap<String, Vec<u8>> {
     let result = run(&graph, &bound, &mut ctx).expect("runs");
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for product in result.products.values() {
-        for (path, bytes) in &product.artifacts {
+        for (path, bytes) in &product.artifacts() {
             if path.starts_with("dist/") {
                 out.insert(path.clone(), bytes.clone());
             }

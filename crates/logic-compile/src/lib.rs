@@ -46,4 +46,5 @@ pub mod graphutil;
 pub mod ingest;
 pub mod ir;
 pub mod projections;
+pub mod relational_core;
 pub mod result_shape;

@@ -24,7 +24,7 @@ use std::sync::Arc;
 
 use arrow_array::{ArrayRef, BinaryArray, Int64Array, RecordBatch, StringArray};
 use arrow_schema::{DataType, Field, Schema};
-use gmeow_gts::model::{Graph, TermKind};
+use gmeow_rdf::RdfDataset;
 use parquet::arrow::ArrowWriter;
 use parquet::basic::Compression;
 use parquet::file::properties::WriterProperties;
@@ -32,6 +32,9 @@ use parquet::file::properties::WriterProperties;
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 use crate::stages::export::read_fold_upstream;
+// The gts-`Graph` arena read shape, materialized over the native carrier — the SAME
+// adapter the `yaml_ld` leaf uses (no per-leaf shim). GTS is exit-only.
+use crate::stages::fold_arena::{Graph, TermKind};
 
 /// The generator's output directory (under the git-ignored dist/ tree).
 pub const PARQUET_DIR: &str = "dist/parquet";
@@ -168,21 +171,21 @@ fn annotations_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
 /// Build the `blobs` record batch: `(digest, bytes)` in insertion order.
 /// Lazy (undecoded) blob payloads surface as empty bytes — the by-reference loss
 /// is intentional (blobs can be multi-TB); the digest stays the join key.
-fn blobs_batch(graph: &Graph) -> Result<RecordBatch, PipelineError> {
-    let mut digest: Vec<String> = Vec::with_capacity(graph.blobs.len());
-    let mut bytes: Vec<Vec<u8>> = Vec::with_capacity(graph.blobs.len());
-    for (d, entry) in &graph.blobs {
-        digest.push(d.clone());
-        bytes.push(entry.cached_bytes().unwrap_or(&[]).to_vec());
-    }
+/// Build the (always-empty) `blobs` record batch.
+///
+/// The carrier transport is RDF only: blob payloads live in the gts archive by
+/// reference, never in the in-memory carrier (the by-reference doctrine). So a
+/// carrier-sourced columnar projection emits no blob rows — `render_parquet` skips the
+/// empty table. The relational blob channel is a gts-archive concern, surfaced by the
+/// terminal gts writer, not this RDF export leaf.
+fn blobs_batch() -> Result<RecordBatch, PipelineError> {
     let schema = Schema::new(vec![
         Field::new("digest", DataType::Utf8, false),
         Field::new("bytes", DataType::Binary, false),
     ]);
-    let byte_refs: Vec<&[u8]> = bytes.iter().map(|b| b.as_slice()).collect();
     let cols: Vec<ArrayRef> = vec![
-        Arc::new(StringArray::from(digest)),
-        Arc::new(BinaryArray::from(byte_refs)),
+        Arc::new(StringArray::from(Vec::<String>::new())),
+        Arc::new(BinaryArray::from(Vec::<&[u8]>::new())),
     ];
     RecordBatch::try_new(Arc::new(schema), cols)
         .map_err(|e| PipelineError::Parse(format!("blobs batch: {e}")))
@@ -207,14 +210,18 @@ fn write_parquet(batch: &RecordBatch) -> Result<Vec<u8>, PipelineError> {
 
 /// Render the per-table Parquet projection of a folded gts graph. Only non-empty
 /// tables are written, keyed by their logical `dist/parquet/<table>.parquet` path.
-pub(crate) fn render_parquet(graph: &Graph) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+pub(crate) fn render_parquet(
+    dataset: &RdfDataset,
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+    let graph = Graph::from_dataset(dataset);
+    let graph = &graph;
     let batches: BTreeMap<&str, RecordBatch> = {
         let mut m: BTreeMap<&str, RecordBatch> = BTreeMap::new();
         m.insert("terms", terms_batch(graph)?);
         m.insert("quads", quads_batch(graph)?);
         m.insert("reifiers", reifiers_batch(graph)?);
         m.insert("annotations", annotations_batch(graph)?);
-        m.insert("blobs", blobs_batch(graph)?);
+        m.insert("blobs", blobs_batch()?);
         m
     };
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -269,7 +276,7 @@ impl Stage for ParquetStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let graph = read_fold_upstream(input.upstream)?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_parquet(&graph)?),
+            product: StageProduct::from_artifacts(self.id(), render_parquet(graph.as_ref())?),
         })
     }
 }
@@ -300,8 +307,9 @@ mod tests {
     #[test]
     fn parquet_tables_reread_with_expected_row_counts() {
         let root = repo_root();
-        let graph = crate::stages::export::read_fold(&root).expect("read fold");
-        let arts = render_parquet(&graph).expect("render");
+        let dataset = crate::stages::export::read_fold(&root).expect("read fold");
+        let graph = Graph::from_dataset(dataset.as_ref());
+        let arts = render_parquet(dataset.as_ref()).expect("render");
 
         // terms and quads are always non-empty for the committed fold.
         assert!(
@@ -320,7 +328,9 @@ mod tests {
             ("quads", graph.quads.len()),
             ("reifiers", graph.reifiers.len()),
             ("annotations", graph.annotations.len()),
-            ("blobs", graph.blobs.len()),
+            // The carrier holds RDF only — blob payloads are by-reference, never in the
+            // in-memory transport — so the blobs table is always empty (and skipped).
+            ("blobs", 0),
         ]);
         for table in TABLES {
             let path = format!("{PARQUET_DIR}/{table}.parquet");
@@ -338,7 +348,7 @@ mod tests {
         }
 
         // Determinism: a second render is byte-identical per table.
-        let arts2 = render_parquet(&graph).expect("render2");
+        let arts2 = render_parquet(dataset.as_ref()).expect("render2");
         assert_eq!(arts, arts2, "parquet render is not deterministic");
     }
 }

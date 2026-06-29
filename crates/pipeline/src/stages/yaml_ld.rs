@@ -8,13 +8,22 @@
 
 use std::collections::BTreeMap;
 
-use gmeow_gts::model::{Graph, Term, TermKind};
+use gmeow_rdf::RdfDataset;
 use oxigraph::model::{Dataset, GraphName, NamedNode, NamedOrBlankNode, Quad, Term as OxTerm};
 use oxigraph::store::Store;
 use serde_json::Value;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+// The gts-`Graph` arena read shape, materialized over the native carrier — the SAME
+// adapter the `parquet` leaf uses (no per-leaf shim). GTS is exit-only.
+use crate::stages::fold_arena::{Graph, Term, TermKind};
+
+// Literal datatype sentinels (formerly `gmeow_gts::model::*`). Read off the native
+// carrier instead of the gts model — GTS is exit-only.
+const RDF_DIR_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
+const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
 /// Logical path of the JSON-LD-star artifact emitted by this stage.
 pub const JSON_LD_PATH: &str = "dist/gmeow.jsonld";
@@ -91,11 +100,11 @@ impl Stage for YamlLdStage {
         "yaml_ld.jsonld_star.v2-yaml-ld"
     }
     fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let gts = crate::stages::snapshot::snapshot_bytes(_input.upstream)?;
-        let graph = gmeow_rdf::gts::read_graph(&gts, true)
-            .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
-        let json = serialize_graph(&graph)?;
-        let yaml = serialize_graph_yaml(&graph, None)?;
+        // THIS run's carrier dataset, read directly off the snapshot product's bundle
+        // (#1132) — no re-parse of the gmeow.gts bytes (GTS is exit-only).
+        let dataset = crate::stages::carrier::snapshot_dataset(_input.upstream)?;
+        let json = serialize_graph(dataset.as_ref())?;
+        let yaml = serialize_graph_yaml(dataset.as_ref(), None)?;
         let preservation = preservation_ledger();
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(JSON_LD_PATH.to_string(), json.into_bytes());
@@ -112,8 +121,15 @@ fn to_json_object(map: BTreeMap<String, Value>) -> Value {
     Value::Object(map.into_iter().collect())
 }
 
-/// Serialize a folded GTS graph to a deterministic JSON-LD-star document.
-pub fn serialize_graph(graph: &Graph) -> Result<String, PipelineError> {
+/// Serialize the carrier dataset to a deterministic JSON-LD-star document.
+pub fn serialize_graph(dataset: &RdfDataset) -> Result<String, PipelineError> {
+    serialize_graph_arena(&Graph::from_dataset(dataset))
+}
+
+/// Serialize an already-materialized fold arena to a deterministic JSON-LD-star
+/// document. The dataset entrypoint above is the production path; this inner form lets
+/// the serializer unit tests drive synthetic arenas directly.
+pub(crate) fn serialize_graph_arena(graph: &Graph) -> Result<String, PipelineError> {
     let mut doc = BTreeMap::new();
     doc.insert("@context".to_string(), build_context());
 
@@ -141,10 +157,10 @@ pub fn serialize_graph(graph: &Graph) -> Result<String, PipelineError> {
 /// style, no anchors/aliases, and an explicit `@context`. The header carries a
 /// YAML language-server schema reference.
 pub fn serialize_graph_yaml(
-    graph: &Graph,
+    dataset: &RdfDataset,
     schema_url: Option<&str>,
 ) -> Result<String, PipelineError> {
-    let json = serialize_graph(graph)?;
+    let json = serialize_graph(dataset)?;
     let value: Value = serde_json::from_str(&json)
         .map_err(|e| PipelineError::Decode(format!("parse JSON-LD for YAML: {e}")))?;
     let body = serde_yaml::to_string(&value)
@@ -388,9 +404,8 @@ fn build_triple_term_value(
     annotations_of: &AnnotationIndex,
 ) -> Result<Value, PipelineError> {
     let (s, p, o) = term
-        .reifier
-        .and_then(|rid| graph.reifier(rid))
-        .ok_or_else(|| PipelineError::Parse("triple term with no reifier binding".to_string()))?;
+        .triple
+        .ok_or_else(|| PipelineError::Parse("triple term with no components".to_string()))?;
     build_nested_triple_node(graph, s, p, o, reifier_of, annotations_of)
 }
 
@@ -435,18 +450,22 @@ fn term_to_value(graph: &Graph, term: &Term) -> Result<Value, PipelineError> {
                 Value::String(term.value.clone().unwrap_or_default()),
             );
             let datatype = graph.datatype_iri(term);
-            if datatype == gmeow_gts::model::RDF_DIR_LANG_STRING {
+            // Key @language / @direction off the carrier's FIRST-CLASS language /
+            // direction fields, not solely the datatype IRI: the native model carries a
+            // directional-language string as `rdf:langString` + a separate `direction`,
+            // so a datatype-only test would drop @direction.
+            if datatype == RDF_DIR_LANG_STRING || term.direction.is_some() {
                 if let Some(lang) = &term.lang {
                     map.insert("@language".to_string(), Value::String(lang.clone()));
                 }
                 if let Some(dir) = &term.direction {
                     map.insert("@direction".to_string(), Value::String(dir.clone()));
                 }
-            } else if datatype == gmeow_gts::model::RDF_LANG_STRING {
+            } else if datatype == RDF_LANG_STRING || term.lang.is_some() {
                 if let Some(lang) = &term.lang {
                     map.insert("@language".to_string(), Value::String(lang.clone()));
                 }
-            } else if datatype != gmeow_gts::model::XSD_STRING {
+            } else if datatype != XSD_STRING {
                 map.insert("@type".to_string(), Value::String(curie(&datatype)));
             }
             Ok(to_json_object(map))
@@ -508,18 +527,19 @@ fn simple_term_value(graph: &Graph, term: &Term) -> Result<Value, PipelineError>
                 Value::String(term.value.clone().unwrap_or_default()),
             );
             let datatype = graph.datatype_iri(term);
-            if datatype == gmeow_gts::model::RDF_DIR_LANG_STRING {
+            // Same first-class language/direction handling as `term_to_value`.
+            if datatype == RDF_DIR_LANG_STRING || term.direction.is_some() {
                 if let Some(lang) = &term.lang {
                     map.insert("@language".to_string(), Value::String(lang.clone()));
                 }
                 if let Some(dir) = &term.direction {
                     map.insert("@direction".to_string(), Value::String(dir.clone()));
                 }
-            } else if datatype == gmeow_gts::model::RDF_LANG_STRING {
+            } else if datatype == RDF_LANG_STRING || term.lang.is_some() {
                 if let Some(lang) = &term.lang {
                     map.insert("@language".to_string(), Value::String(lang.clone()));
                 }
-            } else if datatype != gmeow_gts::model::XSD_STRING {
+            } else if datatype != XSD_STRING {
                 map.insert("@type".to_string(), Value::String(curie(&datatype)));
             }
             Ok(to_json_object(map))
@@ -585,7 +605,10 @@ fn term_sort_key(graph: &Graph, term: &Term) -> String {
             key.push_str(&format!("^^{}", graph.datatype_iri(term)));
             key
         }
-        TermKind::Triple => format!("triple:{}", term.reifier.unwrap_or(usize::MAX)),
+        TermKind::Triple => match term.triple {
+            Some((s, p, o)) => format!("triple:{s}:{p}:{o}"),
+            None => "triple:none".to_string(),
+        },
     }
 }
 
@@ -1180,16 +1203,28 @@ pub fn roundtrip_isomorphic(
 mod tests {
     use super::*;
 
-    use gmeow_gts::model::{Term, TermKind};
+    // The serializer-fixture builders construct synthetic gts `Graph`s as ground
+    // truth (gts is the archive boundary; these are test fixtures, not a transport)
+    // and bridge them to the native carrier via [`gts_graph_to_dataset`] before
+    // feeding the production `serialize_graph` entrypoint.
+    use gmeow_gts::model::{Graph, Term, TermKind};
     use gmeow_rdf::oxigraph::rdf_quad_from_oxigraph;
     use gmeow_rdf::{
-        BlankScope, RdfDatasetBuilder, RdfLiteral, RdfLookaside, RdfTerm, RdfTextDirection,
-        RdfTriple, TermId,
+        BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfLookaside, RdfTerm,
+        RdfTextDirection, RdfTriple, TermId,
     };
 
     use std::collections::HashSet;
     use std::path::PathBuf;
     use std::sync::Arc;
+
+    /// Bridge a synthetic gts `Graph` fixture into the native carrier dataset the
+    /// production serializer consumes (round-trip through the lossless N-Quads codec).
+    fn gts_graph_to_dataset(g: &Graph) -> Arc<RdfDataset> {
+        let nq = gmeow_gts::nquads::to_nquads(g);
+        gmeow_rdf::dataset_from_bytes(nq.as_bytes(), gmeow_rdf::NativeRdfFormat::NQuads)
+            .expect("gts fixture N-Quads parse into carrier dataset")
+    }
 
     fn iri_term(value: &str) -> Term {
         Term {
@@ -1236,6 +1271,7 @@ mod tests {
         }
     }
 
+    #[allow(dead_code)]
     fn dir_lang_term(value: &str, lang: &str, direction: &str) -> Term {
         Term {
             kind: TermKind::Literal,
@@ -1325,7 +1361,7 @@ mod tests {
     #[test]
     fn minimal_rdf12_roundtrips_through_oxigraph() {
         let graph = minimal_graph();
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
 
         let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
         let actual = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1362,7 +1398,7 @@ mod tests {
         graph.annotations.push((3, 5, 6));
         graph.annotations.push((4, 7, 8));
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
         let actual = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
 
@@ -1376,31 +1412,40 @@ mod tests {
     #[test]
     fn serialization_is_byte_deterministic() {
         let graph = minimal_graph();
-        let first = serialize_graph(&graph).expect("serialize first");
-        let second = serialize_graph(&graph).expect("serialize second");
+        let first =
+            serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize first");
+        let second =
+            serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize second");
         assert_eq!(first, second, "JSON-LD output must be byte-deterministic");
     }
 
     #[test]
     fn directional_language_string_emits_direction() {
-        let mut graph = Graph::default();
-        graph.terms.push(iri_term("https://example.org/s"));
-        graph.terms.push(iri_term("https://example.org/p"));
-        graph.terms.push(dir_lang_term("hello", "en", "ltr"));
-        graph.quads.push((0, 1, 2, None));
+        // Build the carrier directly from RDF 1.2 directional-language N-Quads
+        // (`"lex"@lang--ltr`) — the production path. (The gts→N-Quads fixture bridge
+        // does not carry base direction, so this exercises the native carrier instead.)
+        let nq = b"<https://example.org/s> <https://example.org/p> \"hello\"@en--ltr .\n";
+        let dataset = gmeow_rdf::dataset_from_bytes(nq, gmeow_rdf::NativeRdfFormat::NQuads)
+            .expect("parse directional-language N-Quads into the carrier");
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(dataset.as_ref()).expect("serialize");
         assert!(
             json.contains("\"@direction\": \"ltr\""),
             "directional language literal must emit @direction: {json}"
+        );
+        assert!(
+            json.contains("\"@language\": \"en\""),
+            "directional language literal must also emit @language: {json}"
         );
     }
 
     #[test]
     fn yaml_ld_is_byte_deterministic() {
         let graph = minimal_graph();
-        let first = serialize_graph_yaml(&graph, None).expect("serialize first");
-        let second = serialize_graph_yaml(&graph, None).expect("serialize second");
+        let first = serialize_graph_yaml(gts_graph_to_dataset(&graph).as_ref(), None)
+            .expect("serialize first");
+        let second = serialize_graph_yaml(gts_graph_to_dataset(&graph).as_ref(), None)
+            .expect("serialize second");
         assert_eq!(first, second, "YAML-LD output must be byte-deterministic");
     }
 
@@ -1505,8 +1550,10 @@ mod tests {
             "seeds must produce different quad append orders"
         );
 
-        let json_a = serialize_graph(&graph_a).expect("serialize graph A");
-        let json_b = serialize_graph(&graph_b).expect("serialize graph B");
+        let json_a =
+            serialize_graph(gts_graph_to_dataset(&graph_a).as_ref()).expect("serialize graph A");
+        let json_b =
+            serialize_graph(gts_graph_to_dataset(&graph_b).as_ref()).expect("serialize graph B");
         assert_eq!(
             json_a, json_b,
             "JSON-LD-star output must be identical under different hash-map seeds"
@@ -1523,8 +1570,10 @@ mod tests {
         let graph_a = build_nontrivial_graph_with_seed(seed_a);
         let graph_b = build_nontrivial_graph_with_seed(seed_b);
 
-        let yaml_a = serialize_graph_yaml(&graph_a, None).expect("serialize YAML-LD A");
-        let yaml_b = serialize_graph_yaml(&graph_b, None).expect("serialize YAML-LD B");
+        let yaml_a = serialize_graph_yaml(gts_graph_to_dataset(&graph_a).as_ref(), None)
+            .expect("serialize YAML-LD A");
+        let yaml_b = serialize_graph_yaml(gts_graph_to_dataset(&graph_b).as_ref(), None)
+            .expect("serialize YAML-LD B");
         assert_eq!(
             yaml_a, yaml_b,
             "YAML-LD-star output must be identical under different hash-map seeds"
@@ -1534,7 +1583,8 @@ mod tests {
     #[test]
     fn yaml_ld_has_explicit_context_and_no_anchors() {
         let graph = minimal_graph();
-        let yaml = serialize_graph_yaml(&graph, None).expect("serialize YAML-LD");
+        let yaml = serialize_graph_yaml(gts_graph_to_dataset(&graph).as_ref(), None)
+            .expect("serialize YAML-LD");
         assert!(
             yaml.contains("@context"),
             "YAML-LD must carry an explicit @context: {yaml}"
@@ -1559,7 +1609,8 @@ mod tests {
     #[test]
     fn yaml_ld_roundtrips_through_oxigraph() {
         let graph = minimal_graph();
-        let yaml = serialize_graph_yaml(&graph, None).expect("serialize YAML-LD");
+        let yaml = serialize_graph_yaml(gts_graph_to_dataset(&graph).as_ref(), None)
+            .expect("serialize YAML-LD");
         // The test parser works over JSON-LD-star; convert YAML back to JSON first.
         let yaml_value: serde_yaml::Value =
             serde_yaml::from_str(&yaml).expect("parse emitted YAML-LD");
@@ -1589,7 +1640,7 @@ mod tests {
         graph.reifiers.push((3, (0, 1, 2)));
         graph.annotations.push((3, 4, 5));
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
 
         let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
@@ -1620,7 +1671,7 @@ mod tests {
         graph.reifiers.push((3, (0, 1, 2)));
         graph.annotations.push((3, 4, 5));
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
 
         let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
@@ -1651,7 +1702,7 @@ mod tests {
         graph.reifiers.push((3, (0, 1, 2)));
         graph.annotations.push((3, 4, 5));
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
 
         let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
@@ -1701,7 +1752,7 @@ mod tests {
         graph.reifiers.push((3, (0, 1, 2)));
         graph.annotations.push((3, 4, 5));
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
             .expect("downcast JSON-LD-star to GMEOW statement metadata");
 
@@ -1775,7 +1826,7 @@ mod tests {
         graph.reifiers.push((3, (0, 1, 2)));
         graph.annotations.push((3, 4, 5));
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
             .expect("downcast literal-valued JSON-LD-star");
         let dataset = parse_nquads(&nquads);
@@ -1816,7 +1867,7 @@ mod tests {
         graph.reifiers.push((3, (0, 1, 2)));
         graph.annotations.push((3, 4, 5));
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
             .expect("downcast simple-literal JSON-LD-star");
 
@@ -1905,7 +1956,7 @@ mod tests {
         graph.reifiers.push((3, (0, 1, 2)));
         graph.annotations.push((3, 4, 6));
 
-        let json = serialize_graph(&graph).expect("serialize");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
             .expect("downcast schema-org-like JSON-LD-star");
 
@@ -2134,7 +2185,8 @@ mod tests {
         let dataset = rdf_dataset_from_oxigraph_dataset(&original)
             .expect("convert committed artifact to RdfDataset");
         let graph = graph_from_rdf_dataset(&dataset).expect("fold committed artifact to GTS graph");
-        let json = serialize_graph(&graph).expect("serialize GTS graph to JSON-LD-star");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref())
+            .expect("serialize GTS graph to JSON-LD-star");
         let roundtrip = parse_jsonld_star(json.as_bytes())
             .expect("parse JSON-LD-star back to oxigraph dataset");
 
@@ -2162,7 +2214,8 @@ mod tests {
         let dataset = rdf_dataset_from_oxigraph_dataset(&original)
             .expect("convert dist JSON-LD-star to RdfDataset");
         let graph = graph_from_rdf_dataset(&dataset).expect("fold dist artifact to GTS graph");
-        let json = serialize_graph(&graph).expect("re-serialize GTS graph to JSON-LD-star");
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref())
+            .expect("re-serialize GTS graph to JSON-LD-star");
         let roundtrip = parse_jsonld_star(json.as_bytes())
             .expect("parse re-serialized JSON-LD-star back to oxigraph dataset");
 
@@ -2428,7 +2481,8 @@ mod tests {
     #[test]
     fn roundtrip_isomorphic_accepts_emitted_jsonld() {
         let graph = minimal_graph();
-        let json = serialize_graph(&graph).expect("serialize JSON-LD-star");
+        let json =
+            serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize JSON-LD-star");
         let nquads = gmeow_gts::nquads::to_nquads(&graph);
         assert!(
             roundtrip_isomorphic(nquads.as_bytes(), json.as_bytes(), "jsonld")
@@ -2440,7 +2494,8 @@ mod tests {
     #[test]
     fn roundtrip_isomorphic_accepts_emitted_yamlld() {
         let graph = minimal_graph();
-        let yaml = serialize_graph_yaml(&graph, None).expect("serialize YAML-LD-star");
+        let yaml = serialize_graph_yaml(gts_graph_to_dataset(&graph).as_ref(), None)
+            .expect("serialize YAML-LD-star");
         let nquads = gmeow_gts::nquads::to_nquads(&graph);
         assert!(
             roundtrip_isomorphic(nquads.as_bytes(), yaml.as_bytes(), "yamlld")

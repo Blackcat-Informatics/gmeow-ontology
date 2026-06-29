@@ -17,6 +17,7 @@
 //! claims `ExactPreservation` but dropped content.  [`report::build_projection_report`]
 //! aggregates the loss ledger.
 
+pub mod correspondence;
 // The correspondence overclaim gate (relation/morphism vs emitted predicate; P5).
 pub mod correspondence_gate;
 // The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).

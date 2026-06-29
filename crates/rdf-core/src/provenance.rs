@@ -256,6 +256,7 @@ pub struct AssertionOccurrence {
 /// Equal names yield the same id (idempotent). Names are opaque strings from the
 /// caller's perspective (they could be filesystem paths, slice IRIs, or any
 /// label); the kernel does not interpret them.
+#[derive(Debug, Clone)]
 pub struct UnitInterner {
     /// Dense table of unit names, addressed by `UnitId::index`.
     names: Vec<String>,
@@ -313,6 +314,7 @@ impl Default for UnitInterner {
 /// Interner for `ArtifactId`s — maps a logical artifact path to a dense numeric
 /// id. The path is a string the caller controls (e.g. a repo-relative file path
 /// or a content-addressed digest); the kernel does not interpret it.
+#[derive(Debug, Clone)]
 pub struct ArtifactInterner {
     /// Dense table of artifact logical paths.
     paths: Vec<String>,
@@ -371,6 +373,7 @@ impl Default for ArtifactInterner {
 ///
 /// Two quads asserted by the same set of `(unit, artifact)` pairs share an
 /// `OriginSetId` regardless of assertion order.
+#[derive(Debug, Clone)]
 pub struct OriginSetInterner {
     /// Dense table of interned origin sets, as sorted `Vec`s.
     sets: Vec<Vec<(UnitId, ArtifactId)>>,
@@ -441,6 +444,7 @@ impl Default for OriginSetInterner {
 /// - There is no occurrence with an unknown/unset origin — any such occurrence
 ///   must not be inserted (the no-optionality doctrine means you return `Err`
 ///   rather than inserting a placeholder).
+#[derive(Debug, Clone)]
 pub struct DatasetProvenance {
     /// Interner for compilation/source units.
     pub units: UnitInterner,
@@ -518,6 +522,56 @@ impl DatasetProvenance {
     /// The kind of a unit, or `None` if the id is out of range.
     pub fn unit_kind(&self, id: UnitId) -> Option<&OriginKind> {
         self.unit_kinds.get(id.index())
+    }
+
+    /// A deterministic, runtime-id-free **public projection** of this provenance,
+    /// for content addressing (S0.5).
+    ///
+    /// Every row is expressed through the interners' PUBLIC strings — unit NAMES and
+    /// artifact PATHS — and the `OriginKind` string; the runtime-only numeric
+    /// [`UnitId`] / [`ArtifactId`] / [`OriginSetId`] NEVER appear. The rows are sorted
+    /// so the projection is independent of the order units/artifacts were interned or
+    /// occurrences recorded: re-allocating the same public provenance in a different
+    /// internal order yields the identical projection (and so the identical digest).
+    ///
+    /// The shape is `(quad_index, unit_name, unit_kind, artifact_path, location)` per
+    /// occurrence, sorted and deduplicated. The `quad_index` is the dense ordinal of
+    /// the asserted quad (`QuadHandle::index()`) — it is CONTENT-STABLE within one
+    /// frozen `RdfDataset` (derived from freeze-sort order, not insertion order) and is
+    /// included so that two occurrences identical in `(unit, artifact, location)` but
+    /// asserting DIFFERENT quads are preserved as distinct rows rather than collapsing.
+    ///
+    /// Two `DatasetProvenance`s with the same public provenance — regardless of
+    /// internal id numbering — produce equal projections.
+    #[must_use]
+    pub fn public_projection(&self) -> Vec<(usize, String, String, String, Option<String>)> {
+        let mut rows: Vec<(usize, String, String, String, Option<String>)> = self
+            .occurrences
+            .iter()
+            .map(|occ| {
+                let quad_index = occ.quad.index();
+                let unit_name = self.units.name(occ.unit).to_owned();
+                // A unit always has a registered kind for a gate-valid provenance; an
+                // out-of-range id (forged, never minted by `register_unit`) projects as
+                // the explicit "unknown-kind" marker rather than panicking, so the
+                // public projection is total.
+                let kind = self
+                    .unit_kind(occ.unit)
+                    .map(OriginKind::to_string)
+                    .unwrap_or_else(|| "unknown-kind".to_owned());
+                let artifact_path = self.artifacts.path(occ.artifact).to_owned();
+                (
+                    quad_index,
+                    unit_name,
+                    kind,
+                    artifact_path,
+                    occ.location.clone(),
+                )
+            })
+            .collect();
+        rows.sort();
+        rows.dedup();
+        rows
     }
 }
 
