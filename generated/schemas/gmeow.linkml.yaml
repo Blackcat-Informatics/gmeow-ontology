@@ -18588,9 +18588,6 @@ enums:
       stage-export-json-schema:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-json-schema
         title: 'export: json schema'
-      stage-export-logic:
-        meaning: https://blackcatinformatics.ca/gmeow/stage-export-logic
-        title: 'export: logic'
       stage-export-lpg:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-lpg
         title: 'export: LPG'

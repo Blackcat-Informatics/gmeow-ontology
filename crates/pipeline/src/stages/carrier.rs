@@ -273,6 +273,67 @@ fn assemble_carrier(
     Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
 }
 
+/// Assemble the OBJECT-LEVEL reasoned EDB: the authored default graph plus the
+/// statement / import / alignment / logic / relational-core / correspondence named
+/// graphs, in the EXACT graph layout [`assemble_carrier`] uses (so the reasoned
+/// closure's worlds match the bundle's).
+///
+/// The meta/report graphs (metadata, slice-analysis, verify, documentation,
+/// diagnostics, conformance, projection-ledger, provenance) are EXCLUDED: they assert
+/// no object-level axioms, so they contribute zero inferences — reasoning over the
+/// full fold vs this projection is isomorphic up to renaming of the content-addressed
+/// Skolem witnesses. Excluding them makes the closure (and its witness IRIs) a
+/// function of the ontology alone, not of its self-description. This is the single
+/// EDB the sole `stage-reason` pass reasons over; it depends only on the
+/// `stage-statements` and `stage-compile-logic` products plus the on-disk authored /
+/// imports / alignments sources — never on the snapshot, so reasoning need not wait
+/// on carrier assembly.
+pub(crate) fn assemble_object_level_edb(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    let authored = load_authored_default(root)?;
+    let authored_canon = canonicalize_nq(&authored, "base")?;
+    reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
+    let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
+        .map_err(|e| stage_err(&format!("base parse: {e}")))?;
+
+    let imports = load_imports(root)?;
+    let alignments = load_alignments(root)?;
+    let rdf12 = upstream
+        .get("stage-statements")
+        .and_then(|p| p.artifact(RDF12_PATH))
+        .ok_or_else(|| stage_err("missing statements RDF 1.2 artifact"))?
+        .to_vec();
+    let compile = upstream
+        .get("stage-compile-logic")
+        .ok_or_else(|| stage_err("missing stage-compile-logic product"))?;
+    let logic_iri = crate::stages::compile_logic::GRAPH_LOGIC;
+    let rc_iri = crate::stages::compile_logic::GRAPH_RELATIONAL_CORE;
+    let corr_iri = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
+
+    let datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
+        base,
+        parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
+        parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
+        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
+        rooted_in_graph(
+            &compile.bundle().dataset().project_named_graph(logic_iri),
+            logic_iri,
+        )?,
+        rooted_in_graph(
+            &compile.bundle().dataset().project_named_graph(rc_iri),
+            rc_iri,
+        )?,
+        rooted_in_graph(
+            &compile.bundle().dataset().project_named_graph(corr_iri),
+            corr_iri,
+        )?,
+    ];
+    let refs: Vec<&gmeow_rdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
+    Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
+}
+
 /// Serialize the fully-assembled carrier to the `dist`-profile `gmeow.gts` bytes: fold
 /// the carrier into the snapshot frame (native ingestion), staple the JSON-LD-star /
 /// OKF / caller blobs, and emit. The SOLE serialization of the snapshot.
