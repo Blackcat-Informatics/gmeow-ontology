@@ -33,7 +33,7 @@ gts = ["dep:ciborium", "dep:gmeow-gts", "gmeow-gts/rdf-codecs", "dep:gmeow-rdf-e
 # statement-layer helper (`native_codecs::fold_statement_layer`, #909), so it
 # requires `gts`. This is a one-directional dep (oxigraph→gts); `gts` itself stays
 # oxigraph-free per the #885 ring-fence.
-oxigraph = ["gts", "dep:oxigraph", "dep:gmeow-rdf-events"]
+oxigraph = ["gts", "dep:oxigraph", "dep:gmeow-rdf-events", "dep:gmeow-sparql-eval"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
 # (gmeow-logic / gmeow-shacl / gmeow-validate); only maturin enables it. This is
@@ -72,6 +72,21 @@ pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], option
 # The snapshot signing path constructs a SigningKey from the 32 raw Ed25519 bytes
 # the Python `gts.Signer` carries; same major as gmeow-gts links. python-only.
 ed25519-dalek = { version = "2", optional = true }
+# The native SPARQL evaluator (purrdf S6, #912). Pulled ONLY by the `oxigraph`
+# feature: it is the sanity-check engine for the maintainer-only golden-capture
+# binary (`src/bin/capture_sparql_goldens.rs`, EPIC #906 Task 2), which freezes
+# the oxigraph oracle's outputs as committed goldens. The native engine's own crate
+# stays oxigraph-free; this is a one-directional dev/maint dep (capture→native).
+gmeow-sparql-eval = { path = "../sparql-eval", optional = true }
+
+# Maintainer-only golden-capture binary (EPIC #906 Task 2). Freezes the oxigraph
+# SPARQL oracle over the corpus as committed goldens under
+# crates/sparql-conformance/tests/goldens/. Requires the oxigraph oracle present;
+# `oxigraph` already implies `gts`.
+[[bin]]
+name = "capture_sparql_goldens"
+path = "src/bin/capture_sparql_goldens.rs"
+required-features = ["oxigraph"]
 
 [dev-dependencies]
 # Rich colored line-diffs on assert_eq! failure (#871). Drop-in: a shadowing
@@ -82,10 +97,6 @@ gmeow-gts = "0.9.9"
 # Same oxigraph build the kernel links (rdf-12, no extra codecs) so proptest
 # round-trips drive the identical engine the production codecs use.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
-# The native SPARQL evaluator (purrdf S6, #912), used ONLY by the differential
-# parity test (tests/sparql_eval_parity.rs) — kept a DEV-dependency so the native
-# engine's own crate stays oxigraph-free while we diff it against oxigraph here.
-gmeow-sparql-eval = { path = "../sparql-eval" }
 proptest = "1"
 # Acceleration-program baselines (#630/#819 C1 Task 7); light feature set matching
 # the sibling crates (logic/shacl/validate): criterion's plotters/rayon defaults are

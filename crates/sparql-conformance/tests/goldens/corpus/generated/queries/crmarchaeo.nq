@@ -1,0 +1,3 @@
+<https://blackcatinformatics.ca/gmeow/fixtureHumanTimbreObservation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.cidoc-crm.org/crmarchaeo/S4_Observation> .
+<https://blackcatinformatics.ca/gmeow/fixtureMIRTimbreObservation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.cidoc-crm.org/crmarchaeo/S4_Observation> .
+<https://blackcatinformatics.ca/gmeow/fixtureTimbreToneEvent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.cidoc-crm.org/crmarchaeo/A2_Stratigraphic_Volume_Unit> .

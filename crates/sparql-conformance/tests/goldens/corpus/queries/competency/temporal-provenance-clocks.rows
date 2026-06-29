@@ -1,0 +1,5 @@
+clock
+[Some(Iri("https://blackcatinformatics.ca/gmeow/assertedAt"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/recordedNoLaterThan"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/validFrom"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/validUntil"))]

@@ -1,0 +1,6 @@
+<https://blackcatinformatics.ca/gmeow/tagReview> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept> .
+<https://blackcatinformatics.ca/gmeow/tagReview> <http://www.w3.org/2004/02/skos/core#prefLabel> "review"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/tagTodo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept> .
+<https://blackcatinformatics.ca/gmeow/tagTodo> <http://www.w3.org/2004/02/skos/core#prefLabel> "todo"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/tagUrgent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept> .
+<https://blackcatinformatics.ca/gmeow/tagUrgent> <http://www.w3.org/2004/02/skos/core#prefLabel> "urgent"@x-gmeow-english .
