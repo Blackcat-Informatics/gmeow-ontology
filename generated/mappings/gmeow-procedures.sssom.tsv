@@ -4,7 +4,7 @@
 # mapping_tool: gmeow regenerate (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
-# comment: "Plan \u27c2 execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, and OBI. GMEOW models the distinction natively and bridges by reference (Principle 5)."
+# comment: "Plan \u27c2 execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, OBI, BPMN, RO-Crate, and the workflow engines Airflow / CWL / WDL / Temporal / Nextflow. gmeow:Procedure is a logic:Plan; every engine surface is a lossy by-reference lowering of that canonical process model (Principle 5)."
 # curie_map:
 #   bpmn: http://www.omg.org/spec/BPMN/20100524/MODEL#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
@@ -31,9 +31,19 @@ gmeow:Procedure	skos:closeMatch	pplan:Plan	semapv:ManualMappingCuration	0.85	P-P
 gmeow:Procedure	skos:closeMatch	prov:Plan	semapv:ManualMappingCuration	0.8	PROV-O Plan; GMEOW Procedure is typed as InformationObject and carries step structure.
 gmeow:Procedure	skos:closeMatch	schema:HowTo	semapv:ManualMappingCuration	0.85	schema.org HowTo; GMEOW Procedure is broader (includes protocols, CI, business processes).
 gmeow:Procedure	skos:closeMatch	schema:Recipe	semapv:ManualMappingCuration	0.9	schema.org Recipe is a Procedure of type recipe.
+gmeow:Procedure	skos:relatedMatch	https://airflow.apache.org/concept/DAG	semapv:ManualMappingCuration	0.6	Apache Airflow DAG (by reference, no canonical RDF): a procedure is a DAG of tasks. Lossy lowering — Airflow forbids cycles (a logic:Iteration loop must unroll or error) and has no per-outcome compensation (omitted).
+gmeow:Procedure	skos:relatedMatch	https://openwdl.org/concept/Workflow	semapv:ManualMappingCuration	0.6	Workflow Description Language (WDL) workflow (by reference, no canonical RDF): a procedure is a WDL workflow of calls. Lossy lowering of the canonical plan.
+gmeow:Procedure	skos:relatedMatch	https://temporal.io/concept/Workflow	semapv:ManualMappingCuration	0.55	Temporal Workflow (by reference, no canonical RDF): a procedure is a Temporal workflow definition. Temporal DOES express loops and compensation (saga) imperatively, so the lowering is closer for control flow but is a code surface, not a declarative spec — carried by reference only.
+gmeow:Procedure	skos:relatedMatch	https://w3id.org/cwl/cwl#Workflow	semapv:ManualMappingCuration	0.6	Common Workflow Language Workflow (by reference, no stable RDF term IRIs): a procedure is a CWL workflow. Lossy — CWL is acyclic dataflow (a logic:Iteration loop must unroll) and carries no compensation (omitted).
+gmeow:Procedure	skos:relatedMatch	https://www.nextflow.io/concept/Workflow	semapv:ManualMappingCuration	0.6	Nextflow workflow (by reference, no canonical RDF): a procedure is a Nextflow dataflow workflow of processes. Lossy — Nextflow concurrency is channel-implicit (a logic:ConcurrentComposition serializes in the spec view) and there is no compensation primitive (omitted).
 gmeow:ProcedureStep	skos:closeMatch	opmw:WorkflowTemplateProcess	semapv:ManualMappingCuration	0.75	OPMW WorkflowTemplateProcess; GMEOW ProcedureStep is the atomic step in a plan.
 gmeow:ProcedureStep	skos:closeMatch	pplan:Step	semapv:ManualMappingCuration	0.85	P-Plan Step; GMEOW ProcedureStep adds stepType values and subprocess composition.
 gmeow:ProcedureStep	skos:closeMatch	schema:HowToStep	semapv:ManualMappingCuration	0.85	schema.org HowToStep; GMEOW ProcedureStep adds control-flow and data-flow relators.
+gmeow:ProcedureStep	skos:relatedMatch	https://airflow.apache.org/concept/Task	semapv:ManualMappingCuration	0.6	Apache Airflow Task (by reference): a procedure step is an Airflow task node in the DAG.
+gmeow:ProcedureStep	skos:relatedMatch	https://openwdl.org/concept/Task	semapv:ManualMappingCuration	0.6	Workflow Description Language (WDL) task (by reference): a procedure step is a WDL task.
+gmeow:ProcedureStep	skos:relatedMatch	https://temporal.io/concept/Activity	semapv:ManualMappingCuration	0.55	Temporal Activity (by reference): a procedure step is a Temporal activity invoked by the workflow.
+gmeow:ProcedureStep	skos:relatedMatch	https://w3id.org/cwl/cwl#WorkflowStep	semapv:ManualMappingCuration	0.6	Common Workflow Language WorkflowStep (by reference): a procedure step is a CWL workflow step.
+gmeow:ProcedureStep	skos:relatedMatch	https://www.nextflow.io/concept/Process	semapv:ManualMappingCuration	0.6	Nextflow process (by reference): a procedure step is a Nextflow process node consuming/producing channels.
 gmeow:hasProcedureStep	skos:closeMatch	schema:step	semapv:ManualMappingCuration	0.85	schema.org step — the steps of a HowTo.
 gmeow:stepInput	skos:closeMatch	pplan:Input	semapv:ManualMappingCuration	0.8	P-Plan Input variable; GMEOW stepInput is a property pointing to any entity.
 gmeow:stepInput	skos:closeMatch	prov:used	semapv:ManualMappingCuration	0.7	PROV-O used — an activity consumes an entity; GMEOW stepInput is the plan-level consumption.
