@@ -1,0 +1,21 @@
+{
+  "per_composition": [],
+  "per_correspondence": [
+    {
+      "correspondence": "https://gmeow.example/corr/lens",
+      "law": {
+        "status": "pass"
+      },
+      "mnemomorphism": {
+        "status": "pass"
+      },
+      "overclaim": {
+        "status": "pass"
+      },
+      "round_trip": {
+        "reason": "logic:WellBehavedLens makes no full round-trip claim",
+        "status": "not_applicable"
+      }
+    }
+  ]
+}
