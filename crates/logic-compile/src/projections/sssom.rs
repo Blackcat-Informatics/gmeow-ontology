@@ -20,7 +20,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
 use crate::ingest::DslView;
-use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+use crate::ir::{CorrespondenceRelation, MorphismClass};
+use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::{correspondence_result, ProjectionResult};
 
@@ -70,13 +71,17 @@ const SSSOM_ALWAYS: &[&str] = &[
 
 /// One `gmeow:TermEquivalence` cell — compiles to exactly one SSSOM row. IRIs are
 /// kept full and absolute; CURIE-shortening happens at render time.
+///
+/// `pub(crate)` (with the frontend-relevant fields exposed) so the
+/// `logic:Correspondence` transpiler materializes one typed node per cell from THE SAME
+/// extraction the SSSOM renderer reads — no second, drifting read of the store.
 #[derive(Debug, Clone)]
-struct EquivalenceCell {
-    subject: String,
-    predicate: String,
-    obj: String,
-    confidence: Option<f64>,
-    justification: Option<String>,
+pub(crate) struct EquivalenceCell {
+    pub(crate) subject: String,
+    pub(crate) predicate: String,
+    pub(crate) obj: String,
+    pub(crate) confidence: Option<f64>,
+    pub(crate) justification: Option<String>,
     comment: String,
     /// Structured per-correspondence drop notes (`gmeow:lossyDrop`) — the specific
     /// constructs this by-reference lowering does not carry (e.g. a loop unrolls, a
@@ -128,9 +133,10 @@ pub fn lower_sssom(
     view: &DslView,
     version: &str,
     release_date: &str,
+    lookup: &CorrespondenceLookup,
 ) -> Result<SssomLowering, String> {
     let sources = collect_sources(view);
-    let ledger = build_ledger(&sources)?;
+    let ledger = build_ledger(&sources, lookup)?;
     let sets = render_sets(&sources, version, release_date)?;
     Ok(SssomLowering { sets, ledger })
 }
@@ -139,7 +145,11 @@ pub fn lower_sssom(
 /// asserts. The predicate IS the relation for the 1:1 lattice band; this lets the
 /// overclaim gate refuse, e.g., a `relatedMatch`-classed predicate masquerading as an
 /// `exactMatch` token were the two ever to disagree.
-fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
+///
+/// `pub(crate)` so the `logic:Correspondence` frontend transpiler
+/// ([`crate::projections::correspondence_frontend`]) materializes its typed relation from
+/// THE SAME logic the SSSOM ledger gate uses — one derivation, never a fork.
+pub(crate) fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
     let local = predicate
         .rsplit(['#', '/', ':'])
         .next()
@@ -155,27 +165,45 @@ fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
     }
 }
 
+/// The `(relation, morphism class)` band an SSSOM 1:1 cell occupies, given its align
+/// predicate. The SSSOM band is a satisfaction-preserving lens, never a bridge: the
+/// morphism class is the strongest rung the relation can lawfully claim (an honest
+/// under-approximation — composition can only weaken it).
+///
+/// `pub(crate)` so the correspondence frontend transpiler and the SSSOM ledger gate
+/// derive the band identically (DRY: the single mapping `predicate → (relation, class)`).
+pub(crate) fn sssom_band(predicate: &str) -> (CorrespondenceRelation, MorphismClass) {
+    let relation = sssom_relation(predicate);
+    let mclass = match relation {
+        CorrespondenceRelation::Equiv => MorphismClass::WellBehavedLens,
+        CorrespondenceRelation::Subsumes | CorrespondenceRelation::SubsumedBy => {
+            MorphismClass::LossyLens
+        }
+        CorrespondenceRelation::Overlaps => MorphismClass::AffineCorrespondence,
+        _ => MorphismClass::AffineCorrespondence,
+    };
+    (relation, mclass)
+}
+
 /// Build one preservation row per `gmeow:TermEquivalence` correspondence, running the
-/// overclaim gate over each emitted predicate.
-fn build_ledger(sources: &SssomSources) -> Result<Vec<ProjectionResult>, String> {
+/// overclaim gate over each emitted predicate. The typed `(relation, morphism class,
+/// morphism kind)` is CONSUMED from the materialized correspondence set (`lookup`) — the
+/// single source of truth — not re-derived inline here (F5 Task 2).
+fn build_ledger(
+    sources: &SssomSources,
+    lookup: &CorrespondenceLookup,
+) -> Result<Vec<ProjectionResult>, String> {
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     for cell in &sources.equivalences {
-        let relation = sssom_relation(&cell.predicate);
-        // The SSSOM 1:1 band is a satisfaction-preserving lens, never a bridge; the
-        // morphism class is the strongest rung the relation can lawfully claim.
-        let mclass = match relation {
-            CorrespondenceRelation::Equiv => MorphismClass::WellBehavedLens,
-            CorrespondenceRelation::Subsumes | CorrespondenceRelation::SubsumedBy => {
-                MorphismClass::LossyLens
-            }
-            CorrespondenceRelation::Overlaps => MorphismClass::AffineCorrespondence,
-            _ => MorphismClass::AffineCorrespondence,
-        };
+        // Consume the typed relation/class/kind from the materialized correspondence keyed
+        // by this cell's natural identity (subject, predicate, object). A miss is a HARD
+        // FAIL — every authored cell is transpiled (no-optionality).
+        let typed = lookup.equivalence(&cell.subject, &cell.predicate, &cell.obj)?;
         assert_relation_no_overclaim(
             "sssom",
-            relation,
-            mclass,
-            MorphismKind::InstitutionMorphism,
+            typed.relation,
+            typed.morphism_class,
+            typed.morphism_kind,
             &cell.predicate,
         )
         .map_err(|e| e.0)?;
@@ -217,6 +245,15 @@ pub fn alignment_terms(view: &DslView) -> BTreeSet<String> {
 }
 
 // ── Extraction (over the oxigraph-free DslView) ──────────────────────────────────
+
+/// Every `gmeow:TermEquivalence` cell discovered over `view`, in extraction order — the
+/// frontend transpiler's input. Shares [`extract_equivalences`] with the SSSOM renderer,
+/// so the typed correspondence set and the rendered TSV read the store identically.
+pub(crate) fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
+    let mut out = Vec::new();
+    extract_equivalences(view, &mut out);
+    out
+}
 
 fn collect_sources(view: &DslView) -> SssomSources {
     let mut equivalences = Vec::new();
@@ -717,7 +754,16 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
         let ds = b.freeze().expect("freeze");
         let view = DslView::new(&ds);
 
-        let out = lower_sssom(&view, "0.1.0", "2026-06-03").expect("lower sssom");
+        // Build the materialized correspondence lookup from the same view, exactly as the
+        // pipeline stage does, so the ledger gate consumes the materialized typed relation.
+        let empty = gmeow_rdf::parse_dataset(b"", "application/n-triples", None).expect("empty");
+        let (_program, lookup) =
+            crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+                &view,
+                &DslView::new(&empty),
+            )
+            .expect("transpile lookup");
+        let out = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup).expect("lower sssom");
         let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
         assert!(
             tsv.contains("# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/demo")

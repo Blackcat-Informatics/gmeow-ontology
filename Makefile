@@ -39,10 +39,9 @@ CROSSREF_DEPOSIT_URL ?= https://doi.crossref.org/servlet/deposit
 NEXTEST_PARTITION ?=
 NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITION) --no-tests pass,)
 
-# The committed .cargo/config.toml pins Rust to the portable x86-64-v3 floor.
-# Report-only benchmarks opt into host tuning and must restate the bundled-lld
-# linker flags because the RUSTFLAGS env var replaces config rustflags.
-NATIVE_RUSTFLAGS := -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=native
+# The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
+# codegen for regenerate/reasoning throughput. CI and release workflows append the
+# portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
 
 ACCEPTANCE_MIN_RECALL ?= 60
 FUZZ_TARGETS = nquads gts shacl sssom statements
@@ -128,8 +127,7 @@ rust-test: rust-build ## Run the Rust workspace tests and doctests.
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
 
-lsp-build: $(RUST_READY_STAMP) ## Build the gmeow-lsp binary (debug profile).
-	cargo build -p gmeow-lsp
+lsp-build: lsp-release ## Build the gmeow-lsp binary.
 
 lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage it into dist/bin/.
 	cargo build -p gmeow-lsp --release
@@ -137,13 +135,13 @@ lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage
 	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
 	@echo "gmeow-lsp release binary staged at dist/bin/gmeow-lsp"
 
-lsp-sarif: lsp-build ## Emit SARIF from all .ttl files in the workspace root (report-only).
-	$(CARGO_TARGET_DIR)/debug/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
+lsp-sarif: lsp-release ## Emit SARIF from all .ttl files in the workspace root (report-only).
+	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
 	@echo "SARIF written to $(CARGO_TARGET_DIR)/lsp-sarif/gmeow-feedback.sarif"
 
 diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow-lsp.
-	cargo build -p gmeow-lsp
-	./target/debug/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
+	$(MAKE) lsp-release
+	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: native-py ## Run the full Docker-free local quality gate.
 	# check-generated is one of CHECK_TARGETS, so it already runs as one of the
@@ -518,7 +516,7 @@ fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format fron
 	done
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
-	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate -p gmeow-sparql-eval
+	cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate -p gmeow-sparql-eval
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
