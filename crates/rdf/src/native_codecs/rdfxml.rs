@@ -1231,7 +1231,7 @@ fn resolve_relative_iri(base: &str, raw: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::native_codecs::parse::dataset_from_gts_graph;
+    use crate::gts::dataset_from_gts_graph;
 
     /// Parse RDF/XML straight into a frozen dataset, for assertions over quads.
     fn parse(text: &str, base: Option<&str>) -> std::sync::Arc<crate::RdfDataset> {
