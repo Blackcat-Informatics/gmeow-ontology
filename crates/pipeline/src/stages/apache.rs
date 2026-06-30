@@ -15,7 +15,7 @@ use std::path::Path;
 use oxigraph::model::Term;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::turtle_bytes_to_store;
 
 /// Committed logical path of the Apache content-negotiation include.
@@ -246,9 +246,6 @@ pub struct ApacheStage;
 impl Stage for ApacheStage {
     fn id(&self) -> &str {
         "stage-export-apache"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

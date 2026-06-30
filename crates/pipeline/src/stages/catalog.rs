@@ -14,7 +14,7 @@ use std::path::Path;
 use oxigraph::model::Term;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::{module_files, turtle_bytes_to_store};
 
 /// Committed logical path of the OASIS catalog.
@@ -128,9 +128,6 @@ pub struct CatalogStage;
 impl Stage for CatalogStage {
     fn id(&self) -> &str {
         "stage-export-catalog"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

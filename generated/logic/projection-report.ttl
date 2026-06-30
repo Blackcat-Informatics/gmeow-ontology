@@ -4,7 +4,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/logic/projection-report> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionReport> .
-<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "104"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "119"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/ruleCount> "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/profileCount> "7"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/correspondenceCount> "592"^^<http://www.w3.org/2001/XMLSchema#integer> .
@@ -1564,6 +1564,7 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:3ec0416c7161a425> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:3ef9292a1b0fcc75> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:3f018c9ac93cebe1> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:3ff33eb5af86ba79> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:4004bd2d688a67a5> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:40cd3d518860334a> .
@@ -2405,6 +2406,7 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:bd9c0662e2ddb424> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:bdaaec4656f8f405> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:bdd664d7a3d54ade> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:be006c44dca18f21> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:be3bedb809640b0d> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:be3e893c2f039ff5> .
@@ -2828,6 +2830,7 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fa5d0855620d25b4> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fa8331e85949eea0> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fa891cf418c9b959> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fa935fb1cb741889> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:faad49c7f5c43d43> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fab09c3f8d7f1709> .
@@ -2835,6 +2838,7 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fad5204c6cc74b3f> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fad89d8cc4fe0754> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:faebbfabc5600c78> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:faefbba353a0b6e2> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fb3eabfad8a4fe01> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/sssom:fb683f27d0b3cfe9> .
@@ -8481,6 +8485,9 @@
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfConstructModel> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceFor on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no gUFO bridge equivalent" .
@@ -8498,6 +8505,10 @@
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:iterationBody on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:iterationCondition on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:leftOperand on <https://blackcatinformatics.ca/logic/wfPhaseSequence> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:leftOperand on <https://blackcatinformatics.ca/logic/wfResolveThenBuild> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelNone> has no gUFO bridge equivalent" .
@@ -8508,6 +8519,12 @@
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationDischargeVerdict on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationForbiddenPredicate on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationForbiddenPredicate on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planBody on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planGoal on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planSuccessMode on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfConstructModel> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no gUFO bridge equivalent" .
@@ -8517,6 +8534,8 @@
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:rightOperand on <https://blackcatinformatics.ca/logic/wfPhaseSequence> has no gUFO bridge equivalent" .
+<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:rightOperand on <https://blackcatinformatics.ca/logic/wfResolveThenBuild> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no gUFO bridge equivalent" .
@@ -8566,6 +8585,9 @@
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfConstructModel> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceFor on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no OWL DL equivalent" .
@@ -8583,6 +8605,10 @@
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:iterationBody on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:iterationCondition on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:leftOperand on <https://blackcatinformatics.ca/logic/wfPhaseSequence> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:leftOperand on <https://blackcatinformatics.ca/logic/wfResolveThenBuild> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelNone> has no OWL DL equivalent" .
@@ -8593,6 +8619,12 @@
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationDischargeVerdict on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationForbiddenPredicate on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationForbiddenPredicate on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planBody on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planGoal on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planSuccessMode on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfConstructModel> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no OWL DL equivalent" .
@@ -8602,6 +8634,8 @@
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:rightOperand on <https://blackcatinformatics.ca/logic/wfPhaseSequence> has no OWL DL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:rightOperand on <https://blackcatinformatics.ca/logic/wfResolveThenBuild> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no OWL DL equivalent" .
@@ -8636,6 +8670,9 @@
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfConstructModel> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:capability on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceFor on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:evidenceProperty on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no EL equivalent" .
@@ -8653,6 +8690,10 @@
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:iterationBody on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:iterationCondition on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:leftOperand on <https://blackcatinformatics.ca/logic/wfPhaseSequence> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:leftOperand on <https://blackcatinformatics.ca/logic/wfResolveThenBuild> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelCompetent> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelEmerging> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelNone> has no EL equivalent" .
@@ -8663,6 +8704,12 @@
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationDischargeVerdict on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationForbiddenPredicate on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:obligationForbiddenPredicate on <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planBody on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planGoal on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:planSuccessMode on <https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfConstructModel> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no EL equivalent" .
@@ -8672,6 +8719,8 @@
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:rightOperand on <https://blackcatinformatics.ca/logic/wfPhaseSequence> has no EL equivalent" .
+<https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:rightOperand on <https://blackcatinformatics.ca/logic/wfResolveThenBuild> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no EL equivalent" .
@@ -17639,6 +17688,16 @@
 <https://blackcatinformatics.ca/logic/target/sssom:3f018c9ac93cebe1> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" .
 <https://blackcatinformatics.ca/logic/target/sssom:3f018c9ac93cebe1> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" .
 <https://blackcatinformatics.ca/logic/target/sssom:3f018c9ac93cebe1> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: correspondence: https://blackcatinformatics.ca/gmeow/Community|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q105222918" .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <http://www.w3.org/2000/01/rdf-schema#label> "sssom:3f955c7b51d03a58" .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <https://blackcatinformatics.ca/logic/complexityClass> "N/A (1:1 lattice band)" .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <https://blackcatinformatics.ca/gmeow/lossyDrop> "world/standpoint scope and the put leg are not carried" .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: correspondence: https://blackcatinformatics.ca/gmeow/branchConditionLoop|http://www.w3.org/2004/02/skos/core#relatedMatch|https://blackcatinformatics.ca/logic/Iteration" .
+<https://blackcatinformatics.ca/logic/target/sssom:3f955c7b51d03a58> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: loop body / loop condition split (logic:iterationBody, logic:iterationCondition) is not carried by the flat guard value; the back-edge places the procedure outside the DAG fragment" .
 <https://blackcatinformatics.ca/logic/target/sssom:3ff33eb5af86ba79> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/sssom:3ff33eb5af86ba79> <http://www.w3.org/2000/01/rdf-schema#label> "sssom:3ff33eb5af86ba79" .
 <https://blackcatinformatics.ca/logic/target/sssom:3ff33eb5af86ba79> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
@@ -25211,6 +25270,16 @@
 <https://blackcatinformatics.ca/logic/target/sssom:bdd664d7a3d54ade> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" .
 <https://blackcatinformatics.ca/logic/target/sssom:bdd664d7a3d54ade> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" .
 <https://blackcatinformatics.ca/logic/target/sssom:bdd664d7a3d54ade> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: correspondence: https://blackcatinformatics.ca/gmeow/leftOpAbsoluteSpatialPosition|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.w3.org/ns/odrl/2/absoluteSpatialPosition" .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <http://www.w3.org/2000/01/rdf-schema#label> "sssom:bdfb78d966c4673c" .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <https://blackcatinformatics.ca/logic/complexityClass> "N/A (1:1 lattice band)" .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <https://blackcatinformatics.ca/gmeow/lossyDrop> "world/standpoint scope and the put leg are not carried" .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: correspondence: https://blackcatinformatics.ca/gmeow/branchConditionParallel|http://www.w3.org/2004/02/skos/core#relatedMatch|https://blackcatinformatics.ca/logic/ConcurrentComposition" .
+<https://blackcatinformatics.ca/logic/target/sssom:bdfb78d966c4673c> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: the conflict-serializability surface of a concurrent run (logic:ConcurrentHistory, logic:serializabilityCriterion) is derived by the native evaluator, not carried by the flat parallel guard value" .
 <https://blackcatinformatics.ca/logic/target/sssom:be006c44dca18f21> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/sssom:be006c44dca18f21> <http://www.w3.org/2000/01/rdf-schema#label> "sssom:be006c44dca18f21" .
 <https://blackcatinformatics.ca/logic/target/sssom:be006c44dca18f21> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
@@ -29024,6 +29093,16 @@
 <https://blackcatinformatics.ca/logic/target/sssom:fa891cf418c9b959> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" .
 <https://blackcatinformatics.ca/logic/target/sssom:fa891cf418c9b959> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" .
 <https://blackcatinformatics.ca/logic/target/sssom:fa891cf418c9b959> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: correspondence: https://blackcatinformatics.ca/gmeow/invitationStatus|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/2002/12/cal/icaltzd#partstat" .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <http://www.w3.org/2000/01/rdf-schema#label> "sssom:fa8f013112e83059" .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <https://blackcatinformatics.ca/logic/complexityClass> "N/A (1:1 lattice band)" .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <https://blackcatinformatics.ca/gmeow/lossyDrop> "world/standpoint scope and the put leg are not carried" .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: correspondence: https://blackcatinformatics.ca/gmeow/branchConditionIf|http://www.w3.org/2004/02/skos/core#relatedMatch|https://blackcatinformatics.ca/logic/Choice" .
+<https://blackcatinformatics.ca/logic/target/sssom:fa8f013112e83059> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: implicit else/default arm → logic:Fallback: the default branch is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" .
 <https://blackcatinformatics.ca/logic/target/sssom:fa935fb1cb741889> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/sssom:fa935fb1cb741889> <http://www.w3.org/2000/01/rdf-schema#label> "sssom:fa935fb1cb741889" .
 <https://blackcatinformatics.ca/logic/target/sssom:fa935fb1cb741889> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
@@ -29087,6 +29166,17 @@
 <https://blackcatinformatics.ca/logic/target/sssom:faebbfabc5600c78> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" .
 <https://blackcatinformatics.ca/logic/target/sssom:faebbfabc5600c78> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" .
 <https://blackcatinformatics.ca/logic/target/sssom:faebbfabc5600c78> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: correspondence: https://blackcatinformatics.ca/gmeow/hasPartner|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/2000/10/swap/pim/gedcom#wife" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <http://www.w3.org/2000/01/rdf-schema#label> "sssom:faee48c31175fb57" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/logic/complexityClass> "N/A (1:1 lattice band)" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/gmeow/lossyDrop> "world/standpoint scope and the put leg are not carried" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: correspondence: https://blackcatinformatics.ca/gmeow/branchConditionSwitch|http://www.w3.org/2004/02/skos/core#relatedMatch|https://blackcatinformatics.ca/logic/Choice" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: implicit default case → logic:Fallback: the default arm is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" .
+<https://blackcatinformatics.ca/logic/target/sssom:faee48c31175fb57> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: n-ary switch arity → right-nested binary logic:Choice cascade: the flat switch arity is not preserved by the binary combinator" .
 <https://blackcatinformatics.ca/logic/target/sssom:faefbba353a0b6e2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/sssom:faefbba353a0b6e2> <http://www.w3.org/2000/01/rdf-schema#label> "sssom:faefbba353a0b6e2" .
 <https://blackcatinformatics.ca/logic/target/sssom:faefbba353a0b6e2> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
