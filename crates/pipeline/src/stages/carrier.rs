@@ -3444,7 +3444,7 @@ mod native_assembly_tests {
         let report_ttl = br#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-gmeow:projection/okf
+<https://blackcatinformatics.ca/gmeow/projection/okf>
     a gmeow:ProjectionLedgerEntry ;
     rdfs:label "OKF projection" ;
     gmeow:preservationKind gmeow:Lossy ;

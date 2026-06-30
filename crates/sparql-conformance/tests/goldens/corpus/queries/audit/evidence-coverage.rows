@@ -1,1 +1,3 @@
 claim	spans	refuting
+[Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200")), Some(Literal { lexical_form: "1", datatype: "http://www.w3.org/2001/XMLSchema#integer", language: None, direction: None }), Some(Literal { lexical_form: "0", datatype: "http://www.w3.org/2001/XMLSchema#integer", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300")), Some(Literal { lexical_form: "0", datatype: "http://www.w3.org/2001/XMLSchema#integer", language: None, direction: None }), Some(Literal { lexical_form: "0", datatype: "http://www.w3.org/2001/XMLSchema#integer", language: None, direction: None })]

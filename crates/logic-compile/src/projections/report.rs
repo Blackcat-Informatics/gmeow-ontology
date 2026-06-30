@@ -17,8 +17,8 @@ use gmeow_rdf::RdfLiteral;
 use super::super::ir::LogicProgram;
 use super::rdf::TripleSink;
 use super::{
-    assert_no_overclaim, OverclaimError, ProjectionResult, GMEOW_NS, LOGIC_NS, RDFS_NS, RDF_TYPE,
-    XSD_NS,
+    assert_no_overclaim, combined_lossy_drops, OverclaimError, ProjectionResult, GMEOW_NS,
+    LOGIC_NS, RDFS_NS, RDF_TYPE, XSD_NS,
 };
 
 fn logic(local: &str) -> String {
@@ -241,19 +241,8 @@ pub fn build_projection_report_from(
         );
 
         let lossy_drop = format!("{GMEOW_NS}lossyDrop");
-        let mut structural = proj.lossy_drops.clone();
-        structural.sort();
-        for note in &structural {
+        for note in &combined_lossy_drops(proj) {
             g.add_lit(&target_iri, &lossy_drop, RdfLiteral::simple(note));
-        }
-        let mut actual = proj.actual_drops.clone();
-        actual.sort();
-        for a in &actual {
-            g.add_lit(
-                &target_iri,
-                &lossy_drop,
-                RdfLiteral::simple(format!("actual: {a}")),
-            );
         }
     }
 

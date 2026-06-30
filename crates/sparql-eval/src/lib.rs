@@ -74,22 +74,21 @@ pub use scratch::{ScratchId, ScratchInterner, SolutionTerm};
 pub use solution::{compatible, Solution, SolutionSeq, VarSchema};
 pub use update::GraphResolver;
 
-/// A deterministic, seed-free hasher builder (`SipHash` with fixed keys).
+/// A deterministic, seed-free hasher builder (`AHasher` with fixed keys).
 ///
 /// Used for every internal map/set whose construction order or membership could
 /// otherwise depend on a per-process random seed. Two reasons:
 ///
 /// 1. **Determinism.** SPARQL multiset output must be reproducible; a randomly
 ///    seeded hasher could reorder hash-iteration-driven steps and leak into the
-///    result. We always drive *output* order from `Vec`s, but a fixed seed removes
-///    the hazard entirely (cf. the repo `mappings-determinism` lesson).
+///    result. We always drive *output* order from `Vec`s, but fixed-key hashing
+///    removes the hazard entirely (cf. the repo `mappings-determinism` lesson).
 /// 2. **wasm-cleanliness.** `std`'s default `RandomState` would pull a random
-///    source; the fixed-seed `DefaultHasher` needs none, keeping the crate clean
-///    on `wasm32-unknown-unknown`.
+///    source; fixed-key `AHasher` needs none, keeping the crate clean on
+///    `wasm32-unknown-unknown`.
 ///
-/// This mirrors `gmeow-rdf-core`'s own use of `DefaultHasher` for its value index.
-pub(crate) type DetHasher =
-    std::hash::BuildHasherDefault<std::collections::hash_map::DefaultHasher>;
+/// This mirrors `gmeow-rdf-core`'s own fixed-key value-index hashing.
+pub(crate) type DetHasher = std::hash::BuildHasherDefault<ahash::AHasher>;
 
 /// A deterministic, seed-free [`HashMap`](std::collections::HashMap). See [`DetHasher`].
 pub(crate) type DetHashMap<K, V> = std::collections::HashMap<K, V, DetHasher>;

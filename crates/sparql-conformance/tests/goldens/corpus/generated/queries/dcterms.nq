@@ -4,6 +4,21 @@
 <https://blackcatinformatics.ca/gmeow/0.1.0> <http://purl.org/dc/terms/dateSubmitted> "2026-06-03"^^<http://www.w3.org/2001/XMLSchema#date> .
 <https://blackcatinformatics.ca/gmeow/0.1.0> <http://purl.org/dc/terms/issued> "2026-06-03"^^<http://www.w3.org/2001/XMLSchema#date> .
 <https://blackcatinformatics.ca/gmeow/0.1.0> <http://purl.org/dc/terms/modified> "2026-06-03"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://blackcatinformatics.ca/gmeow/evals/corpus/constitution> <http://purl.org/dc/terms/source> "CONSTITUTION.md" .
+<https://blackcatinformatics.ca/gmeow/evals/corpus/readme> <http://purl.org/dc/terms/source> "README.md" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/handbook> <http://purl.org/dc/terms/source> "https://blackcatinformatics.ca/gmeow/examples/graphrag/facilities-handbook-2026" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/available> "2026-06-12T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/created> "2026-06-12T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/dateAccepted> "2026-06-12T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/dateSubmitted> "2026-06-12T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/description> "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/hasPart> <https://blackcatinformatics.ca/gmeow/examples/graphrag/corpus-lillith> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/issued> "2026-06-12T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/license> <https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/modified> "2026-06-12T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/source> "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://purl.org/dc/terms/title> "Lillith GraphRAG benchmark"@en .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> <http://purl.org/dc/terms/source> "https://blackcatinformatics.ca/gmeow/examples/graphrag/list-archive-2025" .
 <https://blackcatinformatics.ca/gmeow/examples/rights/photo> <http://purl.org/dc/terms/license> <https://blackcatinformatics.ca/gmeow/examples/rights/cc-by-4> .
 <https://blackcatinformatics.ca/gmeow/langAbkhazian> <http://purl.org/dc/terms/language> <https://blackcatinformatics.ca/gmeow/langAbkhazian> .
 <https://blackcatinformatics.ca/gmeow/langAfar> <http://purl.org/dc/terms/language> <https://blackcatinformatics.ca/gmeow/langAfar> .

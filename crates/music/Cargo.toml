@@ -22,5 +22,5 @@ python = ["dep:pyo3"]
 [dependencies]
 gmeow-gts = "0.9.11"
 gmeow-rdf = { path = "../rdf", features = ["gts"] }
-pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], optional = true }
+pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 roxmltree = "0.20"

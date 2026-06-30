@@ -12,6 +12,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::Instant;
 
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
@@ -117,6 +118,11 @@ const AUDIT_HEADLINE: &[&str] = &[
     "claims-without-evidence",
     "claims-contradicted-by-higher-confidence",
     "stale-source-claims",
+];
+const CLAIM_AUDIT_SHAPES: &[&str] = &[
+    "ClaimNeedsEvidenceShape",
+    "GroundingSpanShape",
+    "StaleSourceShape",
 ];
 
 const FLAT_QUERY: &str = r#"
@@ -360,11 +366,19 @@ pub fn claim_audit(root: &Path, files: &[PathBuf]) -> Result<ClaimAuditReport, S
     if files.is_empty() {
         return Err("audit requires at least one Turtle data file".to_owned());
     }
+    let trace = std::env::var_os("GMEOW_CLAIM_AUDIT_TIMING").is_some();
+    let total_started = Instant::now();
+    let phase_started = Instant::now();
     let mut sources = ontology_source_files(root, false)?;
     sources.extend(files.iter().cloned());
+    trace_claim_audit_phase(trace, "collect-sources", phase_started);
+
+    let phase_started = Instant::now();
     let store = dataset_from_files(&sources)?;
+    trace_claim_audit_phase(trace, "parse-data", phase_started);
 
     let mut report = ClaimAuditReport::default();
+    let phase_started = Instant::now();
     for query_path in audit_query_files(root)? {
         let name = query_path
             .file_stem()
@@ -375,12 +389,28 @@ pub fn claim_audit(root: &Path, files: &[PathBuf]) -> Result<ClaimAuditReport, S
             .map_err(|e| format!("failed to read {}: {e}", query_path.display()))?;
         report.findings.insert(name, select_rows(&store, &text)?);
     }
+    trace_claim_audit_phase(trace, "audit-queries", phase_started);
 
+    let phase_started = Instant::now();
     let shacl = run_claim_shacl(root, &store)?;
+    trace_claim_audit_phase(trace, "shacl", phase_started);
     report.shacl_errors = shacl.0;
     report.shacl_warnings = shacl.1;
+
+    let phase_started = Instant::now();
     report.claims = flat_claims(&store, &report)?;
+    trace_claim_audit_phase(trace, "flat-claims", phase_started);
+    trace_claim_audit_phase(trace, "total", total_started);
     Ok(report)
+}
+
+fn trace_claim_audit_phase(enabled: bool, label: &str, started: Instant) {
+    if enabled {
+        eprintln!(
+            "claim-audit timing {label}: {:.3}s",
+            started.elapsed().as_secs_f64()
+        );
+    }
 }
 
 pub fn render_claim_audit_text(report: &ClaimAuditReport) -> String {
@@ -733,11 +763,18 @@ fn run_claim_shacl(
     root: &Path,
     store: &Arc<RdfDataset>,
 ) -> Result<(Vec<String>, Vec<String>), String> {
-    let data_nt = dump_ds_to_nt(store).map_err(|e| format!("serialize audit SHACL data: {e}"))?;
-    let data_store = dataset_from_nt(&data_nt)?;
+    let trace = std::env::var_os("GMEOW_CLAIM_AUDIT_TIMING").is_some();
+    let phase_started = Instant::now();
     let shapes_ttl = shapes_turtle(root)?;
-    let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl)?;
-    let shacl = gmeow_shacl::engine::validate_dataset(&data_store, &shapes)?;
+    trace_claim_audit_phase(trace, "shacl.load-shapes", phase_started);
+
+    let phase_started = Instant::now();
+    let shapes = retain_claim_audit_shapes(gmeow_shacl::engine::parse_shapes(&shapes_ttl)?)?;
+    trace_claim_audit_phase(trace, "shacl.parse-shapes", phase_started);
+
+    let phase_started = Instant::now();
+    let shacl = gmeow_shacl::engine::validate_dataset(store.as_ref(), &shapes)?;
+    trace_claim_audit_phase(trace, "shacl.validate", phase_started);
     if shacl.conforms {
         return Ok((Vec::new(), Vec::new()));
     }
@@ -763,6 +800,36 @@ fn run_claim_shacl(
         vec![format!("SHACL warnings:\n{}", warnings.join("\n"))]
     };
     Ok((errors, warnings))
+}
+
+fn retain_claim_audit_shapes(
+    mut shapes: gmeow_shacl::shapes::Shapes,
+) -> Result<gmeow_shacl::shapes::Shapes, String> {
+    let wanted = CLAIM_AUDIT_SHAPES
+        .iter()
+        .map(|local| format!("<{GM}{local}>"))
+        .collect::<BTreeSet<_>>();
+    let mut seen = BTreeSet::new();
+
+    shapes.node_shapes.retain(|shape| {
+        let id = shape.id.to_string();
+        if wanted.contains(&id) {
+            seen.insert(id);
+            true
+        } else {
+            false
+        }
+    });
+
+    if seen.len() != wanted.len() {
+        let missing = wanted.difference(&seen).cloned().collect::<Vec<_>>();
+        return Err(format!(
+            "claim audit SHACL shapes missing from production shapes: {}",
+            missing.join(", ")
+        ));
+    }
+
+    Ok(shapes)
 }
 
 fn shapes_turtle(root: &Path) -> Result<String, String> {

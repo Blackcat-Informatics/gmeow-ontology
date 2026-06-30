@@ -1,3 +1,4 @@
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://www.w3.org/2006/vcard/ns#note> "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en .
 <https://blackcatinformatics.ca/gmeow/langAbkhazian> <http://www.w3.org/2006/vcard/ns#fn> "Abkhazian"@ab .
 <https://blackcatinformatics.ca/gmeow/langAfar> <http://www.w3.org/2006/vcard/ns#fn> "Afar"@aa .
 <https://blackcatinformatics.ca/gmeow/langAfrikaans> <http://www.w3.org/2006/vcard/ns#fn> "Afrikaans"@af .

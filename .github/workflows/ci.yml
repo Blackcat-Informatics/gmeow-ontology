@@ -173,9 +173,12 @@ jobs:
   # test set across shards). All shards share the same Swatinem rust-cache key, so
   # each restores the same compiled `target/` and only pays an incremental recompile
   # plus ~1/3 of the test runtime. The whole-workspace gates (fmt/clippy/doctests)
-  # run ONLY on shard 1 — they need not run 3×. Each shard is its own runner, so the
-  # nextest `engine = { max-threads = 2 }` OOM cap is honored per shard (3×2 across
-  # shards is fine — the cap is a per-process bound, not a cluster bound).
+  # run ONLY on shard 1 — they need not run 3×. nextest/doctests skip the single
+  # CPython extension cdylib package: native-build covers that wheel, while normal
+  # Rust test binaries must not inherit pyo3/extension-module link semantics from it.
+  # Each shard is its own runner, so the nextest `engine = { max-threads = 2 }` OOM
+  # cap is honored per shard (3×2 across shards is fine — the cap is a per-process
+  # bound, not a cluster bound).
   rust:
     strategy:
       fail-fast: false
@@ -222,7 +225,7 @@ jobs:
         run: cargo run -q --package gmeow-docs --example prime-docs-fixture
 
       - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
-        run: cargo nextest run --profile ci --partition count:${{ matrix.shard }}/3
+        run: cargo nextest run --profile ci --workspace --exclude gmeow-native --partition count:${{ matrix.shard }}/3
 
       # 25s per-test budget gate (#1045): hard-fail if any test on this shard's slice
       # of the ci profile exceeded the always-on budget. Runs against the exact
@@ -232,7 +235,7 @@ jobs:
 
       - name: Doctests
         if: ${{ matrix.shard == 1 }}
-        run: cargo test --doc
+        run: cargo test --doc --workspace --exclude gmeow-native
 
       - name: Upload JUnit report
         if: always()

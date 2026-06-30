@@ -17,6 +17,9 @@ keywords = ["rdf", "validation", "lint", "knowledge-graph", "rdf-12"]
 crate-type = ["rlib"]
 path = "src/lib.rs"
 
+[features]
+python = ["dep:pyo3", "gmeow-diagnostics/python"]
+
 [dependencies]
 # Reserved for future lint ports that need regex (kept in lockstep with shacl).
 regex = "1"
@@ -65,10 +68,11 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # the workspace, so this edge is link-only marginal cost; no cycle (logic does not
 # depend on validate) and layering-legal (the gate only constrains the rdf kernel).
 gmeow-logic = { path = "../logic" }
-# GTS format engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
-# and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
-# lives in gmeow-rdf (#683).
-gmeow-gts = { version = "0.9.11", features = ["yaml-ld"] }
+# GTS CONTAINER engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
+# the toolchain salt mixes `gmeow_gts::wire::VERSION`, and signature verification uses
+# `gmeow_gts::verify`/`policy`. All CONTAINER symbols (no codec feature) — gmeow-gts is the
+# gmeow.gts file layer only; RDF codec work lives in gmeow-rdf's native codecs.
+gmeow-gts = { version = "0.9.11" }
 # CBOR reader for the bundle blob metadata: `gmeow_gts::model::Graph::blob_meta`
 # values are `ciborium::value::Value`, read to resolve a blob by its `rep` label.
 ciborium = "0.2"
@@ -77,7 +81,7 @@ ciborium = "0.2"
 # cfg would be optionality, not compliance (#579). The engine core
 # (store.rs/model.rs) stays PyO3-free; only py.rs imports pyo3, so the rlib links
 # into a future Rust compiler without Python.
-pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
+pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 
 [dev-dependencies]
 # Ed25519 signing material for deterministic GTS signature tests (#646).

@@ -873,7 +873,7 @@ mod tests {
         // valid box role are still present, so the subject is clean.
         let store = store_from(&format!(
             "{PREFIXES}{ROLE}{ABOX_ROLE}\
-             gmeow:diagnostics/finding/abc-0 a gmeow:Finding ;\n\
+             <https://blackcatinformatics.ca/gmeow/diagnostics/finding/abc-0> a gmeow:Finding ;\n\
                rdfs:label \"SH001: example finding\" ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;\n\
                gmeow:graphBoxRole gmeow:boxABox .\n"
@@ -892,7 +892,7 @@ mod tests {
         // generated subject without rdfs:label is still under-specified.
         let store = store_from(&format!(
             "{PREFIXES}{ROLE}{ABOX_ROLE}\
-             gmeow:diagnostics/finding/abc-1 a gmeow:Finding ;\n\
+             <https://blackcatinformatics.ca/gmeow/diagnostics/finding/abc-1> a gmeow:Finding ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;\n\
                gmeow:graphBoxRole gmeow:boxABox .\n"
         ));
@@ -914,7 +914,7 @@ mod tests {
         // role (and definition) still fire.
         let store = store_from(&format!(
             "{PREFIXES}{ROLE}{ABOX_ROLE}\
-             gmeow:diagnostics/finding/abc-2 a gmeow:Finding ;\n\
+             <https://blackcatinformatics.ca/gmeow/diagnostics/finding/abc-2> a gmeow:Finding ;\n\
                rdfs:label \"SH002: example finding\" ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .\n"
         ));
@@ -937,7 +937,7 @@ mod tests {
         // applies, proving the relaxation is a positive, earned obligation.
         let store = store_from(&format!(
             "{PREFIXES}{ROLE}{ABOX_ROLE}\
-             gmeow:diagnostics/finding/abc-3 a gmeow:Finding ;\n\
+             <https://blackcatinformatics.ca/gmeow/diagnostics/finding/abc-3> a gmeow:Finding ;\n\
                rdfs:label \"SH003: example finding\" ;\n\
                rdfs:isDefinedBy <https://example.org/somewhere> ;\n\
                gmeow:graphBoxRole gmeow:boxABox .\n"

@@ -1,1 +1,3 @@
 model	invocation	claims
+[Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/assistant")), Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19")), Some(Literal { lexical_form: "2", datatype: "http://www.w3.org/2001/XMLSchema#integer", language: None, direction: None })]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/auditor")), None, Some(Literal { lexical_form: "1", datatype: "http://www.w3.org/2001/XMLSchema#integer", language: None, direction: None })]

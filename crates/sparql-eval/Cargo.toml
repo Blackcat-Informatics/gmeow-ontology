@@ -37,6 +37,9 @@ gmeow-xsd = { path = "../xsd" }
 # in the workspace lock; pulls only regex-automata/regex-syntax/aho-corasick/memchr
 # (no oxigraph-family edge — gated by `make rdf-core-hygiene`).
 regex = "1"
+# Fixed-key, non-cryptographic hashing for deterministic in-memory evaluator maps.
+# Keeps the wasm-clean dependency path by disabling ahash's runtime RNG feature.
+ahash = { version = "0.8", default-features = false }
 # RustCrypto hash crates — all wasm-safe (no getrandom; pure software).
 md-5 = { version = "0.10", default-features = false }
 sha1 = { version = "0.10", default-features = false }
@@ -67,4 +70,12 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 # head-to-head over a synthetic 1k-row anti-join. Report-only; `make bench` lane
 # only — excluded from `make check`.
 name = "exists_decorrelation"
+harness = false
+
+[[bench]]
+# Cost-based BGP join-planner latency on a skewed multi-join star, at two scales.
+# A regression watch on planning + eval cost (the structural heuristic was removed,
+# so there is no wall-time A/B; the deterministic win is a `bgp` unit test).
+# Report-only; `make bench` lane only — excluded from `make check`.
+name = "cost_based_bgp_planner"
 harness = false

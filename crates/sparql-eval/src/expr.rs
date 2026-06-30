@@ -24,7 +24,7 @@
 
 use std::cmp::Ordering;
 
-use gmeow_rdf_core::{BlankScope, DatasetView, GraphMatch, TermValue};
+use gmeow_rdf_core::{BlankScope, DatasetView, GraphMatch, TermRef, TermValue};
 use gmeow_sparql_algebra::{Expression, Function, GmeowFn, GraphPattern, Variable};
 use gmeow_xsd::{
     effective_boolean_value, numeric_abs, numeric_add, numeric_ceil, numeric_div, numeric_floor,
@@ -1001,6 +1001,21 @@ fn eval_function(
     schema: &VarSchema,
     ctx: &mut EvalCtx<'_>,
 ) -> Result<Option<SolutionTerm>, EvalError> {
+    match function {
+        Function::Contains => {
+            return eval_string_pred_expr(args, row, schema, ctx, |h, n| h.contains(n));
+        }
+        Function::StrStarts => {
+            return eval_string_pred_expr(args, row, schema, ctx, |h, n| h.starts_with(n));
+        }
+        Function::StrEnds => {
+            return eval_string_pred_expr(args, row, schema, ctx, |h, n| h.ends_with(n));
+        }
+        Function::Regex => return eval_regex_expr(args, row, schema, ctx),
+        Function::LangMatches => return eval_lang_matches_expr(args, row, schema, ctx),
+        _ => {}
+    }
+
     // Evaluate all arguments first (a missing/unbound argument is a per-function
     // concern handled below; most functions are strict and error on it).
     let mut vals: Vec<Option<TermValue>> = Vec::with_capacity(args.len());
@@ -1459,6 +1474,166 @@ fn arg(vals: &[Option<TermValue>], i: usize) -> Option<&TermValue> {
     vals.get(i).and_then(|v| v.as_ref())
 }
 
+fn eval_string_pred_expr(
+    args: &[Expression],
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+    f: impl Fn(&str, &str) -> bool,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    let result = {
+        let (Some((h, _)), Some((n, _))) = (
+            eval_string_arg_expr(args.first(), row, schema, ctx)?,
+            eval_string_arg_expr(args.get(1), row, schema, ctx)?,
+        ) else {
+            return Ok(None);
+        };
+        f(&h, &n)
+    };
+    Ok(Some(bool_term(ctx, result)))
+}
+
+fn eval_regex_expr(
+    args: &[Expression],
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    let text = eval_string_arg_expr(args.first(), row, schema, ctx)?;
+    let pattern = eval_string_arg_expr(args.get(1), row, schema, ctx)?;
+    let flags = eval_string_arg_expr(args.get(2), row, schema, ctx)?;
+    let (Some((text, _)), Some((pattern, _))) = (text, pattern) else {
+        return Ok(None);
+    };
+    let flags = flags.map(|(f, _)| f).unwrap_or_default();
+    match cached_regex(ctx, &pattern, &flags) {
+        Some(re) => Ok(Some(bool_term(ctx, re.is_match(&text)))),
+        None => Ok(None),
+    }
+}
+
+fn eval_lang_matches_expr(
+    args: &[Expression],
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    let result = {
+        let (Some((tag, _)), Some((range, _))) = (
+            eval_string_arg_expr(args.first(), row, schema, ctx)?,
+            eval_string_arg_expr(args.get(1), row, schema, ctx)?,
+        ) else {
+            return Ok(None);
+        };
+        let tag = tag.to_ascii_lowercase();
+        let range = range.to_ascii_lowercase();
+        range == "*" || tag == range || tag.starts_with(&(range + "-"))
+    };
+    Ok(Some(bool_term(ctx, result)))
+}
+
+fn eval_string_arg_expr(
+    expr: Option<&Expression>,
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<(String, Option<String>)>, EvalError> {
+    let Some(expr) = expr else {
+        return Ok(None);
+    };
+    match expr {
+        Expression::Literal(lit)
+            if lit.datatype().as_str() == XSD_STRING
+                || lit.datatype().as_str() == RDF_LANG_STRING =>
+        {
+            Ok(Some((
+                lit.value().to_owned(),
+                lit.language().map(str::to_ascii_lowercase),
+            )))
+        }
+        Expression::FunctionCall(Function::Str, inner) if inner.len() == 1 => {
+            eval_str_lexical_expr(&inner[0], row, schema, ctx).map(|v| v.map(|s| (s, None)))
+        }
+        Expression::FunctionCall(Function::Lang, inner) if inner.len() == 1 => {
+            eval_lang_lexical_expr(&inner[0], row, schema, ctx).map(|v| v.map(|s| (s, None)))
+        }
+        _ => {
+            let Some(term) = eval_expr(expr, row, schema, ctx)? else {
+                return Ok(None);
+            };
+            let value = value_of(ctx, term);
+            Ok(string_arg_value(&value))
+        }
+    }
+}
+
+fn eval_str_lexical_expr(
+    expr: &Expression,
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<String>, EvalError> {
+    match expr {
+        Expression::NamedNode(node) => Ok(Some(node.as_str().to_owned())),
+        Expression::Literal(lit) => Ok(Some(lit.value().to_owned())),
+        _ => {
+            let Some(term) = eval_expr(expr, row, schema, ctx)? else {
+                return Ok(None);
+            };
+            Ok(str_lexical_term(ctx, term))
+        }
+    }
+}
+
+fn eval_lang_lexical_expr(
+    expr: &Expression,
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<String>, EvalError> {
+    match expr {
+        Expression::Literal(lit) => Ok(Some(
+            lit.language()
+                .map(str::to_ascii_lowercase)
+                .unwrap_or_default(),
+        )),
+        _ => {
+            let Some(term) = eval_expr(expr, row, schema, ctx)? else {
+                return Ok(None);
+            };
+            Ok(lang_lexical_term(ctx, term))
+        }
+    }
+}
+
+fn str_lexical_term(ctx: &EvalCtx<'_>, term: SolutionTerm) -> Option<String> {
+    match term {
+        SolutionTerm::Existing(id) => match ctx.dataset.resolve(id) {
+            TermRef::Iri(iri) => Some(iri.to_owned()),
+            TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
+            TermRef::Blank { .. } | TermRef::Triple { .. } => None,
+        },
+        SolutionTerm::Computed(_) => match value_of(ctx, term) {
+            TermValue::Iri(iri) => Some(iri),
+            TermValue::Literal { lexical_form, .. } => Some(lexical_form),
+            TermValue::Blank { .. } | TermValue::Triple { .. } => None,
+        },
+    }
+}
+
+fn lang_lexical_term(ctx: &EvalCtx<'_>, term: SolutionTerm) -> Option<String> {
+    match term {
+        SolutionTerm::Existing(id) => match ctx.dataset.resolve(id) {
+            TermRef::Literal { language, .. } => Some(language.unwrap_or_default().to_owned()),
+            _ => None,
+        },
+        SolutionTerm::Computed(_) => match value_of(ctx, term) {
+            TermValue::Literal { language, .. } => Some(language.unwrap_or_default()),
+            _ => None,
+        },
+    }
+}
+
 /// Whether an XSD value is in the numeric tower.
 fn is_numeric(v: XsdValue) -> bool {
     matches!(
@@ -1470,7 +1645,11 @@ fn is_numeric(v: XsdValue) -> bool {
 /// Extract `(lexical, language)` from a plain/`xsd:string`/`rdf:langString` literal
 /// argument. `None` for any other term (a string-function type error).
 fn string_arg(vals: &[Option<TermValue>], i: usize) -> Option<(String, Option<String>)> {
-    match arg(vals, i)? {
+    string_arg_value(arg(vals, i)?)
+}
+
+fn string_arg_value(value: &TermValue) -> Option<(String, Option<String>)> {
+    match value {
         TermValue::Literal {
             lexical_form,
             datatype,
@@ -1616,7 +1795,7 @@ fn eval_replace(
         return Ok(None);
     };
     let flags = string_arg(vals, 3).map(|(f, _)| f).unwrap_or_default();
-    let Some(re) = build_regex(&pattern, &flags) else {
+    let Some(re) = cached_regex(ctx, &pattern, &flags) else {
         return Ok(None);
     };
     // SPARQL uses $N for capture-group references — same as the regex crate.
@@ -1636,10 +1815,17 @@ fn eval_regex(
         return Ok(None);
     };
     let flags = string_arg(vals, 2).map(|(f, _)| f).unwrap_or_default();
-    match build_regex(&pattern, &flags) {
+    match cached_regex(ctx, &pattern, &flags) {
         Some(re) => Ok(Some(bool_term(ctx, re.is_match(&text)))),
         None => Ok(None),
     }
+}
+
+fn cached_regex(ctx: &mut EvalCtx<'_>, pattern: &str, flags: &str) -> Option<regex::Regex> {
+    ctx.regex_cache
+        .entry((pattern.to_owned(), flags.to_owned()))
+        .or_insert_with(|| build_regex(pattern, flags))
+        .clone()
 }
 
 /// Build a regex from a SPARQL pattern + flag string (`i`, `s`, `m`, `x`).
@@ -2044,6 +2230,60 @@ mod tests {
             vec![lit("Hello"), lit("^h"), lit("i")], // case-insensitive
         );
         assert_eq!(ebv(&ds, &re), Some(true));
+    }
+
+    #[test]
+    fn string_predicates_do_not_mint_nested_str_terms() {
+        let ds = empty_ds();
+        let schema = VarSchema::new();
+        let mut ctx = EvalCtx::new(&ds);
+        let expr = Expression::FunctionCall(
+            Function::StrStarts,
+            vec![
+                Expression::FunctionCall(Function::Str, vec![iri("http://ex/alice")]),
+                lit("http://ex/"),
+            ],
+        );
+
+        assert_eq!(
+            eval_ebv(&expr, &[], &schema, &mut ctx).expect("strstarts"),
+            Some(true)
+        );
+        assert_eq!(
+            ctx.scratch.computed_count(),
+            1,
+            "only the boolean result is minted"
+        );
+    }
+
+    #[test]
+    fn regex_cache_reuses_compiled_pattern_and_failures() {
+        let ds = empty_ds();
+        let schema = VarSchema::new();
+        let mut ctx = EvalCtx::new(&ds);
+        let re = Expression::FunctionCall(Function::Regex, vec![lit("Hello"), lit("^h"), lit("i")]);
+        let bad =
+            Expression::FunctionCall(Function::Regex, vec![lit("Hello"), lit("^h"), lit("z")]);
+
+        assert_eq!(
+            eval_ebv(&re, &[], &schema, &mut ctx).expect("first regex"),
+            Some(true)
+        );
+        assert_eq!(
+            eval_ebv(&re, &[], &schema, &mut ctx).expect("second regex"),
+            Some(true)
+        );
+        assert_eq!(ctx.regex_cache.len(), 1);
+
+        assert_eq!(
+            eval_ebv(&bad, &[], &schema, &mut ctx).expect("invalid regex"),
+            None
+        );
+        assert_eq!(
+            eval_ebv(&bad, &[], &schema, &mut ctx).expect("invalid regex cached"),
+            None
+        );
+        assert_eq!(ctx.regex_cache.len(), 2);
     }
 
     #[test]

@@ -7,35 +7,36 @@
   "datalog": {
     "complexity": "terminating/PTIME-data",
     "lossy_drops": [
+      "OWL class expressions not representable as Datalog atoms are dropped",
       "modal/world context flattened to predicate reification",
-      "no existential rule heads (skolemisation not emitted)",
-      "OWL class expressions not representable as Datalog atoms are dropped"
+      "no existential rule heads (skolemisation not emitted)"
     ],
     "preservation": "SoundUnderApproximation"
   },
   "gufo": {
     "complexity": "PTIME",
     "lossy_drops": [
-      "only gUFO-mapped sorts and structural predicates emitted",
-      "logic: world-modal/contextual structure has no gUFO equivalent",
-      "rules not representable in gUFO; only type/subtype declarations kept",
       "fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped",
-      "multi-level / HiLog instantiation (logic:instanceOf, logic:orderedType — arbitrary type-of-type levels) has no gUFO punning equivalent and is dropped",
-      "scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped",
-      "native builtins (logic:Builtin and the builtin individuals) have no gUFO class and are dropped",
-      "strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped",
-      "native edge-property metadata (RDF-1.2 statement-level scope on logic edges) has no gUFO equivalent and is dropped",
-      "the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection",
+      "logic: world-modal/contextual structure has no gUFO equivalent",
       "logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no single gUFO base class as a projection target and is dropped (gufo:Aspect is emitted; gufo:Mode does not exist)",
-      "preservation kind is ValidationOnly: gUFO is an anti-pattern check, not an entailment surface"
+      "multi-level / HiLog instantiation (logic:instanceOf, logic:orderedType — arbitrary type-of-type levels) has no gUFO punning equivalent and is dropped",
+      "native builtins (logic:Builtin and the builtin individuals) have no gUFO class and are dropped",
+      "native edge-property metadata (RDF-1.2 statement-level scope on logic edges) has no gUFO equivalent and is dropped",
+      "only gUFO-mapped sorts and structural predicates emitted",
+      "preservation kind is ValidationOnly: gUFO is an anti-pattern check, not an entailment surface",
+      "rules not representable in gUFO; only type/subtype declarations kept",
+      "scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped",
+      "strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped",
+      "the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection",
+      "actual: rdf:type logic:GoalExpression on <https://example.org/teleology/maintenance-fail-vs-open-window/GoalExpression> has no gUFO equivalent"
     ],
     "preservation": "ValidationOnly"
   },
   "n3": {
     "complexity": "semi-decidable",
     "lossy_drops": [
-      "modal context encoded as quoted graph arguments (may overgenerate)",
       "N3 builtins used for arithmetic/string predicates where available",
+      "modal context encoded as quoted graph arguments (may overgenerate)",
       "negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent"
     ],
     "preservation": "CompleteOverApproximation"
@@ -48,10 +49,10 @@
   "owl-dl": {
     "complexity": "decidable/N2EXPTIME",
     "lossy_drops": [
-      "modal/world context is erased",
       "contextual scope (standpoint, time, confidence) is dropped",
-      "rule bodies mapped to OWL axioms where OWL is expressive enough; existential rules beyond OWL DL expressivity are dropped",
+      "modal/world context is erased",
       "probabilistic profile not representable in OWL DL",
+      "rule bodies mapped to OWL axioms where OWL is expressive enough; existential rules beyond OWL DL expressivity are dropped",
       "transaction-path evolution has no faithful OWL DL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path"
     ],
     "preservation": "SoundUnderApproximation"
@@ -59,8 +60,8 @@
   "owl-el": {
     "complexity": "PTIME",
     "lossy_drops": [
-      "modal/world context is erased",
       "contextual scope (standpoint, time, confidence) is dropped",
+      "modal/world context is erased",
       "only EL-safe axioms emitted (no disjointness, no inverseOf, no cardinality restrictions, no nominals)",
       "rules beyond EL expressivity are dropped",
       "transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path"

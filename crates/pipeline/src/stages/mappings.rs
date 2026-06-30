@@ -869,7 +869,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;
         let fno = artifacts.get(FNO_PATH).expect("fno artifact");
-        let triples = triple_set(fno, "application/n-triples");
+        let triples = triple_set(fno, "text/turtle");
         assert!(
             triples.len() > 20,
             "FnO catalog unexpectedly small: {} triples",
@@ -920,7 +920,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     #[test]
     fn list_functions_are_emitted_and_parse() {
         // Wiring check (#1009 §5): the mappings stage emits the six list functions
-        // as well-formed FnO N-Triples (routed through the shared
+        // as well-formed FnO Turtle (routed through the shared
         // `gmeow_rdf::fno::to_quads` serializer, §19 one-path), each typed via
         // fno:Output and fno:Function.
         let root = repo_root();
@@ -928,7 +928,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         let lf = artifacts
             .get(LIST_FUNCTIONS_PATH)
             .expect("list-functions artifact");
-        let triples = triple_set(lf, "application/n-triples");
+        let triples = triple_set(lf, "text/turtle");
         let functions = triples
             .iter()
             .filter(|t| t.contains("https://w3id.org/function/ontology#Function"))
