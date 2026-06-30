@@ -608,27 +608,27 @@ fn build_predicate_index(
     index
 }
 
-fn objects_for(
-    index: &HashMap<(String, String, String), BTreeSet<String>>,
+fn objects_for<'a>(
+    index: &'a HashMap<(String, String, String), BTreeSet<String>>,
     world: &str,
     subject: &str,
     predicate: &str,
-) -> BTreeSet<String> {
+) -> impl Iterator<Item = &'a String> {
     index
         .get(&(world.to_owned(), subject.to_owned(), predicate.to_owned()))
-        .cloned()
-        .unwrap_or_default()
+        .into_iter()
+        .flat_map(|objects| objects.iter())
 }
 
-fn edges_for(
-    index: &HashMap<(String, String), Vec<(String, String)>>,
+fn edges_for<'a>(
+    index: &'a HashMap<(String, String), Vec<(String, String)>>,
     world: &str,
     predicate: &str,
-) -> Vec<(String, String)> {
+) -> impl Iterator<Item = &'a (String, String)> {
     index
         .get(&(world.to_owned(), predicate.to_owned()))
-        .cloned()
-        .unwrap_or_default()
+        .into_iter()
+        .flat_map(|edges| edges.iter())
 }
 
 fn has_fact(
@@ -1001,7 +1001,7 @@ pub(crate) fn augment_inferred_with_dl(
                             (
                                 fact.predicate.clone(),
                                 RDFS_SUBPROPERTYOF.to_owned(),
-                                super_property,
+                                super_property.clone(),
                             ),
                             // source assertion: s predicate o
                             (
@@ -1026,7 +1026,11 @@ pub(crate) fn augment_inferred_with_dl(
                         "dl:domain",
                         vec![
                             // schema axiom: predicate rdfs:domain domain
-                            (fact.predicate.clone(), RDFS_DOMAIN.to_owned(), domain),
+                            (
+                                fact.predicate.clone(),
+                                RDFS_DOMAIN.to_owned(),
+                                domain.clone(),
+                            ),
                             // source assertion: s predicate o
                             (
                                 fact.subject.clone(),
@@ -1050,7 +1054,7 @@ pub(crate) fn augment_inferred_with_dl(
                         "dl:range",
                         vec![
                             // schema axiom: predicate rdfs:range range
-                            (fact.predicate.clone(), RDFS_RANGE.to_owned(), range),
+                            (fact.predicate.clone(), RDFS_RANGE.to_owned(), range.clone()),
                             // source assertion: s predicate o
                             (
                                 fact.subject.clone(),
@@ -1099,7 +1103,11 @@ pub(crate) fn augment_inferred_with_dl(
                         "dl:inverseOf",
                         vec![
                             // schema axiom: predicate owl:inverseOf inverse
-                            (fact.predicate.clone(), OWL_INVERSE_OF.to_owned(), inverse),
+                            (
+                                fact.predicate.clone(),
+                                OWL_INVERSE_OF.to_owned(),
+                                inverse.clone(),
+                            ),
                             // source assertion: s predicate o
                             (
                                 fact.subject.clone(),
@@ -1119,17 +1127,17 @@ pub(crate) fn augment_inferred_with_dl(
                     RDF_TYPE,
                     OWL_TRANSITIVE_PROPERTY,
                 ) {
-                    for (_, z) in edges_for(&predicate_index, world, &fact.predicate)
-                        .into_iter()
-                        .filter(|(s, _)| s == &fact.object)
-                    {
+                    for edge in edges_for(&predicate_index, world, &fact.predicate) {
+                        if edge.0.as_str() != fact.object.as_str() {
+                            continue;
+                        }
                         add_inferred_fact(
                             inferred,
                             &mut facts,
                             Fact::new(
                                 fact.subject.clone(),
                                 fact.predicate.clone(),
-                                z,
+                                edge.1.clone(),
                                 world.clone(),
                             ),
                             "dl:transitive-property",
@@ -1144,8 +1152,9 @@ pub(crate) fn augment_inferred_with_dl(
             }
 
             for chain in edges_for(&predicate_index, world, OWL_PROPERTY_CHAIN_AXIOM) {
-                let (property, list_root) = chain;
-                let Some(members) = lists.get(&(world.clone(), list_root)) else {
+                let property = &chain.0;
+                let list_root = &chain.1;
+                let Some(members) = lists.get(&(world.clone(), list_root.clone())) else {
                     continue;
                 };
                 if members.len() != 2 {
@@ -1153,15 +1162,22 @@ pub(crate) fn augment_inferred_with_dl(
                 }
                 let first = &members[0];
                 let second = &members[1];
-                for (x, y) in edges_for(&predicate_index, world, first) {
-                    for (_, z) in edges_for(&predicate_index, world, second)
-                        .into_iter()
-                        .filter(|(s, _)| s == &y)
-                    {
+                for first_edge in edges_for(&predicate_index, world, first) {
+                    let x = &first_edge.0;
+                    let y = &first_edge.1;
+                    for second_edge in edges_for(&predicate_index, world, second) {
+                        if second_edge.0.as_str() != y.as_str() {
+                            continue;
+                        }
                         add_inferred_fact(
                             inferred,
                             &mut facts,
-                            Fact::new(x.clone(), property.clone(), z, world.clone()),
+                            Fact::new(
+                                x.clone(),
+                                property.clone(),
+                                second_edge.1.clone(),
+                                world.clone(),
+                            ),
                             "dl:property-chain",
                             vec![(
                                 property.clone(),
@@ -1182,13 +1198,15 @@ pub(crate) fn augment_inferred_with_dl(
                 };
 
                 if let Some(class) = restriction.some_values_from.as_deref() {
-                    for (subject, object) in edges_for(&predicate_index, world, property) {
-                        if has_fact(&facts, world, &object, RDF_TYPE, class) {
+                    for edge in edges_for(&predicate_index, world, property) {
+                        let subject = &edge.0;
+                        let object = &edge.1;
+                        if has_fact(&facts, world, object, RDF_TYPE, class) {
                             add_inferred_fact(
                                 inferred,
                                 &mut facts,
                                 Fact::new(
-                                    subject,
+                                    subject.clone(),
                                     RDF_TYPE.to_owned(),
                                     restriction_node.clone(),
                                     world.clone(),
@@ -1214,7 +1232,7 @@ pub(crate) fn augment_inferred_with_dl(
                                 inferred,
                                 &mut facts,
                                 Fact::new(
-                                    filler,
+                                    filler.clone(),
                                     RDF_TYPE.to_owned(),
                                     class.to_owned(),
                                     world.clone(),
@@ -1251,13 +1269,15 @@ pub(crate) fn augment_inferred_with_dl(
                             );
                         }
                     }
-                    for (subject, object) in edges_for(&predicate_index, world, property) {
+                    for edge in edges_for(&predicate_index, world, property) {
+                        let subject = &edge.0;
+                        let object = &edge.1;
                         if object == value {
                             add_inferred_fact(
                                 inferred,
                                 &mut facts,
                                 Fact::new(
-                                    subject,
+                                    subject.clone(),
                                     RDF_TYPE.to_owned(),
                                     restriction_node.clone(),
                                     world.clone(),
@@ -1285,7 +1305,7 @@ pub(crate) fn augment_inferred_with_dl(
                         Fact::new(
                             fact.subject.clone(),
                             fact.predicate.clone(),
-                            transitive_target,
+                            transitive_target.clone(),
                             world.clone(),
                         ),
                         if fact.predicate == RDFS_SUBCLASSOF {
@@ -1299,8 +1319,8 @@ pub(crate) fn augment_inferred_with_dl(
             }
 
             for subject in subjects {
-                let types = objects_for(&index, world, subject, RDF_TYPE);
-                for class in &types {
+                let types: Vec<&String> = objects_for(&index, world, subject, RDF_TYPE).collect();
+                for &class in &types {
                     for superclass in objects_for(&index, world, class, RDFS_SUBCLASSOF) {
                         add_inferred_fact(
                             inferred,
@@ -1308,7 +1328,7 @@ pub(crate) fn augment_inferred_with_dl(
                             Fact::new(
                                 subject.clone(),
                                 RDF_TYPE.to_owned(),
-                                superclass,
+                                superclass.clone(),
                                 world.clone(),
                             ),
                             "dl:type-propagation",
@@ -1321,7 +1341,10 @@ pub(crate) fn augment_inferred_with_dl(
                     if world_key != world {
                         continue;
                     }
-                    if !types.contains(restriction_key) {
+                    if !types
+                        .iter()
+                        .any(|class| class.as_str() == restriction_key.as_str())
+                    {
                         continue;
                     }
                     let restriction = &restrictions[&(world_key.clone(), restriction_key.clone())];
@@ -1329,7 +1352,7 @@ pub(crate) fn augment_inferred_with_dl(
                         continue;
                     };
                     let fillers: Vec<String> = objects_for(&index, world, subject, property)
-                        .into_iter()
+                        .cloned()
                         .collect();
 
                     // ── max-cardinality / exact clash under the identity stance ──
@@ -1440,11 +1463,10 @@ pub(crate) fn augment_inferred_with_dl(
                     }
                 }
 
-                let type_vec: Vec<&String> = types.iter().collect();
-                for i in 0..type_vec.len() {
-                    for j in i..type_vec.len() {
-                        let c1 = type_vec[i];
-                        let c2 = type_vec[j];
+                for i in 0..types.len() {
+                    for j in i..types.len() {
+                        let c1 = types[i];
+                        let c2 = types[j];
                         if has_fact(&facts, world, c1, OWL_DISJOINT_WITH, c2)
                             || has_fact(&facts, world, c2, OWL_DISJOINT_WITH, c1)
                         {
@@ -1475,7 +1497,10 @@ pub(crate) fn augment_inferred_with_dl(
                 .map(|f| f.subject.clone())
                 .collect();
             for class in &classes {
-                let mut supers = objects_for(&index, world, class, RDFS_SUBCLASSOF);
+                let mut supers: BTreeSet<String> =
+                    objects_for(&index, world, class, RDFS_SUBCLASSOF)
+                        .cloned()
+                        .collect();
                 supers.insert(class.clone());
                 let super_vec: Vec<&String> = supers.iter().collect();
                 for i in 0..super_vec.len() {
