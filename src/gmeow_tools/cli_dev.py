@@ -1840,19 +1840,22 @@ def wikidata(
     ),
 ) -> None:
     """Validate Wikidata QIDs/PIDs used in the mappings (syntax; optional live)."""
-    from gmeow_tools.wikidata_audit import audit_all, render_audit
-
     if fixtures:
-        report = audit_all(fixtures_dir=Path("tests/fixtures"))
-        text = render_audit(report)
-        for line in text.splitlines():
+        from gmeow_tools.graph import iter_module_files
+
+        paths = sorted(Path("tests/fixtures").rglob("*.ttl")) + list(
+            iter_module_files()
+        )
+        report = gmeow_validate.wikidata_audit_files([str(p) for p in paths])
+        for line in report["text"].splitlines():
             if line.startswith("[yellow]") or line.startswith("[red]"):
                 err_console.print(line)
             else:
                 console.print(line)
-        if not report.ok:
+        if not report["ok"]:
             raise _fail(
-                f"✗ {len(report.errors)} error(s), {len(report.warnings)} warning(s)"
+                f"✗ {report['error_count']} error(s), "
+                f"{report['warning_count']} warning(s)"
             )
         console.print("[green]✓ fixture audit passed[/green]")
         return

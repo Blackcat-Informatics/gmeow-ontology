@@ -41,6 +41,7 @@ use crate::slice_ownership;
 use crate::statement;
 use crate::store;
 use crate::validate_all::{self, ValidateOptions};
+use crate::wikidata_audit;
 
 /// Build the standard `{"errors": [...], "warnings": [...]}` report dict.
 fn report_dict(py: Python<'_>, errors: Vec<String>, warnings: Vec<String>) -> PyResult<Py<PyAny>> {
@@ -782,6 +783,36 @@ fn wikidata_check_syntax_iri(
         .collect()
 }
 
+/// Audit Turtle files for Wikidata misuse (native port of `wikidata_audit`).
+///
+/// Returns a `PyDict`: `{ ok, error_count, warning_count, findings: [{file, subject,
+/// predicate, object, severity, message}], text }` where `text` is the rendered
+/// report. Per-file parse errors surface as `error` findings (never a raised
+/// exception), mirroring the retired harness.
+#[pyfunction]
+fn wikidata_audit_files(py: Python<'_>, paths: Vec<String>) -> PyResult<Py<PyAny>> {
+    let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
+    let report = wikidata_audit::audit_files(&path_bufs);
+    let out = PyDict::new(py);
+    out.set_item("ok", report.ok())?;
+    out.set_item("error_count", report.errors())?;
+    out.set_item("warning_count", report.warnings())?;
+    let findings = PyList::empty(py);
+    for finding in &report.findings {
+        let item = PyDict::new(py);
+        item.set_item("file", &finding.file)?;
+        item.set_item("subject", &finding.subject)?;
+        item.set_item("predicate", &finding.predicate)?;
+        item.set_item("object", &finding.object)?;
+        item.set_item("severity", &finding.severity)?;
+        item.set_item("message", &finding.message)?;
+        findings.append(item)?;
+    }
+    out.set_item("findings", findings)?;
+    out.set_item("text", wikidata_audit::render_audit(&report))?;
+    Ok(out.into_any().unbind())
+}
+
 #[pyfunction]
 fn wikidata_mapping_syntax(py: Python<'_>, mappings_dir: String) -> PyResult<Py<PyAny>> {
     let report = mapping_eval::wikidata_mapping_syntax(&PathBuf::from(mappings_dir))
@@ -1506,6 +1537,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(audit_box_roles, m)?)?;
     m.add_function(wrap_pyfunction!(box_roles_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_check_syntax_iri, m)?)?;
+    m.add_function(wrap_pyfunction!(wikidata_audit_files, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_mapping_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_collect_ids, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_diagnostics_report, m)?)?;
