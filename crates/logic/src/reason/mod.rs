@@ -224,7 +224,7 @@ fn decode_premise(row: &ChaseRow) -> Result<(String, String, String), String> {
         ));
     }
     let subject = decode_iri_term(&row.values[0])?;
-    let object = decode_nemo_term(&row.values[1])?.to_string();
+    let object = crate::provenance::term_display(&decode_nemo_term(&row.values[1])?);
     Ok((subject, row.predicate.clone(), object))
 }
 
@@ -258,14 +258,16 @@ pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<Inferre
     let mut edb_facts: Vec<String> = Vec::new();
     for world in store.worlds() {
         for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
-            if !matches!(quad.object, oxigraph::model::Term::NamedNode(_)) {
+            if !quad.o.is_iri() {
                 continue;
             }
+            // The predicate is always an IRI (RDF invariant); a non-IRI predicate
+            // cannot encode as a Nemo predicate symbol, so skip it defensively.
+            let Some(predicate) = quad.p.as_iri() else {
+                continue;
+            };
             edb_facts.push(encode_quad_to_nemo_fact(
-                &quad.subject,
-                &quad.predicate,
-                &quad.object,
-                &world,
+                &quad.s, predicate, &quad.o, &world,
             ));
         }
     }
@@ -287,7 +289,7 @@ pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<Inferre
 
         let predicate = row.predicate.clone();
         let subject = decode_iri_term(&row.values[0])?;
-        let object = decode_nemo_term(&row.values[1])?.to_string();
+        let object = crate::provenance::term_display(&decode_nemo_term(&row.values[1])?);
         let world = decode_string_constant(&row.values[2])?;
 
         let prov = &rwp.provenance;

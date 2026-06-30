@@ -48,6 +48,7 @@
 
 use std::collections::BTreeSet;
 
+use crate::provenance::term_display;
 use crate::query_ir::AnswerSet;
 use crate::reason::ledger::{DivergenceKind, LedgerRow, LedgerVerdict};
 use crate::rule_ir::DerivedRow;
@@ -133,18 +134,18 @@ type FactKey = (String, String, String);
 /// The fact key of a native [`DerivedRow`]: its `(subject, predicate, object)` N3 surfaces.
 fn row_fact_key(row: &DerivedRow) -> FactKey {
     (
-        row.subject.to_string(),
+        term_display(&row.subject),
         row.predicate.as_str().to_owned(),
-        row.object.to_string(),
+        term_display(&row.object),
     )
 }
 
 /// The fact key of a Nemo [`DerivedQuad`]: its `(subject, predicate, object)` N3 surfaces.
 fn quad_fact_key(quad: &DerivedQuad) -> FactKey {
     (
-        quad.subject.to_string(),
+        term_display(&quad.subject),
         quad.predicate.as_str().to_owned(),
-        quad.object.to_string(),
+        term_display(&quad.object),
     )
 }
 
@@ -289,7 +290,6 @@ mod tests {
     use crate::rule_ir::parse_eval_rules;
     use crate::seam::WorldStoreForeign;
     use crate::store::WorldStore;
-    use oxigraph::model::NamedNode;
 
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
 
@@ -600,14 +600,14 @@ mod tests {
     }
 
     /// Build a `WorldStoreForeign` from a backward program's EDB triples, returning it with the
-    /// world `NamedNode`.
-    fn backward_world(b: &BackwardProgram) -> (WorldStore, NamedNode) {
+    /// world IRI.
+    fn backward_world(b: &BackwardProgram) -> (WorldStore, String) {
         const W: &str = "http://logic.test/world/parity";
         let store = WorldStore::new();
         for (s, pr, o) in &b.triples {
             store.insert_quad(W, s, pr, o);
         }
-        (store, NamedNode::new(W).expect("valid world IRI"))
+        (store, W.to_owned())
     }
 
     /// Run the native backward engine, asserting a `Decided` outcome (the coverage floor).

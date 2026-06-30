@@ -1,0 +1,9 @@
+kind
+[Some(Iri("https://blackcatinformatics.ca/gmeow/AgreementName"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Appellation"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/CreativeWorkTitle"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Filename"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/OrganizationName"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/PersonName"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/PlaceName"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/SoftwareName"))]

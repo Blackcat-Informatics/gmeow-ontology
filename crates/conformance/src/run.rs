@@ -514,10 +514,10 @@ fn materialize_default(
         .quads
         .into_iter()
         .map(|dq| RunnerQuad {
-            graph: dq.graph.as_str().to_string(),
-            subject: bare_iri(&dq.subject.to_string()),
-            predicate: dq.predicate.as_str().to_string(),
-            obj: dq.object.to_string(),
+            graph: dq.graph.clone(),
+            subject: bare_iri(&gmeow_logic::provenance::term_display(&dq.subject)),
+            predicate: dq.predicate.clone(),
+            obj: gmeow_logic::provenance::term_display(&dq.object),
             derivation_id: dq.derivation_id.as_str().to_string(),
             rule_iri: dq.rule_iri,
             source_quad_ids: dq.source_quad_ids,
@@ -726,8 +726,6 @@ fn resolve_query(
         )));
     }
     let world = worlds.into_iter().next().expect("len == 1");
-    let world_nn = oxigraph::model::NamedNode::new(&world)
-        .map_err(|e| err(format!("invalid world IRI {world:?}: {e}")))?;
 
     let program = parse_query_program(query_text).map_err(err)?;
     let max_answers_usize = max_answers.map(|n| n as usize);
@@ -791,7 +789,7 @@ fn resolve_query(
         let answer = gmeow_logic::dispatch::dispatch_query(
             &foreign,
             &store,
-            &world_nn,
+            &world,
             &program,
             profile_str,
             &budget,

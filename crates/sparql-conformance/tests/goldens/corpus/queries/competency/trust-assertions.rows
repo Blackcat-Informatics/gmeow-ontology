@@ -1,0 +1,6 @@
+aspect
+[Some(Iri("https://blackcatinformatics.ca/gmeow/introducerAmount"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/introducerDepth"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/trustLevel"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/trustee"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/trustor"))]

@@ -554,10 +554,8 @@ fn resolve_in_world(
         cf_store.insert_quad(world_iri, s, p, o);
     }
 
-    let world_nn = oxigraph::model::NamedNode::new(world_iri)
-        .map_err(|e| format!("invalid constructed world IRI {world_iri:?}: {e}"))?;
     let foreign = WorldStoreForeign::from_world(&cf_store, world_iri, profile)?;
-    let answer = dispatch_query(&foreign, &cf_store, &world_nn, program, profile, budget)?;
+    let answer = dispatch_query(&foreign, &cf_store, world_iri, program, profile, budget)?;
     Ok((
         answer.bindings.into_iter().collect(),
         CfStatus::from_budget(answer.status),
@@ -627,15 +625,9 @@ fn base_world_facts(store: &WorldStore, base_world: &str) -> Vec<(String, String
         .quads_for_pattern_in_world(base_world, None, None, None)
         .into_iter()
         .filter_map(|q| {
-            let s = match &q.subject {
-                oxigraph::model::NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-                _ => return None,
-            };
-            let p = q.predicate.as_str().to_owned();
-            let o = match &q.object {
-                oxigraph::model::Term::NamedNode(n) => n.as_str().to_owned(),
-                _ => return None,
-            };
+            let s = q.s.as_iri()?.to_owned();
+            let p = q.p.as_iri()?.to_owned();
+            let o = q.o.as_iri()?.to_owned();
             Some((s, p, o))
         })
         .collect();

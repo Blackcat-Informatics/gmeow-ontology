@@ -6,7 +6,9 @@
 //! Builds a [`gmeow_gts::model::Graph`] from the frozen IR — interning every IR term
 //! into the graph's term table, materializing literal datatypes and quoted-triple
 //! reifier bindings the gmeow-gts model expects — then dispatches to the matching
-//! `gmeow-gts` `to_*` serializer. The graph layout mirrors exactly what
+//! serializer: the Turtle / TriG / N-Triples / N-Quads `gmeow-gts` `to_*` serializers,
+//! and the FIRST-PARTY in-repo [`rdfxml`](super::rdfxml) codec for RDF/XML (EPIC #906,
+//! no external gmeow-gts RDF/XML codec). The graph layout mirrors exactly what
 //! `read_all_segments` produces, so parse and serialize are inverses.
 //!
 //! The [`SerializeGraph`] filter matches `oxigraph/backend.rs:333-391` exactly:
@@ -76,9 +78,11 @@ fn serialize_dataset_inner(
             gmeow_gts::rdf_codecs::to_ntriples(&graph).map_err(codec_error)?
         }
         NativeRdfFormat::NQuads => gmeow_gts::nquads::to_nquads(&graph),
-        NativeRdfFormat::RdfXml => {
-            gmeow_gts::rdf_codecs::to_rdf_xml(&graph).map_err(codec_error)?
-        }
+        // RDF/XML serializes FIRST-PARTY (EPIC #906) through the in-repo `rdfxml` codec
+        // (no longer the external gmeow-gts RDF/XML codec). It exports the
+        // graph's quads via `gmeow_gts::rdf::to_rdf_quads` and renders the W3C RDF/XML
+        // surface in-repo, byte-identical to the prior path.
+        NativeRdfFormat::RdfXml => super::rdfxml::serialize_gts_graph_to_rdfxml(&graph)?,
     };
     Ok(text.into_bytes())
 }

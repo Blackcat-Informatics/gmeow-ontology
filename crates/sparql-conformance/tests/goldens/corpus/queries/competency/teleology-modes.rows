@@ -1,0 +1,4 @@
+mode
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Commitment"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Desire"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Intention"))]

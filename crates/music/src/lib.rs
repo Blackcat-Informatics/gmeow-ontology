@@ -15,10 +15,8 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use gmeow_gts::model::{Term, TermKind};
-use gmeow_rdf::gts_compose::{
-    emit_gts, parse_quads_lenient, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD,
-};
-use gmeow_rdf::NativeRdfFormat;
+use gmeow_rdf::gts_compose::{emit_gts, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
+use gmeow_rdf::{parse_dataset, NativeRdfFormat};
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -771,9 +769,14 @@ pub fn piece_to_turtle(piece: &Piece) -> String {
 
 pub fn piece_to_gts_bytes(piece: &Piece) -> Result<Vec<u8>, String> {
     let turtle = piece_to_turtle(piece);
-    let quads = parse_quads_lenient(turtle.as_bytes(), NativeRdfFormat::Turtle)?;
+    let dataset = parse_dataset(
+        turtle.as_bytes(),
+        NativeRdfFormat::Turtle.media_type(),
+        None,
+    )
+    .map_err(|e| e.to_string())?;
     let mut builder = SnapshotBuilder::default();
-    builder.add_quads(&quads, None, None);
+    builder.add_dataset(&dataset)?;
     emit_gts(
         &builder,
         "dist",

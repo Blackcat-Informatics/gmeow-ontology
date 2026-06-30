@@ -12,11 +12,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::model::Term;
+use gmeow_slice::rdf_query::{Dataset, Object};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::source_load::{module_files, turtle_bytes_to_store};
+use crate::stages::source_load::module_files;
 
 /// Logical-path prefix of the generated profile documents.
 pub const PROFILES_DIR: &str = "generated/profiles";
@@ -24,7 +24,6 @@ pub const PROFILES_DIR: &str = "generated/profiles";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 const FULL_PROFILE_IRI: &str = "https://blackcatinformatics.ca/gmeow/full";
 const NAMED_PROFILE_NS: &str = "https://blackcatinformatics.ca/gmeow/profiles/";
-const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const SLICE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Slice";
 const SLICE_TIER: &str = "https://blackcatinformatics.ca/gmeow/sliceTier";
 const SLICE_PROFILE: &str = "https://blackcatinformatics.ca/gmeow/sliceProfile";
@@ -187,62 +186,41 @@ fn profile_document(
 
 fn parse_manifest(path: &Path) -> Result<SliceMeta, PipelineError> {
     let bytes = std::fs::read(path)?;
-    let store = turtle_bytes_to_store(&bytes, &path.display().to_string())?;
-    let nn = |iri: &str| oxigraph::model::NamedNode::new(iri).unwrap();
-    let mut iri: Option<String> = None;
-    for quad in store.quads_for_pattern(
-        None,
-        Some(nn(RDF_TYPE).as_ref()),
-        Some((&nn(SLICE_CLASS)).into()),
-        None,
-    ) {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let oxigraph::model::NamedOrBlankNode::NamedNode(n) = &quad.subject {
-            iri = Some(n.as_str().to_string());
-        }
-    }
-    let iri = iri
-        .ok_or_else(|| PipelineError::Parse(format!("no `a gmeow:Slice` in {}", path.display())))?;
-    let subject = nn(&iri);
+    let dataset = Dataset::parse_turtle(&bytes, &path.display().to_string())
+        .map_err(|e| PipelineError::Parse(e.to_string()))?;
 
-    let mut is_core = false;
-    for quad in store.quads_for_pattern(
-        Some((&subject).into()),
-        Some(nn(SLICE_TIER).as_ref()),
-        None,
-        None,
-    ) {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let Term::NamedNode(n) = &quad.object {
-            if n.as_str() == TIER_CORE {
-                is_core = true;
-            }
-        }
-    }
-    let mut profiles = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some((&subject).into()),
-        Some(nn(SLICE_PROFILE).as_ref()),
-        None,
-        None,
-    ) {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let Term::Literal(l) = &quad.object {
-            profiles.push(l.value().to_string());
-        }
-    }
-    let mut depends_on = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some((&subject).into()),
-        Some(nn(SLICE_DEPENDS_ON).as_ref()),
-        None,
-        None,
-    ) {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let Term::NamedNode(n) = &quad.object {
-            depends_on.push(n.as_str().to_string());
-        }
-    }
+    // The slice IRI: the last named subject of `?s a gmeow:Slice` (the old scan kept
+    // the final match, so mirror that — `subjects_of_type` is in dataset order).
+    let iri = dataset
+        .subjects_of_type(SLICE_CLASS)
+        .map_err(|e| PipelineError::Parse(e.to_string()))?
+        .into_iter()
+        .next_back()
+        .ok_or_else(|| PipelineError::Parse(format!("no `a gmeow:Slice` in {}", path.display())))?;
+
+    // sliceTier: core iff any named-node object equals tierCore.
+    let is_core = dataset
+        .object_iris(&iri, SLICE_TIER)
+        .map_err(|e| PipelineError::Parse(e.to_string()))?
+        .iter()
+        .any(|n| n == TIER_CORE);
+
+    // sliceProfile: every literal-object lexical value, in dataset order.
+    let profiles: Vec<String> = dataset
+        .objects(&iri, SLICE_PROFILE)
+        .map_err(|e| PipelineError::Parse(e.to_string()))?
+        .into_iter()
+        .filter_map(|o| match o {
+            Object::Literal { value } => Some(value),
+            _ => None,
+        })
+        .collect();
+
+    // sliceDependsOn: every named-node object, in dataset order.
+    let depends_on = dataset
+        .object_iris(&iri, SLICE_DEPENDS_ON)
+        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+
     Ok(SliceMeta {
         iri,
         is_core,

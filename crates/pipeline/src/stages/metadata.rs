@@ -13,18 +13,17 @@
 //! Every data-derived value comes from the GTS snapshot: the version + abstract
 //! from the ontology header in the *default* graph, the linksets from the
 //! `graph/alignments` named graph, the Wikidata links from `graph/metadata`. The
-//! committed artifacts were rdflib-serialized; we serialize with oxigraph and
-//! the gate compares by graph ISOMORPHISM (both files are blank-node-free, so
+//! committed artifacts were rdflib-serialized; we build the output as a native
+//! [`RdfQuad`] set, fold it into the frozen IR via
+//! [`gmeow_rdf::dataset_from_quads`], and serialize with the native codecs. The
+//! gate compares by graph ISOMORPHISM (both files are blank-node-free, so
 //! isomorphism reduces to triple-set equality).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use gmeow_rdf::model::{RdfLiteral, RdfTerm};
-use gmeow_rdf::oxigraph::dataset_from_store;
-use gmeow_rdf::{serialize_dataset, RdfDataset, SerializeGraph};
-use oxigraph::model::{Literal, NamedNode, Quad, Term};
-use oxigraph::store::Store;
+use gmeow_rdf::{dataset_from_quads, serialize_dataset, RdfDataset, RdfQuad, SerializeGraph};
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
@@ -300,299 +299,336 @@ fn fold_linksets(store: &RdfDataset) -> Result<Vec<Linkset>, PipelineError> {
     Ok(out)
 }
 
-// ── Oxigraph term helpers ──────────────────────────────────────────────────────
+// ── Native term helpers ──────────────────────────────────────────────────────
 
-fn nn(iri: &str) -> NamedNode {
-    NamedNode::new(iri).expect("valid IRI")
+/// Push one default-graph triple `<s> <p> o` into the output quad set.
+fn add(out: &mut Vec<RdfQuad>, s: &str, p: &str, o: RdfTerm) {
+    out.push(RdfQuad::new(RdfTerm::iri(s), p, o));
 }
 
-fn add(store: &Store, s: &NamedNode, p: &str, o: Term) {
-    let quad = Quad::new(
-        s.clone(),
-        nn(p),
-        o,
-        oxigraph::model::GraphName::DefaultGraph,
-    );
-    store.insert(&quad).expect("insert");
+fn lit_en(s: &str) -> RdfTerm {
+    RdfTerm::literal(RdfLiteral::language_tagged(s, "en"))
 }
 
-fn lit_en(s: &str) -> Term {
-    Literal::new_language_tagged_literal(s, "en")
-        .expect("lang tag")
-        .into()
+fn lit_int(n: u64) -> RdfTerm {
+    RdfTerm::literal(RdfLiteral::typed(n.to_string(), format!("{XSD}integer")))
 }
 
-fn lit_int(n: u64) -> Term {
-    Literal::new_typed_literal(n.to_string(), nn(&format!("{XSD}integer"))).into()
+fn lit_str(s: &str) -> RdfTerm {
+    // The old oxigraph path built `new_simple_literal`, which the Store typed as
+    // `xsd:string`; the native text parser likewise types a bare literal `xsd:string`.
+    // Keep the explicit datatype so the built quad matches the committed-artifact parse
+    // (both serialize bare through the native turtle serializer — the redundant
+    // `xsd:string` is dropped — so the committed bytes are unchanged).
+    RdfTerm::literal(RdfLiteral::typed(s, format!("{XSD}string")))
 }
 
-fn lit_str(s: &str) -> Term {
-    Literal::new_simple_literal(s).into()
-}
-
-fn iri_term(s: &str) -> Term {
-    nn(s).into()
+fn iri_term(s: &str) -> RdfTerm {
+    RdfTerm::iri(s)
 }
 
 // ── Graph builders ─────────────────────────────────────────────────────────────
 
-fn build_void_store(store: &RdfDataset) -> Result<Store, PipelineError> {
-    let out = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
-    let dataset = nn(VOID_DATASET_IRI);
+fn build_void_quads(store: &RdfDataset) -> Result<Vec<RdfQuad>, PipelineError> {
+    let mut out: Vec<RdfQuad> = Vec::new();
+    let dataset = VOID_DATASET_IRI;
 
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         RDF_TYPE,
         iri_term(&format!("{VOID}Dataset")),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}title"),
         lit_en("GMEOW — Global Metadata and Entity Ontology for the Web"),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}description"),
         lit_en(&fold_description(store)?),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}license"),
         iri_term(CC_BY),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}publisher"),
         iri_term(PUBLISHER),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}creator"),
         iri_term(PUBLISHER),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{FOAF}homepage"),
         iri_term(ONTOLOGY_IRI),
     );
     for link in fold_wikidata_links(store)? {
-        add(&out, &dataset, GMEOW_AUTHORITY_LINK, iri_term(&link));
-        add(&out, &dataset, SKOS_EXACT_MATCH, iri_term(&link));
+        add(&mut out, dataset, GMEOW_AUTHORITY_LINK, iri_term(&link));
+        add(&mut out, dataset, SKOS_EXACT_MATCH, iri_term(&link));
     }
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}hasVersion"),
         lit_str(&fold_version(store)?),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{VOID}uriSpace"),
         lit_str(NAMESPACE),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{VOID}exampleResource"),
         iri_term(&format!("{NAMESPACE}Person")),
     );
 
     let stats = fold_stats(store)?;
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{VOID}triples"),
         lit_int(stats.triples),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{VOID}classes"),
         lit_int(stats.classes),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{VOID}properties"),
         lit_int(stats.properties),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{VOID}entities"),
         lit_int(stats.entities),
     );
 
     for (ext, fmt_iri) in FORMAT_IRI {
-        add(&out, &dataset, &format!("{VOID}feature"), iri_term(fmt_iri));
         add(
-            &out,
-            &dataset,
+            &mut out,
+            dataset,
+            &format!("{VOID}feature"),
+            iri_term(fmt_iri),
+        );
+        add(
+            &mut out,
+            dataset,
             &format!("{VOID}dataDump"),
             iri_term(&format!("{ONTOLOGY_IRI}.{ext}")),
         );
     }
 
     for ns in [OWL, RDFS, SKOS, DCTERMS, GUFO] {
-        add(&out, &dataset, &format!("{VOID}vocabulary"), iri_term(ns));
+        add(
+            &mut out,
+            dataset,
+            &format!("{VOID}vocabulary"),
+            iri_term(ns),
+        );
     }
     for ns in ALIGNMENT_TARGET_NS {
-        add(&out, &dataset, &format!("{VOID}vocabulary"), iri_term(ns));
+        add(
+            &mut out,
+            dataset,
+            &format!("{VOID}vocabulary"),
+            iri_term(ns),
+        );
     }
 
     for ls in fold_linksets(store)? {
-        let linkset = nn(&ls.iri);
+        let linkset = ls.iri.as_str();
         add(
-            &out,
-            &linkset,
+            &mut out,
+            linkset,
             RDF_TYPE,
             iri_term(&format!("{VOID}Linkset")),
         );
         add(
-            &out,
-            &linkset,
+            &mut out,
+            linkset,
             &format!("{VOID}subjectsTarget"),
             iri_term(VOID_DATASET_IRI),
         );
         add(
-            &out,
-            &linkset,
+            &mut out,
+            linkset,
             &format!("{VOID}objectsTarget"),
             iri_term(&ls.target_ns),
         );
         add(
-            &out,
-            &linkset,
+            &mut out,
+            linkset,
             &format!("{VOID}linkPredicate"),
             iri_term(&ls.predicate_iri),
         );
-        add(&out, &linkset, &format!("{VOID}triples"), lit_int(ls.count));
-        add(&out, &linkset, &format!("{RDFS}label"), lit_en(&ls.label));
-        add(&out, &dataset, &format!("{VOID}subset"), iri_term(&ls.iri));
+        add(
+            &mut out,
+            linkset,
+            &format!("{VOID}triples"),
+            lit_int(ls.count),
+        );
+        add(
+            &mut out,
+            linkset,
+            &format!("{RDFS}label"),
+            lit_en(&ls.label),
+        );
+        add(
+            &mut out,
+            dataset,
+            &format!("{VOID}subset"),
+            iri_term(&ls.iri),
+        );
     }
 
     Ok(out)
 }
 
-fn build_dcat_store(store: &RdfDataset, root: &Path) -> Result<Store, PipelineError> {
-    let out = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
-    let dataset = nn(ONTOLOGY_IRI);
+fn build_dcat_quads(store: &RdfDataset, root: &Path) -> Result<Vec<RdfQuad>, PipelineError> {
+    let mut out: Vec<RdfQuad> = Vec::new();
+    let dataset = ONTOLOGY_IRI;
 
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         RDF_TYPE,
         iri_term(&format!("{DCAT}Dataset")),
     );
-    add(&out, &dataset, &format!("{DCTERMS}title"), lit_en("GMEOW"));
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
+        &format!("{DCTERMS}title"),
+        lit_en("GMEOW"),
+    );
+    add(
+        &mut out,
+        dataset,
         &format!("{DCTERMS}description"),
         lit_en(&fold_description(store)?),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}license"),
         iri_term(CC_BY),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}publisher"),
         iri_term(PUBLISHER),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCAT}landingPage"),
         iri_term(ONTOLOGY_IRI),
     );
     add(
-        &out,
-        &dataset,
+        &mut out,
+        dataset,
         &format!("{DCTERMS}hasVersion"),
         lit_str(&fold_version(store)?),
     );
     for link in fold_wikidata_links(store)? {
-        add(&out, &dataset, GMEOW_AUTHORITY_LINK, iri_term(&link));
-        add(&out, &dataset, SKOS_EXACT_MATCH, iri_term(&link));
+        add(&mut out, dataset, GMEOW_AUTHORITY_LINK, iri_term(&link));
+        add(&mut out, dataset, SKOS_EXACT_MATCH, iri_term(&link));
     }
     for (ext, media) in MEDIA_TYPE {
-        let dist = nn(&format!("{ONTOLOGY_IRI}#dist-{ext}"));
+        let dist = format!("{ONTOLOGY_IRI}#dist-{ext}");
         add(
-            &out,
+            &mut out,
             &dist,
             RDF_TYPE,
             iri_term(&format!("{DCAT}Distribution")),
         );
         add(
-            &out,
+            &mut out,
             &dist,
             &format!("{DCAT}downloadURL"),
             iri_term(&format!("{ONTOLOGY_IRI}.{ext}")),
         );
-        let media_lit = Literal::new_typed_literal(*media, nn(&format!("{XSD}string"))).into();
-        add(&out, &dist, &format!("{DCAT}mediaType"), media_lit);
+        // `xsd:string`-typed, matching the old oxigraph-built quad and the native
+        // parse of the committed artifact; the native serializer drops the redundant
+        // datatype, so the committed bytes stay bare.
+        let media_lit = RdfTerm::literal(RdfLiteral::typed(*media, format!("{XSD}string")));
+        add(&mut out, &dist, &format!("{DCAT}mediaType"), media_lit);
         add(
-            &out,
-            &dataset,
+            &mut out,
+            dataset,
             &format!("{DCAT}distribution"),
-            iri_term(dist.as_str()),
+            iri_term(&dist),
         );
     }
 
     // Profile IRIs are datasets too (#330).
     let slices: BTreeMap<String, SliceMeta> = discover_slices(root)?;
-    let full = nn(FULL_PROFILE_IRI);
-    add(&out, &full, RDF_TYPE, iri_term(&format!("{DCAT}Dataset")));
+    let full = FULL_PROFILE_IRI;
     add(
-        &out,
-        &full,
+        &mut out,
+        full,
+        RDF_TYPE,
+        iri_term(&format!("{DCAT}Dataset")),
+    );
+    add(
+        &mut out,
+        full,
         &format!("{DCTERMS}title"),
         lit_en("GMEOW — full profile"),
     );
     add(
-        &out,
-        &full,
+        &mut out,
+        full,
         &format!("{DCTERMS}hasPart"),
         iri_term(ONTOLOGY_IRI),
     );
     add(
-        &out,
-        &full,
+        &mut out,
+        full,
         &format!("{DCAT}landingPage"),
         iri_term(FULL_PROFILE_IRI),
     );
 
     for (name, members) in group_named_profiles(&slices) {
         let profile_iri = format!("{NAMED_PROFILE_NS}{name}");
-        let profile = nn(&profile_iri);
+        let profile = profile_iri.as_str();
         let closure = dependency_closure(&name, &members, &slices)?;
         add(
-            &out,
-            &profile,
+            &mut out,
+            profile,
             RDF_TYPE,
             iri_term(&format!("{DCAT}Dataset")),
         );
         add(
-            &out,
-            &profile,
+            &mut out,
+            profile,
             &format!("{DCTERMS}title"),
             lit_en(&format!("GMEOW — {name} profile")),
         );
         add(
-            &out,
-            &profile,
+            &mut out,
+            profile,
             &format!("{DCTERMS}description"),
             lit_en(&format!(
                 "Slim dependency-closed profile: {} declared slice(s), {} in the import closure.",
@@ -601,14 +637,14 @@ fn build_dcat_store(store: &RdfDataset, root: &Path) -> Result<Store, PipelineEr
             )),
         );
         add(
-            &out,
-            &profile,
+            &mut out,
+            profile,
             &format!("{DCTERMS}isPartOf"),
             iri_term(FULL_PROFILE_IRI),
         );
         add(
-            &out,
-            &profile,
+            &mut out,
+            profile,
             &format!("{DCAT}landingPage"),
             iri_term(&profile_iri),
         );
@@ -616,10 +652,14 @@ fn build_dcat_store(store: &RdfDataset, root: &Path) -> Result<Store, PipelineEr
     Ok(out)
 }
 
-/// Serialize a store's default graph to Turtle bytes, banner-prefixed.
-fn serialize(store: &Store) -> Result<Vec<u8>, PipelineError> {
+/// Fold a built quad set into the frozen IR (the native twin of the old
+/// `Store` + `dataset_from_store`), then serialize the default graph to Turtle
+/// bytes, banner-prefixed. The quad set is blank-node-free plain triples, so the
+/// statement-layer fold is a no-op and the output is byte-identical to the prior
+/// oxigraph-built path.
+fn serialize(quads: &[RdfQuad]) -> Result<Vec<u8>, PipelineError> {
     let mut buf: Vec<u8> = BANNER.as_bytes().to_vec();
-    let dataset = dataset_from_store(store).map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let dataset = dataset_from_quads(quads).map_err(PipelineError::Parse)?;
     let body = serialize_dataset(&dataset, "text/turtle", SerializeGraph::DefaultGraph)
         .map_err(|e| PipelineError::Parse(format!("turtle serialize: {e}")))?;
     buf.extend_from_slice(&body);
@@ -664,8 +704,8 @@ impl Stage for MetadataStage {
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
         let store = dataset.as_ref();
 
-        let void = build_void_store(store)?;
-        let dcat = build_dcat_store(store, input.root)?;
+        let void = build_void_quads(store)?;
+        let dcat = build_dcat_quads(store, input.root)?;
 
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(VOID_PATH.to_string(), serialize(&void)?);
@@ -689,21 +729,25 @@ mod tests {
             .unwrap()
     }
 
-    /// N-Triple-encoded triple set of a store's default graph.
-    fn triple_set(store: &Store) -> BTreeSet<String> {
-        store
-            .quads_for_pattern(None, None, None, None)
-            .map(|q| {
-                let q = q.unwrap();
-                format!("{} {} {} .", q.subject, q.predicate, q.object)
-            })
+    /// N-Triple-encoded triple set of a built default-graph quad set. The native
+    /// `emit_quad` renders `<s> <p> <o> .\n`; trim the trailing newline so the
+    /// comparison key matches a committed-file parse.
+    fn quads_triple_set(quads: &[RdfQuad]) -> BTreeSet<String> {
+        quads
+            .iter()
+            .map(|q| gmeow_rdf::emit_quad(q).trim_end().to_string())
             .collect()
     }
 
-    fn parse_committed(path: &Path) -> Store {
+    /// N-Triple-encoded triple set of a committed Turtle file's default graph.
+    fn committed_triple_set(path: &Path) -> BTreeSet<String> {
         let bytes = std::fs::read(path).unwrap_or_else(|_| panic!("committed missing: {path:?}"));
-        crate::stages::source_load::turtle_bytes_to_store(&bytes, &format!("{path:?}"))
-            .unwrap_or_else(|e| panic!("parse {path:?}: {e}"))
+        let dataset = gmeow_rdf::parse_dataset(&bytes, "text/turtle", None)
+            .unwrap_or_else(|e| panic!("parse {path:?}: {e}"));
+        dataset
+            .owned_quads()
+            .map(|q| gmeow_rdf::emit_quad(&q).trim_end().to_string())
+            .collect()
     }
 
     #[test]
@@ -711,10 +755,9 @@ mod tests {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
         let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
-        let built = build_void_store(bundle.dataset.as_ref()).unwrap();
-        let committed = parse_committed(&root.join(VOID_PATH));
-        let a = triple_set(&built);
-        let b = triple_set(&committed);
+        let built = build_void_quads(bundle.dataset.as_ref()).unwrap();
+        let a = quads_triple_set(&built);
+        let b = committed_triple_set(&root.join(VOID_PATH));
         // Stats sanity: the dataset's void:triples literal must be present.
         assert_eq!(
             a,
@@ -730,10 +773,9 @@ mod tests {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
         let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
-        let built = build_dcat_store(bundle.dataset.as_ref(), &root).unwrap();
-        let committed = parse_committed(&root.join(DCAT_PATH));
-        let a = triple_set(&built);
-        let b = triple_set(&committed);
+        let built = build_dcat_quads(bundle.dataset.as_ref(), &root).unwrap();
+        let a = quads_triple_set(&built);
+        let b = committed_triple_set(&root.join(DCAT_PATH));
         assert_eq!(
             a,
             b,
@@ -746,22 +788,18 @@ mod tests {
     /// Read a `void:<key>` integer literal off the dataset subject of the
     /// committed `void.ttl`, so the expected stats are sourced from the
     /// canonical artifact itself and never go stale on a refold.
-    fn committed_void_stat(committed: &Store, key: &str) -> u64 {
-        let dataset = nn(VOID_DATASET_IRI);
-        let predicate = nn(&format!("{VOID}{key}"));
+    fn committed_void_stat(committed: &RdfDataset, key: &str) -> u64 {
+        let predicate = format!("{VOID}{key}");
         let mut found: Option<u64> = None;
-        for q in committed.quads_for_pattern(
-            Some((&dataset).into()),
-            Some((&predicate).into()),
-            None,
-            None,
-        ) {
-            let q = q.unwrap();
-            if let Term::Literal(lit) = &q.object {
+        for q in committed.owned_quads() {
+            if term_iri(&q.subject) != Some(VOID_DATASET_IRI) || q.predicate != predicate {
+                continue;
+            }
+            if let RdfTerm::Literal(RdfLiteral { lexical_form, .. }) = &q.object {
                 found = Some(
-                    lit.value()
+                    lexical_form
                         .parse()
-                        .unwrap_or_else(|_| panic!("void:{key} not an integer: {}", lit.value())),
+                        .unwrap_or_else(|_| panic!("void:{key} not an integer: {lexical_form}")),
                 );
             }
         }
@@ -778,7 +816,8 @@ mod tests {
         // (the canonical artifact) rather than hardcoded, so they track every
         // refold automatically. `fold_stats` counts the default graph exactly as
         // the Python `metadata._fold_stats` does over `FoldView.quads(DEFAULT)`.
-        let committed = parse_committed(&root.join(VOID_PATH));
+        let committed_bytes = std::fs::read(root.join(VOID_PATH)).unwrap();
+        let committed = gmeow_rdf::parse_dataset(&committed_bytes, "text/turtle", None).unwrap();
         assert_eq!(
             stats.triples,
             committed_void_stat(&committed, "triples"),

@@ -5,18 +5,22 @@
 //! `RdfFormat` pyclass, the `parse` / `serialize` module functions, and the
 //! pure-Rust `parse_quads` / `serialize_triples` cores plus the `read_input`
 //! helper the store seam shares.
+//!
+//! Native backing (EPIC #906): the parse/serialize cores produce and consume the
+//! oxigraph-free owned model (`RdfQuad` / `RdfTriple`) via the native codecs — no
+//! `oxigraph::model::*` and no `flat_oxigraph_quads_from_dataset` bridge.
 
-use oxigraph::model::{BaseDirection, GraphName, NamedOrBlankNode, Quad, Term as OxTerm, Triple};
+use std::sync::Arc;
+
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 
 use super::query::PyQueryTriples;
 use super::term::PyQuad;
-use crate::oxigraph::flat_oxigraph_quads_from_dataset;
 use crate::{
-    parse_dataset, serialize_dataset, BlankScope, NativeRdfFormat, RdfDatasetBuilder, RdfLiteral,
-    RdfTextDirection, SerializeGraph, TermId,
+    flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
+    NativeRdfFormat, RdfDataset, RdfQuad, RdfTriple, SerializeGraph,
 };
 
 // ── RDF serialization format enum ───────────────────────────────────────────────
@@ -98,90 +102,37 @@ pub(crate) fn serialize(
 
 /// Parse RDF bytes into owned quads via the native codec (#909) with no blank-node
 /// renaming. Routes through [`parse_dataset`](crate::parse_dataset) → IR → the flat
-/// quad un-fold ([`flat_oxigraph_quads_from_dataset`]) so the `rdf:reifies` /
-/// annotation rows of the RDF 1.2 statement layer reappear in the quad stream exactly
-/// as a flat parse would yield them. Private-use language tags such as
-/// `@x-gmeow-*` are valid BCP-47 `x-…` privateuse tags and survive the native parse.
-pub fn parse_quads(data: &[u8], format: NativeRdfFormat) -> Result<Vec<Quad>, String> {
+/// quad un-fold ([`flat_rdf_quads_from_dataset`]) so the `rdf:reifies` / annotation
+/// rows of the RDF 1.2 statement layer reappear in the quad stream exactly as a flat
+/// parse would yield them. Private-use language tags such as `@x-gmeow-*` are valid
+/// BCP-47 `x-…` privateuse tags and survive the native parse.
+pub fn parse_quads(data: &[u8], format: NativeRdfFormat) -> Result<Vec<RdfQuad>, String> {
     let dataset = parse_dataset(data, format.media_type(), None).map_err(|e| e.to_string())?;
-    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| e.to_string())
+    Ok(flat_rdf_quads_from_dataset(&dataset))
 }
 
 pub(crate) fn serialize_triples(
-    triples: &[Triple],
+    triples: &[RdfTriple],
     format: NativeRdfFormat,
 ) -> Result<Vec<u8>, String> {
-    // Build the IR verbatim — every triple is a default-graph quad, RDF-star
+    // Build the IR verbatim — every triple is a default-graph quad, RDF 1.2
     // triple-term objects preserved as triple-term objects (no statement-layer fold)
     // — then serialize the default graph through the native codec.
-    let mut builder = RdfDatasetBuilder::new();
-    for triple in triples {
-        let s = intern_ox_subject(&mut builder, &triple.subject);
-        let p = builder.intern_iri(triple.predicate.as_str().to_owned());
-        let o = intern_ox_term(&mut builder, &triple.object);
-        builder.push_quad(s, p, o, None);
-    }
-    let dataset = builder.freeze().map_err(|e| e.to_string())?;
+    let quads: Vec<RdfQuad> = triples
+        .iter()
+        .map(|t| RdfQuad::new(t.subject.clone(), t.predicate.clone(), t.object.clone()))
+        .collect();
+    let dataset = flat_dataset_from_quads(&quads)?;
     serialize_dataset(&dataset, format.media_type(), SerializeGraph::DefaultGraph)
         .map_err(|e| e.to_string())
 }
 
-/// Freeze a flat oxigraph quad list into the IR verbatim — RDF-star triple-term
-/// objects preserved as triple-term objects (no statement-layer fold), named graphs
-/// kept — for native serialization (#909). Shared by the `Store`/`MutableDataset`
-/// dump paths.
-pub(super) fn dataset_from_ox_quads_verbatim(
-    quads: &[Quad],
-) -> Result<std::sync::Arc<crate::RdfDataset>, String> {
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in quads {
-        let s = intern_ox_subject(&mut builder, &quad.subject);
-        let p = builder.intern_iri(quad.predicate.as_str().to_owned());
-        let o = intern_ox_term(&mut builder, &quad.object);
-        let g = match &quad.graph_name {
-            GraphName::DefaultGraph => None,
-            GraphName::NamedNode(n) => Some(builder.intern_iri(n.as_str().to_owned())),
-            GraphName::BlankNode(b) => {
-                Some(builder.intern_blank(b.as_str().to_owned(), BlankScope::DEFAULT))
-            }
-        };
-        builder.push_quad(s, p, o, g);
-    }
-    builder.freeze().map_err(|e| e.to_string())
-}
-
-/// Intern an oxigraph subject (IRI / blank) into the IR builder, verbatim.
-fn intern_ox_subject(builder: &mut RdfDatasetBuilder, subject: &NamedOrBlankNode) -> TermId {
-    match subject {
-        NamedOrBlankNode::NamedNode(n) => builder.intern_iri(n.as_str().to_owned()),
-        NamedOrBlankNode::BlankNode(b) => {
-            builder.intern_blank(b.as_str().to_owned(), BlankScope::DEFAULT)
-        }
-    }
-}
-
-/// Intern an oxigraph term (IRI / blank / literal / triple term) into the IR builder
-/// verbatim — RDF-star triple-term objects stay triple-term objects (no fold).
-fn intern_ox_term(builder: &mut RdfDatasetBuilder, term: &OxTerm) -> TermId {
-    match term {
-        OxTerm::NamedNode(n) => builder.intern_iri(n.as_str().to_owned()),
-        OxTerm::BlankNode(b) => builder.intern_blank(b.as_str().to_owned(), BlankScope::DEFAULT),
-        OxTerm::Literal(l) => builder.intern_literal(RdfLiteral {
-            lexical_form: l.value().to_owned(),
-            datatype: Some(l.datatype().as_str().to_owned()),
-            language: l.language().map(str::to_owned),
-            direction: l.direction().map(|d| match d {
-                BaseDirection::Ltr => RdfTextDirection::Ltr,
-                BaseDirection::Rtl => RdfTextDirection::Rtl,
-            }),
-        }),
-        OxTerm::Triple(t) => {
-            let s = intern_ox_subject(builder, &t.subject);
-            let p = builder.intern_iri(t.predicate.as_str().to_owned());
-            let o = intern_ox_term(builder, &t.object);
-            builder.intern_triple(s, p, o)
-        }
-    }
+/// Freeze a flat native quad list into the IR verbatim — RDF 1.2 triple-term objects
+/// preserved as triple-term objects (no statement-layer fold), named graphs kept —
+/// for native serialization (#909). Shared by the `Store`/`MutableDataset` dump
+/// paths.
+pub(super) fn dataset_from_quads_verbatim(quads: &[RdfQuad]) -> Result<Arc<RdfDataset>, String> {
+    flat_dataset_from_quads(quads)
 }
 
 pub(crate) fn read_input(
@@ -208,7 +159,7 @@ pub(crate) fn read_input(
 
 #[cfg(test)]
 mod tests {
-    use oxigraph::model::{NamedNode, Term};
+    use crate::{RdfLiteral, RdfTerm};
 
     use super::*;
 
@@ -224,9 +175,9 @@ mod tests {
             .expect("private-use language tags must parse via N-Quads");
         assert_eq!(quads.len(), 1);
         match &quads[0].object {
-            Term::Literal(lit) => {
-                assert_eq!(lit.value(), "hallo");
-                assert_eq!(lit.language(), Some("x-gmeow-afrikaans"));
+            RdfTerm::Literal(lit) => {
+                assert_eq!(lit.lexical_form, "hallo");
+                assert_eq!(lit.language.as_deref(), Some("x-gmeow-afrikaans"));
             }
             other => panic!("expected a literal, got {other:?}"),
         }
@@ -235,11 +186,9 @@ mod tests {
     #[test]
     fn parse_quads_accepts_private_language_tag_in_turtle_and_ntriples() {
         // #909: the project's `@x-gmeow-*` private-use tags exceed BCP-47's 8-char
-        // subtag limit (`afrikaans` is 9 chars). gmeow-gts 0.9.6 (PR
-        // Blackcat-Informatics/gmeow-gts#358) runs its Turtle / N-Triples codecs in
-        // `lenient` mode — matching the prior oxigraph `RdfParser::lenient()` path — so
-        // these tags now parse in EVERY format, not just N-Quads. (Was a strict-reject
-        // gap in 0.9.5; pinned here so the leniency is explicit and not silently lost.)
+        // subtag limit (`afrikaans` is 9 chars). gmeow-gts runs its Turtle / N-Triples
+        // codecs in `lenient` mode — matching the prior oxigraph `RdfParser::lenient()`
+        // path — so these tags parse in EVERY format, not just N-Quads.
         let ttl = concat!(
             "<https://example.org/s> <https://example.org/p> ",
             "\"hallo\"@x-gmeow-afrikaans ."
@@ -249,9 +198,9 @@ mod tests {
                 .unwrap_or_else(|e| panic!("{format:?} must accept the private-use tag: {e}"));
             assert_eq!(quads.len(), 1);
             match &quads[0].object {
-                Term::Literal(lit) => {
-                    assert_eq!(lit.value(), "hallo");
-                    assert_eq!(lit.language(), Some("x-gmeow-afrikaans"));
+                RdfTerm::Literal(lit) => {
+                    assert_eq!(lit.lexical_form, "hallo");
+                    assert_eq!(lit.language.as_deref(), Some("x-gmeow-afrikaans"));
                 }
                 other => panic!("expected a literal, got {other:?}"),
             }
@@ -268,7 +217,7 @@ mod tests {
         );
         let quads = parse_quads(ttl.as_bytes(), NativeRdfFormat::Turtle).expect("parse");
         match &quads[0].object {
-            Term::Literal(lit) => assert_eq!(lit.value(), "2026-06-19T00:00:00+00:00"),
+            RdfTerm::Literal(lit) => assert_eq!(lit.lexical_form, "2026-06-19T00:00:00+00:00"),
             other => panic!("expected a literal, got {other:?}"),
         }
     }
@@ -285,23 +234,35 @@ mod tests {
             parse_quads(ttl.as_bytes(), NativeRdfFormat::Turtle).expect("RDF 1.2 must parse");
         assert_eq!(quads.len(), 1);
         assert!(
-            matches!(&quads[0].object, Term::Triple(_)),
+            matches!(&quads[0].object, RdfTerm::Triple(_)),
             "object must be a quoted triple"
         );
     }
 
     #[test]
     fn serialize_triples_round_trips_ntriples() {
-        let triple = Triple::new(
-            NamedNode::new("https://example.org/s").unwrap(),
-            NamedNode::new("https://example.org/p").unwrap(),
-            NamedNode::new("https://example.org/o").unwrap(),
+        let triple = RdfTriple::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::iri("https://example.org/o"),
         );
         let bytes =
             serialize_triples(std::slice::from_ref(&triple), NativeRdfFormat::NTriples).unwrap();
         let reparsed = parse_quads(&bytes, NativeRdfFormat::NTriples).unwrap();
         assert_eq!(reparsed.len(), 1);
         assert_eq!(reparsed[0].subject.to_string(), "<https://example.org/s>");
+    }
+
+    #[test]
+    fn serialize_triples_emits_literal() {
+        let triple = RdfTriple::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::literal(RdfLiteral::simple("hi")),
+        );
+        let bytes =
+            serialize_triples(std::slice::from_ref(&triple), NativeRdfFormat::NTriples).unwrap();
+        assert!(String::from_utf8_lossy(&bytes).contains("\"hi\""));
     }
 
     #[test]

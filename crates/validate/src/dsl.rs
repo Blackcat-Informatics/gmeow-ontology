@@ -1,51 +1,74 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Merged-graph N-Triples plus focus→file provenance for the DSL SHACL path.
+//! Merged native dataset plus focus→file provenance for the DSL SHACL path.
 //!
 //! PyO3-free engine core. The legacy Python DSL validation seam used to
 //! build an rdflib graph AND a `node_to_file` map (the first `.ttl` file each
 //! named subject appears in) so a SHACL violation could be attributed to its
 //! source cell. That provenance walk is net-new Rust here (#579): each file is
 //! parsed in document order, every named (IRI) subject is recorded against the
-//! first file it is seen in, and all triples are merged into one store dumped to
-//! canonical N-Triples for the SHACL validator.
+//! first file it is seen in, and all triples are merged into one frozen native
+//! [`gmeow_rdf::RdfDataset`] for the (native) SHACL validator.
 //!
 //! The merge is order-sensitive *only* for the provenance map (first-seen wins),
 //! exactly matching the legacy Python `for path in sorted(...): ... if subject
 //! not in node_to_file` loop.
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
-use oxigraph::model::NamedOrBlankNode;
-use oxigraph::store::Store;
+use gmeow_rdf::{
+    parse_dataset, serialize_dataset, DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder,
+    SerializeGraph, TermRef,
+};
 
-use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped;
-use gmeow_rdf::parse_dataset;
-
-use crate::store::dump_store_to_ntriples;
-
-/// The merged DSL graph as N-Triples plus the focus→file provenance pairs.
+/// The merged DSL graph plus the focus→file provenance pairs.
 pub struct DslMerge {
-    /// The merged graph serialized to canonical N-Triples.
-    pub data_nt: String,
+    /// The merged graph as a frozen native dataset (the SHACL data graph).
+    pub dataset: Arc<RdfDataset>,
     /// `(named_subject_iri, source_file_path)` — first-seen file per named
     /// subject, in first-seen order.
     pub focus_to_file: Vec<(String, String)>,
 }
 
-/// Build the merged N-Triples plus the focus→file map over `paths`.
+impl DslMerge {
+    /// Serialize the merged dataset's default graph to canonical N-Triples — the
+    /// legacy `data_nt` surface the PyO3 `dsl_merge_with_provenance` returns. Uses the
+    /// N-Quads writer over the default-graph projection (byte-lenient on private-use
+    /// `@x-gmeow-*` tags; default-graph-only output is exactly N-Triples).
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(message)` if serialization fails.
+    pub fn data_ntriples(&self) -> Result<String, String> {
+        let bytes = serialize_dataset(
+            &self.dataset,
+            "application/n-quads",
+            SerializeGraph::DefaultGraph,
+        )
+        .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
+        String::from_utf8(bytes).map_err(|e| format!("N-Triples serialization failed: {e}"))
+    }
+}
+
+/// Build the merged dataset plus the focus→file map over `paths`.
 ///
 /// `paths` is processed in the order given (the Python caller sorts them); each
 /// named-IRI subject is mapped to the FIRST path it appears in. Blank-node
 /// subjects carry no file mapping (they have no stable cross-file identity),
 /// matching the legacy `isinstance(subject, URIRef)` guard.
 ///
+/// Each file is merged under a fresh blank scope ([`RdfDatasetBuilder::push_dataset`])
+/// so anonymous blanks across DSL/competency files stay disjoint (e.g. two
+/// `[ a ExpectedCell ; … ]` blanks never fuse) — the native twin of the old per-source
+/// blank-prefix scoping (#909, C0.2).
+///
 /// # Errors
 ///
 /// Returns `Err(message)` if any file fails to read or parse.
 pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+    let mut builder = RdfDatasetBuilder::new();
     let mut focus_to_file: Vec<(String, String)> = Vec::new();
     let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
 
@@ -54,68 +77,51 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
         let bytes = std::fs::read(path).map_err(|e| format!("failed to read {path_str}: {e}"))?;
         let dataset = parse_dataset(&bytes, "text/turtle", None)
             .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
-        // Scope blank labels by the source path: each DSL/competency file restarts its
-        // anonymous-blank counter, so merging several into one store unscoped would
-        // collide distinct cells (e.g. two `[ a ExpectedCell ; … ]` blanks fusing into
-        // one with two `cellVar`s). Per-source scoping keeps them disjoint (#909).
-        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &path_str)
-            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
-        for triple in quads {
-            if let NamedOrBlankNode::NamedNode(n) = &triple.subject {
-                let iri = n.as_str().to_owned();
-                if seen.insert(iri.clone()) {
-                    focus_to_file.push((iri, path_str.clone()));
+        // Record the first source file for each named-IRI subject, in document order
+        // (the parsed per-file dataset preserves source order in its quad table).
+        for q in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
+            if let TermRef::Iri(iri) = dataset.resolve(q.s) {
+                if seen.insert(iri.to_owned()) {
+                    focus_to_file.push((iri.to_owned(), path_str.clone()));
                 }
             }
-            store
-                .insert(&triple)
-                .map_err(|e| format!("store insert failed for {path_str}: {e}"))?;
         }
+        builder.push_dataset(&dataset);
     }
 
+    let dataset = builder
+        .freeze()
+        .map_err(|e| format!("dataset freeze failed: {e}"))?;
     Ok(DslMerge {
-        data_nt: dump_store_to_ntriples(&store)
-            .map_err(|e| format!("N-Triples serialization failed: {e}"))?,
+        dataset,
         focus_to_file,
     })
 }
 
-/// Build the merged N-Triples over `paths` (no provenance), for the plain SHACL
-/// data path (`run_shacl` / `check_examples`).
+/// Build the merged dataset over `paths` (no provenance), serialized to canonical
+/// N-Triples — a legacy/test-only seam (`merge_to_ntriples` PyO3 surface).
+///
+/// The N-Quads writer is requested over the default-graph projection: it is
+/// byte-lenient on the GMEOW ontology's private-use `@x-gmeow-*` language tags (it
+/// writes the lexical tag verbatim) and a default-graph-only document is exactly
+/// N-Triples.
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if any file fails to read or parse.
+/// Returns `Err(message)` if any file fails to read or parse, or serialization fails.
 pub fn merge_to_ntriples(paths: &[PathBuf]) -> Result<String, String> {
-    let store = build_merged_store(paths)?;
-    dump_store_to_ntriples(&store).map_err(|e| format!("N-Triples serialization failed: {e}"))
-}
-
-/// Build one merged store from the Turtle `paths` (lenient parsing).
-fn build_merged_store(paths: &[PathBuf]) -> Result<Store, String> {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    for path in paths {
-        let path_str = path.display().to_string();
-        let bytes = std::fs::read(path).map_err(|e| format!("failed to read {path_str}: {e}"))?;
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
-        // Per-source blank scoping (see `merge_with_provenance`): keep each file's
-        // anonymous blanks disjoint so merged DSL cells don't fuse (#909).
-        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &path_str)
-            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
-        for triple in quads {
-            store
-                .insert(&triple)
-                .map_err(|e| format!("store insert failed for {path_str}: {e}"))?;
-        }
-    }
-    Ok(store)
+    let dataset = crate::store::dataset_from_paths(paths)?;
+    let bytes = serialize_dataset(
+        &dataset,
+        "application/n-quads",
+        SerializeGraph::DefaultGraph,
+    )
+    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
+    String::from_utf8(bytes).map_err(|e| format!("N-Triples serialization failed: {e}"))
 }
 
 #[cfg(test)]
 mod tests {
-    use oxigraph::model::Term;
-
     use super::*;
 
     fn write_tmp(name: &str, contents: &str) -> PathBuf {
@@ -149,8 +155,7 @@ mod tests {
         assert!(map["https://example.org/bob"].ends_with("gmeow_validate_dsl_prov_b.ttl"));
         assert!(map["https://example.org/shared"].ends_with("gmeow_validate_dsl_prov_a.ttl"));
         // Both files' triples are in the merged data (4 distinct triples).
-        let store = crate::store::build_store_from_nt(&merge.data_nt).unwrap();
-        assert_eq!(store.len().unwrap(), 4);
+        assert_eq!(merge.dataset.quad_count(), 4);
     }
 
     #[test]
@@ -166,12 +171,11 @@ mod tests {
         let nt = merge_to_ntriples(&[a.clone(), b.clone()]).expect("merge must succeed");
         std::fs::remove_file(&a).ok();
         std::fs::remove_file(&b).ok();
-        let store = crate::store::build_store_from_nt(&nt).unwrap();
-        assert_eq!(store.len().unwrap(), 2);
-        for quad in store.iter() {
-            let q = quad.unwrap();
-            let ok = matches!(&q.object, Term::NamedNode(n)
-                if n.as_str() == "https://example.org/b" || n.as_str() == "https://example.org/d");
+        let ds = crate::store::dataset_from_nt(&nt).unwrap();
+        assert_eq!(ds.quad_count(), 2);
+        for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
+            let ok = matches!(ds.resolve(q.o), TermRef::Iri(n)
+                if n == "https://example.org/b" || n == "https://example.org/d");
             assert!(ok);
         }
     }

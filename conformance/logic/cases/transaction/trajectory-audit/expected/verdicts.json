@@ -1,0 +1,6 @@
+{
+  "https://example.org/transaction/trajectory-audit/world": {
+    "quads": 32,
+    "status": "consistent"
+  }
+}

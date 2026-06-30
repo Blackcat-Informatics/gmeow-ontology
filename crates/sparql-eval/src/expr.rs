@@ -28,8 +28,8 @@ use gmeow_rdf_core::{BlankScope, DatasetView, GraphMatch, TermValue};
 use gmeow_sparql_algebra::{Expression, Function, GmeowFn, GraphPattern, Variable};
 use gmeow_xsd::{
     effective_boolean_value, numeric_abs, numeric_add, numeric_ceil, numeric_div, numeric_floor,
-    numeric_mul, numeric_round, numeric_sub, numeric_unary_minus, numeric_unary_plus, parse_by_iri,
-    value_cmp, XsdValue,
+    numeric_mul, numeric_round, numeric_sub, numeric_unary_minus, numeric_unary_plus, parse,
+    parse_by_iri, value_cmp, XsdDatatype, XsdValue,
 };
 use sha2::Digest; // brings the Digest trait in scope for all RustCrypto hash calls
 
@@ -85,7 +85,13 @@ pub(crate) fn eval_expr(
         }
 
         // ---- comparisons ---------------------------------------------------
-        Expression::Equal(a, b) => compare(a, b, row, schema, ctx, |c| c == Ordering::Equal),
+        // `=` is RDFterm-equality, NOT an ordering test: distinct IRIs/blank nodes
+        // are *unequal* (`false`), not a type error. Routing `=` through the
+        // ordering `compare` (which returns a type error for un-orderable IRI pairs)
+        // would make `?a = ?b` — and therefore the desugared `?a != ?b` — evaluate
+        // to an error (and so filter the row out) whenever the two IRIs differ. The
+        // dedicated `equal` path applies the value-equality semantics of `rdf_equal`.
+        Expression::Equal(a, b) => equal(a, b, row, schema, ctx),
         Expression::Greater(a, b) => compare(a, b, row, schema, ctx, |c| c == Ordering::Greater),
         Expression::GreaterOrEqual(a, b) => {
             compare(a, b, row, schema, ctx, |c| c != Ordering::Less)
@@ -302,6 +308,34 @@ fn compare(
     let va = value_of(ctx, ta);
     let vb = value_of(ctx, tb);
     Ok(rdf_cmp(&va, &vb).map(|ord| bool_term(ctx, keep(ord))))
+}
+
+/// Evaluate `a = b` under SPARQL RDFterm-equality (SPARQL §17.4.1.7 / `RDFterm-equal`):
+/// both operands resolve to a term, identical terms are equal, value-comparable
+/// literals compare in the XSD value space, distinct terms where at least one is a
+/// non-literal (IRI/blank) are **unequal** (`false`, NOT a type error), and two
+/// incomparable literals are a type error (`None`). This is the equality companion to
+/// the ordering [`compare`]; using `compare` for `=` would wrongly turn a distinct
+/// IRI pair into an error.
+fn equal(
+    a: &Expression,
+    b: &Expression,
+    row: &[Option<SolutionTerm>],
+    schema: &VarSchema,
+    ctx: &mut EvalCtx<'_>,
+) -> Result<Option<SolutionTerm>, EvalError> {
+    let ta = eval_expr(a, row, schema, ctx)?;
+    let tb = eval_expr(b, row, schema, ctx)?;
+    let (Some(ta), Some(tb)) = (ta, tb) else {
+        return Ok(None);
+    };
+    // sameTerm short-circuit: identical terms are equal regardless of value space.
+    if ta == tb {
+        return Ok(Some(bool_term(ctx, true)));
+    }
+    let va = value_of(ctx, ta);
+    let vb = value_of(ctx, tb);
+    Ok(rdf_equal(&va, &vb).map(|eq| bool_term(ctx, eq)))
 }
 
 /// Compare two RDF terms in the SPARQL value space. `None` = a type error (the
@@ -1226,11 +1260,125 @@ fn eval_function(
         // function is a list function, so this arm is total over the registry.
         Function::Gmeow(list_func) => crate::list_fn::dispatch(*list_func, &vals, ctx),
 
-        // ---- permanent hard errors (never a wrong answer) -----------------
-        Function::Custom(iri) => Err(EvalError::unsupported(format!(
-            "custom SPARQL function <{}>",
-            iri.as_str()
-        ))),
+        // ---- XSD constructor casts (SPARQL 1.1 §17.1) ---------------------
+        // An IRI in call position whose IRI is an XSD value-space datatype is the
+        // standard cast constructor (`xsd:decimal(?x)`, `xsd:integer(?x)`, …), NOT an
+        // unknown custom function. It builds a target-typed literal from the argument's
+        // lexical form (an IRI argument casts to `xsd:string`). A lexical form that is
+        // not valid for the target type is a SPARQL expression error (`Ok(None)`).
+        Function::Custom(iri) => {
+            if let Some(target) = XsdDatatype::from_iri(iri.as_str()) {
+                return Ok(eval_xsd_cast(ctx, target, arg(&vals, 0)));
+            }
+            Err(EvalError::unsupported(format!(
+                "custom SPARQL function <{}>",
+                iri.as_str()
+            )))
+        }
+    }
+}
+
+/// Evaluate an XSD constructor cast: parse the source literal's lexical form against
+/// the `target` datatype (an IRI source casts to `xsd:string`), returning the
+/// target-typed literal in canonical form, or `None` on a type/lexical error.
+///
+/// Numeric→numeric casts are value-space, not lexical-space (SPARQL 1.1 §17.1 / the
+/// XPath casting rules): `xsd:decimal("5.355e1"^^xsd:double)` is the decimal value
+/// `53.55`, NOT a re-parse of the scientific-notation lexical (which is not a valid
+/// `xsd:decimal` lexical). The direct lexical parse handles same-representation casts
+/// (and string/boolean/temporal targets); when it fails, a numeric source is cast by
+/// VALUE through [`cast_numeric_value`].
+fn eval_xsd_cast(
+    ctx: &mut EvalCtx<'_>,
+    target: XsdDatatype,
+    source: Option<&TermValue>,
+) -> Option<SolutionTerm> {
+    let source = source?;
+    let lexical = match source {
+        TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+        TermValue::Iri(iri) if target == XsdDatatype::String => iri.clone(),
+        _ => return None,
+    };
+    if let Ok(value) = parse(&lexical, target) {
+        return Some(xsd_to_term(ctx, &value));
+    }
+    // The lexical is not directly valid for `target`. If both source and target are
+    // numeric, convert by value (e.g. a `double`/`float` scientific-notation lexical
+    // into the equivalent `decimal`/`integer`), matching the spec's casting tower.
+    let value = cast_numeric_value(&xsd_of(source)?, target)?;
+    Some(xsd_to_term(ctx, &value))
+}
+
+/// Cast a numeric [`XsdValue`] to a numeric `target` datatype **by value** (the
+/// SPARQL §17.1 numeric casting rules): the source's numeric value is re-expressed in
+/// the target's value space. Returns `None` when the source is non-numeric, the target
+/// is non-numeric, or the value is out of the target's range (e.g. a non-integral
+/// double cast to integer truncates toward zero, as XPath `xs:integer` mandates).
+fn cast_numeric_value(source: &XsdValue, target: XsdDatatype) -> Option<XsdValue> {
+    use gmeow_xsd::parse as xsd_parse;
+    // The source's exact numeric value, as the widest faithful form available.
+    let as_f64 = match source {
+        XsdValue::Integer { value, .. } => *value as f64,
+        XsdValue::Decimal(d) => d.to_f64(),
+        XsdValue::Float(f) => f64::from(*f),
+        XsdValue::Double(d) => *d,
+        _ => return None,
+    };
+    match target {
+        XsdDatatype::Double => Some(XsdValue::Double(as_f64)),
+        XsdDatatype::Float => Some(XsdValue::Float(as_f64 as f32)),
+        XsdDatatype::Decimal => {
+            // A non-finite double has no decimal value (a SPARQL expression error).
+            if !as_f64.is_finite() {
+                return None;
+            }
+            // Re-express the value as a plain (exponent-free) decimal lexical the
+            // decimal parser accepts, bounded to the 18-digit scale it allows.
+            xsd_parse(&format_plain_decimal(as_f64), XsdDatatype::Decimal).ok()
+        }
+        // An integer target truncates toward zero (XPath `xs:integer(double)`), within
+        // the i128 range the integer value space supports.
+        XsdDatatype::Integer
+        | XsdDatatype::Long
+        | XsdDatatype::Int
+        | XsdDatatype::Short
+        | XsdDatatype::Byte
+        | XsdDatatype::UnsignedLong
+        | XsdDatatype::UnsignedInt
+        | XsdDatatype::UnsignedShort
+        | XsdDatatype::UnsignedByte
+        | XsdDatatype::NonNegativeInteger
+        | XsdDatatype::PositiveInteger
+        | XsdDatatype::NonPositiveInteger
+        | XsdDatatype::NegativeInteger => {
+            let truncated = as_f64.trunc();
+            if !truncated.is_finite() {
+                return None;
+            }
+            // Re-parse the integral lexical against the exact integer target so its
+            // range constraints (e.g. `nonNegativeInteger >= 0`) are enforced.
+            xsd_parse(&format!("{truncated:.0}"), target).ok()
+        }
+        _ => None,
+    }
+}
+
+/// Format a finite `f64` as a plain, exponent-free decimal lexical with at most 18
+/// fractional digits (the `xsd:decimal` scale bound), trimming trailing fractional
+/// zeros. Used by the numeric value-space cast into `xsd:decimal`.
+fn format_plain_decimal(value: f64) -> String {
+    // `{:.18}` never emits scientific notation and caps the fraction at the decimal
+    // scale bound; trim trailing zeros (and a bare trailing point) for a clean lexical.
+    let raw = format!("{value:.18}");
+    let trimmed = if raw.contains('.') {
+        raw.trim_end_matches('0').trim_end_matches('.')
+    } else {
+        raw.as_str()
+    };
+    if trimmed.is_empty() || trimmed == "-" {
+        "0".to_owned()
+    } else {
+        trimmed.to_owned()
     }
 }
 

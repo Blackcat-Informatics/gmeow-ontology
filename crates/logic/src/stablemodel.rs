@@ -216,9 +216,9 @@ pub(crate) fn cautious_materialize(
 
         for row in derivations {
             let key = (
-                row.subject.to_string(),
+                crate::provenance::term_display(&row.subject),
                 row.predicate.as_str().to_owned(),
-                row.object.to_string(),
+                crate::provenance::term_display(&row.object),
             );
             if !cautious_keys.contains(&key) {
                 continue;
@@ -233,9 +233,9 @@ pub(crate) fn cautious_materialize(
                         "stablemodel: cautious atom <{}> <{}> {} cites non-cautious \
                          antecedent {src} — unsound provenance (gmeow-logic v1 does not \
                          materialize cautious consequences with non-cautious support)",
-                        row.subject,
+                        crate::provenance::term_display(&row.subject),
                         row.predicate.as_str(),
-                        row.object
+                        crate::provenance::term_display(&row.object)
                     ));
                 }
             }
@@ -336,8 +336,14 @@ mod tests {
         let row = &rows[0];
         assert_eq!(row.rule_iri, ASSERT_RULE_IRI);
         assert_eq!(row.predicate.as_str(), format!("{SM}candidate"));
-        assert_eq!(row.subject.to_string(), format!("<{SM}x>"));
-        assert_eq!(row.object.to_string(), format!("<{SM}x>"));
+        assert_eq!(
+            crate::provenance::term_display(&row.subject),
+            format!("<{SM}x>")
+        );
+        assert_eq!(
+            crate::provenance::term_display(&row.object),
+            format!("<{SM}x>")
+        );
         // No derived (non-asserted) rows.
         assert!(
             !rows.iter().any(|r| r.rule_iri != ASSERT_RULE_IRI),

@@ -46,7 +46,7 @@ use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use oxigraph::model::{NamedNode, Term};
+use gmeow_rdf::TermValue;
 
 use crate::provenance::{mint_derivation_id, mint_reifier};
 use crate::result::PreservationClaim;
@@ -228,10 +228,9 @@ pub(crate) fn n3(iri: &str) -> String {
 
 /// Reifier IRI for an explicit `(s, p, o)` IRI triple, via the golden-pinned recipe.
 pub(crate) fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
-    let sn = Term::NamedNode(NamedNode::new(s).map_err(|e| format!("invalid subject IRI: {e}"))?);
-    let pn = NamedNode::new(p).map_err(|e| format!("invalid predicate IRI: {e}"))?;
-    let on = Term::NamedNode(NamedNode::new(o).map_err(|e| format!("invalid object IRI: {e}"))?);
-    mint_reifier(&sn, &pn, &on)
+    let sn = TermValue::iri(s);
+    let on = TermValue::iri(o);
+    mint_reifier(&sn, p, &on)
 }
 
 // ── EDB: insertion-ordered, content-sorted fact view of one world ───────────────
@@ -250,7 +249,7 @@ struct Triple {
 /// The content-sorted fact view of a single world.
 ///
 /// Facts are sorted by `(subject, predicate, object_n3)` so all enumeration is
-/// deterministic and independent of oxigraph's internal iteration order — the
+/// deterministic and independent of the native store's internal iteration order — the
 /// teleology analogue of the foundation chase's `initial.sort_by_key(Fact::key)`.
 pub struct WorldFacts {
     triples: Vec<Triple>,
@@ -310,6 +309,18 @@ impl WorldFacts {
         self.sp_index
             .get(&(subject.to_owned(), predicate.to_owned()))
             .and_then(|idxs| idxs.first().map(|&i| self.triples[i].object_n3.as_str()))
+    }
+
+    /// All objects' N3 forms (IRIs or literals) for `(subject, predicate)`, in sorted order.
+    pub(crate) fn objects_n3(&self, subject: &str, predicate: &str) -> Vec<&str> {
+        self.sp_index
+            .get(&(subject.to_owned(), predicate.to_owned()))
+            .map(|idxs| {
+                idxs.iter()
+                    .map(|&i| self.triples[i].object_n3.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     /// Whether `(subject, predicate, object)` (object an IRI) is present.
@@ -2360,6 +2371,16 @@ pub fn materialize_teleology(
                 facts, world, &prog,
             )?);
         }
+
+        // ── Family 9b: recorded ToolCall-trajectory audit (T6, read-only) ─────────
+        // A recorded gmeow:ToolCall sequence is mapped to a transaction program and run
+        // through the SAME executional-entailment engine as family 9 — the read-only
+        // Principle-15 verification consumer over already-recorded agentic provenance.
+        // Emits nothing when a world carries no bound trajectory, so the existing
+        // transaction goldens stay byte-stable.
+        out.extend(crate::transaction::trajectory::emit_trajectory_audits(
+            facts, world,
+        )?);
     }
 
     canonical_sort(&mut out);

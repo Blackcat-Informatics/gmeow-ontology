@@ -1,0 +1,5 @@
+rule
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Duty"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Permission"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Prohibition"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Rule"))]

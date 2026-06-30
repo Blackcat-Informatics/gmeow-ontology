@@ -1,0 +1,6 @@
+term
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Myth"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasMythTelling"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/mythFrame"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/propagatesFrom"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/wasDerivedFrom"))]

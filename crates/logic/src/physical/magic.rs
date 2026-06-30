@@ -54,11 +54,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oxigraph::model::NamedNode;
+use gmeow_rdf::TermValue;
 
 use crate::physical::seminaive::{evaluate, NativeOutcome, UnsupportedKind};
 use crate::physical::store::extract_edb;
 use crate::profile_gate;
+use crate::provenance::term_display;
 use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QProgram, QTerm};
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 use crate::seam::{BudgetStatus, ScryerForeign};
@@ -105,13 +106,8 @@ fn term_of(t: &QTerm) -> Result<EvalTerm, NativeOutcome<AnswerSet>> {
                 .strip_prefix('<')
                 .and_then(|s| s.strip_suffix('>'))
                 .unwrap_or(c);
-            match NamedNode::new(iri) {
-                Ok(nn) => Ok(EvalTerm::ConstNamed(nn)),
-                // A non-IRI constant (e.g. a literal) is outside the binary IDB fragment
-                // the magic transform targets; report it as a non-binary/unsupported gap
-                // rather than papering over it.
-                Err(_) => Err(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom)),
-            }
+            // The seam predicate is already a validated IRI string; carry it directly.
+            Ok(EvalTerm::ConstNamed(iri.to_owned()))
         }
         QTerm::Var(v) => Ok(EvalTerm::Var(format!("?{v}"))),
         QTerm::Num(_) => Err(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)),
@@ -124,8 +120,8 @@ fn atom_of(atom: &QAtom) -> Result<EvalAtom, NativeOutcome<AnswerSet>> {
     if atom.args.len() != 2 {
         return Err(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
     }
-    let predicate = NamedNode::new(&atom.pred)
-        .map_err(|_| NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom))?;
+    // `atom.pred` is already a validated predicate IRI surface; carry it directly.
+    let predicate = atom.pred.clone();
     let subject = term_of(&atom.args[0])?;
     let object = term_of(&atom.args[1])?;
     Ok(EvalAtom {
@@ -142,13 +138,12 @@ fn atom_of(atom: &QAtom) -> Result<EvalAtom, NativeOutcome<AnswerSet>> {
 ///
 /// Derived from the original predicate IRI: the base (everything up to and including the
 /// last `/` or `#`) plus `magic/<localname>_<adorn>`.  Stable across runs.
-fn magic_pred_iri(pred: &str, adorn: &str) -> NamedNode {
+fn magic_pred_iri(pred: &str, adorn: &str) -> String {
     let split = pred.rfind(['/', '#']).map_or(pred.len(), |i| i + 1);
     let (base, local) = pred.split_at(split);
     // `base` ends with the separator; nest the magic predicates under `magic/` so they
     // never collide with a real predicate in the source namespace.
-    NamedNode::new(format!("{base}magic/{local}_{adorn}"))
-        .expect("magic predicate IRI is well-formed (derived from a valid predicate IRI)")
+    format!("{base}magic/{local}_{adorn}")
 }
 
 /// Build a magic *guard* atom (a body literal) for an adorned IDB atom.
@@ -374,7 +369,7 @@ fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> Ma
 /// hits an unbound variable.
 fn seed_to_fact(seed: &EvalAtom) -> Result<crate::rule_ir::Fact, String> {
     let to_term = |t: &EvalTerm| match t {
-        EvalTerm::ConstNamed(nn) => Ok(oxigraph::model::Term::NamedNode(nn.clone())),
+        EvalTerm::ConstNamed(nn) => Ok(TermValue::iri(nn.clone())),
         EvalTerm::ConstLit(term) => Ok(term.clone()),
         EvalTerm::Var(v) => Err(format!("magic seed term {v:?} is not ground")),
     };
@@ -435,8 +430,8 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
         if f.predicate.as_str() != goal_pred {
             continue;
         }
-        let s_surface = f.subject.to_string();
-        let o_surface = f.object.to_string();
+        let s_surface = term_display(&f.subject);
+        let o_surface = term_display(&f.object);
         // Apply the goal's constant constraints.
         if let Some(c) = &s_const {
             if &s_surface != c {
@@ -491,7 +486,7 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
 /// provenance-recipe failure) propagated from the shared engine helpers.
 pub(crate) fn resolve_native(
     foreign: &dyn ScryerForeign,
-    world: &NamedNode,
+    world: &str,
     program: &QProgram,
     budget: &Budget,
 ) -> Result<NativeOutcome<AnswerSet>, String> {
@@ -633,12 +628,12 @@ mod tests {
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
     const BASE: &str = "https://example.org/";
 
-    fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, NamedNode) {
+    fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, String) {
         let store = WorldStore::new();
         for (s, p, o) in triples {
             store.insert_quad(W, s, p, o);
         }
-        (store, NamedNode::new(W).unwrap())
+        (store, W.to_owned())
     }
 
     fn decided(outcome: NativeOutcome<AnswerSet>) -> AnswerSet {
@@ -691,7 +686,7 @@ mod tests {
         parse_query_program(&src).unwrap()
     }
 
-    fn tc_world() -> (WorldStore, NamedNode) {
+    fn tc_world() -> (WorldStore, String) {
         make_world(&[
             (
                 &format!("{BASE}a"),
@@ -940,7 +935,7 @@ mod tests {
         let derived_anc: BTreeSet<(String, String)> = facts
             .iter()
             .filter(|f| f.predicate.as_str() == anc)
-            .map(|f| (f.subject.to_string(), f.object.to_string()))
+            .map(|f| (term_display(&f.subject), term_display(&f.object)))
             .collect();
         // The bf demand seeds the goal `ancestor(a, _)`; the SIPS propagates the demand
         // forward only along edges reachable from `a` (`a` then its successor `b`), so the
