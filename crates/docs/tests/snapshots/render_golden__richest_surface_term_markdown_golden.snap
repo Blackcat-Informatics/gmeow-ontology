@@ -36,8 +36,9 @@ A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a t
 
 ## Alignments
 
-- `closeMatch` → [http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging](http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging)
-- `closeMatch` → [http://www\.w3\.org/ns/oa\#Annotation](http://www\.w3\.org/ns/oa\#Annotation)
+- `closeMatch` → [http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging](http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging) — *approximate match (close) — not an exact equivalence.*
+- `closeMatch` → [http://www\.w3\.org/ns/oa\#Annotation](http://www\.w3\.org/ns/oa\#Annotation) — *approximate match (close) — not an exact equivalence.*
+- *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Logic stereotypes
 

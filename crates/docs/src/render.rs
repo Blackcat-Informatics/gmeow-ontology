@@ -946,13 +946,29 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     });
     if !aligns.is_empty() {
         heading(&mut out, 2, "Alignments");
+        let mut any_lossy = false;
         for link in aligns {
+            let tag = code_escape(&align_tag(&link.predicate));
+            let target = term_link(model, &from, &link.object);
+            match approximate_match_note(&link.predicate) {
+                Some(note) => {
+                    any_lossy = true;
+                    push_line(&mut out, &format!("- `{tag}` → {target} — *{note}.*"));
+                }
+                None => push_line(&mut out, &format!("- `{tag}` → {target}")),
+            }
+        }
+        // One section-level disclosure when any crosswalk is an approximate
+        // (lossy) SKOS match, cross-linking the preservation loss ledger that
+        // records the per-target structural drops.
+        if any_lossy {
+            let ledger_href = rel(&from, &Page::LogicLossLedger.dir());
             push_line(
                 &mut out,
                 &format!(
-                    "- `{}` → {}",
-                    code_escape(&align_tag(&link.predicate)),
-                    term_link(model, &from, &link.object)
+                    "- *An approximate match is a lossy projection — the external term is not an \
+                     exact equivalent. See the [preservation loss ledger]({ledger_href}index.md) \
+                     for the per-target structural drops.*"
                 ),
             );
         }
@@ -2670,6 +2686,26 @@ fn align_tag(predicate: &str) -> String {
         .to_string()
 }
 
+/// The inline projection-loss caveat for a per-term alignment predicate, or `None`
+/// for `skos:exactMatch` (a lossless equivalence).
+///
+/// The note DISCLOSES the approximation the SKOS mapping predicate ALREADY
+/// declares — it asserts nothing new (epistemic-shape honesty, Principle 17). A
+/// close / broad / narrow / related match carries the term into an external
+/// vocabulary lossily, and the term page says so inline rather than letting the
+/// crosswalk read as an equivalence. An unrecognized predicate (e.g. an exact
+/// `owl:equivalentClass`) carries no caveat — only the declared-approximate SKOS
+/// predicates do.
+fn approximate_match_note(predicate: &str) -> Option<&'static str> {
+    match align_tag(predicate).as_str() {
+        "closeMatch" => Some("approximate match (close) — not an exact equivalence"),
+        "broadMatch" => Some("broader match — the external term is more general"),
+        "narrowMatch" => Some("narrower match — the external term is more specific"),
+        "relatedMatch" => Some("related match — associative, not an equivalence"),
+        _ => None,
+    }
+}
+
 fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
     if let Some(slice) = model.slices.iter().find(|s| s.iri == iri) {
         let href = rel(from, &Page::Slice(slice_slug(slice)).dir());
@@ -3747,6 +3783,16 @@ mod tests {
         assert!(md.contains("`closeMatch`"), "predicate short tag");
         // The external object IRI is md-escaped (`.` → `\.`); match a dot-free tail.
         assert!(md.contains("entity/Q42"), "alignment object linked");
+        // The approximate (closeMatch) crosswalk carries an inline lossy caveat and
+        // the section cross-links the preservation loss ledger.
+        assert!(
+            md.contains("approximate match (close)"),
+            "inline lossy-projection caveat present"
+        );
+        assert!(
+            md.contains("preservation loss ledger"),
+            "loss-ledger cross-link present for an approximate alignment"
+        );
 
         // Bar carries no advice/alignments → neither section appears on its page.
         let bar_md = to_markdown(&model, &Page::Term("bar".to_string()));

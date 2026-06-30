@@ -65,7 +65,8 @@ expression: "to_html(&model, &Page::Term(slug))"
 </ul>
 <h2>Alignments</h2>
 <ul>
-<li><code>closeMatch</code> → <a href="http://www.w3.org/ns/dqv#computedOn">http://www.w3.org/ns/dqv#computedOn</a></li>
+<li><code>closeMatch</code> → <a href="http://www.w3.org/ns/dqv#computedOn">http://www.w3.org/ns/dqv#computedOn</a> — <em>approximate match (close) — not an exact equivalence.</em></li>
+<li><em>An approximate match is a lossy projection — the external term is not an exact equivalent. See the <a href="../../logic/loss-ledger/index.html">preservation loss ledger</a> for the per-target structural drops.</em></li>
 </ul>
 <h2>Box role</h2>
 <p><a href="../../four-boxes/index.html">RBox (<code>gmeow:boxRBox</code>)</a></p>
