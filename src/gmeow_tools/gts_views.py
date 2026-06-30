@@ -88,7 +88,7 @@ class FoldView:
                 _term_rows(graph),
                 list(graph.quads),
                 _reifier_rows(graph),
-                list(graph.annotations),
+                _annotation_rows(graph),
             )
         )
 
@@ -268,7 +268,16 @@ def _term_rows(
 
 
 def _reifier_rows(graph: Graph) -> list[tuple[int, tuple[int, int, int]]]:
-    return list(graph.reifiers.items())
+    # gmeow-gts 0.9.11 reifier rows are `(reifier, (s, p, o), graph?)`. The native
+    # fold view carries no graph axis (gmeow reification is standpoint-scoped, never
+    # graph-scoped), so the always-`None` graph slot is dropped.
+    return [(reifier, spo) for reifier, spo, _graph in graph.reifiers]
+
+
+def _annotation_rows(graph: Graph) -> list[tuple[int, int, int]]:
+    # 0.9.11 annotation rows are `(reifier, predicate, value, graph?)`; drop the
+    # always-`None` graph slot for the graph-free native fold view.
+    return [(r, p, v) for r, p, v, _graph in graph.annotations]
 
 
 # --------------------------------------------------------------------------- #

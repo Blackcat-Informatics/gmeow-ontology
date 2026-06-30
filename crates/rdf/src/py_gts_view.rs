@@ -172,11 +172,21 @@ impl PyGtsFoldView {
     }
 
     fn reifiers(&self) -> Vec<(usize, (usize, usize, usize))> {
-        self.inner.reifiers().to_vec()
+        // The Python projection carries no graph axis (gmeow reification is
+        // standpoint-scoped); drop the always-`None` 0.9.11 graph slot.
+        self.inner
+            .reifiers()
+            .iter()
+            .map(|&(rid, spo, _graph)| (rid, spo))
+            .collect()
     }
 
     fn annotations(&self) -> Vec<(usize, usize, usize)> {
-        self.inner.annotations().to_vec()
+        self.inner
+            .annotations()
+            .iter()
+            .map(|&(r, p, o, _graph)| (r, p, o))
+            .collect()
     }
 
     fn tag_map(&self) -> BTreeMapString {
@@ -334,8 +344,16 @@ fn graph_from_parts(
             })
             .collect::<PyResult<Vec<_>>>()?,
         quads,
-        reifiers,
-        annotations,
+        // Widen the narrow Python rows to the 0.9.11 row-array; gmeow rows are
+        // never graph-scoped, so the graph slot is `None`.
+        reifiers: reifiers
+            .into_iter()
+            .map(|(rid, spo)| (rid, spo, None))
+            .collect(),
+        annotations: annotations
+            .into_iter()
+            .map(|(r, p, o)| (r, p, o, None))
+            .collect(),
         ..Graph::default()
     })
 }

@@ -109,7 +109,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     for (filename, tsv) in aligned.sssom {
         artifacts.insert(format!("{SSSOM_DIR}/{filename}"), tsv.into_bytes());
     }
-    artifacts.insert(FNO_PATH.to_string(), aligned.fno.into_bytes());
+    artifacts.insert(FNO_PATH.to_string(), canon_fanout_ttl(&aligned.fno)?);
     for (filename, ttl) in aligned.edoal {
         artifacts.insert(format!("{EDOAL_DIR}/{filename}"), ttl.into_bytes());
     }
@@ -150,7 +150,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // like the FnO catalog, with no new pipeline stage.
     artifacts.insert(
         CORE_PREFIXES_PATH.to_string(),
-        emit_core_prefixes().into_bytes(),
+        canon_fanout_ttl(&emit_core_prefixes())?,
     );
     artifacts.insert(
         JSONLD_CONTEXT_PATH.to_string(),
@@ -162,10 +162,26 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // folds into gmeow.gts like the FnO catalog.
     artifacts.insert(
         LIST_FUNCTIONS_PATH.to_string(),
-        emit_list_functions().into_bytes(),
+        canon_fanout_ttl(&emit_list_functions())?,
     );
 
     Ok(CompiledMappings { artifacts, ledger })
+}
+
+/// Emit a Turtle RDF projection as EXACTLY the canonical fold (shared prefix
+/// authority, no banner) so it rides as an RDF-fanout named graph and the superset
+/// gate reconstructs it byte-for-byte.
+fn canon_fanout_ttl(body: &str) -> Result<Vec<u8>, PipelineError> {
+    canon_fanout_ttl_bytes(body.as_bytes())
+}
+
+fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, PipelineError> {
+    gmeow_rdf::turtle_normalize::canonical_turtle(body, &crate::stages::superset::rdf_prefixes())
+        .map(String::into_bytes)
+        .map_err(|e| PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!("canonicalize RDF projection: {e}"),
+        })
 }
 
 /// Assemble the FINAL `generated/logic/projection-report.ttl` over the UNION of the
@@ -507,10 +523,15 @@ impl Stage for MappingsStage {
                 message: format!("decode logic-projections channel: {e}"),
             })?;
         // Fold the gate-derived 591-term up-projection audit into the curated-cell header
-        // counts, so the committed loss ledger carries the gate-verdict liftability statistic.
+        // counts, so the committed loss ledger carries the gate-verdict liftability statistic
+        // (#1149). Then canonicalize the report TTL so `projection-report.ttl` is carried as
+        // the fold of its named graph (#1142 superset gate), not an opaque byte lane.
         let header = fold_up_projection_audit(input.root, &artifacts, channel.header)?;
         let report = build_union_report(header, &channel, &compiled.ledger)?;
-        artifacts.insert(PROJECTION_REPORT_PATH.to_string(), report);
+        artifacts.insert(
+            PROJECTION_REPORT_PATH.to_string(),
+            canon_fanout_ttl_bytes(&report)?,
+        );
 
         // Carry the union of the RDF outputs (`.ttl` / `.nq` / `.nt` — the alignment
         // axioms / projections this stage contributes to compose) as the bundle's
