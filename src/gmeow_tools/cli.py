@@ -937,7 +937,9 @@ def crossref(
     ),
 ) -> None:
     """Generate CrossRef DOI deposit XML from bundled self-description data."""
-    from gmeow_tools.crossref import lint_deposit, write_deposit
+    import gmeow_validate
+
+    from gmeow_tools import self_desc
     from gmeow_tools.describe import load_graph_from_gts
     from gmeow_tools.self_desc import load_self_description_from_graph
 
@@ -949,7 +951,7 @@ def crossref(
     except ValueError as exc:
         raise _fail(f"self-description unavailable in GTS snapshot: {exc}") from exc
 
-    problems = lint_deposit(meta)
+    problems = gmeow_validate.lint_deposit_native(self_desc.lint_input_json(meta))
     if problems:
         for problem in problems:
             err_console.print(f"[red]doi-lint[/red] {problem}")
@@ -957,8 +959,13 @@ def crossref(
             f"✗ {len(problems)} doi-lint problem(s) — fix metadata/gmeow-self.ttl"
         )
 
-    path = write_deposit(path=out, meta=meta)
-    console.print(f"[green]wrote[/green] {path} (DOI {meta.doi})")
+    ts, batch = self_desc.live_stamp(meta)
+    xml = gmeow_validate.build_deposit_xml_native(
+        self_desc.deposit_input_json(meta), ts, batch
+    )
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(xml + "\n", encoding="utf-8")
+    console.print(f"[green]wrote[/green] {out} (DOI {meta.doi})")
 
 
 @app.command(name="mcp")
