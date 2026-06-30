@@ -134,7 +134,7 @@ composition for every item in §4, that the validator ignores? Enumerating the r
 | `archetype_details` | ARCHETYPED | no (fixed `archetype_id`/`template_id`/`rm_version`) | — | ✗ cannot inject |
 | ELEMENT in the data tree | ITEM_TREE | no | **yes** — only `at0004`/`at0005` admitted | ✗ violates cardinality |
 | `context.other_context` | ITEM_STRUCTURE | archetyped | yes (context archetype) | ✗ risky / slot-dependent |
-| `links` (every LOCATABLE) | LINK[] | semi (typed URI targets) | no (RM-level) | ✓ for reifier/coref URIs |
+| `links` (every LOCATABLE) | LINK[] | semi (typed URI targets) | no (RM-level) | ✓ for reifier/coref URIs — but `LINK.target` is a `DV_EHR_URI`, whose `Scheme_valid` RM invariant forces the `ehr` scheme (a coref pointer must be `ehr://…`, never a bare `urn:`) |
 | **`feeder_audit.original_content`** | **DV_ENCAPSULATED → DV_PARSABLE** | **yes (arbitrary string + formalism)** | **no (RM-level)** | ✓✓ **bulk carrier** |
 | `feeder_audit…other_details` | ITEM_STRUCTURE | archetyped-but-open | no (RM-level) | ✓ for structured bits |
 
@@ -153,9 +153,13 @@ three are **RM-level** metadata that `Blutdruck.opt` does not constrain (OPTs co
   RM extension or the **content-hash-bound sidecar** (`take1.md` §13.2). Recommendation: support
   *both* — `feeder_audit`/`links` for single-file self-containment, sidecar for purity — and let
   the consumer pick.
-- **Empirical validation pending.** "RM permits `DV_PARSABLE` here" is a spec reading; it must be
-  confirmed against the validator zoo (Archie, EHRbase, reference ITS). This is the empirical
-  half of §13.4-Q1 — *falsifiable, and now scoped to one concrete probe.*
+- **Empirical validation — confirmed PASS.** "RM permits `DV_PARSABLE` here" was a spec reading;
+  it is now confirmed against the validator zoo. The standalone lane
+  `validations/openehr-bloodpressure/` stands up a real EHRbase CDR, uploads `Blutdruck.opt`, and
+  POSTs both compositions: `source` and `augmented` each return 201 — both validate. One real RM
+  invariant the by-hand `links` reading missed surfaced and is now fixed: `LINK.target` is a
+  `DV_EHR_URI`, so its value must use the `ehr` scheme (`Scheme_valid`) — the augmented coref
+  `LINK` uses `ehr://…`. The bulk carrier (`feeder_audit.original_content`) was never the obstacle.
 - **The composition's existing `feeder_audit` already carries the FHIR trail.** The complement is
   *additive* (extend `other_details` / set `original_content`); it must not clobber the FHIR
   lineage. Non-destructive by construction.
@@ -163,11 +167,15 @@ three are **RM-level** metadata that `Blutdruck.opt` does not constrain (OPTs co
 **Realized as a concrete artifact.** `fixtures/blood_pressure.augmented.json` is the actual `d(g)`:
 the unmodified RM slice (`fixtures/blood_pressure.source.json`, vendored from Genkidata, Apache-2.0)
 plus the GMEOW complement (`fixtures/blood_pressure.complement.ttl`) carried in
-`feeder_audit.original_content` (DV_PARSABLE `text/turtle`) + a COMPOSITION `LINK` — generated
-non-destructively (the systolic `DV_QUANTITY` and the FHIR lineage are byte-preserved). The
-remaining empirical step (run it through Archie/EHRbase to confirm clause (a)) is scripted in
-`fixtures/README.md` — it needs Java / a running CDR, which is outside GMEOW's Docker-free gate, so
-it is a one-command probe for the breakout, not part of `make check`.
+`feeder_audit.original_content` (DV_PARSABLE `text/turtle`) + a COMPOSITION `LINK` (its
+`DV_EHR_URI` target on the `ehr` scheme) — generated non-destructively (the systolic `DV_QUANTITY`
+and the FHIR lineage are byte-preserved). The empirical step (run it through EHRbase/Archie to
+confirm clause (a)) is the standalone lane `validations/openehr-bloodpressure/` — it needs a running
+CDR / Java, outside GMEOW's Docker-free gate, so it is a `make -C validations/openehr-bloodpressure`
+probe, not part of `make check`. **It has been run: both compositions validate (PASS).** The
+in-gate structural + data round trip is proven by the conformance case
+`correspondence/openehr-bloodpressure-section-retraction` and
+`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`.
 
 ---
 
@@ -238,15 +246,17 @@ constraint here (it can also state cross-field constraints ADL cannot, e.g. syst
 
 | `take1.md` law / gate | This case |
 |---|---|
-| Validation (§13.1.1) | RM slice validates under `Blutdruck.opt`; complement in RM-level `feeder_audit`/`links` (pending validator-zoo confirmation) |
-| Lossless subsumption `u∘d=id` (§13.1.2) | holds — complement carries `S ∖ im(get)`; **section/retraction rung** |
+| Validation (§13.1.1) | **confirmed PASS** — `source` and `augmented` both validate under `Blutdruck.opt` in EHRbase (`validations/openehr-bloodpressure/`); complement in RM-level `feeder_audit`/`links`, the `LINK.target` `DV_EHR_URI` on the `ehr` scheme |
+| Lossless subsumption `u∘d=id` (§13.1.2) | holds — complement carries `S ∖ im(get)`; **section/retraction rung** (`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`) |
 | Store-replacement `d∘u≅o` (§13.1.3) | holds for faithful instances — RM slice regenerated incl. half-open interval |
-| Round-trip gate (§15.3) | passes on canonical IR |
+| Round-trip gate (§15.3) | passes on canonical IR (`correspondence/openehr-bloodpressure-section-retraction`) |
 | Mnemomorphism gate (§15.4) | passes — witness = `archetype_node_id` path + complement |
 | Loss ledger (§15.6) | **exact** for the RM slice + complement; **under-approximation** for any consumer that drops the complement (RM-only reader) — that reader gets a valid-but-lessened view, declared |
 
 **Boundary finding:** for `openEHR-EHR-OBSERVATION.blood_pressure.v2`, *no field in `S ∖ im(get)`
 forces a validation-vs-losslessness tradeoff* — the complement fits in RM-level transparent
-slots. "Perfectly replace openEHR" **holds for this archetype**, modulo the two honest caveats in
-§5 (semantic propriety of `feeder_audit`; empirical validator-zoo confirmation). That is exactly
-the falsifiable, nameable result `take1.md` §17 asks for — here, a *positive* one.
+slots. "Perfectly replace openEHR" **holds for this archetype** — now confirmed empirically (both
+compositions validate in EHRbase), modulo the one remaining honest caveat in §5 (semantic propriety
+of `feeder_audit` as the canonical-source carrier). That is exactly the falsifiable, nameable result
+`take1.md` §17 asks for — here, a *positive* one. The probe also caught and fixed one real RM
+invariant the by-hand reading missed (`LINK.target` must be an `ehr`-scheme `DV_EHR_URI`).
