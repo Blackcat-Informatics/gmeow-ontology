@@ -14,11 +14,23 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::projections::correspondence_frontend::{
+    transpile_correspondences_indexed, CorrespondenceLookup,
+};
 use gmeow_logic_compile::projections::edoal::lower_edoal;
 use gmeow_logic_compile::projections::get_leg::projections;
 use gmeow_logic_compile::projections::sparql::lower_sparql;
 use gmeow_rdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder};
 use gmeow_slice::{ArtifactRole, SliceCatalog};
+
+/// The materialized correspondence lookup the four lowerings consume for their overclaim
+/// gate / ledger path (F5 Task 2). Built from the SAME merged DSL the lowerings read, so
+/// the consumed typed relation and the rendered artifact agree by construction.
+fn build_lookup(dsl: &RdfDataset, onto: &RdfDataset) -> CorrespondenceLookup {
+    transpile_correspondences_indexed(&DslView::new(dsl), &DslView::new(onto))
+        .expect("transpile correspondence lookup")
+        .1
+}
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -160,7 +172,8 @@ fn edoal_lowering_matches_committed_corpus() {
     let root = repo_root();
     let dsl = merge_dsl(&root);
     let onto = merge_ontology(&root);
-    let emitted = lower_edoal(&DslView::new(&dsl), &DslView::new(&onto))
+    let lookup = build_lookup(&dsl, &onto);
+    let emitted = lower_edoal(&DslView::new(&dsl), &DslView::new(&onto), &lookup)
         .expect("lower edoal")
         .alignments;
     assert!(
@@ -214,7 +227,8 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
     let root = repo_root();
     let dsl = merge_dsl(&root);
     let onto = merge_ontology(&root);
-    let emitted = lower_sparql(&DslView::new(&dsl), &DslView::new(&onto))
+    let lookup = build_lookup(&dsl, &onto);
+    let emitted = lower_sparql(&DslView::new(&dsl), &DslView::new(&onto), &lookup)
         .expect("lower sparql")
         .queries;
     assert!(
@@ -292,8 +306,9 @@ fn edoal_and_sparql_share_one_get_leg() {
     assert!(!leg.is_empty(), "the get leg has projection cells");
 
     // Both dialects lower from that same model surface and succeed.
-    let edoal = lower_edoal(&dsl_view, &onto_view).expect("lower edoal");
-    let sparql = lower_sparql(&dsl_view, &onto_view).expect("lower sparql");
+    let lookup = build_lookup(&dsl, &onto);
+    let edoal = lower_edoal(&dsl_view, &onto_view, &lookup).expect("lower edoal");
+    let sparql = lower_sparql(&dsl_view, &onto_view, &lookup).expect("lower sparql");
     assert!(
         !edoal.alignments.is_empty(),
         "edoal lowered from the get leg"

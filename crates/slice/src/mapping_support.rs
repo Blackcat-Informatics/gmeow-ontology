@@ -9,16 +9,12 @@
 //! several still-live emitters and lints share a small kernel of infrastructure that
 //! the alignment renderers used to host:
 //!
-//! * the curated [`PREFIX_REGISTRY`] (the single CURIE / prefix authority) and its
-//!   [`registry_iri`] lookup;
+//! * the curated [`PREFIX_REGISTRY`] (the single CURIE / prefix authority);
 //! * the [`GENERATED_BANNER`] generated-artifact comment;
 //! * the [`prefix_block`] SPARQL `PREFIX` emitter;
-//! * the merged-store collectors [`collect_dsl_store`] / [`collect_ontology_store`]
-//!   and the generic store/term helpers (`subjects_of_type`, `term_iri`,
-//!   `term_lexical`, `quads_with_predicate`, `first_lexical_of_iri`,
-//!   [`object_literal`]);
-//! * the FnO range lookup [`predicate_ranges`] and the language-retag helper
-//!   [`retag_quad`].
+//! * the merged DSL dataset collector [`collect_dsl_store`] and the generic
+//!   dataset helpers (`subjects_of_type`, [`object_literal`]);
+//! * the language-retag helper [`retag_quad`].
 //!
 //! These are extracted verbatim so every surviving byte output is unchanged.
 
@@ -31,10 +27,6 @@ use crate::artifact::ArtifactRole;
 use crate::catalog::SliceCatalog;
 use crate::error::SliceError;
 use crate::rdf_query::{Dataset, DatasetAccumulator};
-
-// ── Namespace constants ───────────────────────────────────────────────────────
-
-const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 
 /// The generated-banner comment shared by every generated artifact.
 pub(crate) const GENERATED_BANNER: &str =
@@ -230,15 +222,6 @@ pub(crate) const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("cp", "http://inspire.ec.europa.eu/ont/cp#"),
 ];
 
-/// The registry namespace IRI for a prefix, or `None` (mirrors `prefix in PREFIXES`
-/// / `PREFIXES[prefix]`).
-pub(crate) fn registry_iri(prefix: &str) -> Option<&'static str> {
-    PREFIX_REGISTRY
-        .iter()
-        .find(|(p, _)| *p == prefix)
-        .map(|(_, ns)| *ns)
-}
-
 // ── Merged-store collection ──────────────────────────────────────────────────────
 
 /// Build the merged DSL dataset: the shared `dsl/mappings/**/*.ttl` tree + the slice
@@ -267,36 +250,6 @@ pub(crate) fn collect_dsl_store(root: &Path) -> Result<Dataset, SliceError> {
         }
         slice_mappings.sort_by(|a, b| a.0.cmp(&b.0));
         for (path, bytes) in &slice_mappings {
-            acc.add_turtle(bytes, &path.display().to_string())?;
-        }
-    }
-    acc.freeze()
-}
-
-/// Build the merged ontology dataset: `ontology/gmeow.ttl` + every slice
-/// [`ArtifactRole::Module`] artifact (the `load_merged_graph(include_imports=False)`
-/// source set).
-pub(crate) fn collect_ontology_store(root: &Path) -> Result<Dataset, SliceError> {
-    let mut acc = DatasetAccumulator::new();
-    let ontology_file = root.join("ontology").join("gmeow.ttl");
-    if ontology_file.is_file() {
-        let bytes = std::fs::read(&ontology_file).map_err(SliceError::Io)?;
-        acc.add_turtle(&bytes, &ontology_file.display().to_string())?;
-    }
-    let slices_dir = root.join("slices");
-    if slices_dir.is_dir() {
-        let catalog = SliceCatalog::discover(&slices_dir)?;
-        let mut modules: Vec<(std::path::PathBuf, Vec<u8>)> = Vec::new();
-        for record in catalog.records() {
-            for artifact in &record.artifacts {
-                if artifact.role == ArtifactRole::Module {
-                    let path = record.slice_dir.join(&artifact.logical_path);
-                    modules.push((path, artifact.content.clone()));
-                }
-            }
-        }
-        modules.sort_by(|a, b| a.0.cmp(&b.0));
-        for (path, bytes) in &modules {
             acc.add_turtle(bytes, &path.display().to_string())?;
         }
     }
@@ -393,17 +346,6 @@ pub(crate) fn object_literal(
     store.object_literal(subject, pred)
 }
 
-/// Every `rdfs:range` IRI of a predicate in the ontology dataset, in dataset order
-/// (mirrors `set(onto.objects(predicate, RDFS.range))` restricted to URIRef objects).
-/// The single shared range lookup for both the FnO derivation and the projection
-/// lint's `fno-type` check.
-pub(crate) fn predicate_ranges(
-    store: &Dataset,
-    predicate: &str,
-) -> Result<Vec<String>, SliceError> {
-    store.object_iris(predicate, RDFS_RANGE)
-}
-
 // ── Language-tag retag ───────────────────────────────────────────────────────────
 
 /// Retag a quad's language-tagged literal object through `tag_map` (a public tag —
@@ -430,14 +372,5 @@ mod tests {
         assert!(has_prefix_token("gmeow:Place", "gmeow"));
         assert!(!has_prefix_token("foo_ps:bar", "ps"));
         assert!(has_prefix_token("(ps:x)", "ps"));
-    }
-
-    #[test]
-    fn registry_iri_resolves_and_misses() {
-        assert_eq!(
-            registry_iri("gmeow"),
-            Some("https://blackcatinformatics.ca/gmeow/")
-        );
-        assert_eq!(registry_iri("not-a-prefix"), None);
     }
 }
