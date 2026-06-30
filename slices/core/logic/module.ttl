@@ -2473,6 +2473,34 @@ logic:distinctBody
     rdfs:label "distinct body"@x-gmeow-english ;
     skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."@x-gmeow-english .
 
+logic:aggregateFunction
+    a owl:DatatypeProperty ;
+    rdfs:comment "Aggregate function of a reduce rule. Default-absent: an ordinary Horn rule carries no aggregation surface, so the existing corpus is byte-identical."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate function"@x-gmeow-english ;
+    skos:definition "Names the aggregate function (SUM, COUNT, MIN, MAX, AVG) a logic:Rule applies in its reduce (aggregation) head: the rule binds logic:aggregateResult to this function applied to logic:aggregateVariable over the groups formed by logic:groupKey. This is the canonical logic: representation of the reduce half of the computation surface; it projects to an aggregating Datalog/Nemo rule and to a SHACL-AF GROUP-BY sub-SELECT (design/LOGIC-SHACL-AF.md). A rule with no logic:aggregateFunction is an ordinary derivation (map) rule."@x-gmeow-english .
+
+logic:aggregateVariable
+    a owl:DatatypeProperty ;
+    rdfs:comment "The body variable a reduce rule aggregates. Default-absent on ordinary Horn rules."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate variable"@x-gmeow-english ;
+    skos:definition "The rule-body variable (a ?-prefixed string) whose bindings logic:aggregateFunction aggregates within each group of a reduce rule. It must be positively bound by the rule body, exactly as a head variable must, so the aggregate ranges over a defined column."@x-gmeow-english .
+
+logic:aggregateResult
+    a owl:DatatypeProperty ;
+    rdfs:comment "The head variable a reduce rule binds to the aggregate result. Default-absent on ordinary Horn rules."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate result"@x-gmeow-english ;
+    skos:definition "The head variable (a ?-prefixed string) a reduce rule binds to the value of logic:aggregateFunction applied to logic:aggregateVariable per group. It is the head object the rule derives for each group key, projecting to the SPARQL `(FUNC(?var) AS ?result)` of the SHACL-AF reduce surface."@x-gmeow-english .
+
+logic:groupKey
+    a owl:DatatypeProperty ;
+    rdfs:comment "A group-by key variable of a reduce rule. Default-absent on ordinary Horn rules; multi-valued for a multi-key grouping."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "group key"@x-gmeow-english ;
+    skos:definition "A group-by variable (a ?-prefixed string) over which a reduce rule partitions its body bindings before aggregating: logic:aggregateFunction is computed once per distinct tuple of logic:groupKey values. The group keys are set-semantic (their order does not change meaning); the SHACL-AF reduce surface realizes a single-group-key reduce as the focus node ($this) of a GROUP-BY sub-SELECT."@x-gmeow-english .
+
 logic:equalityPolicy
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

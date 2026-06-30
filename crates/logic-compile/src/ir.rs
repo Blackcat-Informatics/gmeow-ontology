@@ -560,6 +560,57 @@ impl LogicAxiom {
     }
 }
 
+/// A stratified **aggregation** (reduce) specification on a [`LogicRule`]: the rule's head
+/// binds `result_var` to `function` applied to `aggregate_var` over the groups formed by
+/// `group_keys`. This is the canonical `logic:` representation of the "reduce" half of the
+/// computation surface (the "map" half is an ordinary derivation rule); it lowers to an
+/// aggregating Datalog/Nemo rule and to a SHACL-AF `GROUP BY` sub-`SELECT`. A rule without an
+/// `AggregateSpec` is an ordinary Horn rule, so the existing corpus is byte-identical.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AggregateSpec {
+    /// The aggregate function, an upper-case name (`SUM`, `COUNT`, `MIN`, `MAX`, `AVG`).
+    pub function: String,
+    /// The body variable being aggregated (e.g. `?x`).
+    pub aggregate_var: String,
+    /// The head variable the aggregate result binds (e.g. `?total`).
+    pub result_var: String,
+    /// The group-by variables, in canonical (sorted) order.
+    pub group_keys: Vec<String>,
+}
+
+impl AggregateSpec {
+    /// Construct, canonicalizing the group-key order (a `GROUP BY` is set-semantic, so the key
+    /// order does not change meaning — sorting makes the content identity and the projections
+    /// deterministic).
+    pub fn new(
+        function: impl Into<String>,
+        aggregate_var: impl Into<String>,
+        result_var: impl Into<String>,
+        group_keys: Vec<String>,
+    ) -> Self {
+        let mut group_keys = group_keys;
+        group_keys.sort();
+        group_keys.dedup();
+        Self {
+            function: function.into(),
+            aggregate_var: aggregate_var.into(),
+            result_var: result_var.into(),
+            group_keys,
+        }
+    }
+
+    /// The append-only key segment for this spec (folded into a rule's keys only when present).
+    fn key_segment(&self) -> String {
+        format!(
+            "{}{SEP}{}{SEP}{}{SEP}{}",
+            self.function,
+            self.aggregate_var,
+            self.result_var,
+            self.group_keys.join("|")
+        )
+    }
+}
+
 /// A single `logic:` rule: a head axiom derived from body axioms.
 ///
 /// The `body` is stored in canonical (sorted) order; the `distinct_pairs`
@@ -582,6 +633,10 @@ pub struct LogicRule {
     /// its head axiom's kind (folded via `head.sort_key()`) and this, its own rule kind.
     /// Folded into the rule's keys only when non-default.
     pub node_kind: NodeKind,
+    /// The stratified aggregation (reduce) specification, when this rule is a reduce rule.
+    /// Default-absent: an ordinary Horn rule carries `None`, so the existing corpus is
+    /// byte-identical. Folded into the rule's keys only when present (append-only).
+    pub aggregation: Option<AggregateSpec>,
 }
 
 impl LogicRule {
@@ -610,6 +665,7 @@ impl LogicRule {
             distinct_pairs: pairs,
             scope,
             node_kind: NodeKind::DerivationRule,
+            aggregation: None,
         }
     }
 
@@ -618,6 +674,13 @@ impl LogicRule {
     /// are unchanged.
     pub fn with_node_kind(mut self, node_kind: NodeKind) -> Self {
         self.node_kind = node_kind;
+        self
+    }
+
+    /// Attach a stratified aggregation (reduce) spec (builder; default `None`). Kept off
+    /// [`Self::new`] so existing call sites and the byte-pinned no-aggregation key are unchanged.
+    pub fn with_aggregation(mut self, aggregation: AggregateSpec) -> Self {
+        self.aggregation = Some(aggregation);
         self
     }
 
@@ -650,6 +713,13 @@ impl LogicRule {
             base.push(SEP);
             base.push_str(self.node_kind.as_str());
         }
+        // The aggregation (reduce) spec: append AFTER the node-kind segment, only when present,
+        // so a non-aggregating rule keeps its historical key.
+        if let Some(agg) = &self.aggregation {
+            base.push(SEP);
+            base.push_str("agg=");
+            base.push_str(&agg.key_segment());
+        }
         base
     }
 
@@ -676,6 +746,11 @@ impl LogicRule {
         if self.node_kind != NodeKind::DerivationRule {
             key.push(SEP);
             key.push_str(&format!("kind[{}]", self.node_kind.as_str()));
+        }
+        // Append-only: the aggregation (reduce) spec, when present.
+        if let Some(agg) = &self.aggregation {
+            key.push(SEP);
+            key.push_str(&format!("agg[{}]", agg.key_segment()));
         }
         key
     }
