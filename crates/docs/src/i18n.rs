@@ -429,7 +429,7 @@ pub fn available_languages(translations: &Translations) -> Vec<String> {
 /// slice's module so a BCP-47 code maps to its internal `x-gmeow-*` tag.
 fn internal_tag_map(catalog: &SliceCatalog) -> BTreeMap<String, String> {
     use crate::model::parse_turtle_lenient;
-    use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
+    use crate::store::Object;
 
     const BCP47: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
     const LANG_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
@@ -448,53 +448,21 @@ fn internal_tag_map(catalog: &SliceCatalog) -> BTreeMap<String, String> {
 
             // For each subject with both a bcp47Tag and a languageTag, map the
             // (lowercased) bcp47 code to the internal tag.
-            let bcp_pred = oxigraph::model::NamedNode::new_unchecked(BCP47);
-            for quad in store
-                .quads_for_pattern(
-                    None,
-                    Some(bcp_pred.as_ref()),
-                    None,
-                    Some(GraphNameRef::DefaultGraph),
-                )
-                .flatten()
-            {
-                let NamedOrBlankNode::NamedNode(subject) = &quad.subject else {
+            for (subject, object) in store.pattern_subjects_objects(BCP47) {
+                let Some(subject) = subject.as_named() else {
                     continue;
                 };
-                let Term::Literal(bcp) = &quad.object else {
+                let Object::Literal(bcp) = object else {
                     continue;
                 };
-                let internal = first_literal(&store, subject.as_str(), LANG_TAG);
-                if let Some(internal) = internal {
-                    out.entry(bcp.value().to_ascii_lowercase())
-                        .or_insert(internal);
+                // First literal value (lowest lexical form) for the languageTag.
+                if let Some(internal) = store.first_literal(subject, LANG_TAG) {
+                    out.entry(bcp.to_ascii_lowercase()).or_insert(internal);
                 }
             }
         }
     }
     out
-}
-
-/// First literal value (lowest lexical form) for `subject predicate ?o`.
-fn first_literal(store: &oxigraph::store::Store, subject: &str, predicate: &str) -> Option<String> {
-    use oxigraph::model::{GraphNameRef, Term};
-    let subject = oxigraph::model::NamedNode::new(subject).ok()?;
-    let predicate = oxigraph::model::NamedNode::new_unchecked(predicate);
-    let mut values: Vec<String> = store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(predicate.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::Literal(lit) => Some(lit.value().to_string()),
-            _ => None,
-        })
-        .collect();
-    values.sort();
-    values.into_iter().next()
 }
 
 // ── UI-chrome string table ──────────────────────────────────────────────────────

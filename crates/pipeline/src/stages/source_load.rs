@@ -6,23 +6,25 @@
 //!
 //! This is the root of the build DAG. It loads `ontology/gmeow.ttl`, every
 //! `slices/<group>/<name>/module.ttl`, and every `imports/*.ttl` into a single
-//! oxigraph store — the RDF 1.1 base graph the Python build assembled via
-//! `load_merged_graph(include_imports=…)`. The store is published as an in-memory
-//! N-Quads artifact so downstream stages parse it from memory instead of
-//! re-reading `gmeow.gts` from disk per generator (the bottleneck #861 removes).
+//! native [`RdfDataset`](gmeow_rdf::RdfDataset) — the RDF 1.1 base graph the Python
+//! build assembled via `load_merged_graph(include_imports=…)`. The dataset is the
+//! frozen carrier downstream stages union and project from, with the N-Quads byte
+//! lane published alongside so the pre-carrier byte readers parse it from memory
+//! instead of re-reading `gmeow.gts` from disk per generator (the bottleneck #861
+//! removes). EPIC #906: oxigraph-free — every parse routes through the native
+//! `gmeow_rdf::parse_dataset` codecs and merges via `RdfDataset::union`.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use std::collections::HashMap;
 
-use gmeow_rdf::oxigraph::{
-    flat_oxigraph_quads_from_dataset, flat_oxigraph_quads_from_dataset_scoped, GraphPolicy,
-};
 use gmeow_rdf::provenance::{DatasetProvenance, OriginKind};
-use gmeow_rdf::{parse_dataset, serialize_dataset, QuadHandle, SerializeGraph};
-use oxigraph::model::Quad;
-use oxigraph::store::Store;
+use gmeow_rdf::{
+    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset, QuadHandle, RdfDataset, RdfQuad,
+    RdfTerm, RdfTriple, SerializeGraph,
+};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct, SOURCE_ORIGIN};
@@ -65,9 +67,11 @@ pub fn attributed_base_provenance(
     root: &Path,
 ) -> Result<(DatasetProvenance, Vec<QuadHandle>), PipelineError> {
     let mut prov = DatasetProvenance::new();
-    // Content key (the standardized oxigraph quad) → its deduplicated handle. Two files
-    // asserting an identical triple share the handle but record distinct occurrences.
-    let mut handle_of: HashMap<Quad, QuadHandle> = HashMap::new();
+    // Content key (the per-file-scoped native quad, location stripped so two identical
+    // triples on different source lines collapse exactly as the old oxigraph quad key
+    // did) → its deduplicated handle. Two files asserting an identical triple share the
+    // handle but record distinct occurrences (the set-valued S0.3 invariant).
+    let mut handle_of: HashMap<RdfQuad, QuadHandle> = HashMap::new();
     let mut next: u32 = 0;
 
     for path in authored_files(root)? {
@@ -84,10 +88,16 @@ pub fn attributed_base_provenance(
 
         let dataset = parse_dataset(&bytes, "text/turtle", None)
             .map_err(|e| PipelineError::Parse(format!("syntax error in {scope}: {e}")))?;
-        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &scope)
-            .map_err(|e| PipelineError::Parse(format!("IR → quads in {scope}: {e}")))?;
+        // SCOPE blank labels by the source path: each authored file is a distinct RDF
+        // document whose anonymous blanks restart per parse, so a structurally-distinct
+        // blank axiom in two files must keep two handles. The native flat un-fold mirrors
+        // the old `flat_oxigraph_quads_from_dataset_scoped` exactly (same FNV prefix), and
+        // the location is stripped so the dedup key is the pure `(s, p, o, g)` content.
+        let prefix = blank_scope_prefix(&scope);
+        let quads = flat_rdf_quads_from_dataset(&dataset);
         for quad in quads {
-            let handle = *handle_of.entry(quad).or_insert_with(|| {
+            let key = rescope_quad_blanks_keyless(&quad, &prefix);
+            let handle = *handle_of.entry(key).or_insert_with(|| {
                 let h = QuadHandle::from_index(next);
                 next += 1;
                 h
@@ -101,43 +111,73 @@ pub fn attributed_base_provenance(
     Ok((prov, expected))
 }
 
+/// A stable (FNV-1a) blank-node label prefix for a source document — the native twin
+/// of `gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped`'s scoping, kept
+/// byte-identical so the per-file provenance handle partition (and thus the committed
+/// `graph/provenance` projection) is preserved across the oxigraph removal (#906).
+/// Deterministic across processes and stages — the same `scope_key` always yields the
+/// same prefix.
+fn blank_scope_prefix(scope_key: &str) -> String {
+    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+    for byte in scope_key.bytes() {
+        hash ^= u64::from(byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("g{hash:016x}")
+}
+
+/// Rescope every blank-node label in `term` with `prefix`, recursing into quoted triples.
+fn rescope_term_blanks(term: &RdfTerm, prefix: &str) -> RdfTerm {
+    match term {
+        RdfTerm::BlankNode(label) => RdfTerm::blank_node(format!("{prefix}{label}")),
+        RdfTerm::Triple(triple) => RdfTerm::triple(RdfTriple::new(
+            rescope_term_blanks(&triple.subject, prefix),
+            triple.predicate.clone(),
+            rescope_term_blanks(&triple.object, prefix),
+        )),
+        other => other.clone(),
+    }
+}
+
+/// Build the location-free, blank-scoped dedup key for one native quad. The location is
+/// dropped (the old oxigraph `Quad` key carried none) so two identical triples collapse to
+/// ONE handle, and blank labels are prefixed by the per-source scope so distinct blanks
+/// across files stay distinct.
+fn rescope_quad_blanks_keyless(quad: &RdfQuad, prefix: &str) -> RdfQuad {
+    let mut key = RdfQuad::new(
+        rescope_term_blanks(&quad.subject, prefix),
+        quad.predicate.clone(),
+        rescope_term_blanks(&quad.object, prefix),
+    );
+    key.graph_name = quad
+        .graph_name
+        .as_ref()
+        .map(|g| rescope_term_blanks(g, prefix));
+    key
+}
+
 /// Logical path of the published base graph (N-Quads, in-memory dataflow).
 pub const BASE_GRAPH_PATH: &str = "pipeline/base-graph.nq";
 
-/// Load `ontology/gmeow.ttl` + all slice modules + all imports into one store.
-pub fn load_authored_store(root: &Path) -> Result<Store, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+/// Load `ontology/gmeow.ttl` + all slice modules + all imports into one frozen dataset.
+///
+/// Each authored file is parsed standalone (its anonymous blanks `_:gts_<counter>`
+/// restart at 0 per parse), and the per-file datasets are merged via
+/// [`RdfDataset::union`], which standardizes blank scopes apart per input (the native
+/// twin of the old per-source FNV blank-prefix ingest) so two files' identically-labelled
+/// anonymous blanks stay disjoint. The union canonicalizes on freeze, so the result is
+/// order-independent.
+pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, PipelineError> {
+    let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     for path in authored_files(root)? {
         let bytes = std::fs::read(&path)?;
-        // SCOPE by the source path: each authored file is a distinct RDF document, so
-        // its anonymous blanks (`_:gts_<counter>`, restarting per parse) must not merge
-        // with another file's identically-labelled blanks when they share this store.
         let scope = path.display().to_string();
-        rdf_bytes_into_store_scoped(&store, &bytes, "text/turtle", &scope, &scope)?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None)
+            .map_err(|e| PipelineError::Parse(format!("syntax error in {scope}: {e}")))?;
+        parsed.push(dataset);
     }
-    Ok(store)
-}
-
-/// Like [`rdf_bytes_into_store`] but scopes blank node labels by `scope_key` (a stable
-/// per-source identity) so documents accumulated into one store keep disjoint blanks.
-pub fn rdf_bytes_into_store_scoped(
-    store: &Store,
-    bytes: &[u8],
-    media_type: &str,
-    scope_key: &str,
-    context: &str,
-) -> Result<(), PipelineError> {
-    let dataset = parse_dataset(bytes, media_type, None)
-        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))?;
-    for quad in flat_oxigraph_quads_from_dataset_scoped(&dataset, scope_key)
-        .map_err(|e| PipelineError::Parse(format!("IR → quads in {context}: {e}")))?
-    {
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
+    let refs: Vec<&RdfDataset> = parsed.iter().map(|d| d.as_ref()).collect();
+    Ok(Arc::new(RdfDataset::union(&refs)))
 }
 
 /// The sorted authored Turtle files that form the base graph (the hidden-input
@@ -216,23 +256,15 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
-/// Serialize a store to canonical N-Quads bytes (sorted lines) for in-memory
-/// passing between stages.
-pub fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
-    let dataset = gmeow_rdf::oxigraph::dataset_from_store(store)
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
-    dataset_to_sorted_nquads(&dataset)
-}
-
-/// Serialize a frozen [`gmeow_rdf::RdfDataset`] to the SAME deterministic N-Quads byte form
-/// [`store_to_nquads`] produces (full RDF 1.2 statement layer, lines sorted
-/// bytewise ascending, trailing newline). This is the single dataset → N-Quads
-/// projection the pipeline's in-memory dataflow speaks; the `gts_compose` stage
-/// projects the composed UNION dataset through it for the `composed.nq` byte lane.
+/// Serialize a frozen [`RdfDataset`] to the deterministic N-Quads byte form (full
+/// RDF 1.2 statement layer, lines sorted bytewise ascending, trailing newline). This
+/// is the single dataset → N-Quads projection the pipeline's in-memory dataflow speaks;
+/// the `gts_compose` stage projects the composed UNION dataset through it for its byte
+/// lane.
 pub fn dataset_to_sorted_nquads(dataset: &gmeow_rdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
     let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::Dataset)
         .map_err(|e| PipelineError::Parse(format!("serialize failed: {e}")))?;
-    // Sort lines for determinism (oxigraph iteration order is not guaranteed).
+    // Sort lines for determinism (serializer iteration order is not guaranteed).
     let text = String::from_utf8(buf)
         .map_err(|e| PipelineError::Parse(format!("non-utf8 n-quads: {e}")))?;
     let mut lines: Vec<&str> = text.lines().filter(|l| !l.is_empty()).collect();
@@ -242,77 +274,33 @@ pub fn dataset_to_sorted_nquads(dataset: &gmeow_rdf::RdfDataset) -> Result<Vec<u
     Ok(out.into_bytes())
 }
 
-/// Parse the published base-graph N-Quads artifact back into a store (the
+/// Parse the published base-graph N-Quads artifact back into a frozen dataset (the
 /// in-memory hand-off downstream stages use instead of re-reading from disk).
-pub fn parse_base_graph(bytes: &[u8]) -> Result<Store, PipelineError> {
-    let dataset = parse_dataset(bytes, "application/n-quads", None)
-        .map_err(|e| PipelineError::Parse(format!("base-graph parse: {e}")))?;
-    gmeow_rdf::oxigraph::store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs)
-        .map_err(|e| PipelineError::Parse(format!("base-graph store: {e}")))
+pub fn parse_base_graph(bytes: &[u8]) -> Result<Arc<RdfDataset>, PipelineError> {
+    parse_dataset(bytes, "application/n-quads", None)
+        .map_err(|e| PipelineError::Parse(format!("base-graph parse: {e}")))
 }
 
-/// Parse RDF text `bytes` of `media_type` into a fresh oxigraph store via the
+/// Parse RDF text `bytes` of `media_type` into a fresh frozen [`RdfDataset`] via the
 /// native codecs, preserving named graphs. `context` labels parse errors.
-pub fn rdf_bytes_to_store(
+pub fn rdf_bytes_to_dataset(
     bytes: &[u8],
     media_type: &str,
     context: &str,
-) -> Result<Store, PipelineError> {
-    let dataset = parse_dataset(bytes, media_type, None)
-        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))?;
-    gmeow_rdf::oxigraph::store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs)
-        .map_err(|e| PipelineError::Parse(format!("store build for {context}: {e}")))
+) -> Result<Arc<RdfDataset>, PipelineError> {
+    parse_dataset(bytes, media_type, None)
+        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))
 }
 
-/// Parse RDF text `bytes` of `media_type` and insert the resulting quads into an
-/// existing `store`, accumulating across calls. `context` labels parse errors.
-pub fn rdf_bytes_into_store(
-    store: &Store,
-    bytes: &[u8],
-    media_type: &str,
-    context: &str,
-) -> Result<(), PipelineError> {
-    let dataset = parse_dataset(bytes, media_type, None)
-        .map_err(|e| PipelineError::Parse(format!("syntax error in {context}: {e}")))?;
-    for quad in flat_oxigraph_quads_from_dataset(&dataset)
-        .map_err(|e| PipelineError::Parse(format!("IR → quads in {context}: {e}")))?
-    {
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
-}
-
-/// Parse Turtle `bytes` into a fresh oxigraph store via the native codecs.
+/// Parse Turtle `bytes` into a fresh frozen [`RdfDataset`] via the native codecs.
 ///
-/// The native `parse_dataset` folds the RDF 1.2 statement layer, and
-/// `store_from_dataset` materialises the result with named graphs preserved (a
-/// stand-alone Turtle document only ever populates the default graph, so the
-/// policy is equivalent to flattening here). `context` labels parse errors.
-pub fn turtle_bytes_to_store(bytes: &[u8], context: &str) -> Result<Store, PipelineError> {
-    rdf_bytes_to_store(bytes, "text/turtle", context)
-}
-
-/// Parse Turtle `bytes` and insert the resulting quads into an existing `store`,
-/// accumulating across calls. `context` labels parse errors.
-pub fn turtle_bytes_into_store(
-    store: &Store,
+/// The native `parse_dataset` folds the RDF 1.2 statement layer; a stand-alone Turtle
+/// document only ever populates the default graph. `context` labels parse errors.
+pub fn turtle_bytes_to_dataset(
     bytes: &[u8],
     context: &str,
-) -> Result<(), PipelineError> {
-    rdf_bytes_into_store(store, bytes, "text/turtle", context)
-}
-
-/// Parse Turtle `bytes` from a distinct source document (`scope_key` = its stable
-/// identity, e.g. the file path) and insert into `store`, scoping blank-node labels
-/// so several source files accumulated into one store keep disjoint anonymous blanks.
-pub fn turtle_bytes_into_store_scoped(
-    store: &Store,
-    bytes: &[u8],
-    scope_key: &str,
-) -> Result<(), PipelineError> {
-    rdf_bytes_into_store_scoped(store, bytes, "text/turtle", scope_key, scope_key)
+) -> Result<Arc<RdfDataset>, PipelineError> {
+    rdf_bytes_to_dataset(bytes, "text/turtle", context)
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -354,13 +342,11 @@ impl Stage for SourceLoadStage {
         "source_load.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let store = load_authored_store(input.root)?;
         // Carry the authored base graph as the bundle's frozen dataset (the native
         // contribution `gts_compose` unions), and keep emitting the BASE_GRAPH_PATH
         // N-Quads byte lane for the pre-C3 byte readers. Both come from the SAME
-        // store via `dataset_from_store` — no extra serialize→parse round-trip.
-        let dataset = gmeow_rdf::oxigraph::dataset_from_store(&store)
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+        // native dataset — no oxigraph store, no extra serialize→parse round-trip.
+        let dataset = load_authored_dataset(input.root)?;
         let nq = dataset_to_sorted_nquads(&dataset)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
@@ -385,17 +371,17 @@ mod tests {
     #[test]
     fn source_load_parses_the_whole_ontology() {
         let root = repo_root();
-        let store = load_authored_store(&root).expect("load");
+        let dataset = load_authored_dataset(&root).expect("load");
         // The merged authored graph is substantial (50+ slices); sanity-floor it.
         assert!(
-            store.len().unwrap() > 5_000,
+            dataset.quad_count() > 5_000,
             "authored base graph unexpectedly small: {} quads",
-            store.len().unwrap()
+            dataset.quad_count()
         );
         // Round-trips through the in-memory N-Quads hand-off.
-        let nq = store_to_nquads(&store).expect("serialize");
+        let nq = dataset_to_sorted_nquads(&dataset).expect("serialize");
         let back = parse_base_graph(&nq).expect("reparse");
-        assert_eq!(store.len().unwrap(), back.len().unwrap());
+        assert_eq!(dataset.quad_count(), back.quad_count());
     }
 
     #[test]

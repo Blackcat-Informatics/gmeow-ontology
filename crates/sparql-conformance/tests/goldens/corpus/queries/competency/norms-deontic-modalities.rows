@@ -1,0 +1,5 @@
+modality
+[Some(Iri("https://blackcatinformatics.ca/gmeow/deonticObligation"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/deonticPermission"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/deonticProhibition"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/deonticRecommendation"))]

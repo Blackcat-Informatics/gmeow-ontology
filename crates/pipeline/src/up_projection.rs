@@ -6,16 +6,21 @@
 //! This module is the Rust authority for the historical `gmeow_tools.up_projection`
 //! family. Python remains an interface layer: it supplies serialized RDF and the
 //! same repo-or-bundle mapping/cell inputs the public CLI already used.
+//!
+//! The whole module runs on the oxigraph-free native kernel (EPIC #906): RDF is
+//! parsed into a frozen [`Arc<RdfDataset>`](RdfDataset) via the canonical native
+//! codec, reads are linear scans over the flat default-graph quad stream, the
+//! accumulator is a deduped `Vec<RdfQuad>`, the reverse CONSTRUCT queries run
+//! through the [`NativeSparqlEngine`], and output is serialized with the native
+//! N-Triples writer.
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
-use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
-use oxigraph::model::{
-    BlankNode, GraphNameRef, Literal, NamedNode, NamedOrBlankNode, Quad, Term, Triple,
+use gmeow_rdf::{
+    RdfDataset, RdfLiteral, RdfQuad, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult,
 };
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
-use oxigraph::store::Store;
+use gmeow_sparql_eval::NativeSparqlEngine;
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -241,7 +246,10 @@ struct Context {
 }
 
 struct Acc {
-    out: Store,
+    /// The accumulated default-graph triples, deduped on their `(s, p, o)` string key
+    /// (mirroring oxigraph `Store::insert`, which silently dropped identical quads).
+    quads: Vec<RdfQuad>,
+    seen: HashSet<(String, String, String)>,
     lifted: usize,
     claimed: usize,
     gaps: BTreeMap<String, usize>,
@@ -253,7 +261,8 @@ struct Acc {
 impl Acc {
     fn new() -> Result<Self, String> {
         Ok(Self {
-            out: Store::new().map_err(|e| format!("store creation failed: {e}"))?,
+            quads: Vec::new(),
+            seen: HashSet::new(),
             lifted: 0,
             claimed: 0,
             gaps: BTreeMap::new(),
@@ -263,31 +272,48 @@ impl Acc {
         })
     }
 
-    fn fact(&mut self, s: NamedOrBlankNode, p: NamedNode, o: Term) -> Result<(), String> {
-        insert_triple(&self.out, s, p, o)?;
+    /// Insert `(s, p, o)` into the accumulator, deduping on the string key (the native
+    /// twin of oxigraph `Store::insert`, which silently dropped exact duplicates).
+    /// Returns `true` if the triple was new.
+    fn insert_triple(&mut self, s: RdfTerm, p: &str, o: RdfTerm) -> bool {
+        let key = (full_term_key(&s), p.to_owned(), full_term_key(&o));
+        if !self.seen.insert(key) {
+            return false;
+        }
+        self.quads.push(RdfQuad::new(s, p.to_owned(), o));
+        true
+    }
+
+    /// `true` iff `(s, p, o)` is already accumulated.
+    fn contains_triple(&self, s: &RdfTerm, p: &str, o: &RdfTerm) -> bool {
+        self.seen
+            .contains(&(full_term_key(s), p.to_owned(), full_term_key(o)))
+    }
+
+    fn fact(&mut self, s: RdfTerm, p: &str, o: RdfTerm) -> Result<(), String> {
+        self.insert_triple(s, p, o);
         self.lifted += 1;
         Ok(())
     }
 
     fn claim(
         &mut self,
-        s: NamedNode,
-        p: NamedNode,
-        o: Term,
-        source_term: NamedNode,
+        s: RdfTerm,
+        p: &str,
+        o: RdfTerm,
+        source_term: &str,
         conf: &str,
     ) -> Result<(), String> {
-        let source_key = canon_qname(source_term.as_str());
+        let source_key = canon_qname(source_term);
         emit_claim(self, s, p, o, source_term, conf)?;
         self.claimed += 1;
         *self.claims.entry(source_key).or_insert(0) += 1;
         Ok(())
     }
 
-    fn fresh_blank(&mut self, prefix: &str) -> Result<BlankNode, String> {
+    fn fresh_blank(&mut self, prefix: &str) -> RdfTerm {
         self.next_blank += 1;
-        BlankNode::new(format!("{prefix}{}", self.next_blank))
-            .map_err(|e| format!("blank node mint failed: {e}"))
+        RdfTerm::BlankNode(format!("{prefix}{}", self.next_blank))
     }
 }
 
@@ -458,12 +484,8 @@ pub fn up_project_nt(
     ontology_nt: &str,
     descend: bool,
 ) -> Result<UpProjectionReport, String> {
-    let source = parse_store(source_nt.as_bytes(), RdfFormat::NTriples)?;
-    if source
-        .len()
-        .map_err(|e| format!("store length failed: {e}"))?
-        == 0
-    {
+    let source = Graph::parse(source_nt.as_bytes(), "application/n-triples")?;
+    if source.is_empty() {
         return Err(if descend {
             "up_project_descend: source graph is empty"
         } else {
@@ -489,10 +511,10 @@ pub fn run_audit_nt(
     let mut files = Vec::new();
     let mut gaps = BTreeSet::new();
     for (name, nt) in corpus_nts {
-        let store = parse_store(nt.as_bytes(), RdfFormat::NTriples)?;
+        let store = Graph::parse(nt.as_bytes(), "application/n-triples")?;
         let mut per_term = BTreeMap::new();
         let mut per_vocab: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
-        for iri in used_target_terms(&store)? {
+        for iri in used_target_terms(&store.quads) {
             let class = combined_class(&iri, &sssom, &structural);
             let term = canon_qname(&iri);
             *per_vocab
@@ -540,19 +562,19 @@ pub fn resolve_context_candidate(
 }
 
 pub fn reverse_nt(source_nt: &str) -> Result<String, String> {
-    let source = parse_store(source_nt.as_bytes(), RdfFormat::NTriples)?;
+    let source = Graph::parse(source_nt.as_bytes(), "application/n-triples")?;
     let mut acc = Acc::new()?;
     apply_reverse(&source, &mut acc)?;
-    dump_nt(&acc.out)
+    dump_nt(&acc.quads)
 }
 
-fn up_project_store(source: &Store, lift: &LiftMap) -> Result<UpProjectionReport, String> {
+fn up_project_store(source: &Graph, lift: &LiftMap) -> Result<UpProjectionReport, String> {
     let mut acc = Acc::new()?;
-    for triple in triples(source)? {
+    for triple in &source.quads {
         lift_edge(
             &mut acc,
             triple.subject.clone(),
-            triple.predicate.clone(),
+            &triple.predicate,
             triple.object.clone(),
             lift,
         )?;
@@ -563,7 +585,7 @@ fn up_project_store(source: &Store, lift: &LiftMap) -> Result<UpProjectionReport
 }
 
 fn up_project_descend_store(
-    source: &Store,
+    source: &Graph,
     lift: &LiftMap,
     sssom_texts: &[String],
     projection_ttls: &[String],
@@ -571,12 +593,11 @@ fn up_project_descend_store(
 ) -> Result<UpProjectionReport, String> {
     let ctx = build_context(sssom_texts, projection_ttls, ontology_nt)?;
     let mut node_types: BTreeMap<TermKey, BTreeSet<String>> = BTreeMap::new();
-    let rdf_type = named(RDF_TYPE)?;
-    for triple in triples(source)? {
-        if triple.predicate != rdf_type {
+    for triple in &source.quads {
+        if triple.predicate != RDF_TYPE {
             continue;
         }
-        let Term::NamedNode(t) = triple.object else {
+        let RdfTerm::Iri(t) = &triple.object else {
             continue;
         };
         let key = t.as_str();
@@ -601,16 +622,16 @@ fn up_project_descend_store(
     let mut acc = Acc::new()?;
     let mut context_resolved = 0;
     let mut context_terms = BTreeMap::new();
-    for triple in triples(source)? {
-        let key = triple.predicate.as_str().to_owned();
-        if triple.predicate == rdf_type
+    for triple in &source.quads {
+        let key = triple.predicate.clone();
+        if triple.predicate == RDF_TYPE
             || lift.rules.contains_key(&key)
             || lift.inverse_rules.contains_key(&key)
         {
             lift_edge(
                 &mut acc,
                 triple.subject.clone(),
-                triple.predicate.clone(),
+                &triple.predicate,
                 triple.object.clone(),
                 lift,
             )?;
@@ -624,32 +645,28 @@ fn up_project_descend_store(
             lift_edge(
                 &mut acc,
                 triple.subject.clone(),
-                triple.predicate.clone(),
+                &triple.predicate,
                 triple.object.clone(),
                 lift,
             )?;
             continue;
         };
         if cand.relation == "=" {
-            acc.fact(
-                triple.subject.clone(),
-                named(&cand.gmeow)?,
-                triple.object.clone(),
-            )?;
-        } else if let NamedOrBlankNode::NamedNode(s) = triple.subject.clone() {
-            if matches!(triple.object, Term::NamedNode(_) | Term::Literal(_)) {
+            acc.fact(triple.subject.clone(), &cand.gmeow, triple.object.clone())?;
+        } else if matches!(triple.subject, RdfTerm::Iri(_)) {
+            if matches!(triple.object, RdfTerm::Iri(_) | RdfTerm::Literal(_)) {
                 acc.claim(
-                    s,
-                    named(&cand.gmeow)?,
+                    triple.subject.clone(),
+                    &cand.gmeow,
                     triple.object.clone(),
-                    triple.predicate.clone(),
+                    &triple.predicate,
                     &cand.confidence,
                 )?;
             } else {
                 lift_edge(
                     &mut acc,
                     triple.subject.clone(),
-                    triple.predicate.clone(),
+                    &triple.predicate,
                     triple.object.clone(),
                     lift,
                 )?;
@@ -659,7 +676,7 @@ fn up_project_descend_store(
             lift_edge(
                 &mut acc,
                 triple.subject.clone(),
-                triple.predicate.clone(),
+                &triple.predicate,
                 triple.object.clone(),
                 lift,
             )?;
@@ -673,31 +690,19 @@ fn up_project_descend_store(
     finish_report(acc, context_resolved, context_terms, tag_terms, minted)
 }
 
-fn lift_edge(
-    acc: &mut Acc,
-    s: NamedOrBlankNode,
-    p: NamedNode,
-    o: Term,
-    lift: &LiftMap,
-) -> Result<(), String> {
-    let rdf_type = named(RDF_TYPE)?;
-    if p == rdf_type {
-        if let Term::NamedNode(class) = o {
+fn lift_edge(acc: &mut Acc, s: RdfTerm, p: &str, o: RdfTerm, lift: &LiftMap) -> Result<(), String> {
+    if p == RDF_TYPE {
+        if let RdfTerm::Iri(class) = &o {
             let key = class.as_str();
             if let Some(target) = lift.rules.get(key) {
-                acc.fact(s, rdf_type, Term::NamedNode(named(target)?))?;
+                acc.fact(s, RDF_TYPE, RdfTerm::iri(target))?;
             } else if let Some((gmeow, conf)) = lift.claim_rules.get(key) {
-                if let NamedOrBlankNode::NamedNode(subj) = s {
-                    acc.claim(
-                        subj,
-                        named(RDF_TYPE)?,
-                        Term::NamedNode(named(gmeow)?),
-                        class,
-                        conf,
-                    )?;
+                if matches!(s, RdfTerm::Iri(_)) {
+                    let class_iri = class.clone();
+                    acc.claim(s, RDF_TYPE, RdfTerm::iri(gmeow), &class_iri, conf)?;
                 }
             } else if is_gmeow_ns(key) {
-                acc.fact(s, named(RDF_TYPE)?, Term::NamedNode(class))?;
+                acc.fact(s, RDF_TYPE, o)?;
             } else {
                 account(acc, lift, key);
             }
@@ -705,47 +710,34 @@ fn lift_edge(
         return Ok(());
     }
 
-    let key = p.as_str();
-    if let Term::Literal(lit) = &o {
+    let key = p;
+    if let RdfTerm::Literal(lit) = &o {
         if let Some((gpred, gval)) = lift
             .value_rules
-            .get(&(key.to_owned(), lit.value().to_owned()))
+            .get(&(key.to_owned(), lit.lexical_form.clone()))
         {
-            acc.fact(s, named(gpred)?, Term::NamedNode(named(gval)?))?;
+            acc.fact(s, gpred, RdfTerm::iri(gval))?;
             return Ok(());
         }
     }
     if let Some(target) = lift.rules.get(key) {
-        if matches!(o, Term::Literal(_)) && lift.object_properties.contains(target) {
-            if let NamedOrBlankNode::NamedNode(subj) = s {
-                acc.claim(subj, named(target)?, o, p, "")?;
+        if matches!(o, RdfTerm::Literal(_)) && lift.object_properties.contains(target) {
+            if matches!(s, RdfTerm::Iri(_)) {
+                acc.claim(s, target, o, p, "")?;
             }
             return Ok(());
         }
-        acc.fact(s, named(target)?, o)?;
+        acc.fact(s, target, o)?;
     } else if let Some(target) = lift.inverse_rules.get(key) {
         match o {
-            Term::NamedNode(node) => {
-                acc.fact(
-                    NamedOrBlankNode::NamedNode(node),
-                    named(target)?,
-                    subject_to_term(s),
-                )?;
+            RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => {
+                acc.fact(o, target, s)?;
             }
-            Term::BlankNode(node) => {
-                acc.fact(
-                    NamedOrBlankNode::BlankNode(node),
-                    named(target)?,
-                    subject_to_term(s),
-                )?;
-            }
-            Term::Literal(_) | Term::Triple(_) => {}
+            RdfTerm::Literal(_) | RdfTerm::Triple(_) => {}
         }
     } else if let Some((gmeow, conf)) = lift.claim_rules.get(key) {
-        if let NamedOrBlankNode::NamedNode(subj) = s {
-            if matches!(o, Term::NamedNode(_) | Term::Literal(_)) {
-                acc.claim(subj, named(gmeow)?, o, p, conf)?;
-            }
+        if matches!(s, RdfTerm::Iri(_)) && matches!(o, RdfTerm::Iri(_) | RdfTerm::Literal(_)) {
+            acc.claim(s, gmeow, o, p, conf)?;
         }
     } else if is_gmeow_ns(key) {
         acc.fact(s, p, o)?;
@@ -757,49 +749,29 @@ fn lift_edge(
 
 fn emit_claim(
     acc: &mut Acc,
-    subj: NamedNode,
-    qpred: NamedNode,
-    qobj: Term,
-    source_term: NamedNode,
+    subj: RdfTerm,
+    qpred: &str,
+    qobj: RdfTerm,
+    source_term: &str,
     conf: &str,
 ) -> Result<(), String> {
-    let cell = NamedOrBlankNode::BlankNode(acc.fresh_blank("up-claim-")?);
-    insert_triple(
-        &acc.out,
-        cell.clone(),
-        named(RDF_TYPE)?,
-        Term::NamedNode(named(GM_STATEMENT_METADATA)?),
-    )?;
-    insert_triple(
-        &acc.out,
-        cell.clone(),
-        named(GM_Q_SUBJECT)?,
-        Term::NamedNode(subj),
-    )?;
-    insert_triple(
-        &acc.out,
-        cell.clone(),
-        named(GM_Q_PREDICATE)?,
-        Term::NamedNode(qpred),
-    )?;
-    let qobj_pred = if matches!(qobj, Term::Literal(_)) {
+    let cell = acc.fresh_blank("up-claim-");
+    acc.insert_triple(cell.clone(), RDF_TYPE, RdfTerm::iri(GM_STATEMENT_METADATA));
+    acc.insert_triple(cell.clone(), GM_Q_SUBJECT, subj);
+    acc.insert_triple(cell.clone(), GM_Q_PREDICATE, RdfTerm::iri(qpred));
+    let qobj_pred = if matches!(qobj, RdfTerm::Literal(_)) {
         GM_Q_OBJECT_LITERAL
     } else {
         GM_Q_OBJECT
     };
-    insert_triple(&acc.out, cell.clone(), named(qobj_pred)?, qobj)?;
-    emit_annotation(
-        acc,
-        cell.clone(),
-        GM_MAPPED_FROM,
-        Term::NamedNode(source_term),
-    )?;
+    acc.insert_triple(cell.clone(), qobj_pred, qobj);
+    emit_annotation(acc, cell.clone(), GM_MAPPED_FROM, RdfTerm::iri(source_term))?;
     if !conf.is_empty() {
         emit_annotation(
             acc,
             cell,
             GM_CONFIDENCE,
-            Term::Literal(Literal::new_typed_literal(conf, named(XSD_DECIMAL)?)),
+            RdfTerm::Literal(RdfLiteral::typed(conf, XSD_DECIMAL)),
         )?;
     }
     Ok(())
@@ -807,27 +779,14 @@ fn emit_claim(
 
 fn emit_annotation(
     acc: &mut Acc,
-    cell: NamedOrBlankNode,
+    cell: RdfTerm,
     property: &str,
-    value: Term,
+    value: RdfTerm,
 ) -> Result<(), String> {
-    let ann = NamedOrBlankNode::BlankNode(acc.fresh_blank("up-ann-")?);
-    insert_triple(
-        &acc.out,
-        cell,
-        named(GM_ANNOTATION)?,
-        Term::BlankNode(match &ann {
-            NamedOrBlankNode::BlankNode(b) => b.clone(),
-            NamedOrBlankNode::NamedNode(_) => unreachable!(),
-        }),
-    )?;
-    insert_triple(
-        &acc.out,
-        ann.clone(),
-        named(GM_ANN_PROPERTY)?,
-        Term::NamedNode(named(property)?),
-    )?;
-    insert_triple(&acc.out, ann, named(GM_ANN_VALUE)?, value)?;
+    let ann = acc.fresh_blank("up-ann-");
+    acc.insert_triple(cell, GM_ANNOTATION, ann.clone());
+    acc.insert_triple(ann.clone(), GM_ANN_PROPERTY, RdfTerm::iri(property));
+    acc.insert_triple(ann, GM_ANN_VALUE, value);
     Ok(())
 }
 
@@ -949,53 +908,51 @@ fn structural_pairs(projection_ttls: &[String]) -> Result<(TargetSetMap, TargetC
     let mut exact: TargetSetMap = BTreeMap::new();
     let mut generalizing: TargetClaimMap = BTreeMap::new();
     for ttl in projection_ttls {
-        let graph = parse_store(ttl.as_bytes(), RdfFormat::Turtle)?;
-        for cell in subjects(&graph, RDF_TYPE, GM_PROJECTION_MAPPING)? {
-            let Some(pattern) = value(&graph, &cell, GM_HAS_MAPPING_PATTERN)? else {
+        let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
+        let q = &graph.quads;
+        for cell in subjects(q, RDF_TYPE, GM_PROJECTION_MAPPING) {
+            let Some(pattern) = value(q, &cell, GM_HAS_MAPPING_PATTERN) else {
                 continue;
             };
-            if has_object(&graph, &pattern, GM_MINT)?
-                || has_object(&graph, &pattern, GM_PATH)?
-                || has_object(&graph, &pattern, GM_FILTER)?
+            if has_object(q, &pattern, GM_MINT)
+                || has_object(q, &pattern, GM_PATH)
+                || has_object(q, &pattern, GM_FILTER)
             {
                 continue;
             }
-            let Some(src) = value_named(&graph, &pattern, GM_EDOAL_SOURCE)? else {
+            let Some(src) = value_named(q, &pattern, GM_EDOAL_SOURCE) else {
                 continue;
             };
-            for binding in objects(&graph, &cell, GM_HAS_BINDING)? {
-                if template_atoms(&graph, &binding)?.len() > 1 {
+            for binding in objects(q, &cell, GM_HAS_BINDING) {
+                if template_atoms(q, &binding).len() > 1 {
                     continue;
                 }
-                let target = value_named(&graph, &binding, GM_TO_PREDICATE)?.or(value_named(
-                    &graph,
+                let target = value_named(q, &binding, GM_TO_PREDICATE).or(value_named(
+                    q,
                     &binding,
                     GM_TO_CLASS,
-                )?);
+                ));
                 let Some(tgt) = target else {
                     continue;
                 };
-                if !in_projection_ns(tgt.as_str()) {
+                if !in_projection_ns(&tgt) {
                     continue;
                 }
-                let rel = value_lexical(&graph, &binding, GM_RELATION)?.unwrap_or_default();
+                let rel = value_lexical(q, &binding, GM_RELATION).unwrap_or_default();
                 if rel == "=" {
-                    exact
-                        .entry(tgt.as_str().to_owned())
-                        .or_default()
-                        .insert(src.as_str().to_owned());
+                    exact.entry(tgt).or_default().insert(src.clone());
                 } else if rel == "<=" {
-                    let cur = value_lexical(&graph, &binding, GM_CONFIDENCE)?
+                    let cur = value_lexical(q, &binding, GM_CONFIDENCE)
                         .and_then(|c| decimal_confidence(&c).map(|_| c))
                         .unwrap_or_default();
-                    let bucket = generalizing.entry(tgt.as_str().to_owned()).or_default();
-                    let replace = bucket.get(src.as_str()).is_none_or(|prev| {
+                    let bucket = generalizing.entry(tgt).or_default();
+                    let replace = bucket.get(&src).is_none_or(|prev| {
                         !cur.is_empty()
                             && (prev.is_empty()
                                 || decimal_confidence(&cur) > decimal_confidence(prev))
                     });
                     if replace {
-                        bucket.insert(src.as_str().to_owned(), cur);
+                        bucket.insert(src.clone(), cur);
                     }
                 }
             }
@@ -1007,63 +964,59 @@ fn structural_pairs(projection_ttls: &[String]) -> Result<(TargetSetMap, TargetC
 fn value_mapped_pairs(projection_ttls: &[String]) -> Result<ValueRuleMap, String> {
     let mut candidates: BTreeMap<(String, String), BTreeSet<(String, String)>> = BTreeMap::new();
     for ttl in projection_ttls {
-        let graph = parse_store(ttl.as_bytes(), RdfFormat::Turtle)?;
-        for cell in subjects(&graph, RDF_TYPE, GM_PROJECTION_MAPPING)? {
-            let Some(pattern) = value(&graph, &cell, GM_HAS_MAPPING_PATTERN)? else {
+        let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
+        let q = &graph.quads;
+        for cell in subjects(q, RDF_TYPE, GM_PROJECTION_MAPPING) {
+            let Some(pattern) = value(q, &cell, GM_HAS_MAPPING_PATTERN) else {
                 continue;
             };
-            let Some(anchor) = value(&graph, &pattern, GM_ANCHOR)? else {
+            let Some(anchor) = value(q, &pattern, GM_ANCHOR) else {
                 continue;
             };
-            let atoms = rdf_list(&graph, value(&graph, &pattern, GM_ATOM)?.as_ref())?;
+            let atoms = rdf_list(q, value(q, &pattern, GM_ATOM).as_ref());
             if atoms.len() != 1 {
                 continue;
             }
             let atom = &atoms[0];
-            let gmeow_pred = value_named(&graph, atom, GM_PREDICATE)?;
-            let gmeow_val = value_named(&graph, atom, GM_OBJECT_VALUE)?;
-            if value(&graph, atom, GM_SUBJECT_VAR)? != Some(anchor.clone())
-                || gmeow_pred
-                    .as_ref()
-                    .is_none_or(|p| !p.as_str().starts_with(GM))
+            let gmeow_pred = value_named(q, atom, GM_PREDICATE);
+            let gmeow_val = value_named(q, atom, GM_OBJECT_VALUE);
+            if value(q, atom, GM_SUBJECT_VAR) != Some(anchor.clone())
+                || gmeow_pred.as_ref().is_none_or(|p| !p.starts_with(GM))
                 || gmeow_val.is_none()
             {
                 continue;
             }
-            let mints = objects(&graph, &pattern, GM_MINT)?;
+            let mints = objects(q, &pattern, GM_MINT);
             if mints.len() != 1 {
                 continue;
             }
             let mint = &mints[0];
-            let Some(bind_var) = value(&graph, mint, GM_BIND_VAR)? else {
+            let Some(bind_var) = value(q, mint, GM_BIND_VAR) else {
                 continue;
             };
-            let Some(bind_expr) = value(&graph, mint, GM_BIND_EXPR)? else {
+            let Some(bind_expr) = value(q, mint, GM_BIND_EXPR) else {
                 continue;
             };
-            let Term::Literal(bind_literal) = bind_expr else {
+            let RdfTerm::Literal(bind_literal) = bind_expr else {
                 continue;
             };
-            for binding in objects(&graph, &cell, GM_HAS_BINDING)? {
-                let tas = template_atoms(&graph, &binding)?;
+            for binding in objects(q, &cell, GM_HAS_BINDING) {
+                let tas = template_atoms(q, &binding);
                 if tas.len() != 1 {
                     continue;
                 }
                 let ta = &tas[0];
-                let tpred = value_named(&graph, ta, GM_T_PRED)?;
-                if value(&graph, ta, GM_T_SUBJ)? == Some(anchor.clone())
-                    && value(&graph, ta, GM_T_OBJ)? == Some(bind_var.clone())
-                    && tpred.as_ref().is_some_and(|p| in_projection_ns(p.as_str()))
+                let tpred = value_named(q, ta, GM_T_PRED);
+                if value(q, ta, GM_T_SUBJ) == Some(anchor.clone())
+                    && value(q, ta, GM_T_OBJ) == Some(bind_var.clone())
+                    && tpred.as_ref().is_some_and(|p| in_projection_ns(p))
                 {
                     candidates
-                        .entry((
-                            tpred.as_ref().expect("checked").as_str().to_owned(),
-                            bind_literal.value().to_owned(),
-                        ))
+                        .entry((tpred.expect("checked"), bind_literal.lexical_form.clone()))
                         .or_default()
                         .insert((
-                            gmeow_pred.as_ref().expect("checked").as_str().to_owned(),
-                            gmeow_val.as_ref().expect("checked").as_str().to_owned(),
+                            gmeow_pred.clone().expect("checked"),
+                            gmeow_val.clone().expect("checked"),
                         ));
                 }
             }
@@ -1083,28 +1036,27 @@ pub(crate) fn edoalpath_pairs(
     let mut direct: TargetSetMap = BTreeMap::new();
     let mut inverse: TargetSetMap = BTreeMap::new();
     for ttl in projection_ttls {
-        let graph = parse_store(ttl.as_bytes(), RdfFormat::Turtle)?;
-        for cell in subjects(&graph, RDF_TYPE, GM_PROJECTION_MAPPING)? {
-            let Some(pattern) = value(&graph, &cell, GM_HAS_MAPPING_PATTERN)? else {
+        let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
+        let q = &graph.quads;
+        for cell in subjects(q, RDF_TYPE, GM_PROJECTION_MAPPING) {
+            let Some(pattern) = value(q, &cell, GM_HAS_MAPPING_PATTERN) else {
                 continue;
             };
-            if !has_object(&graph, &pattern, GM_EDOAL_PATH)?
-                || has_object(&graph, &pattern, GM_MINT)?
-            {
+            if !has_object(q, &pattern, GM_EDOAL_PATH) || has_object(q, &pattern, GM_MINT) {
                 continue;
             }
-            let atoms = rdf_list(&graph, value(&graph, &pattern, GM_ATOM)?.as_ref())?;
+            let atoms = rdf_list(q, value(q, &pattern, GM_ATOM).as_ref());
             if atoms.len() != 1 {
                 continue;
             }
-            let Some(apred) = value_named(&graph, &atoms[0], GM_PREDICATE)? else {
+            let Some(apred) = value_named(q, &atoms[0], GM_PREDICATE) else {
                 continue;
             };
-            let Some(anchor) = value(&graph, &pattern, GM_ANCHOR)? else {
+            let Some(anchor) = value(q, &pattern, GM_ANCHOR) else {
                 continue;
             };
-            let subjvar = value(&graph, &atoms[0], GM_SUBJECT_VAR)?;
-            let objvar = value(&graph, &atoms[0], GM_OBJECT_VAR)?;
+            let subjvar = value(q, &atoms[0], GM_SUBJECT_VAR);
+            let objvar = value(q, &atoms[0], GM_OBJECT_VAR);
             let bucket = if subjvar.as_ref() == Some(&anchor) {
                 &mut direct
             } else if objvar.as_ref() == Some(&anchor) {
@@ -1112,13 +1064,10 @@ pub(crate) fn edoalpath_pairs(
             } else {
                 continue;
             };
-            for binding in objects(&graph, &cell, GM_HAS_BINDING)? {
-                if let Some(tgt) = value_named(&graph, &binding, GM_TO_PREDICATE)? {
-                    if in_projection_ns(tgt.as_str()) {
-                        bucket
-                            .entry(tgt.as_str().to_owned())
-                            .or_default()
-                            .insert(apred.as_str().to_owned());
+            for binding in objects(q, &cell, GM_HAS_BINDING) {
+                if let Some(tgt) = value_named(q, &binding, GM_TO_PREDICATE) {
+                    if in_projection_ns(&tgt) {
+                        bucket.entry(tgt).or_default().insert(apred.clone());
                     }
                 }
             }
@@ -1132,43 +1081,38 @@ fn multiatom_pairs(
 ) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
     let mut pairs: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for ttl in projection_ttls {
-        let graph = parse_store(ttl.as_bytes(), RdfFormat::Turtle)?;
-        for cell in subjects(&graph, RDF_TYPE, GM_PROJECTION_MAPPING)? {
-            let Some(pattern) = value(&graph, &cell, GM_HAS_MAPPING_PATTERN)? else {
+        let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
+        let q = &graph.quads;
+        for cell in subjects(q, RDF_TYPE, GM_PROJECTION_MAPPING) {
+            let Some(pattern) = value(q, &cell, GM_HAS_MAPPING_PATTERN) else {
                 continue;
             };
             let mut obj_source = BTreeMap::new();
-            for atom in pattern_atoms(
-                &graph,
-                value(&graph, &pattern, GM_ATOM)?.as_ref(),
-                &mut HashSet::new(),
-            )? {
-                let objvar = value(&graph, &atom, GM_OBJECT_VAR)?;
-                let pred = value_named(&graph, &atom, GM_PREDICATE)?;
+            for atom in pattern_atoms(q, value(q, &pattern, GM_ATOM).as_ref(), &mut HashSet::new())
+            {
+                let objvar = value(q, &atom, GM_OBJECT_VAR);
+                let pred = value_named(q, &atom, GM_PREDICATE);
                 if let (Some(objvar), Some(pred)) = (objvar, pred) {
-                    if pred.as_str().starts_with(GM) {
-                        obj_source.insert(term_key(&objvar), pred.as_str().to_owned());
+                    if pred.starts_with(GM) {
+                        obj_source.insert(term_key(&objvar), pred);
                     }
                 }
             }
-            for binding in objects(&graph, &cell, GM_HAS_BINDING)? {
-                for tmpl in objects(&graph, &binding, GM_TEMPLATE_ATOMS)? {
-                    for tatom in rdf_list(&graph, Some(&tmpl))? {
-                        let tpred = value_named(&graph, &tatom, GM_T_PRED)?;
-                        let tobj = value(&graph, &tatom, GM_T_OBJ)?;
+            for binding in objects(q, &cell, GM_HAS_BINDING) {
+                for tmpl in objects(q, &binding, GM_TEMPLATE_ATOMS) {
+                    for tatom in rdf_list(q, Some(&tmpl)) {
+                        let tpred = value_named(q, &tatom, GM_T_PRED);
+                        let tobj = value(q, &tatom, GM_T_OBJ);
                         let Some(tpred) = tpred else {
                             continue;
                         };
-                        if !in_projection_ns(tpred.as_str()) {
+                        if !in_projection_ns(&tpred) {
                             continue;
                         }
                         if let Some(source) =
                             tobj.as_ref().and_then(|t| obj_source.get(&term_key(t)))
                         {
-                            pairs
-                                .entry(tpred.as_str().to_owned())
-                                .or_default()
-                                .insert(source.clone());
+                            pairs.entry(tpred).or_default().insert(source.clone());
                         }
                     }
                 }
@@ -1181,17 +1125,17 @@ fn multiatom_pairs(
 fn structural_best_classes(projection_ttls: &[String]) -> Result<BTreeMap<String, String>, String> {
     let mut best: BTreeMap<String, String> = BTreeMap::new();
     for ttl in projection_ttls {
-        let graph = parse_store(ttl.as_bytes(), RdfFormat::Turtle)?;
-        for cell in subjects(&graph, RDF_TYPE, GM_PROJECTION_MAPPING)? {
-            let Some(pattern) = value(&graph, &cell, GM_HAS_MAPPING_PATTERN)? else {
+        let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
+        let q = &graph.quads;
+        for cell in subjects(q, RDF_TYPE, GM_PROJECTION_MAPPING) {
+            let Some(pattern) = value(q, &cell, GM_HAS_MAPPING_PATTERN) else {
                 continue;
             };
-            let has_mint = has_object(&graph, &pattern, GM_MINT)?;
-            let has_guard =
-                has_object(&graph, &pattern, GM_PATH)? || has_object(&graph, &pattern, GM_FILTER)?;
-            for binding in objects(&graph, &cell, GM_HAS_BINDING)? {
-                let targets = emitted_targets(&graph, &binding)?;
-                let atoms = template_atoms(&graph, &binding)?;
+            let has_mint = has_object(q, &pattern, GM_MINT);
+            let has_guard = has_object(q, &pattern, GM_PATH) || has_object(q, &pattern, GM_FILTER);
+            for binding in objects(q, &cell, GM_HAS_BINDING) {
+                let targets = emitted_targets(q, &binding);
+                let atoms = template_atoms(q, &binding);
                 let cls = if has_mint {
                     "structural-mint"
                 } else if has_guard {
@@ -1215,33 +1159,33 @@ fn structural_best_classes(projection_ttls: &[String]) -> Result<BTreeMap<String
     Ok(best)
 }
 
-fn emitted_targets(graph: &Store, binding: &Term) -> Result<BTreeSet<String>, String> {
+fn emitted_targets(quads: &[RdfQuad], binding: &RdfTerm) -> BTreeSet<String> {
     let mut targets = BTreeSet::new();
     for pred in [
         GM_TO_CLASS,
         GM_TO_PREDICATE,
         "https://blackcatinformatics.ca/gmeow/edoalTarget",
     ] {
-        for obj in objects(graph, binding, pred)? {
-            if let Term::NamedNode(node) = obj {
-                if in_projection_ns(node.as_str()) {
-                    targets.insert(node.as_str().to_owned());
+        for obj in objects(quads, binding, pred) {
+            if let RdfTerm::Iri(node) = obj {
+                if in_projection_ns(&node) {
+                    targets.insert(node);
                 }
             }
         }
     }
-    for atom in template_atoms(graph, binding)? {
+    for atom in template_atoms(quads, binding) {
         for pred in [GM_T_PRED, "https://blackcatinformatics.ca/gmeow/tObjValue"] {
-            for obj in objects(graph, &atom, pred)? {
-                if let Term::NamedNode(node) = obj {
-                    if in_projection_ns(node.as_str()) {
-                        targets.insert(node.as_str().to_owned());
+            for obj in objects(quads, &atom, pred) {
+                if let RdfTerm::Iri(node) = obj {
+                    if in_projection_ns(&node) {
+                        targets.insert(node);
                     }
                 }
             }
         }
     }
-    Ok(targets)
+    targets
 }
 
 fn build_context(
@@ -1249,13 +1193,14 @@ fn build_context(
     projection_ttls: &[String],
     ontology_nt: &str,
 ) -> Result<Context, String> {
-    let graph = parse_store(ontology_nt.as_bytes(), RdfFormat::NTriples)?;
-    let ancestors = ancestor_closure(&graph)?;
+    let graph = Graph::parse(ontology_nt.as_bytes(), "application/n-triples")?;
+    let ontology_quads = &graph.quads;
+    let ancestors = ancestor_closure(ontology_quads);
     let mut candidates: BTreeMap<String, Vec<Candidate>> = BTreeMap::new();
     let mut add =
         |target: String, gmeow: String, relation: &str, conf: String| -> Result<(), String> {
             candidates.entry(target).or_default().push(Candidate {
-                context_type: domain(&graph, &gmeow)?,
+                context_type: domain(ontology_quads, &gmeow),
                 gmeow,
                 relation: relation.to_owned(),
                 confidence: conf,
@@ -1366,15 +1311,11 @@ fn narrower_or_equal(a: Option<&str>, b: Option<&str>, ctx: &Context) -> bool {
         || b.is_some_and(|b| ctx.ancestors.get(a).is_some_and(|anc| anc.contains(b)))
 }
 
-fn ancestor_closure(graph: &Store) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
+fn ancestor_closure(quads: &[RdfQuad]) -> BTreeMap<String, BTreeSet<String>> {
     let mut direct: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for q in graph.quads_for_pattern(None, Some(named(RDFS_SUB_CLASS_OF)?.as_ref()), None, None) {
-        let q = q.map_err(|e| format!("subClassOf scan failed: {e}"))?;
-        if let (NamedOrBlankNode::NamedNode(sub), Term::NamedNode(obj)) = (q.subject, q.object) {
-            direct
-                .entry(sub.as_str().to_owned())
-                .or_default()
-                .insert(obj.as_str().to_owned());
+    for q in quads.iter().filter(|q| q.predicate == RDFS_SUB_CLASS_OF) {
+        if let (RdfTerm::Iri(sub), RdfTerm::Iri(obj)) = (&q.subject, &q.object) {
+            direct.entry(sub.clone()).or_default().insert(obj.clone());
         }
     }
     let classes: BTreeSet<String> = direct
@@ -1388,7 +1329,7 @@ fn ancestor_closure(graph: &Store) -> Result<BTreeMap<String, BTreeSet<String>>,
         walk_ancestors(&cls, &direct, &mut seen);
         closure.insert(cls, seen);
     }
-    Ok(closure)
+    closure
 }
 
 fn walk_ancestors(
@@ -1406,56 +1347,56 @@ fn walk_ancestors(
     }
 }
 
-fn domain(graph: &Store, iri: &str) -> Result<Option<String>, String> {
-    let s = Term::NamedNode(named(iri)?);
-    let domains = objects(graph, &s, RDFS_DOMAIN)?
+fn domain(quads: &[RdfQuad], iri: &str) -> Option<String> {
+    let s = RdfTerm::iri(iri);
+    let domains = objects(quads, &s, RDFS_DOMAIN)
         .into_iter()
         .filter_map(|term| match term {
-            Term::NamedNode(node) => Some(node.as_str().to_owned()),
+            RdfTerm::Iri(node) => Some(node),
             _ => None,
         })
         .collect::<BTreeSet<_>>();
-    Ok((domains.len() == 1).then(|| domains.into_iter().next().expect("one domain")))
+    (domains.len() == 1).then(|| domains.into_iter().next().expect("one domain"))
 }
 
 fn object_properties(ontology_nt: &str) -> Result<BTreeSet<String>, String> {
-    let graph = parse_store(ontology_nt.as_bytes(), RdfFormat::NTriples)?;
+    let graph = Graph::parse(ontology_nt.as_bytes(), "application/n-triples")?;
     let mut props = BTreeSet::new();
-    for q in graph.quads_for_pattern(
-        None,
-        Some(named(RDF_TYPE)?.as_ref()),
-        Some((&Term::NamedNode(named(OWL_OBJECT_PROPERTY)?)).into()),
-        None,
-    ) {
-        let q = q.map_err(|e| format!("ObjectProperty scan failed: {e}"))?;
-        if let NamedOrBlankNode::NamedNode(s) = q.subject {
-            props.insert(s.as_str().to_owned());
+    for q in &graph.quads {
+        if q.predicate == RDF_TYPE
+            && matches!(&q.object, RdfTerm::Iri(n) if n == OWL_OBJECT_PROPERTY)
+        {
+            if let RdfTerm::Iri(s) = &q.subject {
+                props.insert(s.clone());
+            }
         }
     }
     Ok(props)
 }
 
-fn apply_reverse(source: &Store, acc: &mut Acc) -> Result<usize, String> {
+fn apply_reverse(source: &Graph, acc: &mut Acc) -> Result<usize, String> {
     let mut count = 0;
+    let engine = NativeSparqlEngine::new();
     for query in reverse_queries() {
-        let results = SparqlEvaluator::new()
-            .parse_query(&query)
-            .map_err(|e| format!("reverse query parse failed: {e}"))?
-            .on_store(source)
-            .execute()
+        let result = engine
+            .query(
+                &source.dataset,
+                SparqlRequest {
+                    query: &query,
+                    base_iri: None,
+                    substitutions: &[],
+                },
+            )
             .map_err(|e| format!("reverse query evaluation failed: {e}"))?;
-        let QueryResults::Graph(triples) = results else {
+        let SparqlResult::Graph(ds) = result else {
             return Err("reverse query did not return a graph".to_owned());
         };
-        for triple in triples {
-            let triple = triple.map_err(|e| format!("reverse query triple failed: {e}"))?;
-            if !contains_triple(&acc.out, &triple)? {
-                insert_triple(
-                    &acc.out,
-                    triple.subject.clone(),
-                    triple.predicate.clone(),
-                    triple.object.clone(),
-                )?;
+        for quad in gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(&ds) {
+            if quad.graph_name.is_some() {
+                continue;
+            }
+            if !acc.contains_triple(&quad.subject, &quad.predicate, &quad.object) {
+                acc.insert_triple(quad.subject, &quad.predicate, quad.object);
                 count += 1;
             }
         }
@@ -1464,43 +1405,44 @@ fn apply_reverse(source: &Store, acc: &mut Acc) -> Result<usize, String> {
 }
 
 fn resolve_concept_references(
-    source: &Store,
+    source: &Graph,
     acc: &mut Acc,
 ) -> Result<BTreeMap<String, usize>, String> {
-    let mut anchored = BTreeSet::new();
-    for q in acc.out.quads_for_pattern(
-        None,
-        Some(named(RDF_TYPE)?.as_ref()),
-        Some((&Term::NamedNode(named(GM_TAG)?)).into()),
-        None,
-    ) {
-        let q = q.map_err(|e| format!("tag scan failed: {e}"))?;
-        let NamedOrBlankNode::NamedNode(tag) = q.subject else {
+    // Snapshot the accumulator's current quads for the read pass; the final loop
+    // mutates `acc`, so reads run against this frozen view (matching the old code,
+    // where `index` is built from the store state before the insert loop).
+    let acc_quads = acc.quads.clone();
+    let mut anchored: BTreeSet<String> = BTreeSet::new();
+    for q in &acc_quads {
+        if q.predicate != RDF_TYPE || !matches!(&q.object, RdfTerm::Iri(n) if n == GM_TAG) {
+            continue;
+        }
+        let RdfTerm::Iri(tag) = &q.subject else {
             continue;
         };
-        if tag.as_str().starts_with(WD)
+        let tag_term = RdfTerm::iri(tag.clone());
+        if tag.starts_with(WD)
             || [SKOS_EXACT_MATCH, GM_AUTHORITY_LINK].iter().any(|pred| {
-                objects(&acc.out, &Term::NamedNode(tag.clone()), pred)
-                    .unwrap_or_default()
+                objects(&acc_quads, &tag_term, pred)
                     .into_iter()
-                    .any(|o| matches!(o, Term::NamedNode(n) if n.as_str().starts_with(WD)))
+                    .any(|o| matches!(o, RdfTerm::Iri(n) if n.starts_with(WD)))
             })
         {
-            anchored.insert(tag);
+            anchored.insert(tag.clone());
         }
     }
-    let mut by_label: BTreeMap<String, BTreeSet<NamedNode>> = BTreeMap::new();
+    let mut by_label: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for tag in anchored {
-        for label in objects(&acc.out, &Term::NamedNode(tag.clone()), RDFS_LABEL)? {
-            if let Term::Literal(lit) = label {
+        for label in objects(&acc_quads, &RdfTerm::iri(tag.clone()), RDFS_LABEL) {
+            if let RdfTerm::Literal(lit) = label {
                 by_label
-                    .entry(normalize_label(lit.value()))
+                    .entry(normalize_label(&lit.lexical_form))
                     .or_default()
                     .insert(tag.clone());
             }
         }
     }
-    let index: BTreeMap<String, NamedNode> = by_label
+    let index: BTreeMap<String, String> = by_label
         .into_iter()
         .filter_map(|(label, tags)| {
             (tags.len() == 1).then(|| (label, tags.into_iter().next().expect("one tag")))
@@ -1510,31 +1452,21 @@ fn resolve_concept_references(
         return Ok(BTreeMap::new());
     }
     let mut terms = BTreeMap::new();
-    for triple in triples(source)? {
+    for triple in &source.quads {
         if !CONCEPT_REFERENCE_PREDICATES.contains(&triple.predicate.as_str()) {
             continue;
         }
-        let Term::Literal(lit) = triple.object else {
+        let RdfTerm::Literal(lit) = &triple.object else {
             continue;
         };
-        let Some(tag) = index.get(&normalize_label(lit.value())) else {
+        let Some(tag) = index.get(&normalize_label(&lit.lexical_form)) else {
             continue;
         };
-        let out_triple = Triple::new(
-            triple.subject.clone(),
-            named(GM_HAS_TAG)?,
-            Term::NamedNode(tag.clone()),
-        );
-        if !contains_triple(&acc.out, &out_triple)? {
-            insert_triple(
-                &acc.out,
-                out_triple.subject,
-                out_triple.predicate,
-                out_triple.object,
-            )?;
-            *terms
-                .entry(canon_qname(triple.predicate.as_str()))
-                .or_insert(0) += 1;
+        let subject = triple.subject.clone();
+        let object = RdfTerm::iri(tag.clone());
+        if !acc.contains_triple(&subject, GM_HAS_TAG, &object) {
+            acc.insert_triple(subject, GM_HAS_TAG, object);
+            *terms.entry(canon_qname(&triple.predicate)).or_insert(0) += 1;
         }
     }
     Ok(terms)
@@ -1548,7 +1480,7 @@ fn finish_report(
     minted: usize,
 ) -> Result<UpProjectionReport, String> {
     Ok(UpProjectionReport {
-        graph_nt: dump_nt(&acc.out)?,
+        graph_nt: dump_nt(&acc.quads)?,
         lifted: acc.lifted,
         claimed: acc.claimed,
         gap_terms: acc.gaps,
@@ -1562,212 +1494,149 @@ fn finish_report(
     })
 }
 
-fn used_target_terms(store: &Store) -> Result<BTreeSet<String>, String> {
+fn used_target_terms(quads: &[RdfQuad]) -> BTreeSet<String> {
     let mut terms = BTreeSet::new();
-    for triple in triples(store)? {
-        if in_projection_ns(triple.predicate.as_str()) {
-            terms.insert(triple.predicate.as_str().to_owned());
+    for triple in quads {
+        if in_projection_ns(&triple.predicate) {
+            terms.insert(triple.predicate.clone());
         }
-        if triple.predicate.as_str() == RDF_TYPE {
-            if let Term::NamedNode(node) = triple.object {
-                if in_projection_ns(node.as_str()) {
-                    terms.insert(node.as_str().to_owned());
+        if triple.predicate == RDF_TYPE {
+            if let RdfTerm::Iri(node) = &triple.object {
+                if in_projection_ns(node) {
+                    terms.insert(node.clone());
                 }
             }
         }
     }
-    Ok(terms)
+    terms
 }
 
-fn parse_store(data: &[u8], format: RdfFormat) -> Result<Store, String> {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    for quad in RdfParser::from_format(format).lenient().for_slice(data) {
-        store
-            .insert(quad.map_err(|e| format!("RDF parse failed: {e}"))?.as_ref())
-            .map_err(|e| format!("RDF store insert failed: {e}"))?;
+/// Serialize the accumulator to N-Triples via the native writer.
+fn dump_nt(quads: &[RdfQuad]) -> Result<String, String> {
+    let dataset = gmeow_rdf::native_quads::flat_dataset_from_quads(quads)
+        .map_err(|e| format!("re-freeze accumulated quads: {e}"))?;
+    let bytes = gmeow_rdf::serialize_dataset(
+        &dataset,
+        "application/n-triples",
+        gmeow_rdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
+    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
+}
+
+/// Subjects of `(?, pred, <obj>)`, as `RdfTerm`.
+fn subjects(quads: &[RdfQuad], pred: &str, obj: &str) -> Vec<RdfTerm> {
+    quads
+        .iter()
+        .filter(|q| q.predicate == pred && matches!(&q.object, RdfTerm::Iri(n) if n == obj))
+        .map(|q| q.subject.clone())
+        .collect()
+}
+
+/// All objects of `(subject, pred, ?)`.
+fn objects(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> Vec<RdfTerm> {
+    if !subject_addressable(subject) {
+        return Vec::new();
     }
-    Ok(store)
+    quads
+        .iter()
+        .filter(|q| q.predicate == pred && term_key(&q.subject) == term_key(subject))
+        .map(|q| q.object.clone())
+        .collect()
+}
+
+fn value(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> Option<RdfTerm> {
+    objects(quads, subject, pred).into_iter().next()
 }
 
 /// Parse a Turtle document and re-serialize it as N-Triples — the Rust-native TTL→NT
 /// conversion the gate-derived audit uses so corpus reading never re-enters Python (rdflib).
 pub(crate) fn ttl_to_nt(ttl: &str) -> Result<String, String> {
-    let store = parse_store(ttl.as_bytes(), RdfFormat::Turtle)?;
-    dump_nt(&store)
+    let dataset = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+        .map_err(|e| format!("TTL parse failed: {e}"))?;
+    let bytes = gmeow_rdf::serialize_dataset(
+        &dataset,
+        "application/n-triples",
+        gmeow_rdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
+    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
 }
 
-fn dump_nt(store: &Store) -> Result<String, String> {
-    let mut buf = Vec::new();
-    store
-        .dump_graph_to_writer(
-            GraphNameRef::DefaultGraph,
-            RdfSerializer::from_format(RdfFormat::NTriples),
-            &mut buf,
-        )
-        .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-    String::from_utf8(buf).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
-}
-
-fn triples(store: &Store) -> Result<Vec<Triple>, String> {
-    let mut out = Vec::new();
-    for q in store.quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph)) {
-        let q = q.map_err(|e| format!("store iteration failed: {e}"))?;
-        out.push(Triple::new(q.subject, q.predicate, q.object));
-    }
-    Ok(out)
-}
-
-fn insert_triple(
-    store: &Store,
-    subject: NamedOrBlankNode,
-    predicate: NamedNode,
-    object: Term,
-) -> Result<(), String> {
-    store
-        .insert(&Quad::new(
-            subject,
-            predicate,
-            object,
-            oxigraph::model::GraphName::DefaultGraph,
-        ))
-        .map_err(|e| format!("store insert failed: {e}"))
-}
-
-fn contains_triple(store: &Store, triple: &Triple) -> Result<bool, String> {
-    Ok(store
-        .quads_for_pattern(
-            Some((&triple.subject).into()),
-            Some(triple.predicate.as_ref()),
-            Some((&triple.object).into()),
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .next()
-        .transpose()
-        .map_err(|e| format!("store lookup failed: {e}"))?
-        .is_some())
-}
-
-fn subjects(store: &Store, pred: &str, obj: &str) -> Result<Vec<Term>, String> {
-    let mut out = Vec::new();
-    for q in store.quads_for_pattern(
-        None,
-        Some(named(pred)?.as_ref()),
-        Some((&Term::NamedNode(named(obj)?)).into()),
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let q = q.map_err(|e| format!("subject scan failed: {e}"))?;
-        out.push(subject_to_term(q.subject));
-    }
-    Ok(out)
-}
-
-fn objects(store: &Store, subject: &Term, pred: &str) -> Result<Vec<Term>, String> {
-    let Some(subject) = term_subject(subject) else {
-        return Ok(Vec::new());
-    };
-    let mut out = Vec::new();
-    for q in store.quads_for_pattern(
-        Some((&subject).into()),
-        Some(named(pred)?.as_ref()),
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        out.push(q.map_err(|e| format!("object scan failed: {e}"))?.object);
-    }
-    Ok(out)
-}
-
-fn value(store: &Store, subject: &Term, pred: &str) -> Result<Option<Term>, String> {
-    Ok(objects(store, subject, pred)?.into_iter().next())
-}
-
-fn value_named(store: &Store, subject: &Term, pred: &str) -> Result<Option<NamedNode>, String> {
-    Ok(value(store, subject, pred)?.and_then(|term| match term {
-        Term::NamedNode(node) => Some(node),
+/// The first object that is an IRI, returned as its IRI string.
+fn value_named(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> Option<String> {
+    value(quads, subject, pred).and_then(|term| match term {
+        RdfTerm::Iri(node) => Some(node),
         _ => None,
-    }))
+    })
 }
 
-fn value_lexical(store: &Store, subject: &Term, pred: &str) -> Result<Option<String>, String> {
-    Ok(value(store, subject, pred)?.map(|term| match term {
-        Term::NamedNode(node) => node.as_str().to_owned(),
-        Term::BlankNode(node) => node.as_str().to_owned(),
-        Term::Literal(lit) => lit.value().to_owned(),
-        Term::Triple(_) => String::new(),
-    }))
+fn value_lexical(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> Option<String> {
+    value(quads, subject, pred).map(|term| match term {
+        RdfTerm::Iri(node) => node,
+        RdfTerm::BlankNode(node) => node,
+        RdfTerm::Literal(lit) => lit.lexical_form,
+        RdfTerm::Triple(_) => String::new(),
+    })
 }
 
-fn has_object(store: &Store, subject: &Term, pred: &str) -> Result<bool, String> {
-    Ok(!objects(store, subject, pred)?.is_empty())
+fn has_object(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> bool {
+    !objects(quads, subject, pred).is_empty()
 }
 
-fn template_atoms(store: &Store, binding: &Term) -> Result<Vec<Term>, String> {
+fn template_atoms(quads: &[RdfQuad], binding: &RdfTerm) -> Vec<RdfTerm> {
     let mut out = Vec::new();
-    for ta in objects(store, binding, GM_TEMPLATE_ATOMS)? {
-        out.extend(rdf_list(store, Some(&ta))?);
+    for ta in objects(quads, binding, GM_TEMPLATE_ATOMS) {
+        out.extend(rdf_list(quads, Some(&ta)));
     }
-    Ok(out)
+    out
 }
 
 fn pattern_atoms(
-    store: &Store,
-    node: Option<&Term>,
+    quads: &[RdfQuad],
+    node: Option<&RdfTerm>,
     seen: &mut HashSet<String>,
-) -> Result<Vec<Term>, String> {
+) -> Vec<RdfTerm> {
     let mut out = Vec::new();
-    for atom in rdf_list(store, node)? {
+    for atom in rdf_list(quads, node) {
         let key = term_key(&atom);
         if !seen.insert(key) {
             continue;
         }
-        if let Some(group) = value(store, &atom, GM_OPTIONAL_GROUP)? {
-            out.extend(pattern_atoms(store, Some(&group), seen)?);
+        if let Some(group) = value(quads, &atom, GM_OPTIONAL_GROUP) {
+            out.extend(pattern_atoms(quads, Some(&group), seen));
         } else {
             out.push(atom);
         }
     }
-    Ok(out)
+    out
 }
 
-fn rdf_list(store: &Store, node: Option<&Term>) -> Result<Vec<Term>, String> {
+fn rdf_list(quads: &[RdfQuad], node: Option<&RdfTerm>) -> Vec<RdfTerm> {
     let mut out = Vec::new();
     let mut seen = HashSet::new();
-    let nil = Term::NamedNode(named(RDF_NIL)?);
+    let nil = RdfTerm::Iri(RDF_NIL.to_owned());
     let mut node = node.cloned();
     while let Some(cur) = node {
         if cur == nil || !seen.insert(term_key(&cur)) {
             break;
         }
-        if let Some(first) = value(store, &cur, RDF_FIRST)? {
+        if let Some(first) = value(quads, &cur, RDF_FIRST) {
             out.push(first);
         }
-        node = value(store, &cur, RDF_REST)?;
+        node = value(quads, &cur, RDF_REST);
         if let Some(rest) = &node {
             if rest == &nil {
                 break;
             }
         }
     }
-    Ok(out)
+    out
 }
 
-fn term_subject(term: &Term) -> Option<NamedOrBlankNode> {
-    match term {
-        Term::NamedNode(node) => Some(NamedOrBlankNode::NamedNode(node.clone())),
-        Term::BlankNode(node) => Some(NamedOrBlankNode::BlankNode(node.clone())),
-        _ => None,
-    }
-}
-
-fn subject_to_term(subject: NamedOrBlankNode) -> Term {
-    match subject {
-        NamedOrBlankNode::NamedNode(node) => Term::NamedNode(node),
-        NamedOrBlankNode::BlankNode(node) => Term::BlankNode(node),
-    }
-}
-
-fn named(iri: &str) -> Result<NamedNode, String> {
-    NamedNode::new(iri).map_err(|e| format!("invalid IRI {iri}: {e}"))
+/// `true` iff `term` can stand as a subject (an IRI or blank node).
+fn subject_addressable(term: &RdfTerm) -> bool {
+    matches!(term, RdfTerm::Iri(_) | RdfTerm::BlankNode(_))
 }
 
 fn is_gmeow_ns(iri: &str) -> bool {
@@ -1866,6 +1735,29 @@ fn struct_liftable(bucket: &str) -> bool {
     )
 }
 
+/// A parsed RDF graph: the frozen dataset (for SPARQL) paired with its flat
+/// default-graph quad stream (collected once for the many linear-scan reads).
+struct Graph {
+    dataset: Arc<RdfDataset>,
+    quads: Vec<RdfQuad>,
+}
+
+impl Graph {
+    fn parse(data: &[u8], media_type: &str) -> Result<Self, String> {
+        let dataset = gmeow_rdf::parse_dataset(data, media_type, None)
+            .map_err(|e| format!("RDF parse failed: {e}"))?;
+        let quads = gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(&dataset)
+            .into_iter()
+            .filter(|q| q.graph_name.is_none())
+            .collect();
+        Ok(Self { dataset, quads })
+    }
+
+    fn is_empty(&self) -> bool {
+        self.quads.is_empty()
+    }
+}
+
 #[derive(Debug, Clone)]
 struct PrefixMap {
     prefixes: BTreeMap<String, String>,
@@ -1900,20 +1792,33 @@ impl PrefixMap {
 struct TermKey(String);
 
 impl TermKey {
-    fn from_subject(subject: &NamedOrBlankNode) -> Self {
-        Self(match subject {
-            NamedOrBlankNode::NamedNode(node) => format!("<{}>", node.as_str()),
-            NamedOrBlankNode::BlankNode(node) => format!("_:{}", node.as_str()),
-        })
+    fn from_subject(subject: &RdfTerm) -> Self {
+        Self(term_key(subject))
     }
 }
 
-fn term_key(term: &Term) -> String {
+fn term_key(term: &RdfTerm) -> String {
     match term {
-        Term::NamedNode(node) => format!("<{}>", node.as_str()),
-        Term::BlankNode(node) => format!("_:{}", node.as_str()),
-        Term::Literal(lit) => format!("\"{}\"", lit.value()),
-        Term::Triple(_) => "<<triple>>".to_owned(),
+        RdfTerm::Iri(node) => format!("<{node}>"),
+        RdfTerm::BlankNode(node) => format!("_:{node}"),
+        RdfTerm::Literal(lit) => format!("\"{}\"", lit.lexical_form),
+        RdfTerm::Triple(_) => "<<triple>>".to_owned(),
+    }
+}
+
+/// A full term-identity key for accumulator deduplication: unlike [`term_key`]
+/// (which keys only on a literal's lexical form for list traversal), this folds in
+/// the literal datatype, language tag, and direction so two literals that differ
+/// only in those slots are NOT collapsed — matching oxigraph `Store` term identity.
+fn full_term_key(term: &RdfTerm) -> String {
+    match term {
+        RdfTerm::Iri(node) => format!("<{node}>"),
+        RdfTerm::BlankNode(node) => format!("_:{node}"),
+        RdfTerm::Literal(lit) => format!(
+            "\"{}\"^^{:?}@{:?}#{:?}",
+            lit.lexical_form, lit.datatype, lit.language, lit.direction
+        ),
+        RdfTerm::Triple(_) => "<<triple>>".to_owned(),
     }
 }
 

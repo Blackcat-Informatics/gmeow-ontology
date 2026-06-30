@@ -12,8 +12,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
 use serde::{Deserialize, Serialize};
 
 use gmeow_slice::{
@@ -22,6 +20,7 @@ use gmeow_slice::{
 };
 
 use crate::i18n::{self, Translations, UiCatalog};
+use crate::store::{Node, Object, Store};
 
 // ── Namespace constants ───────────────────────────────────────────────────────
 
@@ -945,34 +944,19 @@ fn read_concept_doi(root: &Path) -> Option<String> {
     // not stable, so scan every Work and return the first `dcterms:identifier`
     // found — only the concept-bearing Work carries the DOI.
     store
-        .quads_for_pattern(
-            None,
-            Some(named(RDF_TYPE).as_ref()),
-            Some(named(GMEOW_WORK).as_ref().into()),
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.subject {
-            NamedOrBlankNode::NamedNode(n) => Some(n),
-            _ => None,
-        })
-        .find_map(|work| first_literal(&store, work.as_str(), DCTERMS_IDENTIFIER))
+        .subjects_of_type(GMEOW_WORK)
+        .into_iter()
+        .find_map(|work| store.first_literal(&work, DCTERMS_IDENTIFIER))
 }
 
 // ── Turtle parsing + term extraction ──────────────────────────────────────────
 
-/// Parse Turtle bytes into an oxigraph store via the native codecs (the
-/// gmeow-gts codecs are lenient on GMEOW's `@x-gmeow-*` language tags). The store
-/// is kept for the term-extraction queries (SPARQL/pattern matching, scope-OUT of
-/// #909); only the TEXT parse is routed natively.
+/// Parse Turtle bytes into the native [`Store`] query wrapper via the native
+/// codecs (the gmeow-gts codecs are lenient on GMEOW's `@x-gmeow-*` language
+/// tags). The store is kept for the term-extraction pattern queries; no oxigraph
+/// round-trip (EPIC #906).
 pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
-    let dataset = gmeow_rdf::parse_dataset(bytes, "text/turtle", None)
-        .map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
-    gmeow_rdf::oxigraph::store_from_dataset(
-        &dataset,
-        gmeow_rdf::oxigraph::GraphPolicy::PreserveNamedGraphs,
-    )
-    .map_err(|e| SliceError::Parse(format!("store build failed: {e}")))
+    Store::parse_turtle(bytes)
 }
 
 /// Extract documented terms (GMEOW-namespaced typed subjects) from a module store.
@@ -981,30 +965,20 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
     // keyed by IRI, recording the strongest category seen.
     let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
 
-    for quad in store
-        .quads_for_pattern(
-            None,
-            Some(named(RDF_TYPE).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-    {
-        let NamedOrBlankNode::NamedNode(subject) = &quad.subject else {
+    for (subject, object) in store.pattern_subjects_objects(RDF_TYPE) {
+        let Some(subject) = subject.as_named() else {
             continue;
         };
-        if !subject.as_str().starts_with(GMEOW_NS) {
+        if !subject.starts_with(GMEOW_NS) {
             continue;
         }
-        let Term::NamedNode(type_node) = &quad.object else {
+        let Object::Named(type_node) = &object else {
             continue;
         };
         let Some(category) = category_for_type(type_node.as_str()) else {
             continue;
         };
-        let entry = categories
-            .entry(subject.as_str().to_string())
-            .or_insert(category);
+        let entry = categories.entry(subject.to_string()).or_insert(category);
         // Prefer the more specific category (Class/Property/Datatype) over
         // a bare Individual / Other when a subject is multiply typed.
         if category_rank(category) > category_rank(*entry) {
@@ -1135,26 +1109,15 @@ fn resolve_stability(store: &Store, iri: &str, tier: Option<&SliceTier>) -> DocT
 /// `gmeow:entryVersion` (required) and optional `gmeow:entryNote`. Sorted by
 /// `(version, note)`; oxigraph blank-node iteration order is not stable.
 fn extract_changelog(store: &Store, iri: &str) -> Vec<DocChangelogEntry> {
-    let Ok(subject) = oxigraph::model::NamedNode::new(iri) else {
-        return Vec::new();
-    };
     let mut entries: Vec<DocChangelogEntry> = Vec::new();
-    for quad in store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(named(GMEOW_HAS_CHANGELOG_ENTRY).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-    {
-        let entry_node = match quad.object {
-            Term::NamedNode(n) => NamedOrBlankNode::NamedNode(n),
-            Term::BlankNode(b) => NamedOrBlankNode::BlankNode(b),
+    for object in store.objects(iri, GMEOW_HAS_CHANGELOG_ENTRY) {
+        let entry_node = match object {
+            Object::Named(n) => Node::Named(n),
+            Object::Blank(b) => Node::Blank(b),
             _ => continue,
         };
-        let version = first_literal_of(store, entry_node.as_ref(), GMEOW_ENTRY_VERSION);
-        let note = first_literal_of(store, entry_node.as_ref(), GMEOW_ENTRY_NOTE);
+        let version = store.first_literal_of(&entry_node, GMEOW_ENTRY_VERSION);
+        let note = store.first_literal_of(&entry_node, GMEOW_ENTRY_NOTE);
         if let Some(version) = version {
             entries.push(DocChangelogEntry { version, note });
         }
@@ -1181,23 +1144,11 @@ fn logic_stereotypes(store: &Store, subject: &str) -> Vec<String> {
 /// (named subjects + named targets only).
 fn extract_formalizes(store: &Store) -> Vec<(String, String)> {
     store
-        .quads_for_pattern(
-            None,
-            Some(named(LOGIC_FORMALIZES).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| {
-            let NamedOrBlankNode::NamedNode(subject) = &q.subject else {
-                return None;
-            };
-            match q.object {
-                Term::NamedNode(target) => {
-                    Some((subject.as_str().to_string(), target.as_str().to_string()))
-                }
-                _ => None,
-            }
+        .pattern_subjects_objects(LOGIC_FORMALIZES)
+        .into_iter()
+        .filter_map(|(subject, object)| match (subject, object) {
+            (Node::Named(s), Object::Named(target)) => Some((s, target)),
+            _ => None,
         })
         .collect()
 }
@@ -1209,27 +1160,18 @@ fn extract_formalizes(store: &Store) -> Vec<(String, String)> {
 fn extract_shapes(store: &Store, owner_slice: &str) -> Vec<DocShape> {
     let mut out = Vec::new();
     for target_pred in [SH_TARGET_CLASS, SH_TARGET_SUBJECTS_OF, SH_TARGET_OBJECTS_OF] {
-        for quad in store
-            .quads_for_pattern(
-                None,
-                Some(named(target_pred).as_ref()),
-                None,
-                Some(GraphNameRef::DefaultGraph),
-            )
-            .flatten()
-        {
-            let Term::NamedNode(target) = &quad.object else {
+        for (subject, object) in store.pattern_subjects_objects(target_pred) {
+            let Object::Named(target_term) = object else {
                 continue;
             };
-            let target_term = target.as_str().to_string();
             // Term pages exist only for GMEOW terms — only those are documentable.
             if !target_term.starts_with(GMEOW_NS) {
                 continue;
             }
-            let messages = shape_messages(store, &quad.subject);
-            let shape_iri = match &quad.subject {
-                NamedOrBlankNode::NamedNode(n) => n.as_str().to_string(),
-                NamedOrBlankNode::BlankNode(b) => format!("_:{}", b.as_str()),
+            let messages = shape_messages(store, &subject);
+            let shape_iri = match &subject {
+                Node::Named(n) => n.clone(),
+                Node::Blank(label) => format!("_:{label}"),
             };
             out.push(DocShape {
                 shape_iri,
@@ -1280,28 +1222,20 @@ fn merge_root_shapes(model: &mut DocsModel, shapes_dir: &Path) {
 /// Every `sh:message` literal reachable from a shape subject by walking blank-node
 /// objects (property shapes, `sh:or` / `sh:and` lists), sorted/deduped. Named-node
 /// objects are NOT followed (they point out into the wider graph).
-fn shape_messages(store: &Store, start: &NamedOrBlankNode) -> Vec<String> {
+fn shape_messages(store: &Store, start: &Node) -> Vec<String> {
     use std::collections::{HashSet, VecDeque};
-    let mut seen: HashSet<NamedOrBlankNode> = HashSet::new();
-    let mut queue: VecDeque<NamedOrBlankNode> = VecDeque::from([start.clone()]);
+    let mut seen: HashSet<Node> = HashSet::new();
+    let mut queue: VecDeque<Node> = VecDeque::from([start.clone()]);
     let mut msgs: Vec<String> = Vec::new();
     while let Some(node) = queue.pop_front() {
         if !seen.insert(node.clone()) {
             continue;
         }
-        for quad in store
-            .quads_for_pattern(
-                Some(node.as_ref()),
-                None,
-                None,
-                Some(GraphNameRef::DefaultGraph),
-            )
-            .flatten()
-        {
-            let is_message = quad.predicate.as_str() == SH_MESSAGE;
-            match quad.object {
-                Term::Literal(lit) if is_message => msgs.push(lit.value().to_string()),
-                Term::BlankNode(b) => queue.push_back(NamedOrBlankNode::BlankNode(b)),
+        for (predicate, object) in store.predicate_objects_of(&node) {
+            let is_message = predicate == SH_MESSAGE;
+            match object {
+                Object::Literal(value) if is_message => msgs.push(value),
+                Object::Blank(label) => queue.push_back(Node::Blank(label)),
                 _ => {}
             }
         }
@@ -1321,17 +1255,10 @@ fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
         let mut exercises: Vec<String> = Vec::new();
         for row in named_objects(store, &cq, GMEOW_CQ_EXPECT_ROW) {
             for cell in blank_objects(store, &row, GMEOW_ROW_CELL) {
-                for quad in store
-                    .quads_for_pattern(
-                        Some(cell.as_ref().into()),
-                        Some(named(GMEOW_CELL_VALUE_IRI).as_ref()),
-                        None,
-                        Some(GraphNameRef::DefaultGraph),
-                    )
-                    .flatten()
-                {
-                    if let Term::NamedNode(v) = quad.object {
-                        exercises.push(v.as_str().to_string());
+                let cell_node = Node::Blank(cell);
+                for object in store.objects_of_node(&cell_node, GMEOW_CELL_VALUE_IRI) {
+                    if let Object::Named(v) = object {
+                        exercises.push(v);
                     }
                 }
             }
@@ -1349,24 +1276,9 @@ fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
     out
 }
 
-/// All BlankNode objects of `subject predicate ?o` in the default graph.
-fn blank_objects(store: &Store, subject: &str, predicate: &str) -> Vec<oxigraph::model::BlankNode> {
-    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
-        return Vec::new();
-    };
-    store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(named(predicate).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::BlankNode(b) => Some(b),
-            _ => None,
-        })
-        .collect()
+/// All blank-node object labels of `subject predicate ?o` in the default graph.
+fn blank_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
+    store.blank_objects(subject, predicate)
 }
 
 /// Extract mapping sets + term equivalences from a `mappings/*.ttl` store.
@@ -1432,43 +1344,41 @@ fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
     let text = String::from_utf8_lossy(&artifact.content).into_owned();
     let logical_path = artifact.logical_path.clone();
 
-    // Title: first rdfs:label on any subject, else the filename stem.
-    let title = parse_turtle_lenient(&artifact.content)
-        .ok()
+    let parsed = parse_turtle_lenient(&artifact.content).ok();
+
+    // Title: lexically-lowest rdfs:label literal on any subject, else the stem.
+    let title = parsed
+        .as_ref()
         .and_then(|store| {
-            store
-                .quads_for_pattern(
-                    None,
-                    Some(named(RDFS_LABEL).as_ref()),
-                    None,
-                    Some(GraphNameRef::DefaultGraph),
-                )
-                .flatten()
-                .filter_map(|q| match q.object {
-                    Term::Literal(lit) => Some(lit.value().to_string()),
-                    _ => None,
-                })
-                .min()
+            let mut labels: Vec<String> = Vec::new();
+            store.for_each_quad(|_s, p, o| {
+                if p == RDFS_LABEL {
+                    if let Object::Literal(value) = o {
+                        labels.push(value.clone());
+                    }
+                }
+            });
+            labels.into_iter().min()
         })
         .unwrap_or_else(|| filename_title(&logical_path));
 
     // Terms referenced: every gmeow: CURIE appearing as a NamedNode anywhere.
-    let mut terms_referenced: Vec<String> = parse_turtle_lenient(&artifact.content)
-        .ok()
+    let mut terms_referenced: Vec<String> = parsed
+        .as_ref()
         .map(|store| {
             let mut set: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-            for quad in store.iter().flatten() {
-                if let NamedOrBlankNode::NamedNode(s) = &quad.subject {
-                    if s.as_str().starts_with(GMEOW_NS) {
-                        set.insert(to_curie(s.as_str()));
+            store.for_each_quad(|s, _p, o| {
+                if let Some(iri) = s.as_named() {
+                    if iri.starts_with(GMEOW_NS) {
+                        set.insert(to_curie(iri));
                     }
                 }
-                if let Term::NamedNode(o) = &quad.object {
-                    if o.as_str().starts_with(GMEOW_NS) {
-                        set.insert(to_curie(o.as_str()));
+                if let Object::Named(iri) = o {
+                    if iri.starts_with(GMEOW_NS) {
+                        set.insert(to_curie(iri));
                     }
                 }
-            }
+            });
             set.into_iter().collect()
         })
         .unwrap_or_default();
@@ -1545,26 +1455,15 @@ fn extract_concerns(catalog: &SliceCatalog) -> Vec<DocConcern> {
                 concern_slices.entry(iri).or_default();
             }
             // Every `term gmeow:docsConcern concern` edge.
-            for quad in store
-                .quads_for_pattern(
-                    None,
-                    Some(named(GMEOW_DOCS_CONCERN).as_ref()),
-                    None,
-                    Some(GraphNameRef::DefaultGraph),
-                )
-                .flatten()
-            {
-                let (NamedOrBlankNode::NamedNode(subject), Term::NamedNode(concern)) =
-                    (&quad.subject, &quad.object)
-                else {
+            for (subject, object) in store.pattern_subjects_objects(GMEOW_DOCS_CONCERN) {
+                let (Node::Named(subject), Object::Named(concern)) = (subject, object) else {
                     continue;
                 };
-                let concern = concern.as_str().to_string();
-                if subject.as_str().starts_with(GMEOW_NS) {
+                if subject.starts_with(GMEOW_NS) {
                     concern_terms
                         .entry(concern.clone())
                         .or_default()
-                        .insert(to_curie(subject.as_str()));
+                        .insert(to_curie(&subject));
                 }
                 concern_slices
                     .entry(concern)
@@ -1771,25 +1670,7 @@ fn extract_guides(catalog: &SliceCatalog) -> (Vec<DocRecipe>, Vec<DocLearningPat
 
 /// All literal objects of `subject predicate ?o`, sorted + deduped.
 fn sorted_literals(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
-    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
-        return Vec::new();
-    };
-    let mut out: Vec<String> = store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(named(predicate).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::Literal(lit) => Some(lit.value().to_string()),
-            _ => None,
-        })
-        .collect();
-    out.sort();
-    out.dedup();
-    out
+    store.sorted_literals(subject, predicate)
 }
 
 /// All NamedNode objects of `subject predicate ?o` rendered as CURIEs, sorted +
@@ -1825,22 +1706,7 @@ fn namespace_of(iri: &str) -> String {
 
 /// All NamedNode subjects of `?s a <type>` in the default graph (sorted, deduped).
 fn subjects_of_type(store: &Store, type_iri: &str) -> Vec<String> {
-    let mut out: Vec<String> = store
-        .quads_for_pattern(
-            None,
-            Some(named(RDF_TYPE).as_ref()),
-            Some(named(type_iri).as_ref().into()),
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.subject {
-            NamedOrBlankNode::NamedNode(n) => Some(n.as_str().to_string()),
-            _ => None,
-        })
-        .collect();
-    out.sort();
-    out.dedup();
-    out
+    store.subjects_of_type(type_iri)
 }
 
 /// Map an `rdf:type` object IRI to a documented term category.
@@ -1867,75 +1733,16 @@ fn category_rank(c: DocTermCategory) -> u8 {
     }
 }
 
-/// Build a `NamedNode` from a static, known-valid IRI.
-fn named(iri: &str) -> oxigraph::model::NamedNode {
-    oxigraph::model::NamedNode::new_unchecked(iri)
-}
-
 /// The first literal value for `subject predicate ?o` (deterministic: lowest
 /// lexical form), or `None`.
 fn first_literal(store: &Store, subject: &str, predicate: &str) -> Option<String> {
-    let subject = oxigraph::model::NamedNode::new(subject).ok()?;
-    store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(named(predicate).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::Literal(lit) => Some(lit.value().to_string()),
-            _ => None,
-        })
-        .min()
-}
-
-/// The first literal value for `subject predicate ?o` where `subject` is a
-/// named-or-blank node (deterministic: lowest lexical form), or `None`. Used to
-/// read reified changelog-entry blank nodes (#1026).
-fn first_literal_of(
-    store: &Store,
-    subject: oxigraph::model::NamedOrBlankNodeRef,
-    predicate: &str,
-) -> Option<String> {
-    store
-        .quads_for_pattern(
-            Some(subject),
-            Some(named(predicate).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::Literal(lit) => Some(lit.value().to_string()),
-            _ => None,
-        })
-        .min()
+    store.first_literal(subject, predicate)
 }
 
 /// All literal values for `subject predicate ?o`, sorted and deduped
 /// (deterministic; carries the English-carrier text from `module.ttl`).
 fn literals(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
-    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
-        return Vec::new();
-    };
-    let mut values: Vec<String> = store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(named(predicate).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::Literal(lit) => Some(lit.value().to_string()),
-            _ => None,
-        })
-        .collect();
-    values.sort();
-    values.dedup();
-    values
+    store.literals(subject, predicate)
 }
 
 /// Named object IRIs for `subject predicate ?o` as CURIEs, sorted and deduped.
@@ -1951,22 +1758,7 @@ fn curie_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
 
 /// All NamedNode object IRIs for `subject predicate ?o`.
 fn named_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
-    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
-        return Vec::new();
-    };
-    store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(named(predicate).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::NamedNode(n) => Some(n.as_str().to_string()),
-            _ => None,
-        })
-        .collect()
+    store.named_objects(subject, predicate)
 }
 
 /// Compute the compact CURIE for an IRI: `gmeow:Local` for GMEOW-namespaced

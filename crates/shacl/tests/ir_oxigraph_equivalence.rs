@@ -1,25 +1,28 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Differential equivalence: the IR-native SHACL backend must agree, result for
-//! result, with the oxigraph `Store` backend (#819 C4).
+//! Differential equivalence across the two native engine entry-paths (#819 C4,
+//! EPIC #906).
 //!
-//! For each `(shapes_ttl, data_nt)` case we build the SAME data twice — once as an
-//! oxigraph `Store` (the historical oracle backend) and once routed through
-//! `validate_dataset`, which runs the generic engine over the immutable IR. The
-//! two `ValidationReport`s must be EQUAL: same
-//! `conforms` flag, and the same deterministically-sorted results (compared via the
-//! canonical `to_ntriples()` serialization, exactly as the in-crate determinism
-//! test does).
+//! Historically this proved the IR-native SHACL backend agreed with an oxigraph
+//! `Store` oracle. The engine is now IR-native end-to-end (no oxigraph backend), so
+//! the differential is reframed onto the two remaining INDEPENDENT entry-paths:
 //!
-//! This is the primary safety net proving the IR backend is conformance-identical
-//! to the oxigraph backend, not a second, divergent engine.
+//! - the text path — [`validate_graphs`], which natively parses N-Triples/Turtle to
+//!   a frozen dataset then validates; and
+//! - the dataset path — [`validate_dataset_graphs`], which validates a pre-frozen
+//!   [`RdfDataset`] (the GTS-bundle path).
+//!
+//! For each `(shapes_ttl, data)` case both paths must produce byte-identical
+//! reports (same `conforms` flag, same deterministically-sorted results compared
+//! via the canonical `to_ntriples()` serialization). This keeps the cases as a
+//! native conformance safety net without a second (oxigraph) engine.
 
-use oxigraph::store::Store;
+use std::sync::Arc;
 
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
 use gmeow_rdf::parse_dataset;
-use gmeow_shacl::engine::{parse_shapes, validate, validate_dataset};
+use gmeow_rdf::RdfDataset;
+use gmeow_shacl::engine::{validate_dataset_graphs, validate_graphs};
 
 const PREFIXES: &str = r#"
     @prefix sh:   <http://www.w3.org/ns/shacl#> .
@@ -29,66 +32,82 @@ const PREFIXES: &str = r#"
     @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 "#;
 
-/// Parse N-Triples (lenient) into an in-memory oxigraph store via the native
-/// codec (#909).
-fn load_data(nt: &str) -> Store {
-    if nt.is_empty() {
-        return Store::new().expect("in-memory store");
-    }
-    let dataset =
-        parse_dataset(nt.as_bytes(), "application/n-triples", None).expect("valid N-Triples");
-    store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs).expect("store from dataset")
-}
-
 /// Parse a Turtle data document (so RDF 1.2 `<<( … )>>` reifier syntax can be
-/// expressed) into an in-memory oxigraph store via the native codec (#909).
-fn load_data_turtle(ttl: &str) -> Store {
-    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid Turtle");
-    store_from_dataset(&dataset, GraphPolicy::PreserveNamedGraphs).expect("store from dataset")
+/// expressed) into a frozen dataset via the native codec (#909).
+fn load_data_turtle(ttl: &str) -> Arc<RdfDataset> {
+    parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid Turtle")
 }
 
-/// Run BOTH backends on the same data and shapes, asserting the reports are equal.
+/// Run BOTH native entry-paths on the same data (N-Triples) and shapes, asserting
+/// the reports are byte-identical.
 fn assert_backends_agree(label: &str, shapes_ttl: &str, data_nt: &str) {
-    assert_backends_agree_store(label, shapes_ttl, load_data(data_nt));
+    let dataset = if data_nt.is_empty() {
+        gmeow_rdf::ir::RdfDatasetBuilder::new()
+            .freeze()
+            .expect("empty dataset")
+    } else {
+        parse_dataset(data_nt.as_bytes(), "application/n-triples", None).expect("valid N-Triples")
+    };
+
+    // Text path.
+    let text = validate_graphs(data_nt, shapes_ttl)
+        .unwrap_or_else(|e| panic!("[{label}] validate_graphs: {e}"));
+    // Dataset path.
+    let dataset_report = validate_dataset_graphs(dataset.as_ref(), shapes_ttl)
+        .unwrap_or_else(|e| panic!("[{label}] validate_dataset_graphs: {e}"));
+
+    assert_reports_agree(label, &text, &dataset_report);
 }
 
-/// As [`assert_backends_agree`], but over an already-built data store (lets a case
-/// use Turtle for RDF 1.2 constructs N-Triples cannot express).
-fn assert_backends_agree_store(label: &str, shapes_ttl: &str, store: Store) {
-    let shapes = parse_shapes(shapes_ttl).unwrap_or_else(|e| panic!("[{label}] shapes parse: {e}"));
+/// As [`assert_backends_agree`], but over an already-frozen dataset (lets a case use
+/// Turtle for RDF 1.2 constructs — quoted-triple reifiers — that N-Triples cannot
+/// express). The text path cannot carry a reifier, so the differential here is the
+/// dataset path against an owned-quad round-trip re-freeze of the same dataset
+/// (which preserves reifiers/annotations): both must produce byte-identical reports.
+fn assert_backends_agree_store(label: &str, shapes_ttl: &str, dataset: Arc<RdfDataset>) {
+    use gmeow_rdf::ir::RdfDatasetBuilder;
 
-    // Oracle: the oxigraph `Store` backend directly.
-    let oracle = validate(&store, &shapes);
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in dataset.owned_quads() {
+        builder.push_owned_quad(&quad);
+    }
+    for reifier in dataset.owned_reifiers() {
+        builder.push_owned_reifier(&reifier);
+    }
+    for annotation in dataset.owned_annotations() {
+        builder.push_owned_annotation(&annotation);
+    }
+    let round_trip = builder.freeze().expect("dataset re-freezes");
 
-    // IR backend: freeze the same data into `RdfDataset` and run the generic
-    // engine over the IR.
-    let quads = store
-        .iter()
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap_or_else(|e| panic!("[{label}] oxigraph iteration: {e}"));
-    let dataset = gmeow_rdf::dataset_from_oxigraph_quads(&quads)
-        .unwrap_or_else(|e| panic!("[{label}] dataset freeze: {e}"));
-    let ir = validate_dataset(dataset.as_ref(), &shapes)
-        .unwrap_or_else(|e| panic!("[{label}] validate_dataset: {e}"));
+    let direct = validate_dataset_graphs(dataset.as_ref(), shapes_ttl)
+        .unwrap_or_else(|e| panic!("[{label}] validate_dataset_graphs (direct): {e}"));
+    let re_frozen = validate_dataset_graphs(round_trip.as_ref(), shapes_ttl)
+        .unwrap_or_else(|e| panic!("[{label}] validate_dataset_graphs (round-trip): {e}"));
 
+    assert_reports_agree(label, &direct, &re_frozen);
+}
+
+fn assert_reports_agree(
+    label: &str,
+    a: &gmeow_shacl::report::ValidationReport,
+    b: &gmeow_shacl::report::ValidationReport,
+) {
     assert_eq!(
-        oracle.conforms, ir.conforms,
-        "[{label}] conforms flag must match (oracle={}, ir={})",
-        oracle.conforms, ir.conforms
+        a.conforms, b.conforms,
+        "[{label}] conforms flag must match (text={}, dataset={})",
+        a.conforms, b.conforms
     );
     assert_eq!(
-        oracle.results.len(),
-        ir.results.len(),
-        "[{label}] result count must match (oracle={}, ir={})",
-        oracle.results.len(),
-        ir.results.len()
+        a.results.len(),
+        b.results.len(),
+        "[{label}] result count must match (text={}, dataset={})",
+        a.results.len(),
+        b.results.len()
     );
-    // The canonical, deterministically-sorted serialization is the structural
-    // identity check: identical N-Triples ⇒ identical reports.
     assert_eq!(
-        oracle.to_ntriples(),
-        ir.to_ntriples(),
-        "[{label}] the two backends must produce byte-identical reports"
+        a.to_ntriples(),
+        b.to_ntriples(),
+        "[{label}] the two native entry-paths must produce byte-identical reports"
     );
 }
 

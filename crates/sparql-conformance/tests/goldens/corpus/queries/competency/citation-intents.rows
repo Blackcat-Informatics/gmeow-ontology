@@ -1,0 +1,11 @@
+intent
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentBridgedByReference"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentCitesAsDataSource"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentConformsTo"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentDerivedFrom"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentDisagreesWith"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentDocuments"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentExtends"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentIsInspiredBy"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentSupports"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/intentUsesMethodIn"))]

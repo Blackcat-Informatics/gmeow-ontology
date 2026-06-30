@@ -14,7 +14,7 @@
 //! # Algorithm
 //!
 //! Σ starts as the seed IRIs. Source triples are grouped into "axioms" by their named
-//! subject; each `(s, p, o)` with a [`oxigraph::model::NamedNode`] subject is classified by predicate
+//! subject; each `(s, p, o)` with an IRI (named-node) subject is classified by predicate
 //! and notion (Bot or Top). A *kept* triple is non-local; keeping it adds the named
 //! entities named in the rule's "add" list to Σ and re-iterates to a fixpoint.
 //!
@@ -28,11 +28,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oxigraph::model::{GraphName, NamedOrBlankNode, Quad, Term, Triple};
-
 use gmeow_diagnostics::{Finding, Severity};
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::{dataset_from_oxigraph_quads, parse_dataset, serialize_dataset, SerializeGraph};
+use gmeow_rdf::{
+    parse_dataset, serialize_dataset, RdfDatasetBuilder, RdfQuad, RdfTerm, RdfTriple,
+    SerializeGraph,
+};
 
 // ── Vocabulary IRIs ─────────────────────────────────────────────────────────────
 
@@ -142,29 +142,23 @@ pub fn extract_module(
         );
     }
 
-    // Parse the source through the native codec into the frozen IR, then fold it into
-    // an in-memory oxigraph Store for the locality walk (text-free IR → Store hop, so
-    // the parse path can never drift from the rest of the stack's codec).
+    // Parse the source through the native codec into the frozen IR; the locality walk
+    // reads the IR's owned quads directly (no Store hop), so the parse path can never
+    // drift from the rest of the stack's codec.
     let dataset = parse_dataset(ontology_ttl.as_bytes(), "text/turtle", None)
         .map_err(|e| format!("Failed to parse Turtle source: {e}"))?;
-    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
-        .map_err(|e| format!("Failed to materialize Turtle source into store: {e}"))?;
 
-    // Snapshot all source triples (default-graph; the SLME notion is graph-flat).
-    let mut all_triples: Vec<Triple> = Vec::new();
-    for q in store.iter() {
-        let q = q.map_err(|e| format!("store iteration error: {e}"))?;
-        all_triples.push(Triple::new(q.subject, q.predicate, q.object));
+    // Snapshot all source triples (graph-flat; the SLME notion drops the graph axis).
+    let mut all_triples: Vec<RdfTriple> = Vec::new();
+    for q in dataset.owned_quads() {
+        all_triples.push(RdfTriple::new(q.subject, q.predicate, q.object));
     }
 
     // Index blank-node subjects → their triples, for the blank-node closure walk.
-    let mut bnode_index: BTreeMap<String, Vec<Triple>> = BTreeMap::new();
+    let mut bnode_index: BTreeMap<String, Vec<RdfTriple>> = BTreeMap::new();
     for t in &all_triples {
-        if let NamedOrBlankNode::BlankNode(b) = &t.subject {
-            bnode_index
-                .entry(b.as_str().to_owned())
-                .or_default()
-                .push(t.clone());
+        if let RdfTerm::BlankNode(b) = &t.subject {
+            bnode_index.entry(b.clone()).or_default().push(t.clone());
         }
     }
 
@@ -172,7 +166,7 @@ pub fn extract_module(
     let mut sigma: BTreeSet<String> = terms.iter().cloned().collect();
 
     // The set of kept top-level (named-subject) triples, keyed by canonical string.
-    let mut kept: BTreeMap<String, Triple> = BTreeMap::new();
+    let mut kept: BTreeMap<String, RdfTriple> = BTreeMap::new();
 
     // Conservative-keep warnings are emitted once per (predicate, subject); track to
     // avoid duplicates across fixpoint iterations.
@@ -235,7 +229,7 @@ pub fn extract_module(
 
     // Collect the module = kept triples + blank-node closure of their objects.
     let mut module: BTreeSet<String> = BTreeSet::new();
-    let mut module_quads: Vec<Quad> = Vec::new();
+    let mut module_quads: Vec<RdfQuad> = Vec::new();
     for t in kept.values() {
         push_quad(&mut module, &mut module_quads, t);
         collect_bnode_closure(&t.object, &bnode_index, &mut module, &mut module_quads);
@@ -257,10 +251,10 @@ pub fn extract_module(
 #[allow(clippy::too_many_arguments)]
 fn grow_fixpoint(
     notion: Notion,
-    all_triples: &[Triple],
-    bnode_index: &BTreeMap<String, Vec<Triple>>,
+    all_triples: &[RdfTriple],
+    bnode_index: &BTreeMap<String, Vec<RdfTriple>>,
     sigma: &mut BTreeSet<String>,
-    kept: &mut BTreeMap<String, Triple>,
+    kept: &mut BTreeMap<String, RdfTriple>,
     warned: &mut BTreeSet<(String, String)>,
     findings: &mut Vec<Finding>,
 ) {
@@ -269,7 +263,7 @@ fn grow_fixpoint(
         for t in all_triples {
             // Only named-subject triples are top-level axioms; blank-node-subject
             // triples are pulled in by the blank-node closure, not classified here.
-            let NamedOrBlankNode::NamedNode(subj) = &t.subject else {
+            let RdfTerm::Iri(subj) = &t.subject else {
                 continue;
             };
             let key = triple_key(t);
@@ -305,11 +299,11 @@ fn grow_fixpoint(
                         sigma.insert(iri);
                     }
                     // Also add named IRIs directly named in the triple.
-                    if let Term::NamedNode(o) = &t.object {
-                        sigma.insert(o.as_str().to_owned());
+                    if let RdfTerm::Iri(o) = &t.object {
+                        sigma.insert(o.clone());
                     }
-                    sigma.insert(subj.as_str().to_owned());
-                    let warn_key = (t.predicate.as_str().to_owned(), subj.as_str().to_owned());
+                    sigma.insert(subj.clone());
+                    let warn_key = (t.predicate.clone(), subj.clone());
                     if warned.insert(warn_key) {
                         findings.push(
                             Finding::new(
@@ -363,12 +357,12 @@ const LOGICAL_PREDICATES: &[&str] = &[
 fn classify(
     notion: Notion,
     subject: &str,
-    predicate: &oxigraph::model::NamedNode,
-    object: &Term,
+    predicate: &str,
+    object: &RdfTerm,
     sigma: &BTreeSet<String>,
-    bnode_index: &BTreeMap<String, Vec<Triple>>,
+    bnode_index: &BTreeMap<String, Vec<RdfTriple>>,
 ) -> Decision {
-    let pred = predicate.as_str();
+    let pred = predicate;
     let in_sigma = |iri: &str| sigma.contains(iri);
 
     // Soundness: if the predicate IS in the seed signature (and is not a
@@ -377,25 +371,25 @@ fn classify(
     // regardless of whether the subject/object are in Σ.
     if in_sigma(pred) && !LOGICAL_PREDICATES.contains(&pred) {
         return match object {
-            Term::NamedNode(o) => Decision::Keep {
-                add: vec![subject.to_owned(), o.as_str().to_owned()],
+            RdfTerm::Iri(o) => Decision::Keep {
+                add: vec![subject.to_owned(), o.clone()],
             },
-            Term::Literal(_) => Decision::Keep {
+            RdfTerm::Literal(_) => Decision::Keep {
                 add: vec![subject.to_owned()],
             },
-            Term::BlankNode(_) | Term::Triple(_) => Decision::ConservativeKeep,
+            RdfTerm::BlankNode(_) | RdfTerm::Triple(_) => Decision::ConservativeKeep,
         };
     }
 
     // A blank-node object always means a complex construct → conservative test.
-    if matches!(object, Term::BlankNode(_)) {
+    if matches!(object, RdfTerm::BlankNode(_)) {
         return conservative(subject, object, sigma, bnode_index);
     }
 
     match pred {
         RDFS_SUBCLASS => {
             // C ⊑ D, both named. Bot: keep iff C∈Σ (add D). Top: keep iff D∈Σ (add C).
-            let Term::NamedNode(d) = object else {
+            let RdfTerm::Iri(d) = object else {
                 return conservative(subject, object, sigma, bnode_index);
             };
             let c = subject;
@@ -423,7 +417,7 @@ fn classify(
         }
         OWL_EQUIVCLASS => {
             // C ≡ D: keep iff C∈Σ or D∈Σ (add the other). Both notions.
-            let Term::NamedNode(d) = object else {
+            let RdfTerm::Iri(d) = object else {
                 return conservative(subject, object, sigma, bnode_index);
             };
             let c = subject;
@@ -438,7 +432,7 @@ fn classify(
         }
         OWL_DISJOINT => {
             // C disjoint D: keep iff C∈Σ AND D∈Σ.
-            let Term::NamedNode(d) = object else {
+            let RdfTerm::Iri(d) = object else {
                 return conservative(subject, object, sigma, bnode_index);
             };
             if in_sigma(subject) && in_sigma(d.as_str()) {
@@ -449,7 +443,7 @@ fn classify(
         }
         RDFS_SUBPROP => {
             // P ⊑ Q: Bot keep iff P∈Σ (add Q). Top keep iff Q∈Σ (add P).
-            let Term::NamedNode(q) = object else {
+            let RdfTerm::Iri(q) = object else {
                 return conservative(subject, object, sigma, bnode_index);
             };
             let p = subject;
@@ -477,7 +471,7 @@ fn classify(
         }
         RDFS_DOMAIN | RDFS_RANGE => {
             // P domain/range C: keep iff P∈Σ (add C).
-            let Term::NamedNode(c) = object else {
+            let RdfTerm::Iri(c) = object else {
                 return conservative(subject, object, sigma, bnode_index);
             };
             if in_sigma(subject) {
@@ -490,7 +484,7 @@ fn classify(
         }
         OWL_INVERSE => {
             // P inverseOf Q: keep iff P∈Σ or Q∈Σ (add the other).
-            let Term::NamedNode(q) = object else {
+            let RdfTerm::Iri(q) = object else {
                 return conservative(subject, object, sigma, bnode_index);
             };
             let p = subject;
@@ -504,7 +498,7 @@ fn classify(
             }
         }
         RDF_TYPE => {
-            let Term::NamedNode(ty) = object else {
+            let RdfTerm::Iri(ty) = object else {
                 return conservative(subject, object, sigma, bnode_index);
             };
             let ty = ty.as_str();
@@ -531,7 +525,7 @@ fn classify(
             // Annotation triple: a non-logical predicate whose object is a literal.
             // Keep iff s∈Σ. (Covers rdfs:label/comment, skos:*, dc/dcterms:*, and
             // any other non-logical predicate with a literal object.)
-            if matches!(object, Term::Literal(_)) && !LOGICAL_PREDICATES.contains(&pred) {
+            if matches!(object, RdfTerm::Literal(_)) && !LOGICAL_PREDICATES.contains(&pred) {
                 if in_sigma(subject) {
                     Decision::Keep { add: vec![] }
                 } else {
@@ -552,14 +546,14 @@ fn classify(
 /// fallback — it never drops a construct that touches Σ.
 fn conservative(
     subject: &str,
-    object: &Term,
+    object: &RdfTerm,
     sigma: &BTreeSet<String>,
-    bnode_index: &BTreeMap<String, Vec<Triple>>,
+    bnode_index: &BTreeMap<String, Vec<RdfTriple>>,
 ) -> Decision {
     if sigma.contains(subject) {
         return Decision::ConservativeKeep;
     }
-    if let Term::NamedNode(o) = object {
+    if let RdfTerm::Iri(o) = object {
         if sigma.contains(o.as_str()) {
             return Decision::ConservativeKeep;
         }
@@ -576,27 +570,27 @@ fn conservative(
 // ── Blank-node closure helpers ─────────────────────────────────────────────────
 
 /// Push a triple into the module quad set (dedup by canonical key).
-fn push_quad(module: &mut BTreeSet<String>, quads: &mut Vec<Quad>, t: &Triple) {
+fn push_quad(module: &mut BTreeSet<String>, quads: &mut Vec<RdfQuad>, t: &RdfTriple) {
     let key = triple_key(t);
     if module.insert(key) {
-        quads.push(Quad::new(
+        // Default-graph quad (no `.in_graph`): the SLME module is a single flat graph.
+        quads.push(RdfQuad::new(
             t.subject.clone(),
             t.predicate.clone(),
             t.object.clone(),
-            GraphName::DefaultGraph,
         ));
     }
 }
 
 /// Recursively pull the blank-node closure of `object` into the module.
 fn collect_bnode_closure(
-    object: &Term,
-    bnode_index: &BTreeMap<String, Vec<Triple>>,
+    object: &RdfTerm,
+    bnode_index: &BTreeMap<String, Vec<RdfTriple>>,
     module: &mut BTreeSet<String>,
-    quads: &mut Vec<Quad>,
+    quads: &mut Vec<RdfQuad>,
 ) {
     let mut stack: Vec<String> = Vec::new();
-    if let Term::BlankNode(b) = object {
+    if let RdfTerm::BlankNode(b) = object {
         stack.push(b.as_str().to_owned());
     }
     let mut seen: BTreeSet<String> = BTreeSet::new();
@@ -607,7 +601,7 @@ fn collect_bnode_closure(
         if let Some(triples) = bnode_index.get(&bid) {
             for t in triples {
                 push_quad(module, quads, t);
-                if let Term::BlankNode(b) = &t.object {
+                if let RdfTerm::BlankNode(b) = &t.object {
                     stack.push(b.as_str().to_owned());
                 }
             }
@@ -618,16 +612,16 @@ fn collect_bnode_closure(
 /// Collect every named IRI reachable in the blank-node closure of `object` (including
 /// the object itself if it is named). Used to grow Σ on a conservative keep.
 fn collect_named_iris_in_closure(
-    object: &Term,
-    bnode_index: &BTreeMap<String, Vec<Triple>>,
+    object: &RdfTerm,
+    bnode_index: &BTreeMap<String, Vec<RdfTriple>>,
     out: &mut BTreeSet<String>,
 ) {
-    if let Term::NamedNode(n) = object {
+    if let RdfTerm::Iri(n) = object {
         out.insert(n.as_str().to_owned());
         return;
     }
     let mut stack: Vec<String> = Vec::new();
-    if let Term::BlankNode(b) = object {
+    if let RdfTerm::BlankNode(b) = object {
         stack.push(b.as_str().to_owned());
     }
     let mut seen: BTreeSet<String> = BTreeSet::new();
@@ -641,10 +635,10 @@ fn collect_named_iris_in_closure(
             for t in triples {
                 out.insert(t.predicate.as_str().to_owned());
                 match &t.object {
-                    Term::NamedNode(n) => {
+                    RdfTerm::Iri(n) => {
                         out.insert(n.as_str().to_owned());
                     }
-                    Term::BlankNode(b) => stack.push(b.as_str().to_owned()),
+                    RdfTerm::BlankNode(b) => stack.push(b.as_str().to_owned()),
                     _ => {}
                 }
             }
@@ -655,7 +649,7 @@ fn collect_named_iris_in_closure(
 // ── Determinism: canonical keys + Turtle serialization ──────────────────────────
 
 /// Canonical (subject, predicate, object) string key for a triple.
-fn triple_key(t: &Triple) -> String {
+fn triple_key(t: &RdfTriple) -> String {
     format!(
         "{}\u{1f}{}\u{1f}{}",
         subject_sort_key(&t.subject),
@@ -664,44 +658,90 @@ fn triple_key(t: &Triple) -> String {
     )
 }
 
-fn subject_sort_key(s: &NamedOrBlankNode) -> String {
+/// Canonical key for a triple subject (always an IRI or blank node in valid RDF).
+///
+/// A literal/triple-term subject is invalid RDF and never reaches here, but the match
+/// must be exhaustive; those fall back to the object key form (never panics).
+fn subject_sort_key(s: &RdfTerm) -> String {
     match s {
-        NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-        NamedOrBlankNode::BlankNode(b) => format!("_:{}", b.as_str()),
+        RdfTerm::Iri(n) => n.clone(),
+        RdfTerm::BlankNode(b) => format!("_:{b}"),
+        other => term_sort_key(other),
     }
 }
 
-fn term_sort_key(t: &Term) -> String {
+/// Effective datatype IRI of a native literal — the value-space datatype the prior
+/// term model surfaced: `rdf:langString` for a lang-tagged literal, `xsd:string` for
+/// a plain literal, else the stated datatype. Preserves the prior sort-key bytes
+/// exactly (a plain literal keys on `xsd:string`).
+fn literal_datatype(l: &gmeow_rdf::RdfLiteral) -> &str {
+    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+    const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+    if l.language.is_some() {
+        RDF_LANG_STRING
+    } else {
+        l.datatype.as_deref().unwrap_or(XSD_STRING)
+    }
+}
+
+fn term_sort_key(t: &RdfTerm) -> String {
     match t {
-        Term::NamedNode(n) => n.as_str().to_owned(),
-        Term::BlankNode(b) => format!("_:{}", b.as_str()),
+        RdfTerm::Iri(n) => n.clone(),
+        RdfTerm::BlankNode(b) => format!("_:{b}"),
         // The language tag MUST be part of the key: this key backs triple_key,
         // which dedups kept/module triples. GMEOW carries multilingual labels
         // ("x"@en vs "x"@fr), so a value+datatype-only key would collide and
         // silently drop a translation — under-extraction. Lang-tagged literals
         // key on the tag; all others on the datatype.
-        Term::Literal(l) => match l.language() {
-            Some(lang) => format!("\"{}\"@{}", l.value(), lang),
-            None => format!("\"{}\"^^{}", l.value(), l.datatype().as_str()),
+        RdfTerm::Literal(l) => match l.language.as_deref() {
+            Some(lang) => format!("\"{}\"@{}", l.lexical_form, lang),
+            None => format!("\"{}\"^^{}", l.lexical_form, literal_datatype(l)),
         },
-        // RDF-star quoted-triple object: key on its full N-Triples form so two
+        // RDF-star quoted-triple object: key on its full term display form so two
         // distinct quoted triples never collide (defensive — SLME source vocabs
         // are not RDF-star, but never silently dedup distinct terms).
-        Term::Triple(inner) => inner.to_string(),
+        RdfTerm::Triple(_) => crate::provenance::term_display(&rdf_term_to_value(t)),
+    }
+}
+
+/// Convert a native [`RdfTerm`] into the [`gmeow_rdf::TermValue`] value-space term so
+/// it can be rendered by [`crate::provenance::term_display`] (the byte-stable Turtle
+/// term surface). Only used for the defensive RDF-star sort-key branch.
+fn rdf_term_to_value(t: &RdfTerm) -> gmeow_rdf::TermValue {
+    use gmeow_rdf::TermValue;
+    match t {
+        RdfTerm::Iri(iri) => TermValue::iri(iri.clone()),
+        RdfTerm::BlankNode(label) => TermValue::blank(label.clone()),
+        RdfTerm::Literal(l) => {
+            if let Some(lang) = l.language.as_deref() {
+                TermValue::lang_literal(l.lexical_form.clone(), lang)
+            } else {
+                TermValue::typed_literal(l.lexical_form.clone(), literal_datatype(l))
+            }
+        }
+        RdfTerm::Triple(inner) => TermValue::Triple {
+            s: Box::new(rdf_term_to_value(&inner.subject)),
+            p: Box::new(TermValue::iri(inner.predicate.clone())),
+            o: Box::new(rdf_term_to_value(&inner.object)),
+        },
     }
 }
 
 /// Serialize the module quads to deterministic Turtle via the native codec.
 ///
-/// The oxigraph `Quad`s are folded into the frozen `RdfDataset` IR
-/// (`dataset_from_oxigraph_quads`) and serialized through the native
-/// `serialize_dataset` path, which emits canonical, deterministic Turtle — so no
-/// manual pre-sort is needed (and the codec never drifts from the rest of the stack).
-/// All module quads live in the default graph, so `SerializeGraph::DefaultGraph` is
-/// the faithful selector.
-fn serialize_turtle(quads: Vec<Quad>) -> Result<String, String> {
-    let dataset =
-        dataset_from_oxigraph_quads(&quads).map_err(|e| format!("Turtle fold error: {e}"))?;
+/// The native `RdfQuad`s are pushed into a fresh `RdfDatasetBuilder` and serialized
+/// through the native `serialize_dataset` path, which emits canonical, deterministic
+/// Turtle — so no manual pre-sort is needed (and the codec never drifts from the rest
+/// of the stack). All module quads live in the default graph, so
+/// `SerializeGraph::DefaultGraph` is the faithful selector.
+fn serialize_turtle(quads: Vec<RdfQuad>) -> Result<String, String> {
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in &quads {
+        builder.push_owned_quad(quad);
+    }
+    let dataset = builder
+        .freeze()
+        .map_err(|e| format!("Turtle fold error: {e}"))?;
     let bytes = serialize_dataset(
         dataset.as_ref(),
         "text/turtle",

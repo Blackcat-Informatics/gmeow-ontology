@@ -12,10 +12,11 @@
 //! * [`report_to_diagnostics`] — project a [`Report`] to LSP [`Diagnostic`] objects.
 
 use gmeow_diagnostics::model::{Finding, Location, Report, Rule, Severity};
+use gmeow_rdf::{parse_dataset, NativeRdfFormat};
+use gmeow_rdf_core::RdfDiagnostic;
 use lsp_types::{
     CodeDescription, Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Uri,
 };
-use oxigraph::io::{RdfFormat, RdfParser, RdfSyntaxError};
 
 // ─── Language discriminant ───────────────────────────────────────────────────
 
@@ -61,40 +62,30 @@ fn analyze_ttl(text: &str, virtual_path: &str) -> Report {
     let mut report = Report::new("gmeow-lsp");
     let bytes = text.as_bytes();
 
-    // Use the lenient parser so we collect ALL syntax errors in a single pass
-    // rather than stopping at the first one.
-    let results: Vec<_> = RdfParser::from_format(RdfFormat::Turtle)
-        .lenient()
-        .for_slice(bytes)
-        .collect();
-
-    for result in results {
-        if let Err(e) = result {
-            let (line, col, msg) = extract_rdf_error(&e);
-            let mut finding = Finding::new(Severity::Error, "turtle.syntax", msg);
-            let loc = Location::new(Some(virtual_path.to_string()), Some(line), Some(col), None);
-            finding.add_location(loc);
-            report.add_finding(finding);
-        }
+    // Parse through the native (oxigraph-free, EPIC #906) codec. The native parser is
+    // fail-fast (one diagnostic per parse) rather than lenient-multi-error; that is
+    // acceptable for an editor linter, which re-lints on every edit.
+    if let Err(diagnostic) = parse_dataset(bytes, NativeRdfFormat::Turtle.media_type(), None) {
+        let (line, col, msg) = extract_rdf_error(&diagnostic);
+        let mut finding = Finding::new(Severity::Error, "turtle.syntax", msg);
+        let loc = Location::new(Some(virtual_path.to_string()), Some(line), Some(col), None);
+        finding.add_location(loc);
+        report.add_finding(finding);
     }
     report.normalize();
     report
 }
 
-/// Extract a (1-based line, 1-based column, message) triple from an
-/// [`RdfParseError`].  Uses the structured [`RdfSyntaxError::location`] method
-/// when available; falls back to `(1, 1, display_string)` for I/O errors or
-/// format-specific errors that do not expose position data.
-fn extract_rdf_error(err: &RdfSyntaxError) -> (u32, u32, String) {
-    // RdfSyntaxError::location() returns Option<Range<TextPosition>>
-    // where line and column are 0-based (from oxrdfio).
-    if let Some(range) = err.location() {
-        let line = (range.start.line as u32).saturating_add(1);
-        let col = (range.start.column as u32).saturating_add(1);
-        (line, col, err.to_string())
-    } else {
-        (1, 1, err.to_string())
-    }
+/// Extract a (1-based line, 1-based column, message) triple from a native
+/// [`RdfDiagnostic`]. Uses the structured [`RdfLocation`](gmeow_rdf_core::RdfLocation)
+/// line/column when the parser supplies them; falls back to `(1, 1)` otherwise.
+fn extract_rdf_error(err: &RdfDiagnostic) -> (u32, u32, String) {
+    let (line, col) = err
+        .location
+        .as_ref()
+        .map(|loc| (loc.line.unwrap_or(1).max(1), loc.column.unwrap_or(1).max(1)))
+        .unwrap_or((1, 1));
+    (line, col, err.to_string())
 }
 
 // ─── Logic analysis ──────────────────────────────────────────────────────────

@@ -1,11 +1,10 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/evals/assessment-reference-baseline-abstention-quality>
     a gmeow:Assessment ;
     gmeow:assessmentCriterion <https://blackcatinformatics.ca/gmeow/evals/crit-abstention> ;
     gmeow:assessmentRubric <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
-    gmeow:assessmentScoreValue "1"^^xsd:decimal ;
+    gmeow:assessmentScoreValue 1.0 ;
     gmeow:assessmentTarget <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
     gmeow:vantage <https://blackcatinformatics.ca/gmeow/evals/harness> .
 
@@ -29,7 +28,7 @@
     a gmeow:Assessment ;
     gmeow:assessmentCriterion <https://blackcatinformatics.ca/gmeow/evals/crit-grounding-recall> ;
     gmeow:assessmentRubric <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
-    gmeow:assessmentScoreValue "1"^^xsd:decimal ;
+    gmeow:assessmentScoreValue 1.0 ;
     gmeow:assessmentTarget <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
     gmeow:vantage <https://blackcatinformatics.ca/gmeow/evals/harness> .
 

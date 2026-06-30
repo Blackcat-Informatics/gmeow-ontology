@@ -11,11 +11,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::model::Term;
+use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, TermRef, TermValue};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::source_load::{module_files, turtle_bytes_to_store};
+use crate::stages::source_load::module_files;
 
 /// Committed logical path of the OASIS catalog.
 pub const CATALOG_PATH: &str = "catalog-v001.xml";
@@ -86,35 +86,30 @@ pub fn render_catalog(root: &Path) -> Result<String, PipelineError> {
 /// Parse one manifest for `(slice_iri, sliceProfile names)`.
 fn parse_manifest(path: &Path) -> Result<(String, Vec<String>), PipelineError> {
     let bytes = std::fs::read(path)?;
-    let store = turtle_bytes_to_store(&bytes, &path.display().to_string())?;
-    let rdf_type = oxigraph::model::NamedNode::new(RDF_TYPE).unwrap();
-    let slice_class = oxigraph::model::NamedNode::new(SLICE_CLASS).unwrap();
+    let ds = parse_dataset(&bytes, "text/turtle", None)
+        .map_err(|e| PipelineError::Parse(format!("syntax error in {}: {e}", path.display())))?;
     let mut iri: Option<String> = None;
-    for quad in store.quads_for_pattern(
-        None,
-        Some(rdf_type.as_ref()),
-        Some((&slice_class).into()),
-        None,
+    if let (Some(p), Some(o)) = (
+        ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
+        ds.term_id_by_value(&TermValue::iri(SLICE_CLASS)),
     ) {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let oxigraph::model::NamedOrBlankNode::NamedNode(nn) = &quad.subject {
-            iri = Some(nn.as_str().to_string());
+        for q in ds.quads_for_pattern(None, Some(p), Some(o), GraphMatch::Default) {
+            if let TermRef::Iri(nn) = ds.resolve(q.s) {
+                iri = Some(nn.to_owned());
+            }
         }
     }
     let iri = iri
         .ok_or_else(|| PipelineError::Parse(format!("no `a gmeow:Slice` in {}", path.display())))?;
-    let prof_pred = oxigraph::model::NamedNode::new(SLICE_PROFILE).unwrap();
-    let subject = oxigraph::model::NamedNode::new(&iri).unwrap();
     let mut profiles = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some((&subject).into()),
-        Some(prof_pred.as_ref()),
-        None,
-        None,
+    if let (Some(s), Some(p)) = (
+        ds.term_id_by_value(&TermValue::iri(&iri)),
+        ds.term_id_by_value(&TermValue::iri(SLICE_PROFILE)),
     ) {
-        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let Term::Literal(l) = &quad.object {
-            profiles.push(l.value().to_string());
+        for q in ds.quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default) {
+            if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                profiles.push(lexical.to_owned());
+            }
         }
     }
     Ok((iri, profiles))

@@ -69,7 +69,7 @@ pub struct ReasonArtifacts {
 /// Reason over a composed dataset (N-Quads bytes) and return the three artifacts plus
 /// the typed [`ReasoningResult`]. Parses then delegates to [`reason_over_dataset`].
 pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, PipelineError> {
-    let edb = gmeow_rdf::dataset_from_bytes(composed_nquads, NativeRdfFormat::NQuads)
+    let edb = gmeow_rdf::parse_dataset(composed_nquads, NativeRdfFormat::NQuads.media_type(), None)
         .map_err(|e| PipelineError::Parse(format!("reason input parse: {e}")))?;
     reason_over_dataset(edb.as_ref())
 }
@@ -80,22 +80,25 @@ pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, Pipel
 /// re-imported `gmeow.gts` yield byte-identical artifacts), then mirrors
 /// `reason_native_artifacts` in non-merge mode (the regenerate path).
 pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, PipelineError> {
-    let canon_quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(edb).map_err(|e| {
-        PipelineError::Stage {
-            stage: "stage-reason".to_string(),
-            message: format!("flatten EDB for canonicalization: {e}"),
-        }
+    // Flatten the EDB to its un-folded plain-quad stream, RDFC-1.0 canonicalize it
+    // (native full canon, byte-identical to the prior oxigraph `canonicalize_quads`
+    // over the flat oxigraph quads), then RE-FOLD the canonical N-Quads back through
+    // the native codec so the RDF 1.2 statement layer is reconstructed exactly as
+    // `dataset_from_oxigraph_quads` did — content-addressed Skolem witnesses are a pure
+    // function of this canonical, transport-independent EDB.
+    let canon_nquads = gmeow_rdf::canonical_flat_nquads(edb).map_err(|e| PipelineError::Stage {
+        stage: "stage-reason".to_string(),
+        message: format!("RDFC-1.0 canonicalize EDB: {e}"),
     })?;
-    let canon_quads =
-        gmeow_rdf::canonicalize_quads(canon_quads).map_err(|e| PipelineError::Stage {
-            stage: "stage-reason".to_string(),
-            message: format!("RDFC-1.0 canonicalize EDB: {e}"),
-        })?;
-    let canon =
-        gmeow_rdf::dataset_from_oxigraph_quads(&canon_quads).map_err(|e| PipelineError::Stage {
-            stage: "stage-reason".to_string(),
-            message: format!("re-fold canonical quads: {e}"),
-        })?;
+    let canon = gmeow_rdf::parse_dataset(
+        canon_nquads.as_bytes(),
+        NativeRdfFormat::NQuads.media_type(),
+        None,
+    )
+    .map_err(|e| PipelineError::Stage {
+        stage: "stage-reason".to_string(),
+        message: format!("re-fold canonical quads: {e}"),
+    })?;
     let result = reason_all(canon.as_ref()).map_err(|e| PipelineError::Stage {
         stage: "stage-reason".to_string(),
         message: format!("native reasoning failed: {e}"),

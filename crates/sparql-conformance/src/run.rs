@@ -113,6 +113,7 @@ pub fn run(
             let request = SparqlRequest {
                 query: &query_text,
                 base_iri: Some(BASE),
+                substitutions: &[],
             };
             let result = match remote {
                 Some(source) => engine.query_with_source(&dataset, request, source),

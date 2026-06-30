@@ -6,23 +6,22 @@
 //! A `tests/*.ttl` spec is itself ontology data in the `gmeow:` test-DSL
 //! vocabulary (`dsl/tests/vocabulary.ttl`). Rather than keep a hand-written
 //! deserializer in lockstep with that vocabulary, the harness loads each spec
-//! into an oxigraph store (lenient parsing, the same primitive the validation
-//! path uses) and SPARQL-introspects the three cell types into typed Rust
-//! structs. The nested `ExpectedRow -> rowCell -> ExpectedCell` shape of a
-//! SELECT competency question is pulled out declaratively in one join and
-//! grouped in Rust.
+//! into a native [`RdfDataset`] (the canonical codec, lenient parsing, the same
+//! primitive the validation path uses) and SPARQL-introspects the three cell types
+//! into typed Rust structs. The nested `ExpectedRow -> rowCell -> ExpectedCell`
+//! shape of a SELECT competency question is pulled out declaratively in one join
+//! and grouped in Rust.
 
 use std::collections::BTreeMap;
 use std::path::Path;
-
-use oxigraph::model::Term;
-use oxigraph::sparql::{QueryResults, QuerySolution, SparqlEvaluator};
-use oxigraph::store::Store;
+use std::sync::Arc;
 
 use gmeow_logic_compile::result_shape::{
     ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality, TermKind,
 };
-use gmeow_validate::store::build_store;
+use gmeow_rdf_core::{RdfDataset, TermValue};
+
+use crate::native_query::{self, render_term};
 
 /// The GMEOW namespace; the test-DSL terms live directly under it.
 pub const NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -88,9 +87,9 @@ pub struct ExpectedCell {
     /// The SPARQL variable name, WITHOUT the leading `?`.
     pub var: String,
     /// The expected bound value — an IRI (`gmeow:cellValueIri`) or a literal
-    /// (`gmeow:cellValueLiteral`), kept as an oxigraph [`Term`] so it compares
-    /// directly against a query solution binding.
-    pub value: Term,
+    /// (`gmeow:cellValueLiteral`), kept as a native [`TermValue`] so it compares
+    /// directly (via [`render_term`]) against a query solution binding.
+    pub value: TermValue,
 }
 
 /// A `gmeow:StructuralAssertion` cell.
@@ -209,18 +208,18 @@ SELECT ?ec ?file ?outcome ?code ?rationale WHERE {
 /// Returns `Err(String)` if the file cannot be parsed, an introspection query
 /// fails, or a cell declares an unrecognized controlled-vocabulary value.
 pub fn load_spec(path: &Path) -> Result<SpecFile, String> {
-    let store = build_store(std::slice::from_ref(&path.to_path_buf()))
+    let dataset = native_query::dataset_from_file(path)
         .map_err(|e| format!("failed to load spec {}: {e}", path.display()))?;
     Ok(SpecFile {
-        competency: parse_competency(&store)?,
-        structural: parse_structural(&store)?,
-        conformance: parse_conformance(&store)?,
+        competency: parse_competency(&dataset)?,
+        structural: parse_structural(&dataset)?,
+        conformance: parse_conformance(&dataset)?,
     })
 }
 
 // ── Parsers ────────────────────────────────────────────────────────────────────
 
-fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
+fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, String> {
     // 1. Scalars: one solution per CompetencyQuestion (all OPTIONALs single-valued).
     let mut by_iri: BTreeMap<String, CompetencyQuestion> = BTreeMap::new();
     for sol in select(store, &with_prefix(Q_COMPETENCY))? {
@@ -274,7 +273,7 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
         let cq = require_iri(&sol, "cq")?;
         let row_key = sol
             .get("row")
-            .map(Term::to_string)
+            .map(render_term)
             .ok_or("cqExpectRow row missing ?row binding")?;
         let var = opt_string(&sol, "var").ok_or("ExpectedCell missing gmeow:cellVar")?;
         let value = match (sol.get("iri"), sol.get("lit")) {
@@ -316,7 +315,7 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
     Ok(by_iri.into_values().collect())
 }
 
-fn parse_structural(store: &Store) -> Result<Vec<StructuralAssertion>, String> {
+fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>, String> {
     let mut out = Vec::new();
     for sol in select(store, &with_prefix(Q_STRUCTURAL))? {
         let iri = require_iri(&sol, "sa")?;
@@ -345,7 +344,7 @@ fn parse_structural(store: &Store) -> Result<Vec<StructuralAssertion>, String> {
     Ok(out)
 }
 
-fn parse_conformance(store: &Store) -> Result<Vec<ExampleConformance>, String> {
+fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>, String> {
     let mut out = Vec::new();
     for sol in select(store, &with_prefix(Q_CONFORMANCE))? {
         let iri = require_iri(&sol, "ec")?;
@@ -374,7 +373,7 @@ fn logic_local(iri: &str) -> &str {
 
 /// Resolve an optional `gmeow:cqResultShape` / `gmeow:cqInputShape` IRI binding into
 /// the typed [`ResultShape`] it points at, parsed from the same spec store.
-fn opt_shape(store: &Store, sol: &QuerySolution, var: &str) -> Result<Option<ResultShape>, String> {
+fn opt_shape(store: &Arc<RdfDataset>, sol: &Sol, var: &str) -> Result<Option<ResultShape>, String> {
     match sol.get(var).and_then(term_iri) {
         None => Ok(None),
         Some(iri) => Ok(Some(parse_result_shape(store, &iri)?)),
@@ -394,7 +393,7 @@ fn opt_shape(store: &Store, sol: &QuerySolution, var: &str) -> Result<Option<Res
 /// column node yields exactly one solution row — a missing required field becomes
 /// an observable NULL rather than silently dropping the row and narrowing the
 /// contract without error.
-fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, String> {
+fn parse_result_shape(store: &Arc<RdfDataset>, shape_iri: &str) -> Result<ResultShape, String> {
     // Match every declared column node unconditionally, then OPTIONAL the three
     // required fields.  This guarantees one solution row per declared column,
     // so a missing required field is an observable NULL that we can name precisely
@@ -415,7 +414,7 @@ fn parse_result_shape(store: &Store, shape_iri: &str) -> Result<ResultShape, Str
         // offending blank node or IRI in their Turtle source.
         let col = sol
             .get("col")
-            .map(Term::to_string)
+            .map(render_term)
             .unwrap_or_else(|| "<unknown>".to_owned());
 
         // All three fields are required; their absence is a hard-fail with a
@@ -498,23 +497,34 @@ fn with_prefix(body: &str) -> String {
     format!("{PREFIX}{body}")
 }
 
-/// Run a SELECT introspection query and collect its solutions.
-fn select(store: &Store, query: &str) -> Result<Vec<QuerySolution>, String> {
-    let results = SparqlEvaluator::new()
-        .parse_query(query)
-        .map_err(|e| format!("introspection query parse error: {e}"))?
-        .on_store(store)
-        .execute()
-        .map_err(|e| format!("introspection query evaluation error: {e}"))?;
-    let solutions = match results {
-        QueryResults::Solutions(s) => s,
-        QueryResults::Boolean(_) | QueryResults::Graph(_) => {
-            return Err("introspection query must be a SELECT".to_owned());
-        }
-    };
-    solutions
-        .map(|sol| sol.map_err(|e| format!("introspection solution error: {e}")))
-        .collect()
+/// One introspection solution: a variable→term view over a single native result row,
+/// the native replacement for the oxigraph `QuerySolution`.
+pub struct Sol {
+    variables: Arc<Vec<String>>,
+    row: Vec<Option<TermValue>>,
+}
+
+impl Sol {
+    /// The bound term for `var`, if any (an unbound OPTIONAL column reads `None`).
+    fn get(&self, var: &str) -> Option<&TermValue> {
+        let idx = self.variables.iter().position(|v| v == var)?;
+        self.row.get(idx).and_then(Option::as_ref)
+    }
+}
+
+/// Run a SELECT introspection query and collect its solutions as [`Sol`] views.
+fn select(store: &Arc<RdfDataset>, query: &str) -> Result<Vec<Sol>, String> {
+    let solutions = native_query::select(store, query)
+        .map_err(|e| format!("introspection query error: {e}"))?;
+    let variables = Arc::new(solutions.variables);
+    Ok(solutions
+        .rows
+        .into_iter()
+        .map(|row| Sol {
+            variables: Arc::clone(&variables),
+            row,
+        })
+        .collect())
 }
 
 /// The local name of a `gmeow:` IRI (the part after the namespace).
@@ -522,54 +532,59 @@ fn local_name(iri: &str) -> &str {
     iri.strip_prefix(NS).unwrap_or(iri)
 }
 
-fn term_iri(term: &Term) -> Option<String> {
+fn term_iri(term: &TermValue) -> Option<String> {
     match term {
-        Term::NamedNode(n) => Some(n.as_str().to_owned()),
+        TermValue::Iri(iri) => Some(iri.clone()),
         _ => None,
     }
 }
 
-fn require_iri(sol: &QuerySolution, var: &str) -> Result<String, String> {
+fn require_iri(sol: &Sol, var: &str) -> Result<String, String> {
     sol.get(var)
         .and_then(term_iri)
         .ok_or_else(|| format!("expected ?{var} to bind an IRI"))
 }
 
 /// The lexical value of a bound literal (or the IRI string of a named node).
-fn opt_string(sol: &QuerySolution, var: &str) -> Option<String> {
+fn opt_string(sol: &Sol, var: &str) -> Option<String> {
     sol.get(var).map(|term| match term {
-        Term::Literal(l) => l.value().to_owned(),
-        Term::NamedNode(n) => n.as_str().to_owned(),
-        other => other.to_string(),
+        TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+        TermValue::Iri(iri) => iri.clone(),
+        other => render_term(other),
     })
 }
 
-fn opt_bool(sol: &QuerySolution, var: &str) -> Result<Option<bool>, String> {
+fn opt_bool(sol: &Sol, var: &str) -> Result<Option<bool>, String> {
     match sol.get(var) {
         None => Ok(None),
         // xsd:boolean lexical space: true/false plus the 1/0 alternatives. Anything
         // else is a malformed literal that would silently read as `false` if coerced
         // — hard-fail instead (a typoed boolean must never quietly weaken a guard).
-        Some(Term::Literal(l)) => match l.value() {
+        Some(TermValue::Literal { lexical_form, .. }) => match lexical_form.as_str() {
             "true" | "1" => Ok(Some(true)),
             "false" | "0" => Ok(Some(false)),
             other => Err(format!(
                 "?{var} is not an xsd:boolean (true/false): {other:?}"
             )),
         },
-        Some(other) => Err(format!("?{var} expected a literal, got {other}")),
+        Some(other) => Err(format!(
+            "?{var} expected a literal, got {}",
+            render_term(other)
+        )),
     }
 }
 
-fn opt_u64(sol: &QuerySolution, var: &str) -> Result<Option<u64>, String> {
+fn opt_u64(sol: &Sol, var: &str) -> Result<Option<u64>, String> {
     match sol.get(var) {
         None => Ok(None),
-        Some(Term::Literal(l)) => l
-            .value()
+        Some(TermValue::Literal { lexical_form, .. }) => lexical_form
             .parse::<u64>()
             .map(Some)
             .map_err(|e| format!("?{var} is not a non-negative integer: {e}")),
-        Some(other) => Err(format!("?{var} expected a literal, got {other}")),
+        Some(other) => Err(format!(
+            "?{var} expected a literal, got {}",
+            render_term(other)
+        )),
     }
 }
 
@@ -607,7 +622,7 @@ mod tests {
         for row in &agents.expected_rows {
             assert_eq!(row.cells.len(), 1);
             assert_eq!(row.cells[0].var, "agentKind");
-            assert!(matches!(row.cells[0].value, Term::NamedNode(_)));
+            assert!(matches!(row.cells[0].value, TermValue::Iri(_)));
         }
 
         let roles = spec
@@ -684,16 +699,11 @@ mod tests {
         );
     }
 
-    /// Load inline Turtle into a store via the native codec (#909): parse through
-    /// `parse_dataset` into the frozen IR, then fold into an oxigraph Store via the
-    /// text-free `store_from_dataset` hop — the same canonical codec the rest of the
-    /// stack uses (and lenient on long private-use language tags, like the harness).
-    fn store_from_turtle(ttl: &str) -> Store {
-        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-        use gmeow_rdf::parse_dataset;
-        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid turtle");
-        store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
-            .expect("materialize turtle into store")
+    /// Load inline Turtle into a native dataset via the canonical codec (#909 / #906):
+    /// `parse_dataset` into the frozen IR — the same codec the rest of the stack uses
+    /// (and lenient on long private-use language tags, like the harness).
+    fn store_from_turtle(ttl: &str) -> Arc<RdfDataset> {
+        native_query::dataset_from_turtle(ttl).expect("valid turtle")
     }
 
     #[test]

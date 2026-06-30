@@ -8,12 +8,11 @@
 
 use std::path::Path;
 
-use oxigraph::model::NamedNode;
 use tempfile::TempDir;
 
 use gmeow_slice::{
-    EdgeKind, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipStatus, ReconciliationStatus,
-    SliceCatalog,
+    EdgeKind, NamedNode, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipStatus,
+    ReconciliationStatus, SliceCatalog,
 };
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";

@@ -15,7 +15,7 @@
 <https://blackcatinformatics.ca/gmeow/examples/ai/card-assistant>
     a gmeow:ModelCard ;
     gmeow:describesModel <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
-    gmeow:modelContextWindow 200000 ;
+    gmeow:modelContextWindow "200000"^^xsd:positiveInteger ;
     gmeow:modelProvider "Example Labs" ;
     gmeow:modelTrainingCutoff "2026-01-31"^^xsd:date ;
     gmeow:modelVersionTag "assistant-2026-05-01" .
@@ -24,8 +24,8 @@
     a gmeow:Chunk ;
     gmeow:chunkOf <https://blackcatinformatics.ca/gmeow/examples/ai/handbook> ;
     gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
-    gmeow:spanEnd 18950 ;
-    gmeow:spanStart 18200 .
+    gmeow:spanEnd "18950"^^xsd:nonNegativeInteger ;
+    gmeow:spanStart "18200"^^xsd:nonNegativeInteger .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200>
     a gmeow:MemoryItem ,
@@ -76,7 +76,7 @@
     gmeow:atTime "2026-05-15T10:00:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     gmeow:hasPrompt <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract> ;
-    gmeow:samplingTemperature "0"^^xsd:decimal ;
+    gmeow:samplingTemperature 0.0 ;
     gmeow:usedModel <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract>
@@ -87,9 +87,9 @@
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/span-close-2200>
     a gmeow:EvidenceSpan ;
-    gmeow:spanEnd 366 ;
+    gmeow:spanEnd "366"^^xsd:nonNegativeInteger ;
     gmeow:spanOfChunk <https://blackcatinformatics.ca/gmeow/examples/ai/chunk-042> ;
-    gmeow:spanStart 310 ;
+    gmeow:spanStart "310"^^xsd:nonNegativeInteger ;
     gmeow:supportPolarity gmeow:polaritySupports .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200>

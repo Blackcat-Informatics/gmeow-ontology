@@ -1,0 +1,6 @@
+deceptionRole
+[Some(Iri("https://blackcatinformatics.ca/gmeow/roleBeneficiaryOfDeception"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/roleDeceived"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/roleDeceiver"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/roleDupe"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/roleSpinDoctor"))]

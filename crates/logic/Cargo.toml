@@ -9,7 +9,7 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 readme = "README.md"
-keywords = ["rdf", "rdf-star", "reasoning", "knowledge-graph", "oxigraph"]
+keywords = ["rdf", "rdf-star", "reasoning", "knowledge-graph"]
 
 [lib]
 # rlib-only: this crate no longer ships a standalone PyO3 extension. Its bindings
@@ -18,18 +18,19 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# oxigraph in-memory Store only (worlds = named graphs), with RDF 1.2 support.
-# default-features off drops the `rocksdb` backend (oxrocksdb-sys, a C/C++ build
-# we never use); `rdf-12` enables the RDF 1.2 parser/serializer the whole logic
-# layer is built on. One in-memory store, one code path — correct dependency.
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
-# Shared RDF 1.2 adapter boundary for loading GTS/oxigraph/sidecar-aware stores
-# into world-indexed logic stores (#648, supports #630/#667). The `python`
-# feature exposes `gmeow_rdf::py_store::quad_to_py`, so the native RL closure
-# returns live `gmeow_rdf.Quad` objects directly instead of an N-Triples string
-# the Python adapter would have to re-parse (#630 seam removal). `gmeow-logic` is
-# only ever built as a PyO3 extension submodule, so this adds no non-Python path.
-gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts", "python"] }
+# Shared RDF 1.2 adapter boundary for loading GTS/sidecar-aware datasets into
+# world-indexed logic stores (#648, supports #630/#667). The world-store now holds
+# the native `MutableDataset`/`RdfDataset` IR directly — oxigraph-free (EPIC #906).
+# The `python` feature exposes `gmeow_rdf::py_store::quad_to_py`, so the native RL
+# closure returns live `gmeow_rdf.Quad` objects directly instead of an N-Triples
+# string the Python adapter would have to re-parse (#630 seam removal). `gmeow-logic`
+# is only ever built as a PyO3 extension submodule, so this adds no non-Python path.
+gmeow-rdf = { path = "../rdf", features = ["gts", "python"] }
+# The native SPARQL engine over `Arc<RdfDataset>` (#906): the world-store's `select`
+# and the reasoned-graph governance/verify queries evaluate here, replacing the
+# retired oxigraph `SparqlEvaluator`. A leaf-ish crate (rdf-core/sparql-algebra/xsd
+# — no edge back to logic), so this introduces no layering cycle.
+gmeow-sparql-eval = { path = "../sparql-eval" }
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
 # its findings in Rust and hands Python a report via JSON (#695).
 gmeow-diagnostics = { path = "../diagnostics" }
@@ -84,12 +85,10 @@ scryer-prolog = { git = "https://github.com/mthom/scryer-prolog", branch = "mast
 gmeow-logic-compile = { path = "../logic-compile" }
 proptest = "1"
 serde_json = "1"
-# S8 #914 parity harness only (tests/sparql_path_parity.rs): the wasm-clean
-# in-engine SPARQL property-path evaluator + the IR dataset builder, used to
-# assert in-engine ≡ Scryer-lowered over the corpus path shapes. Dev-only: these
-# do NOT enter the lib graph (so `gmeow-logic` adds no edge to `gmeow-sparql-eval`
-# and the reverse oxigraph-free contract is untouched).
-gmeow-sparql-eval = { path = "../sparql-eval" }
+# S8 #914 parity harness (tests/sparql_path_parity.rs): the wasm-clean in-engine
+# SPARQL property-path evaluator + the IR dataset builder, used to assert in-engine
+# ≡ Scryer-lowered over the corpus path shapes. `gmeow-sparql-eval` is now a normal
+# dependency (#906), so the harness reaches it through the lib graph.
 gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 # insta: snapshot goldens for the projection back-ends + explanation prose (T8,
 # #789). The `.snap` files ARE the byte-exact unit goldens (the native

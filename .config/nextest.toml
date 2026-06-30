@@ -44,6 +44,8 @@ default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-pipeline) & binary(fold_parity))
+    | test(/corpus_conformance_heavy_offgate/)
+    | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-rdf-capi) & binary(c_smoke))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))

@@ -1,0 +1,2 @@
+work	performanceCount
+[Some(Iri("https://blackcatinformatics.ca/gmeow/fixtureOralRagaYamanWork")), Some(Literal { lexical_form: "4", datatype: "http://www.w3.org/2001/XMLSchema#integer", language: None, direction: None })]

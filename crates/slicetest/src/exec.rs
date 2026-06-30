@@ -18,21 +18,18 @@
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-
-use oxigraph::model::Term;
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
-use oxigraph::store::Store;
+use std::sync::Arc;
 
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
-use gmeow_shacl::engine::{parse_shapes, validate};
+use gmeow_rdf_core::{RdfDataset, SparqlResult, TermValue};
+use gmeow_shacl::engine::{parse_shapes, validate_dataset};
 use gmeow_validate::findings::finding_from_shacl;
-use gmeow_validate::store::{build_store, parse_file};
-use gmeow_validate::validate_all::OverlayGuard;
 
 use crate::dsl::{
     self, CompetencyQuestion, ExampleConformance, ExpectedRow, Outcome, Polarity, ReasoningProfile,
     Scope, StructuralAssertion,
 };
+use crate::native_query::{self, render_term, union};
 use crate::paths;
 use crate::stores::{merged_store, rdfs_closed_store};
 
@@ -54,7 +51,7 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
     // The RDFS-closed graph is built lazily — only if some question opts into it
     // via gmeow:cqReasoning gmeow:reasoningRdfs — and then reused across cells.
     let merged = merged_store()?;
-    let mut rdfs: Option<Store> = None;
+    let mut rdfs: Option<Arc<RdfDataset>> = None;
 
     // Build an IRI→question index so gmeow:cqConsumes can resolve its producer
     // within this spec file. Built once outside the loop (O(n log n)), reused
@@ -98,7 +95,7 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
             }
         }
 
-        let store: &Store = match cq.reasoning {
+        let store: &Arc<RdfDataset> = match cq.reasoning {
             ReasoningProfile::None => &merged,
             ReasoningProfile::Rdfs => {
                 if rdfs.is_none() {
@@ -174,22 +171,21 @@ fn aggregate<'a>(
 // ── Competency ──────────────────────────────────────────────────────────────────
 
 fn run_competency_cell(
-    store: &Store,
+    store: &Arc<RdfDataset>,
     cq: &CompetencyQuestion,
     slice_dir: &Path,
 ) -> Result<(), String> {
     let query = load_query(cq)?;
     let Some(rel) = &cq.data_file else {
-        // No overlay: run the query directly over the (asserted or RDFS) store.
+        // No overlay: run the query directly over the (asserted or RDFS) dataset.
         return execute_competency_query(store, cq, &query);
     };
 
-    // Overlay lane: a slice-relative ABox fixture is inserted onto the asserted
-    // merged graph for this one query, then removed. The merged store is shared
-    // across cells in this file, so a leak would contaminate later questions —
-    // scoped_overlay_insert returns only the quads it actually inserted (skipping
-    // any already present). The OverlayGuard removes exactly that set
-    // unconditionally on scope exit, including panic unwind.
+    // Overlay lane: a slice-relative ABox fixture is UNIONED onto the asserted merged
+    // graph for this one query. The IR is immutable — `RdfDataset::union` produces a
+    // fresh dataset (standardizing the fixture's blanks apart), so the shared base is
+    // never mutated and there is nothing to remove afterwards (the old in-place
+    // OverlayGuard insert/remove is unnecessary on the frozen IR).
     if cq.reasoning != ReasoningProfile::None {
         // The RDFS closure is computed BEFORE the overlay, so an overlaid fixture's
         // entailments would be invisible. Refuse rather than silently under-answer.
@@ -200,28 +196,23 @@ fn run_competency_cell(
         ));
     }
     let fixture_path = paths::example_file(slice_dir, rel);
-    let quads = parse_file(&fixture_path)
+    let fixture = native_query::dataset_from_file(&fixture_path)
         .map_err(|e| format!("parsing cqDataFile {}: {e}", fixture_path.display()))?;
-    let _overlay = OverlayGuard::insert(store, quads.iter());
-    execute_competency_query(store, cq, &query) // _overlay drops here, removing the overlay
+    let overlaid = union(&[Arc::clone(store), fixture]);
+    execute_competency_query(&overlaid, cq, &query)
 }
 
 /// Execute a competency question's (already-resolved) query over `store` and
 /// check the result against its expectation.
 fn execute_competency_query(
-    store: &Store,
+    store: &Arc<RdfDataset>,
     cq: &CompetencyQuestion,
     query: &str,
 ) -> Result<(), String> {
-    let results = SparqlEvaluator::new()
-        .parse_query(query)
-        .map_err(|e| format!("query parse error: {e}"))?
-        .on_store(store)
-        .execute()
-        .map_err(|e| format!("query evaluation error: {e}"))?;
+    let results = native_query::query(store, query).map_err(|e| format!("query error: {e}"))?;
 
     match results {
-        QueryResults::Boolean(actual) => {
+        SparqlResult::Boolean(actual) => {
             let expected = cq
                 .expect_ask
                 .ok_or("ASK query but no gmeow:cqExpectAsk on the question")?;
@@ -230,23 +221,19 @@ fn execute_competency_query(
             }
             Ok(())
         }
-        QueryResults::Solutions(solutions) => {
-            let vars: Vec<String> = solutions
-                .variables()
-                .iter()
-                .map(|v| v.as_str().to_owned())
-                .collect();
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => {
             let mut actual: Vec<CanonRow> = Vec::new();
             // The observed (var, term-kind) bindings, kept alongside the canonical
             // rows so the declared output shape can type-check them.
             let mut observed: Vec<Vec<ObservedBinding>> = Vec::new();
-            for sol in solutions {
-                let sol = sol.map_err(|e| format!("solution error: {e}"))?;
+            for solution in &rows {
                 let mut row: CanonRow = Vec::new();
                 let mut obs: Vec<ObservedBinding> = Vec::new();
-                for v in &vars {
-                    if let Some(t) = sol.get(v.as_str()) {
-                        row.push((v.clone(), t.to_string()));
+                for (v, cell) in variables.iter().zip(solution) {
+                    if let Some(t) = cell {
+                        row.push((v.clone(), render_term(t)));
                         obs.push(ObservedBinding::new(
                             v.clone(),
                             observed_term(&cq.iri, v, t)?,
@@ -267,7 +254,7 @@ fn execute_competency_query(
             }
             check_select(cq, &actual)
         }
-        QueryResults::Graph(_) => {
+        SparqlResult::Graph(_) => {
             Err("competency query must be ASK or SELECT, got CONSTRUCT/DESCRIBE".to_owned())
         }
     }
@@ -339,28 +326,27 @@ const LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString
 /// language-tagged literal; normalised to [`LANG_STRING`] for contract checking.
 const DIR_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString";
 
-/// Project one oxigraph result binding into the pure-data [`ObservedTerm`] the
+/// Project one native result binding into the pure-data [`ObservedTerm`] the
 /// result-shape contract checks. An RDF-star triple term cannot be typed by a
 /// column kind, so it hard-fails rather than being silently misclassified.
-fn observed_term(cq_iri: &str, var: &str, term: &Term) -> Result<ObservedTerm, String> {
+fn observed_term(cq_iri: &str, var: &str, term: &TermValue) -> Result<ObservedTerm, String> {
     Ok(match term {
-        Term::NamedNode(_) => ObservedTerm::Iri,
-        Term::BlankNode(_) => ObservedTerm::BlankNode,
-        Term::Literal(l) => {
+        TermValue::Iri(_) => ObservedTerm::Iri,
+        TermValue::Blank { .. } => ObservedTerm::BlankNode,
+        TermValue::Literal { datatype, .. } => {
             // An RDF-1.2 directional language-tagged literal reports the effective
             // datatype rdf:dirLangString, but a column declares the stable identity
             // datatype rdf:langString (the same convention crates/rdf-wasm uses):
             // normalise so a directional literal conforms to a langString column
             // rather than false-positiving a DatatypeMismatch.
-            let dt = l.datatype();
-            let datatype = if dt.as_str() == DIR_LANG_STRING {
+            let datatype = if datatype == DIR_LANG_STRING {
                 LANG_STRING.to_owned()
             } else {
-                dt.as_str().to_owned()
+                datatype.clone()
             };
             ObservedTerm::Literal { datatype }
         }
-        Term::Triple(_) => {
+        TermValue::Triple { .. } => {
             return Err(format!(
                 "{cq_iri}: result binding ?{var} is an RDF-star triple term, which a logic:ResultShape does not type"
             ));
@@ -372,7 +358,7 @@ fn canon_expected_row(row: &ExpectedRow) -> CanonRow {
     let mut cells: CanonRow = row
         .cells
         .iter()
-        .map(|c| (c.var.clone(), c.value.to_string()))
+        .map(|c| (c.var.clone(), render_term(&c.value)))
         .collect();
     cells.sort();
     cells
@@ -413,8 +399,8 @@ fn run_structural_cell(sa: &StructuralAssertion, slice_dir: &Path) -> Result<(),
     if sa.scope == Scope::ModuleAndExamples {
         sources.extend(example_ttls(&paths::examples_dir(slice_dir))?);
     }
-    let store = build_store(&sources)
-        .map_err(|e| format!("building scoped store for structural assertion: {e}"))?;
+    let store = native_query::dataset_from_files(&sources)
+        .map_err(|e| format!("building scoped dataset for structural assertion: {e}"))?;
     let holds = run_ask(&store, pattern)?;
 
     match (sa.polarity, holds) {
@@ -426,16 +412,10 @@ fn run_structural_cell(sa: &StructuralAssertion, slice_dir: &Path) -> Result<(),
     }
 }
 
-fn run_ask(store: &Store, query: &str) -> Result<bool, String> {
-    let results = SparqlEvaluator::new()
-        .parse_query(query)
-        .map_err(|e| format!("saPattern parse error: {e}"))?
-        .on_store(store)
-        .execute()
-        .map_err(|e| format!("saPattern evaluation error: {e}"))?;
-    match results {
-        QueryResults::Boolean(b) => Ok(b),
-        QueryResults::Solutions(_) | QueryResults::Graph(_) => {
+fn run_ask(store: &Arc<RdfDataset>, query: &str) -> Result<bool, String> {
+    match native_query::query(store, query).map_err(|e| format!("saPattern error: {e}"))? {
+        SparqlResult::Boolean(b) => Ok(b),
+        SparqlResult::Solutions { .. } | SparqlResult::Graph(_) => {
             Err("saPattern must be a SPARQL ASK query".to_owned())
         }
     }
@@ -469,23 +449,24 @@ fn example_ttls(examples_dir: &Path) -> Result<Vec<PathBuf>, String> {
 // ── Example conformance ─────────────────────────────────────────────────────────
 
 fn run_conformance_cell(ec: &ExampleConformance, slice_dir: &Path) -> Result<(), String> {
-    let data_store = build_store(&[paths::module_file(slice_dir)])
-        .map_err(|e| format!("building module store: {e}"))?;
+    let module = native_query::dataset_from_file(&paths::module_file(slice_dir))
+        .map_err(|e| format!("building module dataset: {e}"))?;
     let shapes_path = paths::shapes_file(slice_dir);
     let shapes_ttl = std::fs::read_to_string(&shapes_path)
         .map_err(|e| format!("cannot read {}: {e}", shapes_path.display()))?;
     let shapes = parse_shapes(&shapes_ttl).map_err(|e| format!("parsing slice shapes: {e}"))?;
 
     let example_path = paths::example_file(slice_dir, &ec.file);
-    let example_quads = parse_file(&example_path)
+    let example = native_query::dataset_from_file(&example_path)
         .map_err(|e| format!("parsing example {}: {e}", example_path.display()))?;
 
-    // Scoped overlay: validate (module + example) against the slice shapes, then
-    // restore the module store — exactly the validation-path example idiom.
-    // OverlayGuard removes the inserted quads unconditionally on scope exit,
-    // including panic unwind.
-    let _overlay = OverlayGuard::insert(&data_store, example_quads.iter());
-    let report = validate(&data_store, &shapes);
+    // Validate (module + example) against the slice shapes. The IR is immutable, so
+    // instead of an in-place insert/remove overlay we UNION the module and example
+    // into a fresh dataset (blanks standardized apart) and validate that — exactly
+    // the validation-path example idiom, no shared store to restore.
+    let data = union(&[module, example]);
+    let report = validate_dataset(&data, &shapes)
+        .map_err(|e| format!("native SHACL validation failed: {e}"))?;
 
     let codes: BTreeSet<String> = report
         .results
@@ -536,14 +517,10 @@ mod tests {
     use gmeow_logic_compile::result_shape::{
         ColumnKind, ResultColumn, ResultShape, RowCardinality,
     };
-    use oxigraph::model::{NamedNode, Term};
 
-    /// Materialize inline Turtle into a store via the native codec (#909).
-    fn store_from_turtle(ttl: &str) -> Store {
-        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-        use gmeow_rdf::parse_dataset;
-        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("valid turtle");
-        store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs).expect("store")
+    /// Materialize inline Turtle into a native dataset via the canonical codec (#909).
+    fn store_from_turtle(ttl: &str) -> Arc<RdfDataset> {
+        native_query::dataset_from_turtle(ttl).expect("valid turtle")
     }
 
     /// A minimal SELECT competency question over an inline query.
@@ -568,7 +545,7 @@ mod tests {
     const Q_X: &str = "PREFIX ex: <https://example.org/> \
         SELECT ?x WHERE { ?x a ex:Thing }";
 
-    fn one_thing_store() -> Store {
+    fn one_thing_store() -> Arc<RdfDataset> {
         store_from_turtle("@prefix ex: <https://example.org/> .\nex:a a ex:Thing .\n")
     }
 
@@ -635,8 +612,9 @@ mod tests {
     }
 
     /// A `gmeow:cqDataFile` overlay must (a) make the fixture's instances visible to
-    /// the query, (b) be removed afterwards so it never leaks into the shared store,
-    /// and (c) be rejected outright in the RDFS lane.
+    /// the query, (b) never leak into the shared base dataset (the frozen IR is
+    /// immutable — the overlay is a UNION into a fresh dataset, so the base is
+    /// untouched by construction), and (c) be rejected outright in the RDFS lane.
     #[test]
     fn cq_data_file_overlay_applies_and_is_removed() {
         let dir = std::env::temp_dir().join(format!("slicetest-overlay-{}", std::process::id()));
@@ -646,8 +624,8 @@ mod tests {
                        ex:event1 a gmeow:Event .\n";
         std::fs::write(dir.join("data.ttl"), fixture).expect("write fixture");
 
-        // Empty shared store: the only way the SELECT matches is via the overlay.
-        let store = Store::new().expect("store");
+        // Empty shared base: the only way the SELECT matches is via the overlay.
+        let store = store_from_turtle("@prefix ex: <https://example.org/> .\n");
         let cq = CompetencyQuestion {
             iri: "https://example.org/test/cqOverlay".to_owned(),
             query_inline: Some(
@@ -662,9 +640,7 @@ mod tests {
             expected_rows: vec![ExpectedRow {
                 cells: vec![ExpectedCell {
                     var: "e".to_owned(),
-                    value: Term::NamedNode(
-                        NamedNode::new("https://example.org/test/event1").unwrap(),
-                    ),
+                    value: TermValue::Iri("https://example.org/test/event1".to_owned()),
                 }],
             }],
             reasoning: ReasoningProfile::None,
@@ -677,9 +653,9 @@ mod tests {
 
         run_competency_cell(&store, &cq, &dir).expect("overlay cell must pass");
         assert_eq!(
-            store.len().expect("len"),
+            store.quad_count(),
             0,
-            "the overlay must be removed — it must not leak into the shared store"
+            "the overlay must not leak into the shared base dataset (the union builds a fresh one)"
         );
 
         // Same cell in the RDFS lane: hard-fail, never silently under-answer.

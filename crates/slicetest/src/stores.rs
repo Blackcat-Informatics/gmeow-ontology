@@ -16,10 +16,11 @@
 //!   answered correctly with no materialization, in a sub-second graph build.
 //! * [`rdfs_closed_store`] — the merged graph closed under **RDFS** (rdfs2/3/5/
 //!   7/9/11: domain/range typing, `rdf:type` propagation up the class hierarchy,
-//!   and subclass/subproperty transitivity), computed natively in oxigraph via
-//!   `CONSTRUCT` rules iterated to fixpoint. A competency question opts into this
-//!   with `gmeow:cqReasoning gmeow:reasoningRdfs` when its expected answer is
-//!   entailed, not asserted (e.g. a type inferred from a property's domain).
+//!   and subclass/subproperty transitivity), computed via native `CONSTRUCT` rules
+//!   iterated to fixpoint (each round's derived graph is unioned back into the base
+//!   and re-frozen). A competency question opts into this with
+//!   `gmeow:cqReasoning gmeow:reasoningRdfs` when its expected answer is entailed,
+//!   not asserted (e.g. a type inferred from a property's domain).
 //!
 //! Why not full OWL 2 RL: the native RL chase (`gmeow_logic::reason::rl_closure`,
 //! the same one `tests/test_competency.py` pays) is ~4 minutes over the merged
@@ -28,36 +29,32 @@
 //! fraction of the cost, and reasoning is monotonic so the asserted default can
 //! only ever under-answer (a loud test failure), never silently mislead.
 
-use std::collections::HashSet;
 use std::path::PathBuf;
+use std::sync::Arc;
 
-use oxigraph::model::{GraphName, Quad, Triple};
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
-use oxigraph::store::Store;
+use gmeow_rdf_core::{RdfDataset, SparqlResult};
 
-use gmeow_validate::store::build_store;
-
+use crate::native_query::{self, merge_preserving_blanks};
 use crate::paths;
 
-/// Build the **asserted** merged ontology store (no materialized entailment).
+/// Build the **asserted** merged ontology dataset (no materialized entailment).
 ///
 /// # Errors
 ///
 /// Returns `Err(String)` if a source file fails to read or parse.
-pub fn merged_store() -> Result<Store, String> {
-    build_store(&source_files()?).map_err(|e| format!("merging ontology sources: {e}"))
+pub fn merged_store() -> Result<Arc<RdfDataset>, String> {
+    native_query::dataset_from_files(&source_files()?)
+        .map_err(|e| format!("merging ontology sources: {e}"))
 }
 
-/// Build the merged ontology and close it under **RDFS** in place.
+/// Build the merged ontology and return it closed under **RDFS**.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the merged store cannot be built or the closure
+/// Returns `Err(String)` if the merged dataset cannot be built or the closure
 /// fails to reach a fixpoint within the safety bound.
-pub fn rdfs_closed_store() -> Result<Store, String> {
-    let store = merged_store()?;
-    rdfs_close(&store)?;
-    Ok(store)
+pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>, String> {
+    rdfs_close(merged_store()?)
 }
 
 /// The reasoned source-set: `ontology/gmeow.ttl` followed by every slice module,
@@ -138,34 +135,28 @@ const RDFS_RULES: &[&str] = &[
      CONSTRUCT { ?o rdf:type ?c } WHERE { ?p rdfs:range ?c . ?s ?p ?o }",
 ];
 
-/// Close `store` under [`RDFS_RULES`] to fixpoint (in place).
+/// Close `dataset` under [`RDFS_RULES`] to fixpoint, returning the closed dataset.
 ///
-/// Each round materializes every rule's CONSTRUCT and inserts the results;
-/// fixpoint is reached when a round adds no new triples (the store size is
-/// unchanged — oxigraph inserts are idempotent on duplicate quads).
-fn rdfs_close(store: &Store) -> Result<(), String> {
-    let store_len = |s: &Store| s.len().map_err(|e| format!("store len: {e}"));
+/// Each round materializes every rule's CONSTRUCT over the current dataset and merges
+/// the derived graphs back into it via [`merge_preserving_blanks`] — which, unlike
+/// `RdfDataset::union`, does NOT re-scope blank nodes, so a re-derived quad over a
+/// blank-bearing subject dedups against its prior copy rather than minting a fresh
+/// blank every round (the property the count-stable fixpoint depends on). Fixpoint is
+/// reached when a round adds no new quads.
+fn rdfs_close(mut dataset: Arc<RdfDataset>) -> Result<Arc<RdfDataset>, String> {
     for _ in 0..MAX_ROUNDS {
-        let before = store_len(store)?;
-        // Dedupe inferred triples across all rules in the round before inserting;
-        // oxigraph inserts are idempotent, but a HashSet avoids redundant inserts.
-        let mut derived: HashSet<Triple> = HashSet::new();
+        let before = dataset.quad_count();
+        // Materialize every rule's CONSTRUCT graph, then merge them all (plus the
+        // base) into one re-frozen dataset, preserving blank identity so identical
+        // derived quads collapse and the count is stable at fixpoint.
+        let mut round: Vec<Arc<RdfDataset>> = Vec::with_capacity(RDFS_RULES.len() + 1);
+        round.push(Arc::clone(&dataset));
         for rule in RDFS_RULES {
-            derived.extend(construct(store, rule)?);
+            round.push(construct(&dataset, rule)?);
         }
-        for triple in derived {
-            let quad = Quad::new(
-                triple.subject,
-                triple.predicate,
-                triple.object,
-                GraphName::DefaultGraph,
-            );
-            store
-                .insert(&quad)
-                .map_err(|e| format!("RDFS closure insert failed: {e}"))?;
-        }
-        if store_len(store)? == before {
-            return Ok(());
+        dataset = merge_preserving_blanks(&round);
+        if dataset.quad_count() == before {
+            return Ok(dataset);
         }
     }
     Err(format!(
@@ -173,19 +164,11 @@ fn rdfs_close(store: &Store) -> Result<(), String> {
     ))
 }
 
-/// Run a CONSTRUCT query and collect its triples.
-fn construct(store: &Store, query: &str) -> Result<Vec<Triple>, String> {
-    let results = SparqlEvaluator::new()
-        .parse_query(query)
-        .map_err(|e| format!("RDFS rule parse error: {e}"))?
-        .on_store(store)
-        .execute()
-        .map_err(|e| format!("RDFS rule evaluation error: {e}"))?;
-    match results {
-        QueryResults::Graph(triples) => triples
-            .map(|t| t.map_err(|e| format!("RDFS rule triple error: {e}")))
-            .collect(),
-        QueryResults::Solutions(_) | QueryResults::Boolean(_) => {
+/// Run a CONSTRUCT query and return its derived graph as a frozen dataset.
+fn construct(dataset: &Arc<RdfDataset>, query: &str) -> Result<Arc<RdfDataset>, String> {
+    match native_query::query(dataset, query).map_err(|e| format!("RDFS rule error: {e}"))? {
+        SparqlResult::Graph(graph) => Ok(graph),
+        SparqlResult::Solutions { .. } | SparqlResult::Boolean(_) => {
             Err("RDFS rule must be a CONSTRUCT".to_owned())
         }
     }
@@ -199,7 +182,7 @@ mod tests {
     fn merged_store_materializes() {
         let store = merged_store().expect("merged store must build");
         assert!(
-            store.len().expect("len") > 1000,
+            store.quad_count() > 1000,
             "merged ontology should have many triples"
         );
     }
@@ -215,14 +198,15 @@ mod tests {
             "<https://example.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/Agent> .\n",
             "<https://example.org/ada> <https://example.org/hasPet> <https://example.org/cat> .\n",
         );
-        let store = gmeow_validate::store::build_store_from_nt(nt).expect("synthetic NT must load");
-        rdfs_close(&store).expect("rdfs closure must converge");
+        let base = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+            .expect("synthetic NT must load");
+        let closed = rdfs_close(base).expect("rdfs closure must converge");
 
         // rdfs2: ada hasPet => ada a Owner. rdfs9/11: => Person, => Agent.
         for cls in ["Owner", "Person", "Agent"] {
             assert!(
                 ask_type(
-                    &store,
+                    &closed,
                     "https://example.org/ada",
                     &format!("https://example.org/{cls}")
                 ),
@@ -231,16 +215,11 @@ mod tests {
         }
     }
 
-    fn ask_type(store: &Store, s: &str, c: &str) -> bool {
+    fn ask_type(store: &Arc<RdfDataset>, s: &str, c: &str) -> bool {
         let q = format!("ASK {{ <{s}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{c}> }}");
         matches!(
-            SparqlEvaluator::new()
-                .parse_query(&q)
-                .unwrap()
-                .on_store(store)
-                .execute()
-                .unwrap(),
-            QueryResults::Boolean(true)
+            native_query::query(store, &q).expect("ask"),
+            SparqlResult::Boolean(true)
         )
     }
 }

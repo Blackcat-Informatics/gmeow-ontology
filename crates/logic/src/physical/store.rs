@@ -31,8 +31,9 @@
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-use oxigraph::model::{NamedNode, Term};
+use gmeow_rdf::TermValue;
 
+use crate::provenance::term_display;
 use crate::seam::ScryerForeign;
 
 /// A position-pattern over a binary relation's `(subject, object)` columns.
@@ -59,7 +60,7 @@ pub(crate) enum Bound<'a> {
 #[derive(Debug, Clone, Default)]
 struct Relation {
     /// `(subject, object)` tuples in insertion order.
-    rows: Vec<(Term, Term)>,
+    rows: Vec<(TermValue, TermValue)>,
     /// Dedup keys `(subject.to_string(), object.to_string())` for O(1) membership.
     keys: HashSet<(String, String)>,
     /// Subject N3 surface → row indices into `rows`, in insertion order.
@@ -73,9 +74,9 @@ impl Relation {
     ///
     /// On a successful insert the new row index is appended to BOTH indexes in
     /// lockstep with `rows`, so each bucket's order equals insertion order.
-    fn insert(&mut self, subject: Term, object: Term) -> bool {
-        let s_key = subject.to_string();
-        let o_key = object.to_string();
+    fn insert(&mut self, subject: TermValue, object: TermValue) -> bool {
+        let s_key = term_display(&subject);
+        let o_key = term_display(&object);
         let key = (s_key.clone(), o_key.clone());
         if self.keys.contains(&key) {
             return false;
@@ -110,7 +111,7 @@ impl Relation {
     ///
     /// `Both` picks the SMALLER of the two index buckets to scan, filtering against
     /// the other position — the cheapest probe for the bound positions.
-    fn select(&self, bound: Bound) -> Vec<(Term, Term)> {
+    fn select(&self, bound: Bound) -> Vec<(TermValue, TermValue)> {
         match bound {
             Bound::Any => self.rows.clone(),
             Bound::Subject(s) => self
@@ -168,9 +169,14 @@ impl RelationStore {
     ///
     /// Deduped on the N3 tuple key per predicate; both secondary indexes are
     /// maintained in lockstep.
-    pub(crate) fn insert(&mut self, predicate: &NamedNode, subject: Term, object: Term) -> bool {
+    pub(crate) fn insert(
+        &mut self,
+        predicate: &str,
+        subject: TermValue,
+        object: TermValue,
+    ) -> bool {
         self.relations
-            .entry(predicate.as_str().to_owned())
+            .entry(predicate.to_owned())
             .or_default()
             .insert(subject, object)
     }
@@ -188,7 +194,7 @@ impl RelationStore {
     ///
     /// Picks the cheapest index for the bound positions; an unknown predicate yields
     /// the empty vector.
-    pub(crate) fn select(&self, predicate: &str, bound: Bound) -> Vec<(Term, Term)> {
+    pub(crate) fn select(&self, predicate: &str, bound: Bound) -> Vec<(TermValue, TermValue)> {
         self.relations
             .get(predicate)
             .map_or_else(Vec::new, |r| r.select(bound))
@@ -218,7 +224,7 @@ impl RelationStore {
 /// [`ScryerForeign::in_world`] and inserts each `(subject, predicate, object)` as a
 /// binary tuple.  Insertion order follows `in_world`'s iteration order; dedup and
 /// index maintenance are handled by [`RelationStore::insert`].
-pub(crate) fn extract_edb(foreign: &dyn ScryerForeign, world: &NamedNode) -> RelationStore {
+pub(crate) fn extract_edb(foreign: &dyn ScryerForeign, world: &str) -> RelationStore {
     let mut store = RelationStore::new();
     for dq in foreign.in_world(world, None, None, None) {
         store.insert(&dq.predicate, dq.subject.clone(), dq.object.clone());
@@ -231,25 +237,21 @@ mod tests {
     use super::*;
     use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
 
-    fn nn(iri: &str) -> NamedNode {
-        NamedNode::new(iri).expect("valid IRI")
-    }
-
-    fn term(iri: &str) -> Term {
-        Term::NamedNode(nn(iri))
+    fn term(iri: &str) -> TermValue {
+        TermValue::iri(iri)
     }
 
     /// Build a store with a small `knows`/`likes` corpus.
     ///
     /// `knows`: (a,b), (a,c), (b,c)  — `likes`: (a,c)
     fn sample_store() -> RelationStore {
-        let knows = nn("http://ex/knows");
-        let likes = nn("http://ex/likes");
+        let knows = "http://ex/knows";
+        let likes = "http://ex/likes";
         let mut s = RelationStore::new();
-        assert!(s.insert(&knows, term("http://ex/a"), term("http://ex/b")));
-        assert!(s.insert(&knows, term("http://ex/a"), term("http://ex/c")));
-        assert!(s.insert(&knows, term("http://ex/b"), term("http://ex/c")));
-        assert!(s.insert(&likes, term("http://ex/a"), term("http://ex/c")));
+        assert!(s.insert(knows, term("http://ex/a"), term("http://ex/b")));
+        assert!(s.insert(knows, term("http://ex/a"), term("http://ex/c")));
+        assert!(s.insert(knows, term("http://ex/b"), term("http://ex/c")));
+        assert!(s.insert(likes, term("http://ex/a"), term("http://ex/c")));
         s
     }
 
@@ -312,11 +314,11 @@ mod tests {
 
     #[test]
     fn physical_dedup_returns_false_and_stores_one_row() {
-        let knows = nn("http://ex/knows");
+        let knows = "http://ex/knows";
         let mut s = RelationStore::new();
-        assert!(s.insert(&knows, term("http://ex/a"), term("http://ex/b")));
+        assert!(s.insert(knows, term("http://ex/a"), term("http://ex/b")));
         // Re-inserting the same (s,p,o) is a no-op that reports false.
-        assert!(!s.insert(&knows, term("http://ex/a"), term("http://ex/b")));
+        assert!(!s.insert(knows, term("http://ex/a"), term("http://ex/b")));
         assert_eq!(s.len_for("http://ex/knows"), 1);
         assert_eq!(
             s.select("http://ex/knows", Bound::Any),
@@ -355,21 +357,21 @@ mod tests {
     /// `world`. Only `in_world` is exercised by `extract_edb`; the other legs are
     /// vacuous (and unused) for this test.
     struct FakeForeign {
-        world: NamedNode,
+        world: String,
         quads: Vec<DerivedQuad>,
     }
 
     impl FakeForeign {
         fn new(world: &str, tuples: &[(&str, &str, &str)]) -> Self {
-            let world_nn = nn(world);
+            let world_iri = world.to_owned();
             let quads = tuples
                 .iter()
                 .map(|(s, p, o)| DerivedQuad {
-                    graph: world_nn.clone(),
+                    graph: world_iri.clone(),
                     subject: term(s),
-                    predicate: nn(p),
+                    predicate: (*p).to_owned(),
                     object: term(o),
-                    graph_component: world_nn.clone(),
+                    graph_component: world_iri.clone(),
                     derivation_id: DerivationId("http://ex/d".to_owned()),
                     rule_iri: "http://ex/r".to_owned(),
                     source_quad_ids: vec![],
@@ -378,7 +380,7 @@ mod tests {
                 })
                 .collect();
             Self {
-                world: world_nn,
+                world: world_iri,
                 quads,
             }
         }
@@ -387,14 +389,14 @@ mod tests {
     impl ScryerForeign for FakeForeign {
         fn in_world<'a>(
             &'a self,
-            world: &NamedNode,
-            subject: Option<&Term>,
-            predicate: Option<&NamedNode>,
-            object: Option<&Term>,
+            world: &str,
+            subject: Option<&TermValue>,
+            predicate: Option<&str>,
+            object: Option<&TermValue>,
         ) -> Box<dyn Iterator<Item = &'a DerivedQuad> + 'a> {
-            let world = world.clone();
+            let world = world.to_owned();
             let subject = subject.cloned();
-            let predicate = predicate.cloned();
+            let predicate = predicate.map(str::to_owned);
             let object = object.cloned();
             Box::new(self.quads.iter().filter(move |dq| {
                 dq.graph == world
@@ -415,8 +417,8 @@ mod tests {
 
         fn contradiction_witness<'a>(
             &'a self,
-            _world: &NamedNode,
-        ) -> Box<dyn Iterator<Item = NamedNode> + 'a> {
+            _world: &str,
+        ) -> Box<dyn Iterator<Item = String> + 'a> {
             Box::new(std::iter::empty())
         }
     }

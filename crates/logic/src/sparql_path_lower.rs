@@ -31,7 +31,7 @@
 //! recursion is the native least-model fixpoint / SLG-tabling engine: transitive
 //! closure (`p+`/`p*`) and the stratified unroll of bounded `{n,m}` are ordinary
 //! Datalog. We reuse the `ScryerForeign` seam exactly — the path's edges are loaded
-//! into a world (an oxigraph named graph) and snapshotted as ground facts by
+//! into a world (a native named graph) and snapshotted as ground facts by
 //! [`run_scryer`]; the lowered [`QProgram`] carries only the IDB rules + goal.
 //!
 //! # Positive relation + reflexivity
@@ -56,7 +56,6 @@
 use std::collections::BTreeSet;
 
 use gmeow_sparql_algebra::PropertyPathExpression;
-use oxigraph::model::NamedNode;
 
 use crate::query_ir::{AnswerSet, Budget, QAtom, QBodyLit, QGoal, QProgram, QRule, QTerm};
 use crate::scryer_engine::run_scryer;
@@ -123,11 +122,10 @@ pub fn evaluate_path_lowered(
         store.insert_quad(LOWER_WORLD, s, p, o);
     }
     let foreign = WorldStoreForeign::from_world(&store, LOWER_WORLD, LOWER_PROFILE)?;
-    let world = NamedNode::new(LOWER_WORLD).map_err(|e| format!("bad world IRI: {e}"))?;
 
     let ans = run_scryer(
         &foreign,
-        &world,
+        LOWER_WORLD,
         &program,
         &low.table_preds,
         &Budget::default(),
@@ -509,7 +507,7 @@ impl Lowering {
 #[cfg(test)]
 mod tests {
     use super::*;
-    // `super::*` brings in oxigraph's `NamedNode`; paths need the algebra's.
+    // Paths are built from the algebra's `NamedNode`.
     use gmeow_sparql_algebra::NamedNode as AlgNamedNode;
 
     const EX: &str = "https://example.org/";
