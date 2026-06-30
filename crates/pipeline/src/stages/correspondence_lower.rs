@@ -16,6 +16,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
+use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences;
 use gmeow_logic_compile::projections::{edoal, fno, sparql, sssom, ProjectionResult};
 use gmeow_rdf::dataset_view::{DatasetView, GraphMatch};
 use gmeow_rdf::{
@@ -43,6 +45,14 @@ pub struct CorrespondenceArtifacts {
     /// final `generated/logic/projection-report.ttl` (the loss ledger is the residue
     /// set, per LOGIC-CORRESPONDENCE.md).
     pub ledger: Vec<ProjectionResult>,
+    /// The typed `logic:Correspondence` set materialized from the SAME `dsl/mappings/`
+    /// cells the four dialects lower (#1092 F5): one node per `gmeow:TermEquivalence`
+    /// cell and one per `gmeow:ProjectionMapping` per-profile binding. This is the carried
+    /// program the mappings stage threads onto the bundle so `LogicProgram.correspondences`
+    /// is no longer reconstructed ad hoc downstream. The four rendered artifacts above are
+    /// unaffected by this materialization (their relations are still derived inline — that
+    /// re-seating is F5 Task 2).
+    pub correspondences: CorrespondenceProgram,
 }
 
 /// Lower every alignment dialect from the sources under `root`.
@@ -68,6 +78,11 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
     let edoal = edoal::lower_edoal(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
     let sparql = sparql::lower_sparql(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
 
+    // Materialize the typed logic:Correspondence set from the same DSL cells (F5 Task 1).
+    // This ONLY adds the carried program; the four rendered artifacts above are unchanged.
+    let correspondences =
+        transpile_correspondences(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
+
     // Aggregate the per-correspondence ledger across all four dialects. Each dialect
     // already attributes its residue to the dropping (get) leg.
     let mut ledger: Vec<ProjectionResult> = Vec::new();
@@ -82,6 +97,7 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
         edoal: edoal.alignments,
         sparql: sparql.queries,
         ledger,
+        correspondences,
     })
 }
 

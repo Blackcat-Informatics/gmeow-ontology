@@ -70,13 +70,17 @@ const SSSOM_ALWAYS: &[&str] = &[
 
 /// One `gmeow:TermEquivalence` cell — compiles to exactly one SSSOM row. IRIs are
 /// kept full and absolute; CURIE-shortening happens at render time.
+///
+/// `pub(crate)` (with the frontend-relevant fields exposed) so the
+/// `logic:Correspondence` transpiler materializes one typed node per cell from THE SAME
+/// extraction the SSSOM renderer reads — no second, drifting read of the store.
 #[derive(Debug, Clone)]
-struct EquivalenceCell {
-    subject: String,
-    predicate: String,
-    obj: String,
-    confidence: Option<f64>,
-    justification: Option<String>,
+pub(crate) struct EquivalenceCell {
+    pub(crate) subject: String,
+    pub(crate) predicate: String,
+    pub(crate) obj: String,
+    pub(crate) confidence: Option<f64>,
+    pub(crate) justification: Option<String>,
     comment: String,
     /// Structured per-correspondence drop notes (`gmeow:lossyDrop`) — the specific
     /// constructs this by-reference lowering does not carry (e.g. a loop unrolls, a
@@ -139,7 +143,11 @@ pub fn lower_sssom(
 /// asserts. The predicate IS the relation for the 1:1 lattice band; this lets the
 /// overclaim gate refuse, e.g., a `relatedMatch`-classed predicate masquerading as an
 /// `exactMatch` token were the two ever to disagree.
-fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
+///
+/// `pub(crate)` so the `logic:Correspondence` frontend transpiler
+/// ([`crate::projections::correspondence_frontend`]) materializes its typed relation from
+/// THE SAME logic the SSSOM ledger gate uses — one derivation, never a fork.
+pub(crate) fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
     let local = predicate
         .rsplit(['#', '/', ':'])
         .next()
@@ -155,22 +163,35 @@ fn sssom_relation(predicate: &str) -> CorrespondenceRelation {
     }
 }
 
+/// The `(relation, morphism class)` band an SSSOM 1:1 cell occupies, given its align
+/// predicate. The SSSOM band is a satisfaction-preserving lens, never a bridge: the
+/// morphism class is the strongest rung the relation can lawfully claim (an honest
+/// under-approximation — composition can only weaken it).
+///
+/// `pub(crate)` so the correspondence frontend transpiler and the SSSOM ledger gate
+/// derive the band identically (DRY: the single mapping `predicate → (relation, class)`).
+pub(crate) fn sssom_band(predicate: &str) -> (CorrespondenceRelation, MorphismClass) {
+    let relation = sssom_relation(predicate);
+    let mclass = match relation {
+        CorrespondenceRelation::Equiv => MorphismClass::WellBehavedLens,
+        CorrespondenceRelation::Subsumes | CorrespondenceRelation::SubsumedBy => {
+            MorphismClass::LossyLens
+        }
+        CorrespondenceRelation::Overlaps => MorphismClass::AffineCorrespondence,
+        _ => MorphismClass::AffineCorrespondence,
+    };
+    (relation, mclass)
+}
+
 /// Build one preservation row per `gmeow:TermEquivalence` correspondence, running the
 /// overclaim gate over each emitted predicate.
 fn build_ledger(sources: &SssomSources) -> Result<Vec<ProjectionResult>, String> {
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     for cell in &sources.equivalences {
-        let relation = sssom_relation(&cell.predicate);
         // The SSSOM 1:1 band is a satisfaction-preserving lens, never a bridge; the
-        // morphism class is the strongest rung the relation can lawfully claim.
-        let mclass = match relation {
-            CorrespondenceRelation::Equiv => MorphismClass::WellBehavedLens,
-            CorrespondenceRelation::Subsumes | CorrespondenceRelation::SubsumedBy => {
-                MorphismClass::LossyLens
-            }
-            CorrespondenceRelation::Overlaps => MorphismClass::AffineCorrespondence,
-            _ => MorphismClass::AffineCorrespondence,
-        };
+        // morphism class is the strongest rung the relation can lawfully claim. Both the
+        // relation and the class come from the shared band derivation the frontend reuses.
+        let (relation, mclass) = sssom_band(&cell.predicate);
         assert_relation_no_overclaim(
             "sssom",
             relation,
@@ -217,6 +238,15 @@ pub fn alignment_terms(view: &DslView) -> BTreeSet<String> {
 }
 
 // ── Extraction (over the oxigraph-free DslView) ──────────────────────────────────
+
+/// Every `gmeow:TermEquivalence` cell discovered over `view`, in extraction order — the
+/// frontend transpiler's input. Shares [`extract_equivalences`] with the SSSOM renderer,
+/// so the typed correspondence set and the rendered TSV read the store identically.
+pub(crate) fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
+    let mut out = Vec::new();
+    extract_equivalences(view, &mut out);
+    out
+}
 
 fn collect_sources(view: &DslView) -> SssomSources {
     let mut equivalences = Vec::new();
