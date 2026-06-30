@@ -53,6 +53,7 @@ pub mod rule_severity;
 pub mod schemas;
 pub mod source_load;
 pub mod statements;
+pub mod superset;
 pub mod validate;
 pub mod yaml_ld;
 

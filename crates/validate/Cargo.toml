@@ -71,7 +71,7 @@ gmeow-logic = { path = "../logic" }
 # GTS format engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
 # and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
 # lives in gmeow-rdf (#683).
-gmeow-gts = { version = "0.9.10", features = ["yaml-ld"] }
+gmeow-gts = { version = "0.9.11", features = ["yaml-ld"] }
 # CBOR reader for the bundle blob metadata: `gmeow_gts::model::Graph::blob_meta`
 # values are `ciborium::value::Value`, read to resolve a blob by its `rep` label.
 ciborium = "0.2"
