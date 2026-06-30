@@ -60,12 +60,38 @@ pub(crate) struct SerGraph {
 impl SerGraph {
     /// Look up a reifier binding: the `(s, p, o)` of the FIRST `reifiers` row whose id
     /// equals `rid`.
-    fn reifier(&self, rid: usize) -> Option<SerTriple3> {
+    pub(crate) fn reifier(&self, rid: usize) -> Option<SerTriple3> {
         self.reifiers
             .iter()
             .find(|(r, _, _)| *r == rid)
             .map(|(_, spo, _)| *spo)
     }
+}
+
+/// Crockford Base32 alphabet (the ULID rendering alphabet).
+const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+/// A rendered ULID is 26 Crockford Base32 digits.
+const ULID_LEN: usize = 26;
+
+/// A deterministic blank-node label, byte-identical to the prior gmeow-gts
+/// `deterministic_label("gts_", counter)`: the `gts_` prefix plus the 26-digit
+/// Crockford Base32 rendering of a zero-timestamp ULID built from `counter`.
+///
+/// With a zero timestamp the rendered ULID value equals `counter` for any
+/// `counter < 2^80`, so this renders the 128-bit big-endian value `counter as u128`
+/// as 26 Crockford Base32 digits, digit `i` being `(value >> (125 - i*5)) & 0x1f`.
+pub(crate) fn deterministic_blank_label(counter: usize) -> String {
+    let value = counter as u128;
+    let mut buffer = [0u8; ULID_LEN];
+    for (index, byte) in buffer.iter_mut().enumerate() {
+        let shift = 125 - index * 5;
+        let digit = ((value >> shift) & 0x1f) as usize;
+        *byte = CROCKFORD[digit];
+    }
+    // The buffer is ASCII (every byte comes from the Crockford alphabet), so the
+    // UTF-8 conversion never fails.
+    let rendered = std::str::from_utf8(&buffer).expect("Crockford digits are ASCII");
+    format!("gts_{rendered}")
 }
 
 const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -341,6 +367,34 @@ pub(crate) fn to_trig(g: &SerGraph) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn deterministic_blank_label_matches_zero_timestamp_ulid() {
+        // The raw blank-label shape is byte-identity critical: the W3C canonical
+        // comparison relabels blanks and will NOT catch a label-shape regression, so
+        // these exact strings are checked directly. Each is the 26-digit Crockford
+        // Base32 rendering of the zero-timestamp ULID built from the counter.
+        assert_eq!(
+            deterministic_blank_label(0),
+            "gts_00000000000000000000000000"
+        );
+        assert_eq!(
+            deterministic_blank_label(1),
+            "gts_00000000000000000000000001"
+        );
+        assert_eq!(
+            deterministic_blank_label(31),
+            "gts_0000000000000000000000000Z"
+        );
+        assert_eq!(
+            deterministic_blank_label(32),
+            "gts_00000000000000000000000010"
+        );
+        assert_eq!(
+            deterministic_blank_label(1000),
+            "gts_000000000000000000000000Z8"
+        );
+    }
 
     /// A single-quad graph `<s> <p> "<lit>"` over default-graph terms.
     fn lit_graph(lexical: &str, datatype_iri: &str) -> SerGraph {

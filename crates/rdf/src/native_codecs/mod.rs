@@ -20,7 +20,9 @@
 mod media_type;
 // First-party serialization model + the Turtle / TriG / N-Triples / N-Quads text
 // serializers that walk it, replacing the external gmeow-gts text serializers.
-mod ser_model;
+// `pub(crate)` so the container bridge (`crate::gts::gts_to_ser`) can construct a
+// `SerGraph` from a real `gmeow_gts::model::Graph` read out of a bundle.
+pub(crate) mod ser_model;
 // `pub(crate)` so the legacy `dataset_io` oxigraph path can reuse the SHARED
 // `fold_statement_layer` (one fold, no drift) — #909 Task 1.
 pub(crate) mod parse;

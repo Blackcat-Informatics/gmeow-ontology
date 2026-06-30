@@ -1,29 +1,28 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! First-party RDF text → in-memory [`GtsGraph`] front-end for the line / Turtle
-//! family (N-Triples, N-Quads, Turtle, TriG) — EPIC #906.
+//! First-party RDF text → in-memory [`SerGraph`] front-end for the line / Turtle
+//! family (N-Triples, N-Quads, Turtle, TriG).
 //!
 //! This module REPLACES the `gmeow-gts` `from_ntriples` / `from_nquads` /
 //! `from_turtle` / `from_trig` text codecs (which delegated all RDF text parsing
 //! to the EXTERNAL crate, FORBIDDEN here) with an in-repo parser that lowers
-//! directly to the same in-memory [`GtsGraph`] (`gmeow_gts::model::Graph`) the
-//! gmeow-gts roundtrip used to produce — WITHOUT the text→GTS-bytes→reader
-//! indirection.
+//! directly to the first-party in-memory [`SerGraph`] the gmeow-gts roundtrip used to
+//! produce — WITHOUT the text→GTS-bytes→reader indirection.
 //!
 //! ## Byte-identity discipline
 //!
-//! The downstream fold ([`super::parse::dataset_from_gts_graph`]) re-interns its
+//! The downstream fold ([`super::parse::dataset_from_ser_graph`]) re-interns its
 //! [`RdfDatasetBuilder`] from `graph.reifiers` THEN `graph.quads`, in order, so the
 //! frozen IR's term table is the first-seen interning order over those rows. To stay
-//! BYTE-IDENTICAL to the prior gmeow-gts path this parser reproduces, exactly,
-//! [`gmeow_gts::from_nquads`]'s `build_gts` structure: terms in first-seen order,
-//! quads in statement order, reifiers in encounter order, the `rdf:reifies`
-//! statement-layer shorthand, and the self-reifier sentinel for inline quoted-triple
-//! TERMS. The gmeow-gts `Writer::new("dist")` / `read` roundtrip the old path ran is
-//! append-order-preserving (it does NOT sort terms/quads/reifiers), so the in-memory
-//! graph the reader produced was already exactly this structure — only the serialize /
-//! deserialize hop, and the `\uXXXX` UCHAR-in-IRI gap, are removed.
+//! BYTE-IDENTICAL to the prior gmeow-gts path this parser reproduces, exactly, the
+//! `from_nquads` `build_gts` structure: terms in first-seen order, quads in statement
+//! order, reifiers in encounter order, the `rdf:reifies` statement-layer shorthand, and
+//! the self-reifier sentinel for inline quoted-triple TERMS. The prior gmeow-gts
+//! `Writer` / `read` roundtrip was append-order-preserving (it did NOT sort
+//! terms/quads/reifiers), so the in-memory graph the reader produced was already exactly
+//! this structure — only the serialize / deserialize hop, and the `\uXXXX` UCHAR-in-IRI
+//! gap, are removed.
 //!
 //! ## The UCHAR fix (W3C `test060`)
 //!
@@ -36,10 +35,10 @@
 
 use std::collections::HashMap;
 
-use gmeow_gts::model::{Graph as GtsGraph, Term, TermKind as GtsTermKind, Triple3};
 use gmeow_sparql_algebra::lexer::{tokenize, Spanned, Token};
 
 use super::media_type::NativeRdfFormat;
+use super::ser_model::{SerGraph, SerTerm, SerTermKind, SerTriple3};
 use crate::RdfDiagnostic;
 
 const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -60,7 +59,7 @@ fn err(detail: impl Into<String>) -> RdfDiagnostic {
     RdfDiagnostic::error("native-codec-parse", detail.into())
 }
 
-/// A parsed RDF term node, mirroring `gmeow_gts::from_nquads::Node` so the
+/// A parsed RDF term node, mirroring the `from_nquads` `Node` so the
 /// `build_gts` lowering is structurally identical.
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum Node {
@@ -75,15 +74,15 @@ enum Node {
     Triple(Box<Node>, Box<Node>, Box<Node>),
 }
 
-/// Parse RDF text of one of the four line/Turtle-family `format`s into the in-memory
-/// [`GtsGraph`] that the downstream statement-layer fold consumes. Mirrors the
-/// `gmeow_gts::from_*` structure exactly (see the module note) so the resulting IR is
-/// byte-identical to the prior gmeow-gts path, with the UCHAR-in-IRI gap fixed.
+/// Parse RDF text of one of the four line/Turtle-family `format`s into the first-party
+/// in-memory [`SerGraph`] that the downstream statement-layer fold consumes. Mirrors the
+/// `from_*` structure exactly (see the module note) so the resulting IR is byte-identical
+/// to the prior gmeow-gts path, with the UCHAR-in-IRI gap fixed.
 pub fn parse_to_gts_graph(
     format: NativeRdfFormat,
     text: &str,
     base_iri: Option<&str>,
-) -> Result<GtsGraph, RdfDiagnostic> {
+) -> Result<SerGraph, RdfDiagnostic> {
     let statements = match format {
         NativeRdfFormat::NTriples => parse_lines(text, false)?,
         NativeRdfFormat::NQuads => parse_lines(text, true)?,
@@ -297,7 +296,7 @@ fn split_lang_direction(raw: &str, line: &str) -> Result<(String, Option<String>
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Term validation (positional + IRI/lang shape), mirroring gmeow-gts
+// Term validation (positional + IRI/lang shape), mirroring the prior gmeow-gts parser
 // ───────────────────────────────────────────────────────────────────────────────
 
 /// Whether `value` carries an absolute-IRI scheme (`scheme:`), matching the
@@ -453,7 +452,7 @@ fn validate_statement(nodes: &[Node], line: &str, allow_graph: bool) -> Result<(
 /// A recursive-descent Turtle/TriG parser over the sparql-algebra token stream. It
 /// emits the SAME flat statement list (subject/predicate/object[/graph] `Node`s) the
 /// gmeow-gts Turtle/TriG parser produced before lowering through `from_nquads`'s
-/// `build_gts`, so the resulting [`GtsGraph`] is byte-identical.
+/// `build_gts`, so the resulting [`SerGraph`] is byte-identical.
 struct DocParser<'a> {
     tokens: Vec<Spanned>,
     pos: usize,
@@ -1115,19 +1114,16 @@ fn numeric(lexical: String, datatype: &str) -> Node {
     }
 }
 
-/// A fresh blank-node label, matching gmeow-gts's `deterministic_label("gts_", id)`:
-/// the `gts_` prefix plus the Crockford-Base32 ULID rendering of the zero-timestamp
-/// counter. gmeow-gts's `deterministic_label` is crate-private, so we reproduce its
-/// `Ulid::from_counter(0, id)` body (both `Ulid::from_counter` and its `Display` are
-/// public) to keep generated blank labels byte-identical.
+/// A fresh blank-node label, delegating to the first-party
+/// [`deterministic_blank_label`](super::ser_model::deterministic_blank_label): the
+/// `gts_` prefix plus the Crockford Base32 ULID rendering of the zero-timestamp counter,
+/// byte-identical to the prior gmeow-gts `deterministic_label("gts_", id)`.
 fn deterministic_label(id: usize) -> String {
-    let ulid = gmeow_gts::ulid::Ulid::from_counter(0, id as u128)
-        .expect("counter-derived labels fit in the 80-bit ULID field");
-    format!("gts_{ulid}")
+    super::ser_model::deterministic_blank_label(id)
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Relative-IRI resolution (mirrors gmeow_gts::from_trig::resolve_relative_iri)
+// Relative-IRI resolution (mirrors the prior from_trig `resolve_relative_iri`)
 // ───────────────────────────────────────────────────────────────────────────────
 
 fn remove_dot_segments(path: &str) -> String {
@@ -1224,7 +1220,7 @@ fn resolve_relative_iri(base: &str, raw: &str) -> String {
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
-// build_gts: lower the flat statement list to an in-memory GtsGraph
+// build_gts: lower the flat statement list to an in-memory SerGraph
 // ───────────────────────────────────────────────────────────────────────────────
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -1246,11 +1242,11 @@ enum AtomKind {
     Literal,
 }
 
-/// The first-seen-order term interner, reproducing `gmeow_gts::from_nquads::Interner`
-/// so `dataset_from_gts_graph` re-interns its builder in the identical order.
+/// The first-seen-order term interner, reproducing `from_nquads`'s `Interner`
+/// so `dataset_from_ser_graph` re-interns its builder in the identical order.
 struct Interner {
     ids: HashMap<TermKey, usize>,
-    terms: Vec<Term>,
+    terms: Vec<SerTerm>,
 }
 
 impl Interner {
@@ -1298,14 +1294,14 @@ impl Interner {
         } else {
             None
         };
-        let gts_kind = match kind {
-            AtomKind::Iri => GtsTermKind::Iri,
-            AtomKind::Bnode => GtsTermKind::Bnode,
-            AtomKind::Literal => GtsTermKind::Literal,
+        let ser_kind = match kind {
+            AtomKind::Iri => SerTermKind::Iri,
+            AtomKind::Bnode => SerTermKind::Bnode,
+            AtomKind::Literal => SerTermKind::Literal,
         };
         let id = self.terms.len();
-        self.terms.push(Term {
-            kind: gts_kind,
+        self.terms.push(SerTerm {
+            kind: ser_kind,
             value: Some(value),
             datatype: datatype_id,
             lang,
@@ -1316,7 +1312,7 @@ impl Interner {
         id
     }
 
-    fn node(&mut self, node: &Node, reifiers: &mut Vec<(usize, Triple3)>) -> usize {
+    fn node(&mut self, node: &Node, reifiers: &mut Vec<(usize, SerTriple3)>) -> usize {
         match node {
             Node::Triple(s, p, o) => {
                 let s = self.node(s, reifiers);
@@ -1328,10 +1324,11 @@ impl Interner {
                 }
                 let id = self.terms.len();
                 // A triple TERM is self-reifying: its reifier is its own id, matching
-                // gmeow-gts so `dataset_from_gts_graph` recognizes the self-reifier
-                // sentinel (an inline quoted-triple object, NOT a statement reifier).
-                self.terms.push(Term {
-                    kind: GtsTermKind::Triple,
+                // the gmeow-gts shape so `dataset_from_ser_graph` recognizes the
+                // self-reifier sentinel (an inline quoted-triple object, NOT a statement
+                // reifier).
+                self.terms.push(SerTerm {
+                    kind: SerTermKind::Triple,
                     value: None,
                     datatype: None,
                     lang: None,
@@ -1347,12 +1344,12 @@ impl Interner {
     }
 }
 
-/// Lower the flat statement list into the in-memory [`GtsGraph`], reproducing
-/// `gmeow_gts::from_nquads::build_gts` (the `rdf:reifies` statement-layer shorthand,
+/// Lower the flat statement list into the in-memory [`SerGraph`], reproducing
+/// `from_nquads`'s `build_gts` (the `rdf:reifies` statement-layer shorthand,
 /// first-seen interning, statement-order quads, encounter-order reifiers).
-fn build_gts_graph(statements: &[Statement]) -> Result<GtsGraph, RdfDiagnostic> {
+fn build_gts_graph(statements: &[Statement]) -> Result<SerGraph, RdfDiagnostic> {
     let mut interner = Interner::new();
-    let mut reifiers: Vec<(usize, Triple3)> = Vec::new();
+    let mut reifiers: Vec<(usize, SerTriple3)> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
 
     for nodes in statements {
@@ -1387,14 +1384,14 @@ fn build_gts_graph(statements: &[Statement]) -> Result<GtsGraph, RdfDiagnostic> 
         quads.push((sid, pid, oid, gid));
     }
 
-    Ok(GtsGraph {
+    Ok(SerGraph {
         terms: interner.terms,
         quads,
-        // gmeow-gts 0.9.11 carries an optional graph slot per reifier row; this
-        // first-party text parser binds reifiers only in the DEFAULT graph (the
-        // `rdf:reifies` shorthand is gated on `None` graph above), so the slot is
-        // always `None`. Annotations are left in `quads` here and reclassified by
-        // `fold_statement_layer`'s pass 2 (the codec's `annotations` table stays empty).
+        // The reifier row carries an optional graph slot; this first-party text parser
+        // binds reifiers only in the DEFAULT graph (the `rdf:reifies` shorthand is gated
+        // on `None` graph above), so the slot is always `None`. Annotations are left in
+        // `quads` here and reclassified by `fold_statement_layer`'s pass 2 (the
+        // `annotations` table stays empty).
         reifiers: reifiers
             .into_iter()
             .map(|(rid, spo)| (rid, spo, None))
@@ -1405,11 +1402,11 @@ fn build_gts_graph(statements: &[Statement]) -> Result<GtsGraph, RdfDiagnostic> 
 
 /// Bind a reifier, hard-failing on a conflicting rebinding (CONSTITUTION P7: never
 /// silently last-write-win), idempotent on an identical rebind. Mirrors
-/// `gmeow_gts::from_nquads::set_reifier`.
+/// `from_nquads`'s `set_reifier`.
 fn set_reifier(
-    reifiers: &mut Vec<(usize, Triple3)>,
+    reifiers: &mut Vec<(usize, SerTriple3)>,
     rid: usize,
-    spo: Triple3,
+    spo: SerTriple3,
 ) -> Result<(), RdfDiagnostic> {
     if let Some((_, existing)) = reifiers.iter().find(|(r, _)| *r == rid) {
         if *existing != spo {

@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native RDF text → frozen [`RdfDataset`] IR ingress (#909 / EPIC #906 S3).
+//! Native RDF text → frozen [`RdfDataset`] IR ingress.
 //!
-//! Parses Turtle / TriG / N-Triples / N-Quads / RDF/XML through the published
-//! `gmeow-gts` codecs (GTS bytes), folds the GTS segments to a
-//! [`gmeow_gts::model::Graph`] via the oxigraph-free
-//! [`read_all_segments`](crate::gts::read_all_segments), then walks that graph into a
+//! Parses Turtle / TriG / N-Triples / N-Quads through the FIRST-PARTY
+//! [`text_parse`](super::text_parse) front-end (RDF/XML through the first-party
+//! [`rdfxml`](super::rdfxml) codec) into a first-party in-memory
+//! [`SerGraph`](super::ser_model::SerGraph), then walks that graph into a
 //! [`RdfDatasetBuilder`] applying the RDF 1.2 statement-layer fold.
 //!
 //! The fold is factored into [`fold_statement_layer`], a source-agnostic two-pass
@@ -23,9 +23,8 @@ use std::collections::HashSet;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::Arc;
 
-use gmeow_gts::model::{Graph as GtsGraph, TermKind as GtsTermKind};
-
 use super::media_type::{classify, NativeRdfFormat};
+use super::ser_model::{SerGraph, SerTermKind};
 use crate::{
     BlankScope, RdfDataset, RdfDatasetBuilder, RdfDiagnostic, RdfLiteral, RdfTextDirection, TermId,
 };
@@ -113,12 +112,11 @@ where
 
 /// Parse RDF text bytes of `media_type` into a frozen [`RdfDataset`].
 ///
-/// Steps: UTF-8 validate (hard-fail `native-codec-utf8`); parse to an in-memory
-/// [`GtsGraph`] — the line/Turtle family (N-Triples, N-Quads, Turtle, TriG) through the
-/// FIRST-PARTY [`text_parse`](crate::native_codecs::text_parse) front-end and RDF/XML
-/// through the FIRST-PARTY [`rdfxml`](crate::native_codecs::rdfxml) codec (EPIC #906,
-/// no external gmeow-gts text / RDF-XML codec); then walk that graph through
-/// [`fold_statement_layer`] and freeze.
+/// Steps: UTF-8 validate (hard-fail `native-codec-utf8`); parse the line/Turtle family
+/// (N-Triples, N-Quads, Turtle, TriG) FIRST-PARTY into an in-memory [`SerGraph`] via
+/// [`text_parse`](super::text_parse), and RDF/XML through the FIRST-PARTY
+/// [`rdfxml`](super::rdfxml) codec (no external gmeow-gts text / RDF-XML codec); then
+/// walk that graph through [`fold_statement_layer`] and freeze.
 pub fn parse_dataset(
     bytes: &[u8],
     media_type: &str,
@@ -128,30 +126,37 @@ pub fn parse_dataset(
     let text = std::str::from_utf8(bytes)
         .map_err(|e| RdfDiagnostic::error("native-codec-utf8", e.to_string()))?;
 
-    let graph = match format {
-        // The line/Turtle family parses FIRST-PARTY straight into the in-memory
-        // GtsGraph the statement-layer fold consumes — no gmeow-gts text codec, no
-        // text→bytes→reader indirection. This also decodes `\uXXXX` UCHAR escapes
-        // inside IRIREFs (W3C test060), which the gmeow-gts IRIREF readers rejected.
+    match format {
+        // The line/Turtle family parses FIRST-PARTY straight into the first-party
+        // in-memory SerGraph the statement-layer fold consumes — no gmeow-gts text
+        // codec, no text→bytes→reader indirection. This also decodes `\uXXXX` UCHAR
+        // escapes inside IRIREFs (W3C test060), which the gmeow-gts IRIREF readers
+        // rejected.
         NativeRdfFormat::NTriples
         | NativeRdfFormat::NQuads
         | NativeRdfFormat::Turtle
-        | NativeRdfFormat::TriG => text_parse_without_panicking(format, text, base_iri)?,
-        // RDF/XML now parses FIRST-PARTY (EPIC #906) through the in-repo `rdfxml`
-        // codec (W3C RDF/XML grammar over a pure-Rust XML DOM), no longer the external
-        // the external gmeow-gts RDF/XML codec. It still lowers into the SAME
-        // `gmeow_gts::rdf` dataset model and re-encodes via `from_rdf_dataset`, so the
-        // resulting GtsGraph (and downstream IR) is byte-identical to the prior path.
-        NativeRdfFormat::RdfXml => parse_rdfxml_without_panicking(text, base_iri)?,
-    };
-    dataset_from_gts_graph(&graph)
+        | NativeRdfFormat::TriG => {
+            let graph = text_parse_without_panicking(format, text, base_iri)?;
+            dataset_from_ser_graph(&graph)
+        }
+        // RDF/XML parses FIRST-PARTY through the in-repo `rdfxml` codec (W3C RDF/XML
+        // grammar over a pure-Rust XML DOM). The codec still hands back a
+        // `gmeow_gts::model::Graph`; the GtsGraph→SerGraph hop here is TEMPORARY,
+        // pending the native RDF/XML cutover that retires the gmeow-gts model from
+        // the RDF/XML arm.
+        NativeRdfFormat::RdfXml => {
+            let graph = parse_rdfxml_without_panicking(text, base_iri)?;
+            let ser = crate::gts::gts_to_ser(&graph);
+            dataset_from_ser_graph(&ser)
+        }
+    }
 }
 
 fn text_parse_without_panicking(
     format: NativeRdfFormat,
     text: &str,
     base_iri: Option<&str>,
-) -> Result<gmeow_gts::model::Graph, RdfDiagnostic> {
+) -> Result<SerGraph, RdfDiagnostic> {
     let outcome = catch_unwind(AssertUnwindSafe(|| {
         super::text_parse::parse_to_gts_graph(format, text, base_iri)
     }));
@@ -198,43 +203,42 @@ fn panic_payload_message(payload: &(dyn std::any::Any + Send)) -> String {
     }
 }
 
-/// Walk a folded GTS [`GtsGraph`] into a frozen [`RdfDataset`] through the shared
+/// Walk a first-party [`SerGraph`] into a frozen [`RdfDataset`] through the shared
 /// [`fold_statement_layer`].
 ///
-/// The `gmeow-gts` `from_*` codecs (0.9.11) fold `rdf:reifies` triples into the graph's
-/// `reifiers` table (they never appear in `quads`) AND classify a reifier's sibling
-/// triples into the `annotations` table — the codec owns reifier identity, including
-/// anonymous `[]` reifiers. To feed the SAME two-pass fold the oxigraph path uses — and
-/// reach the SAME IR — this re-materializes each reifier binding as a synthetic
+/// The first-party parse path folds `rdf:reifies` triples into the graph's `reifiers`
+/// table (they never appear in `quads`) AND classifies a reifier's sibling triples into
+/// the `annotations` table — the parser owns reifier identity, including anonymous `[]`
+/// reifiers. To feed the SAME two-pass fold the oxigraph path uses — and reach the SAME
+/// IR — this re-materializes each reifier binding as a synthetic
 /// `<reifier> rdf:reifies <<( s p o )>>` row and each annotation as a
 /// `<reifier> <predicate> <value>` row alongside the plain quads, so pass 1 re-binds
 /// reifiers and pass 2 classifies the reifier subjects' rows as annotations. Term
 /// interning is shared across all rows, so identical terms collapse to one id exactly as
-/// on the oxigraph path. (Pre-0.9.11 this consumed only `quads`+`reifiers`, silently
-/// dropping every codec-classified annotation — #1155.)
-pub fn dataset_from_gts_graph(graph: &GtsGraph) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
-    dataset_from_gts_graph_impl(graph, false)
+/// on the oxigraph path.
+pub fn dataset_from_ser_graph(graph: &SerGraph) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
+    dataset_from_ser_graph_impl(graph, false)
 }
 
-/// Like [`dataset_from_gts_graph`], but folds **every** named graph into the default
+/// Like [`dataset_from_ser_graph`], but folds **every** named graph into the default
 /// graph (drops each base quad's graph component) — the oxigraph-free twin of
 /// `store_from_dataset(.., GraphPolicy::FlattenToDefaultGraph)`. This is the load
-/// path the EPIC #906 Task-4 native conformance gate replays against the frozen
-/// oxigraph goldens (which were captured over a flattened store). The statement
-/// layer (`rdf:reifies` reifiers + annotations) has no graph dimension, so only the
-/// base-quad graph component changes.
-pub fn flattened_dataset_from_gts_graph(
-    graph: &GtsGraph,
+/// path the native conformance gate replays against the frozen oxigraph goldens
+/// (which were captured over a flattened store). The statement layer (`rdf:reifies`
+/// reifiers + annotations) has no graph dimension, so only the base-quad graph
+/// component changes.
+pub fn flattened_dataset_from_ser_graph(
+    graph: &SerGraph,
 ) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
-    dataset_from_gts_graph_impl(graph, true)
+    dataset_from_ser_graph_impl(graph, true)
 }
 
-fn dataset_from_gts_graph_impl(
-    graph: &GtsGraph,
+fn dataset_from_ser_graph_impl(
+    graph: &SerGraph,
     flatten_to_default_graph: bool,
 ) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
     let mut builder = RdfDatasetBuilder::new();
-    let interner = GtsInterner { graph };
+    let interner = SerInterner { graph };
 
     let mut rows: Vec<FoldRow> =
         Vec::with_capacity(graph.quads.len() + graph.reifiers.len() + graph.annotations.len());
@@ -249,7 +253,7 @@ fn dataset_from_gts_graph_impl(
     // `rdf:reifies`, which the IR rejects.
     for &(reifier_id, (s, p, o), _graph) in &graph.reifiers {
         if graph.terms.get(reifier_id).is_some_and(|term| {
-            term.kind == GtsTermKind::Triple && term.reifier == Some(reifier_id)
+            term.kind == SerTermKind::Triple && term.reifier == Some(reifier_id)
         }) {
             continue;
         }
@@ -313,16 +317,16 @@ fn dataset_from_gts_graph_impl(
     builder.freeze()
 }
 
-/// Intern GTS terms into a builder, resolving quoted-triple terms through their
+/// Intern [`SerGraph`] terms into a builder, resolving quoted-triple terms through their
 /// reifier binding. Every folded blank node lands in [`BlankScope::DEFAULT`] (the
 /// folded graph has already collapsed per-segment scope — the documented
 /// `bnode-scope-flatten` loss, identical to `import_gts_graph`).
-struct GtsInterner<'a> {
-    graph: &'a GtsGraph,
+struct SerInterner<'a> {
+    graph: &'a SerGraph,
 }
 
-impl GtsInterner<'_> {
-    /// Intern a GTS term id into the builder, returning its [`TermId`]. A quoted-triple
+impl SerInterner<'_> {
+    /// Intern a term id into the builder, returning its [`TermId`]. A quoted-triple
     /// term resolves its `(s, p, o)` through the reifier table and interns as a triple.
     fn intern(
         &self,
@@ -350,7 +354,7 @@ impl GtsInterner<'_> {
             )
         })?;
         match term.kind {
-            GtsTermKind::Iri => {
+            SerTermKind::Iri => {
                 let iri = term
                     .value
                     .as_deref()
@@ -363,7 +367,7 @@ impl GtsInterner<'_> {
                     })?;
                 Ok(FoldNode::Term(builder.intern_iri(iri.to_owned())))
             }
-            GtsTermKind::Bnode => {
+            SerTermKind::Bnode => {
                 let label = term
                     .value
                     .clone()
@@ -372,7 +376,7 @@ impl GtsInterner<'_> {
                     builder.intern_blank(label, BlankScope::DEFAULT),
                 ))
             }
-            GtsTermKind::Literal => {
+            SerTermKind::Literal => {
                 let datatype = match term.datatype {
                     Some(dt_id) => Some(self.iri_string(dt_id)?),
                     None => None,
@@ -386,7 +390,7 @@ impl GtsInterner<'_> {
                     direction,
                 })))
             }
-            GtsTermKind::Triple => {
+            SerTermKind::Triple => {
                 let reifier_id = term.reifier.ok_or_else(|| {
                     RdfDiagnostic::error(
                         "native-codec-unbound-triple-term",
@@ -417,7 +421,7 @@ impl GtsInterner<'_> {
             )
         })?;
         match term.kind {
-            GtsTermKind::Iri => term.value.clone().filter(|v| !v.is_empty()).ok_or_else(|| {
+            SerTermKind::Iri => term.value.clone().filter(|v| !v.is_empty()).ok_or_else(|| {
                 RdfDiagnostic::error(
                     "native-codec-iri-missing-value",
                     "GTS IRI term requires a non-empty value",
