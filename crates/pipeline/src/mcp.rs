@@ -1143,9 +1143,8 @@ fn action_policy_nquads() -> &'static str {
             // del / compensation), all IRI→IRI — keep those and drop the annotation literals
             // (labels, comments) the executional-entailment run never consults.
             .filter(|quad| {
-                let subject = quad.subject.to_string();
-                let object = quad.object.to_string();
-                subject.starts_with('<') && object.starts_with('<')
+                matches!(quad.subject, gmeow_rdf::RdfTerm::Iri(_))
+                    && matches!(quad.object, gmeow_rdf::RdfTerm::Iri(_))
             })
             .map(|quad| {
                 format!(
@@ -1163,18 +1162,27 @@ fn action_policy_nquads() -> &'static str {
 /// primitive program (`root` instantiates `schema_iri`, transitions from the start state) and the
 /// start state's obtaining situations (`obtains`, derived from REAL memory state).
 fn txn_world_nquads(schema_iri: &str, obtains: &[&str]) -> String {
-    let mut nq = action_policy_nquads().to_string();
+    use std::fmt::Write as _;
+    let policy = action_policy_nquads();
+    // Pre-size to hold the cached policy verbatim plus this call's primitive program and one
+    // line per obtaining situation, so the build never reallocates.
+    let mut nq = String::with_capacity(policy.len() + obtains.len() * 128 + 256);
+    nq.push_str(policy);
     nq.push('\n');
-    nq.push_str(&format!(
-        "<{TXN_ROOT}> <{LOGIC_INSTANTIATES_SCHEMA}> <{schema_iri}> <{TXN_WORLD}> .\n"
-    ));
-    nq.push_str(&format!(
-        "<{TXN_ROOT}> <{LOGIC_TRANSITION_FROM_STATE}> <{TXN_START}> <{TXN_WORLD}> .\n"
-    ));
+    // `String`'s `fmt::Write` is infallible, so the formatting `Result` is discarded.
+    let _ = writeln!(
+        nq,
+        "<{TXN_ROOT}> <{LOGIC_INSTANTIATES_SCHEMA}> <{schema_iri}> <{TXN_WORLD}> ."
+    );
+    let _ = writeln!(
+        nq,
+        "<{TXN_ROOT}> <{LOGIC_TRANSITION_FROM_STATE}> <{TXN_START}> <{TXN_WORLD}> ."
+    );
     for situation in obtains {
-        nq.push_str(&format!(
-            "<{TXN_START}> <{LOGIC_SITUATION_OBTAINS}> <{situation}> <{TXN_WORLD}> .\n"
-        ));
+        let _ = writeln!(
+            nq,
+            "<{TXN_START}> <{LOGIC_SITUATION_OBTAINS}> <{situation}> <{TXN_WORLD}> ."
+        );
     }
     nq
 }
