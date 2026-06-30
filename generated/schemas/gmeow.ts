@@ -314,6 +314,10 @@ export enum BranchConditionTypeEnum {
     branchConditionSwitch = "branchConditionSwitch",
 }
 
+export enum BuildDataFlowEnum {
+    pipeline_dataflow_reason_compile_logic = "pipeline-dataflow-reason-compile-logic",
+}
+
 export enum CadastralReferenceTypeEnum {
     referenceTypeFolio = "referenceTypeFolio",
     referenceTypeLot = "referenceTypeLot",
@@ -2545,6 +2549,10 @@ export enum RepositoryTypeEnum {
     repoTypeSVN = "repoTypeSVN",
 }
 
+export enum ResourceEnum {
+    engineResource = "engineResource",
+}
+
 export enum RightsActionEnum {
     actionAcceptTracking = "actionAcceptTracking",
     actionAggregate = "actionAggregate",
@@ -2808,14 +2816,10 @@ export enum SpectrumEnum {
     spectrumExample = "spectrumExample",
 }
 
-export enum StageKindEnum {
-    kindDocsRender = "kindDocsRender",
-    kindExportLeaf = "kindExportLeaf",
-    kindReason = "kindReason",
-    kindSink = "kindSink",
-    kindSourceLoad = "kindSourceLoad",
-    kindTransform = "kindTransform",
-    kindValidate = "kindValidate",
+export enum StageCapabilityEnum {
+    sinkCapability = "sinkCapability",
+    sourceOrigin = "sourceOrigin",
+    stageExecutorCapability = "stageExecutorCapability",
 }
 
 export enum StandpointEnum {
@@ -3517,6 +3521,12 @@ export interface BuildActivity extends Activity {
     buildConfigUri?: string,
     buildOutput?: Distribution[],
     buildSource?: string[],
+}
+
+export interface BuildDataFlow {
+    buildFlowFrom?: PipelineStage[],
+    buildFlowTo?: PipelineStage[],
+    flowEntity?: string[],
 }
 
 export interface Builder extends SoftwareAgent {
@@ -5584,12 +5594,12 @@ export interface Pipeline extends SocialObject {
 }
 
 export interface PipelineStage extends SocialObject {
-    carriesEngineLock?: boolean[],
     dataflowConsumes?: PipelineStage[],
     dataflowProduces?: PipelineStage[],
+    hasCapability?: StageCapability[],
     producesFormat?: string[],
+    requiresResource?: Resource[],
     stageImpl?: string[],
-    stageKind?: StageKind[],
 }
 
 export interface PitchAnchor extends Entity {
@@ -5953,6 +5963,9 @@ export interface Repository extends InformationObject {
 export interface RepositoryType {
 }
 
+export interface Resource extends SocialObject {
+}
+
 export interface RetrievalEvent extends Activity {
     againstIndex?: VectorIndex,
     forQuery?: string[],
@@ -6269,7 +6282,7 @@ export interface SpatialMeasurement extends Measurement {
 export interface Spectrum extends InformationObject {
 }
 
-export interface StageKind {
+export interface StageCapability {
 }
 
 export interface Standpoint extends Entity {

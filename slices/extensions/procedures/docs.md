@@ -103,7 +103,11 @@ that closes the inquiry.
 ## SSSOM alignments (`mapping-dsl/equivalences/procedures.ttl`)
 
 All by reference (Principle 5) — GMEOW never imports an external axiom. Compiled to
-`mappings/gmeow-procedures.sssom.tsv` (26 rows).
+`mappings/gmeow-procedures.sssom.tsv`. The set holds the external/peer-model
+alignments below, the five workflow-engine by-reference bridges (Airflow / CWL / WDL
+/ Temporal / Nextflow, each a lossy `logic:BridgeView` lowering of `logic:Plan` with
+structured `gmeow:lossyDrop` residues), and the internal guard → combinator
+structural correspondences (see *Guard → structured-program combinator* below).
 
 | GMEOW | predicate | external target |
 |---|---|---|
@@ -117,6 +121,37 @@ All by reference (Principle 5) — GMEOW never imports an external axiom. Compil
 | `gmeow:hasProcedureStep` | closeMatch | `schema:step` |
 | `gmeow:stepTypeBranch` | relatedMatch | `bpmn:gateway` |
 | `gmeow:Execution` | relatedMatch | `ro-crate:CreateAction` (Workflow-Run profile) |
+
+### Guard → structured-program combinator
+
+W2 minted the **flow-GRAPH** layer (`gmeow:ControlFlow` ⊑ `logic:ControlFlowEdge` —
+the binary-edge form the DAG-workflow certifier runs Tarjan SCC over). The
+**combinator TREE** layer below is its complement: a control-flow edge's guard
+`gmeow:BranchConditionType` value maps onto the canonical structured-program
+combinator class an interpreter walks (`logic:Choice` / `logic:Iteration` /
+`logic:ConcurrentComposition` / `logic:Fallback`). The two forms are complementary,
+not duplicates: the graph edge is what the certifier reads; the combinator is what
+an interpreter walks. Each cell is an internal `skos:relatedMatch` structural
+correspondence (a guard value *indicates* which combinator the edge realizes; it is
+not the combinator class, so equivalence would overclaim).
+
+| guard (`gmeow:BranchConditionType`) | predicate | combinator (`logic:`) | residue (`gmeow:lossyDrop`) |
+|---|---|---|---|
+| `gmeow:branchConditionIf` | relatedMatch | `logic:Choice` | implicit else/default arm → `logic:Fallback` |
+| `gmeow:branchConditionLoop` | relatedMatch | `logic:Iteration` | body/condition split not carried; back-edge leaves the DAG fragment |
+| `gmeow:branchConditionParallel` | relatedMatch | `logic:ConcurrentComposition` | conflict-serializability surface is evaluator-derived |
+| `gmeow:branchConditionSwitch` | relatedMatch | `logic:Choice` | n-ary switch → right-nested binary `logic:Choice` cascade; default → `logic:Fallback` |
+
+`logic:Choice` is the binary co-equal-operand choice combinator
+(`logic:leftOperand` / `logic:rightOperand`), so an n-way **switch** corresponds to
+a right-nested cascade of binary `logic:Choice` nodes — the single canonical target
+is `logic:Choice` and the lost arity is recorded as the cell's residue. The implicit
+**else / default** arm of an `if` or a `switch` corresponds to `logic:Fallback` (try
+the guarded arm, else the default); it is recorded as a residue note rather than a
+distinct guard value, because the default arm is the un-guarded `gmeow:ControlFlow`
+edge out of the branch step. These cells lower through the same SSSOM/EDOAL/SPARQL
+pipeline and fold into the per-correspondence loss ledger (validation-only) like
+every other cell.
 
 ### Standards bridged
 

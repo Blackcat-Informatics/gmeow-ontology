@@ -17,12 +17,12 @@ loader — the build is a first-class ontological citizen.
 
 | Module | Responsibility |
 | --- | --- |
-| `node` | The `Stage` trait, the `StageKind` taxonomy, the in-memory product/input/output handles. |
+| `node` | The `Stage` trait, the resource/capability IRIs, the in-memory product/input/output handles. |
 | `graph` | Acyclicity (`tarjan_scc`) + deterministic topological levelling (producers first). |
 | `loader` | Parse the dogfooded DAG (`gmeow:` individuals), validate it, bind stages to impls. |
 | `registry` | The `STAGE_REGISTRY`: `gmeow:stageImpl` → Rust `Stage`. |
 | `cache` | Content-addressed, self-verifying per-stage cache (P2). |
-| `scheduler` | Level-parallel execution + the `Reason` engine lock (P2). |
+| `scheduler` | Level-parallel execution + per-resource serialization (the reasoner's engine resource) (P2). |
 | `provenance` | Per-stage `OriginKind` / `UnitId` quad stamping (P2). |
 | `stages` | The concrete production stages (P3–P5). |
 | `py` | The PyO3 `run_pipeline` surface (P6, `python` feature). |
@@ -30,10 +30,11 @@ loader — the build is a first-class ontological citizen.
 ## Invariants (proven before any stage runs — no-optionality)
 
 - The DAG is **acyclic** and **complete** (no dangling `dataflowConsumes`).
-- There is **exactly one `Sink`** — the gts narrow waist (one canonical exit).
-- `gmeow:carriesEngineLock` **equals** the kind-derived value (`kind is Reason`):
-  RDF and Rust cannot disagree (single source of truth).
-- Every bound stage's `kind` / `consumes` **agree** with its RDF declaration.
+- There is **exactly one** stage holding `gmeow:sinkCapability` — the gts narrow
+  waist (one canonical exit).
+- Every bound stage's `capabilities` / `consumes` / `requiresResource` / typed
+  dataflow **agree** with its RDF declaration: RDF and Rust cannot disagree
+  (single source of truth).
 
 ## Layering
 

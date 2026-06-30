@@ -27,7 +27,7 @@ use gmeow_validate::language_tags::{
 };
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 include!("lpg_prefixes.rs");
 
@@ -2520,9 +2520,6 @@ impl Default for ExportStage {
 impl Stage for ExportStage {
     fn id(&self) -> &str {
         "stage-export-export"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
