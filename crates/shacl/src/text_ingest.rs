@@ -19,16 +19,16 @@
 //!   namespace)` pairs by scanning the source text's `@prefix` / SPARQL `PREFIX`
 //!   directives. The native codec discards prefixes once it folds to the IR, so
 //!   the source scan is the faithful replacement for `RdfParser::prefixes()`.
-//! - **Multi-error reporting** ([`parse_turtle_to_store`] /
-//!   [`parse_ntriples_to_store`]) parses the whole document natively on the happy
+//! - **Multi-error reporting** ([`parse_turtle_to_dataset`] /
+//!   [`parse_ntriples_to_dataset`]) parses the whole document natively on the happy
 //!   path; when that fails, it re-parses the document one statement (Turtle) or
 //!   one line (N-Triples) at a time so each independently-malformed statement
 //!   yields its own error, matching the oxttl error-recovery behavior the engine
 //!   relied on.
 
-use oxigraph::store::Store;
+use std::sync::Arc;
 
-use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
+use gmeow_rdf::ir::RdfDataset;
 use gmeow_rdf::parse_dataset;
 
 /// Recover the document `(prefix, namespace)` map from Turtle/TriG source text.
@@ -75,52 +75,39 @@ fn scan_prefixes(text: &str) -> impl Iterator<Item = (String, String)> + '_ {
     })
 }
 
-/// Parse a Turtle document into a fresh oxigraph [`Store`] via the native codecs.
+/// Parse a Turtle document into a frozen [`RdfDataset`] via the native codecs.
 ///
-/// On a clean parse the store is returned. On a syntax error the document is
+/// On a clean parse the dataset is returned. On a syntax error the document is
 /// re-parsed one top-level statement at a time so EVERY independently-malformed
 /// statement is reported (the multi-error contract, #828 item 4); the returned
 /// `Err` is the list of per-statement error strings.
-pub fn parse_turtle_to_store(ttl: &str) -> Result<Store, Vec<String>> {
-    let store = Store::new().map_err(|e| vec![format!("shapes store creation failed: {e}")])?;
+pub fn parse_turtle_to_dataset(ttl: &str) -> Result<Arc<RdfDataset>, Vec<String>> {
     if ttl.is_empty() {
-        return Ok(store);
+        return Ok(empty_dataset());
     }
     match parse_dataset(ttl.as_bytes(), "text/turtle", None) {
-        Ok(dataset) => {
-            let quads = flat_oxigraph_quads_from_dataset(&dataset)
-                .map_err(|e| vec![format!("Turtle parse error: {e}")])?;
-            for quad in quads {
-                store
-                    .insert(&quad)
-                    .map_err(|e| vec![format!("shapes store insert failed: {e}")])?;
-            }
-            Ok(store)
-        }
+        Ok(dataset) => Ok(dataset),
         Err(_) => Err(turtle_statement_errors(ttl)),
     }
 }
 
-/// Parse an N-Triples document into a fresh oxigraph [`Store`] via the native
-/// codecs, accumulating every malformed line as its own error.
-pub fn parse_ntriples_to_store(data_nt: &str) -> Result<Store, Vec<String>> {
-    let store = Store::new().map_err(|e| vec![format!("data store creation failed: {e}")])?;
+/// Parse an N-Triples document into a frozen [`RdfDataset`] via the native codecs,
+/// accumulating every malformed line as its own error.
+pub fn parse_ntriples_to_dataset(data_nt: &str) -> Result<Arc<RdfDataset>, Vec<String>> {
     if data_nt.is_empty() {
-        return Ok(store);
+        return Ok(empty_dataset());
     }
     match parse_dataset(data_nt.as_bytes(), "application/n-triples", None) {
-        Ok(dataset) => {
-            let quads = flat_oxigraph_quads_from_dataset(&dataset)
-                .map_err(|e| vec![format!("N-Triples parse error: {e}")])?;
-            for quad in quads {
-                store
-                    .insert(&quad)
-                    .map_err(|e| vec![format!("data store insert failed: {e}")])?;
-            }
-            Ok(store)
-        }
+        Ok(dataset) => Ok(dataset),
         Err(_) => Err(ntriples_line_errors(data_nt)),
     }
+}
+
+/// A frozen empty dataset (the `parse_dataset` of an empty document).
+fn empty_dataset() -> Arc<RdfDataset> {
+    gmeow_rdf::ir::RdfDatasetBuilder::new()
+        .freeze()
+        .expect("an empty dataset freezes")
 }
 
 /// Enumerate per-statement Turtle parse errors by re-parsing each top-level
@@ -270,8 +257,8 @@ mod tests {
     #[test]
     fn parse_turtle_clean_input_succeeds() {
         let ttl = "@prefix ex: <http://example.org/ns#> .\nex:a ex:p ex:b .\n";
-        let store = parse_turtle_to_store(ttl).expect("clean Turtle parses");
-        assert_eq!(store.len().unwrap(), 1);
+        let dataset = parse_turtle_to_dataset(ttl).expect("clean Turtle parses");
+        assert_eq!(dataset.quad_refs().count(), 1);
     }
 
     #[test]
@@ -282,7 +269,7 @@ mod tests {
             "ex:b ex:q ex:c .\n",           // valid
             "ex:d ex:r ex:s ex:t ex:u .\n", // too many terms → error
         );
-        let errors = match parse_turtle_to_store(bad) {
+        let errors = match parse_turtle_to_dataset(bad) {
             Ok(_) => panic!("malformed Turtle must error"),
             Err(errors) => errors,
         };
@@ -300,7 +287,7 @@ mod tests {
             "<http://example.org/s> <http://example.org/p> .\n",
             "neither is this\n",
         );
-        let errors = match parse_ntriples_to_store(bad) {
+        let errors = match parse_ntriples_to_dataset(bad) {
             Ok(_) => panic!("malformed N-Triples must error"),
             Err(errors) => errors,
         };
@@ -314,8 +301,8 @@ mod tests {
     #[test]
     fn parse_ntriples_clean_input_succeeds() {
         let nt = "<http://example.org/s> <http://example.org/p> <http://example.org/o> .\n";
-        let store = parse_ntriples_to_store(nt).expect("clean N-Triples parses");
-        assert_eq!(store.len().unwrap(), 1);
+        let dataset = parse_ntriples_to_dataset(nt).expect("clean N-Triples parses");
+        assert_eq!(dataset.quad_refs().count(), 1);
     }
 
     #[test]

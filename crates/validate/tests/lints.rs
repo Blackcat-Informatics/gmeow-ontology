@@ -3,7 +3,7 @@
 
 //! Integration tests for the `gmeow-validate` lints (#579).
 //!
-//! These exercise the PyO3-free engine API directly: [`store::parse_file`]
+//! These exercise the PyO3-free engine API directly: [`store::parse_file_dataset`]
 //! (syntax checking) and [`store::sameas_violations`] (the Principle 5 ban).
 //! Inline Turtle fixtures keep each case self-contained.
 
@@ -28,7 +28,7 @@ fn syntax_error_is_detected() {
         "gmeow_validate_it_syntax_bad.ttl",
         "@prefix ex: <https://example.org/> .\nex:a ex:p   .  # missing object\n<<< garbage",
     );
-    let result = store::parse_file(&path);
+    let result = store::parse_file_dataset(&path);
     std::fs::remove_file(&path).ok();
     assert!(result.is_err(), "malformed Turtle must be a syntax error");
 }
@@ -40,7 +40,7 @@ fn good_turtle_parses_clean() {
         "gmeow_validate_it_syntax_good.ttl",
         "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
     );
-    let result = store::parse_file(&path);
+    let result = store::parse_file_dataset(&path);
     std::fs::remove_file(&path).ok();
     assert!(result.is_ok(), "well-formed Turtle must parse");
 }
@@ -54,9 +54,9 @@ fn banned_external_sameas_is_a_violation() {
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          ex:a owl:sameAs ex:b .\n",
     );
-    let quads = store::parse_file(&path).expect("fixture must parse");
+    let ds = store::parse_file_dataset(&path).expect("fixture must parse");
     std::fs::remove_file(&path).ok();
-    let violations = store::sameas_violations(&quads, NS, &[]);
+    let violations = store::sameas_violations(&ds, NS, &[]);
     assert_eq!(
         violations.len(),
         1,
@@ -81,13 +81,13 @@ fn allowlisted_external_sameas_passes() {
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          ex:a owl:sameAs ex:b .\n",
     );
-    let quads = store::parse_file(&path).expect("fixture must parse");
+    let ds = store::parse_file_dataset(&path).expect("fixture must parse");
     std::fs::remove_file(&path).ok();
     let allowlist = vec![(
         "https://example.org/a".to_owned(),
         "https://example.org/b".to_owned(),
     )];
-    let violations = store::sameas_violations(&quads, NS, &allowlist);
+    let violations = store::sameas_violations(&ds, NS, &allowlist);
     assert!(
         violations.is_empty(),
         "an allowlisted (subject, object) pair must not be a violation"
@@ -106,9 +106,9 @@ fn gmeow_internal_sameas_passes() {
              gmeow:A owl:sameAs gmeow:B .\n"
         ),
     );
-    let quads = store::parse_file(&path).expect("fixture must parse");
+    let ds = store::parse_file_dataset(&path).expect("fixture must parse");
     std::fs::remove_file(&path).ok();
-    let violations = store::sameas_violations(&quads, NS, &[]);
+    let violations = store::sameas_violations(&ds, NS, &[]);
     assert!(
         violations.is_empty(),
         "GMEOW-internal owl:sameAs must be allowed"

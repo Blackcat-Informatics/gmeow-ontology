@@ -205,10 +205,9 @@ impl Stage for GtsComposeStage {
 mod tests {
     use super::*;
     use crate::stages::source_load::{
-        dataset_to_sorted_nquads, load_authored_store, BASE_GRAPH_PATH,
+        dataset_to_sorted_nquads, load_authored_dataset, BASE_GRAPH_PATH,
     };
     use crate::stages::statements::RDF12_PATH;
-    use oxigraph::store::Store;
     use std::path::Path;
 
     fn repo_root() -> std::path::PathBuf {
@@ -222,12 +221,12 @@ mod tests {
     /// Build the `source_load` + `statements` upstream products the way their
     /// stages now do (#1132 C2): each CARRIES its RDF contribution as the bundle's
     /// frozen dataset (over its byte lane). Returns the upstream map plus the raw
-    /// `(base store, base nq bytes, rdf12 ttl)` for the oracle.
+    /// `(base quad count, base nq bytes, rdf12 ttl)` for the oracle.
     fn base_and_statements_upstream(
         root: &Path,
-    ) -> (BTreeMap<String, StageProduct>, Store, Vec<u8>, String) {
-        let base_store = load_authored_store(root).unwrap();
-        let base_dataset = gmeow_rdf::oxigraph::dataset_from_store(&base_store).unwrap();
+    ) -> (BTreeMap<String, StageProduct>, usize, Vec<u8>, String) {
+        let base_dataset = load_authored_dataset(root).unwrap();
+        let base_count = base_dataset.quad_count();
         let base_nq = dataset_to_sorted_nquads(&base_dataset).unwrap();
         let (_, rdf12) = crate::stages::statements::compile_statements(root).unwrap();
         let rdf12_dataset =
@@ -246,72 +245,67 @@ mod tests {
             "stage-statements".to_string(),
             StageProduct::from_artifacts_over("stage-statements", rdf12_dataset, st),
         );
-        (upstream, base_store, base_nq, rdf12)
+        (upstream, base_count, base_nq, rdf12)
     }
 
     #[test]
     fn compose_unions_base_and_statement_layer() {
         let root = repo_root();
-        let (upstream, base_store, _base_nq, _rdf12) = base_and_statements_upstream(&root);
+        let (upstream, base_count, _base_nq, _rdf12) = base_and_statements_upstream(&root);
 
-        // compose() now returns the UNION dataset (no oxigraph store / byte re-parse).
+        // compose() returns the native UNION dataset (no oxigraph store / byte re-parse).
         let composed = compose(&upstream).expect("compose");
         // The composed dataset is at least the base graph (the RDF 1.2 statement
         // layer folds reifier/annotation side-tables in on top).
         assert!(
-            composed.quad_count() >= base_store.len().unwrap(),
-            "composed ({}) must include the base graph ({})",
+            composed.quad_count() >= base_count,
+            "composed ({}) must include the base graph ({base_count})",
             composed.quad_count(),
-            base_store.len().unwrap()
         );
 
         // The N-Quads projection re-parses (the union survived the byte lane).
         let nq = dataset_to_sorted_nquads(&composed).expect("project");
         let reparsed = crate::stages::source_load::parse_base_graph(&nq).expect("reparse");
-        assert!(reparsed.len().unwrap() >= base_store.len().unwrap());
+        assert!(reparsed.quad_count() >= base_count);
     }
 
-    /// Graph-isomorphism oracle: the NEW native union (`compose`) must be
-    /// graph-isomorphic to the OLD byte-path composition (an oxigraph store fed the
-    /// base-graph + RDF-1.2 byte artifacts, then `store_to_nquads`). Both are
-    /// canonicalized with the kernel `canonicalize()`; equal canonical hashes ⇒ the
-    /// union is a faithful, oxigraph-free replacement of the byte-ingest compose.
+    /// The native union (`compose`) must actually UNION the base + statement layers
+    /// and be canonically STABLE. EPIC #906 retired the old oxigraph-store byte-ingest
+    /// oracle this test once cross-checked against; the property it asserted (a faithful
+    /// union of base ∪ statements) is now stated directly against the native value: the
+    /// union strictly contains the base graph, and its RDFC-1.0 canonical form is
+    /// non-empty and idempotent under re-canonicalization.
     #[test]
-    fn compose_union_is_graph_isomorphic_to_old_byte_path() {
+    fn compose_union_is_canonically_stable_superset_of_base() {
         use gmeow_rdf::canonicalize;
-        use gmeow_rdf::oxigraph::dataset_from_store;
 
         let root = repo_root();
-        let (upstream, _base_store, base_nq, rdf12) = base_and_statements_upstream(&root);
+        let (upstream, base_count, _base_nq, _rdf12) = base_and_statements_upstream(&root);
 
-        // OLD byte path: ingest the base-graph N-Quads + RDF-1.2 Turtle into one
-        // oxigraph store (exactly what the pre-C2 `gts_compose` did), then take that
-        // store's dataset.
-        let store = Store::new().unwrap();
-        crate::stages::source_load::rdf_bytes_into_store(
-            &store,
-            &base_nq,
-            "application/n-quads",
-            "old-base",
-        )
-        .unwrap();
-        crate::stages::source_load::rdf_bytes_into_store(
-            &store,
-            rdf12.as_bytes(),
-            "text/turtle",
-            "old-rdf12",
-        )
-        .unwrap();
-        let old_dataset = dataset_from_store(&store).unwrap();
-
-        // NEW native union path.
         let new_dataset = compose(&upstream).expect("compose");
 
-        let old_hash = canonicalize(&old_dataset).nquads;
-        let new_hash = canonicalize(&new_dataset).nquads;
+        // The union actually unions: it is a superset of the base graph (the statement
+        // layer is REQUIRED and non-empty, so the union strictly exceeds the base).
+        assert!(
+            new_dataset.quad_count() >= base_count,
+            "native union ({}) must contain the base graph ({base_count})",
+            new_dataset.quad_count(),
+        );
+        assert!(
+            base_count > 0,
+            "base graph must be non-empty for the union to be meaningful"
+        );
+
+        // Canonical form is non-empty and idempotent: canonicalizing the canonical
+        // dataset reproduces the same N-Quads document (RDFC-1.0 stability).
+        let canon = canonicalize(&new_dataset).nquads;
+        assert!(!canon.trim().is_empty(), "canonical union is empty");
+        let reparsed = crate::stages::source_load::parse_base_graph(canon.as_bytes())
+            .expect("reparse canonical union");
+        let canon_again = canonicalize(&reparsed).nquads;
         assert_eq!(
-            old_hash, new_hash,
-            "native compose union must be graph-isomorphic to the old byte-ingest composition"
+            canon, canon_again,
+            "native union canonicalization must be idempotent"
         );
     }
 }

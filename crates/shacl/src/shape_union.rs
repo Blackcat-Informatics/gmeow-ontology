@@ -17,10 +17,9 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use oxigraph::store::Store;
-
-use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped;
+use gmeow_rdf::ir::{RdfDataset, RdfDatasetBuilder};
 use gmeow_rdf::parse_dataset;
 
 use crate::shapes::{self, Shapes};
@@ -70,26 +69,32 @@ pub fn shape_files(repo_root: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-/// Parse every shape file from [`shape_files`] into ONE oxigraph [`Store`], then
+/// Parse every shape file from [`shape_files`] into ONE frozen [`RdfDataset`], then
 /// parse it into a typed [`Shapes`]. Returns both so a caller (e.g. the instance
-/// projector) can reuse the store.
+/// projector) can reuse the dataset.
 ///
 /// The union's document `@prefix` declarations are recovered and threaded into
-/// [`shapes::from_store_with_prefixes`] (oxigraph stores do not retain prefix
+/// [`shapes::from_dataset_with_prefixes`] (the frozen IR does not retain prefix
 /// maps): SHACL-AF `sh:select` queries — e.g. the music `MetricGroupShape`
 /// uniqueness constraint — use prefixed names like `gmeow:` and fail to parse
 /// without them. This mirrors the live validator (`engine::parse_shapes`, #578).
 /// When the same prefix is declared in multiple files, the last declaration wins
 /// (deterministic via the merge order over the sorted file list).
 ///
+/// Blank labels are scoped per source file: a NodeShape's anonymous property shapes
+/// (`sh:property [ … ]`) restart the blank counter per file, so merging several
+/// shape files unscoped would fuse distinct property shapes (#909).
+/// [`RdfDataset::union`] standardizes each input's blanks apart under a fresh scope,
+/// providing exactly that per-file isolation.
+///
 /// # Errors
 ///
 /// Returns `Err` when a file cannot be read, fails to parse as Turtle, or when
-/// [`shapes::from_store_with_prefixes`] rejects an unsupported SHACL construct.
-pub fn load_shapes(repo_root: &Path) -> Result<(Store, Shapes), String> {
+/// [`shapes::from_dataset_with_prefixes`] rejects an unsupported SHACL construct.
+pub fn load_shapes(repo_root: &Path) -> Result<(Arc<RdfDataset>, Shapes), String> {
     let files = shape_files(repo_root)?;
-    let store = Store::new().map_err(|e| format!("failed to create store: {e}"))?;
     let mut prefix_map: BTreeMap<String, String> = BTreeMap::new();
+    let mut per_file: Vec<Arc<RdfDataset>> = Vec::with_capacity(files.len());
     for file in &files {
         let bytes = std::fs::read(file)
             .map_err(|e| format!("failed to read shape file {}: {e}", file.display()))?;
@@ -100,23 +105,23 @@ pub fn load_shapes(repo_root: &Path) -> Result<(Store, Shapes), String> {
         // recovered by scanning the source text — see the doc comment above.
         let dataset = parse_dataset(&bytes, "text/turtle", None)
             .map_err(|e| format!("failed to parse Turtle shape file {}: {e}", file.display()))?;
-        // Scope blank labels by the shape file path: a NodeShape's anonymous property
-        // shapes (`sh:property [ … ]`) restart the blank counter per file, so merging
-        // several shape files unscoped would fuse distinct property shapes (#909).
-        let quads = flat_oxigraph_quads_from_dataset_scoped(&dataset, &file.display().to_string())
-            .map_err(|e| format!("failed to parse Turtle shape file {}: {e}", file.display()))?;
-        for quad in quads {
-            store
-                .insert(&quad)
-                .map_err(|e| format!("shapes store insert failed: {e}"))?;
-        }
+        per_file.push(dataset);
         for (prefix, namespace) in crate::text_ingest::extract_prefixes(text) {
             prefix_map.insert(prefix, namespace);
         }
     }
+    // Union all per-file datasets into one, standardizing blanks apart per file.
+    let merged = if per_file.is_empty() {
+        RdfDatasetBuilder::new()
+            .freeze()
+            .map_err(|e| format!("failed to build empty shapes dataset: {e}"))?
+    } else {
+        let refs: Vec<&RdfDataset> = per_file.iter().map(AsRef::as_ref).collect();
+        Arc::new(RdfDataset::union(&refs))
+    };
     let doc_prefixes: Vec<(String, String)> = prefix_map.into_iter().collect();
-    let shapes = shapes::from_store_with_prefixes(&store, &doc_prefixes)?;
-    Ok((store, shapes))
+    let shapes = shapes::from_dataset_with_prefixes(&merged, &doc_prefixes)?;
+    Ok((merged, shapes))
 }
 
 /// Every `*.ttl` directly under `dir`, sorted. An absent directory yields an

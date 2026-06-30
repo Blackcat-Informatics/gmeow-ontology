@@ -7,31 +7,30 @@
 //! non-deactivated node shape, runs all constraints, and assembles a
 //! deterministically-sorted [`ValidationReport`].
 
-use oxigraph::model::Term;
-use oxigraph::store::Store;
+use std::sync::Arc;
 
-use gmeow_rdf::ir::RdfDatasetBuilder;
-use gmeow_rdf::{RdfDataset, RdfQuad, RdfTerm};
+use gmeow_rdf::RdfDataset;
 
-use crate::data::{GraphFilter, ShaclDataGraph};
+use crate::data::{GraphFilter, IrDataGraph, ShaclDataGraph};
 use crate::model::{rdf, rdfs};
 use crate::report::ValidationReport;
 use crate::shapes::{Shapes, Target};
+use crate::term::{NamedNode, Term};
 
 // ── Target resolution helpers ─────────────────────────────────────────────────
 
-/// Build the oxigraph `Term` pattern for a predicate IRI.
-fn predicate_pattern(pred: &oxigraph::model::NamedNode) -> Term {
+/// Build the native `Term` pattern for a predicate IRI.
+fn predicate_pattern(pred: &NamedNode) -> Term {
     Term::NamedNode(pred.clone())
 }
 
 /// Collect distinct subjects of `(?, pred, ?)` across all graphs.
-fn subjects_of<G: ShaclDataGraph>(data: &G, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
+fn subjects_of<G: ShaclDataGraph>(data: &G, pred: &NamedNode) -> Vec<Term> {
     let pred_term = predicate_pattern(pred);
     let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
     for quad in data.quads_for_pattern(None, Some(&pred_term), None, GraphFilter::AnyGraph) {
-        let t = Term::from(quad.subject);
+        let t = quad.subject;
         if seen.insert(t.clone()) {
             result.push(t);
         }
@@ -40,7 +39,7 @@ fn subjects_of<G: ShaclDataGraph>(data: &G, pred: &oxigraph::model::NamedNode) -
 }
 
 /// Collect distinct objects of `(?, pred, ?)` across all graphs.
-fn objects_of<G: ShaclDataGraph>(data: &G, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
+fn objects_of<G: ShaclDataGraph>(data: &G, pred: &NamedNode) -> Vec<Term> {
     let pred_term = predicate_pattern(pred);
     let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
@@ -64,9 +63,9 @@ fn objects_of<G: ShaclDataGraph>(data: &G, pred: &oxigraph::model::NamedNode) ->
 /// edges are ignored.) See #599.
 pub(crate) fn subclass_closure<G: ShaclDataGraph>(
     data: &G,
-    class_iri: &oxigraph::model::NamedNode,
+    class_iri: &NamedNode,
 ) -> std::collections::HashSet<Term> {
-    let sub_class_of = Term::NamedNode(rdfs::SUB_CLASS_OF.into_owned());
+    let sub_class_of = Term::NamedNode(NamedNode::from(rdfs::SUB_CLASS_OF));
     let mut closure = std::collections::HashSet::new();
     let start = Term::NamedNode(class_iri.clone());
     closure.insert(start.clone());
@@ -79,7 +78,7 @@ pub(crate) fn subclass_closure<G: ShaclDataGraph>(
             Some(&superclass),
             GraphFilter::AnyGraph,
         ) {
-            let sub = Term::from(quad.subject);
+            let sub = quad.subject;
             if closure.insert(sub.clone()) {
                 frontier.push(sub);
             }
@@ -95,13 +94,10 @@ pub(crate) fn subclass_closure<G: ShaclDataGraph>(
 /// subclass BFS is performed at most once per distinct class across all shapes.
 fn instances_of_class<G: ShaclDataGraph>(
     data: &G,
-    class_iri: &oxigraph::model::NamedNode,
-    closure_memo: &mut std::collections::HashMap<
-        oxigraph::model::NamedNode,
-        std::collections::HashSet<Term>,
-    >,
+    class_iri: &NamedNode,
+    closure_memo: &mut std::collections::HashMap<NamedNode, std::collections::HashSet<Term>>,
 ) -> Vec<Term> {
-    let rdf_type = Term::NamedNode(rdf::TYPE.into_owned());
+    let rdf_type = Term::NamedNode(NamedNode::from(rdf::TYPE));
     // Compute the subclass closure at most once per class IRI; clone the key only
     // on a memo miss (insert requires ownership), never on a hit.
     if !closure_memo.contains_key(class_iri) {
@@ -116,7 +112,7 @@ fn instances_of_class<G: ShaclDataGraph>(
         for quad in
             data.quads_for_pattern(None, Some(&rdf_type), Some(class), GraphFilter::AnyGraph)
         {
-            let t = Term::from(quad.subject);
+            let t = quad.subject;
             if seen.insert(t.clone()) {
                 result.push(t);
             }
@@ -134,10 +130,7 @@ fn instances_of_class<G: ShaclDataGraph>(
 fn resolve_focus_nodes<G: ShaclDataGraph>(
     data: &G,
     targets: &[Target],
-    closure_memo: &mut std::collections::HashMap<
-        oxigraph::model::NamedNode,
-        std::collections::HashSet<Term>,
-    >,
+    closure_memo: &mut std::collections::HashMap<NamedNode, std::collections::HashSet<Term>>,
 ) -> Vec<Term> {
     let mut seen = std::collections::HashSet::new();
     let mut nodes: Vec<Term> = Vec::new();
@@ -156,13 +149,11 @@ fn resolve_focus_nodes<G: ShaclDataGraph>(
                     vec![]
                 }
             }
-            // sh:SPARQLTarget: execute the pre-parsed SELECT and collect ?this.
-            // SHACL-SPARQL needs an oxigraph query engine; obtain it via the
-            // data graph's SPARQL store (cheap borrow for Store, one-time
-            // materialization for the IR backend).
+            // sh:SPARQLTarget: execute the pre-parsed SELECT and collect ?this over
+            // the native SPARQL engine, reading the IR dataset directly.
             // SELECT-form is enforced at shape-load (shapes.rs rejects non-SELECT), so the only Err here is an impossible-by-construction runtime failure; .expect() documents that invariant.
-            Target::Sparql { parsed, .. } => {
-                crate::sparql::eval_target(&data.sparql_store(), &parsed.0).expect(
+            Target::Sparql { select, .. } => {
+                crate::sparql::eval_target(&data.sparql_dataset(), select).expect(
                     "SPARQLTarget query execution failed (parseability checked at parse time)",
                 )
             }
@@ -181,32 +172,24 @@ fn resolve_focus_nodes<G: ShaclDataGraph>(
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-/// Validate `data` against `shapes`, returning a deterministic [`ValidationReport`].
-///
-/// For every non-deactivated node shape, the focus node set is resolved from
-/// the shape's target declarations and each focus node is validated against
-/// the shape via [`crate::constraints::validate_shape`].  Results are sorted
-/// by `(focus_node, source_constraint_component, source_shape, result_path,
-/// value)` so reports are identical across runs.
-pub fn validate(data: &Store, shapes: &Shapes) -> ValidationReport {
-    validate_with(data, shapes)
-}
-
 /// Validate any [`ShaclDataGraph`] backend against `shapes`.
 ///
-/// This is the single, backend-generic engine core: [`validate`] (oxigraph
-/// [`Store`]) and [`validate_dataset`] (the IR backend) both bottom out here, so
-/// conformance is identical by construction across backends.
+/// This is the single, backend-generic engine core; [`validate_dataset`] (the IR
+/// backend) bottoms out here.
+///
+/// For every non-deactivated node shape, the focus node set is resolved from the
+/// shape's target declarations and each focus node is validated against the shape
+/// via [`crate::constraints::validate_shape`]. Results are sorted by `(focus_node,
+/// source_constraint_component, source_shape, result_path, value)` so reports are
+/// identical across runs.
 pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> ValidationReport {
     let mut all_results = Vec::new();
     // Per-call subclass-closure memo: keyed by class IRI, value is the full
     // transitive closure of asserted rdfs:subClassOf edges below that class.
     // Shared across all shapes in this validation run; each distinct class IRI
     // is BFS-walked AT MOST ONCE regardless of how many shapes target it.
-    let mut closure_memo: std::collections::HashMap<
-        oxigraph::model::NamedNode,
-        std::collections::HashSet<Term>,
-    > = std::collections::HashMap::new();
+    let mut closure_memo: std::collections::HashMap<NamedNode, std::collections::HashSet<Term>> =
+        std::collections::HashMap::new();
 
     for shape in &shapes.node_shapes {
         if shape.deactivated {
@@ -275,21 +258,20 @@ pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> Validation
 /// Returns an error string if the SHACL projection cannot be frozen into the IR.
 pub fn validate_dataset(data: &RdfDataset, shapes: &Shapes) -> Result<ValidationReport, String> {
     let dataset = shacl_dataset_from_dataset(data)?;
-    // The engine reads pattern lookups directly from the frozen IR, with no
-    // whole-store oxigraph materialization. SHACL-SPARQL paths materialize lazily and
-    // — via `CachedIrDataGraph` — AT MOST ONCE per validation, shared across every
-    // `sh:sparql` target/constraint (rather than re-materializing the whole store per
-    // SPARQL call as the bare `&RdfDataset` backend would).
-    let reference = crate::data::CachedIrDataGraph::new(&dataset);
-    Ok(validate_with(&reference, shapes))
+    // The engine reads pattern lookups directly from the frozen IR; SHACL-SPARQL
+    // paths run the native SPARQL engine over the same `Arc<RdfDataset>`.
+    let reference = IrDataGraph::new(dataset);
+    let report = validate_with(&reference, shapes);
+    Ok(report)
 }
 
 /// Build a SHACL-projection dataset from the source [`RdfDataset`], flattening
 /// every quad into the default graph and materializing reifier bindings as
 /// `rdf:reifies` triples and statement annotations as plain triples.
-fn shacl_dataset_from_dataset(
-    data: &RdfDataset,
-) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, String> {
+pub(crate) fn shacl_dataset_from_dataset(data: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
+    use gmeow_rdf::ir::RdfDatasetBuilder;
+    use gmeow_rdf::{RdfQuad, RdfTerm};
+
     let mut builder = RdfDatasetBuilder::new();
 
     for mut quad in data.owned_quads() {
@@ -342,11 +324,11 @@ pub fn parse_shapes(shapes_ttl: &str) -> Result<Shapes, String> {
     // names like `gmeow:`. See #578. A syntax error is reported per-statement so
     // a SHACL author sees the full list in one pass (#828 item 4), not the
     // fix-one-rerun-find-the-next loop.
-    let shapes_store = crate::text_ingest::parse_turtle_to_store(shapes_ttl)
+    let shapes_dataset = crate::text_ingest::parse_turtle_to_dataset(shapes_ttl)
         .map_err(|errors| errors.join("\n"))?;
     let doc_prefixes = crate::text_ingest::extract_prefixes(shapes_ttl);
 
-    crate::shapes::from_store_with_prefixes(&shapes_store, &doc_prefixes)
+    crate::shapes::from_dataset_with_prefixes(&shapes_dataset, &doc_prefixes)
 }
 
 /// Validate data (N-Triples) against shapes (Turtle), returning a [`ValidationReport`].
@@ -369,11 +351,11 @@ pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationRepo
     // Parse the data graph via the native codecs (#909). Every malformed
     // N-Triples line is reported in one pass — same multi-error contract as
     // `parse_shapes`. See #828 (item 4).
-    let data =
-        crate::text_ingest::parse_ntriples_to_store(data_nt).map_err(|errors| errors.join("\n"))?;
+    let data = crate::text_ingest::parse_ntriples_to_dataset(data_nt)
+        .map_err(|errors| errors.join("\n"))?;
 
     let shapes = parse_shapes(shapes_ttl)?;
-    Ok(validate(&data, &shapes))
+    validate_dataset(data.as_ref(), &shapes)
 }
 
 /// Validate a frozen [`gmeow_rdf::RdfDataset`] against a Turtle SHACL shapes graph.
@@ -406,14 +388,20 @@ mod tests {
         @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
     "#;
 
-    fn load_data_nt(nt: &str) -> Store {
-        crate::text_ingest::parse_ntriples_to_store(nt).expect("data N-Triples must parse")
+    fn load_data_nt(nt: &str) -> Arc<RdfDataset> {
+        crate::text_ingest::parse_ntriples_to_dataset(nt).expect("data N-Triples must parse")
     }
 
     fn load_shapes_ttl(ttl: &str) -> Shapes {
-        let store =
-            crate::text_ingest::parse_turtle_to_store(ttl).expect("shapes Turtle must parse");
-        crate::shapes::from_store(&store).expect("shapes parse must succeed")
+        let dataset =
+            crate::text_ingest::parse_turtle_to_dataset(ttl).expect("shapes Turtle must parse");
+        crate::shapes::from_dataset(&dataset).expect("shapes parse must succeed")
+    }
+
+    /// Validate native: the in-crate tests historically called `validate(&store, …)`;
+    /// route them through the IR entrypoint, which is the only engine path now.
+    fn validate(data: &Arc<RdfDataset>, shapes: &Shapes) -> ValidationReport {
+        validate_dataset(data.as_ref(), shapes).expect("validate_dataset must succeed")
     }
 
     // ── Multi-error syntax reporting (#828 item 4) ─────────────────────────────
@@ -481,6 +469,7 @@ mod tests {
 
     #[test]
     fn dataset_entrypoint_validates_gts_backed_graph() {
+        use gmeow_rdf::ir::RdfDatasetBuilder;
         let mut builder = RdfDatasetBuilder::new();
         let ids: Vec<_> = [
             "http://example.org/ns#a",
@@ -510,7 +499,7 @@ mod tests {
 
     #[test]
     fn validate_stub_always_conforms() {
-        let data = Store::new().unwrap();
+        let data = load_data_nt("");
         let shapes = Shapes::default();
         let report = validate(&data, &shapes);
         assert!(report.conforms);

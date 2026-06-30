@@ -22,7 +22,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::oxigraph::flat_rdf_quads_from_dataset;
+use crate::native_quads::flat_rdf_quads_from_dataset;
 use crate::{
     parse_dataset, NativeRdfFormat, RdfDiagnostic, RdfLiteral, RdfQuad, RdfTerm, RdfTriple,
 };

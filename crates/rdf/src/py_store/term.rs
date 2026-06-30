@@ -3,17 +3,30 @@
 
 //! The RDF term object model for the `gmeow_rdf` Python extension: the
 //! `NamedNode` / `BlankNode` / `Literal` / `Triple` / `Quad` / `DefaultGraph` /
-//! `Variable` pyclasses, plus the Python ⇄ oxigraph term converters and
+//! `Variable` pyclasses, plus the Python ⇄ native-IR term converters and
 //! extractors the store, query, and io seams share.
+//!
+//! # Native backing (EPIC #906)
+//!
+//! Every pyclass is backed by the oxigraph-free `gmeow_rdf_core` owned model
+//! (`RdfTerm` / `RdfLiteral` / `RdfTriple` / `RdfQuad`) plus `String` for IRI
+//! predicates and variable names — never `oxigraph::model::*`. The Python-facing
+//! class names, attributes (`value` / `datatype` / `language` / `subject` …), and
+//! semantics are IDENTICAL to the prior oxigraph-backed surface (this is the
+//! rdflib drop-in): in particular `Literal.datatype` always returns an IRI
+//! (`xsd:string` for a plain literal, `rdf:langString` for a language-tagged one),
+//! matching the oxigraph Python `Literal` API the codebase relies on.
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-use oxigraph::model::{
-    BlankNode, GraphName, Literal, NamedNode, NamedOrBlankNode, Quad, Term, Triple, Variable,
-};
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
+
+use crate::{RdfLiteral, RdfQuad, RdfTerm, RdfTriple};
+
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
 // ── Term model ──────────────────────────────────────────────────────────────────
 
@@ -23,35 +36,50 @@ fn hash_str(value: &str) -> u64 {
     hasher.finish()
 }
 
+/// The datatype IRI of a native literal, expanded per the oxigraph Python `Literal`
+/// API: a plain (datatype-less) literal reports `xsd:string`, a language-tagged one
+/// reports `rdf:langString`, and a typed one reports its explicit datatype.
+fn literal_datatype_iri(lit: &RdfLiteral) -> &str {
+    match (&lit.datatype, &lit.language) {
+        (Some(dt), _) => dt.as_str(),
+        (None, Some(_)) => RDF_LANG_STRING,
+        (None, None) => XSD_STRING,
+    }
+}
+
 /// An IRI node. Mirrors the oxigraph Python `NamedNode`.
 #[pyclass(name = "NamedNode", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyNamedNode {
-    pub(crate) inner: NamedNode,
+    pub(crate) inner: String,
 }
 
 #[pymethods]
 impl PyNamedNode {
     #[new]
     fn new(value: &str) -> PyResult<Self> {
+        if value.is_empty() {
+            return Err(PyValueError::new_err(
+                "invalid IRI: an IRI must not be empty",
+            ));
+        }
         Ok(Self {
-            inner: NamedNode::new(value)
-                .map_err(|e| PyValueError::new_err(format!("invalid IRI `{value}`: {e}")))?,
+            inner: value.to_owned(),
         })
     }
 
     /// The IRI string (no angle brackets).
     #[getter]
     fn value(&self) -> &str {
-        self.inner.as_str()
+        &self.inner
     }
 
     fn __str__(&self) -> String {
-        self.inner.to_string()
+        format!("<{}>", self.inner)
     }
 
     fn __repr__(&self) -> String {
-        format!("<NamedNode value={}>", self.inner.as_str())
+        format!("<NamedNode value={}>", self.inner)
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -59,7 +87,7 @@ impl PyNamedNode {
     }
 
     fn __hash__(&self) -> u64 {
-        hash_str(self.inner.as_str())
+        hash_str(&self.inner)
     }
 }
 
@@ -67,31 +95,35 @@ impl PyNamedNode {
 #[pyclass(name = "BlankNode", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyBlankNode {
-    pub(crate) inner: BlankNode,
+    pub(crate) inner: String,
 }
 
 #[pymethods]
 impl PyBlankNode {
     #[new]
     fn new(value: &str) -> PyResult<Self> {
+        if value.is_empty() {
+            return Err(PyValueError::new_err(
+                "invalid blank node: a blank-node label must not be empty",
+            ));
+        }
         Ok(Self {
-            inner: BlankNode::new(value)
-                .map_err(|e| PyValueError::new_err(format!("invalid blank node `{value}`: {e}")))?,
+            inner: value.to_owned(),
         })
     }
 
     /// The blank-node id (no `_:` prefix).
     #[getter]
     fn value(&self) -> &str {
-        self.inner.as_str()
+        &self.inner
     }
 
     fn __str__(&self) -> String {
-        self.inner.to_string()
+        format!("_:{}", self.inner)
     }
 
     fn __repr__(&self) -> String {
-        format!("<BlankNode value={}>", self.inner.as_str())
+        format!("<BlankNode value={}>", self.inner)
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -99,7 +131,7 @@ impl PyBlankNode {
     }
 
     fn __hash__(&self) -> u64 {
-        hash_str(self.inner.as_str())
+        hash_str(&self.inner)
     }
 }
 
@@ -107,7 +139,7 @@ impl PyBlankNode {
 #[pyclass(name = "Literal", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyLiteral {
-    pub(crate) inner: Literal,
+    pub(crate) inner: RdfLiteral,
 }
 
 #[pymethods]
@@ -125,12 +157,33 @@ impl PyLiteral {
                     "a language-tagged literal cannot also carry an explicit datatype",
                 ));
             }
-            Literal::new_language_tagged_literal(value, &language)
-                .map_err(|e| PyValueError::new_err(format!("invalid language tag: {e}")))?
+            if language.is_empty() {
+                return Err(PyValueError::new_err(
+                    "invalid language tag: a language tag must not be empty",
+                ));
+            }
+            RdfLiteral {
+                lexical_form: value,
+                datatype: None,
+                language: Some(language),
+                direction: None,
+            }
         } else if let Some(datatype) = datatype {
-            Literal::new_typed_literal(value, datatype.inner.clone())
+            RdfLiteral {
+                lexical_form: value,
+                datatype: Some(datatype.inner.clone()),
+                language: None,
+                direction: None,
+            }
         } else {
-            Literal::new_simple_literal(value)
+            // A plain literal: datatype-less in the native model, surfaced as
+            // `xsd:string` by the `datatype` getter (oxigraph Python parity).
+            RdfLiteral {
+                lexical_form: value,
+                datatype: None,
+                language: None,
+                direction: None,
+            }
         };
         Ok(Self { inner })
     }
@@ -138,13 +191,13 @@ impl PyLiteral {
     /// The lexical form (no datatype/language decoration).
     #[getter]
     fn value(&self) -> &str {
-        self.inner.value()
+        &self.inner.lexical_form
     }
 
     /// The language tag, or `None` for a non-language-tagged literal.
     #[getter]
     fn language(&self) -> Option<&str> {
-        self.inner.language()
+        self.inner.language.as_deref()
     }
 
     /// The datatype IRI (always present — `xsd:string` for a plain literal,
@@ -152,32 +205,53 @@ impl PyLiteral {
     #[getter]
     fn datatype(&self) -> PyNamedNode {
         PyNamedNode {
-            inner: self.inner.datatype().into_owned(),
+            inner: literal_datatype_iri(&self.inner).to_owned(),
         }
     }
 
     fn __str__(&self) -> String {
-        self.inner.to_string()
+        RdfTerm::Literal(self.inner.clone()).to_string()
     }
 
     fn __repr__(&self) -> String {
-        format!("<Literal {}>", self.inner)
+        format!("<Literal {}>", RdfTerm::Literal(self.inner.clone()))
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.inner == other.inner
+        // RDF term equality over the value-space-equivalent representation: a plain
+        // literal and an explicit `xsd:string` literal of the same lexical form are
+        // the SAME term (matching the prior oxigraph `Literal` equality, where a
+        // plain literal's datatype IS `xsd:string`). The native model keeps a plain
+        // literal datatype-less, so normalize both sides through the datatype IRI.
+        literal_key(&self.inner) == literal_key(&other.inner)
     }
 
     fn __hash__(&self) -> u64 {
-        hash_str(&self.inner.to_string())
+        hash_str(&literal_key_string(&self.inner))
     }
+}
+
+/// The RDF-term-equality key of a native literal: `(lexical, datatype-IRI, language)`
+/// with a plain literal's datatype normalized to `xsd:string`, so a plain literal and
+/// an explicit `xsd:string` literal compare equal (oxigraph `Literal` parity).
+fn literal_key(lit: &RdfLiteral) -> (&str, &str, Option<&str>) {
+    (
+        &lit.lexical_form,
+        literal_datatype_iri(lit),
+        lit.language.as_deref(),
+    )
+}
+
+fn literal_key_string(lit: &RdfLiteral) -> String {
+    let (lex, dt, lang) = literal_key(lit);
+    format!("{lex}\u{1}{dt}\u{1}{}", lang.unwrap_or(""))
 }
 
 /// A quoted triple term (RDF 1.2 / RDF-star). Mirrors the oxigraph Python `Triple`.
 #[pyclass(name = "Triple", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyTriple {
-    pub(crate) inner: Triple,
+    pub(crate) inner: RdfTriple,
 }
 
 #[pymethods]
@@ -191,7 +265,7 @@ impl PyTriple {
     ) -> PyResult<Self> {
         let _ = py;
         Ok(Self {
-            inner: Triple::new(
+            inner: RdfTriple::new(
                 extract_subject(subject)?,
                 extract_named_node(predicate)?,
                 extract_term(object)?,
@@ -221,19 +295,19 @@ impl PyTriple {
     }
 
     fn __str__(&self) -> String {
-        self.inner.to_string()
+        triple_term_to_string(&self.inner)
     }
 
     fn __repr__(&self) -> String {
-        format!("<Triple {}>", self.inner)
+        format!("<Triple {}>", triple_term_to_string(&self.inner))
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.inner == other.inner
+        triple_key(&self.inner) == triple_key(&other.inner)
     }
 
     fn __hash__(&self) -> u64 {
-        hash_str(&self.inner.to_string())
+        hash_str(&triple_term_to_string(&self.inner))
     }
 }
 
@@ -241,7 +315,7 @@ impl PyTriple {
 #[pyclass(name = "Quad", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyQuad {
-    pub(crate) inner: Quad,
+    pub(crate) inner: RdfQuad,
 }
 
 #[pymethods]
@@ -254,14 +328,13 @@ impl PyQuad {
         object: &Bound<'_, PyAny>,
         graph_name: Option<&Bound<'_, PyAny>>,
     ) -> PyResult<Self> {
-        Ok(Self {
-            inner: Quad::new(
-                extract_subject(subject)?,
-                extract_named_node(predicate)?,
-                extract_term(object)?,
-                extract_graph_name(graph_name)?,
-            ),
-        })
+        let mut quad = RdfQuad::new(
+            extract_subject(subject)?,
+            extract_named_node(predicate)?,
+            extract_term(object)?,
+        );
+        quad.graph_name = extract_graph_name(graph_name)?;
+        Ok(Self { inner: quad })
     }
 
     #[getter]
@@ -291,19 +364,19 @@ impl PyQuad {
     }
 
     fn __str__(&self) -> String {
-        self.inner.to_string()
+        quad_to_string(&self.inner)
     }
 
     fn __repr__(&self) -> String {
-        format!("<Quad {}>", self.inner)
+        format!("<Quad {}>", quad_to_string(&self.inner))
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.inner == other.inner
+        quad_key(&self.inner) == quad_key(&other.inner)
     }
 
     fn __hash__(&self) -> u64 {
-        hash_str(&self.inner.to_string())
+        hash_str(&quad_to_string(&self.inner))
     }
 }
 
@@ -337,26 +410,38 @@ impl PyDefaultGraph {
 #[pyclass(name = "Variable", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyVariable {
-    pub(crate) inner: Variable,
+    pub(crate) inner: String,
 }
 
 #[pymethods]
 impl PyVariable {
     #[new]
     fn new(value: &str) -> PyResult<Self> {
+        // The bare variable name, without the leading `?`/`$` sigil (oxigraph
+        // `Variable::new` parity). Reject an empty name and a name still carrying a
+        // sigil, the two cases the oxigraph constructor rejected.
+        if value.is_empty() {
+            return Err(PyValueError::new_err(
+                "invalid variable ``: a variable name must not be empty",
+            ));
+        }
+        if value.starts_with('?') || value.starts_with('$') {
+            return Err(PyValueError::new_err(format!(
+                "invalid variable `{value}`: pass the bare name without a ?/$ sigil"
+            )));
+        }
         Ok(Self {
-            inner: Variable::new(value)
-                .map_err(|e| PyValueError::new_err(format!("invalid variable `{value}`: {e}")))?,
+            inner: value.to_owned(),
         })
     }
 
     #[getter]
     fn value(&self) -> &str {
-        self.inner.as_str()
+        &self.inner
     }
 
     fn __str__(&self) -> String {
-        self.inner.to_string()
+        format!("?{}", self.inner)
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -364,19 +449,70 @@ impl PyVariable {
     }
 
     fn __hash__(&self) -> u64 {
-        hash_str(self.inner.as_str())
+        hash_str(&self.inner)
     }
 }
 
-/// Build a Python `Quad` object from an oxigraph [`Quad`].
+// ── string forms (oxigraph Display parity, single source via RdfTerm Display) ─────
+
+fn triple_term_to_string(triple: &RdfTriple) -> String {
+    RdfTerm::triple(triple.clone()).to_string()
+}
+
+fn quad_to_string(quad: &RdfQuad) -> String {
+    let triple = format!("{} <{}> {}", quad.subject, quad.predicate, quad.object);
+    match &quad.graph_name {
+        None => triple,
+        Some(g) => format!("{triple} {g}"),
+    }
+}
+
+// ── content-equality keys ─────────────────────────────────────────────────────────
+
+/// The RDF-term-equality key of a native term. A literal is normalized through
+/// [`literal_key_string`] so a plain literal and an explicit `xsd:string` literal of
+/// the same lexical form compare equal; every other term keys on its canonical
+/// string form.
+fn term_key(term: &RdfTerm) -> String {
+    match term {
+        RdfTerm::Literal(lit) => format!("L\u{1}{}", literal_key_string(lit)),
+        RdfTerm::Triple(t) => format!("T\u{1}{}", triple_key(t)),
+        other => other.to_string(),
+    }
+}
+
+fn triple_key(triple: &RdfTriple) -> String {
+    format!(
+        "{}\u{2}{}\u{2}{}",
+        term_key(&triple.subject),
+        triple.predicate,
+        term_key(&triple.object)
+    )
+}
+
+fn quad_key(quad: &RdfQuad) -> String {
+    format!(
+        "{}\u{3}{}",
+        triple_key(&RdfTriple::new(
+            quad.subject.clone(),
+            quad.predicate.clone(),
+            quad.object.clone(),
+        )),
+        quad.graph_name.as_ref().map_or(String::new(), term_key)
+    )
+}
+
+// ── cross-crate constructors ──────────────────────────────────────────────────────
+
+/// Build a Python `Quad` object from a native [`RdfQuad`].
 ///
 /// Cross-crate constructor for the engine crates that produce quads natively (the
-/// RL closure in `gmeow-logic`, issue #630): they assemble an oxigraph `Quad` and
+/// RL closure in `gmeow-logic`, issue #630): they assemble a native `RdfQuad` and
 /// hand Python a live `gmeow_rdf.Quad` directly, so the closure result never makes
 /// a round-trip through an intermediate N-Triples string the Python side has to
 /// re-parse. The returned object is the same `PyQuad` the parser/SPARQL surface
 /// yields, so downstream code (rdflib adapters, comparators) treats it uniformly.
-pub fn quad_to_py(py: Python<'_>, quad: &Quad) -> PyResult<Py<PyAny>> {
+pub fn quad_to_py(py: Python<'_>, quad: &RdfQuad) -> PyResult<Py<PyAny>> {
     Ok(Py::new(
         py,
         PyQuad {
@@ -386,14 +522,38 @@ pub fn quad_to_py(py: Python<'_>, quad: &Quad) -> PyResult<Py<PyAny>> {
     .into_any())
 }
 
+/// Build the live `gmeow_rdf.Quad` list for every (flattened) quad of a native
+/// [`RdfDataset`](crate::RdfDataset) — the oxigraph-free cross-crate entry point for
+/// engine crates (`gmeow-logic`'s RL closure, #630 / EPIC #906) that produce a
+/// frozen IR dataset and must hand Python live quad objects without naming any
+/// oxigraph type themselves.
+///
+/// The dataset is flattened to the source-faithful flat quad stream (base quads plus
+/// the re-materialized RDF 1.2 statement layer), then each quad becomes a `PyQuad`.
+///
+/// # Errors
+///
+/// Returns a Python error if the dataset cannot be flattened into quads.
+pub fn dataset_quads_to_py(
+    py: Python<'_>,
+    dataset: &crate::RdfDataset,
+) -> PyResult<Vec<Py<PyAny>>> {
+    let quads = crate::flat_rdf_quads_from_dataset(dataset);
+    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(quads.len());
+    for quad in &quads {
+        out.push(quad_to_py(py, quad)?);
+    }
+    Ok(out)
+}
+
 // ── Term ⇄ Python conversions ────────────────────────────────────────────────────
 
-pub(crate) fn term_to_py(py: Python<'_>, term: &Term) -> PyResult<Py<PyAny>> {
+pub(crate) fn term_to_py(py: Python<'_>, term: &RdfTerm) -> PyResult<Py<PyAny>> {
     Ok(match term {
-        Term::NamedNode(n) => Py::new(py, PyNamedNode { inner: n.clone() })?.into_any(),
-        Term::BlankNode(b) => Py::new(py, PyBlankNode { inner: b.clone() })?.into_any(),
-        Term::Literal(l) => Py::new(py, PyLiteral { inner: l.clone() })?.into_any(),
-        Term::Triple(t) => Py::new(
+        RdfTerm::Iri(n) => Py::new(py, PyNamedNode { inner: n.clone() })?.into_any(),
+        RdfTerm::BlankNode(b) => Py::new(py, PyBlankNode { inner: b.clone() })?.into_any(),
+        RdfTerm::Literal(l) => Py::new(py, PyLiteral { inner: l.clone() })?.into_any(),
+        RdfTerm::Triple(t) => Py::new(
             py,
             PyTriple {
                 inner: (**t).clone(),
@@ -403,33 +563,41 @@ pub(crate) fn term_to_py(py: Python<'_>, term: &Term) -> PyResult<Py<PyAny>> {
     })
 }
 
-fn subject_to_py(py: Python<'_>, subject: &NamedOrBlankNode) -> PyResult<Py<PyAny>> {
-    Ok(match subject {
-        NamedOrBlankNode::NamedNode(n) => Py::new(py, PyNamedNode { inner: n.clone() })?.into_any(),
-        NamedOrBlankNode::BlankNode(b) => Py::new(py, PyBlankNode { inner: b.clone() })?.into_any(),
-    })
+fn subject_to_py(py: Python<'_>, subject: &RdfTerm) -> PyResult<Py<PyAny>> {
+    match subject {
+        RdfTerm::Iri(n) => Ok(Py::new(py, PyNamedNode { inner: n.clone() })?.into_any()),
+        RdfTerm::BlankNode(b) => Ok(Py::new(py, PyBlankNode { inner: b.clone() })?.into_any()),
+        _ => Err(PyTypeError::new_err(
+            "a subject must be a NamedNode or BlankNode",
+        )),
+    }
 }
 
-fn graph_name_to_py(py: Python<'_>, graph_name: &GraphName) -> PyResult<Py<PyAny>> {
-    Ok(match graph_name {
-        GraphName::NamedNode(n) => Py::new(py, PyNamedNode { inner: n.clone() })?.into_any(),
-        GraphName::BlankNode(b) => Py::new(py, PyBlankNode { inner: b.clone() })?.into_any(),
-        GraphName::DefaultGraph => Py::new(py, PyDefaultGraph)?.into_any(),
-    })
+fn graph_name_to_py(py: Python<'_>, graph_name: &Option<RdfTerm>) -> PyResult<Py<PyAny>> {
+    match graph_name {
+        None => Ok(Py::new(py, PyDefaultGraph)?.into_any()),
+        Some(RdfTerm::Iri(n)) => Ok(Py::new(py, PyNamedNode { inner: n.clone() })?.into_any()),
+        Some(RdfTerm::BlankNode(b)) => {
+            Ok(Py::new(py, PyBlankNode { inner: b.clone() })?.into_any())
+        }
+        Some(_) => Err(PyTypeError::new_err(
+            "a graph name must be a NamedNode, BlankNode, or DefaultGraph",
+        )),
+    }
 }
 
-pub(crate) fn extract_term(obj: &Bound<'_, PyAny>) -> PyResult<Term> {
+pub(crate) fn extract_term(obj: &Bound<'_, PyAny>) -> PyResult<RdfTerm> {
     if let Ok(n) = obj.cast::<PyNamedNode>() {
-        return Ok(Term::NamedNode(n.get().inner.clone()));
+        return Ok(RdfTerm::Iri(n.get().inner.clone()));
     }
     if let Ok(b) = obj.cast::<PyBlankNode>() {
-        return Ok(Term::BlankNode(b.get().inner.clone()));
+        return Ok(RdfTerm::BlankNode(b.get().inner.clone()));
     }
     if let Ok(l) = obj.cast::<PyLiteral>() {
-        return Ok(Term::Literal(l.get().inner.clone()));
+        return Ok(RdfTerm::Literal(l.get().inner.clone()));
     }
     if let Ok(t) = obj.cast::<PyTriple>() {
-        return Ok(Term::Triple(Box::new(t.get().inner.clone())));
+        return Ok(RdfTerm::triple(t.get().inner.clone()));
     }
     Err(PyTypeError::new_err(
         "expected an RDF term (NamedNode, BlankNode, Literal, or Triple)",
@@ -438,14 +606,14 @@ pub(crate) fn extract_term(obj: &Bound<'_, PyAny>) -> PyResult<Term> {
 
 /// Coerce a Python term to an RDF 1.2 subject. RDF 1.2 (unlike the obsolete
 /// RDF-star) allows triple terms in the OBJECT position only — a subject is an
-/// IRI or blank node, never a quoted triple — which is exactly oxigraph's
-/// `NamedOrBlankNode`. A `Triple` therefore reaches `extract_term`, not here.
-fn extract_subject(obj: &Bound<'_, PyAny>) -> PyResult<NamedOrBlankNode> {
+/// IRI or blank node, never a quoted triple. A `Triple` therefore reaches
+/// `extract_term`, not here.
+fn extract_subject(obj: &Bound<'_, PyAny>) -> PyResult<RdfTerm> {
     if let Ok(n) = obj.cast::<PyNamedNode>() {
-        return Ok(NamedOrBlankNode::NamedNode(n.get().inner.clone()));
+        return Ok(RdfTerm::Iri(n.get().inner.clone()));
     }
     if let Ok(b) = obj.cast::<PyBlankNode>() {
-        return Ok(NamedOrBlankNode::BlankNode(b.get().inner.clone()));
+        return Ok(RdfTerm::BlankNode(b.get().inner.clone()));
     }
     Err(PyTypeError::new_err(
         "a subject must be a NamedNode or BlankNode \
@@ -453,24 +621,26 @@ fn extract_subject(obj: &Bound<'_, PyAny>) -> PyResult<NamedOrBlankNode> {
     ))
 }
 
-fn extract_named_node(obj: &Bound<'_, PyAny>) -> PyResult<NamedNode> {
+fn extract_named_node(obj: &Bound<'_, PyAny>) -> PyResult<String> {
     obj.cast::<PyNamedNode>()
         .map(|n| n.get().inner.clone())
         .map_err(|_| PyTypeError::new_err("a predicate must be a NamedNode"))
 }
 
-pub(crate) fn extract_graph_name(obj: Option<&Bound<'_, PyAny>>) -> PyResult<GraphName> {
+/// Coerce a Python graph-name slot to the native optional graph term: `None` /
+/// `DefaultGraph` → the default graph (`None`), a `NamedNode`/`BlankNode` → that term.
+pub(crate) fn extract_graph_name(obj: Option<&Bound<'_, PyAny>>) -> PyResult<Option<RdfTerm>> {
     let Some(obj) = obj else {
-        return Ok(GraphName::DefaultGraph);
+        return Ok(None);
     };
     if obj.is_none() || obj.cast::<PyDefaultGraph>().is_ok() {
-        return Ok(GraphName::DefaultGraph);
+        return Ok(None);
     }
     if let Ok(n) = obj.cast::<PyNamedNode>() {
-        return Ok(GraphName::NamedNode(n.get().inner.clone()));
+        return Ok(Some(RdfTerm::Iri(n.get().inner.clone())));
     }
     if let Ok(b) = obj.cast::<PyBlankNode>() {
-        return Ok(GraphName::BlankNode(b.get().inner.clone()));
+        return Ok(Some(RdfTerm::BlankNode(b.get().inner.clone())));
     }
     Err(PyTypeError::new_err(
         "a graph name must be a NamedNode, BlankNode, or DefaultGraph",
@@ -482,28 +652,67 @@ mod tests {
     use super::*;
 
     #[test]
+    fn plain_and_explicit_xsd_string_literals_are_equal_terms() {
+        // RDF term equality: a plain literal and an explicit `xsd:string` literal of
+        // the same lexical form are the SAME term (oxigraph `Literal` parity — a
+        // plain literal's datatype IS `xsd:string`).
+        let plain = PyLiteral {
+            inner: RdfLiteral::simple("Alice"),
+        };
+        let explicit = PyLiteral {
+            inner: RdfLiteral::typed("Alice", XSD_STRING),
+        };
+        assert!(plain.__eq__(&explicit));
+        assert_eq!(plain.__hash__(), explicit.__hash__());
+        // The datatype getter expands a plain literal to `xsd:string`.
+        assert_eq!(plain.datatype().inner, XSD_STRING);
+    }
+
+    #[test]
+    fn lang_literal_reports_rdf_langstring_datatype() {
+        let lit = PyLiteral {
+            inner: RdfLiteral::language_tagged("hi", "en"),
+        };
+        assert_eq!(lit.language(), Some("en"));
+        assert_eq!(lit.datatype().inner, RDF_LANG_STRING);
+    }
+
+    #[test]
+    fn typed_literal_keeps_its_datatype_and_differs_from_plain() {
+        let int_dt = "http://www.w3.org/2001/XMLSchema#integer";
+        let typed = PyLiteral {
+            inner: RdfLiteral::typed("1", int_dt),
+        };
+        let plain = PyLiteral {
+            inner: RdfLiteral::simple("1"),
+        };
+        assert_eq!(typed.datatype().inner, int_dt);
+        assert!(!typed.__eq__(&plain));
+    }
+
+    #[test]
+    fn named_node_str_and_value() {
+        let n = PyNamedNode::new("https://example.org/s").unwrap();
+        assert_eq!(n.value(), "https://example.org/s");
+        assert_eq!(n.__str__(), "<https://example.org/s>");
+    }
+
+    #[test]
     fn rdf12_triple_terms_are_object_position_only() {
         // RDF 1.2 (unlike obsolete RDF-star) permits quoted triples in the OBJECT
-        // slot only; a subject is always a NamedOrBlankNode. This pins the model
-        // that the Python `extract_subject` and the `_Subject` stub rely on — no
-        // subject-position quoted triples.
-        let inner = Triple::new(
-            NamedNode::new("https://example.org/s").unwrap(),
-            NamedNode::new("https://example.org/p").unwrap(),
-            NamedNode::new("https://example.org/o").unwrap(),
+        // slot only; a subject is always an IRI or blank node. A quoted-triple
+        // object round-trips through the native model.
+        let inner = RdfTriple::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::iri("https://example.org/o"),
         );
-        let quad = Quad::new(
-            NamedNode::new("https://example.org/r").unwrap(),
-            NamedNode::new("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies").unwrap(),
-            Term::Triple(Box::new(inner)),
-            GraphName::DefaultGraph,
+        let quad = RdfQuad::new(
+            RdfTerm::iri("https://example.org/r"),
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
+            RdfTerm::triple(inner),
         );
-        assert!(
-            matches!(quad.object, Term::Triple(_)),
-            "a quoted triple is a valid object"
-        );
-        // The subject type itself forbids a quoted triple — the compiler enforces
-        // it, and this asserts the constructed value is a plain node.
-        assert!(matches!(quad.subject, NamedOrBlankNode::NamedNode(_)));
+        assert!(matches!(quad.object, RdfTerm::Triple(_)));
+        assert!(matches!(quad.subject, RdfTerm::Iri(_)));
     }
 }

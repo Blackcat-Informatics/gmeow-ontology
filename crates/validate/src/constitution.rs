@@ -14,8 +14,7 @@ use std::path::Path;
 use std::sync::OnceLock;
 
 use gmeow_diagnostics::{Finding, Severity};
-use oxigraph::model::{NamedNode, NamedNodeRef, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
+use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 
 use crate::model::rdf;
@@ -26,8 +25,18 @@ const META: &str = "https://blackcatinformatics.ca/gmeow/meta#";
 const ENFORCEMENT_KINDS: &[&str] = &["Lint", "TestSuite", "Shape", "Gate", "Practice"];
 /// `rdfs:Class` — a node ALSO typed as this is a class declaration, not an
 /// enforcement instance (mirrors the Python `(node, RDF.type, RDFS.Class)` skip).
-const RDFS_CLASS: NamedNodeRef<'static> =
-    NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#Class");
+const RDFS_CLASS: &str = "http://www.w3.org/2000/01/rdf-schema#Class";
+
+/// Resolve an IRI value to its dataset-local [`TermId`], if interned.
+#[inline]
+fn iri_id(ds: &RdfDataset, iri: &str) -> Option<TermId> {
+    ds.term_id_by_value(&TermValue::iri(iri))
+}
+
+/// Build a `<META><local>` IRI string.
+fn meta_iri(local: &str) -> String {
+    format!("{META}{local}")
+}
 
 static HEADING_RE: OnceLock<Regex> = OnceLock::new();
 static PRINCIPLE_REF_RE: OnceLock<Regex> = OnceLock::new();
@@ -67,37 +76,29 @@ impl Enforcement {
     }
 }
 
-fn meta(local: &str) -> NamedNode {
-    NamedNode::new(format!("{META}{local}")).expect("valid meta IRI")
-}
-
-/// Whether `node` is also declared an `rdfs:Class` (a class definition to skip).
-fn is_rdfs_class(store: &Store, node: &NamedNode) -> bool {
-    store
-        .quads_for_pattern(
-            Some(node.as_ref().into()),
-            Some(rdf::TYPE),
-            Some(RDFS_CLASS.into()),
-            None,
-        )
-        .next()
-        .transpose()
-        .expect("rdfs:Class lookup: in-memory store query failed")
-        .is_some()
+/// Whether `node_id` is also declared an `rdfs:Class` (a class definition to skip).
+fn is_rdfs_class(ds: &RdfDataset, node_id: TermId) -> bool {
+    let (Some(type_id), Some(class_id)) = (iri_id(ds, rdf::TYPE), iri_id(ds, RDFS_CLASS)) else {
+        return false;
+    };
+    ds.quads_for_pattern(
+        Some(node_id),
+        Some(type_id),
+        Some(class_id),
+        GraphMatch::Any,
+    )
+    .next()
+    .is_some()
 }
 
 /// Collect all string-object values for `subject predicate_local`.
-fn strings_for(store: &Store, subject: &NamedNode, predicate_local: &str) -> Vec<String> {
-    let predicate = meta(predicate_local);
-    let mut values: Vec<String> = store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(predicate.as_ref()),
-            None,
-            None,
-        )
-        .flatten()
-        .filter_map(|q| literal_string(&q.object))
+fn strings_for(ds: &RdfDataset, subject_id: TermId, predicate_local: &str) -> Vec<String> {
+    let Some(predicate_id) = iri_id(ds, &meta_iri(predicate_local)) else {
+        return Vec::new();
+    };
+    let mut values: Vec<String> = ds
+        .quads_for_pattern(Some(subject_id), Some(predicate_id), None, GraphMatch::Any)
+        .filter_map(|q| literal_string(ds.resolve(q.o)))
         .collect();
     values.sort();
     values
@@ -106,21 +107,15 @@ fn strings_for(store: &Store, subject: &NamedNode, predicate_local: &str) -> Vec
 /// Resolve `subject predicate ?obj` where `?obj` is a Principle node to its
 /// heading number.
 fn principle_numbers(
-    store: &Store,
-    subject: &NamedNode,
-    predicate: &NamedNode,
+    ds: &RdfDataset,
+    subject_id: TermId,
+    predicate_id: TermId,
     iri_to_number: &BTreeMap<String, i64>,
 ) -> Vec<i64> {
-    let mut numbers: Vec<i64> = store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(predicate.as_ref()),
-            None,
-            None,
-        )
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::NamedNode(n) => iri_to_number.get(n.as_str()).copied(),
+    let mut numbers: Vec<i64> = ds
+        .quads_for_pattern(Some(subject_id), Some(predicate_id), None, GraphMatch::Any)
+        .filter_map(|q| match ds.resolve(q.o) {
+            TermRef::Iri(n) => iri_to_number.get(n).copied(),
             _ => None,
         })
         .collect();
@@ -130,26 +125,28 @@ fn principle_numbers(
 }
 
 /// Collect the declared enforcement instances keyed by full IRI.
-pub fn collect_enforcements(store: &Store) -> BTreeMap<String, Enforcement> {
+pub fn collect_enforcements(ds: &RdfDataset) -> BTreeMap<String, Enforcement> {
     let mut enforcements = BTreeMap::new();
+    let Some(type_id) = iri_id(ds, rdf::TYPE) else {
+        return enforcements;
+    };
     for kind in ENFORCEMENT_KINDS {
-        let type_node = meta(kind);
-        for quad in store
-            .quads_for_pattern(None, Some(rdf::TYPE), Some(type_node.as_ref().into()), None)
-            .flatten()
-        {
-            if let NamedOrBlankNode::NamedNode(node) = quad.subject {
-                if is_rdfs_class(store, &node) {
+        let Some(kind_id) = iri_id(ds, &meta_iri(kind)) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(type_id), Some(kind_id), GraphMatch::Any) {
+            if let TermRef::Iri(node) = ds.resolve(q.s) {
+                if is_rdfs_class(ds, q.s) {
                     continue;
                 }
-                let iri = node.as_str().to_string();
+                let iri = node.to_string();
                 let enforcement = Enforcement {
                     iri: iri.clone(),
                     kind: (*kind).to_string(),
-                    artifacts: strings_for(store, &node, "artifact"),
-                    symbols: strings_for(store, &node, "symbol"),
-                    make_targets: strings_for(store, &node, "makeTarget"),
-                    cli_commands: strings_for(store, &node, "cliCommand"),
+                    artifacts: strings_for(ds, q.s, "artifact"),
+                    symbols: strings_for(ds, q.s, "symbol"),
+                    make_targets: strings_for(ds, q.s, "makeTarget"),
+                    cli_commands: strings_for(ds, q.s, "cliCommand"),
                 };
                 enforcements.insert(iri, enforcement);
             }
@@ -159,63 +156,55 @@ pub fn collect_enforcements(store: &Store) -> BTreeMap<String, Enforcement> {
 }
 
 /// Collect the principles (number, title, enforced_by edges, relations).
-pub fn collect_principles(store: &Store) -> Vec<Principle> {
-    let principle_type = meta("Principle");
-    let number_p = meta("number");
-    let title_p = meta("title");
-    let enforced_p = meta("enforcedBy");
-    let superseded_p = meta("supersededInPartBy");
-    let extends_p = meta("extends");
+pub fn collect_principles(ds: &RdfDataset) -> Vec<Principle> {
+    let Some(type_id) = iri_id(ds, rdf::TYPE) else {
+        return Vec::new();
+    };
+    let (number_p, title_p, enforced_p) = (
+        iri_id(ds, &meta_iri("number")),
+        iri_id(ds, &meta_iri("title")),
+        iri_id(ds, &meta_iri("enforcedBy")),
+    );
 
     let mut principles: Vec<Principle> = Vec::new();
     let mut iri_to_number: BTreeMap<String, i64> = BTreeMap::new();
 
-    for quad in store
-        .quads_for_pattern(
-            None,
-            Some(rdf::TYPE),
-            Some(principle_type.as_ref().into()),
-            None,
-        )
-        .flatten()
-    {
-        let NamedOrBlankNode::NamedNode(node) = quad.subject else {
+    let Some(principle_type_id) = iri_id(ds, &meta_iri("Principle")) else {
+        return Vec::new();
+    };
+    for q in ds.quads_for_pattern(
+        None,
+        Some(type_id),
+        Some(principle_type_id),
+        GraphMatch::Any,
+    ) {
+        let TermRef::Iri(node) = ds.resolve(q.s) else {
             continue;
         };
-        let iri = node.as_str().to_string();
-        let number = store
-            .quads_for_pattern(
-                Some(node.as_ref().into()),
-                Some(number_p.as_ref()),
-                None,
-                None,
-            )
-            .flatten()
-            .find_map(|q| literal_i64(&q.object))
-            .unwrap_or(-1);
-        let title = store
-            .quads_for_pattern(
-                Some(node.as_ref().into()),
-                Some(title_p.as_ref()),
-                None,
-                None,
-            )
-            .flatten()
-            .find_map(|q| literal_string(&q.object))
-            .unwrap_or_default();
-        let mut enforced_by: Vec<String> = store
-            .quads_for_pattern(
-                Some(node.as_ref().into()),
-                Some(enforced_p.as_ref()),
-                None,
-                None,
-            )
-            .flatten()
-            .filter_map(|q| match q.object {
-                Term::NamedNode(n) => Some(n.as_str().to_string()),
-                _ => None,
+        let iri = node.to_string();
+        let node_id = q.s;
+        let number = number_p
+            .and_then(|p_id| {
+                ds.quads_for_pattern(Some(node_id), Some(p_id), None, GraphMatch::Any)
+                    .find_map(|qq| literal_i64(ds.resolve(qq.o)))
             })
-            .collect();
+            .unwrap_or(-1);
+        let title = title_p
+            .and_then(|p_id| {
+                ds.quads_for_pattern(Some(node_id), Some(p_id), None, GraphMatch::Any)
+                    .find_map(|qq| literal_string(ds.resolve(qq.o)))
+            })
+            .unwrap_or_default();
+        let mut enforced_by: Vec<String> = enforced_p
+            .map(|p_id| {
+                ds.quads_for_pattern(Some(node_id), Some(p_id), None, GraphMatch::Any)
+                    .filter_map(|qq| match ds.resolve(qq.o) {
+                        TermRef::Iri(n) => Some(n.to_string()),
+                        _ => None,
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
         enforced_by.sort();
 
         iri_to_number.insert(iri.clone(), number);
@@ -229,27 +218,34 @@ pub fn collect_principles(store: &Store) -> Vec<Principle> {
         });
     }
 
+    let superseded_p = iri_id(ds, &meta_iri("supersededInPartBy"));
+    let extends_p = iri_id(ds, &meta_iri("extends"));
     for principle in &mut principles {
-        let node = NamedNode::new(&principle.iri).expect("principle IRI is valid");
-        principle.superseded_in_part_by =
-            principle_numbers(store, &node, &superseded_p, &iri_to_number);
-        principle.extends = principle_numbers(store, &node, &extends_p, &iri_to_number);
+        let Some(node_id) = iri_id(ds, &principle.iri) else {
+            continue;
+        };
+        if let Some(p_id) = superseded_p {
+            principle.superseded_in_part_by = principle_numbers(ds, node_id, p_id, &iri_to_number);
+        }
+        if let Some(p_id) = extends_p {
+            principle.extends = principle_numbers(ds, node_id, p_id, &iri_to_number);
+        }
     }
 
     principles.sort_by_key(|p| p.number);
     principles
 }
 
-fn literal_i64(term: &Term) -> Option<i64> {
+fn literal_i64(term: TermRef<'_>) -> Option<i64> {
     match term {
-        Term::Literal(lit) => lit.value().parse().ok(),
+        TermRef::Literal { lexical, .. } => lexical.parse().ok(),
         _ => None,
     }
 }
 
-fn literal_string(term: &Term) -> Option<String> {
+fn literal_string(term: TermRef<'_>) -> Option<String> {
     match term {
-        Term::Literal(lit) => Some(lit.value().to_string()),
+        TermRef::Literal { lexical, .. } => Some(lexical.to_string()),
         _ => None,
     }
 }
@@ -518,10 +514,10 @@ pub fn cli_surface_command_names(root: &Path) -> BTreeSet<String> {
     names
 }
 
-/// Run the enforcement-coverage check over the parsed manifest store.
-pub fn check_enforcement_coverage(store: &Store) -> Vec<Finding> {
-    let enforcements = collect_enforcements(store);
-    let principles = collect_principles(store);
+/// Run the enforcement-coverage check over the parsed manifest dataset.
+pub fn check_enforcement_coverage(ds: &RdfDataset) -> Vec<Finding> {
+    let enforcements = collect_enforcements(ds);
+    let principles = collect_principles(ds);
 
     let mut findings = Vec::new();
     let mut cited: BTreeSet<String> = BTreeSet::new();
@@ -824,11 +820,8 @@ pub fn check_supersession(md_text: &str, principles: &[Principle]) -> Vec<Findin
     findings
 }
 
-fn load_store_from_ttl(ttl: &str) -> Result<Store, String> {
-    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-    use gmeow_rdf::parse_dataset;
-    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| e.to_string())?;
-    store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).map_err(|e| e.to_string())
+fn load_dataset_from_ttl(ttl: &str) -> Result<std::sync::Arc<RdfDataset>, String> {
+    gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| e.to_string())
 }
 
 /// Run every constitution-as-code check into one granular finding list.
@@ -850,8 +843,8 @@ pub fn constitution_full_report(
         }
     };
 
-    let store = match load_store_from_ttl(&ttl) {
-        Ok(store) => store,
+    let dataset = match load_dataset_from_ttl(&ttl) {
+        Ok(ds) => ds,
         Err(e) => {
             findings.push(error(
                 "manifest-parse",
@@ -872,11 +865,11 @@ pub fn constitution_full_report(
         }
     };
 
-    let enforcements = collect_enforcements(&store);
-    let principles = collect_principles(&store);
+    let enforcements = collect_enforcements(&dataset);
+    let principles = collect_principles(&dataset);
     let headings = constitution_headings(&md_text);
 
-    findings.extend(check_enforcement_coverage(&store));
+    findings.extend(check_enforcement_coverage(&dataset));
     findings.extend(check_principle_sync(&principles, &headings));
     findings.extend(check_references(&enforcements, root));
     findings.extend(check_supersession(&md_text, &principles));
@@ -893,50 +886,47 @@ fn error(code: &str, message: String) -> Finding {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::model::Literal;
 
     // cargo-mutants (T9, #790) surfaced surviving mutants in `literal_i64` /
     // `literal_string` — the helpers had no direct coverage, so replacing their
     // body with `None`/`Some(0)`/deleting the match arm went undetected. These
     // tests pin both the literal path and the non-literal fallthrough, killing
     // that mutant cluster.
+    /// Resolve the object term of the single triple `<s> <p> obj` in a tiny dataset,
+    /// where `obj` is the given Turtle object syntax.
+    fn object_term_ref(ds: &RdfDataset) -> TermRef<'_> {
+        let q = ds
+            .quads_for_pattern(None, None, None, GraphMatch::Any)
+            .next()
+            .expect("one triple");
+        ds.resolve(q.o)
+    }
+
     #[test]
     fn literal_i64_parses_only_integer_literals() {
-        assert_eq!(
-            literal_i64(&Term::Literal(Literal::new_simple_literal("42"))),
-            Some(42)
-        );
-        assert_eq!(
-            literal_i64(&Term::Literal(Literal::new_simple_literal("-7"))),
-            Some(-7)
-        );
-        assert_eq!(
-            literal_i64(&Term::Literal(Literal::new_simple_literal("notanint"))),
-            None
-        );
-        assert_eq!(
-            literal_i64(&Term::NamedNode(NamedNode::new("https://e/x").unwrap())),
-            None
-        );
+        let lit = store_from("<https://e/s> <https://e/p> \"42\" .");
+        assert_eq!(literal_i64(object_term_ref(&lit)), Some(42));
+        let neg = store_from("<https://e/s> <https://e/p> \"-7\" .");
+        assert_eq!(literal_i64(object_term_ref(&neg)), Some(-7));
+        let bad = store_from("<https://e/s> <https://e/p> \"notanint\" .");
+        assert_eq!(literal_i64(object_term_ref(&bad)), None);
+        let iri = store_from("<https://e/s> <https://e/p> <https://e/x> .");
+        assert_eq!(literal_i64(object_term_ref(&iri)), None);
     }
 
     #[test]
     fn literal_string_extracts_only_literal_lexical_values() {
+        let lit = store_from("<https://e/s> <https://e/p> \"hello\" .");
         assert_eq!(
-            literal_string(&Term::Literal(Literal::new_simple_literal("hello"))),
+            literal_string(object_term_ref(&lit)),
             Some("hello".to_string())
         );
-        assert_eq!(
-            literal_string(&Term::NamedNode(NamedNode::new("https://e/x").unwrap())),
-            None
-        );
+        let iri = store_from("<https://e/s> <https://e/p> <https://e/x> .");
+        assert_eq!(literal_string(object_term_ref(&iri)), None);
     }
 
-    fn store_from(ttl: &str) -> Store {
-        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-        use gmeow_rdf::parse_dataset;
-        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
-        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
+    fn store_from(ttl: &str) -> std::sync::Arc<RdfDataset> {
+        gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
     }
 
     const PREFIX: &str = "@prefix meta: <https://blackcatinformatics.ca/gmeow/meta#> .\n\

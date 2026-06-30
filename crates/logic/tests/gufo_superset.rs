@@ -20,11 +20,7 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
-use oxigraph::model::{GraphNameRef, NamedNode, Term};
-use oxigraph::store::Store;
-
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::parse_dataset;
+use gmeow_rdf::{parse_dataset, RdfQuad, RdfTerm};
 
 // --------------------------------------------------------------------------- //
 // Namespaces (mirror `adapter.rs` constants + the data files this gate reads).
@@ -35,48 +31,42 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 /// Worked-example A-Box namespace (`@prefix ex:` in `criticism-fixes.ttl`).
 const EX_NS: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
 
-// Constant NamedNode caches for frequently-used predicates and classes.
-static RDF_TYPE: LazyLock<NamedNode> =
-    LazyLock::new(|| nn("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"));
-static OWL_CLASS: LazyLock<NamedNode> = LazyLock::new(|| nn("http://www.w3.org/2002/07/owl#Class"));
-static RDF_STATEMENT: LazyLock<NamedNode> =
-    LazyLock::new(|| nn("http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement"));
-static RDF_SUBJECT: LazyLock<NamedNode> =
-    LazyLock::new(|| nn("http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"));
-static RDF_PREDICATE: LazyLock<NamedNode> =
-    LazyLock::new(|| nn("http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"));
-static RDF_OBJECT: LazyLock<NamedNode> =
-    LazyLock::new(|| nn("http://www.w3.org/1999/02/22-rdf-syntax-ns#object"));
-static GRAPHBOXROLE: LazyLock<NamedNode> =
-    LazyLock::new(|| nn("https://blackcatinformatics.ca/gmeow/graphBoxRole"));
+// Constant IRI caches for frequently-used predicates and classes.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+const RDF_STATEMENT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement";
+const RDF_SUBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject";
+const RDF_PREDICATE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate";
+const RDF_OBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
+const GRAPHBOXROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
 
-// logic: term NamedNodes
-static LOGIC_FLUENT: LazyLock<NamedNode> = LazyLock::new(|| logic_nn("Fluent"));
-static LOGIC_PROPER_PART_OF: LazyLock<NamedNode> = LazyLock::new(|| logic_nn("properPartOf"));
-static LOGIC_INSTANCE_OF: LazyLock<NamedNode> = LazyLock::new(|| logic_nn("instanceOf"));
-static LOGIC_ORDERED_TYPE: LazyLock<NamedNode> = LazyLock::new(|| logic_nn("orderedType"));
-static LOGIC_INVOKES_BUILTIN: LazyLock<NamedNode> = LazyLock::new(|| logic_nn("invokesBuiltin"));
-static LOGIC_BUILTIN: LazyLock<NamedNode> = LazyLock::new(|| logic_nn("Builtin"));
-static LOGIC_TRANSITIVE_PROPERTY: LazyLock<NamedNode> =
-    LazyLock::new(|| logic_nn("transitiveProperty"));
-static LOGIC_ASYMMETRIC_PROPERTY: LazyLock<NamedNode> =
-    LazyLock::new(|| logic_nn("asymmetricProperty"));
-static LOGIC_IRREFLEXIVE_PROPERTY: LazyLock<NamedNode> =
-    LazyLock::new(|| logic_nn("irreflexiveProperty"));
+// logic: term IRIs
+static LOGIC_FLUENT: LazyLock<String> = LazyLock::new(|| logic_iri("Fluent"));
+static LOGIC_PROPER_PART_OF: LazyLock<String> = LazyLock::new(|| logic_iri("properPartOf"));
+static LOGIC_INSTANCE_OF: LazyLock<String> = LazyLock::new(|| logic_iri("instanceOf"));
+static LOGIC_ORDERED_TYPE: LazyLock<String> = LazyLock::new(|| logic_iri("orderedType"));
+static LOGIC_INVOKES_BUILTIN: LazyLock<String> = LazyLock::new(|| logic_iri("invokesBuiltin"));
+static LOGIC_BUILTIN: LazyLock<String> = LazyLock::new(|| logic_iri("Builtin"));
+static LOGIC_TRANSITIVE_PROPERTY: LazyLock<String> =
+    LazyLock::new(|| logic_iri("transitiveProperty"));
+static LOGIC_ASYMMETRIC_PROPERTY: LazyLock<String> =
+    LazyLock::new(|| logic_iri("asymmetricProperty"));
+static LOGIC_IRREFLEXIVE_PROPERTY: LazyLock<String> =
+    LazyLock::new(|| logic_iri("irreflexiveProperty"));
 
-/// Build a NamedNode; panics on invalid IRI (programming error).
-fn nn(iri: &str) -> NamedNode {
-    NamedNode::new(iri).unwrap_or_else(|e| panic!("invalid IRI {iri:?}: {e}"))
+fn gufo_iri(local: &str) -> String {
+    format!("{GUFO_NS}{local}")
+}
+fn logic_iri(local: &str) -> String {
+    format!("{LOGIC_NS}{local}")
+}
+fn ex_iri(local: &str) -> String {
+    format!("{EX_NS}{local}")
 }
 
-fn gufo_nn(local: &str) -> NamedNode {
-    nn(&format!("{GUFO_NS}{local}"))
-}
-fn logic_nn(local: &str) -> NamedNode {
-    nn(&format!("{LOGIC_NS}{local}"))
-}
-fn ex_nn(local: &str) -> NamedNode {
-    nn(&format!("{EX_NS}{local}"))
+/// An IRI object term (the `RdfTerm` form of a `logic:`/`owl:`/`rdf:` class).
+fn iri_term(iri: &str) -> RdfTerm {
+    RdfTerm::iri(iri.to_owned())
 }
 
 // --------------------------------------------------------------------------- //
@@ -186,26 +176,26 @@ const EXPECTED_SUPERSEDED: &[&str] = &[
     "TemporaryRelationshipSituation",
 ];
 
-/// The distinct, non-SUPERSEDED `logic:` target NamedNodes the map covers (deduped —
+/// The distinct, non-SUPERSEDED `logic:` target IRIs the map covers (deduped —
 /// mirrors the Python `_non_superseded_targets()` set).
-fn non_superseded_targets() -> HashSet<NamedNode> {
+fn non_superseded_targets() -> HashSet<String> {
     GUFO_CLASS_TO_LOGIC
         .iter()
         .filter_map(|(_, t)| match t {
-            Logic(local) => Some(logic_nn(local)),
+            Logic(local) => Some(logic_iri(local)),
             Superseded => None,
         })
         .collect()
 }
 
 /// Pre-built deduped non-superseded target set (avoids re-building per test).
-static NON_SUPERSEDED: LazyLock<HashSet<NamedNode>> = LazyLock::new(non_superseded_targets);
+static NON_SUPERSEDED: LazyLock<HashSet<String>> = LazyLock::new(non_superseded_targets);
 
 // --------------------------------------------------------------------------- //
-// Fixtures: load a repo-relative Turtle file into an oxigraph Store. HARD-FAIL
+// Fixtures: load a repo-relative Turtle file into a flat quad list. HARD-FAIL
 // (panic) on missing/unparsable input — NO-OPTIONALITY: a missing source file is
 // a build error, not a silently-skipped test (mirrors `ontology_entailments.rs`).
-// Three sources are pure Turtle.
+// Three sources are pure Turtle (default-graph triples).
 // --------------------------------------------------------------------------- //
 
 /// Repo root (`CARGO_MANIFEST_DIR` = `<repo>/crates/logic`).
@@ -213,14 +203,14 @@ fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-fn load_store(rel: &str) -> Store {
+/// Parse a repo-relative Turtle file natively and snapshot its quads (graph-flat).
+fn load_store(rel: &str) -> Vec<RdfQuad> {
     let path = repo_root().join(rel);
     let bytes = std::fs::read(&path)
         .unwrap_or_else(|e| panic!("missing ontology source {}: {e}", path.display()));
     let dataset = parse_dataset(&bytes, "text/turtle", None)
         .unwrap_or_else(|e| panic!("Turtle parse failed for {}: {e}", path.display()));
-    store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
-        .unwrap_or_else(|e| panic!("failed to materialize {}: {e}", path.display()))
+    dataset.owned_quads().collect()
 }
 
 const GUFO_TTL: &str = "imports/gufo.ttl";
@@ -228,109 +218,94 @@ const MODULE_TTL: &str = "slices/core/logic/module.ttl";
 const EXAMPLE_TTL: &str = "slices/core/logic/examples/criticism-fixes.ttl";
 
 /// Lazily-loaded, shared stores — parsed exactly once per test binary run.
-static GUFO_STORE: LazyLock<Store> = LazyLock::new(|| load_store(GUFO_TTL));
-static MODULE_STORE: LazyLock<Store> = LazyLock::new(|| load_store(MODULE_TTL));
-static EXAMPLE_STORE: LazyLock<Store> = LazyLock::new(|| load_store(EXAMPLE_TTL));
+static GUFO_STORE: LazyLock<Vec<RdfQuad>> = LazyLock::new(|| load_store(GUFO_TTL));
+static MODULE_STORE: LazyLock<Vec<RdfQuad>> = LazyLock::new(|| load_store(MODULE_TTL));
+static EXAMPLE_STORE: LazyLock<Vec<RdfQuad>> = LazyLock::new(|| load_store(EXAMPLE_TTL));
 
 // --------------------------------------------------------------------------- //
 // Typed helper functions.
+//
+// All sources are graph-flat (default graph): a quad with `graph_name == None`.
+// The helpers filter the snapshot vec, mirroring the prior oxigraph
+// `quads_for_pattern(..., DefaultGraph)` queries.
 // --------------------------------------------------------------------------- //
 
+/// The IRI string of a term, if it is an IRI.
+fn term_iri(t: &RdfTerm) -> Option<&str> {
+    match t {
+        RdfTerm::Iri(iri) => Some(iri.as_str()),
+        _ => None,
+    }
+}
+
+/// Whether a quad lives in the default graph (the only graph these sources use).
+fn in_default_graph(q: &RdfQuad) -> bool {
+    q.graph_name.is_none()
+}
+
 /// All subjects of `(*, predicate, object)` (named subjects only; skip blank nodes).
-fn subjects_with(store: &Store, predicate: &NamedNode, object: &Term) -> Vec<NamedNode> {
+fn subjects_with(store: &[RdfQuad], predicate: &str, object: &RdfTerm) -> Vec<String> {
     store
-        .quads_for_pattern(
-            None,
-            Some(predicate.as_ref()),
-            Some(object.as_ref()),
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .filter_map(Result::ok)
-        .filter_map(|q| match q.subject {
-            oxigraph::model::NamedOrBlankNode::NamedNode(n) => Some(n),
-            oxigraph::model::NamedOrBlankNode::BlankNode(_) => None,
-        })
+        .iter()
+        .filter(|q| in_default_graph(q) && q.predicate == predicate && &q.object == object)
+        .filter_map(|q| term_iri(&q.subject).map(str::to_owned))
         .collect()
 }
 
 /// All objects of `(subject, predicate, *)`.
-fn objects_of(store: &Store, subject: &NamedNode, predicate: &NamedNode) -> Vec<Term> {
+fn objects_of(store: &[RdfQuad], subject: &str, predicate: &str) -> Vec<RdfTerm> {
     store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(predicate.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .filter_map(Result::ok)
-        .map(|q| q.object)
-        .collect()
-}
-
-/// All `(subject_NamedNode, object)` pairs for predicate `p`.
-fn pairs_of(store: &Store, predicate: &NamedNode) -> Vec<(NamedNode, Term)> {
-    store
-        .quads_for_pattern(
-            None,
-            Some(predicate.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .filter_map(Result::ok)
-        .filter_map(|q| match q.subject {
-            oxigraph::model::NamedOrBlankNode::NamedNode(n) => Some((n, q.object)),
-            oxigraph::model::NamedOrBlankNode::BlankNode(_) => None,
+        .iter()
+        .filter(|q| {
+            in_default_graph(q) && q.predicate == predicate && term_iri(&q.subject) == Some(subject)
         })
+        .map(|q| q.object.clone())
         .collect()
 }
 
-/// Whether `(subject, predicate, object)` is present (uses quads_for_pattern(...).next().is_some()).
-fn has_object(store: &Store, subject: &NamedNode, predicate: &NamedNode, object: &Term) -> bool {
+/// All `(subject_iri, object)` pairs for predicate `p` (named subjects only).
+fn pairs_of(store: &[RdfQuad], predicate: &str) -> Vec<(String, RdfTerm)> {
     store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(predicate.as_ref()),
-            Some(object.as_ref()),
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .next()
-        .is_some()
+        .iter()
+        .filter(|q| in_default_graph(q) && q.predicate == predicate)
+        .filter_map(|q| term_iri(&q.subject).map(|s| (s.to_owned(), q.object.clone())))
+        .collect()
+}
+
+/// Whether `(subject, predicate, object)` is present.
+fn has_object(store: &[RdfQuad], subject: &str, predicate: &str, object: &RdfTerm) -> bool {
+    store.iter().any(|q| {
+        in_default_graph(q)
+            && q.predicate == predicate
+            && term_iri(&q.subject) == Some(subject)
+            && &q.object == object
+    })
 }
 
 /// Whether subject has ANY object for the given predicate (existence probe).
-fn has_any_object(store: &Store, subject: &NamedNode, predicate: &NamedNode) -> bool {
-    store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(predicate.as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .next()
-        .is_some()
+fn has_any_object(store: &[RdfQuad], subject: &str, predicate: &str) -> bool {
+    store.iter().any(|q| {
+        in_default_graph(q) && q.predicate == predicate && term_iri(&q.subject) == Some(subject)
+    })
 }
 
-/// Every `owl:Class` NamedNode in the gUFO namespace declared in `imports/gufo.ttl`.
-fn gufo_classes(store: &Store) -> Vec<NamedNode> {
-    let mut classes: Vec<NamedNode> =
-        subjects_with(store, &RDF_TYPE, &Term::NamedNode((*OWL_CLASS).clone()))
-            .into_iter()
-            .filter(|n| n.as_str().starts_with(GUFO_NS))
-            .collect();
-    classes.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+/// Every `owl:Class` IRI in the gUFO namespace declared in `imports/gufo.ttl`.
+fn gufo_classes(store: &[RdfQuad]) -> Vec<String> {
+    let mut classes: Vec<String> = subjects_with(store, RDF_TYPE, &iri_term(OWL_CLASS))
+        .into_iter()
+        .filter(|n| n.starts_with(GUFO_NS))
+        .collect();
+    classes.sort();
     classes.dedup();
     classes
 }
 
 /// All distinct named subjects in a store.
-fn all_subjects(store: &Store) -> HashSet<NamedNode> {
+fn all_subjects(store: &[RdfQuad]) -> HashSet<String> {
     store
-        .quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph))
-        .filter_map(Result::ok)
-        .filter_map(|q| match q.subject {
-            oxigraph::model::NamedOrBlankNode::NamedNode(n) => Some(n),
-            oxigraph::model::NamedOrBlankNode::BlankNode(_) => None,
-        })
+        .iter()
+        .filter(|q| in_default_graph(q))
+        .filter_map(|q| term_iri(&q.subject).map(str::to_owned))
         .collect()
 }
 
@@ -346,12 +321,12 @@ fn every_gufo_class_has_logic_correspondence() {
         "No gUFO owl:Class declarations found in {GUFO_TTL}"
     );
 
-    let keys: HashSet<NamedNode> = GUFO_CLASS_TO_LOGIC
+    let keys: HashSet<String> = GUFO_CLASS_TO_LOGIC
         .iter()
-        .map(|(k, _)| gufo_nn(k))
+        .map(|(k, _)| gufo_iri(k))
         .collect();
-    let mut missing: Vec<&NamedNode> = classes.iter().filter(|c| !keys.contains(*c)).collect();
-    missing.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+    let mut missing: Vec<&String> = classes.iter().filter(|c| !keys.contains(*c)).collect();
+    missing.sort();
     assert!(
         missing.is_empty(),
         "gmeow:logic ⊇ gUFO floor BREACHED — these gUFO classes have NO entry in the \
@@ -371,12 +346,12 @@ fn every_gufo_class_has_logic_correspondence() {
 #[test]
 fn correspondence_targets_exist() {
     let subjects = all_subjects(&MODULE_STORE);
-    let mut missing: Vec<NamedNode> = NON_SUPERSEDED
+    let mut missing: Vec<String> = NON_SUPERSEDED
         .iter()
         .filter(|t| !subjects.contains(*t))
         .cloned()
         .collect();
-    missing.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+    missing.sort();
     assert!(
         missing.is_empty(),
         "These GUFO_CLASS_TO_LOGIC targets are NOT declared as subjects in {MODULE_TTL} — \
@@ -418,12 +393,12 @@ fn superseded_set_is_the_five_reifiers() {
 
 #[test]
 fn new_logic_terms_carry_graphbox_role() {
-    let mut no_role: Vec<NamedNode> = NON_SUPERSEDED
+    let mut no_role: Vec<String> = NON_SUPERSEDED
         .iter()
-        .filter(|t| !has_any_object(&MODULE_STORE, t, &GRAPHBOXROLE))
+        .filter(|t| !has_any_object(&MODULE_STORE, t, GRAPHBOXROLE))
         .cloned()
         .collect();
-    no_role.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+    no_role.sort();
     assert!(
         no_role.is_empty(),
         "These GUFO_CLASS_TO_LOGIC targets lack a gmeow:graphBoxRole annotation in \
@@ -443,10 +418,7 @@ fn new_logic_terms_carry_graphbox_role() {
 #[test]
 fn criticism_example_parses() {
     assert!(
-        EXAMPLE_STORE
-            .quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph))
-            .next()
-            .is_some(),
+        EXAMPLE_STORE.iter().any(in_default_graph),
         "worked example {EXAMPLE_TTL} parsed empty"
     );
 }
@@ -455,22 +427,16 @@ fn criticism_example_parses() {
 fn criticism_example_has_native_edge_property() {
     // §1 triple-bloat fix: an RDF-1.2 reifier typed logic:Fluent carrying the quoted
     // (subject, predicate, object) and validFrom/validTo edge metadata.
-    let fluents: HashSet<NamedNode> = subjects_with(
-        &EXAMPLE_STORE,
-        &RDF_TYPE,
-        &Term::NamedNode((*LOGIC_FLUENT).clone()),
-    )
-    .into_iter()
-    .collect();
-    let statements: HashSet<NamedNode> = subjects_with(
-        &EXAMPLE_STORE,
-        &RDF_TYPE,
-        &Term::NamedNode((*RDF_STATEMENT).clone()),
-    )
-    .into_iter()
-    .collect();
-    let mut reifiers: Vec<&NamedNode> = fluents.intersection(&statements).collect();
-    reifiers.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+    let fluents: HashSet<String> =
+        subjects_with(&EXAMPLE_STORE, RDF_TYPE, &iri_term(&LOGIC_FLUENT))
+            .into_iter()
+            .collect();
+    let statements: HashSet<String> =
+        subjects_with(&EXAMPLE_STORE, RDF_TYPE, &iri_term(RDF_STATEMENT))
+            .into_iter()
+            .collect();
+    let mut reifiers: Vec<&String> = fluents.intersection(&statements).collect();
+    reifiers.sort();
     assert!(
         !reifiers.is_empty(),
         "no rdf:Statement + logic:Fluent reifier found in {EXAMPLE_TTL}"
@@ -478,26 +444,23 @@ fn criticism_example_has_native_edge_property() {
     let reifier = reifiers[0];
 
     // Quotes a full (subject, predicate, object) triple term.
-    for pred in [&*RDF_SUBJECT, &*RDF_PREDICATE, &*RDF_OBJECT] {
+    for pred in [RDF_SUBJECT, RDF_PREDICATE, RDF_OBJECT] {
         assert!(
             !objects_of(&EXAMPLE_STORE, reifier, pred).is_empty(),
-            "reifier {} is missing a {} quoted-triple component",
-            reifier.as_str(),
-            pred.as_str()
+            "reifier {reifier} is missing a {pred} quoted-triple component"
         );
     }
     // Carries LITERAL validFrom/validTo edge metadata (isinstance(o, Literal) parity).
-    for (pred_nn, name) in [
-        (ex_nn("validFrom"), "validFrom"),
-        (ex_nn("validTo"), "validTo"),
+    for (pred_iri, name) in [
+        (ex_iri("validFrom"), "validFrom"),
+        (ex_iri("validTo"), "validTo"),
     ] {
-        let has_literal = objects_of(&EXAMPLE_STORE, reifier, &pred_nn)
+        let has_literal = objects_of(&EXAMPLE_STORE, reifier, &pred_iri)
             .iter()
-            .any(|o| matches!(o, Term::Literal(_)));
+            .any(|o| matches!(o, RdfTerm::Literal(_)));
         assert!(
             has_literal,
-            "reifier {} carries no literal {name} edge metadata",
-            reifier.as_str()
+            "reifier {reifier} carries no literal {name} edge metadata"
         );
     }
 }
@@ -513,10 +476,10 @@ fn criticism_example_has_strict_partial_order() {
         chain.len()
     );
 
-    let chars: HashSet<NamedNode> = objects_of(&MODULE_STORE, &LOGIC_PROPER_PART_OF, &RDF_TYPE)
+    let chars: HashSet<String> = objects_of(&MODULE_STORE, &LOGIC_PROPER_PART_OF, RDF_TYPE)
         .into_iter()
         .filter_map(|o| match o {
-            Term::NamedNode(n) => Some(n),
+            RdfTerm::Iri(n) => Some(n),
             _ => None,
         })
         .collect();
@@ -529,7 +492,7 @@ fn criticism_example_has_strict_partial_order() {
             chars.contains(required),
             "logic:properPartOf is not typed logic:{} in the module — the \
              strict-partial-order characteristic is missing",
-            required.as_str().trim_start_matches(LOGIC_NS)
+            required.trim_start_matches(LOGIC_NS)
         );
     }
 }
@@ -539,10 +502,10 @@ fn criticism_example_has_multilevel_instance_chain() {
     // §3 no-punning fix: a logic:instanceOf chain where a type is itself an instance of
     // a higher-order type, with logic:orderedType levels.
     let inst = pairs_of(&EXAMPLE_STORE, &LOGIC_INSTANCE_OF);
-    let subjects: HashSet<&NamedNode> = inst.iter().map(|(s, _)| s).collect();
+    let subjects: HashSet<&String> = inst.iter().map(|(s, _)| s).collect();
     // A two-step chain: an object that is itself a subject (marv -> goldenEagle -> species).
     let has_bridge = inst.iter().any(|(_, o)| match o {
-        Term::NamedNode(n) => subjects.contains(n),
+        RdfTerm::Iri(n) => subjects.contains(n),
         _ => false,
     });
     assert!(
@@ -551,14 +514,8 @@ fn criticism_example_has_multilevel_instance_chain() {
     );
     // logic:orderedType levels are recorded.
     let has_levels = EXAMPLE_STORE
-        .quads_for_pattern(
-            None,
-            Some((*LOGIC_ORDERED_TYPE).as_ref()),
-            None,
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .next()
-        .is_some();
+        .iter()
+        .any(|q| in_default_graph(q) && q.predicate == *LOGIC_ORDERED_TYPE);
     assert!(has_levels, "no logic:orderedType levels recorded");
 }
 
@@ -572,14 +529,13 @@ fn criticism_example_references_builtin() {
         "no logic:invokesBuiltin edge found in {EXAMPLE_TTL}"
     );
 
-    let builtin_type_term = Term::NamedNode((*LOGIC_BUILTIN).clone());
+    let builtin_type_term = iri_term(&LOGIC_BUILTIN);
     for (_subj, builtin) in &invocations {
         match builtin {
-            Term::NamedNode(builtin_nn) => {
+            RdfTerm::Iri(builtin_iri) => {
                 assert!(
-                    has_object(&MODULE_STORE, builtin_nn, &RDF_TYPE, &builtin_type_term),
-                    "{} is not declared a logic:Builtin in {MODULE_TTL}",
-                    builtin_nn.as_str()
+                    has_object(&MODULE_STORE, builtin_iri, RDF_TYPE, &builtin_type_term),
+                    "{builtin_iri} is not declared a logic:Builtin in {MODULE_TTL}"
                 );
             }
             _ => panic!("logic:invokesBuiltin target is not an IRI: {builtin:?}"),

@@ -37,7 +37,10 @@ repos:
       - id: check-case-conflict
       - id: check-added-large-files
         args: ["--maxkb=1024"]
-        exclude: '^(generated/schemas/.*|ontology-docs/.*)$'
+        # Frozen SPARQL-oracle goldens (committed CONSTRUCT N-Quads) are
+        # large by nature and must stay byte-faithful; excluded alongside
+        # the other generated/golden data trees.
+        exclude: '^(generated/schemas/.*|ontology-docs/.*|crates/sparql-conformance/tests/goldens/.*)$'
       - id: mixed-line-ending
         args: ["--fix=lf"]
         exclude: *keep-verbatim

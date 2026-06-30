@@ -40,19 +40,13 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # emitter reuses this model and `render::to_gmeow_rdf_in_graph` rather than minting
 # a parallel vocabulary. `gmeow-logic` already depends on it — no new layering edge.
 gmeow-diagnostics = { path = "../diagnostics" }
-# Native RDF text codecs (#909): the comparator parses serialized RDF via
-# `gmeow_rdf::parse_dataset` (oxigraph-free text ingress through the gmeow-gts codecs)
-# instead of `oxigraph::io::RdfParser`; the `gmeow-rdf` dep + `oxigraph` feature below
-# re-export the native codec fns and the IR→oxigraph bridge.
-# oxigraph in-memory Dataset with RDF 1.2 for RDFC-1.0 canonicalization in the RDF
-# comparator (scope-OUT of #909 — canonicalization stays on the oxigraph kernel).
-# Same pin + features as the rest of the workspace (no [workspace.dependencies]
-# table exists to inherit from; this matches crates/slicetest exactly).
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
-# The RDF-1.2 adapter: the RDF comparator canonicalizes via the native full RDFC-1.0
-# surface `gmeow_rdf::canonicalize_quads` (#910), replacing oxrdf `Dataset::canonicalize`.
-# `gmeow-logic` already depends on this crate, so no new layering edge is created.
-gmeow-rdf = { path = "../rdf", default-features = false, features = ["oxigraph"] }
+# Native RDF text codecs (#909) + native flat RDFC-1.0 (#910): the comparator parses
+# serialized RDF via `gmeow_rdf::parse_dataset` (oxigraph-free text ingress through the
+# gmeow-gts codecs), canonicalizes via `gmeow_rdf::canonical_flat_nquads`, and buckets
+# named graphs via `RdfDataset::project_named_graph` + `serialize_dataset` — all on the
+# native, oxigraph-free path (#906 cutover; no `oxigraph` feature). `gmeow-logic` already
+# depends on this crate, so no new layering edge is created.
+gmeow-rdf = { path = "../rdf", default-features = false, features = ["gts"] }
 # Canonical-JSON comparison (sorted keys) for verdicts / ledger / certification /
 # budget / answers, and parsing the committed JSON goldens. NO `preserve_order`:
 # the default BTreeMap-backed `Value` serializes keys in sorted order, which IS

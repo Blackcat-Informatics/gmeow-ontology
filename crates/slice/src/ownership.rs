@@ -30,12 +30,12 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use oxigraph::model::{NamedNode, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
+use gmeow_rdf::RdfTerm;
 
 use crate::artifact::{ArtifactRecord, ArtifactRole};
 use crate::catalog::{SliceCatalog, SliceRecord};
 use crate::error::SliceError;
+use crate::rdf_query::{Dataset, NamedNode};
 
 // ── Namespace constants ───────────────────────────────────────────────────────
 
@@ -584,58 +584,51 @@ fn edge_kind_for_role(role: &ArtifactRole) -> Option<EdgeKind> {
 
 // ── RDF helpers ───────────────────────────────────────────────────────────────
 
-/// Parse an RDF artifact's bytes into an oxigraph store (lenient for
-/// `@x-gmeow-*` language tags). Returns `None` on parse failure.
-fn parse_rdf_artifact(artifact: &ArtifactRecord) -> Result<Store, SliceError> {
+/// Parse an RDF artifact's bytes into a native dataset (lenient for `@x-gmeow-*`
+/// language tags). Hard-fails on a syntax error.
+fn parse_rdf_artifact(artifact: &ArtifactRecord) -> Result<Dataset, SliceError> {
     // A malformed ownership-bearing artifact must FAIL LOUDLY, never be silently
     // dropped — a swallowed parse error would hide a term from the
     // one-validated-owner gate and miscompute the dependency graph
     // (no-optionality / hard-fail doctrine, #820).
-    crate::rdf_text::turtle_bytes_to_store(artifact.content.as_slice(), &artifact.logical_path)
+    Dataset::parse_turtle(artifact.content.as_slice(), &artifact.logical_path)
 }
 
 /// Collect all `subject rdfs:isDefinedBy owner` pairs (owner must be a NamedNode).
-fn collect_is_defined_by(store: &Store) -> Vec<(NamedNode, SliceIri)> {
-    let pred = NamedNode::new(RDFS_IS_DEFINED_BY).expect("static IRI");
+fn collect_is_defined_by(store: &Dataset) -> Vec<(NamedNode, SliceIri)> {
     let mut out = Vec::new();
-    for quad in store
-        .quads_for_pattern(None, Some(pred.as_ref()), None, None)
-        .flatten()
-    {
-        let subject = match &quad.subject {
-            NamedOrBlankNode::NamedNode(n) => n.clone(),
-            NamedOrBlankNode::BlankNode(_) => continue,
+    for quad in store.inner().owned_quads() {
+        if quad.predicate != RDFS_IS_DEFINED_BY {
+            continue;
+        }
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
         };
-        if let Term::NamedNode(owner) = &quad.object {
-            out.push((subject, owner.as_str().to_string()));
+        if let RdfTerm::Iri(owner) = &quad.object {
+            out.push((NamedNode::new_unchecked(subject.clone()), owner.clone()));
         }
     }
     out
 }
 
 /// Collect every GMEOW-namespaced subject typed as an OWL/RDFS vocabulary
-/// construct (`owl:Class`, `owl:ObjectProperty`, etc.) in the given store.
+/// construct (`owl:Class`, `owl:ObjectProperty`, etc.) in the given dataset.
 /// These are "declared terms" that must have an `rdfs:isDefinedBy` or they will
 /// be flagged as `OwnershipStatus::Unowned`.
-fn collect_declared_terms(store: &Store) -> BTreeSet<NamedNode> {
-    let rdf_type = NamedNode::new(RDF_TYPE).expect("static IRI");
+fn collect_declared_terms(store: &Dataset) -> BTreeSet<NamedNode> {
     let mut out = BTreeSet::new();
-    for type_iri in VOCAB_TERM_TYPES {
-        let type_node = NamedNode::new(*type_iri).expect("static IRI");
-        for quad in store
-            .quads_for_pattern(
-                None,
-                Some(rdf_type.as_ref()),
-                Some(type_node.as_ref().into()),
-                None,
-            )
-            .flatten()
-        {
-            if let NamedOrBlankNode::NamedNode(subject) = &quad.subject {
-                if subject.as_str().starts_with(GMEOW_NS) {
-                    out.insert(subject.clone());
-                }
-            }
+    for quad in store.inner().owned_quads() {
+        if quad.predicate != RDF_TYPE {
+            continue;
+        }
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        let RdfTerm::Iri(object) = &quad.object else {
+            continue;
+        };
+        if VOCAB_TERM_TYPES.contains(&object.as_str()) && subject.starts_with(GMEOW_NS) {
+            out.insert(NamedNode::new_unchecked(subject.clone()));
         }
     }
     out
@@ -659,22 +652,13 @@ fn collect_slice_depends_on(record: &SliceRecord) -> Result<BTreeSet<SliceIri>, 
         return Ok(out);
     };
     let store = parse_rdf_artifact(manifest_artifact)?;
-    let Ok(subject) = NamedNode::new(&record.manifest.slice_iri) else {
+    // The slice IRI must be a valid IRI to participate; a malformed one yields no
+    // edges (mirrors the original `NamedNode::new(...)` guard).
+    if NamedNode::new(&record.manifest.slice_iri).is_err() {
         return Ok(out);
-    };
-    let pred = NamedNode::new(GMEOW_SLICE_DEPENDS_ON).expect("static IRI");
-    for quad in store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(pred.as_ref()),
-            None,
-            None,
-        )
-        .flatten()
-    {
-        if let Term::NamedNode(target) = &quad.object {
-            out.insert(target.as_str().to_string());
-        }
+    }
+    for target in store.object_iris(&record.manifest.slice_iri, GMEOW_SLICE_DEPENDS_ON)? {
+        out.insert(target);
     }
     Ok(out)
 }
@@ -695,36 +679,36 @@ fn extract_rdf_iris(artifact: &ArtifactRecord) -> BTreeSet<NamedNode> {
     let Ok(store) = parse_rdf_artifact(artifact) else {
         return out;
     };
-    for quad in store.iter().flatten() {
-        collect_subject_iris(&quad.subject, &mut out);
-        out.insert(quad.predicate.clone());
+    for quad in store.inner().owned_quads() {
+        collect_term_iris(&quad.subject, &mut out);
+        out.insert(NamedNode::new_unchecked(quad.predicate.clone()));
         collect_term_iris(&quad.object, &mut out);
-        if let oxigraph::model::GraphName::NamedNode(g) = &quad.graph_name {
-            out.insert(g.clone());
+        if let Some(RdfTerm::Iri(g)) = &quad.graph_name {
+            out.insert(NamedNode::new_unchecked(g.clone()));
         }
     }
     out
 }
 
-fn collect_subject_iris(subject: &NamedOrBlankNode, out: &mut BTreeSet<NamedNode>) {
-    if let NamedOrBlankNode::NamedNode(n) = subject {
-        out.insert(n.clone());
-    }
-}
-
-fn collect_term_iris(term: &Term, out: &mut BTreeSet<NamedNode>) {
+/// Mine every NamedNode IRI from one term: an IRI itself, a literal's expanded
+/// datatype IRI (the lexical form is NOT mined), and a quoted triple's components.
+/// A blank node contributes no IRI. The frozen IR always expands a literal's
+/// datatype (C0.1), so a plain `xsd:string` / `rdf:langString` literal mines the
+/// expanded datatype exactly as oxigraph's `lit.datatype()` did.
+fn collect_term_iris(term: &RdfTerm, out: &mut BTreeSet<NamedNode>) {
     match term {
-        Term::NamedNode(n) => {
-            out.insert(n.clone());
+        RdfTerm::Iri(n) => {
+            out.insert(NamedNode::new_unchecked(n.clone()));
         }
-        Term::BlankNode(_) => {}
-        Term::Literal(lit) => {
-            // The datatype IRI is a referenced term; the lexical form is NOT.
-            out.insert(lit.datatype().into_owned());
+        RdfTerm::BlankNode(_) => {}
+        RdfTerm::Literal(lit) => {
+            if let Some(dt) = &lit.datatype {
+                out.insert(NamedNode::new_unchecked(dt.clone()));
+            }
         }
-        Term::Triple(triple) => {
-            collect_subject_iris(&triple.subject, out);
-            out.insert(triple.predicate.clone());
+        RdfTerm::Triple(triple) => {
+            collect_term_iris(&triple.subject, out);
+            out.insert(NamedNode::new_unchecked(triple.predicate.clone()));
             collect_term_iris(&triple.object, out);
         }
     }
@@ -1008,5 +992,9 @@ fn walk_ground_term(t: &gmeow_sparql_algebra::GroundTerm, out: &mut BTreeSet<Nam
             insert_oxiri(&tri.predicate, out);
             walk_ground_term(&tri.object, out);
         }
+        // Injection-only variant (native `$this` substitution): never produced by
+        // the parser, so it cannot appear in a VALUES clause, and a blank node
+        // carries no IRI dependency edge — a no-op.
+        GT::BlankNode(_) => {}
     }
 }

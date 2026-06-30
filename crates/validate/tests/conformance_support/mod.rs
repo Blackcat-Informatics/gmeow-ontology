@@ -17,13 +17,15 @@
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use gmeow_rdf::oxigraph::{dataset_from_store, flat_oxigraph_quads_from_dataset};
-use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
-use gmeow_shacl::engine::{parse_shapes, validate as validate_store};
+use std::sync::Arc;
+
+use gmeow_rdf::{
+    flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
+    RdfDataset, SerializeGraph,
+};
+use gmeow_shacl::engine::{parse_shapes, validate_dataset};
 use gmeow_shacl::report::{Severity, ValidationReport};
 use gmeow_shacl::shapes::Shapes;
-use gmeow_shacl::text_ingest::parse_ntriples_to_store;
-use oxigraph::store::Store;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
@@ -193,22 +195,23 @@ fn collect_module_ttls(dir: &Path, paths: &mut Vec<PathBuf>) {
 /// Merged ontology as a single N-Triples string.
 ///
 /// Parses every `slices/*/*/module.ttl` (recursively under `slices/`, files
-/// literally named `module.ttl`) into one oxigraph Store and dumps as N-Triples.
-/// Mirrors `load_merged_graph(include_imports=False)`.
+/// literally named `module.ttl`) into the native IR, flattens every named graph into
+/// the default graph, and dumps as N-Triples. Mirrors
+/// `load_merged_graph(include_imports=False)`.
 ///
 /// Cached via [`OnceLock`] so disk I/O happens at most once per test process.
 pub fn base_ontology_nt() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
-    CACHE.get_or_init(|| store_dataset_to_nt(base_ontology_store()))
+    CACHE.get_or_init(|| dataset_default_graph_to_nt(base_ontology_dataset()))
 }
 
-/// Merged ontology as an oxigraph store.
+/// Merged ontology as a frozen native dataset (flattened to the default graph).
 ///
-/// This is the store-native twin of [`base_ontology_nt`]. The conformance tests
-/// use it directly so `validate_with_ontology` does not serialize the full
-/// ontology to N-Triples and immediately parse it back for every case.
-pub fn base_ontology_store() -> &'static Store {
-    static CACHE: OnceLock<Store> = OnceLock::new();
+/// The native twin of [`base_ontology_nt`]. The conformance tests use it directly
+/// so `validate_with_ontology` does not serialize the full ontology to N-Triples
+/// and immediately parse it back for every case.
+pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
+    static CACHE: OnceLock<Arc<RdfDataset>> = OnceLock::new();
     CACHE.get_or_init(|| {
         let root = repo_root();
         let slices_dir = root.join("slices");
@@ -216,21 +219,22 @@ pub fn base_ontology_store() -> &'static Store {
         collect_module_ttls(&slices_dir, &mut module_paths);
         module_paths.sort();
 
-        let store = Store::new().expect("in-memory store creation is infallible");
+        // Accumulate every module's flat quads (graph component re-homed to the
+        // default graph) into one frozen native dataset.
+        let mut merged: Vec<gmeow_rdf::RdfQuad> = Vec::new();
         for path in &module_paths {
             let ttl = std::fs::read_to_string(path)
                 .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
             // Native codec parse (#909): lenient on private-use language tags.
-            match parse_dataset(ttl.as_bytes(), "text/turtle", None)
-                .and_then(|ds| flat_oxigraph_quads_from_dataset(&ds))
-            {
-                Ok(quads) => {
-                    for quad in quads {
-                        store.insert(&quad).expect("store insert is infallible");
+            match parse_dataset(ttl.as_bytes(), "text/turtle", None) {
+                Ok(ds) => {
+                    for mut quad in flat_rdf_quads_from_dataset(&ds) {
+                        quad.graph_name = None;
+                        merged.push(quad);
                     }
                 }
                 // Warn but continue — some module.ttl files import cross-slice
-                // IRIs that are not resolvable in the local store.
+                // IRIs that are not resolvable in the local parse.
                 Err(e) => eprintln!(
                     "warning: native Turtle parse of {} had errors: {e}",
                     path.display()
@@ -238,7 +242,7 @@ pub fn base_ontology_store() -> &'static Store {
             }
         }
 
-        store
+        flat_dataset_from_quads(&merged).expect("merged flat dataset must freeze")
     })
 }
 
@@ -252,32 +256,23 @@ pub fn whole_shapes() -> &'static Shapes {
     CACHE.get_or_init(|| parse_shapes(whole_shapes_ttl()).expect("whole SHACL shapes parse"))
 }
 
-fn nt_to_store(nt: &str) -> Store {
-    parse_ntriples_to_store(nt)
-        .unwrap_or_else(|errors| panic!("N-Triples parse failed:\n{}", errors.join("\n")))
+/// Parse N-Triples into a frozen native dataset (flattened to the default graph).
+fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
+    let dataset = parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .unwrap_or_else(|e| panic!("N-Triples parse failed: {e}"));
+    flatten_to_default_graph(&dataset)
 }
 
-fn copy_store(source: &Store) -> Store {
-    let target = Store::new().expect("in-memory store creation is infallible");
-    for quad in source.quads_for_pattern(None, None, None, None) {
-        let quad = quad.expect("source store iteration must succeed");
-        target.insert(&quad).expect("store insert is infallible");
-    }
-    target
-}
-
-/// Validate `base_ontology_nt() + "\n" + fixture_nt` against `whole_shapes_ttl()`.
+/// Validate `base_ontology + fixture_nt` against `whole_shapes()`.
 ///
 /// Use this variant when the fixture triples rely on class/property declarations
 /// from the merged ontology to pass SHACL class-constraint checks.
 pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
-    let store = copy_store(base_ontology_store());
-    let fixture_store = nt_to_store(fixture_nt);
-    for quad in fixture_store.quads_for_pattern(None, None, None, None) {
-        let quad = quad.expect("fixture store iteration must succeed");
-        store.insert(&quad).expect("store insert is infallible");
-    }
-    validate_store(&store, whole_shapes())
+    let mut merged: Vec<gmeow_rdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+    let fixture = nt_to_dataset(fixture_nt);
+    merged.extend(flat_rdf_quads_from_dataset(&fixture));
+    let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
+    validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
 }
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
@@ -305,33 +300,35 @@ pub fn ttl_file_to_nt(path: &Path) -> String {
     ttl_str_to_nt(&ttl)
 }
 
-/// Parse an inline Turtle string into an oxigraph store and emit as N-Triples.
+/// Parse an inline Turtle string into the native IR (flattening every named graph
+/// into the default graph) and emit as N-Triples.
 ///
-/// Uses the lenient parser (same as `gmeow_shacl::engine::validate_graphs`) so
+/// Uses the native codec parser (same as `gmeow_shacl::engine::validate_graphs`) so
 /// private-use `@x-gmeow-*` language tags are accepted.
 pub fn ttl_str_to_nt(ttl: &str) -> String {
     let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("Turtle parse failed: {e}\nInput:\n{ttl}"));
-    let store = gmeow_rdf::oxigraph::store_from_dataset(
-        &dataset,
-        gmeow_rdf::oxigraph::GraphPolicy::FlattenToDefaultGraph,
-    )
-    .unwrap_or_else(|e| panic!("store from dataset failed: {e}"));
-    store_dataset_to_nt(&store)
+    let flattened = flatten_to_default_graph(&dataset);
+    dataset_default_graph_to_nt(&flattened)
 }
 
-/// Fold an oxigraph store back to the IR and serialize its default graph as
-/// N-Triples via the native codec (#909). The `application/n-quads` codec on the
-/// `DefaultGraph` selection emits graphless rows (N-Triples) and is byte-lenient
-/// on private-use language tags.
-fn store_dataset_to_nt(store: &Store) -> String {
-    let dataset = dataset_from_store(store).expect("store folds to the IR");
-    let buf = serialize_dataset(
-        &dataset,
-        "application/n-quads",
-        SerializeGraph::DefaultGraph,
-    )
-    .expect("native N-Triples serialisation is infallible");
+/// Re-home every quad's graph component to the default graph (`None`), returning a
+/// fresh frozen flat dataset — the native twin of the prior oxigraph
+/// `GraphPolicy::FlattenToDefaultGraph`.
+fn flatten_to_default_graph(dataset: &RdfDataset) -> Arc<RdfDataset> {
+    let mut quads = flat_rdf_quads_from_dataset(dataset);
+    for quad in &mut quads {
+        quad.graph_name = None;
+    }
+    flat_dataset_from_quads(&quads).expect("flattened dataset must freeze")
+}
+
+/// Serialize a dataset's default graph as N-Triples via the native codec (#909). The
+/// `application/n-quads` codec on the `DefaultGraph` selection emits graphless rows
+/// (N-Triples) and is byte-lenient on private-use language tags.
+fn dataset_default_graph_to_nt(dataset: &RdfDataset) -> String {
+    let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::DefaultGraph)
+        .expect("native N-Triples serialisation is infallible");
     String::from_utf8(buf).expect("native N-Triples output is valid UTF-8")
 }
 
@@ -375,8 +372,8 @@ pub fn ok(report: &ValidationReport) -> bool {
 
 /// Run validation of `data_nt` (N-Triples) against the whole shapes corpus.
 pub fn validate(data_nt: &str) -> ValidationReport {
-    let store = nt_to_store(data_nt);
-    validate_store(&store, whole_shapes())
+    let dataset = nt_to_dataset(data_nt);
+    validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
 }
 
 // ── Parameterized case harness (#1051) ──────────────────────────────────────────

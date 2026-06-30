@@ -164,7 +164,7 @@ pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::model::{NamedNode, Term};
+    use gmeow_shacl::term::{NamedNode, Term};
 
     #[test]
     fn ir_quad_location_threads_end_to_end_into_sarif() {

@@ -17,11 +17,14 @@
 //! `constraints`, `path`, `report`, `model`) are PyO3-free so the rlib links
 //! into the future Rust compiler without any Python dependency.
 
-use oxigraph::store::Store;
+use std::sync::Arc;
+
+use gmeow_rdf::RdfDataset;
 use pyo3::prelude::*;
 use pyo3::types::{PyAny, PyCapsule, PyCapsuleMethods, PyDict, PyList};
 
 use crate::engine;
+use crate::report::ValidationReport;
 
 /// Validate a data graph (N-Triples) against a shapes graph (Turtle).
 ///
@@ -79,19 +82,20 @@ fn validate(py: Python<'_>, shapes_ttl: &str, data_nt: &str) -> PyResult<Py<PyAn
 ///
 /// Construct from a Turtle shapes graph with `PyShapes(shapes_ttl)`, then call
 /// `validate_nt(data_nt)` for each data graph. The Rust orchestration path in
-/// `gmeow-validate` borrows the parsed shapes via [`Self::validate_against_store`].
+/// `gmeow-validate` borrows the parsed shapes via [`Self::validate_against_dataset`].
 #[pyclass(name = "Shapes")]
 pub struct PyShapes {
     inner: crate::shapes::Shapes,
 }
 
 impl PyShapes {
-    /// Validate a borrowed oxigraph store against these parsed shapes.
+    /// Validate a borrowed native [`RdfDataset`] against these parsed shapes.
     ///
     /// This is the Rust-side primitive used by `gmeow-validate::PyValidationStore`
     /// so the data store does not have to be re-serialized to N-Triples.
-    pub fn validate_against_store(&self, data: &Store) -> crate::report::ValidationReport {
-        engine::validate(data, &self.inner)
+    pub fn validate_against_dataset(&self, data: &RdfDataset) -> ValidationReport {
+        engine::validate_dataset(data, &self.inner)
+            .expect("validation over a frozen dataset is infallible")
     }
 }
 
@@ -107,21 +111,20 @@ impl PyShapes {
     /// Validate an N-Triples data graph against these parsed shapes.
     fn validate_nt(&self, data_nt: String) -> PyResult<PyValidationReport> {
         // Native codec ingest (#909): lenient on private-use language tags, every
-        // malformed line reported in one pass.
-        let data = crate::text_ingest::parse_ntriples_to_store(&data_nt)
+        // malformed line reported in one pass. The engine runs over the frozen IR.
+        let data = crate::text_ingest::parse_ntriples_to_dataset(&data_nt)
             .map_err(|errors| pyo3::exceptions::PyValueError::new_err(errors.join("\n")))?;
-        Ok(PyValidationReport::new(engine::validate(
-            &data,
-            &self.inner,
-        )))
+        let report = engine::validate_dataset(data.as_ref(), &self.inner)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(PyValidationReport::new(report))
     }
 
-    /// Validate a borrowed oxigraph store against these parsed shapes.
+    /// Validate a borrowed native dataset against these parsed shapes.
     ///
     /// `data` must be an object (typically `gmeow_validate.ValidationStore`) that
-    /// exposes an internal `_store_capsule()` method returning a capsule borrowing
-    /// its oxigraph store. This avoids serialising the store to N-Triples for each
-    /// validation phase (#634).
+    /// exposes an internal `_store_capsule()` method returning a capsule borrowing a
+    /// frozen `Arc<RdfDataset>` snapshot. This avoids serialising the store to
+    /// N-Triples for each validation phase (#634).
     ///
     /// # Errors
     ///
@@ -131,14 +134,16 @@ impl PyShapes {
         let capsule = data.call_method0("_store_capsule")?;
         let capsule = capsule.cast::<PyCapsule>()?;
         let ptr = capsule
-            .pointer_checked(Some(c"gmeow-validation-store"))
+            .pointer_checked(Some(c"gmeow-validation-dataset"))
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         let addr = unsafe { *ptr.cast::<usize>().as_ptr() };
-        let store = unsafe { &*(addr as *const Store) };
-        Ok(PyValidationReport::new(engine::validate(
-            store,
-            &self.inner,
-        )))
+        // SAFETY: the capsule's value is the address of an `Arc<RdfDataset>` the
+        // producer keeps alive (and at a stable address) for the capsule's lifetime.
+        // We borrow it to validate; the producer's `Arc` owns the dataset.
+        let dataset = unsafe { &*(addr as *const Arc<RdfDataset>) };
+        Ok(PyValidationReport::new(
+            self.validate_against_dataset(dataset.as_ref()),
+        ))
     }
 }
 

@@ -11,14 +11,16 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
+use crate::stages::native_query;
 use crate::transform::{self, CellInput};
 use crate::up_projection;
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{GraphNameRef, Literal, NamedNode, NamedOrBlankNode, Quad, Term};
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
-use oxigraph::store::Store;
+use gmeow_rdf::{
+    flat_dataset_from_quads, parse_dataset, serialize_dataset, DatasetView, GraphMatch, RdfDataset,
+    RdfLiteral, RdfTerm, SerializeGraph, TermRef, TermValue,
+};
 use serde::Serialize;
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -222,13 +224,145 @@ impl FileAcceptance {
     }
 }
 
+// ── Native RDF substrate (EPIC #906) ──────────────────────────────────────────
+//
+// The scoreboard once built oxigraph `Store`s and read `oxigraph::model` terms.
+// It now operates entirely on the frozen `gmeow_rdf::RdfDataset` IR: each Turtle
+// source is parsed natively and unioned, SPARQL runs through the native engine,
+// and pattern queries resolve `TermRef`s off the dataset. No oxigraph anywhere.
+
+/// Parse a set of Turtle sources and union them into one frozen dataset — the
+/// IR-native twin of `gmeow_validate::store::load_sources_into_store`.
+fn dataset_from_files(paths: &[PathBuf]) -> Result<Arc<RdfDataset>, String> {
+    let parsed: Vec<Arc<RdfDataset>> = paths
+        .iter()
+        .map(|p| {
+            let bytes = fs::read(p).map_err(|e| format!("read {}: {e}", p.display()))?;
+            parse_dataset(&bytes, "text/turtle", None)
+                .map_err(|e| format!("parse {}: {e}", p.display()))
+        })
+        .collect::<Result<_, _>>()?;
+    let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+    Ok(Arc::new(RdfDataset::union(&refs)))
+}
+
+/// Parse an N-Triples string into one frozen dataset.
+fn dataset_from_nt(nt: &str) -> Result<Arc<RdfDataset>, String> {
+    parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| format!("parse n-triples: {e}"))
+}
+
+/// Serialize the default graph of a dataset to N-Triples text. Preserves the exact
+/// byte form the prior `dump_store_to_ntriples` produced (media type
+/// `application/n-quads` + `SerializeGraph::DefaultGraph`), which `up_projection` /
+/// `transform` consume downstream.
+fn dump_ds_to_nt(ds: &RdfDataset) -> Result<String, String> {
+    let bytes = serialize_dataset(ds, "application/n-quads", SerializeGraph::DefaultGraph)
+        .map_err(|e| format!("serialize dataset: {e}"))?;
+    String::from_utf8(bytes).map_err(|e| format!("serialize dataset (utf8): {e}"))
+}
+
+/// The plain string value a result term carries: the IRI, the blank label, or the
+/// literal lexical form (NOT a full N-Triples rendering), with a quoted triple
+/// rendered canonically. Mirrors the prior oxigraph `term_value`.
+fn term_value(term: &TermValue) -> String {
+    match term {
+        TermValue::Iri(iri) => iri.clone(),
+        TermValue::Blank { label, .. } => label.clone(),
+        TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+        TermValue::Triple { .. } => render_term_value(term),
+    }
+}
+
+/// Canonical N-Triples rendering of a [`TermValue`] — used for a quoted-triple result
+/// cell (mirrors `slicetest::native_query::render_term`).
+fn render_term_value(term: &TermValue) -> String {
+    match term {
+        TermValue::Iri(iri) => format!("<{iri}>"),
+        TermValue::Blank { label, .. } => format!("_:{label}"),
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            ..
+        } => {
+            let escaped = escape_literal(lexical_form);
+            match language {
+                Some(lang) => format!("\"{escaped}\"@{lang}"),
+                None => format!("\"{escaped}\"^^<{datatype}>"),
+            }
+        }
+        TermValue::Triple { s, p, o } => format!(
+            "<< {} {} {} >>",
+            render_term_value(s),
+            render_term_value(p),
+            render_term_value(o)
+        ),
+    }
+}
+
+/// Render a borrowed [`TermRef`] to its canonical N-Triples lexical form (mirrors
+/// `slicetest::native_query::render_term`). Used for the object slot of an
+/// `RdfTripleKey` so source and output sides compare on the SAME string within a run.
+fn render_term_ref(ds: &RdfDataset, term: TermRef<'_>) -> String {
+    match term {
+        TermRef::Iri(iri) => format!("<{iri}>"),
+        TermRef::Blank { label, .. } => format!("_:{label}"),
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            ..
+        } => {
+            let escaped = escape_literal(lexical);
+            match language {
+                Some(lang) => format!("\"{escaped}\"@{lang}"),
+                None => {
+                    let dt = match ds.resolve(datatype) {
+                        TermRef::Iri(iri) => iri.to_owned(),
+                        other => render_term_ref(ds, other),
+                    };
+                    format!("\"{escaped}\"^^<{dt}>")
+                }
+            }
+        }
+        TermRef::Triple { s, p, o } => format!(
+            "<< {} {} {} >>",
+            render_term_ref(ds, ds.resolve(s)),
+            render_term_ref(ds, ds.resolve(p)),
+            render_term_ref(ds, ds.resolve(o))
+        ),
+    }
+}
+
+fn escape_literal(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            other => out.push(other),
+        }
+    }
+    out
+}
+
+/// The id of an IRI term in `ds`, or `None` if absent (an absent IRI matches no
+/// quad, exactly like the oxigraph pattern miss).
+fn iri_id(ds: &RdfDataset, iri: &str) -> Option<gmeow_rdf::TermId> {
+    ds.term_id_by_value(&TermValue::iri(iri))
+}
+
 pub fn claim_audit(root: &Path, files: &[PathBuf]) -> Result<ClaimAuditReport, String> {
     if files.is_empty() {
         return Err("audit requires at least one Turtle data file".to_owned());
     }
     let mut sources = ontology_source_files(root, false)?;
     sources.extend(files.iter().cloned());
-    let store = gmeow_validate::store::load_sources_into_store(&sources)?;
+    let store = dataset_from_files(&sources)?;
 
     let mut report = ClaimAuditReport::default();
     for query_path in audit_query_files(root)? {
@@ -320,9 +454,9 @@ pub fn claim_audit_diagnostics(report: &ClaimAuditReport) -> Report {
 }
 
 pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileAcceptance, String> {
-    let source_store = gmeow_validate::store::load_sources_into_store(&[source.to_path_buf()])?;
-    let source_nt = gmeow_validate::store::dump_store_to_ntriples(&source_store)
-        .map_err(|e| format!("serialize source graph: {e}"))?;
+    let source_store = dataset_from_files(&[source.to_path_buf()])?;
+    let source_nt =
+        dump_ds_to_nt(&source_store).map_err(|e| format!("serialize source graph: {e}"))?;
     let ontology_nt = ontology_nt(root)?;
     let tag_map = gmeow_validate::language_tags::load_tag_map(ontology_nt.as_bytes(), "nt")?;
     let inverse_tag_map = invert_tag_map(&tag_map);
@@ -344,7 +478,7 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
         ));
     }
     let draft_nt = retag_nt_to_internal(&lift.graph_nt, &inverse_tag_map)?;
-    let draft_store = gmeow_validate::store::build_store_from_nt(&draft_nt)?;
+    let draft_store = dataset_from_nt(&draft_nt)?;
     let transformed = transform::transform_nt(
         &draft_nt,
         &ontology_nt,
@@ -353,7 +487,7 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
         &projection_queries(root)?,
     )?;
     let output_nt = retag_nt_to_public(&transformed.base_plus_derived_nt, &tag_map)?;
-    let output_store = gmeow_validate::store::build_store_from_nt(&output_nt)?;
+    let output_store = dataset_from_nt(&output_nt)?;
 
     let gates = vec![
         gate_pure_gmeow(&draft_store)?,
@@ -581,38 +715,29 @@ fn glob_ttl_like(path: &Path, extension: &str) -> Result<Vec<PathBuf>, String> {
     Ok(files)
 }
 
-fn select_rows(store: &Store, query: &str) -> Result<Vec<Vec<String>>, String> {
-    let parsed = SparqlEvaluator::new()
-        .parse_query(query)
-        .map_err(|e| format!("SPARQL query parse failed: {e}"))?;
-    let QueryResults::Solutions(solutions) = parsed
-        .on_store(store)
-        .execute()
-        .map_err(|e| format!("SPARQL query evaluation failed: {e}"))?
-    else {
-        return Err("audit query did not return SELECT solutions".to_owned());
-    };
-    let variables = solutions.variables().to_vec();
-    let mut rows = Vec::new();
-    for solution in solutions {
-        let solution = solution.map_err(|e| format!("SPARQL solution failed: {e}"))?;
-        rows.push(
-            variables
-                .iter()
-                .map(|var| solution.get(var).map_or_else(String::new, term_value))
-                .collect(),
-        );
-    }
-    Ok(rows)
+fn select_rows(store: &Arc<RdfDataset>, query: &str) -> Result<Vec<Vec<String>>, String> {
+    let solutions = native_query::select(store, query)
+        .map_err(|e| format!("SPARQL query evaluation failed: {e}"))?;
+    Ok(solutions
+        .rows
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|cell| cell.as_ref().map_or_else(String::new, term_value))
+                .collect()
+        })
+        .collect())
 }
 
-fn run_claim_shacl(root: &Path, store: &Store) -> Result<(Vec<String>, Vec<String>), String> {
-    let data_nt = gmeow_validate::store::dump_store_to_ntriples(store)
-        .map_err(|e| format!("serialize audit SHACL data: {e}"))?;
-    let data_store = gmeow_validate::store::build_store_from_nt(&data_nt)?;
+fn run_claim_shacl(
+    root: &Path,
+    store: &Arc<RdfDataset>,
+) -> Result<(Vec<String>, Vec<String>), String> {
+    let data_nt = dump_ds_to_nt(store).map_err(|e| format!("serialize audit SHACL data: {e}"))?;
+    let data_store = dataset_from_nt(&data_nt)?;
     let shapes_ttl = shapes_turtle(root)?;
     let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl)?;
-    let shacl = gmeow_shacl::engine::validate(&data_store, &shapes);
+    let shacl = gmeow_shacl::engine::validate_dataset(&data_store, &shapes)?;
     if shacl.conforms {
         return Ok((Vec::new(), Vec::new()));
     }
@@ -695,23 +820,17 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
 }
 
 fn shacl_line(result: &gmeow_shacl::report::ValidationResult) -> String {
-    let focus = shacl_term_to_str(&result.focus_node);
+    let focus = result.focus_value();
     match &result.message {
         Some(message) => format!("{focus}: {message}"),
         None => focus,
     }
 }
 
-fn shacl_term_to_str(term: &Term) -> String {
-    match term {
-        Term::NamedNode(n) => n.as_str().to_owned(),
-        Term::BlankNode(b) => b.as_str().to_owned(),
-        Term::Literal(l) => l.value().to_owned(),
-        Term::Triple(t) => t.to_string(),
-    }
-}
-
-fn flat_claims(store: &Store, report: &ClaimAuditReport) -> Result<Vec<FlatClaim>, String> {
+fn flat_claims(
+    store: &Arc<RdfDataset>,
+    report: &ClaimAuditReport,
+) -> Result<Vec<FlatClaim>, String> {
     let flagged: BTreeMap<&str, BTreeSet<String>> = AUDIT_HEADLINE
         .iter()
         .map(|name| {
@@ -794,15 +913,6 @@ fn parse_optional_i64(value: Option<&String>) -> Result<Option<i64>, String> {
         .map_err(|e| format!("invalid integer literal {value:?}: {e}"))
 }
 
-fn term_value(term: &Term) -> String {
-    match term {
-        Term::NamedNode(n) => n.as_str().to_owned(),
-        Term::BlankNode(b) => b.as_str().to_owned(),
-        Term::Literal(l) => l.value().to_owned(),
-        Term::Triple(t) => t.to_string(),
-    }
-}
-
 fn local(value: &str) -> &str {
     value.strip_prefix(GM).unwrap_or(value)
 }
@@ -812,9 +922,8 @@ struct RdfTripleKey(String, String, String);
 
 fn ontology_nt(root: &Path) -> Result<String, String> {
     let sources = ontology_source_files(root, false)?;
-    let store = gmeow_validate::store::load_sources_into_store(&sources)?;
-    gmeow_validate::store::dump_store_to_ntriples(&store)
-        .map_err(|e| format!("serialize ontology graph: {e}"))
+    let store = dataset_from_files(&sources)?;
+    dump_ds_to_nt(&store).map_err(|e| format!("serialize ontology graph: {e}"))
 }
 
 fn sssom_texts(root: &Path) -> Result<Vec<String>, String> {
@@ -854,7 +963,7 @@ fn load_cells(root: &Path) -> Result<Vec<CellInput>, String> {
     if paths.is_empty() {
         return Err("no mapping cell TTL files found".to_owned());
     }
-    let store = gmeow_validate::store::load_sources_into_store(&paths)?;
+    let store = dataset_from_files(&paths)?;
     let rows = select_rows(
         &store,
         r#"
@@ -1044,52 +1153,45 @@ fn retag_nt<F>(nt: &str, mut rewrite: F) -> Result<String, String>
 where
     F: FnMut(&str) -> Option<String>,
 {
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    for quad in RdfParser::from_format(RdfFormat::NTriples)
-        .lenient()
-        .for_reader(nt.as_bytes())
-    {
-        let quad = quad.map_err(|e| format!("N-Triples parse error: {e}"))?;
-        let object = match &quad.object {
-            Term::Literal(lit) => match lit.language().and_then(&mut rewrite) {
-                Some(new_lang) => Term::Literal(retag_literal(lit, &new_lang)),
-                None => quad.object.clone(),
-            },
-            _ => quad.object.clone(),
-        };
-        let rewritten = Quad::new(
-            quad.subject.clone(),
-            quad.predicate.clone(),
-            object,
-            quad.graph_name.clone(),
-        );
-        store
-            .insert(&rewritten)
-            .map_err(|e| format!("store insert failed: {e}"))?;
+    let ds = dataset_from_nt(nt)?;
+    let mut quads = Vec::new();
+    for mut quad in ds.owned_quads() {
+        if let RdfTerm::Literal(lit) = &quad.object {
+            if let Some(lang) = &lit.language {
+                if let Some(new_lang) = rewrite(lang) {
+                    quad.object = RdfTerm::Literal(retag_literal(lit, &new_lang));
+                }
+            }
+        }
+        quads.push(quad);
     }
-    gmeow_validate::store::dump_store_to_ntriples(&store)
-        .map_err(|e| format!("serialize retagged graph: {e}"))
+    let retagged = flat_dataset_from_quads(&quads)?;
+    let bytes = serialize_dataset(
+        &retagged,
+        "application/n-quads",
+        SerializeGraph::DefaultGraph,
+    )
+    .map_err(|e| format!("serialize retagged graph: {e}"))?;
+    String::from_utf8(bytes).map_err(|e| format!("serialize retagged graph (utf8): {e}"))
 }
 
-fn retag_literal(lit: &Literal, language: &str) -> Literal {
-    match lit.direction() {
-        Some(direction) => Literal::new_directional_language_tagged_literal_unchecked(
-            lit.value(),
-            language,
-            direction,
-        ),
-        None => Literal::new_language_tagged_literal_unchecked(lit.value(), language),
+fn retag_literal(lit: &RdfLiteral, language: &str) -> RdfLiteral {
+    RdfLiteral {
+        lexical_form: lit.lexical_form.clone(),
+        datatype: lit.datatype.clone(),
+        language: Some(language.to_owned()),
+        direction: lit.direction,
     }
 }
 
-fn store_len(store: &Store) -> Result<usize, String> {
-    store.len().map_err(|e| format!("store length failed: {e}"))
+fn store_len(store: &RdfDataset) -> Result<usize, String> {
+    Ok(store.quad_count())
 }
 
-fn gate_pure_gmeow(draft: &Store) -> Result<GateResult, String> {
+fn gate_pure_gmeow(draft: &RdfDataset) -> Result<GateResult, String> {
     let mut foreign: BTreeMap<String, usize> = BTreeMap::new();
-    for quad in default_graph_quads(draft)? {
-        let predicate = quad.predicate.as_str();
+    for (predicate, object) in default_graph_predicate_object(draft) {
+        let predicate = predicate.as_str();
         if predicate != RDF_TYPE
             && !STRUCTURAL_NAMESPACES
                 .iter()
@@ -1100,7 +1202,7 @@ fn gate_pure_gmeow(draft: &Store) -> Result<GateResult, String> {
             *foreign.entry(key).or_default() += 1;
         }
         if predicate == RDF_TYPE {
-            if let Term::NamedNode(object) = &quad.object {
+            if let ResolvedTerm::Iri(object) = &object {
                 let object = object.as_str();
                 if !STRUCTURAL_NAMESPACES
                     .iter()
@@ -1145,8 +1247,8 @@ fn is_structural_predicate(predicate: &str) -> bool {
 }
 
 fn gate_round_trip(
-    source: &Store,
-    output: &Store,
+    source: &RdfDataset,
+    output: &RdfDataset,
     tag_map: &HashMap<String, String>,
 ) -> Result<GateResult, String> {
     let source_by_vocab = by_vocab(source, true, tag_map)?;
@@ -1200,7 +1302,7 @@ fn gate_round_trip(
     Ok(gate)
 }
 
-fn gate_size_invariant(source: &Store, output: &Store) -> Result<GateResult, String> {
+fn gate_size_invariant(source: &RdfDataset, output: &RdfDataset) -> Result<GateResult, String> {
     let source_len = store_len(source)?;
     let output_len = store_len(output)?;
     let passed = output_len > source_len;
@@ -1226,15 +1328,16 @@ fn gate_size_invariant(source: &Store, output: &Store) -> Result<GateResult, Str
 
 fn gate_external_validator(
     root: &Path,
-    output: &Store,
+    output: &RdfDataset,
     _tag_map: &HashMap<String, String>,
 ) -> Result<GateResult, String> {
     let mut detail = Vec::new();
-    let leaked = default_graph_quads(output)?
+    let leaked = default_graph_quads(output)
         .iter()
         .filter(|quad| match &quad.object {
-            Term::Literal(lit) => lit
-                .language()
+            ResolvedTerm::Literal(lit) => lit
+                .language
+                .as_deref()
                 .is_some_and(gmeow_validate::language_tags::is_internal_tag),
             _ => false,
         })
@@ -1289,8 +1392,8 @@ fn gate_external_validator(
 }
 
 fn gate_coverage(
-    source: &Store,
-    output: &Store,
+    source: &RdfDataset,
+    output: &RdfDataset,
     lifted: usize,
     gap_terms: usize,
 ) -> Result<GateResult, String> {
@@ -1308,22 +1411,125 @@ fn gate_coverage(
     Ok(gate)
 }
 
-fn default_graph_quads(store: &Store) -> Result<Vec<Quad>, String> {
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph)) {
-        out.push(quad.map_err(|e| format!("store iteration failed: {e}"))?);
+/// An owned, resolved RDF term — the dataset-independent twin of an `oxigraph::Term`
+/// the scoreboard used to read off a `Store`. Built once per default-graph scan so
+/// downstream gate math operates on owned strings without re-borrowing the dataset.
+#[derive(Debug, Clone)]
+enum ResolvedTerm {
+    Iri(String),
+    Blank(String),
+    Literal(RdfLiteral),
+    Triple(Box<(ResolvedTerm, ResolvedTerm, ResolvedTerm)>),
+}
+
+/// One owned, resolved default-graph triple. The predicate is always an IRI in a
+/// well-formed graph, kept as its string.
+#[derive(Debug, Clone)]
+struct ResolvedQuad {
+    subject: ResolvedTerm,
+    predicate: String,
+    object: ResolvedTerm,
+}
+
+/// Resolve a borrowed [`TermRef`] into an owned [`ResolvedTerm`].
+fn own_term(ds: &RdfDataset, term: TermRef<'_>) -> ResolvedTerm {
+    match term {
+        TermRef::Iri(iri) => ResolvedTerm::Iri(iri.to_owned()),
+        TermRef::Blank { label, .. } => ResolvedTerm::Blank(label.to_owned()),
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            let datatype = match ds.resolve(datatype) {
+                TermRef::Iri(iri) => Some(iri.to_owned()),
+                _ => None,
+            };
+            ResolvedTerm::Literal(RdfLiteral {
+                lexical_form: lexical.to_owned(),
+                datatype,
+                language: language.map(str::to_owned),
+                direction,
+            })
+        }
+        TermRef::Triple { s, p, o } => ResolvedTerm::Triple(Box::new((
+            own_term(ds, ds.resolve(s)),
+            own_term(ds, ds.resolve(p)),
+            own_term(ds, ds.resolve(o)),
+        ))),
     }
-    Ok(out)
+}
+
+impl ResolvedTerm {
+    /// The canonical N-Triples rendering of this term — the oxigraph-`Display`-compatible
+    /// form the `RdfTripleKey` slots used (`<iri>`, `_:label`, a quoted literal, `<< … >>`).
+    fn to_nt(&self) -> String {
+        match self {
+            ResolvedTerm::Iri(iri) => format!("<{iri}>"),
+            ResolvedTerm::Blank(label) => format!("_:{label}"),
+            ResolvedTerm::Literal(lit) => literal_to_nt(lit),
+            ResolvedTerm::Triple(parts) => format!(
+                "<< {} {} {} >>",
+                parts.0.to_nt(),
+                parts.1.to_nt(),
+                parts.2.to_nt()
+            ),
+        }
+    }
+}
+
+/// Render an [`RdfLiteral`] to its N-Triples quoted-string form (datatype default is
+/// `xsd:string` when none is recorded).
+fn literal_to_nt(lit: &RdfLiteral) -> String {
+    let escaped = escape_literal(&lit.lexical_form);
+    if let Some(lang) = &lit.language {
+        format!("\"{escaped}\"@{lang}")
+    } else {
+        let dt = lit
+            .datatype
+            .as_deref()
+            .unwrap_or("http://www.w3.org/2001/XMLSchema#string");
+        format!("\"{escaped}\"^^<{dt}>")
+    }
+}
+
+/// All default-graph triples of `ds`, resolved to owned terms.
+fn default_graph_quads(ds: &RdfDataset) -> Vec<ResolvedQuad> {
+    let mut out = Vec::new();
+    for quad in ds.quads_for_pattern(None, None, None, GraphMatch::Default) {
+        let predicate = match ds.resolve(quad.p) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            // A non-IRI predicate is impossible in a valid graph; render it so the
+            // scan never panics, matching the prior tolerant behaviour.
+            other => render_term_ref(ds, other),
+        };
+        out.push(ResolvedQuad {
+            subject: own_term(ds, ds.resolve(quad.s)),
+            predicate,
+            object: own_term(ds, ds.resolve(quad.o)),
+        });
+    }
+    out
+}
+
+/// The `(predicate, object)` of every default-graph triple — the slimmer scan
+/// `gate_pure_gmeow` needs (it inspects only those two slots).
+fn default_graph_predicate_object(ds: &RdfDataset) -> Vec<(String, ResolvedTerm)> {
+    default_graph_quads(ds)
+        .into_iter()
+        .map(|q| (q.predicate, q.object))
+        .collect()
 }
 
 fn by_vocab(
-    store: &Store,
+    store: &RdfDataset,
     iri_subjects_only: bool,
     tag_map: &HashMap<String, String>,
 ) -> Result<BTreeMap<String, BTreeSet<RdfTripleKey>>, String> {
     let mut buckets: BTreeMap<String, BTreeSet<RdfTripleKey>> = BTreeMap::new();
-    for quad in default_graph_quads(store)? {
-        if iri_subjects_only && !matches!(quad.subject, NamedOrBlankNode::NamedNode(_)) {
+    for quad in default_graph_quads(store) {
+        if iri_subjects_only && !matches!(quad.subject, ResolvedTerm::Iri(_)) {
             continue;
         }
         let Some(vocab) = triple_vocab(&quad.predicate, &quad.object) else {
@@ -1342,67 +1548,66 @@ fn by_vocab(
     Ok(buckets)
 }
 
-fn triple_vocab(predicate: &NamedNode, object: &Term) -> Option<&'static str> {
-    if predicate.as_str() == RDF_TYPE {
-        if let Term::NamedNode(object) = object {
+fn triple_vocab(predicate: &str, object: &ResolvedTerm) -> Option<&'static str> {
+    if predicate == RDF_TYPE {
+        if let ResolvedTerm::Iri(object) = object {
             return vocab_of_iri(object.as_str());
         }
     }
-    vocab_of_iri(predicate.as_str())
+    vocab_of_iri(predicate)
 }
 
 fn normalized_key(
-    subject: &NamedOrBlankNode,
-    predicate: &NamedNode,
-    object: &Term,
+    subject: &ResolvedTerm,
+    predicate: &str,
+    object: &ResolvedTerm,
     tag_map: &HashMap<String, String>,
 ) -> RdfTripleKey {
     RdfTripleKey(
-        subject.to_string(),
-        predicate.to_string(),
+        subject.to_nt(),
+        format!("<{predicate}>"),
         normalized_term(object, tag_map),
     )
 }
 
-fn normalized_term(term: &Term, tag_map: &HashMap<String, String>) -> String {
-    match term {
-        Term::Literal(lit) => {
-            if let Some(language) = lit.language() {
-                let normalized = if gmeow_validate::language_tags::is_internal_tag(language) {
-                    tag_map
-                        .get(language)
-                        .or_else(|| tag_map.get(&language.to_ascii_lowercase()))
-                        .cloned()
-                        .unwrap_or_else(|| language.to_ascii_lowercase())
-                } else {
-                    language.to_ascii_lowercase()
-                };
-                return Term::Literal(retag_literal(lit, &normalized)).to_string();
-            }
-            term.to_string()
+fn normalized_term(term: &ResolvedTerm, tag_map: &HashMap<String, String>) -> String {
+    if let ResolvedTerm::Literal(lit) = term {
+        if let Some(language) = &lit.language {
+            let normalized = if gmeow_validate::language_tags::is_internal_tag(language) {
+                tag_map
+                    .get(language)
+                    .or_else(|| tag_map.get(&language.to_ascii_lowercase()))
+                    .cloned()
+                    .unwrap_or_else(|| language.to_ascii_lowercase())
+            } else {
+                language.to_ascii_lowercase()
+            };
+            return literal_to_nt(&retag_literal(lit, &normalized));
         }
-        _ => term.to_string(),
     }
+    term.to_nt()
 }
 
-fn emitted_terms_by_vocab(output: &Store) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
+fn emitted_terms_by_vocab(
+    output: &RdfDataset,
+) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
     let mut terms: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for quad in default_graph_quads(output)? {
-        if quad.predicate.as_str() != RDF_TYPE {
-            if let Some(vocab) = vocab_of_iri(quad.predicate.as_str()) {
+    for quad in default_graph_quads(output) {
+        if quad.predicate != RDF_TYPE {
+            if let Some(vocab) = vocab_of_iri(&quad.predicate) {
                 terms
                     .entry(vocab.to_owned())
                     .or_default()
-                    .insert(quad.predicate.as_str().to_owned());
+                    .insert(quad.predicate.clone());
             }
         }
-        if quad.predicate.as_str() == RDF_TYPE {
-            if let Term::NamedNode(object) = &quad.object {
+        if quad.predicate == RDF_TYPE {
+            if let ResolvedTerm::Iri(object) = &quad.object {
                 if let Some(vocab) = vocab_of_iri(object.as_str()) {
                     terms
                         .entry(vocab.to_owned())
                         .or_default()
-                        .insert(object.as_str().to_owned());
+                        .insert(object.clone());
                 }
             }
         }
@@ -1418,27 +1623,31 @@ fn known_terms(root: &Path, prefix: &str) -> Result<BTreeSet<String>, String> {
     if !path.exists() {
         return Ok(BTreeSet::new());
     }
-    let store = gmeow_validate::store::load_sources_into_store(&[path])?;
+    let store = dataset_from_files(&[path])?;
     let mut known = BTreeSet::new();
-    for quad in default_graph_quads(&store)? {
-        if let NamedOrBlankNode::NamedNode(subject) = quad.subject {
-            known.insert(subject.as_str().to_owned());
+    for quad in default_graph_quads(&store) {
+        if let ResolvedTerm::Iri(subject) = quad.subject {
+            known.insert(subject);
         }
-        if let Term::NamedNode(object) = quad.object {
-            known.insert(object.as_str().to_owned());
+        if let ResolvedTerm::Iri(object) = quad.object {
+            known.insert(object);
         }
     }
     Ok(known)
 }
 
-fn run_range_shacl(root: &Path, output: &Store, detail: &mut Vec<String>) -> Result<usize, String> {
+fn run_range_shacl(
+    root: &Path,
+    output: &RdfDataset,
+    detail: &mut Vec<String>,
+) -> Result<usize, String> {
     let mut total = 0usize;
     for prefix in VENDORED_DEFS {
         let Some(shapes_ttl) = generate_range_shapes(root, prefix)? else {
             continue;
         };
         let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl)?;
-        let report = gmeow_shacl::engine::validate(output, &shapes);
+        let report = gmeow_shacl::engine::validate_dataset(output, &shapes)?;
         if report.conforms {
             continue;
         }
@@ -1465,26 +1674,24 @@ fn generate_range_shapes(root: &Path, prefix: &str) -> Result<Option<String>, St
     else {
         return Ok(None);
     };
-    let store = gmeow_validate::store::load_sources_into_store(&[path])?;
-    let rdfs_range = NamedNode::new(RDFS_RANGE).map_err(|e| e.to_string())?;
+    let store = dataset_from_files(&[path])?;
     let mut body = Vec::new();
-    for quad in store.quads_for_pattern(None, Some(rdfs_range.as_ref()), None, None) {
-        let quad = quad.map_err(|e| format!("store iteration failed: {e}"))?;
-        let NamedOrBlankNode::NamedNode(prop) = quad.subject else {
-            continue;
-        };
-        let Term::NamedNode(range) = quad.object else {
-            continue;
-        };
-        if !range.as_str().starts_with(namespace) {
-            continue;
+    let range_id = iri_id(&store, RDFS_RANGE);
+    if let Some(range_id) = range_id {
+        for quad in store.quads_for_pattern(None, Some(range_id), None, GraphMatch::Any) {
+            let TermRef::Iri(prop) = store.resolve(quad.s) else {
+                continue;
+            };
+            let TermRef::Iri(range) = store.resolve(quad.o) else {
+                continue;
+            };
+            if !range.starts_with(namespace) {
+                continue;
+            }
+            body.push(format!(
+                "<{prop}-rangeShape> a sh:NodeShape ; sh:targetObjectsOf <{prop}> ; sh:class <{range}> ."
+            ));
         }
-        body.push(format!(
-            "<{}-rangeShape> a sh:NodeShape ; sh:targetObjectsOf <{}> ; sh:class <{}> .",
-            prop.as_str(),
-            prop.as_str(),
-            range.as_str()
-        ));
     }
     if body.is_empty() {
         return Ok(None);
@@ -1495,7 +1702,7 @@ fn generate_range_shapes(root: &Path, prefix: &str) -> Result<Option<String>, St
     )))
 }
 
-fn vocab_coverage(output: &Store, source: &Store) -> Result<String, String> {
+fn vocab_coverage(output: &RdfDataset, source: &RdfDataset) -> Result<String, String> {
     let ours = by_namespace(vocab_terms(output)?);
     let theirs = by_namespace(vocab_terms(source)?);
     let mut lines = vec![
@@ -1543,13 +1750,13 @@ fn vocab_coverage(output: &Store, source: &Store) -> Result<String, String> {
     Ok(lines.join("\n") + "\n")
 }
 
-fn vocab_terms(store: &Store) -> Result<BTreeSet<String>, String> {
+fn vocab_terms(store: &RdfDataset) -> Result<BTreeSet<String>, String> {
     let mut terms = BTreeSet::new();
-    for quad in default_graph_quads(store)? {
-        terms.insert(quad.predicate.as_str().to_owned());
-        if quad.predicate.as_str() == RDF_TYPE {
-            if let Term::NamedNode(object) = quad.object {
-                terms.insert(object.as_str().to_owned());
+    for quad in default_graph_quads(store) {
+        terms.insert(quad.predicate.clone());
+        if quad.predicate == RDF_TYPE {
+            if let ResolvedTerm::Iri(object) = quad.object {
+                terms.insert(object);
             }
         }
     }

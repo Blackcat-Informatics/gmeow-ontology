@@ -102,10 +102,22 @@ pub trait RdfParserBackend {
 }
 
 /// SPARQL operation request.
+///
+/// `substitutions` carries variable **pre-bindings** (purrdf S5, EPIC #906 GAP-A):
+/// each `(name, value)` pre-binds the query variable `name` to `value` before
+/// evaluation, as if the `WHERE` had been joined with a single-row
+/// `VALUES { ?name value }`. This is the native replacement for oxigraph's
+/// `PreparedSparqlQuery::substitute_variable`, used by SHACL-AF to inject the focus
+/// node as `$this`. A slice (rather than a `Vec`) keeps the request `Copy` and
+/// borrow-only; the empty slice (`&[]`) is "no pre-binding". `value` is a
+/// [`TermValue`], so a blank-node focus node is representable (unlike a `VALUES`
+/// cell), and the substitution propagates into `OPTIONAL`/`MINUS`/`EXISTS`/
+/// sub-queries while keeping the variable projectable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SparqlRequest<'a> {
     pub query: &'a str,
     pub base_iri: Option<&'a str>,
+    pub substitutions: &'a [(String, TermValue)],
 }
 
 /// Materialized SPARQL result model independent of any concrete query engine.
