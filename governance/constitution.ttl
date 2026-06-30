@@ -376,7 +376,8 @@ meta:Principle3 a meta:Principle ;
 meta:Principle4 a meta:Principle ;
     meta:number 4 ;
     meta:title "One canonical source; everything else a generated lossy projection" ;
-    meta:enforcedBy meta:gate-generator-registry, meta:tests-narrow-waist .
+    meta:enforcedBy meta:gate-generator-registry, meta:tests-narrow-waist,
+        meta:gate-projection-compute-purity .
 
 meta:Principle5 a meta:Principle ;
     meta:number 5 ;
@@ -424,7 +425,7 @@ meta:Principle12 a meta:Principle ;
     meta:number 12 ;
     meta:title "Compute outside the logic — the solver boundary" ;
     meta:enforcedBy meta:gate-reasoning, meta:lint-reasoning-invariants,
-        meta:tests-reasoning ;
+        meta:tests-reasoning, meta:gate-projection-compute-purity ;
     meta:supersededInPartBy meta:Principle17 .
 
 meta:Principle13 a meta:Principle ;
@@ -454,7 +455,7 @@ meta:Principle17 a meta:Principle ;
     meta:title "The logic itself is canonical — OWL is a projection of it, not its ceiling" ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
         meta:gate-foundation-conformance, meta:gate-logic-gufo-superset,
-        meta:shapes-result-generated .
+        meta:shapes-result-generated, meta:gate-projection-compute-purity .
 
 # The executable lane-purity seal: the two-lane split (primary lane
 # Java/Docker-free; classic-cross-check the SOLE oracle lane) is enforced by an
@@ -467,6 +468,26 @@ meta:tests-lane-purity a meta:Gate ;
         "check_makefile_lane_purity" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
+
+# Computation surfaces are PROJECTIONS of the logic: canon, not extensions of
+# SHACL/SPARQL: derivation/aggregation is authored in logic: and emitted to a
+# generated SHACL-AF rule surface (the §1 map/reduce projection), and a query
+# surface compiles INTO logic: (the §8 RDFQuery design). Two falsifiable claims:
+# (i) the repo-static purity seal red-fails on a hand-authored computational
+# SHACL-AF/RDFQuery construct in the authored sources lacking a logic:formalizes
+# back-reference; (ii) the emitted SHACL-AF projection is a generated artifact the
+# single-pass regenerate / check-generated drift gate owns. Sharpens Principles
+# 17 + 4 + 12 (no new numbered principle).
+meta:gate-projection-compute-purity a meta:Gate ;
+    rdfs:label "computation surfaces are projections of logic:, not extensions of SHACL/SPARQL"@x-gmeow-english ;
+    meta:artifact "crates/validate/src/repo_static.rs",
+        "crates/logic-compile/src/projections/shacl_af.rs",
+        "generated/shacl-af/gmeow.shacl-af.ttl",
+        "slices/core/logic/design/LOGIC-SHACL-AF.md",
+        "slices/core/logic/design/LOGIC-RDFQUERY.md" ;
+    meta:symbol "check_projection_compute_purity", "project_shacl_af" ;
+    meta:cliCommand "crate-check", "check-generated" ;
+    meta:makeTarget "crate-check", "check-generated" .
 
 meta:Principle18 a meta:Principle ;
     meta:number 18 ;
