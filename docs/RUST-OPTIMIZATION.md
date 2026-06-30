@@ -137,8 +137,9 @@ For a narrow Rust hot-path optimization, use focused tests first, then the relev
 gate:
 
 - Iterator/API shape only: `cargo test -p <crate> ...`, then `make rust-test`.
-- Reasoning behavior: focused `gmeow-logic` tests, relevant conformance tests, then
-  `make reason` / `make verify` as appropriate.
+- Reasoning behavior: focused `gmeow-logic` tests and relevant conformance tests.
+  Use `make reason-verify` when both native reports are needed; use `make reason`
+  or `make verify` only to isolate one side.
 - Validation behavior: focused `gmeow-validate` / `gmeow-shacl` tests, then
   `make validate`.
 - Generated-output behavior: `make regenerate` followed by `make check-generated`.

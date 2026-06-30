@@ -152,6 +152,7 @@ release workflow explicitly writes the signed copy there before packaging.
 ```bash
 make reason          # Native Docker-free EL/DL reasoning authority
 make verify          # Native reasoned-graph negative tests
+make reason-verify   # Native reasoning + verify from one shared closure
 make maint-reason-hermit # Full complete consistency check with HermiT (Docker oracle)
 make maint-explain   # Explain any unsatisfiable classes (HermiT/Docker oracle)
 make maint-verify-docker # ROBOT/ELK reasoned-graph verification
