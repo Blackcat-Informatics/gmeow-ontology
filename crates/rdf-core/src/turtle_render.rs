@@ -62,6 +62,7 @@ struct Renderer<'a> {
     used_prefixes: RefCell<BTreeSet<String>>,
     /// The well-known predicate ids, or `None` when the term table has no such IRI.
     rdf_type: Option<TermId>,
+    rdf_reifies: Option<TermId>,
     rdf_first: Option<TermId>,
     rdf_rest: Option<TermId>,
     rdf_nil_iri: String,
@@ -76,24 +77,25 @@ impl<'a> Renderer<'a> {
         // what makes the render idempotent regardless of how the parser interned terms.
         let mut raw: HashMap<TermId, BTreeMap<TermId, Vec<TermId>>> = HashMap::new();
         let mut object_refs: HashMap<TermId, usize> = HashMap::new();
-        // The base quads PLUS the RDF 1.2 reifier / annotation side-tables, exposed as
-        // virtual quads (`reifier rdf:reifies << s p o >>` and `reifier annP annO`).
-        // The side-tables live OUTSIDE `quads`, so without this the renderer silently
-        // drops every reified statement that carries annotations — a data-loss round
-        // trip (`rdf:reifies []`). Folding them in lets a reifier render as an ordinary
-        // subject and the quoted triple as `<< s p o >>` (TermRef::Triple).
-        for q in dataset
+        // The RDF 1.2 statement layer (reifier bindings + annotations) lives in SIDE
+        // TABLES, not `quads` — so the canonical renderer must fold in `reifier_quads`
+        // (`<reifier> rdf:reifies << s p o >>`) and `annotation_quads`
+        // (`<reifier> <pred> <value>`) alongside the base quads, or it silently drops the
+        // whole statement layer (#1155 bug 2). Folding them in here — rather than a
+        // separate emission pass — keeps a reifier subject's `rdf:reifies` edge and its
+        // annotations on ONE flat top-level subject (`<reifier> rdf:reifies << s p o >> ;
+        // <ann> <v> .`), which round-trips idempotently: the quoted triple term renders as
+        // `<< s p o >>` (never as a nested blank), so re-parsing reproduces the same side
+        // tables without growing the graph.
+        let rows = dataset
             .quads()
-            .chain(dataset.reifier_quads())
-            .chain(dataset.annotation_quads())
-        {
-            raw.entry(q.s)
-                .or_default()
-                .entry(q.p)
-                .or_default()
-                .push(q.o);
-            if matches!(dataset.resolve(q.o), TermRef::Blank { .. }) {
-                *object_refs.entry(q.o).or_default() += 1;
+            .map(|q| (q.s, q.p, q.o))
+            .chain(dataset.reifier_quads().map(|q| (q.s, q.p, q.o)))
+            .chain(dataset.annotation_quads().map(|q| (q.s, q.p, q.o)));
+        for (s, p, o) in rows {
+            raw.entry(s).or_default().entry(p).or_default().push(o);
+            if matches!(dataset.resolve(o), TermRef::Blank { .. }) {
+                *object_refs.entry(o).or_default() += 1;
             }
         }
 
@@ -154,6 +156,7 @@ impl<'a> Renderer<'a> {
             shared_labels,
             used_prefixes: RefCell::new(BTreeSet::new()),
             rdf_type: None,
+            rdf_reifies: None,
             rdf_first: None,
             rdf_rest: None,
             rdf_nil_iri: rdf("nil"),
@@ -161,6 +164,7 @@ impl<'a> Renderer<'a> {
         // Resolve the well-known predicate ids by scanning the term table (they may
         // be absent, in which case the sentinel never matches a real predicate).
         r.rdf_type = r.find_iri(&rdf("type"));
+        r.rdf_reifies = r.find_iri(&rdf("reifies"));
         r.rdf_first = r.find_iri(&rdf("first"));
         r.rdf_rest = r.find_iri(&rdf("rest"));
         r
@@ -222,8 +226,18 @@ impl<'a> Renderer<'a> {
         let Some(props) = self.by_subject.get(&subj) else {
             return;
         };
+        // `a` (rdf:type) first, then `rdf:reifies` — the reifier's defining edge must
+        // precede its annotations so a parser that folds a reifier's sibling triples as
+        // annotations sees the `rdf:reifies` binding first (idempotent #1155 round trip
+        // and the canonical committed form `<r> rdf:reifies << s p o >> ; <ann> .`).
         let mut preds: Vec<TermId> = props.keys().copied().collect();
-        preds.sort_by_cached_key(|p| (Some(*p) != self.rdf_type, self.iri_of(*p)));
+        preds.sort_by_cached_key(|p| {
+            (
+                Some(*p) != self.rdf_type,
+                Some(*p) != self.rdf_reifies,
+                self.iri_of(*p),
+            )
+        });
 
         let last_pred = preds.len().saturating_sub(1);
         for (pi, pred) in preds.iter().enumerate() {
@@ -283,9 +297,13 @@ impl<'a> Renderer<'a> {
                 }
             }
             TermRef::Triple { s, p, o } => {
-                // RDF-1.2 quoted triple: `<< s p o >>`.
+                // RDF-1.2 TRIPLE TERM: `<<( s p o )>>`. The parens matter — the bare
+                // `<< s p o >>` form is a *reifying triple* that ALSO asserts `s p o`
+                // (and mints a reifier), so re-parsing it would grow the graph and break
+                // the `rdf:reifies` object. A triple term denotes the triple without
+                // asserting it, exactly as the gts codec serializer emits it.
                 format!(
-                    "<< {} {} {} >>",
+                    "<<( {} {} {} )>>",
                     self.render_object(s, depth),
                     self.term_label(p),
                     self.render_object(o, depth)

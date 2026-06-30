@@ -76,14 +76,17 @@ pub fn to_writer(
         let s = intern_term(&mut state, &reifier.statement.subject)?;
         let p = intern_iri(&mut state, &reifier.statement.predicate)?;
         let o = intern_term(&mut state, &reifier.statement.object)?;
-        graph.reifiers.push((rid, (s, p, o)));
+        // gmeow-gts 0.9.11 row-array `(rid, (s,p,o), graph?)`: gmeow's reification is
+        // standpoint-scoped, never graph-scoped, so the graph slot is always `None`.
+        graph.reifiers.push((rid, (s, p, o), None));
     }
 
     for annotation in &annotations {
         let r = intern_term(&mut state, &annotation.reifier)?;
         let p = intern_iri(&mut state, &annotation.predicate)?;
         let v = intern_term(&mut state, &annotation.object)?;
-        graph.annotations.push((r, p, v));
+        // 0.9.11 row-array `(reifier, predicate, value, graph?)`; graph always `None`.
+        graph.annotations.push((r, p, v, None));
     }
 
     apply_lookaside(&state, &mut graph, lookaside.clone());
@@ -584,10 +587,10 @@ mod tests {
         // Two distinct reifier rows over the same triple content survive.
         assert_eq!(graph.reifiers.len(), 2);
         let rids: std::collections::BTreeSet<usize> =
-            graph.reifiers.iter().map(|(rid, _)| *rid).collect();
+            graph.reifiers.iter().map(|(rid, _, _)| *rid).collect();
         assert_eq!(rids.len(), 2, "the two reifiers must be distinct");
         let triples: std::collections::BTreeSet<Triple3> =
-            graph.reifiers.iter().map(|(_, t)| *t).collect();
+            graph.reifiers.iter().map(|(_, t, _)| *t).collect();
         assert_eq!(triples.len(), 1, "both reify the same (s,p,o)");
     }
 

@@ -93,7 +93,7 @@ pub fn load_sources_into_store(paths: &[PathBuf]) -> Result<Store, String> {
 /// Build a [`gmeow_rdf::DatasetProvenance`] from per-file parsed quad lists.
 ///
 /// Accepts a slice of `(PathBuf, Result<Vec<Quad>, String>)` — the same element
-/// type that a parse-once loop produces — and builds one [`DatasetProvenance`]
+/// type that a parse-once loop produces — and builds one [`gmeow_rdf::DatasetProvenance`]
 /// where:
 ///
 /// - Each **successfully parsed file** is registered as a
@@ -278,7 +278,7 @@ pub fn read_gts_graph(bytes: &[u8]) -> Result<gmeow_gts::model::Graph, String> {
     gmeow_rdf::gts::read_all_segments(bytes).map_err(|e| e.to_string())
 }
 
-/// Build an oxigraph [`Store`] from a parsed GTS [`Graph`].
+/// Build an oxigraph [`Store`] from a parsed GTS [`gmeow_gts::model::Graph`].
 ///
 /// Convenience wrapper around [`gmeow_rdf::gts::flattened_oxigraph_store_from_graph`]
 /// that converts diagnostics to plain strings for the validation API. See

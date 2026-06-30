@@ -90,20 +90,59 @@ fn parse_rejects_unknown_node() {
 }
 
 #[test]
-fn parse_hard_fails_on_concurrent_composition() {
+fn parse_accepts_concurrent_composition() {
+    // ConcurrentComposition is now EXECUTABLE (T4): it parses to a Concurrent variant with
+    // its two operands, exactly like the other binary combinators — no longer a hard error.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("leftOperand"), &e("a")),
+            q(&e("cc"), &l("rightOperand"), &e("b")),
+        ]
+        .concat(),
+        primitive("a", &[], &["sitA"], &[]),
+        primitive("b", &[], &["sitB"], &[]),
+    );
+    let facts = facts_of(&nq);
+    let prog = parse_program(&facts, &format!("{W}#cc"), 0).expect("concurrent parses");
+    assert!(
+        matches!(prog, TransactionProgram::Concurrent { .. }),
+        "expected a Concurrent variant, got {prog:?}"
+    );
+}
+
+#[test]
+fn parse_concurrent_rejects_missing_right_operand() {
+    // No-optionality survives: a ConcurrentComposition missing an operand is a hard error
+    // (reuses require_one, exactly like SerialConjunction / Fallback).
     let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     let nq = format!(
         "{}{}{}",
         q(&e("cc"), ty, &l("ConcurrentComposition")),
         q(&e("cc"), &l("leftOperand"), &e("a")),
-        q(&e("cc"), &l("rightOperand"), &e("b")),
+        primitive("a", &[], &["sitA"], &[]),
     );
     let facts = facts_of(&nq);
     let err = parse_program(&facts, &format!("{W}#cc"), 0).unwrap_err();
-    assert!(err.contains("ConcurrentComposition"), "{err}");
-    assert!(err.contains("separate concern"), "{err}");
-    // The hard-fail message names the concern, never an issue/PR number.
-    assert!(!err.contains("711") && !err.contains("714"), "{err}");
+    assert!(err.contains("rightOperand"), "{err}");
+}
+
+#[test]
+fn parse_concurrent_rejects_doubled_left_operand() {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        q(&e("cc"), &l("leftOperand"), &e("a")),
+        q(&e("cc"), &l("leftOperand"), &e("b")), // doubled
+        q(&e("cc"), &l("rightOperand"), &e("c")),
+    );
+    let facts = facts_of(&nq);
+    let err = parse_program(&facts, &format!("{W}#cc"), 0).unwrap_err();
+    assert!(err.contains("leftOperand"), "{err}");
+    assert!(err.contains("exactly one required"), "{err}");
 }
 
 #[test]
@@ -810,4 +849,276 @@ fn canonical_program_is_stable_and_distinguishes_structure() {
         schema: String::new(),
     };
     assert_ne!(canonical_program(&a), canonical_program(&boundary));
+}
+
+// ── Concurrent composition: interleaving + derived serializability ───────────────
+
+/// Helper: count quads of a given local `rdf:type`.
+fn has_type(quads: &[crate::teleology::TeleologyQuad], local: &str) -> bool {
+    quads.iter().any(|q| {
+        q.predicate == RDF_TYPE
+            && q.object == format!("<https://blackcatinformatics.ca/logic/{local}>")
+    })
+}
+
+#[test]
+fn concurrent_serializable_emits_no_anomaly() {
+    // Two legs touching DISJOINT situations: zero conflict edges → conflict-serializable →
+    // NO anomaly, but the derived logic:ConcurrentHistory + verdict are still materialized.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pb")),
+        ]
+        .concat(),
+        [
+            primitive("pa", &[], &["sitA"], &[]),
+            primitive("pb", &[], &["sitB"], &[]),
+        ]
+        .concat(),
+    );
+    let quads = outcome_quads(&nq, "cc");
+
+    // Verdict: both legs find a path → succeeds.
+    let succeeds = quads
+        .iter()
+        .find(|q| q.predicate.ends_with("transactionSucceeds"))
+        .expect("a concurrent run records its verdict");
+    assert!(
+        succeeds.object.starts_with("\"true\""),
+        "{:?}",
+        succeeds.object
+    );
+
+    // A derived ConcurrentHistory + its outcome link, criterion, and operand audit edges.
+    assert!(
+        has_type(&quads, "ConcurrentHistory"),
+        "history node present"
+    );
+    assert!(quads
+        .iter()
+        .any(|q| q.predicate.ends_with("derivedHistory")));
+    assert!(quads
+        .iter()
+        .any(|q| q.predicate.ends_with("serializabilityCriterion")
+            && q.object.ends_with("ConflictSerializability>")));
+    assert_eq!(
+        quads
+            .iter()
+            .filter(|q| q.predicate.ends_with("concurrentComposedFrom"))
+            .count(),
+        2,
+        "history names both composed-from operands"
+    );
+
+    // Serializable: NO anomaly, and NO conflict edges between disjoint legs.
+    assert!(
+        !has_type(&quads, "SerializationAnomaly"),
+        "serializable → no anomaly"
+    );
+    assert!(
+        !quads.iter().any(|q| q.predicate.ends_with("/precedes")),
+        "disjoint footprints → no conflict edges"
+    );
+}
+
+/// A two-step leg built as a SerialConjunction of two primitives.
+fn serial2(node: &str, l0: &str, l1: &str) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    format!(
+        "{}{}",
+        q(&e(node), ty, &l("SerialConjunction")),
+        [
+            q(&e(node), &l("leftOperand"), &e(l0)),
+            q(&e(node), &l("rightOperand"), &e(l1)),
+        ]
+        .concat(),
+    )
+}
+
+/// The cross-dependency world: left writes sitX then reads sitY; right writes sitY then
+/// reads sitX. The two legs conflict in OPPOSING index order → a precedes cycle → anomaly.
+/// Start obtains sitX+sitY so each leg succeeds independently (the reads are satisfied).
+fn cross_dependency_world() -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    format!(
+        "{}{}{}{}{}{}",
+        start_state("s0", &["sitX", "sitY"]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("leftSer")),
+            q(&e("cc"), &l("rightOperand"), &e("rightSer")),
+        ]
+        .concat(),
+        [
+            serial2("leftSer", "l0", "l1"),
+            serial2("rightSer", "r0", "r1")
+        ]
+        .concat(),
+        [
+            // left: l0 writes sitX; l1 reads sitY, writes sitZ1.
+            primitive("l0", &[], &["sitX"], &[]),
+            primitive("l1", &["sitY"], &["sitZ1"], &[]),
+        ]
+        .concat(),
+        [
+            // right: r0 writes sitY; r1 reads sitX, writes sitZ2.
+            primitive("r0", &[], &["sitY"], &[]),
+            primitive("r1", &["sitX"], &["sitZ2"], &[]),
+        ]
+        .concat(),
+    )
+}
+
+#[test]
+fn concurrent_non_serializable_emits_anomaly_with_cycle() {
+    let quads = outcome_quads(&cross_dependency_world(), "cc");
+
+    // The run succeeds (both legs find a path) — a serialization anomaly is a HISTORY-level
+    // finding, not an execution failure.
+    let succeeds = quads
+        .iter()
+        .find(|q| q.predicate.ends_with("transactionSucceeds"))
+        .unwrap();
+    assert!(
+        succeeds.object.starts_with("\"true\""),
+        "{:?}",
+        succeeds.object
+    );
+
+    // Opposing-order conflicts → a precedes cycle → a SerializationAnomaly finding.
+    assert!(
+        has_type(&quads, "SerializationAnomaly"),
+        "cross-dependency → anomaly"
+    );
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("violatedCriterion")
+                && q.object.ends_with("ConflictSerializability>")),
+        "anomaly names the violated criterion"
+    );
+    let cycle = quads
+        .iter()
+        .find(|q| q.predicate.ends_with("anomalyCycle"))
+        .expect("anomaly carries its cycle description");
+    assert!(cycle.object.contains("#leftSer"), "{:?}", cycle.object);
+    assert!(cycle.object.contains("#rightSer"), "{:?}", cycle.object);
+
+    // Edges in BOTH directions (the two-transaction cycle).
+    assert!(quads.iter().any(|q| q.predicate.ends_with("/precedes")
+        && q.subject.ends_with("#leftSer")
+        && q.object.ends_with("#rightSer>")));
+    assert!(quads.iter().any(|q| q.predicate.ends_with("/precedes")
+        && q.subject.ends_with("#rightSer")
+        && q.object.ends_with("#leftSer>")));
+
+    // It is a FINDING, never a contradiction witness: the final state is consistent.
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("contradictionWitness")),
+        "a serialization anomaly is NOT a logical contradiction"
+    );
+}
+
+#[test]
+fn concurrent_write_write_conflict_is_detected() {
+    // Pure write-write conflicts (no reads): left writes {sitX, sitY} in two steps, right
+    // writes {sitY, sitX} in two steps — opposing order on the two shared writes → a cycle.
+    // Proves derive_conflict_edges does NOT depend on read sets to find conflicts.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("leftSer")),
+            q(&e("cc"), &l("rightOperand"), &e("rightSer")),
+        ]
+        .concat(),
+        [
+            serial2("leftSer", "l0", "l1"),
+            serial2("rightSer", "r0", "r1")
+        ]
+        .concat(),
+        [
+            primitive("l0", &[], &["sitX"], &[]), // l0 writes sitX
+            primitive("l1", &[], &["sitY"], &[]), // l1 writes sitY
+        ]
+        .concat(),
+        [
+            primitive("r0", &[], &["sitY"], &[]), // r0 writes sitY  (conflicts l1, i=1>j=0 → R→L)
+            primitive("r1", &[], &["sitX"], &[]), // r1 writes sitX  (conflicts l0, i=0<=j=1 → L→R)
+        ]
+        .concat(),
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert!(
+        has_type(&quads, "SerializationAnomaly"),
+        "write-write conflicts in opposing order must be detected"
+    );
+}
+
+#[test]
+fn concurrent_anomaly_is_deterministic() {
+    // Content-addressed: the same world yields byte-identical quads (incl. the anomaly).
+    let world = cross_dependency_world();
+    let a = outcome_quads(&world, "cc");
+    let b = outcome_quads(&world, "cc");
+    assert_eq!(a, b, "concurrent materialization must be deterministic");
+}
+
+#[test]
+fn concurrent_fails_when_either_leg_fails() {
+    // One leg has an unmet precondition → the whole concurrent composition fails (empty
+    // path), and NO history / substrate / anomaly is emitted (suppression-never-erasure).
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pgood")),
+            q(&e("cc"), &l("rightOperand"), &e("pbad")),
+        ]
+        .concat(),
+        [
+            primitive("pgood", &[], &["sitA"], &[]),
+            primitive("pbad", &["sitMissing"], &["sitB"], &[]), // precondition never holds
+        ]
+        .concat(),
+    );
+    let quads = outcome_quads(&nq, "cc");
+    let succeeds = quads
+        .iter()
+        .find(|q| q.predicate.ends_with("transactionSucceeds"))
+        .unwrap();
+    assert!(
+        succeeds.object.starts_with("\"false\""),
+        "{:?}",
+        succeeds.object
+    );
+    assert!(
+        !has_type(&quads, "ConcurrentHistory"),
+        "no history on failure"
+    );
+    assert!(
+        !has_type(&quads, "SerializationAnomaly"),
+        "no anomaly on failure"
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("situationObtains")),
+        "no committed substrate on failure"
+    );
 }

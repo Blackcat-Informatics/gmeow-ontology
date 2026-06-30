@@ -246,9 +246,9 @@ fn materialize_sparql_store(dataset: &RdfDataset) -> Store {
 /// The SHACL engine asks for [`ShaclDataGraph::sparql_store`] once per `sh:sparql`
 /// target/constraint. The bare `&RdfDataset` backend re-materializes the whole store
 /// every time; this wrapper materializes it AT MOST ONCE per validation (lazily, only
-/// if a SPARQL path is actually reached) via a [`OnceLock`], then hands every later
-/// SPARQL evaluation the same store. Pattern lookups delegate to the underlying IR
-/// backend unchanged.
+/// if a SPARQL path is actually reached) via a [`std::sync::OnceLock`], then
+/// hands every later SPARQL evaluation the same store. Pattern lookups delegate
+/// to the underlying IR backend unchanged.
 pub struct CachedIrDataGraph<'a> {
     dataset: &'a RdfDataset,
     store: std::sync::OnceLock<Store>,

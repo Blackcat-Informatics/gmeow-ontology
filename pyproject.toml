@@ -31,7 +31,9 @@ dependencies = [
     # (producer zstd-rsyncable path) plus the gts.verify module and
     # Signer.from_gpg_secret_key that cli/cli_dev's verify+sign commands need.
     # 0.9.2 ships gts.trig.to_trig, which write_trig() delegates to.
-    "gmeow-gts>=0.9.4,<0.10",
+    # 0.9.11 makes reifies/annot rows graph-scoped (row-array `[rid,s,p,o,g?]`),
+    # restoring per-named-graph RDF 1.2 reification/annotation partitioning (#1155).
+    "gmeow-gts>=0.9.11,<0.10",
 ]
 
 [project.scripts]

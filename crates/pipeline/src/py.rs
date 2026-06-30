@@ -4,7 +4,7 @@
 //! PyO3 bindings for the pipeline — the `gmeow_native.pipeline` submodule (#861).
 //!
 //! Only this module imports `pyo3`, gated by the `python` feature, so the engine
-//! core stays PyO3-free. [`run_pipeline`] is the single Python surface that
+//! core stays PyO3-free. `run_pipeline` is the single Python surface that
 //! replaces the Python build orchestrator: it runs the WHOLE dogfooded DAG
 //! single-pass (`crate::run::run_full`) and either WRITES every committed
 //! artifact (regenerate) or COMPARES each against the committed bytes and reports
@@ -20,7 +20,7 @@ use gmeow_diagnostics::py::PyReport;
 use crate::run::{run_full, RunMode};
 use crate::scoreboards;
 use crate::transform::{self, CellInput, DerivedRowNative, TransformReportNative};
-use crate::up_projection::{self, AuditReport, LiftMap, UpProjectionReport};
+use crate::up_projection::{self, LiftMap, UpProjectionReport};
 
 /// Run the full dogfooded build single-pass.
 ///
@@ -449,19 +449,36 @@ fn up_projection_project_nt(
     up_projection_report_to_py(py, &report)
 }
 
-/// Run the native up-projection invertibility audit over serialized corpus graphs.
+/// Run the gate-derived up-projection invertibility audit over the corpus and render the
+/// committed Markdown report. The corpus is supplied as Turtle text (`(name, ttl)`); the
+/// TTL→N-Triples conversion happens natively (no rdflib), as does the whole gate evaluation.
+/// Returns the rendered Markdown plus the gate-verdict ledger counts.
 #[pyfunction]
-#[pyo3(signature = (sssom_texts, projection_ttls, corpus_nts))]
-fn up_projection_audit_nt(
+#[pyo3(signature = (sssom_texts, projection_ttls, corpus_ttls))]
+fn up_projection_gate_audit(
     py: Python<'_>,
     sssom_texts: Vec<String>,
     projection_ttls: Vec<String>,
-    corpus_nts: Vec<(String, String)>,
+    corpus_ttls: Vec<(String, String)>,
 ) -> PyResult<Py<PyAny>> {
-    let report = py
-        .detach(move || up_projection::run_audit_nt(&sssom_texts, &projection_ttls, &corpus_nts))
+    let (ledger, markdown) = py
+        .detach(move || {
+            let mut corpus_nts = Vec::with_capacity(corpus_ttls.len());
+            for (name, ttl) in &corpus_ttls {
+                let nt = up_projection::ttl_to_nt(ttl)
+                    .map_err(|e| format!("corpus {name} ttl→nt: {e}"))?;
+                corpus_nts.push((name.clone(), nt));
+            }
+            let ledger = crate::up_projection_gates::gate_derived_audit(
+                &sssom_texts,
+                &projection_ttls,
+                &corpus_nts,
+            )?;
+            let markdown = crate::up_projection_report::render_audit_markdown(&ledger);
+            Ok::<_, String>((ledger, markdown))
+        })
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-    audit_report_to_py(py, &report)
+    audit_ledger_to_py(py, &ledger, &markdown)
 }
 
 /// Resolve one context-aware up-projection candidate through the native descent index.
@@ -776,28 +793,37 @@ fn up_projection_report_to_py(py: Python<'_>, report: &UpProjectionReport) -> Py
     Ok(out.into_any().unbind())
 }
 
-fn audit_report_to_py(py: Python<'_>, report: &AuditReport) -> PyResult<Py<PyAny>> {
+fn audit_ledger_to_py(
+    py: Python<'_>,
+    ledger: &crate::up_projection_gates::AuditLedger,
+    markdown: &str,
+) -> PyResult<Py<PyAny>> {
+    let tier_counts = |counts: &crate::up_projection_gates::TierCounts| -> PyResult<Py<PyAny>> {
+        let d = PyDict::new(py);
+        d.set_item("proved", counts.proved)?;
+        d.set_item("claimed", counts.claimed)?;
+        d.set_item("red_excluded", counts.red_excluded)?;
+        d.set_item("unsupported", counts.unsupported)?;
+        d.set_item("liftable", counts.liftable())?;
+        d.set_item("total", counts.total())?;
+        Ok(d.into_any().unbind())
+    };
     let out = PyDict::new(py);
-    let files = PyList::empty(py);
-    for file in &report.files {
-        let f = PyDict::new(py);
-        f.set_item("name", &file.name)?;
-        f.set_item("per_term", string_map(py, &file.per_term)?)?;
-        let per_vocab = PyDict::new(py);
-        for (vocab, counts) in &file.per_vocab {
-            per_vocab.set_item(vocab, usize_map(py, counts)?)?;
-        }
-        f.set_item("per_vocab", per_vocab)?;
-        f.set_item("liftable", file.liftable())?;
-        f.set_item("total", file.total())?;
-        files.append(f)?;
+    out.set_item("markdown", markdown)?;
+    out.set_item("totals", tier_counts(&ledger.totals)?)?;
+    let per_vocab = PyDict::new(py);
+    for (vocab, counts) in &ledger.per_vocab {
+        per_vocab.set_item(vocab, tier_counts(counts)?)?;
     }
-    out.set_item("files", files)?;
-    out.set_item("gaps", PyList::new(py, report.gaps.iter())?)?;
-    out.set_item("sssom_total", report.sssom_total)?;
-    out.set_item("struct_total", report.struct_total)?;
-    out.set_item("liftable", report.liftable())?;
-    out.set_item("total", report.total())?;
+    out.set_item("per_vocab", per_vocab)?;
+    out.set_item("gaps", PyList::new(py, ledger.gaps.iter())?)?;
+    // Convenience top-level headline figures (proved + claimed over total).
+    out.set_item("proved", ledger.totals.proved)?;
+    out.set_item("claimed", ledger.totals.claimed)?;
+    out.set_item("red_excluded", ledger.totals.red_excluded)?;
+    out.set_item("unsupported", ledger.totals.unsupported)?;
+    out.set_item("liftable", ledger.liftable())?;
+    out.set_item("total", ledger.total())?;
     Ok(out.into_any().unbind())
 }
 
@@ -846,7 +872,7 @@ fn usize_map(
 }
 
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
-/// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
+/// `gmeow_native` cdylib (#630); exposes `run_pipeline`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(run_pipeline, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements, m)?)?;
@@ -869,7 +895,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(up_projection_combined_class, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_build_lift_map, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_project_nt, m)?)?;
-    m.add_function(wrap_pyfunction!(up_projection_audit_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(up_projection_gate_audit, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_resolve_context, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_reverse_nt, m)?)?;
     m.add_function(wrap_pyfunction!(transform_skolemize_nt, m)?)?;

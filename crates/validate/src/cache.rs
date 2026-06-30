@@ -93,7 +93,7 @@ impl ValidationCache {
         Self::files_cache_key_with_root(paths, &self.project_root)
     }
 
-    /// Core implementation of [`files_cache_key`] with an explicit root.
+    /// Core implementation of [`Self::files_cache_key`] with an explicit root.
     pub fn files_cache_key_with_root(paths: &[PathBuf], root: &Path) -> Result<String, String> {
         let mut h = Sha256::new();
         let mut sorted: Vec<PathBuf> = paths

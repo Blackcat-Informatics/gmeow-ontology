@@ -34,6 +34,17 @@ pub const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifie
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 /// Payloads larger than this select `zstd-rsyncable` over `zstd` (#513).
 pub const DEFAULT_RSYNCABLE_THRESHOLD: usize = 65536;
+/// zstd compression level for the committed `dist` bundle's frames (gmeow-gts 0.9.11
+/// per-frame level). The writer's `Fastest` default left the rsyncable bundle at
+/// 27 MB; level 12 is the measured knee.
+///
+/// MEASURED 2026-06-29 (dist `gmeow.gts`, sink = the terminal stage):
+///   Fastest : 27.1 MB,  sink ~7.0s
+///   level 12: 18.6 MB,  sink ~7.1s   ← here: −31% size for ~0 added sink time
+///   level 19: 17.7 MB,  sink ~44s    (+37s for only 0.9 MB more — not worth it)
+/// rsyncable (set at the `dist` call site) already gives stable git deltas at any
+/// level; 12 also shrinks the absolute blob/working-tree size essentially for free.
+pub const DIST_ZSTD_LEVEL: i32 = 12;
 
 /// A remapped quad row in canonical term ids (`g == None` is the default graph).
 type CanonQuad = (usize, usize, usize, Option<usize>);
@@ -472,12 +483,16 @@ impl SnapshotBuilder {
             ),
         ];
         if !reifies.is_empty() {
+            // gmeow-gts 0.9.11 wire: `reifies` is a row-array `[[rid, s, p, o, g?], …]`
+            // (was a reifier-id map). gmeow reification is standpoint-scoped, never
+            // graph-scoped, so no row carries the optional trailing graph term-id —
+            // matching the gts writer's `add_reifies` / snapshot payload byte-for-byte.
             entries.push((
                 "reifies".into(),
-                Value::Map(
+                Value::Array(
                     reifies
                         .iter()
-                        .map(|&(rid, (s, p, o))| (iv(rid), Value::Array(vec![iv(s), iv(p), iv(o)])))
+                        .map(|&(rid, (s, p, o))| Value::Array(vec![iv(rid), iv(s), iv(p), iv(o)]))
                         .collect(),
                 ),
             ));
@@ -565,6 +580,27 @@ pub fn emit_gts(
 
     let base_chain = transform.unwrap_or_else(|| vec!["zstd".to_string()]);
 
+    // Per-frame zstd level (gmeow-gts 0.9.11). The writer default is `Fastest` (~level
+    // 1) — which is why switching the `dist` bundle to `zstd-rsyncable` bloated it
+    // (16.7 MB gzip → 27 MB Fastest-zstd). The committed `dist` bundle is regenerated
+    // often and lives in git, so a higher level pays off (smaller blob + smaller
+    // git delta), while rsyncable keeps chunk boundaries stable. Other profiles are
+    // not committed artifacts and keep the Fastest default.
+    //
+    // A `zstd_level` is meaningful only for a zstd-family frame; the writer hard-fails
+    // a level paired with a non-zstd transform. Gate the level on the actual chain (not
+    // just the `dist` profile name) so a caller may still emit a `dist`-profile snapshot
+    // under `gzip`/`identity` — the production bundle passes `zstd-rsyncable`, so it
+    // keeps level 12.
+    let chain_is_zstd = base_chain
+        .iter()
+        .any(|t| t == "zstd" || t == "zstd-rsyncable");
+    let zstd_level: Option<i32> = if profile == "dist" && chain_is_zstd {
+        Some(DIST_ZSTD_LEVEL)
+    } else {
+        None
+    };
+
     let mut writer = Writer::new(profile);
     if signing {
         let secret = signer_secret.expect("signing implies a secret");
@@ -602,6 +638,7 @@ pub fn emit_gts(
             raw: Some(blob.data.clone()),
             transform: chain,
             pub_meta: Some(pub_meta),
+            zstd_level,
             ..Default::default()
         };
         writer
@@ -615,6 +652,7 @@ pub fn emit_gts(
     let options = gmeow_gts::writer::FrameOptions {
         payload: Some(payload),
         transform: chain,
+        zstd_level,
         ..Default::default()
     };
     writer
@@ -626,7 +664,7 @@ pub fn emit_gts(
 
 /// Parse RDF bytes into the flat oxigraph quad stream via the native codec (#909).
 ///
-/// Routes through the native [`parse_dataset`](crate::parse_dataset) → IR → flat
+/// Routes through the native [`parse_dataset`] → IR → flat
 /// quad un-fold so the `SnapshotBuilder` ingests the same set of quads it did when it
 /// re-parsed N-Quads/Turtle text (base quads plus the `rdf:reifies` / annotation rows
 /// re-materialized from the folded statement layer). Private-use language tags such

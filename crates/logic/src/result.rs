@@ -847,7 +847,7 @@ impl ReasoningResult {
     ///
     /// # Errors
     ///
-    /// Returns the first [`ContractViolation`] if the bindings do not conform to
+    /// Returns the first [`crate::result_shape::ContractViolation`] if the bindings do not conform to
     /// the declared schema (missing required column, undeclared column, wrong
     /// term-kind, wrong datatype, or wrong row count in `Count` mode).
     pub fn with_declared_row_schema(

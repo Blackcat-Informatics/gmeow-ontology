@@ -2181,6 +2181,36 @@ const REALIZED_OUTCOME: &str = "realizedOutcome";
 /// `logic:selectedCompensation` — the outcome-specific compensation the driver selects for a realized outcome.
 const SELECTED_COMPENSATION: &str = "selectedCompensation";
 
+/// `logic:planFlowEdge` — a reified flow edge (logic:ControlFlowEdge / logic:DataFlowEdge)
+/// that constitutes a plan's flow graph (the certifier's input).
+const PLAN_FLOW_EDGE: &str = "planFlowEdge";
+/// `logic:planCertification` — links a plan to the logic:ReasoningResult recording its
+/// DAG-workflow certification verdict.
+const PLAN_CERTIFICATION: &str = "planCertification";
+/// `logic:executedUnderContract` — the contract a plan declares it runs under.
+const EXECUTED_UNDER_CONTRACT: &str = "executedUnderContract";
+/// `logic:resourcePolicy` — the resource-execution policy a contract requests.
+const RESOURCE_POLICY: &str = "resourcePolicy";
+/// `logic:DagWorkflowResource` — the resource policy whose acyclicity this certifies.
+const DAG_WORKFLOW_RESOURCE: &str = "DagWorkflowResource";
+/// `logic:flowFrom` / `logic:flowTo` — the mediation legs of a reified flow edge.
+const FLOW_FROM: &str = "flowFrom";
+const FLOW_TO: &str = "flowTo";
+/// `logic:dagCycleWitness` — the disclosed offending cycle member(s) of an unsupported verdict.
+const DAG_CYCLE_WITNESS: &str = "dagCycleWitness";
+/// `logic:resultEvaluation` / `logic:resultCompleteness` — the reasoning-result status fields.
+const RESULT_EVALUATION: &str = "resultEvaluation";
+const RESULT_COMPLETENESS: &str = "resultCompleteness";
+
+/// The runtime preservation drop note emitted when a plan under the DAG-workflow profile
+/// carries a cyclic flow graph: the loop is unsupported under the certified acyclic
+/// fragment and is disclosed (logic:dagCycleWitness), never silently truncated.
+const DAG_CYCLE_UNSUPPORTED_DROP: &str = concat!(
+    "logic:Plan flow-graph cycle is unsupported under the DAG-workflow profile ",
+    "(logic:DagWorkflowResource): the offending cycle members are disclosed by ",
+    "logic:dagCycleWitness; the plan stays valid under a non-DAG contract"
+);
+
 /// `rdf:type` object for a `logic:DeonticContext`.
 const DEONTIC_CONTEXT_CLASS: &str = "DeonticContext";
 /// `logic:prescribedGoalSituation` — the atomic goal situation a deontic context prescribes.
@@ -2253,6 +2283,10 @@ pub fn materialize_teleology(
     }
 
     let mut out: Vec<TeleologyQuad> = Vec::new();
+    // Tracks whether any plan's DAG-workflow certification resolved to the `unsupported`
+    // verdict (a cyclic flow graph), so the materialization's preservation claim discloses
+    // the dropped loop rather than claiming an exact fold over it.
+    let mut dag_unsupported = false;
     for world in &worlds {
         let facts = &world_facts[world];
 
@@ -2273,9 +2307,13 @@ pub fn materialize_teleology(
         // wholesale so the conformance fold matches the unit-tested driver exactly.
         out.extend(evaluate_world_goals(store, world)?);
 
-        // ── Family 2: plan-success classification (+ outcome compensation) ───────
+        // ── Family 2: plan-success classification (+ outcome compensation) +──────
+        //    DAG-workflow certification for a plan run under logic:DagWorkflowResource.
         for plan in typed_subjects(facts, PLAN_CLASS) {
             out.extend(emit_plan_success(facts, world, &plan)?);
+            let (dag_quads, cyclic) = emit_dag_certification(facts, world, &plan)?;
+            out.extend(dag_quads);
+            dag_unsupported |= cyclic;
         }
 
         // ── Family 3: deontic obligation / prohibition ───────────────────────────
@@ -2344,10 +2382,22 @@ pub fn materialize_teleology(
     // the collapse as a non-exact (SoundUnder) claim so downstream consumers see what
     // was dropped.  When no `satisfiedBy` edge was generated the materialization is
     // exact — the full `logic:GoalEvaluation` structure is present in the quads.
-    let claim = if out.iter().any(|q| q.predicate == SATISFIED_BY_IRI) {
-        PreservationClaim::for_unsupported(std::iter::once(GOAL_EVAL_COLLAPSE_DROP))
-    } else {
+    // Two independent runtime disclosures fold into one claim: the satisfiedBy collapse
+    // (a factored GoalEvaluation projected to a flat binary edge) and a DAG-workflow
+    // `unsupported` verdict (a cyclic plan whose loop the acyclic fragment cannot carry).
+    // Either makes the fold non-exact (SoundUnder), naming exactly what was dropped; a run
+    // with neither stays exact and reproduces the prior golden byte-for-byte.
+    let mut drops: Vec<&str> = Vec::new();
+    if out.iter().any(|q| q.predicate == SATISFIED_BY_IRI) {
+        drops.push(GOAL_EVAL_COLLAPSE_DROP);
+    }
+    if dag_unsupported {
+        drops.push(DAG_CYCLE_UNSUPPORTED_DROP);
+    }
+    let claim = if drops.is_empty() {
         PreservationClaim::exact()
+    } else {
+        PreservationClaim::for_unsupported(drops)
     };
     Ok((out, claim))
 }
@@ -2446,6 +2496,122 @@ fn emit_plan_success(
         });
     }
     Ok(out)
+}
+
+/// Content-addressed IRI of a plan's DAG-workflow certification result, over `(plan,
+/// DAG resource)` so re-running is idempotent (mirrors [`mint_deontic_eval_iri`]).
+fn mint_dag_result_iri(plan: &str) -> String {
+    let payload = format!("dag-cert\n{plan}");
+    format!("{LOGIC_NS}result/{}", crate::provenance::sha1_hex(&payload))
+}
+
+/// Certify one `logic:Plan`'s flow graph under the DAG-workflow profile and emit the
+/// verdict as a `logic:ReasoningResult` linked by `logic:planCertification`.
+///
+/// Fires ONLY for a plan that (a) gathers reified flow edges through `logic:planFlowEdge`
+/// and (b) runs `logic:executedUnderContract` a contract requesting `logic:DagWorkflowResource`
+/// (`logic:resourcePolicy`). The plan's `flowFrom -> flowTo` edges are run through the SAME
+/// shared certifier the build pipeline delegates to ([`crate::dag_profile::certify_acyclic`]),
+/// so there is one acyclicity authority. An acyclic plan is certified
+/// `logic:EvaluationCompleted` + `logic:CompleteForFragment`; a cyclic plan resolves to the
+/// `logic:EvaluationUnsupported` verdict with each offending cycle member disclosed by
+/// `logic:dagCycleWitness` — never silently truncated. The plan stays valid canonically
+/// (the build pipeline keeps its own load-time certification; this is the canonical
+/// reified-flow-graph form a general `logic:Plan` carries).
+///
+/// Returns `(quads, cyclic)` — `cyclic` is `true` iff an `unsupported` verdict was emitted,
+/// so the caller can fold the disclosure into the materialization's preservation claim.
+///
+/// # Errors
+///
+/// Returns `Err` (no silent skip) for a `logic:planFlowEdge` member missing a
+/// `logic:flowFrom` or `logic:flowTo` mediation leg (a malformed flow edge).
+fn emit_dag_certification(
+    facts: &WorldFacts,
+    world: &str,
+    plan: &str,
+) -> Result<(Vec<TeleologyQuad>, bool), String> {
+    // A plan's flow graph is reachable only through logic:planFlowEdge; without edges
+    // there is nothing to certify (the build pipeline uses its own gmeow:hasStage /
+    // gmeow:dataflowConsumes form, certified at load time, not here).
+    let edges: Vec<String> = facts
+        .objects(plan, &logic(PLAN_FLOW_EDGE))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    if edges.is_empty() {
+        return Ok((Vec::new(), false));
+    }
+    // Certify only under a contract that requests the DAG-workflow resource policy.
+    let under_dag = facts
+        .objects(plan, &logic(EXECUTED_UNDER_CONTRACT))
+        .iter()
+        .any(|c| facts.has(c, &logic(RESOURCE_POLICY), &logic(DAG_WORKFLOW_RESOURCE)));
+    if !under_dag {
+        return Ok((Vec::new(), false));
+    }
+
+    // Build producer -> consumer string edges from each reified edge's flowFrom / flowTo.
+    let mut pairs: Vec<(String, String)> = Vec::with_capacity(edges.len());
+    for e in &edges {
+        let from = facts
+            .object(e, &logic(FLOW_FROM))
+            .ok_or_else(|| format!("logic flow edge {e:?} has no logic:flowFrom"))?
+            .to_owned();
+        let to = facts
+            .object(e, &logic(FLOW_TO))
+            .ok_or_else(|| format!("logic flow edge {e:?} has no logic:flowTo"))?
+            .to_owned();
+        pairs.push((from, to));
+    }
+    let cert =
+        crate::dag_profile::certify_acyclic(pairs.iter().map(|(a, b)| (a.as_str(), b.as_str())));
+    let (evaluation, completeness) = cert.result_status();
+    let witness = cert.witness();
+    let cyclic = !cert.is_certified();
+
+    // The verdict node is content-addressed over the plan so re-running is idempotent;
+    // it is provenance-rooted at the plan's executedUnderContract edge (the fact that
+    // places the plan under the DAG profile).
+    let contract = facts
+        .object(plan, &logic(EXECUTED_UNDER_CONTRACT))
+        .expect("under_dag implies an executedUnderContract object")
+        .to_owned();
+    let result_iri = mint_dag_result_iri(plan);
+    let source = triple_reifier(plan, &logic(EXECUTED_UNDER_CONTRACT), &contract)?;
+    let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
+    let mut out: Vec<TeleologyQuad> = Vec::new();
+    let mut push = |subject: &str, p: &str, o_n3: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: subject.to_owned(),
+            predicate: p.to_owned(),
+            object: o_n3,
+            rule_iri: TELEOLOGY_RULE_IRI.to_owned(),
+            source_quad_ids: vec![source.clone()],
+            derivation_id: deriv.clone(),
+        });
+    };
+    // The plan reaches its verdict; the verdict carries the two status axes the shared
+    // certifier maps the resource policy onto, and (when cyclic) the disclosed witness.
+    push(plan, &logic(PLAN_CERTIFICATION), n3(&result_iri));
+    push(&result_iri, RDF_TYPE, n3(&logic("ReasoningResult")));
+    push(
+        &result_iri,
+        &logic(RESULT_EVALUATION),
+        n3(&logic(evaluation.local_name())),
+    );
+    push(
+        &result_iri,
+        &logic(RESULT_COMPLETENESS),
+        n3(&logic(completeness.local_name())),
+    );
+    // The witness names every offending cycle member (sorted, deterministic). Empty on an
+    // acyclic plan — the certified verdict carries no witness.
+    for member in &witness {
+        push(&result_iri, &logic(DAG_CYCLE_WITNESS), n3(member));
+    }
+    Ok((out, cyclic))
 }
 
 /// Evaluate one `logic:DeonticContext` and emit a `logic:GoalEvaluation` over its
@@ -2569,7 +2735,11 @@ fn emit_history_anomaly(
 
 /// Mint a deterministic serialization-anomaly finding IRI (content-addressed over the
 /// history and the canonical cycle), so re-running yields the same finding node.
-fn mint_anomaly_finding_iri(history: &str, cycle: &[String]) -> String {
+///
+/// Exposed `pub(crate)` so the transaction family ([`crate::transaction`]) mints the finding
+/// IRI for a DERIVED concurrent history through the SAME content-address recipe the authored
+/// Family-4 path uses — one recipe, no drift.
+pub(crate) fn mint_anomaly_finding_iri(history: &str, cycle: &[String]) -> String {
     let payload = format!("anomaly\n{history}\n{}", cycle.join("\n"));
     format!(
         "{LOGIC_NS}finding/{}",

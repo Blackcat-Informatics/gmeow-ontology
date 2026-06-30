@@ -163,7 +163,7 @@ impl WorldStore {
     ///
     /// Queries are scoped exclusively to the named graph `world`; no cross-world
     /// union is performed (world-indexed only).  If `world` is not a valid IRI,
-    /// returns `vec![]` (mirrors [`quads_in_world`]).
+    /// returns `vec![]` (mirrors [`Self::quads_in_world`]).
     ///
     /// Used by the SPARQL fast path and the facts-as-DB snapshot in the seam layer.
     pub fn quads_for_pattern_in_world(

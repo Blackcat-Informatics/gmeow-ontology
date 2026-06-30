@@ -5,12 +5,12 @@
 # Always-on per-test budget (#1045): every test on this profile must complete under
 # 25 s real wall time, enforced AFTER the run by the JUnit duration gate
 # (`cargo run -p gmeow-test-budget`, wired into `make rust-test`/`rust-gate`). Tests
-# that are irreducibly heavier than the budget (full-fold reasoning, full-DAG parity,
-# snapshot codec round-trips, the native-pathological corpus parity query, …) are
-# carved out of this profile via `default-filter` below and run on the `maint-heavy`
-# profile instead — so the gate has NO legitimate >25 s test to allowlist. The
-# slow-timeout stays at the original 120 s terminate cliff purely as a runaway/hang
-# backstop; the 25 s POLICY is the JUnit gate, not this timeout.
+# that are still over budget are carved out of this profile via `default-filter`
+# below and run on the `maint-heavy` profile instead — so the gate has NO
+# legitimate >25 s test to allowlist. Correctness failures stay in the normal
+# profile even when they were discovered during maint-heavy evaluation.
+# The slow-timeout stays at the original 120 s terminate cliff purely as a
+# runaway/hang backstop; the 25 s POLICY is the JUnit gate, not this timeout.
 #
 # `default-filter` is the set of tests run when no filter is given on the CLI. Keep
 # this expression as the single source of truth for what the always-on gate excludes;
@@ -18,78 +18,35 @@
 # in AGENTS.md's test-budget section (the off-gate allowlist). The post-run JUnit
 # budget gate verifies nothing >25 s slipped THROUGH this filter onto the gate.
 #
-# Off-gate groups (all measured >22 s locally; #1045). They are NOT casually slow —
-# each is irreducibly heavy under the current architecture:
-#   - corpus_parity_heavy_offgate: native NOT-EXISTS pathology (~44 s; see crates/rdf).
-#   - w3c_rdfc10_heavy_offgate: the sole RDFC-1.0 negative/poison vector (test074),
-#     ~5.3 s on the call-budget guard while every other vector is ≤ ~0.02 s; carved out
-#     so the gated W3C shards stay cheap (see crates/rdf/tests/rdfc_w3c.rs).
-#   - gmeow-logic ontology_entailments: Nemo OWL-2-RL closures (engine-bound by design).
-#   - gmeow-logic sparql_path_parity binary + sparql_path_lower::tests (#914 S8 property
-#     paths): every case drives `run_scryer`, paying a ~9-10 s Scryer machine-construction
-#     floor that nextest's process-per-test model cannot share; several land at 19-34 s.
-#     Engine-construction-bound and irreducible like ontology_entailments — carved off the
-#     gate, still run on maint-heavy. (Already serialized under the `engine` group below.)
-#   - gmeow-validate deep_surfaces_entailed_inconsistency..._heavy_offgate: the consumer
-#     `gmeow validate --deep` AC1 test reasons over the user data merged with the WHOLE
-#     bundled TBox via the native Nemo chase (~50 s full-fold) — engine-bound and
-#     irreducible like ontology_entailments. The fast per-commit coverage of the same
-#     merge→inconsistency path is the gmeow-logic unit test reason_all_with_data_* (tiny
-#     TBox) plus the on-gate deep_pass_failure_* / deep_false_* validate tests.
-#   - gmeow-conformance goal-rdf-list-functions: Nemo chase case.
-#   - gmeow-pipeline end_to_end / fold_parity / full-fold artifacts / snapshot codec
-#     round-trips / mapping byte-parity / the correspondence-parity oracle family
-#     (EDOAL/SPARQL/FnO/SSSOM — off-gated by whole binary, every test lowers the full
-#     corpus) / scoreboards acceptance: full-DAG, minutes.
-#   - gmeow-pipeline stages::yaml_ld dist_jsonld_roundtrips_through_oxigraph: parses
-#     the entire dist JSON-LD into oxigraph and serializes it back — an O(ontology
-#     size) round-trip that sits just under the zero-headroom 25 s budget and crosses
-#     it as the ontology grows (same growth pattern as the docs live-render below).
-#     Build/parse-bound, not logic-bound; the JSON-LD codec is exercised on-gate by
-#     the cheaper per-vocab round-trips.
-#   - gmeow-pipeline product_routing compiler_products_are_first_class_dag_artifacts:
-#     routes the FULL shipped bundle, which now carries the signal-dense
-#     per-correspondence preservation loss ledger (~5 residue notes per alignment
-#     correspondence), so the artifact is irreducibly large and the product-routing
-#     assertion crosses the zero-headroom 25 s budget.
-#   - gmeow-pipeline reason_produces_nonempty_artifacts_over_the_authored_graph: the
-#     reason stage runs the native EL/DL reasoner over the WHOLE authored graph (~14 s
-#     solo) — an O(ontology-size) full-graph reason that crosses the zero-headroom 25 s
-#     budget under the gate's parallel contention as the ontology grows. Engine/graph-size
-#     bound and irreducible like ontology_entailments; the fast per-commit reason coverage
-#     is `make reason` (native lane) plus the gmeow-logic unit reason tests.
-#   - gmeow-slice alignment emit parity + gmeow-slicetest places structural:
-#     whole-ontology emit/closure checks just over budget.
-#   - gmeow-rdf-capi c_smoke binary: self-builds the libpurrdf cdylib (~33 s cold
-#     compile on CI) as part of the test — build-time-bound, not logic-bound.
-#     Already covered by the dedicated `capi` CI job (`make capi-check`).
-#   - gmeow-docs live-full-render guards (render_site_is_byte_stable,
-#     english_carrier_tree_matches_render_site): each performs a LIVE whole-site
-#     render of the full model and compares it to the cached render — the live render
-#     IS the thing under test (render determinism + the carrier-vs-render_site
-#     identity), so it cannot be served from cache. That live O(terms) render sits at
-#     ~23-26 s and crosses the zero-headroom 25 s budget as the ontology grows, so it
-#     stays here (still run on maint-heavy). The language-comparison round-trips
-#     (french_tree / chinese_tree / translated_tree no-dangling) USED to live here, but
-#     the docs fixture now caches the rendered site for every available language in its
-#     prime step — those tests read the per-language cache instead of rendering live, so
-#     they are back on-gate. The single-page / single-term docs tests (the vast majority,
-#     each <1 s) stay on-gate; only the two live full-renders remain off-gate.
+# Off-gate groups (reevaluated 2026-06-29 via `make maint-rust-heavy`; #1045).
+# Most former exclusions now pass well under the 25 s policy and are back on the
+# default/ci profile. The remaining exclusions are still over budget:
+#   - gmeow-validate deep_surfaces_entailed_inconsistency..._heavy_offgate:
+#     30.705 s locally; the consumer `gmeow validate --deep` AC1 test reasons over
+#     user data merged with the WHOLE bundled TBox via the native Nemo chase. Fast
+#     per-commit coverage stays with the tiny-TBox gmeow-logic unit tests plus the
+#     on-gate deep_pass_failure_* / deep_false_* validate tests.
+#   - gmeow-pipeline fold_parity binary:
+#     32.231 s locally; this is the full real-repo terminal sink vs committed
+#     `generated/dist/gmeow.gts` fold-isomorphism oracle.
+#   - gmeow-rdf-capi c_smoke binary:
+#     82.854 s in CI shard 1; it cold-builds the `libpurrdf` cdylib and compiles /
+#     links / runs the real C program. Header/linkage coverage stays on the dedicated
+#     C-API CI lane and maint-heavy.
+#   - gmeow-pipeline end_to_end binary:
+#     82.351 s in CI shard 1; it runs the real production spine through
+#     `stage-snapshot`, which is full-DAG / ontology-size work. Focused per-stage
+#     and carrier tests keep the failure modes covered on-gate.
+#   - gmeow-pipeline gts_sink blob-input serialization test:
+#     25.8 s in CI shard 3; it exercises the terminal carrier serialization and
+#     import round-trip, which is codec/I-O-bound and has no remaining headroom.
 default-filter = '''
   not (
-    test(/corpus_parity_heavy_offgate/)
-    | test(/w3c_rdfc10_heavy_offgate/)
-    | (package(gmeow-logic) & binary(ontology_entailments))
-    | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/sparql_path_lower::tests/)))
-    | (package(gmeow-conformance) & test(/goal-rdf-list-functions/))
-    | (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
-    | (package(gmeow-pipeline) & binary(/end_to_end|fold_parity/))
-    | (package(gmeow-pipeline) & binary(/edoal_sparql_correspondence_parity|fno_correspondence_parity|sssom_correspondence_parity/))
-    | (package(gmeow-pipeline) & test(/stages::gts_sink|stages::carrier::ustar_tests::build_docs_archive|stages::carrier::native_assembly_tests::authored_default_assembles_natively|stages::logic::tests::logic_artifacts_reproduce|scoreboards::tests::acceptance_runs_the_real_external_fixture|stages::mappings::tests|stages::docs_render::tests::docs_graph_is_nonempty|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_oxigraph|compiler_products_are_first_class_dag_artifacts|stages::reason::tests::reason_produces_nonempty_artifacts/))
-    | (package(gmeow-slice) & binary(alignment_parity))
-    | (package(gmeow-slicetest) & test(/places.tests.structural/))
+    (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
+    | (package(gmeow-pipeline) & binary(fold_parity))
     | (package(gmeow-rdf-capi) & binary(c_smoke))
-    | (package(gmeow-docs) & test(/render_site_is_byte_stable|english_carrier_tree_matches_render_site/))
+    | (package(gmeow-pipeline) & binary(end_to_end))
+    | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -145,23 +102,22 @@ filter = 'package(gmeow-conformance) | (package(gmeow-logic) & (binary(sparql_pa
 test-group = 'engine'
 
 [[profile.default.overrides]]
-# gmeow-pipeline's executor / parity tests run the FULL build DAG, which reasons
-# over the entire 66k-quad fold via the native engine (the `logic` leaf reasons,
-# `snapshot` folds the closure). They are engine-heavy (so serialize them under the
-# `engine` group to avoid OOM-thrash with the other chases) AND inherently slow —
-# the full-fold chase is minutes — so they need a far longer terminate cliff than
-# the 120s default (logic_artifacts / full_parity exceed it under the CI memory cap).
-filter = 'package(gmeow-pipeline) & (binary(/full_parity|fold_parity|end_to_end|dag_dogfood/) | test(/logic_artifacts_reproduce_committed_over_full_fold/))'
+# gmeow-pipeline's executor / parity tests exercise full-DAG paths. Keep them
+# serialized with engine work so full-DAG reasoning does not contend with
+# concurrent chases. The over-budget full-fold / end-to-end binaries are
+# off-gated via `default-filter`, but this override still applies in maint-heavy.
+filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood/)'
 test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 # The #896 native reasoning-entailment harness (crates/logic/tests/ontology_entailments.rs)
-# migrates the OWL/EL/DL reasoning pytest cluster: each test drives Nemo (rl_closure → run_chase)
-# over a scoped set of authored slice modules. Serialize under the `engine` group so the kernel-
-# heavy multi-module closures do not OOM-thrash alongside the other chases on the 16 GB runner, and
-# grant a far longer terminate cliff than the 60s default — a 4–5-module closure is ~60–90s, well
-# past the default 120s terminate point under the engine memory cap.
+# migrates the OWL/EL/DL reasoning pytest cluster: each test drives Nemo
+# (rl_closure -> run_chase) over a scoped set of authored slice modules. These
+# are now on-gate and under budget after the 2026-06-29 reevaluation, but they
+# still share the `engine` group so multi-module closures do not OOM-thrash
+# alongside other chases on the 16 GB runner. The longer timeout is only a
+# runaway cliff; the JUnit budget gate still enforces the 25 s policy.
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
 test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
@@ -178,23 +134,20 @@ test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# Full-carrier round-trip tests decode the ~9.3 MB committed `gmeow.gts` and
-# re-emit / extract it back through the native gmeow-gts codecs (#909). Carrier
-# archive / native-assembly tests also render and pack the embedded ontology-docs
-# site and assemble the whole ontology natively. Under CI load these can tip past
-# the 120s default terminate cliff. They are codec / I-O-bound — NOT engine-bound —
-# so they stay OUTSIDE the `engine` memory group (no OOM risk) but need a longer
-# terminate cliff: `gts_sink` re-emits the whole snapshot and the carrier
-# docs-archive / native-assembly tests render/pack the embedded site and fold.
+# Full-carrier round-trip tests decode the committed `gmeow.gts` and re-emit /
+# extract it back through the native gmeow-gts codecs (#909). The exact
+# blob-input `gts_sink` terminal serialization test is off-gated via
+# `default-filter`; the remaining carrier tests are on-gate. Keep a longer
+# runaway cliff because they are codec / I-O-bound and not protected by the
+# `engine` memory group.
 filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site|stages::carrier::native_assembly_tests::authored_default_assembles_natively/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 # Mapping-stage integration tests run the full `compile_mappings` registry check.
-# Under CI shard contention, concurrent full mapping compiles can exceed the
-# default 120s terminate cliff even though the artifacts are deterministic. Keep
-# them serialized and give them the same long-running integration budget used by
-# the other full-stage parity checks.
+# They are now on-gate and under budget, but concurrent full mapping compiles are
+# redundant and can contend for the same cache/filesystem work. Keep them
+# serialized; the JUnit budget gate still enforces the 25 s policy.
 filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
 test-group = 'mapping-stage'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
