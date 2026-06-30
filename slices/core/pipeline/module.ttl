@@ -34,7 +34,7 @@ gmeow:Pipeline
     rdfs:label "Pipeline"@x-gmeow-english ;
     rdfs:subClassOf logic:Plan ,
         gmeow:SocialObject ;
-    skos:definition "A directed acyclic graph of build stages — the project's own build, authored as data. A Pipeline IS a logic:Plan: the canonical process model of the build, whose steps (gmeow:PipelineStage members, gathered through gmeow:hasStage) invoke typed units of work and whose success criterion is the shippable bundle. It is the dogfooded consumer of the DAG-workflow profile (logic:DagWorkflowContract) — its gmeow:dataflowConsumes edges specialize the canonical logic:dataflowConsumes, and their acyclic closure is certified under logic:DagWorkflowResource, so the build is statically schedulable and complete-for-fragment. The gmeow-pipeline executor reads it back, validates the graph (acyclic, complete, exactly one Sink, engine-lock derived), and runs every stage single-pass over an in-memory RDF dataset. logic:Plan grounds in prose as a gmeow:SocialObject, so the Pipeline also asserts that sort directly: it exists by the project's own convention, a description, not a physical thing."@x-gmeow-english ;
+    skos:definition "A directed acyclic graph of build stages — the project's own build, authored as data. A Pipeline IS a logic:Plan: the canonical process model of the build, whose steps (gmeow:PipelineStage members, gathered through gmeow:hasStage) invoke typed units of work and whose success criterion is the shippable bundle. It is the dogfooded consumer of the DAG-workflow profile (logic:DagWorkflowContract) — its gmeow:dataflowConsumes edges specialize the canonical logic:dataflowConsumes, and their acyclic closure is certified under logic:DagWorkflowResource, so the build is statically schedulable and complete-for-fragment. The gmeow-pipeline executor reads it back, validates the graph (acyclic, complete, exactly one stage holding gmeow:sinkCapability), and runs every stage single-pass over an in-memory RDF dataset. logic:Plan grounds in prose as a gmeow:SocialObject, so the Pipeline also asserts that sort directly: it exists by the project's own convention, a description, not a physical thing."@x-gmeow-english ;
     skos:example "gmeow:pipeline-build a gmeow:Pipeline ; gmeow:hasStage gmeow:stage-source-load ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -43,19 +43,50 @@ gmeow:PipelineStage
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline Stage"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "One node in a gmeow:Pipeline build graph: a typed unit of work that consumes the products of the stages it gmeow:dataflowConsumes and produces one product, passed in memory to its consumers rather than re-parsed from disk. Its gmeow:stageKind selects scheduling treatment, its gmeow:stageImpl binds it to a Rust Stage implementation, and its gmeow:carriesEngineLock (derived from the kind) marks whether it must run under the process-wide reasoning engine lock."@x-gmeow-english ;
-    skos:example "gmeow:stage-reason a gmeow:PipelineStage ; gmeow:stageKind gmeow:kindReason ; gmeow:stageImpl \"reason\" ."@x-gmeow-english ;
+    rdfs:subClassOf logic:ActionSchema ,
+        gmeow:SocialObject ;
+    skos:definition "One node in a gmeow:Pipeline build graph: a logic:ActionSchema — a typed unit of work that consumes the products of the stages it gmeow:dataflowConsumes and produces one product, passed in memory to its consumers rather than re-parsed from disk. Its gmeow:stageImpl binds it to a Rust Stage implementation, and the scheduler reads its declarations rather than a kind enum: each gmeow:requiresResource it declares is a shared resource it must hold exclusively while running (the scheduler serializes stages that compete for the same resource), and each gmeow:hasCapability it holds names a role the executor acts on — gmeow:sinkCapability (the single serialization exit) or gmeow:sourceOrigin (the authored-source loader). Its typed dataflow rides reified gmeow:BuildDataFlow edges."@x-gmeow-english ;
+    skos:example "gmeow:stage-reason a gmeow:PipelineStage ; gmeow:stageImpl \"reason\" ; gmeow:requiresResource gmeow:engineResource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:StageKind
-    a logic:AbstractIndividualType ,
+gmeow:StageCapability
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "Stage Kind"@x-gmeow-english ;
+    rdfs:label "Stage Capability"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The kind of a build stage — a closed value vocabulary that selects how the scheduler treats the stage: gmeow:kindSourceLoad, gmeow:kindTransform, gmeow:kindReason (the only lock-carrying kind), gmeow:kindValidate, gmeow:kindDocsRender, gmeow:kindExportLeaf, and gmeow:kindSink (the single serialization exit). Its members are individuals, never subclasses, and exactly one applies to each stage."@x-gmeow-english ;
-    skos:example "gmeow:stage-source-load gmeow:stageKind gmeow:kindSourceLoad ."@x-gmeow-english ;
+    skos:definition "A declared capability a build stage holds, read by the executor in place of a kind enum: gmeow:sinkCapability (the single serialization exit, the gts narrow waist — the loader HARD-fails unless exactly one stage holds it) and gmeow:sourceOrigin (the authored-source loader, whose products' provenance origin is Source). A stage holding no capability is a plain transform/validate/export leaf (Generated provenance, non-sink). Its members are individuals, held through gmeow:hasCapability."@x-gmeow-english ;
+    skos:example "gmeow:stage-gts-sink gmeow:hasCapability gmeow:sinkCapability ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Resource
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Resource"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "A shared execution resource a build stage must hold exclusively while it runs — declared through gmeow:requiresResource (a specialization of logic:actionResource). Two stages requiring the same resource compete for it (logic:competesForResource) and the scheduler serializes them; a stage requiring no resource runs in parallel within its topological level. The canonical example is the process-wide reasoning engine (gmeow:engineResource), whose underlying Nemo/Scryer engines are not concurrency-safe — modelled as a resource so serialization is a conflict the scheduler reads, not a hardcoded special case."@x-gmeow-english ;
+    skos:example "gmeow:engineResource a gmeow:Resource ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:BuildDataFlow
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Build Data Flow"@x-gmeow-english ;
+    rdfs:subClassOf logic:DataFlowEdge ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:buildFlowFrom ;
+            owl:someValuesFrom gmeow:PipelineStage ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:buildFlowTo ;
+            owl:someValuesFrom gmeow:PipelineStage ;
+        ] ;
+    skos:definition "A reified typed dataflow edge of the build graph — a specialization of the canonical logic:DataFlowEdge. It mediates a producer stage (logic:flowFrom) and a consumer stage (logic:flowTo) and names, through gmeow:flowEntity, the specific named-graph artifacts that flow on the edge. Where the bare gmeow:dataflowConsumes edge says only that a consumer depends on a producer's WHOLE product, a gmeow:BuildDataFlow refines that to the exact graphs the consumer reads, so the executor can key the consumer's cache on only those graphs' content digests — artifact-level incremental rebuild: a change to a graph the consumer does not read no longer re-runs it. A Relator mediating two distinct stage relata, satisfying the relator-mediation discipline."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-reason-compile-logic a gmeow:BuildDataFlow ; logic:flowFrom gmeow:stage-compile-logic ; logic:flowTo gmeow:stage-reason ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
@@ -95,14 +126,15 @@ gmeow:dataflowProduces
     skos:example "gmeow:stage-statements gmeow:dataflowProduces gmeow:stage-reason ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:stageKind
+gmeow:hasCapability
     a owl:ObjectProperty ;
+    rdfs:subPropertyOf logic:capability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "stage kind"@x-gmeow-english ;
+    rdfs:label "has capability"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
-    rdfs:range gmeow:StageKind ;
-    skos:definition "The kind of a stage — exactly one gmeow:StageKind individual. It selects the scheduler's treatment and DERIVES gmeow:carriesEngineLock (true exactly when the kind is gmeow:kindReason). Functional in practice: one kind per stage."@x-gmeow-english ;
-    skos:example "gmeow:stage-gts-sink gmeow:stageKind gmeow:kindSink ."@x-gmeow-english ;
+    rdfs:range gmeow:StageCapability ;
+    skos:definition "Relates a stage to a gmeow:StageCapability it holds. A specialization of the canonical logic:capability action-theory facet. The executor reads these declarations instead of a kind enum: gmeow:sinkCapability marks the single narrow-waist exit (the loader HARD-fails unless exactly one stage holds it) and gmeow:sourceOrigin marks the authored-source loader (its products' provenance origin is Source). Non-functional — a stage may hold several capabilities. The Rust Stage's capabilities() must agree with this exactly (Rust/RDF agreement)."@x-gmeow-english ;
+    skos:example "gmeow:stage-gts-sink gmeow:hasCapability gmeow:sinkCapability ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stageImpl
@@ -125,75 +157,134 @@ gmeow:producesFormat
     skos:example "gmeow:stage-export-parquet gmeow:producesFormat \"parquet\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:carriesEngineLock
-    a owl:DatatypeProperty ;
+gmeow:requiresResource
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf logic:actionResource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "carries engine lock"@x-gmeow-english ;
+    rdfs:label "requires resource"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
-    rdfs:range xsd:boolean ;
-    skos:definition "Whether a stage must run under the process-wide reasoning engine lock. This is DERIVED, not independent: it is true exactly when gmeow:stageKind is gmeow:kindReason (the Nemo/Scryer engines hold global locks). The loader HARD-fails if the asserted value disagrees with the kind-derived value, so RDF and Rust can never diverge (single source of truth)."@x-gmeow-english ;
-    skos:example "gmeow:stage-reason gmeow:carriesEngineLock true ."@x-gmeow-english ;
+    rdfs:range gmeow:Resource ;
+    skos:definition "Relates a stage to a shared gmeow:Resource it must hold exclusively while it runs. A specialization of the canonical logic:actionResource action-theory facet: where two stages declare the same resource the supply is insufficient for both at once (logic:competesForResource), so the scheduler serializes them. Non-functional — a stage may require several resources. This is the declarative replacement for a hardcoded scheduler lock: any stage can declare any shared resource, and serialization falls out of the conflict rather than a special case. The Rust Stage's resources() must agree with this declaration exactly (Rust/RDF agreement)."@x-gmeow-english ;
+    skos:example "gmeow:stage-reason gmeow:requiresResource gmeow:engineResource ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:buildFlowFrom
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf logic:flowFrom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "build flow from"@x-gmeow-english ;
+    rdfs:domain gmeow:BuildDataFlow ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to its producer stage — the source mediation leg, a specialization of the canonical logic:flowFrom. Paired with gmeow:buildFlowTo, the two ends that make the edge a well-formed relator."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:buildFlowFrom gmeow:stage-compile-logic ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:buildFlowTo
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf logic:flowTo ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "build flow to"@x-gmeow-english ;
+    rdfs:domain gmeow:BuildDataFlow ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to its consumer stage — the target mediation leg, a specialization of the canonical logic:flowTo. Paired with gmeow:buildFlowFrom."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:buildFlowTo gmeow:stage-reason ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:flowEntity
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "flow entity"@x-gmeow-english ;
+    rdfs:domain gmeow:BuildDataFlow ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to a named graph (a flowing entity / artifact) it carries from the producer stage to the consumer stage. Multi-valued — an edge may carry several graphs. The consumer's cache key folds ONLY the content digests of the graphs named here, so a change to any other graph in the producer's product does not re-run the consumer (artifact-level incremental rebuild). The range is the IRI of a named graph in the producer's dataset, not a stage."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowEntity <https://blackcatinformatics.ca/gmeow/graph/logic> ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
-# StageKind value vocabulary (individuals).                                   #
+# StageCapability value vocabulary (individuals).                             #
 # =========================================================================== #
 
-gmeow:kindSourceLoad
-    a gmeow:StageKind ;
+gmeow:sinkCapability
+    a gmeow:StageCapability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "source load"@x-gmeow-english ;
-    skos:definition "Parse authored sources (statement-DSL, slice modules, transitive imports) into the initial in-memory dataset. The only kind whose inputs are files rather than upstream stage products, so its cache key folds the source-file digest."@x-gmeow-english ;
+    rdfs:label "sink capability"@x-gmeow-english ;
+    skos:definition "The sole serialization exit — the gts narrow waist. Exactly one stage per pipeline holds it; that stage serializes the fully-folded bundle to gmeow.gts once. The loader HARD-fails unless precisely one stage holds gmeow:sinkCapability."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:kindTransform
-    a gmeow:StageKind ;
+gmeow:sourceOrigin
+    a gmeow:StageCapability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "transform"@x-gmeow-english ;
-    skos:definition "A pure in-memory dataset → dataset transform (e.g. statement compilation, mapping compilation, bundle composition). Parallel-eligible within its topological level; carries no engine lock."@x-gmeow-english ;
+    rdfs:label "source origin"@x-gmeow-english ;
+    skos:definition "The authored-source loader: the stage holding it parses authored sources (statement-DSL, slice modules, transitive imports) and so its emitted quads' provenance origin is Source (the root ontology and imports are distinguished at parse time). Every stage NOT holding it emits derived, provenance-Generated quads — the capability the executor reads in place of a source-load kind."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:kindReason
-    a gmeow:StageKind ;
+# =========================================================================== #
+# Resource value vocabulary (individuals).                                    #
+# =========================================================================== #
+
+gmeow:engineResource
+    a gmeow:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "reason"@x-gmeow-english ;
-    skos:definition "Reasoning (native EL/DL closure, logic materialization). The ONLY lock-carrying kind: it serializes under the process-wide engine lock because the underlying Nemo/Scryer engines are not concurrency-safe. gmeow:carriesEngineLock is true for exactly this kind."@x-gmeow-english ;
+    rdfs:label "reasoning engine"@x-gmeow-english ;
+    skos:definition "The process-wide reasoning engine (native EL/DL closure over Nemo/Scryer), which is not concurrency-safe. A stage that gmeow:requiresResource it runs serialized against every other stage requiring it — the resource-conflict serialization that replaces the former derived engine-lock flag. The sole reasoning stage (gmeow:stage-reason) declares it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:kindValidate
-    a gmeow:StageKind ;
+# =========================================================================== #
+# Shared action-schema facets — every gmeow:PipelineStage IS a                 #
+# logic:ActionSchema, so it carries the two REQUIRED action-theory facets      #
+# (logic:precondition + logic:capability) the canonical process model gates    #
+# on. These are genuinely shared across the build: every stage gates on its    #
+# upstream products being available and demands the executor capability. They  #
+# are declared via the canonical logic: facets (NOT gmeow:hasCapability), so   #
+# the loader's capabilities() agreement ignores them — they are the action-    #
+# theory model, not the executor's sink/source role declarations.             #
+# =========================================================================== #
+
+gmeow:stageInputsAvailable
+    a logic:Situation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "validate"@x-gmeow-english ;
-    skos:definition "A validation pass (SHACL, annotation lints) that reads the dataset and produces diagnostics rather than new data. Parallel-eligible; carries no engine lock."@x-gmeow-english ;
+    rdfs:label "stage inputs available"@x-gmeow-english ;
+    skos:definition "The situation gate every gmeow:PipelineStage grounds on as a logic:ActionSchema: the products of the stages it gmeow:dataflowConsumes (and any raw source files it reads) are available in memory. The elementary state transition the stage's run effects applies only once this situation obtains — the shared logic:precondition of the build's action schemas."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:kindDocsRender
-    a gmeow:StageKind ;
+gmeow:stageExecutorCapability
+    a gmeow:StageCapability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "docs render"@x-gmeow-english ;
-    skos:definition "Documentation rendering over the composed dataset (the crates/docs model). Consumes the composed bundle and folds the rendered doc artifacts back into it; parallel-eligible with the export leaves."@x-gmeow-english ;
+    rdfs:label "stage executor capability"@x-gmeow-english ;
+    skos:definition "The executional precondition on the actor every gmeow:PipelineStage carries as a logic:ActionSchema: the bound Rust Stage implementation (resolved through gmeow:stageImpl) is registered and runnable. Held by every stage via logic:capability (the canonical action-theory facet) — distinct from gmeow:hasCapability, which declares the sink/source ROLES the executor reads; this names the generic ability to execute, not a role."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:kindExportLeaf
-    a gmeow:StageKind ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "export leaf"@x-gmeow-english ;
-    skos:definition "An independent output-format leaf: consumes the composed dataset and folds one artifact (its gmeow:producesFormat) into the single bundle. The lock-free parallel fan-out — many leaves run concurrently within one level."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
+# =========================================================================== #
+# Typed dataflow edges (reified gmeow:BuildDataFlow) — artifact-level deps.    #
+#                                                                             #
+# Where a consumer reads only SPECIFIC named graphs of a producer's product,  #
+# a reified edge records exactly which, so the executor keys that consumer's   #
+# cache on those graphs' digests alone (artifact-level incremental rebuild).   #
+# Gathered on the plan through logic:planFlowEdge.                             #
+# =========================================================================== #
 
-gmeow:kindSink
-    a gmeow:StageKind ;
+# stage-reason reads ONLY the logic / relational-core / correspondence named graphs
+# of stage-compile-logic's product (the object-level EDB), never its diagnostics or
+# the eight projection serializations — so a change to those alone skips the
+# (expensive) reasoner.
+gmeow:pipeline-dataflow-reason-compile-logic
+    a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "sink"@x-gmeow-english ;
-    skos:definition "The sole serialization exit — the gts narrow waist. Exactly one Sink per pipeline; it serializes the fully-folded bundle to gmeow.gts once. The loader HARD-fails on zero or more than one Sink."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox .
+    rdfs:label "dataflow: compile-logic → reason"@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-reason: the reasoner reads only the logic, relational-core, and correspondence named graphs of the compile-logic product. Records the artifact-level dependency so the reasoner's cache key folds those three graphs' digests rather than the whole compile-logic product."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-compile-logic ;
+    gmeow:buildFlowTo gmeow:stage-reason ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/correspondence> ,
+        <https://blackcatinformatics.ca/gmeow/graph/logic> ,
+        <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
 
 # =========================================================================== #
 # The canonical build DAG (gmeow:pipeline-build) — dogfooded as data.         #
 #                                                                             #
 # This IS the project's build graph: the gmeow-pipeline executor reads it     #
 # back, binds each gmeow:stageImpl to a registered Rust Stage, validates it    #
-# (acyclic, complete, exactly one Sink, engine-lock derived), and runs it      #
+# (acyclic, complete, exactly one sinkCapability holder), and runs it          #
 # single-pass. The migrated meta:gate-generator-registry queries these stages. #
 # Spine: source-load → (statements, mappings) → reason → gts-compose →         #
 # {docs-render + export leaves} → gts-sink (the one serialization).            #
@@ -218,6 +309,7 @@ gmeow:pipeline-build
     logic:planGoal gmeow:goalShippableBundle ;
     logic:planSuccessMode logic:StrongPlanSuccess ;
     logic:executedUnderContract logic:DagWorkflowContract ;
+    logic:planFlowEdge gmeow:pipeline-dataflow-reason-compile-logic ;
     gmeow:hasStage
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
@@ -258,9 +350,10 @@ gmeow:stage-source-load
     rdfs:label "source load"@x-gmeow-english ;
     skos:definition "Parse the statement-DSL, slice modules, and transitive imports into the initial in-memory dataset — the root of the build DAG."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindSourceLoad ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "source_load" ;
-    gmeow:carriesEngineLock false .
+    gmeow:hasCapability gmeow:sourceOrigin .
 
 gmeow:stage-statements
     a gmeow:PipelineStage ;
@@ -268,9 +361,9 @@ gmeow:stage-statements
     rdfs:label "statements"@x-gmeow-english ;
     skos:definition "Compile the RDF-1.2 statement lead and its OWL downcast from the loaded sources."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindTransform ;
-    gmeow:stageImpl "statements" ;
-    gmeow:carriesEngineLock false .
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "statements" .
 
 gmeow:stage-compile-logic
     a gmeow:PipelineStage ;
@@ -278,9 +371,9 @@ gmeow:stage-compile-logic
     rdfs:label "compile logic"@x-gmeow-english ;
     skos:definition "Run the logic: compiler (parse → canonical IR → projection back-ends) over the canonical logic source and emit every compiler product as a committed artifact: the eight projection serializations (canonical RDF 1.2 IR, OWL DL/EL, Datalog, N3, gUFO, Nemo, and the projection-report loss ledger) plus the compile diagnostics rendered to JSON, SARIF, HTML, and gmeow:Finding RDF. The single in-DAG producer of the logic projection surface, so the loss ledger and compile diagnostics reach the bundle, docs, and SARIF instead of terminating on disk."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindTransform ;
-    gmeow:stageImpl "compile_logic" ;
-    gmeow:carriesEngineLock false .
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "compile_logic" .
 
 gmeow:stage-mappings
     a gmeow:PipelineStage ;
@@ -288,10 +381,10 @@ gmeow:stage-mappings
     rdfs:label "mappings"@x-gmeow-english ;
     skos:definition "Compile the mapping-DSL into SSSOM, EDOAL, FnO, and SPARQL alignment artifacts, and assemble the FINAL projection-report loss ledger over the union of the logic projection rows (consumed from the compile-logic stage) and the per-correspondence residue ledger the four alignment lowerings produce."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindTransform ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "mappings" ;
-    gmeow:dataflowConsumes gmeow:stage-compile-logic ;
-    gmeow:carriesEngineLock false .
+    gmeow:dataflowConsumes gmeow:stage-compile-logic .
 
 gmeow:stage-reason
     a gmeow:PipelineStage ;
@@ -299,7 +392,8 @@ gmeow:stage-reason
     rdfs:label "reason"@x-gmeow-english ;
     skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (ontology + imports + statements + alignments + logic/relational-core/correspondence, in the bundle's graph layout but WITHOUT the meta/report graphs, which assert no axioms and only perturb the content-addressed Skolem witnesses). The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindReason ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "reason" ;
     gmeow:dataflowConsumes
         gmeow:stage-compile-logic ,
@@ -307,7 +401,7 @@ gmeow:stage-reason
         gmeow:stage-source-load ,
         gmeow:stage-statements ;
     gmeow:producesFormat "rdf12-turtle" ;
-    gmeow:carriesEngineLock true .
+    gmeow:requiresResource gmeow:engineResource .
 
 gmeow:stage-gts-compose
     a gmeow:PipelineStage ;
@@ -315,14 +409,14 @@ gmeow:stage-gts-compose
     rdfs:label "gts compose"@x-gmeow-english ;
     skos:definition "Assemble the unified in-memory RdfBundle (dataset + provenance + unit catalog) every downstream leaf and the sink fold artifacts into."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindTransform ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "gts_compose" ;
     gmeow:dataflowConsumes
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-source-load ,
-        gmeow:stage-statements ;
-    gmeow:carriesEngineLock false .
+        gmeow:stage-statements .
 
 gmeow:stage-validate
     a gmeow:PipelineStage ;
@@ -330,10 +424,10 @@ gmeow:stage-validate
     rdfs:label "validate"@x-gmeow-english ;
     skos:definition "Run the Rust SHACL validator over the loaded authored validation graph and emit deterministic diagnostics projections (JSON, SARIF, HTML, and gmeow:Finding RDF) for the snapshot and generated diagnostics artifacts."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindValidate ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "validate" ;
-    gmeow:dataflowConsumes gmeow:stage-source-load ;
-    gmeow:carriesEngineLock false .
+    gmeow:dataflowConsumes gmeow:stage-source-load .
 
 gmeow:stage-conformance
     a gmeow:PipelineStage ;
@@ -341,9 +435,9 @@ gmeow:stage-conformance
     rdfs:label "conformance"@x-gmeow-english ;
     skos:definition "Grade the committed external conformance corpus (the W3C OWL 2 / ORE cases under conformance/logic/cases/external) — each case's frozen native verdict against its published external verdict — and emit the divergences as a gmeow:Finding N-Quads graph. A source-reading stage with no upstream product; the snapshot stage folds its output into the graph/conformance named graph so a repo-free consumer reads every reasoner-vs-corpus divergence from the bundle."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindTransform ;
-    gmeow:stageImpl "conformance" ;
-    gmeow:carriesEngineLock false .
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "conformance" .
 
 gmeow:stage-docs-render
     a gmeow:PipelineStage ;
@@ -351,10 +445,10 @@ gmeow:stage-docs-render
     rdfs:label "docs render"@x-gmeow-english ;
     skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindDocsRender ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "docs_render" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
-    gmeow:carriesEngineLock false .
+    gmeow:dataflowConsumes gmeow:stage-gts-compose .
 
 # ── Snapshot assembly (structured multi-named-graph dist bundle) ──
 
@@ -364,7 +458,8 @@ gmeow:stage-snapshot
     rdfs:label "snapshot"@x-gmeow-english ;
     skos:definition "Assemble the structured multi-named-graph dist snapshot (gmeow.gts bytes) in memory: the authored default graph plus the import closure, metadata, alignment, RDF 1.2 statement, slice-analysis, verify-attestation, and documentation named graphs. Split from the sink so every fold-reading export leaf consumes THIS run's freshly-composed fold rather than re-reading the committed file from disk (the single-pass invariant)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindTransform ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "snapshot" ;
     gmeow:dataflowConsumes
         gmeow:stage-compile-logic ,
@@ -375,8 +470,7 @@ gmeow:stage-snapshot
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
         gmeow:stage-statements ,
-        gmeow:stage-validate ;
-    gmeow:carriesEngineLock false .
+        gmeow:stage-validate .
 
 # ── Export leaves (parallel fan-out, each folds one artifact set) ──
 
@@ -386,10 +480,10 @@ gmeow:stage-export-json-schema
     rdfs:label "export: json schema"@x-gmeow-english ;
     skos:definition "Compile the hand-authored SHACL shape union into a closed-world JSON Schema (draft 2020-12) and an OpenAPI 3.1 document via the native emitter (crates/shacl), retiring the LinkML-derived JSON Schema. A source-reading leaf: it reads the shape files directly and consumes no upstream product, so the snapshot stage folds its fresh output into the schemas-archive blob."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "json_schema" ;
-    gmeow:producesFormat "json-schema" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "json-schema" .
 
 gmeow:stage-export-schemas
     a gmeow:PipelineStage ;
@@ -397,11 +491,11 @@ gmeow:stage-export-schemas
     rdfs:label "export: schemas"@x-gmeow-english ;
     skos:definition "Project the carrier dataset to LinkML + downstream schema artifacts. A fold-reading export leaf over the carrier (#1132): reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "schemas" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "linkml" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "linkml" .
 
 gmeow:stage-export-catalog
     a gmeow:PipelineStage ;
@@ -409,10 +503,10 @@ gmeow:stage-export-catalog
     rdfs:label "export: catalog"@x-gmeow-english ;
     skos:definition "Emit the OWL import catalog (catalog-v001.xml) from the slice manifests."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "catalog" ;
-    gmeow:producesFormat "catalog-xml" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "catalog-xml" .
 
 gmeow:stage-export-profiles
     a gmeow:PipelineStage ;
@@ -420,10 +514,10 @@ gmeow:stage-export-profiles
     rdfs:label "export: profiles"@x-gmeow-english ;
     skos:definition "Emit the dependency-closed named profile ontology documents from the slice manifests."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "profiles" ;
-    gmeow:producesFormat "profile-ttl" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "profile-ttl" .
 
 gmeow:stage-export-parquet
     a gmeow:PipelineStage ;
@@ -431,11 +525,11 @@ gmeow:stage-export-parquet
     rdfs:label "export: parquet"@x-gmeow-english ;
     skos:definition "Project the composed dataset to the per-table Parquet columnar form."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "parquet" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "parquet" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "parquet" .
 
 gmeow:stage-export-export
     a gmeow:PipelineStage ;
@@ -443,11 +537,11 @@ gmeow:stage-export-export
     rdfs:label "export: flat views"@x-gmeow-english ;
     skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "export" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "csv" , "jsonl" , "markdown" , "llms-txt" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "csv" , "jsonl" , "markdown" , "llms-txt" .
 
 gmeow:stage-export-okf
     a gmeow:PipelineStage ;
@@ -455,11 +549,11 @@ gmeow:stage-export-okf
     rdfs:label "export: OKF"@x-gmeow-english ;
     skos:definition "Emit the Open Knowledge Format concept-document bundle."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "okf" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "okf" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "okf" .
 
 gmeow:stage-export-apache
     a gmeow:PipelineStage ;
@@ -467,10 +561,10 @@ gmeow:stage-export-apache
     rdfs:label "export: apache headers"@x-gmeow-english ;
     skos:definition "Emit the Apache-style license headers from the self-description template."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "apache" ;
-    gmeow:producesFormat "asf-license" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "asf-license" .
 
 gmeow:stage-export-frame-shapes
     a gmeow:PipelineStage ;
@@ -478,10 +572,10 @@ gmeow:stage-export-frame-shapes
     rdfs:label "export: frame shapes"@x-gmeow-english ;
     skos:definition "Generate SHACL from the gmeow:requiresFrame frame-relativity declarations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "frame_shapes" ;
-    gmeow:producesFormat "shacl" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "shacl" .
 
 gmeow:stage-export-result-shapes
     a gmeow:PipelineStage ;
@@ -489,10 +583,10 @@ gmeow:stage-export-result-shapes
     rdfs:label "export: result shapes"@x-gmeow-english ;
     skos:definition "Project each canonical logic:ResultShape (declared on a competency question via gmeow:cqResultShape) to SHACL — the P4/P17 projection of the typed query-result contract."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "result_shapes" ;
-    gmeow:producesFormat "shacl" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "shacl" .
 
 gmeow:stage-validate-result-shape-composition
     a gmeow:PipelineStage ;
@@ -500,9 +594,9 @@ gmeow:stage-validate-result-shape-composition
     rdfs:label "validate: result-shape composition"@x-gmeow-english ;
     skos:definition "Enforce the typed query-composition contract across competency questions: where a question declares it consumes another's result via gmeow:cqConsumes, the producer's gmeow:cqResultShape must satisfy the consumer's gmeow:cqInputShape (structural input→output compatibility). A mismatch hard-fails the build, so a composition that cannot type-check never ships."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindValidate ;
-    gmeow:stageImpl "result_shape_composition" ;
-    gmeow:carriesEngineLock false .
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "result_shape_composition" .
 
 gmeow:stage-export-matrix
     a gmeow:PipelineStage ;
@@ -510,10 +604,10 @@ gmeow:stage-export-matrix
     rdfs:label "export: matrix"@x-gmeow-english ;
     skos:definition "Emit the CI compatibility matrix (Makefile.matrix)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "matrix" ;
-    gmeow:producesFormat "makefile-matrix" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "makefile-matrix" .
 
 gmeow:stage-export-metadata
     a gmeow:PipelineStage ;
@@ -521,11 +615,11 @@ gmeow:stage-export-metadata
     rdfs:label "export: metadata"@x-gmeow-english ;
     skos:definition "Emit the build-metadata files (BUILD.bazel and Sphinx metadata)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "metadata" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "bazel" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "bazel" .
 
 gmeow:stage-export-research-objects
     a gmeow:PipelineStage ;
@@ -533,10 +627,10 @@ gmeow:stage-export-research-objects
     rdfs:label "export: research objects"@x-gmeow-english ;
     skos:definition "Emit the RO-Crate research-object archives from the example inputs."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "research-objects" ;
-    gmeow:producesFormat "ro-crate" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "ro-crate" .
 
 gmeow:stage-export-references
     a gmeow:PipelineStage ;
@@ -544,10 +638,10 @@ gmeow:stage-export-references
     rdfs:label "export: references"@x-gmeow-english ;
     skos:definition "Emit the citation / reference index (gmeow-references.ttl)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "references" ;
-    gmeow:producesFormat "references-ttl" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "references-ttl" .
 
 gmeow:stage-export-evals
     a gmeow:PipelineStage ;
@@ -555,10 +649,10 @@ gmeow:stage-export-evals
     rdfs:label "export: evals"@x-gmeow-english ;
     skos:definition "Emit the evaluation JSON / CSV report tables."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "evals" ;
-    gmeow:producesFormat "evals-json" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "evals-json" .
 
 gmeow:stage-export-bench
     a gmeow:PipelineStage ;
@@ -566,10 +660,10 @@ gmeow:stage-export-bench
     rdfs:label "export: bench"@x-gmeow-english ;
     skos:definition "Emit the committed perf leaderboard table."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "bench" ;
-    gmeow:producesFormat "markdown" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "markdown" .
 
 gmeow:stage-export-lpg
     a gmeow:PipelineStage ;
@@ -577,11 +671,11 @@ gmeow:stage-export-lpg
     rdfs:label "export: LPG"@x-gmeow-english ;
     skos:definition "Emit the labeled-property-graph artifacts (CSV, Cypher, JSON-LD)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "lpg" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
-    gmeow:producesFormat "lpg-cypher" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "lpg-cypher" .
 
 gmeow:stage-export-yaml-ld
     a gmeow:PipelineStage ;
@@ -589,12 +683,12 @@ gmeow:stage-export-yaml-ld
     rdfs:label "export: yaml ld"@x-gmeow-english ;
     skos:definition "Emit the YAML-LD-star and JSON-LD-star serializations of the composed dataset by folding THIS run's snapshot."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "yaml_ld" ;
     gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "yaml-ld" ;
-    gmeow:producesFormat "json-ld" ;
-    gmeow:carriesEngineLock false .
+    gmeow:producesFormat "json-ld" .
 
 # ── The single serialization exit (the gts narrow waist) ──
 
@@ -604,12 +698,13 @@ gmeow:stage-gts-sink
     rdfs:label "gts sink"@x-gmeow-english ;
     skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindSink ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "gts_sink" ;
+    gmeow:hasCapability gmeow:sinkCapability ;
     gmeow:dataflowConsumes
         gmeow:stage-snapshot ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-compile-logic ,
         gmeow:stage-reason ,
-        gmeow:stage-validate ;
-    gmeow:carriesEngineLock false .
+        gmeow:stage-validate .

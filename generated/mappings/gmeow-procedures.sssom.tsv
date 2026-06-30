@@ -8,6 +8,7 @@
 # curie_map:
 #   bpmn: http://www.omg.org/spec/BPMN/20100524/MODEL#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
+#   logic: https://blackcatinformatics.ca/logic/
 #   obi: http://purl.obolibrary.org/obo/OBI_
 #   opmw: https://www.opmw.org/ontology/
 #   pplan: http://purl.org/net/p-plan#
@@ -44,6 +45,10 @@ gmeow:ProcedureStep	skos:relatedMatch	https://openwdl.org/concept/Task	semapv:Ma
 gmeow:ProcedureStep	skos:relatedMatch	https://temporal.io/concept/Activity	semapv:ManualMappingCuration	0.55	Temporal Activity (by reference): a procedure step is a Temporal activity invoked by the workflow.
 gmeow:ProcedureStep	skos:relatedMatch	https://w3id.org/cwl/cwl#WorkflowStep	semapv:ManualMappingCuration	0.6	Common Workflow Language WorkflowStep (by reference): a procedure step is a CWL workflow step.
 gmeow:ProcedureStep	skos:relatedMatch	https://www.nextflow.io/concept/Process	semapv:ManualMappingCuration	0.6	Nextflow process (by reference): a procedure step is a Nextflow process node consuming/producing channels.
+gmeow:branchConditionIf	skos:relatedMatch	logic:Choice	semapv:ManualMappingCuration	0.7	An if-then guard on a gmeow:ControlFlow edge realizes the canonical binary choice combinator logic:Choice (the guarded then-arm vs. the alternative). Structural, not equivalent: the guard VALUE marks which combinator the reified edge realizes, it is not the combinator class. The implicit else / default arm corresponds to logic:Fallback (try the guarded arm, else the default).
+gmeow:branchConditionLoop	skos:relatedMatch	logic:Iteration	semapv:ManualMappingCuration	0.7	A loop-back guard on a gmeow:ControlFlow edge realizes the canonical iteration combinator logic:Iteration (logic:iterationBody gated by logic:iterationCondition). Structural, not equivalent. A loop is a back-edge in the flow graph, so a procedure carrying a loop guard is outside the acyclic DAG fragment the certifier accepts.
+gmeow:branchConditionParallel	skos:relatedMatch	logic:ConcurrentComposition	semapv:ManualMappingCuration	0.7	A parallel split/join guard on a gmeow:ControlFlow edge realizes the canonical concurrent-composition combinator logic:ConcurrentComposition (two co-equal legs run concurrently). Structural, not equivalent.
+gmeow:branchConditionSwitch	skos:relatedMatch	logic:Choice	semapv:ManualMappingCuration	0.6	An n-way switch guard on a gmeow:ControlFlow edge realizes the canonical choice combinator logic:Choice. logic:Choice is BINARY (logic:leftOperand / logic:rightOperand), so an n-way switch corresponds to a right-nested cascade of binary logic:Choice nodes; the single canonical combinator target is logic:Choice. Structural, not equivalent. The implicit default case corresponds to logic:Fallback.
 gmeow:hasProcedureStep	skos:closeMatch	schema:step	semapv:ManualMappingCuration	0.85	schema.org step — the steps of a HowTo.
 gmeow:stepInput	skos:closeMatch	pplan:Input	semapv:ManualMappingCuration	0.8	P-Plan Input variable; GMEOW stepInput is a property pointing to any entity.
 gmeow:stepInput	skos:closeMatch	prov:used	semapv:ManualMappingCuration	0.7	PROV-O used — an activity consumes an entity; GMEOW stepInput is the plan-level consumption.

@@ -17,7 +17,7 @@ use std::sync::Arc;
 use gmeow_rdf::RdfDataset;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::dataset_to_sorted_nquads;
 
 /// Compose the upstream products into one frozen dataset by [`RdfDataset::union`]
@@ -176,9 +176,6 @@ impl Default for GtsComposeStage {
 impl Stage for GtsComposeStage {
     fn id(&self) -> &str {
         "stage-gts-compose"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

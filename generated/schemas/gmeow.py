@@ -338,6 +338,10 @@ class BranchConditionTypeEnum(str, Enum):
     branchConditionSwitch = "branchConditionSwitch"
 
 
+class BuildDataFlowEnum(str, Enum):
+    pipeline_dataflow_reason_compile_logic = "pipeline-dataflow-reason-compile-logic"
+
+
 class CadastralReferenceTypeEnum(str, Enum):
     referenceTypeFolio = "referenceTypeFolio"
     referenceTypeLot = "referenceTypeLot"
@@ -2569,6 +2573,10 @@ class RepositoryTypeEnum(str, Enum):
     repoTypeSVN = "repoTypeSVN"
 
 
+class ResourceEnum(str, Enum):
+    engineResource = "engineResource"
+
+
 class RightsActionEnum(str, Enum):
     actionAcceptTracking = "actionAcceptTracking"
     actionAggregate = "actionAggregate"
@@ -2832,14 +2840,10 @@ class SpectrumEnum(str, Enum):
     spectrumExample = "spectrumExample"
 
 
-class StageKindEnum(str, Enum):
-    kindDocsRender = "kindDocsRender"
-    kindExportLeaf = "kindExportLeaf"
-    kindReason = "kindReason"
-    kindSink = "kindSink"
-    kindSourceLoad = "kindSourceLoad"
-    kindTransform = "kindTransform"
-    kindValidate = "kindValidate"
+class StageCapabilityEnum(str, Enum):
+    sinkCapability = "sinkCapability"
+    sourceOrigin = "sourceOrigin"
+    stageExecutorCapability = "stageExecutorCapability"
 
 
 class StandpointEnum(str, Enum):
@@ -3938,6 +3942,13 @@ class BuildActivity(Activity):
     buildConfigUri: str | None = Field(default=None)
     buildOutput: list[Distribution] | None = Field(default=None)
     buildSource: list[str] | None = Field(default=None)
+
+
+class BuildDataFlow(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/BuildDataFlow"
+    buildFlowFrom: list[PipelineStage] | None = Field(default=None)
+    buildFlowTo: list[PipelineStage] | None = Field(default=None)
+    flowEntity: list[str] | None = Field(default=None)
 
 
 class SoftwareAgent(Agent):
@@ -6628,12 +6639,12 @@ class Pipeline(SocialObject):
 class PipelineStage(SocialObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/PipelineStage"
     is_a: ClassVar[str] = "SocialObject"
-    carriesEngineLock: list[bool] | None = Field(default=None)
     dataflowConsumes: list[PipelineStage] | None = Field(default=None)
     dataflowProduces: list[PipelineStage] | None = Field(default=None)
+    hasCapability: list[StageCapability] | None = Field(default=None)
     producesFormat: list[str] | None = Field(default=None)
+    requiresResource: list[Resource] | None = Field(default=None)
     stageImpl: list[str] | None = Field(default=None)
-    stageKind: list[StageKind] | None = Field(default=None)
 
 
 class PitchAnchor(Entity):
@@ -7126,6 +7137,12 @@ class RepositoryType(ConfiguredBaseModel):
     pass
 
 
+class Resource(SocialObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Resource"
+    is_a: ClassVar[str] = "SocialObject"
+    pass
+
+
 class RetrievalEvent(Activity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/RetrievalEvent"
     is_a: ClassVar[str] = "Activity"
@@ -7573,8 +7590,8 @@ class Spectrum(InformationObject):
     pass
 
 
-class StageKind(ConfiguredBaseModel):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/StageKind"
+class StageCapability(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/StageCapability"
     pass
 
 

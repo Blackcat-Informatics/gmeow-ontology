@@ -39,6 +39,27 @@ use crate::rule_ir::{
     echo_asserted, least_model_of_reduct, world_edb_facts, DerivedRow, EvalRule, FactStore,
 };
 
+/// The ordered intra-engine phases [`materialize`] runs per world — the runtime
+/// twin of the authored `logic:wellFoundedMaterializerPlan`
+/// (`slices/core/logic/module.ttl`).
+///
+/// Principle 12 BOUNDARY: the authored plan is checked against THIS const by the
+/// dogfood parity gate `crates/pipeline/tests/wellfounded_plan_parity.rs`; the
+/// reasoner NEVER parses that RDF at scheduling or runtime — the native loop
+/// below is the runtime, the plan is its declared twin. The names match the local
+/// names of the plan's `logic:ActionSchema` phase individuals one-to-one, so the
+/// parity test can map them directly.
+///
+/// The middle phase (`wfResolveFixpoint`) is the alternating fixpoint — an
+/// iteration (see [`WELL_FOUNDED_ITERATED_PHASE`]).
+pub const WELL_FOUNDED_PHASES: [&str; 3] =
+    ["wfMaterializeEdb", "wfResolveFixpoint", "wfConstructModel"];
+
+/// The one phase of [`WELL_FOUNDED_PHASES`] that is an iteration (the alternating
+/// fixpoint loop), modelled in the authored plan as a `logic:Iteration` whose
+/// `logic:iterationBody` is this phase's `logic:ActionSchema`.
+pub const WELL_FOUNDED_ITERATED_PHASE: &str = "wfResolveFixpoint";
+
 /// Materialize the well-founded model of `rules` over every world in `store`.
 ///
 /// Returns the asserted-EDB rows plus the derived true-atom rows, sorted by

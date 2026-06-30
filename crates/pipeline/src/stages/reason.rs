@@ -12,8 +12,9 @@
 //! committed artifacts via the `gmeow_logic::reason::artifacts` builders. The single
 //! result also backs the bundle's `graph/reasoning` projection (dual carriage), so
 //! the closure shipped in `gmeow.gts` and the committed files agree by construction —
-//! there is no separate full-fold export leaf. Reasoning serializes under the pipeline
-//! `ENGINE_LOCK` (this is the sole `Reason`-kind stage).
+//! there is no separate full-fold export leaf. Reasoning requires the exclusive
+//! [`ENGINE_RESOURCE`], so the scheduler serializes it against any stage competing
+//! for the reasoning engine (this is the sole resource-bearing build stage).
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -29,7 +30,7 @@ use gmeow_rdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, ENGINE_RESOURCE};
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
 /// the SOLE reasoning pass: it reasons once over the object-level EDB
@@ -158,13 +159,24 @@ fn reason_dataset(
 /// The `reason` pipeline stage — the sole engine-lock-carrying stage.
 pub struct ReasonStage {
     consumes: Vec<String>,
+    resources: Vec<String>,
+    entities: Vec<(String, Vec<String>)>,
 }
 
 impl ReasonStage {
     /// Construct the stage. It reasons over the object-level EDB assembled from the
     /// compile-logic / mappings / source-load / statements producers (plus the on-disk
     /// authored / imports / alignments sources); the slice DAG's `stage-reason`
-    /// `dataflowConsumes` mirrors this set.
+    /// `dataflowConsumes` mirrors this set. It requires the exclusive
+    /// [`ENGINE_RESOURCE`] (the sole resource-bearing build stage), so the scheduler
+    /// serializes it against any stage competing for the reasoning engine.
+    ///
+    /// Typed dataflow (artifact-level): from `stage-compile-logic` it reads ONLY the
+    /// `logic`, `relational-core`, and `correspondence` named graphs (see
+    /// [`crate::stages::carrier::assemble_object_level_edb`]) — never that product's
+    /// other graphs or byte artifacts (diagnostics, the eight projection
+    /// serializations). Declaring those three entities lets a change to compile-logic's
+    /// diagnostics or projection bytes alone skip re-running the (expensive) reasoner.
     pub fn new() -> Self {
         Self {
             consumes: vec![
@@ -173,6 +185,15 @@ impl ReasonStage {
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
             ],
+            resources: vec![ENGINE_RESOURCE.to_string()],
+            entities: vec![(
+                "stage-compile-logic".to_string(),
+                vec![
+                    crate::stages::compile_logic::GRAPH_CORRESPONDENCE.to_string(),
+                    crate::stages::compile_logic::GRAPH_LOGIC.to_string(),
+                    crate::stages::compile_logic::GRAPH_RELATIONAL_CORE.to_string(),
+                ],
+            )],
         }
     }
 }
@@ -187,11 +208,14 @@ impl Stage for ReasonStage {
     fn id(&self) -> &str {
         "stage-reason"
     }
-    fn kind(&self) -> StageKind {
-        StageKind::Reason
-    }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
+    }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
     }
     fn impl_version(&self) -> &str {
         "reason.v1"

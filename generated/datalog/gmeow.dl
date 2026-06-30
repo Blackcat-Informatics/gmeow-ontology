@@ -106,6 +106,21 @@ provenance("https://blackcatinformatics.ca/logic/ruleProjectUnderstands", "https
 defeasibleStrength("https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout", 'moderate', "default").
 evidenceFor("https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout", "https://blackcatinformatics.ca/gmeow/knowsAbout", "default").
 evidenceProperty("https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout", "https://blackcatinformatics.ca/gmeow/hasSkill", "default").
+planBody("https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan", "https://blackcatinformatics.ca/logic/wfPhaseSequence", "default").
+planGoal("https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan", "https://blackcatinformatics.ca/logic/goalWellFoundedModel", "default").
+planSuccessMode("https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan", "https://blackcatinformatics.ca/logic/StrongPlanSuccess", "default").
+capability("https://blackcatinformatics.ca/logic/wfConstructModel", "https://blackcatinformatics.ca/logic/wfReductEngineCapability", "default").
+precondition("https://blackcatinformatics.ca/logic/wfConstructModel", "https://blackcatinformatics.ca/logic/wfWorldSeeded", "default").
+capability("https://blackcatinformatics.ca/logic/wfMaterializeEdb", "https://blackcatinformatics.ca/logic/wfReductEngineCapability", "default").
+precondition("https://blackcatinformatics.ca/logic/wfMaterializeEdb", "https://blackcatinformatics.ca/logic/wfWorldSeeded", "default").
+leftOperand("https://blackcatinformatics.ca/logic/wfPhaseSequence", "https://blackcatinformatics.ca/logic/wfMaterializeEdb", "default").
+rightOperand("https://blackcatinformatics.ca/logic/wfPhaseSequence", "https://blackcatinformatics.ca/logic/wfResolveThenBuild", "default").
+capability("https://blackcatinformatics.ca/logic/wfResolveFixpoint", "https://blackcatinformatics.ca/logic/wfReductEngineCapability", "default").
+precondition("https://blackcatinformatics.ca/logic/wfResolveFixpoint", "https://blackcatinformatics.ca/logic/wfWorldSeeded", "default").
+iterationBody("https://blackcatinformatics.ca/logic/wfResolveLoop", "https://blackcatinformatics.ca/logic/wfResolveFixpoint", "default").
+iterationCondition("https://blackcatinformatics.ca/logic/wfResolveLoop", "https://blackcatinformatics.ca/logic/wfFixpointNotReached", "default").
+leftOperand("https://blackcatinformatics.ca/logic/wfResolveThenBuild", "https://blackcatinformatics.ca/logic/wfResolveLoop", "default").
+rightOperand("https://blackcatinformatics.ca/logic/wfResolveThenBuild", "https://blackcatinformatics.ca/logic/wfConstructModel", "default").
 
 % === Rules ===
 hasMastered(?agent, ?subject, ?C) :-

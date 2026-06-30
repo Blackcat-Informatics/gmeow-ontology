@@ -17,7 +17,7 @@ use oxigraph::store::Store;
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::turtle_bytes_to_store;
 
 pub const CSL_PATH: &str = "generated/references/references.csl.json";
@@ -343,9 +343,6 @@ pub struct ReferencesStage;
 impl Stage for ReferencesStage {
     fn id(&self) -> &str {
         "stage-export-references"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

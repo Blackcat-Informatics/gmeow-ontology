@@ -422,6 +422,13 @@ classes:
     - buildConfigUri
     - buildOutput
     - buildSource
+  BuildDataFlow:
+    class_uri: https://blackcatinformatics.ca/gmeow/BuildDataFlow
+    title: Build Data Flow
+    slots:
+    - buildFlowFrom
+    - buildFlowTo
+    - flowEntity
   Builder:
     class_uri: https://blackcatinformatics.ca/gmeow/Builder
     title: Builder
@@ -2920,12 +2927,12 @@ classes:
     title: Pipeline Stage
     is_a: SocialObject
     slots:
-    - carriesEngineLock
     - dataflowConsumes
     - dataflowProduces
+    - hasCapability
     - producesFormat
+    - requiresResource
     - stageImpl
-    - stageKind
   PitchAnchor:
     class_uri: https://blackcatinformatics.ca/gmeow/PitchAnchor
     title: Pitch Anchor
@@ -3367,6 +3374,10 @@ classes:
   RepositoryType:
     class_uri: https://blackcatinformatics.ca/gmeow/RepositoryType
     title: Repository Type
+  Resource:
+    class_uri: https://blackcatinformatics.ca/gmeow/Resource
+    title: Resource
+    is_a: SocialObject
   RetrievalEvent:
     class_uri: https://blackcatinformatics.ca/gmeow/RetrievalEvent
     title: Retrieval Event
@@ -3758,9 +3769,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Spectrum
     title: Spectrum
     is_a: InformationObject
-  StageKind:
-    class_uri: https://blackcatinformatics.ca/gmeow/StageKind
-    title: Stage Kind
+  StageCapability:
+    class_uri: https://blackcatinformatics.ca/gmeow/StageCapability
+    title: Stage Capability
   Standpoint:
     class_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     title: Standpoint
@@ -5187,6 +5198,18 @@ slots:
     range: string
     domain: BuildActivity
     multivalued: false
+  buildFlowFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/buildFlowFrom
+    title: build flow from
+    range: PipelineStage
+    domain: BuildDataFlow
+    multivalued: true
+  buildFlowTo:
+    slot_uri: https://blackcatinformatics.ca/gmeow/buildFlowTo
+    title: build flow to
+    range: PipelineStage
+    domain: BuildDataFlow
+    multivalued: true
   buildOutput:
     slot_uri: https://blackcatinformatics.ca/gmeow/buildOutput
     title: build output
@@ -5292,12 +5315,6 @@ slots:
     title: carrier type
     range: PhysicalCarrierType
     domain: PhysicalObject
-    multivalued: true
-  carriesEngineLock:
-    slot_uri: https://blackcatinformatics.ca/gmeow/carriesEngineLock
-    title: carries engine lock
-    range: boolean
-    domain: PipelineStage
     multivalued: true
   cascadeFirstLink:
     slot_uri: https://blackcatinformatics.ca/gmeow/cascadeFirstLink
@@ -7176,6 +7193,12 @@ slots:
     range: Event
     domain: Event
     multivalued: true
+  flowEntity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/flowEntity
+    title: flow entity
+    range: uriorcurie
+    domain: BuildDataFlow
+    multivalued: true
   flowGuard:
     slot_uri: https://blackcatinformatics.ca/gmeow/flowGuard
     title: flow guard
@@ -7629,6 +7652,12 @@ slots:
     title: has calendar method
     range: CalendarMethod
     domain: EmailMessage
+    multivalued: true
+  hasCapability:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasCapability
+    title: has capability
+    range: StageCapability
+    domain: PipelineStage
     multivalued: true
   hasCapacity:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasCapacity
@@ -11532,6 +11561,12 @@ slots:
     range: boolean
     domain: ReferenceFrame
     multivalued: false
+  requiresResource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/requiresResource
+    title: requires resource
+    range: Resource
+    domain: PipelineStage
+    multivalued: true
   resentDate:
     slot_uri: https://blackcatinformatics.ca/gmeow/resentDate
     title: resent date
@@ -12246,12 +12281,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/stageImpl
     title: stage impl
     range: string
-    domain: PipelineStage
-    multivalued: true
-  stageKind:
-    slot_uri: https://blackcatinformatics.ca/gmeow/stageKind
-    title: stage kind
-    range: StageKind
     domain: PipelineStage
     multivalued: true
   standpointAssertoricForce:
@@ -14379,6 +14408,12 @@ enums:
       branchConditionSwitch:
         meaning: https://blackcatinformatics.ca/gmeow/branchConditionSwitch
         title: switch
+  BuildDataFlowEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/BuildDataFlow
+    permissible_values:
+      pipeline-dataflow-reason-compile-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-compile-logic
+        title: 'dataflow: compile-logic → reason'
   CadastralReferenceTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CadastralReferenceType
     permissible_values:
@@ -19884,6 +19919,12 @@ enums:
       repoTypeSVN:
         meaning: https://blackcatinformatics.ca/gmeow/repoTypeSVN
         title: subversion
+  ResourceEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Resource
+    permissible_values:
+      engineResource:
+        meaning: https://blackcatinformatics.ca/gmeow/engineResource
+        title: reasoning engine
   RightsActionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/RightsAction
     permissible_values:
@@ -20517,30 +20558,18 @@ enums:
       spectrumExample:
         meaning: https://blackcatinformatics.ca/gmeow/spectrumExample
         title: example spectrum
-  StageKindEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/StageKind
+  StageCapabilityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/StageCapability
     permissible_values:
-      kindDocsRender:
-        meaning: https://blackcatinformatics.ca/gmeow/kindDocsRender
-        title: docs render
-      kindExportLeaf:
-        meaning: https://blackcatinformatics.ca/gmeow/kindExportLeaf
-        title: export leaf
-      kindReason:
-        meaning: https://blackcatinformatics.ca/gmeow/kindReason
-        title: reason
-      kindSink:
-        meaning: https://blackcatinformatics.ca/gmeow/kindSink
-        title: sink
-      kindSourceLoad:
-        meaning: https://blackcatinformatics.ca/gmeow/kindSourceLoad
-        title: source load
-      kindTransform:
-        meaning: https://blackcatinformatics.ca/gmeow/kindTransform
-        title: transform
-      kindValidate:
-        meaning: https://blackcatinformatics.ca/gmeow/kindValidate
-        title: validate
+      sinkCapability:
+        meaning: https://blackcatinformatics.ca/gmeow/sinkCapability
+        title: sink capability
+      sourceOrigin:
+        meaning: https://blackcatinformatics.ca/gmeow/sourceOrigin
+        title: source origin
+      stageExecutorCapability:
+        meaning: https://blackcatinformatics.ca/gmeow/stageExecutorCapability
+        title: stage executor capability
   StandpointEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     permissible_values:
