@@ -26,6 +26,11 @@ pub mod correspondence_gate;
 pub mod put_derivation;
 // The five correspondence conformance gates (Law/Overclaim/Round-trip/Mnemomorphism/Composition).
 pub mod correspondence_gates;
+// The seven correspondence-stack soundness checks (#1092 F5 Task 3a): the five alignment
+// graph-reasoning checks (inverse-direction / domain-range / property-character /
+// equivalence-collapse=Principle 5 / dc-refinement) + the two FnO back-end checks
+// (fno-type / fno-ref), oxigraph-free over DslView.
+pub mod correspondence_soundness;
 // The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).
 pub mod edoal;
 // The FnO correspondence lowering (get-leg transform functions → FnO catalog).

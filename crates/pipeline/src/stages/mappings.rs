@@ -284,8 +284,22 @@ pub fn compile_diagnostics_report(root: &Path) -> Report {
         fold_sssom_findings(&mut report, path, bytes);
     }
 
-    match lint_projection(root, false) {
+    // The seven correspondence-stack soundness checks (the five alignment checks + the two
+    // FnO back-end checks, incl. the sole native enforcer of Constitution Principle 5) now
+    // run through the oxigraph-free native pass
+    // (`stages::correspondence_soundness::lint_correspondence_soundness`). The retired
+    // oxigraph-coupled `gmeow_slice::lint_projection` is kept ALONGSIDE as a parity guard
+    // until #1092 Task 3b deletes it — proven byte-identical by the
+    // `correspondence_soundness_parity` integration test, so the folded report is unchanged.
+    match crate::stages::correspondence_soundness::lint_correspondence_soundness(root, false) {
         Ok(problems) => {
+            // Alongside parity guard (#1092 Task 3a): the retired lint must agree with the
+            // native soundness pass on the same root. Identical by construction (the parity
+            // harness gates it); a mismatch here is a regression, not a silent divergence.
+            debug_assert!(
+                matches!(lint_projection(root, false), Ok(ref old) if soundness_matches(old, &problems)),
+                "native correspondence-soundness diverged from the retired lint_projection"
+            );
             for problem in problems {
                 let mut finding = Finding::new(
                     match problem.severity.as_str() {
@@ -317,6 +331,59 @@ pub fn compile_diagnostics_report(root: &Path) -> Report {
     }
 
     report
+}
+
+/// Whether the retired `gmeow_slice` lint findings and the native correspondence-soundness
+/// findings are the same set (all fields, order-independent). The two crates carry distinct
+/// `ProjectionDiagnostic` types, so compare on the full-field key tuple. Used only by the
+/// debug-assert parity guard (#1092 Task 3a, removed with the retired lint in Task 3b).
+fn soundness_matches(
+    old: &[gmeow_slice::ProjectionDiagnostic],
+    new: &[gmeow_logic_compile::projections::correspondence_soundness::ProjectionDiagnostic],
+) -> bool {
+    type Key = (
+        String,
+        String,
+        String,
+        String,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    );
+    let mut a: Vec<Key> = old
+        .iter()
+        .map(|f| {
+            (
+                f.severity.clone(),
+                f.check.clone(),
+                f.code.clone(),
+                f.message.clone(),
+                f.instance.clone(),
+                f.subject_id.clone(),
+                f.predicate_id.clone(),
+                f.object_id.clone(),
+            )
+        })
+        .collect();
+    let mut b: Vec<Key> = new
+        .iter()
+        .map(|f| {
+            (
+                f.severity.clone(),
+                f.check.clone(),
+                f.code.clone(),
+                f.message.clone(),
+                f.instance.clone(),
+                f.subject_id.clone(),
+                f.predicate_id.clone(),
+                f.object_id.clone(),
+            )
+        })
+        .collect();
+    a.sort();
+    b.sort();
+    a == b
 }
 
 fn add_dsl_error(report: &mut Report, message: String) {
