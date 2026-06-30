@@ -128,11 +128,14 @@ fn positive_body_vars(rule: &LogicRule) -> std::collections::BTreeSet<String> {
         if atom.negated {
             continue;
         }
+        // A variable is identified by its `?` prefix regardless of `obj_is_literal`: the canonical
+        // IR stores a variable object as a plain literal (the variable-as-literal round-trip
+        // convention), so `obj_is_literal` is a don't-care bit for variables and must NOT gate
+        // the binding (gating on it would wrongly treat a variable object as unbound).
         if atom.subject.starts_with('?') {
             bound.insert(atom.subject.clone());
         }
-        // A literal object is never a variable; a variable object is a positive binding.
-        if atom.obj.starts_with('?') && !atom.obj_is_literal {
+        if atom.obj.starts_with('?') {
             bound.insert(atom.obj.clone());
         }
     }
@@ -612,6 +615,48 @@ mod tests {
                 .iter()
                 .any(|d| d.contains("context-scoped")),
             "the skipped modal rule must be recorded as a drop: {:?}",
+            result.actual_drops
+        );
+    }
+
+    #[test]
+    fn head_vars_bound_as_body_object_literal_variables_still_emit() {
+        // The canonical IR stores a variable object as a plain literal (obj_is_literal = true).
+        // A ladder-style rule binds its head subject AND head object only as body-atom OBJECTS;
+        // they must still count as positively bound and the rule must emit (regression: gating
+        // the binding on obj_is_literal wrongly dropped every such rule).
+        let head = var_axiom(
+            "?a",
+            "https://blackcatinformatics.ca/gmeow/knows",
+            "?b",
+            false,
+        );
+        let body = vec![
+            // ?a and ?b appear ONLY as objects, stored as literal-variables (obj_is_literal=true).
+            var_axiom(
+                "?p",
+                "https://blackcatinformatics.ca/logic/assessedAgent",
+                "?a",
+                true,
+            ),
+            var_axiom(
+                "?p",
+                "https://blackcatinformatics.ca/logic/subject",
+                "?b",
+                true,
+            ),
+        ];
+        let rule = LogicRule::new(head, body, vec![], ContextualScope::default());
+        let program = LogicProgram::new(vec![], vec![rule], vec![], None);
+        let result = project_shacl_af(&program);
+        assert!(
+            result.content.contains("a sh:SPARQLRule"),
+            "a rule whose head vars are bound as literal-variable body objects must emit:\n{}",
+            result.content
+        );
+        assert!(
+            result.actual_drops.is_empty(),
+            "no drop expected for a fully-bound rule: {:?}",
             result.actual_drops
         );
     }
