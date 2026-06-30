@@ -264,13 +264,12 @@ fn deep_consistency_findings(
 /// JSON-LD through the gmeow-gts codec exactly as [`data_store`] does.
 fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
     if is_json_ld(data_format) {
-        let text = std::str::from_utf8(data_bytes)
-            .map_err(|e| format!("data file is not valid UTF-8: {e}"))?;
-        let gts = gmeow_gts::from_yamlld::from_json_ld(text)
-            .map_err(|e| format!("JSON-LD parse error: {e}"))?;
-        let bundle = gmeow_rdf::import_gts_events(&gts)
-            .map_err(|e| format!("JSON-LD dataset read error: {e}"))?;
-        return Ok(bundle.dataset);
+        // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
+        // native JSON-LD-star codec (issue #1171), which folds the RDF 1.2 statement
+        // layer and PRESERVES named graphs — the graph-preserving shape this Tier-2
+        // path needs (no longer the external gmeow-gts JSON-LD codec).
+        return gmeow_rdf::native_codecs::jsonld::parse_jsonld(data_bytes)
+            .map_err(|e| format!("JSON-LD parse error: {e}"));
     }
     gmeow_rdf::parse_dataset(data_bytes, data_format, None)
         .map_err(|e| format!("data graph parse error: {e}"))
@@ -282,13 +281,13 @@ fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>,
 /// [`data_dataset`] above.)
 fn data_dataset_flat(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
     if is_json_ld(data_format) {
-        // JSON-LD has no native-codec media type; route it through the gmeow-gts
-        // JSON-LD codec to GTS bytes, then fold to a flattened native dataset.
-        let text = std::str::from_utf8(data_bytes)
-            .map_err(|e| format!("data file is not valid UTF-8: {e}"))?;
-        let gts = gmeow_gts::from_yamlld::from_json_ld(text)
+        // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
+        // native JSON-LD-star codec (issue #1171), then re-home every named graph to the
+        // default graph (the Tier-1 SHACL path needs the whole graph flat). This matches
+        // the prior gmeow-gts → `dataset_from_gts` flattening behavior.
+        let dataset = gmeow_rdf::native_codecs::jsonld::parse_jsonld(data_bytes)
             .map_err(|e| format!("JSON-LD parse error: {e}"))?;
-        return store::dataset_from_gts(&gts);
+        return flatten_to_default_graph(&dataset);
     }
 
     // Parse to the native IR, then re-home every named graph to the default graph so

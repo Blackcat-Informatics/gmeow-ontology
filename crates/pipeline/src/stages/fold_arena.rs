@@ -102,14 +102,6 @@ impl Graph {
             annotations,
         }
     }
-
-    /// The datatype IRI of a literal term (`""` for non-literals).
-    pub(crate) fn datatype_iri(&self, term: &Term) -> String {
-        match term.datatype {
-            Some(dt) => self.terms[dt].value.clone().unwrap_or_default(),
-            None => String::new(),
-        }
-    }
 }
 
 impl Term {
