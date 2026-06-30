@@ -32,9 +32,9 @@ use std::path::{Path, PathBuf};
 
 use regex::Regex;
 
+use crate::diagnostics::ProjectionDiagnostic;
 use crate::error::SliceError;
 use crate::mapping_support::PREFIX_REGISTRY;
-use crate::projection_lint::ProjectionDiagnostic;
 
 /// Authored source roots scanned for prefix declarations. The `generated/` tree is
 /// excluded: those artifacts are *emitted* from the registry and are consistent by

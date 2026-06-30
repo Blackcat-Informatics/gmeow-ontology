@@ -21,6 +21,14 @@ on:
 permissions:
   contents: read
 
+env:
+  # Scheduled CI fuzz builds must not inherit the repo's local `target-cpu=native` default.
+  CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3"
+  CARGO_ENV_CFLAGS_VALUE: "-O2 -march=x86-64-v3 -mtune=generic"
+  CARGO_ENV_CXXFLAGS_VALUE: "-O2 -march=x86-64-v3 -mtune=generic"
+  CARGO_ENV_CFLAGS_FORCE: "true"
+  CARGO_ENV_CXXFLAGS_FORCE: "true"
+
 concurrency:
   group: fuzz-${{ github.ref }}
   cancel-in-progress: true

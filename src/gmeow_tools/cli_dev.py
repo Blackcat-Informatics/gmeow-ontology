@@ -14,7 +14,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-import gmeow_slice
+import gmeow_native.pipeline as gmeow_pipeline
 import gmeow_validate
 import gts
 import httpx
@@ -27,23 +27,43 @@ from gmeow_tools.config import MAPPINGS_DIR, PROJECT_ROOT
 from gmeow_tools.projections import PROFILES as _PROFILES
 
 if TYPE_CHECKING:
+    from typing import TypedDict
+
     from gmeow_rdf.compat.rdflib import Graph
-    from gmeow_slice import ProjectionDiagnostic
 
     from gmeow_tools.diagnostics import DiagnosticsReport
     from gmeow_tools.language_tags import LangSelector
 
+    class ProjectionDiagnostic(TypedDict):
+        """Type-only mirror of the Rust ``ProjectionDiagnostic`` struct.
+
+        Declared under ``TYPE_CHECKING`` so it is erased at runtime — no runtime
+        Python, no logic. It only names the shape of each finding dict returned by
+        the native ``gmeow_pipeline.lint_projection`` binding, so the dev-CLI
+        surface (``gmeow-dev``) can render findings with full static typing. The
+        soundness checks themselves live entirely in Rust.
+        """
+
+        severity: str
+        code: str
+        message: str
+        check: str
+        instance: str | None
+        subject_id: str | None
+        predicate_id: str | None
+        object_id: str | None
+
 
 def _alignment_checks() -> frozenset[str]:
-    return frozenset(gmeow_slice.alignment_policy()["alignment_checks"])
+    return frozenset(gmeow_pipeline.alignment_policy()["alignment_checks"])
 
 
 def _alignment_findings(*, network: bool = False) -> list[ProjectionDiagnostic]:
-    """Run the Rust alignment lint and return only alignment-family findings."""
+    """Run the native correspondence-soundness pass; keep alignment-family findings."""
     checks = _alignment_checks()
     return [
         finding
-        for finding in gmeow_slice.lint_projection(
+        for finding in gmeow_pipeline.lint_projection(
             str(PROJECT_ROOT), allow_network=network
         )
         if finding["check"] in checks

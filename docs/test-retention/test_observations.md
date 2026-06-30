@@ -1,15 +1,25 @@
 # Retention: `tests/test_observations.py`
 
-**Category:** Projection / alignment → Correspondence Calculus
+**Category:** Cross-slice TBox invariant → slicetest cells
 
 ## What it tests
 
-Observation module — retained pytest (#66, #69).
+Observation module — retained pytest. Only
+`test_kin_relationship_bridges_fire` remains: a cross-slice sub-property check
+(the KinRelationship bridges are asserted in the GENEALOGY module) over the
+merged graph. The four SOSA `*_mapped_to_*` SSSOM-alignment checks were removed
+in the correspondence-frontend migration: the generated-mapping projection is now enforced by the native Rust
+dialect lowerings and their byte-iso parity oracles, so the Python `load_mappings`
+surface was the redundant dual authority.
 
 ## Why it cannot move to Rust today
 
-Exercises the FnO/EDOAL/SPARQL projection or up-projection (alignment) layer — live Python engine output.
+Cross-slice sub-property invariant: the bridges live in the GENEALOGY module, so
+a module-scoped observations slicetest cell cannot see them — ontology *shape*,
+not Python logic.
 
 ## What is needed to move it to Rust
 
-Subsumed by the Correspondence Calculus (`docs/APPLIED_CATEGORY_THEORY/take1.md`): projections become lowerings of one `logic:Correspondence` get/put leg pair; up-projection is the derived `put` leg. When the lowering engine + `conformance/correspondence` round-trip/overclaim gates regenerate these outputs byte/graph-iso, the file is deleted under equivalence-before-deletion.
+Author the assertion as a slicetest cell once the genealogy slice gains a
+structural migration that covers the cross-module sub-property bridge; confirm
+`make slicetest`, then delete this file. No new Rust — the harness exists.
