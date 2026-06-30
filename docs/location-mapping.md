@@ -246,7 +246,7 @@ ex:commute a gmeow:ProximityMeasurement ;
     gmeow:observationResult [
         a gmeow:ScalarQuantity ;
         gmeow:quantityValue "12.4"^^xsd:decimal ;
-        gmeow:hasUnit <http://qudt.org/vocab/unit/KM> ;
+        gmeow:unit <http://qudt.org/vocab/unit/KM> ;
         gmeow:hasReferenceFrame gmeow:referenceFrameWGS84
     ] ;
     gmeow:vantage ex:commuterApp .
@@ -321,7 +321,7 @@ ex:cityCensus a gmeow:SpatialAggregation ;
     gmeow:observationResult [
         a gmeow:ScalarQuantity ;
         gmeow:quantityValue "15000"^^xsd:decimal ;
-        gmeow:hasUnit <http://qudt.org/vocab/unit/UNITLESS> ;
+        gmeow:unit <http://qudt.org/vocab/unit/UNITLESS> ;
     ] ;
     gmeow:minimumPopulation 5 ;
     gmeow:vantage ex:censusBureau .
@@ -449,7 +449,7 @@ An open value vocabulary (individuals, never subclasses):
 Airspace and maritime overlays often have vertical limits. These are **not** asserted as raw numbers on the overlay; they are `gmeow:ScalarQuantity` values carrying:
 
 - `gmeow:quantityValue` — the numeric bound.
-- `gmeow:hasUnit` — the QUDT unit (metres, feet, flight levels).
+- `gmeow:unit` — the QUDT unit (metres, feet, flight levels).
 - `gmeow:hasReferenceFrame` — the reference frame (e.g. WGS-84 for altitude above MSL, a local datum for depth below chart datum).
 
 ```turtle
@@ -461,8 +461,8 @@ ex:noFlyZone a gmeow:RegulatoryOverlay ;
     gmeow:overlayPlace ex:airportApproach ;
     gmeow:overlayAuthority ex:caa ;
     gmeow:overlayType gmeow:overlayTypeRestrictedAirspace ;
-    gmeow:overlayLowerBound [ gmeow:quantityValue "0"^^xsd:decimal ; gmeow:hasUnit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
-    gmeow:overlayUpperBound [ gmeow:quantityValue "3000"^^xsd:decimal ; gmeow:hasUnit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
+    gmeow:overlayLowerBound [ gmeow:quantityValue "0"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
+    gmeow:overlayUpperBound [ gmeow:quantityValue "3000"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/M> ; gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 ] ;
     gmeow:duringInterval ex:intervalOngoing .
 ```
 

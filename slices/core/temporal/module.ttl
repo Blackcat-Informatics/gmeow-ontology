@@ -762,6 +762,7 @@ gmeow:measurementCenozoicStart
     rdfs:label "Cenozoic start age"@x-gmeow-english ;
     skos:definition "The cenozoic start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasReferenceFrame gmeow:temporalFrameBeforePresent ;
     gmeow:unit unit:YR ;
     gmeow:measuredAge "66000000"^^xsd:decimal ;
     gmeow:measurementUncertainty "500000"^^xsd:decimal ;
@@ -790,6 +791,7 @@ gmeow:measurementHoloceneStart
     rdfs:label "Holocene start age"@x-gmeow-english ;
     skos:definition "The holocene start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasReferenceFrame gmeow:temporalFrameBeforePresent ;
     gmeow:unit unit:YR ;
     gmeow:measuredAge "11700"^^xsd:decimal ;
     gmeow:measurementUncertainty "500"^^xsd:decimal ;
@@ -818,6 +820,7 @@ gmeow:measurementPhanerozoicStart
     rdfs:label "Phanerozoic start age"@x-gmeow-english ;
     skos:definition "The phanerozoic start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasReferenceFrame gmeow:temporalFrameBeforePresent ;
     gmeow:unit unit:YR ;
     gmeow:measuredAge "538800000"^^xsd:decimal ;
     gmeow:measurementUncertainty "5000000"^^xsd:decimal ;
@@ -831,6 +834,7 @@ gmeow:measurementQuaternaryStart
     rdfs:label "Quaternary start age"@x-gmeow-english ;
     skos:definition "The quaternary start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasReferenceFrame gmeow:temporalFrameBeforePresent ;
     gmeow:unit unit:YR ;
     gmeow:measuredAge "2580000"^^xsd:decimal ;
     gmeow:measurementUncertainty "10000"^^xsd:decimal ;
@@ -1042,6 +1046,21 @@ gmeow:startedAtTime
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Write a full xsd:dateTime including the offset interpreted by the interval's gmeow:hasTemporalFrame; pair with gmeow:endedAtTime, or omit the end to leave the interval open."@x-gmeow-english ;
     gmeow:useWhen "Use to stamp the start of a gmeow:TimeInterval as a single crisp dateTime when no separate gmeow:Instant object is needed — the lightweight inline bound."@x-gmeow-english .
+
+gmeow:temporalFrameBeforePresent
+    a gmeow:TemporalFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Before Present (geological/radiometric)"@x-gmeow-english ;
+    skos:definition "The Before Present temporal frame — a one-dimensional scalar age scale on the Before Present (BP) time scale, interpreting an elapsed-year count measured backward from the 1950 CE epoch."@x-gmeow-english ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ;
+    gmeow:frameTimeScale gmeow:timeScaleBeforePresent ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:requiresHost false .
 
 gmeow:temporalFrameGPSGregorian
     a gmeow:TemporalFrame ;
@@ -1330,6 +1349,13 @@ gmeow:temporalFrameUTCPersian
         gmeow:axisSecond ,
         gmeow:axisYear ;
     gmeow:requiresHost false .
+
+gmeow:timeScaleBeforePresent
+    a gmeow:TimeScale ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    rdfs:label "Before Present (BP)"@x-gmeow-english ;
+    skos:definition "The Before Present (BP) time scale — elapsed years counted backward from the 1950 CE epoch, the radiometric and stratigraphic convention for geological and archaeological ages."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:timeScaleGPS
     a gmeow:TimeScale ;

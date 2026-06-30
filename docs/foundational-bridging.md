@@ -213,7 +213,8 @@ formalized canonically in `logic:` (Principle 17), grounded at the domain level:
     the frame-relative value; a value expressed in a unit with no frame is the
     `logic:MeasurementFrameMissing` violation, keyed on the IRI-valued `logic:unit` witness since
     the foundation chase is all-IRI. The domain `gmeow:unit` / `gmeow:hasReferenceFrame` /
-    `gmeow:quantityValue` ground onto the `logic:` seam by sub-property; `gmeow:hasUnit` is retired.
+    `gmeow:quantityValue` ground onto the `logic:` seam by sub-property; the legacy `hasUnit`
+    property is fully retired in favour of `gmeow:unit`.
 - **Process / event** (now formalized canonically in `logic:`, Principle 17, grounded at the
   domain level):
   - **process ≠ event** — the change-asymmetry, enforced by the native foundation rule
