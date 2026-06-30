@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: quality/measurement-frame-missing
+# AC: YAMATO quality constraint — MeasurementFrameMissing.
+#
+# ex:M bears a unit (logic:unit) but no reference frame (logic:referenceFrame).
+# A value expressed in a unit must declare the frame it is read in (Principle 11),
+# so the violation rule must derive violation(M, MeasurementFrameMissing). The
+# foundation chase is all-IRI, so the rule keys on the IRI-valued logic:unit
+# witness, not the literal logic:measuredValue. The chase seeds only from
+# input.nq world facts; this program is the mirror axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/quality/measurement-frame-missing/> .
+
+ex:M logic:unit ex:mmHg .
