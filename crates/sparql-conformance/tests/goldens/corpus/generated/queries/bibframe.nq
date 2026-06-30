@@ -1,2 +1,3 @@
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> <http://id.loc.gov/ontologies/bibframe/title> "Lillith GraphRAG benchmark"@en .
 <https://blackcatinformatics.ca/gmeow/self#visual-identity> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://id.loc.gov/ontologies/bibframe/Work> .
 <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://id.loc.gov/ontologies/bibframe/Work> .

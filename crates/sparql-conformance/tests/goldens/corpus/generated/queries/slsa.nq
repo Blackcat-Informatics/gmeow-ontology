@@ -1,0 +1,4 @@
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-run> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://slsa.dev/provenance/v1#Provenance> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-run> <https://slsa.dev/provenance/v1#buildConfigURI> "https://example.org/lillith-pipeline/blob/main/ci/workflows/benchmark.yml" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-run> <https://slsa.dev/provenance/v1#materials> <https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-repo> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-run> <https://slsa.dev/provenance/v1#subject> <https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-crate> .

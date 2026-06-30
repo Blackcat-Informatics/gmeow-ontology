@@ -11,7 +11,8 @@
 pub mod model;
 pub mod render;
 
-// PyO3 bindings — the only module that imports pyo3.
+// PyO3 bindings — enabled only for the unified native extension.
+#[cfg(feature = "python")]
 pub mod py;
 
 pub use model::{
@@ -19,4 +20,5 @@ pub use model::{
 };
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.diagnostics` submodule (#630).
+#[cfg(feature = "python")]
 pub use py::register;

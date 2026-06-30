@@ -1,0 +1,54 @@
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/argumentation> <http://www.cidoc-crm.org/cidoc-crm/P14_carried_out_by> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/argumentation> <http://www.ics.forth.gr/isl/CRMinf/J2_concluded_that> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/argumentation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I1_Argumentation> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/belief> <http://www.ics.forth.gr/isl/CRMinf/J4_that> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/proposition> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/belief> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I2_Belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/proposition> <http://www.cidoc-crm.org/cidoc-crm/P67_refers_to> <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/proposition> <http://www.ics.forth.gr/isl/CRMinf/J5_holds_to_be> "probable" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I4_Proposition_Set> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "https://blackcatinformatics.ca/gmeow/examples/ai/east-wing https://blackcatinformatics.ca/gmeow/validUntil 2026-12-31T22:00:00Z" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/argumentation> <http://www.cidoc-crm.org/cidoc-crm/P14_carried_out_by> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/argumentation> <http://www.ics.forth.gr/isl/CRMinf/J2_concluded_that> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/argumentation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I1_Argumentation> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/belief> <http://www.ics.forth.gr/isl/CRMinf/J4_that> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/proposition> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/belief> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I2_Belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/proposition> <http://www.cidoc-crm.org/cidoc-crm/P67_refers_to> <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/proposition> <http://www.ics.forth.gr/isl/CRMinf/J5_holds_to_be> "probable" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I4_Proposition_Set> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "https://blackcatinformatics.ca/gmeow/examples/ai/east-wing https://blackcatinformatics.ca/gmeow/validUntil 2026-12-31T23:00:00Z" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/argumentation> <http://www.cidoc-crm.org/cidoc-crm/P14_carried_out_by> <https://blackcatinformatics.ca/gmeow/universalStandpoint> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/argumentation> <http://www.ics.forth.gr/isl/CRMinf/J2_concluded_that> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/argumentation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I1_Argumentation> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/belief> <http://www.ics.forth.gr/isl/CRMinf/J4_that> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/proposition> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/belief> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I2_Belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/proposition> <http://www.cidoc-crm.org/cidoc-crm/P67_refers_to> <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/proposition> <http://www.ics.forth.gr/isl/CRMinf/J5_holds_to_be> "true" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I4_Proposition_Set> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "https://blackcatinformatics.ca/gmeow/examples/ai/east-wing https://blackcatinformatics.ca/gmeow/validUntil 2026-12-31T22:00:00Z" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/argumentation> <http://www.cidoc-crm.org/cidoc-crm/P14_carried_out_by> <https://blackcatinformatics.ca/gmeow/universalStandpoint> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/argumentation> <http://www.ics.forth.gr/isl/CRMinf/J2_concluded_that> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/argumentation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I1_Argumentation> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/belief> <http://www.ics.forth.gr/isl/CRMinf/J4_that> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/proposition> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/belief> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I2_Belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/proposition> <http://www.cidoc-crm.org/cidoc-crm/P67_refers_to> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/proposition> <http://www.ics.forth.gr/isl/CRMinf/J5_holds_to_be> "true" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I4_Proposition_Set> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300 https://blackcatinformatics.ca/gmeow/claimModality https://blackcatinformatics.ca/gmeow/probable" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/argumentation> <http://www.cidoc-crm.org/cidoc-crm/P14_carried_out_by> <https://blackcatinformatics.ca/gmeow/universalStandpoint> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/argumentation> <http://www.ics.forth.gr/isl/CRMinf/J2_concluded_that> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/argumentation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I1_Argumentation> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/belief> <http://www.ics.forth.gr/isl/CRMinf/J4_that> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/proposition> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/belief> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I2_Belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/proposition> <http://www.cidoc-crm.org/cidoc-crm/P67_refers_to> <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/proposition> <http://www.ics.forth.gr/isl/CRMinf/J5_holds_to_be> "true" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I4_Proposition_Set> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "https://blackcatinformatics.ca/gmeow/examples/ai/east-wing https://blackcatinformatics.ca/gmeow/validUntil 2026-12-31T23:00:00Z" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/argumentation> <http://www.cidoc-crm.org/cidoc-crm/P14_carried_out_by> <https://blackcatinformatics.ca/gmeow/examples/ai/auditor> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/argumentation> <http://www.ics.forth.gr/isl/CRMinf/J2_concluded_that> <https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/argumentation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I1_Argumentation> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/belief> <http://www.ics.forth.gr/isl/CRMinf/J4_that> <https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/proposition> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/belief> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I2_Belief> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/proposition> <http://www.cidoc-crm.org/cidoc-crm/P67_refers_to> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/proposition> <http://www.ics.forth.gr/isl/CRMinf/J5_holds_to_be> "true" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.ics.forth.gr/isl/CRMinf/I4_Proposition_Set> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300/proposition> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> "https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300 https://blackcatinformatics.ca/gmeow/claimModality https://blackcatinformatics.ca/gmeow/probable" .

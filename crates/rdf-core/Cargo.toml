@@ -34,6 +34,10 @@ ciborium = { version = "0.2", optional = true }
 # is dependency-free and deliberately `MIT OR Apache-2.0`; depending on it here does
 # NOT alter this crate's AGPL license (a one-way dependency on a permissive seam).
 gmeow-rdf-events = { path = "../rdf-events" }
+# Fixed-key, non-cryptographic hashing for in-memory IR lookup tables. The tables
+# never persist hash values and equality still resolves collisions; this replaces
+# SipHash on hot value-index paths without introducing runtime randomness.
+ahash = { version = "0.8", default-features = false }
 # Raw `HashTable` for the store-once builder interner/dedup (#880 P3c): each term/
 # row is owned ONCE by its `Vec`, the table holds only indices. `>= 0.14.2` because
 # the `HashTable` type was introduced in 0.14.2 (0.14.0/0.14.1 lack it).

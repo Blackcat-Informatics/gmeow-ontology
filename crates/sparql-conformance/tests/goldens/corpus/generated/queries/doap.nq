@@ -1,3 +1,6 @@
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-repo> <http://usefulinc.com/ns/doap#browse> "https://example.org/lillith-pipeline" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-repo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://usefulinc.com/ns/doap#GitRepository> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-repo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://usefulinc.com/ns/doap#Repository> .
 <https://blackcatinformatics.ca/gmeow/self#project> <http://usefulinc.com/ns/doap#bug-database> <https://github.com/Blackcat-Informatics/gmeow-ontology/issues> .
 <https://blackcatinformatics.ca/gmeow/self#project> <http://usefulinc.com/ns/doap#download-page> <https://github.com/Blackcat-Informatics/gmeow-ontology/releases> .
 <https://blackcatinformatics.ca/gmeow/self#project> <http://usefulinc.com/ns/doap#homepage> <https://blackcatinformatics.ca/gmeow> .

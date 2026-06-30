@@ -12,9 +12,8 @@
 //! # Platform posture
 //!
 //! This crate is **native-only** and carries **NO architecture cfg guards
-//! anywhere**. A capability cfg would be optionality, not compliance (the
-//! no-optionality / hard-fail doctrine, #579). pyo3 is a plain unconditional
-//! dependency, never behind a target table.
+//! anywhere**. The engine path stays unconditional; the PyO3 surface is enabled
+//! only for the unified native extension.
 //!
 //! # Engine core separation
 //!
@@ -46,10 +45,13 @@ pub mod crossref;
 pub mod data_validate;
 pub mod dsl_shacl;
 
-// PyO3 bindings — the only modules that import pyo3.
+// PyO3 bindings — enabled only for the unified native extension.
+#[cfg(feature = "python")]
 pub mod py;
+#[cfg(feature = "python")]
 pub mod py_dsl;
 
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.validate` submodule (#630).
+#[cfg(feature = "python")]
 pub use py::register;

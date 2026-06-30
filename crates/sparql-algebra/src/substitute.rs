@@ -22,10 +22,11 @@
 //!
 //! It is therefore implemented as the injection of a single-row [`GraphPattern::Values`]
 //! `JOIN`ed onto the **core** `WHERE` pattern — the pattern reached by descending
-//! through the outer solution-modifier wrappers (`Project`, `Distinct`, `Reduced`,
-//! `Slice`, `OrderBy`, `Group`, `Extend`). Injecting at the core (rather than at the
-//! very root) is what makes the binding visible to `ORDER BY`/`GROUP BY`/`DISTINCT`
-//! evaluation *and* to the projected variable list simultaneously.
+//! through the outer solution-modifier/filter wrappers (`Project`, `Distinct`,
+//! `Reduced`, `Slice`, `OrderBy`, `Group`, `Extend`, `Filter`). Injecting at the
+//! core (rather than at the very root) is what makes the binding visible to
+//! `FILTER`/`ORDER BY`/`GROUP BY`/`DISTINCT` evaluation *and* to the projected
+//! variable list simultaneously.
 //!
 //! ## Blank-node focus nodes
 //!
@@ -118,16 +119,18 @@ impl Query {
     }
 }
 
-/// Descend through the outer solution-modifier wrappers of `pattern` to its core
-/// `WHERE` pattern, apply `f` there, and rebuild the wrapper stack around the
+/// Descend through the outer solution-modifier/filter wrappers of `pattern` to its
+/// core `WHERE` pattern, apply `f` there, and rebuild the wrapper stack around the
 /// result. A pattern that is *itself* the core (a bare BGP/Join/etc. with no
-/// modifier wrapper) is handed straight to `f`.
+/// wrapper) is handed straight to `f`.
 ///
-/// The recursion descends ONLY the single-child solution-modifier wrappers, which
-/// are the nodes the standard algebra translation stacks *above* the `WHERE`
-/// graph pattern (§18.2.4). It deliberately stops at the first multi-child or
-/// graph-pattern node (`Join`, `Union`, `LeftJoin`, `Filter`, `Graph`, …): that
-/// node *is* the core `WHERE` pattern, and the seed must join onto the whole of it.
+/// The recursion descends the single-child wrappers that evaluate expressions over
+/// their inner rows. `Filter` is included even though it is a graph-pattern node:
+/// `FILTER EXISTS { ?this ... }` must see the pre-bound `?this` in its current
+/// solution row, matching `VALUES { ?this value } FILTER ...` source semantics.
+/// It deliberately stops at the first multi-child graph-pattern node (`Join`,
+/// `Union`, `LeftJoin`, `Graph`, …): that node *is* the core `WHERE` pattern, and
+/// the seed must join onto the whole of it.
 fn map_core_pattern(
     pattern: GraphPattern,
     f: impl FnOnce(GraphPattern) -> GraphPattern,
@@ -173,6 +176,10 @@ fn map_core_pattern(
             inner: Box::new(map_core_pattern(*inner, f)),
             variable,
             expression,
+        },
+        GraphPattern::Filter { expr, inner } => GraphPattern::Filter {
+            expr,
+            inner: Box::new(map_core_pattern(*inner, f)),
         },
         // The first non-modifier node is the core WHERE pattern.
         core => f(core),

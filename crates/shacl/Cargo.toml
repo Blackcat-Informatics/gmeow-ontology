@@ -17,6 +17,9 @@ keywords = ["rdf", "shacl", "validation", "knowledge-graph", "rdf-12"]
 crate-type = ["rlib"]
 path = "src/lib.rs"
 
+[features]
+python = ["dep:pyo3"]
+
 [dependencies]
 # Native SPARQL parser (purrdf S5, #911). Used at shape-load to reject non-SELECT
 # SHACL-SPARQL queries (ASK/CONSTRUCT/DESCRIBE) — they parse but cannot bind ?this
@@ -39,7 +42,7 @@ gmeow-rdf = { path = "../rdf", features = ["gts"] }
 # pyo3 native-only: cannot link into wasm. The engine core is PyO3-free; only
 # py.rs uses it, so the rlib links into the future Rust compiler without Python.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
+pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 
 [dev-dependencies]
 gmeow-gts = "0.9.11"

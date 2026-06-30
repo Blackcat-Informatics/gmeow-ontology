@@ -1,3 +1,6 @@
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> <http://spdx.org/rdf/terms#licenseId> "CC-BY-4.0" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> <http://spdx.org/rdf/terms#name> "Creative Commons Attribution 4.0 International" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://spdx.org/rdf/terms#License> .
 <https://blackcatinformatics.ca/gmeow/examples/rights/repo-license> <http://spdx.org/rdf/terms#licenseId> "Apache-2.0" .
 <https://blackcatinformatics.ca/gmeow/examples/rights/repo-license> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://spdx.org/rdf/terms#License> .
 <https://blackcatinformatics.ca/gmeow/self#license-agpl-3> <http://spdx.org/rdf/terms#licenseId> "AGPL-3.0-only" .

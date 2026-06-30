@@ -8,7 +8,9 @@ subcommands rather than reimplementing any behaviour.
 
 from __future__ import annotations
 
+import json
 import os
+import time
 import tomllib
 from collections.abc import Callable
 from pathlib import Path
@@ -84,6 +86,19 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
     """Print an error and return an Exit to raise."""
     err_console.print(f"[red]{message}[/red]")
     return typer.Exit(code=code)
+
+
+def _write_timings_json(path: Path, payload: dict[str, Any]) -> None:
+    """Write structured timing output for report-only performance profiling."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _elapsed_ms(started: float) -> int:
+    return int((time.perf_counter() - started) * 1000)
 
 
 def _run_pipeline(jobs: int | None = None, check: bool = False) -> dict[str, Any]:
@@ -168,9 +183,29 @@ def _mapping_compile_report() -> Any:
     return _pipeline.compile_mappings_report(str(PROJECT_ROOT))
 
 
-def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
+def _regenerate_native(
+    jobs: int | None = None,
+    check: bool = False,
+    timings_json: Path | None = None,
+) -> None:
     """Build (or drift-check) every committed artifact via the Rust pipeline."""
     report = _run_pipeline(jobs=jobs, check=check)
+    if timings_json is not None:
+        _write_timings_json(
+            timings_json,
+            {
+                "command": "regenerate",
+                "check": check,
+                "mode": report.get("mode"),
+                "produced": report.get("produced"),
+                "reproduced": report.get("reproduced"),
+                "written": report.get("written"),
+                "skipped_writes": report.get("skipped_writes"),
+                "drifted": report.get("drifted", []),
+                "clean": report.get("clean"),
+                "timings": report.get("timings", []),
+            },
+        )
 
     for finding in report.get("findings", []):
         err_console.print(
@@ -188,7 +223,9 @@ def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
     else:
         console.print(
             f"[green]✓ pipeline regenerate: produced {report['produced']}, "
-            f"reproduced {report['reproduced']}[/green]"
+            f"reproduced {report['reproduced']}, "
+            f"written {report.get('written', 0)}, "
+            f"unchanged {report.get('skipped_writes', 0)}[/green]"
         )
 
 
@@ -319,6 +356,11 @@ def regenerate(
         "--check",
         help="Drift-check committed artifacts without writing (non-zero on drift).",
     ),
+    timings_json: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--timings-json",
+        help="Write structured pipeline timings to this JSON file.",
+    ),
 ) -> None:
     """Rebuild all checked-in generated artifacts from canonical sources.
 
@@ -327,7 +369,7 @@ def regenerate(
     retired the Python generator orchestrator. With ``--check`` it compares every
     produced artifact against the committed bytes and exits non-zero on drift.
     """
-    _regenerate_native(jobs=jobs, check=check)
+    _regenerate_native(jobs=jobs, check=check, timings_json=timings_json)
 
 
 def _parse_evidence_spec(spec: str) -> tuple[bytes, str, str, str, str]:
@@ -458,6 +500,11 @@ def check_generated(
         "--jobs",
         help="Per-level parallelism budget (default: capped CPU count).",
     ),
+    timings_json: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--timings-json",
+        help="Write structured pipeline timings to this JSON file.",
+    ),
 ) -> None:
     """Drift-check every committed artifact against its canonical source.
 
@@ -466,6 +513,21 @@ def check_generated(
     committed artifact has drifted from what the pipeline reproduces.
     """
     report = _run_pipeline(jobs=jobs, check=True)
+    if timings_json is not None:
+        _write_timings_json(
+            timings_json,
+            {
+                "command": "check-generated",
+                "mode": report.get("mode"),
+                "produced": report.get("produced"),
+                "reproduced": report.get("reproduced"),
+                "written": report.get("written"),
+                "skipped_writes": report.get("skipped_writes"),
+                "drifted": report.get("drifted", []),
+                "clean": report.get("clean"),
+                "timings": report.get("timings", []),
+            },
+        )
     for finding in report.get("findings", []):
         err_console.print(
             f"[yellow]{finding['severity']}[/yellow] {finding['code']}: "
@@ -485,6 +547,11 @@ def check_generated(
 @app.command()
 def validate(
     timings: bool = typer.Option(False, "--timings", help="Report per-phase timings."),
+    timings_json: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--timings-json",
+        help="Write structured validation timings to this JSON file.",
+    ),
     gts: Path | None = typer.Option(  # noqa: B008
         None,
         "--gts",
@@ -588,11 +655,28 @@ def validate(
             except OSError as exc:
                 raise _fail(f"cannot read --trusted-key {trusted_key}: {exc}") from exc
 
+    collect_timings = timings or timings_json is not None
     result = validate_all(
-        timings=timings, gts_input=gts, signature_config=signature_config, deep=deep
+        timings=collect_timings,
+        gts_input=gts,
+        signature_config=signature_config,
+        deep=deep,
     )
     report = report_from_validation_result(result, tool="validate")
     emit_legacy_cli(report, err_console)
+    if timings_json is not None:
+        _write_timings_json(
+            timings_json,
+            {
+                "command": "validate",
+                "gts": str(gts) if gts is not None else None,
+                "deep": deep,
+                "ok": result.ok,
+                "errors": len(result.errors),
+                "warnings": len(result.warnings),
+                "timings": result.timings,
+            },
+        )
     if timings and result.timings:
         err_console.print("[dim]timings:[/dim]")
         for record in result.timings:
@@ -1244,6 +1328,11 @@ def reason(
         "--exclude-tautologies",
         help="Exclude tautologies from the reasoned output (e.g. 'structural').",
     ),
+    timings_json: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--timings-json",
+        help="Write structured command timings to this JSON file.",
+    ),
 ) -> None:
     """Reason over the ontology — native (authority) or docker (oracle) lane.
 
@@ -1264,8 +1353,28 @@ def reason(
             # guard so a missing/failed extension renders cleanly too.
             from gmeow_tools.diagnostics import emit_legacy_cli
 
+            started = time.perf_counter()
             report = reasoning.reason_native(merge=merge)
+            elapsed = _elapsed_ms(started)
             emit_legacy_cli(report, err_console)
+            if timings_json is not None:
+                _write_timings_json(
+                    timings_json,
+                    {
+                        "command": "reason",
+                        "mode": "native",
+                        "merge": merge,
+                        "ok": report.ok,
+                        "errors": report.error_count,
+                        "timings": [
+                            {
+                                "phase": "reason-native",
+                                "elapsed_ms": elapsed,
+                                "metadata": f"merge={merge}",
+                            }
+                        ],
+                    },
+                )
         except ToolUnavailableError as exc:
             raise _fail(f"tool unavailable: {exc}", code=2) from exc
         except ToolExecutionError as exc:
@@ -1285,6 +1394,7 @@ def reason(
         raise _fail(f"unknown reasoning mode: {mode!r} (expected native or docker)")
 
     try:
+        started = time.perf_counter()
         reasoning.merge_release()
         console.print("[green]✓ merged import closure[/green]")
         reasoning.validate_profile(profile)
@@ -1294,6 +1404,24 @@ def reason(
         if full:
             out = reasoning.build_full()
             console.print(f"[green]✓ reasoned closure → {out.name}[/green]")
+        if timings_json is not None:
+            _write_timings_json(
+                timings_json,
+                {
+                    "command": "reason",
+                    "mode": "docker",
+                    "reasoner": reasoner,
+                    "profile": profile,
+                    "full": full,
+                    "timings": [
+                        {
+                            "phase": "reason-docker",
+                            "elapsed_ms": _elapsed_ms(started),
+                            "metadata": f"reasoner={reasoner};profile={profile}",
+                        }
+                    ],
+                },
+            )
     except ToolUnavailableError as exc:
         raise _fail(f"tool unavailable: {exc}", code=2) from exc
     except ToolExecutionError as exc:
@@ -1325,6 +1453,11 @@ def verify(
     ),
     reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
     reasoned_input: Path | None = _REASONED_INPUT_OPTION,
+    timings_json: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--timings-json",
+        help="Write structured command timings to this JSON file.",
+    ),
 ) -> None:
     """Run reasoned-graph negative tests — native (authority) or docker (oracle).
 
@@ -1342,8 +1475,27 @@ def verify(
         try:
             from gmeow_tools.diagnostics import emit_legacy_cli
 
+            started = time.perf_counter()
             report = reasoning.verify_native()
+            elapsed = _elapsed_ms(started)
             emit_legacy_cli(report, err_console)
+            if timings_json is not None:
+                _write_timings_json(
+                    timings_json,
+                    {
+                        "command": "verify",
+                        "mode": "native",
+                        "ok": report.ok,
+                        "errors": report.error_count,
+                        "timings": [
+                            {
+                                "phase": "verify-native",
+                                "elapsed_ms": elapsed,
+                                "metadata": None,
+                            }
+                        ],
+                    },
+                )
         except (
             ImportError,
             ValueError,
@@ -1369,7 +1521,27 @@ def verify(
         raise _fail(f"unknown verify mode: {mode!r} (expected native or docker)")
 
     try:
+        started = time.perf_counter()
         reasoning.verify(reasoner=reasoner, reasoned=reasoned_input)
+        if timings_json is not None:
+            _write_timings_json(
+                timings_json,
+                {
+                    "command": "verify",
+                    "mode": "docker",
+                    "reasoner": reasoner,
+                    "reasoned_input": str(reasoned_input)
+                    if reasoned_input is not None
+                    else None,
+                    "timings": [
+                        {
+                            "phase": "verify-docker",
+                            "elapsed_ms": _elapsed_ms(started),
+                            "metadata": f"reasoner={reasoner}",
+                        }
+                    ],
+                },
+            )
     except ToolUnavailableError as exc:
         raise _fail(f"tool unavailable: {exc}", code=2) from exc
     except ToolExecutionError as exc:

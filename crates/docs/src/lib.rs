@@ -29,7 +29,8 @@ pub mod render;
 mod store;
 pub mod svg;
 
-// PyO3 bindings — the only module that imports pyo3.
+// PyO3 bindings — enabled only for the unified native extension.
+#[cfg(feature = "python")]
 pub mod py;
 
 pub use i18n::{available_languages, ui_string, Translations, UiCatalog};
@@ -44,4 +45,5 @@ pub use rdf::to_gmeow_rdf;
 pub use render::{render_site, render_site_lang, to_html, to_markdown, Page, Site};
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.docs` submodule (#630).
+#[cfg(feature = "python")]
 pub use py::register;
