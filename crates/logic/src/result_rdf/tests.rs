@@ -151,6 +151,35 @@ fn five_axes_appear_with_their_iris() {
 }
 
 #[test]
+fn result_carries_the_assertional_annotation_contract() {
+    // Regression for validate --gts (#1155 / #1104): a materialized ReasoningResult
+    // is generated A-Box folded into the bundle, so it must carry the assertional
+    // quartet — a label, the graph/reasoning provenance anchor, and the boxABox role
+    // — or the bundle structural lint flags it as missing its annotations.
+    let body = project_reasoning_result(&rich_result());
+    let subj = result_node_iri(&rich_result());
+    assert!(
+        body.contains(&format!(
+            "<{subj}> <http://www.w3.org/2000/01/rdf-schema#label>"
+        )),
+        "result must carry rdfs:label"
+    );
+    assert!(
+        body.contains(&format!(
+            "<{subj}> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <{GRAPH_REASONING}>"
+        )),
+        "result must anchor rdfs:isDefinedBy at graph/reasoning"
+    );
+    assert!(
+        body.contains(&format!(
+            "<{subj}> <https://blackcatinformatics.ca/gmeow/graphBoxRole> \
+             <https://blackcatinformatics.ca/gmeow/boxABox>"
+        )),
+        "result must declare gmeow:graphBoxRole gmeow:boxABox"
+    );
+}
+
+#[test]
 fn content_address_is_stable_and_differs_with_content() {
     let a = result_node_iri(&rich_result());
     let b = result_node_iri(&rich_result());

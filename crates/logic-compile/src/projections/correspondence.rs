@@ -44,9 +44,24 @@ use super::OverclaimError;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const SKOS_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMatch";
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+
+/// The named graph the correspondence projection folds into — the
+/// `rdfs:isDefinedBy` provenance anchor for every `gmeow:`-namespaced example
+/// individual it materializes.
+const GRAPH_CORRESPONDENCE: &str = "https://blackcatinformatics.ca/gmeow/graph/correspondence";
+/// The assertional `gmeow:graphBoxRole` predicate + its `gmeow:boxABox` value.
+const GMEOW_GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
+const GMEOW_BOX_ABOX: &str = "https://blackcatinformatics.ca/gmeow/boxABox";
+/// The `gmeow:` example namespace whose individuals are vocabulary-bearing A-Box
+/// payload subject to the typed-instance contract (#1104). The `logic:`-namespaced
+/// program node is out of the gmeow surface, so it is not annotated.
+const GMEOW_EXAMPLE_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/example/";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 
 /// The local predicates/classes this projection mints under `LOGIC_NAMESPACE`. Kept as
@@ -353,6 +368,26 @@ fn triple_bool(subject: &str, predicate: &str, value: bool) -> String {
     format!("<{subject}> <{predicate}> \"{value}\"^^<{XSD_BOOLEAN}> .")
 }
 
+/// Push the assertional-tier annotation quartet for one materialized `gmeow:`
+/// example individual: `rdfs:label`, `skos:definition`, the `rdfs:isDefinedBy`
+/// provenance anchor (the `graph/correspondence` named graph), and the
+/// `gmeow:graphBoxRole gmeow:boxABox` role. Subjects outside the `gmeow:` example
+/// namespace (the `logic:correspondence-program` node) are not vocabulary surface
+/// and are skipped. Mirrors the documentation projection's contract (#1104).
+fn push_example_annotations(lines: &mut Vec<String>, subject: &str, label: &str, definition: &str) {
+    if !subject.starts_with(GMEOW_EXAMPLE_PREFIX) {
+        return;
+    }
+    lines.push(triple_str(subject, RDFS_LABEL, label));
+    lines.push(triple_str(subject, SKOS_DEFINITION, definition));
+    lines.push(triple_iri(
+        subject,
+        RDFS_IS_DEFINED_BY,
+        GRAPH_CORRESPONDENCE,
+    ));
+    lines.push(triple_iri(subject, GMEOW_GRAPH_BOX_ROLE, GMEOW_BOX_ABOX));
+}
+
 fn expand_scientific_decimal(raw: &str) -> String {
     let (mantissa, exponent) = raw
         .split_once('e')
@@ -453,6 +488,13 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
     for c in &program.correspondences {
         lines.push(triple_iri(&prog, &p_has_correspondence(), &c.iri));
         lines.push(triple_iri(&c.iri, RDF_TYPE, &class_correspondence()));
+        push_example_annotations(
+            &mut lines,
+            &c.iri,
+            "Worked-example correspondence",
+            "A worked-example logic:Correspondence instance materialized into the \
+             graph/correspondence projection (assertional A-Box, not vocabulary surface).",
+        );
         lines.push(triple_iri(&c.iri, &p_relation(), &c.relation.iri()));
         lines.push(triple_iri(
             &c.iri,
@@ -508,6 +550,13 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
             let claim_iri = law_claim_iri(&c.iri, index);
             lines.push(triple_iri(&c.iri, &p_has_law_claim(), &claim_iri));
             lines.push(triple_iri(&claim_iri, RDF_TYPE, &class_law_claim()));
+            push_example_annotations(
+                &mut lines,
+                &claim_iri,
+                "Correspondence law claim",
+                "A logic:LawClaim recording the round-trip law a worked-example \
+                 correspondence asserts (assertional A-Box).",
+            );
             lines.push(triple_iri(&claim_iri, &p_law_claimed(), &claim.law.iri()));
             lines.push(triple_iri(
                 &claim_iri,
@@ -524,6 +573,13 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
                 lines.push(triple_iri(&c.iri, &p_has_caveat(), &caveat.iri));
                 lines.push(triple_iri(&caveat.iri, RDF_TYPE, &class_caveat()));
                 lines.push(triple_str(&caveat.iri, RDFS_COMMENT, &caveat.text));
+                push_example_annotations(
+                    &mut lines,
+                    &caveat.iri,
+                    "Correspondence caveat",
+                    "A logic:CorrespondenceCaveat qualifying a worked-example \
+                     correspondence's overlap reading (assertional A-Box).",
+                );
             }
         }
     }

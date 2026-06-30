@@ -39,6 +39,19 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
+
+/// The assertional `gmeow:graphBoxRole` value every materialized A-Box individual
+/// in this projection carries.
+const BOX_ABOX: &str = "https://blackcatinformatics.ca/gmeow/boxABox";
+
+/// The pipeline procedure's success criterion. The canonical build's goal is the
+/// shippable bundle and its success mode is deterministic (every execution reaches
+/// it), mirroring `gmeow:pipeline-build` authored in `slices/core/pipeline`.
+const GOAL_SHIPPABLE_BUNDLE: &str = "https://blackcatinformatics.ca/gmeow/goalShippableBundle";
+const STRONG_PLAN_SUCCESS: &str = "https://blackcatinformatics.ca/logic/StrongPlanSuccess";
 
 /// One carrier lane the bundle threads, with its load-bearing bit.
 ///
@@ -157,11 +170,40 @@ pub fn project_provenance_graph(
         RDF_TYPE,
         &format!("{GMEOW}Procedure"),
     );
+    // A `gmeow:Procedure` is a `logic:Plan`, so it MUST declare its success
+    // criterion — `logic:planGoal` (the gmeow:Goal the steps reach) and
+    // `logic:planSuccessMode` (the quantification over outcomes), per logic:PlanShape.
+    triple_iri(
+        &mut out,
+        PROCEDURE_IRI,
+        &format!("{LOGIC}planGoal"),
+        GOAL_SHIPPABLE_BUNDLE,
+    );
+    triple_iri(
+        &mut out,
+        PROCEDURE_IRI,
+        &format!("{LOGIC}planSuccessMode"),
+        STRONG_PLAN_SUCCESS,
+    );
+    annotate_abox(
+        &mut out,
+        PROCEDURE_IRI,
+        "GMEOW pipeline procedure",
+        "The dogfooded gmeow:Procedure node for the regeneration pipeline DAG: the \
+         plan whose steps are the carrier lanes that produce gmeow.gts in one pass.",
+    );
     triple_iri(
         &mut out,
         EXECUTION_IRI,
         RDF_TYPE,
         &format!("{GMEOW}Execution"),
+    );
+    annotate_abox(
+        &mut out,
+        EXECUTION_IRI,
+        "GMEOW pipeline execution",
+        "The gmeow:Execution that enacts the regeneration procedure for this \
+         compilation, running every carrier-lane step.",
     );
     triple_iri(
         &mut out,
@@ -176,6 +218,12 @@ pub fn project_provenance_graph(
         triple_iri(&mut out, &iri, RDF_TYPE, &format!("{GMEOW}CompilationUnit"));
         triple_lit(&mut out, &iri, &format!("{GMEOW}unitName"), name);
         triple_lit(&mut out, &iri, &format!("{GMEOW}originKind"), kind);
+        annotate_abox(
+            &mut out,
+            &iri,
+            &format!("Compilation unit: {name}"),
+            &format!("A {kind} compilation unit ({name}) folded into the gmeow.gts bundle."),
+        );
     }
 
     // ── each carriage edge (unit → artifact path) ────────────────────────────────
@@ -208,6 +256,21 @@ pub fn project_provenance_graph(
             &format!("{LOGIC}loadBearing"),
             lane.load_bearing,
         );
+        annotate_abox(
+            &mut out,
+            &iri,
+            &format!("Carrier lane: {}", lane.slug),
+            &format!(
+                "The {} carrier lane — a gmeow:ProcedureStep folding into {} ({}).",
+                lane.slug,
+                lane.graph,
+                if lane.load_bearing {
+                    "load-bearing"
+                } else {
+                    "droppable report surface"
+                },
+            ),
+        );
     }
 
     // Sort every line so the projection is byte-stable independent of emission order.
@@ -217,6 +280,20 @@ pub fn project_provenance_graph(
     let mut sorted = lines.join("\n");
     sorted.push('\n');
     sorted
+}
+
+/// Emit the assertional-tier annotation quartet for one materialized A-Box
+/// individual: a human `rdfs:label`, a `skos:definition`, the `rdfs:isDefinedBy`
+/// provenance anchor pointing at this projection's named graph, and the
+/// `gmeow:graphBoxRole gmeow:boxABox` assertional role. This is the same contract
+/// the documentation projection (`crates/docs/src/rdf.rs`) attaches to every
+/// generated subject so the folded bundle satisfies the typed-instance validation
+/// contract (#1104) without suppressing the structural lint.
+fn annotate_abox(out: &mut String, subject: &str, label: &str, definition: &str) {
+    triple_lit(out, subject, RDFS_LABEL, label);
+    triple_lit(out, subject, SKOS_DEFINITION, definition);
+    triple_iri(out, subject, RDFS_IS_DEFINED_BY, GRAPH_PROVENANCE);
+    triple_iri(out, subject, &format!("{GMEOW}graphBoxRole"), BOX_ABOX);
 }
 
 fn triple_iri(out: &mut String, s: &str, p: &str, o: &str) {
@@ -326,6 +403,60 @@ mod tests {
                 lane.load_bearing
             );
         }
+    }
+
+    #[test]
+    fn every_materialized_subject_carries_the_assertional_contract() {
+        // Regression guard for validate --gts (#1155 / #1104): every materialized
+        // A-Box individual this projection folds into the bundle MUST carry the
+        // assertional-tier quartet — an rdfs:label, a skos:definition, an
+        // rdfs:isDefinedBy anchored at graph/provenance, and gmeow:graphBoxRole
+        // gmeow:boxABox — or the bundle structural lint flags it as a
+        // vocabulary-surface individual missing its annotations.
+        let nt = project_provenance_graph(&sample_projection());
+        let mut subjects: Vec<String> = vec![
+            PROCEDURE_IRI.to_owned(),
+            EXECUTION_IRI.to_owned(),
+            unit_iri("ontology/gmeow.ttl"),
+        ];
+        for lane in LANES {
+            subjects.push(lane_iri(lane.slug));
+        }
+        for s in subjects {
+            for (pred, what) in [
+                (RDFS_LABEL, "rdfs:label"),
+                (SKOS_DEFINITION, "skos:definition"),
+                (&format!("{GMEOW}graphBoxRole")[..], "gmeow:graphBoxRole"),
+            ] {
+                assert!(
+                    nt.contains(&format!("<{s}> <{pred}> ")),
+                    "subject {s} must carry {what}"
+                );
+            }
+            assert!(
+                nt.contains(&format!(
+                    "<{s}> <{RDFS_IS_DEFINED_BY}> <{GRAPH_PROVENANCE}> ."
+                )),
+                "subject {s} must anchor rdfs:isDefinedBy at graph/provenance"
+            );
+            assert!(
+                nt.contains(&format!("<{s}> <{GMEOW}graphBoxRole> <{BOX_ABOX}> .")),
+                "subject {s} must declare gmeow:graphBoxRole gmeow:boxABox"
+            );
+        }
+    }
+
+    #[test]
+    fn pipeline_procedure_declares_its_plan_success_criterion() {
+        // A gmeow:Procedure is a logic:Plan, so logic:PlanShape demands exactly one
+        // logic:planGoal and one logic:planSuccessMode — the emitter must supply them.
+        let nt = project_provenance_graph(&sample_projection());
+        assert!(nt.contains(&format!(
+            "<{PROCEDURE_IRI}> <{LOGIC}planGoal> <{GOAL_SHIPPABLE_BUNDLE}> ."
+        )));
+        assert!(nt.contains(&format!(
+            "<{PROCEDURE_IRI}> <{LOGIC}planSuccessMode> <{STRONG_PLAN_SUCCESS}> ."
+        )));
     }
 
     #[test]

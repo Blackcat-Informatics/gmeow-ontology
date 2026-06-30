@@ -1,15 +1,27 @@
 ---
 source: crates/pipeline/src/stages/carrier.rs
-assertion_line: 2830
+assertion_line: 2894
 expression: folded
 ---
 <https://blackcatinformatics.ca/gmeow/example/foafPersonToGmeowContactFacet> <http://www.w3.org/2004/02/skos/core#relatedMatch> <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/CorrespondenceCaveat> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat> <http://www.w3.org/2000/01/rdf-schema#comment> foaf:Person denotes an agent/person; schema:ContactPoint denotes a contact channel/role. Both project through the contact-bearing facet of gmeow:contact; they are not equivalent and neither subsumes the other. .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/correspondence> .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat> <http://www.w3.org/2000/01/rdf-schema#label> Correspondence caveat .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat> <http://www.w3.org/2004/02/skos/core#definition> A logic:CorrespondenceCaveat qualifying a worked-example correspondence's overlap reading (assertional A-Box). .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/caveat> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/LawClaim> .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/correspondence> .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> <http://www.w3.org/2000/01/rdf-schema#label> Correspondence law claim .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> <http://www.w3.org/2004/02/skos/core#definition> A logic:LawClaim recording the round-trip law a worked-example correspondence asserts (assertional A-Box). .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> <https://blackcatinformatics.ca/logic/lawClaimed> <https://blackcatinformatics.ca/logic/GetPut> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence/law-claim/0> <https://blackcatinformatics.ca/logic/lawDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationUnknown> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Correspondence> .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/correspondence> .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <http://www.w3.org/2000/01/rdf-schema#label> Worked-example correspondence .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <http://www.w3.org/2004/02/skos/core#definition> A worked-example logic:Correspondence instance materialized into the graph/correspondence projection (assertional A-Box, not vocabulary surface). .
+<https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/confidence> 0.72 .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/correspondenceRelation> <https://blackcatinformatics.ca/logic/Overlaps> .
 <https://blackcatinformatics.ca/gmeow/example/gmeowContactCorrespondence> <https://blackcatinformatics.ca/logic/getLeg> <https://blackcatinformatics.ca/gmeow/example/foafPersonToGmeowContactFacet> .

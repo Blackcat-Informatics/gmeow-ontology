@@ -730,3 +730,56 @@ fn down_projections_disclose_formula_residue_and_gate_passes() {
     let canon = rdf::project_canonical_rdf12(&program).expect("canon ok");
     report::build_projection_report(&program, &[owl, canon]).expect("report builds");
 }
+
+#[test]
+fn rdf12_obligation_predicate_keeps_anyuri_datatype() {
+    // Regression for validate --gts (#1155): logic:obligationForbiddenPredicate is an
+    // xsd:anyURI-valued predicate per logic:NonEntailmentObligationShape. The Axiom IR
+    // erases datatypes, so without the projection re-attaching anyURI the bundle would
+    // fold a degraded plain-string duplicate beside the source-asserted typed triple,
+    // tripping the shape's sh:datatype + sh:maxCount 1 (two distinct literals).
+    let program = parse(
+        "ex:Ob a logic:NonEntailmentObligation ;\n  \
+         logic:obligationForbiddenPredicate \"https://blackcatinformatics.ca/gmeow/counterpartOf\"^^xsd:anyURI .",
+    );
+    let canon = rdf::project_canonical_rdf12(&program).expect("canon ok");
+    let lines = triple_set(&canon.content);
+    let obligation = lines
+        .iter()
+        .find(|l| l.contains("obligationForbiddenPredicate"))
+        .expect("the obligation axiom is projected");
+    assert!(
+        obligation.contains("^^<http://www.w3.org/2001/XMLSchema#anyURI>"),
+        "obligationForbiddenPredicate must keep its xsd:anyURI datatype, got: {obligation}"
+    );
+}
+
+#[test]
+fn rdf12_ontology_header_carries_the_annotation_quartet() {
+    // Every GMEOW ontology header must declare a label, a definition, isDefinedBy
+    // itself, and an IRI-valued gmeow:graphBoxRole (#221) — the structural lint flags
+    // the folded bundle's header otherwise.
+    let program = LogicProgram::new(vec![], vec![], vec![], None);
+    let canon = rdf::project_canonical_rdf12(&program).expect("canon ok");
+    let header = "https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12";
+    for needle in [
+        "#label>",
+        "core#definition>",
+        "#isDefinedBy>",
+        "/graphBoxRole>",
+    ] {
+        assert!(
+            canon
+                .content
+                .lines()
+                .any(|l| l.contains(header) && l.contains(needle)),
+            "ontology header must carry {needle}"
+        );
+    }
+    assert!(
+        canon
+            .content
+            .contains("/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxTBox>"),
+        "header graphBoxRole must be the TBox role"
+    );
+}

@@ -4,4 +4,8 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW canonical RDF 1.2 logic projection"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/2004/02/skos/core#definition> "The canonical, lossless RDF 1.2 projection of the GMEOW logic core: every axiom, rule, reasoning contract, obligation, and scoped statement serialized through the RDF-1.2 reifier surface so the logic: layer round-trips byte-for-byte."@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxTBox> .
 <https://example.org/teleology/choice-combinator/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> .
