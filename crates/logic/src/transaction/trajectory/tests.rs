@@ -207,3 +207,194 @@ fn mixed_temporal_frame_is_a_hard_fail() {
     let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
     assert!(err.contains("mixes gmeow:eventTemporalFrame"), "{err}");
 }
+
+// ── Task 2 helpers: concurrency, goals, hypothetical replay ──────────────────────
+
+/// A start state `state` bearing the given obtaining situation locals.
+fn start_with(state: &str, sits: &[&str]) -> String {
+    let mut s = String::new();
+    for sit in sits {
+        s += &q(&xe(state), &le("situationObtains"), &xe(sit));
+    }
+    s
+}
+
+/// An action schema `name` with optional precondition locals and ins-effect locals.
+fn schema(name: &str, pre: &[&str], ins: &[&str]) -> String {
+    let eff = format!("{name}Eff");
+    let mut s = String::new();
+    s += &q(&xe(name), &le("effect"), &xe(&eff));
+    for p in pre {
+        s += &q(&xe(name), &le("precondition"), &xe(p));
+    }
+    for i in ins {
+        s += &q(&xe(&eff), &le("ins"), &xe(i));
+    }
+    s
+}
+
+/// A ToolCall `node` anchored to `anchor`, bound to `sch`, at time `at` (UTC-Gregorian frame).
+fn call_in(anchor: &str, node: &str, sch: &str, at: &str) -> String {
+    let mut s = String::new();
+    s += &q(&xe(node), &format!("<{RDF_TYPE}>"), &ge("ToolCall"));
+    s += &q(&xe(node), &le("properPartOf"), &xe(anchor));
+    s += &q(&xe(node), &le("instantiatesSchema"), &xe(sch));
+    s += &q(&xe(node), &ge("atTime"), &dt(at));
+    s += &q(
+        &xe(node),
+        &ge("eventTemporalFrame"),
+        &ge("temporalFrameUTCGregorian"),
+    );
+    s
+}
+
+/// Whether the output carries a quad typing some subject `logic:<local>`.
+fn has_type(out: &[crate::teleology::TeleologyQuad], local: &str) -> bool {
+    let ty = format!("<{}>", lns(local));
+    out.iter()
+        .any(|qd| qd.predicate == RDF_TYPE && qd.object == ty)
+}
+
+#[test]
+fn concurrent_trajectories_share_a_start_and_serialize_cleanly() {
+    // Two trajectories starting from the SAME state with DISJOINT writes → a derived
+    // logic:ConcurrentHistory and NO serialization anomaly.
+    let mut nq = String::new();
+    nq += &start_with("s0", &[]);
+    nq += &q(&xe("trajA"), &le("transitionFromState"), &xe("s0"));
+    nq += &q(&xe("trajB"), &le("transitionFromState"), &xe("s0"));
+    nq += &schema("schA", &[], &["sitA"]);
+    nq += &schema("schB", &[], &["sitB"]);
+    nq += &call_in("trajA", "callA", "schA", "2026-06-12T17:00:00Z");
+    nq += &call_in("trajB", "callB", "schB", "2026-06-12T17:00:00Z");
+
+    let out = emit_trajectory_audits(&facts_of(&nq), W).expect("audit runs");
+    assert!(
+        has_type(&out, "ConcurrentHistory"),
+        "two shared-start trajectories compose into a concurrent history"
+    );
+    assert!(
+        !has_type(&out, "SerializationAnomaly"),
+        "disjoint footprints are conflict-serializable"
+    );
+}
+
+#[test]
+fn concurrent_cross_dependency_trajectories_flag_a_serialization_anomaly() {
+    // Mirror the engine's cross-dependency schedule via two two-call trajectories: left writes
+    // sitX then reads sitY; right writes sitY then reads sitX → an opposing-order conflict cycle.
+    let mut nq = String::new();
+    nq += &start_with("s0", &["sitX", "sitY"]);
+    nq += &q(&xe("trajL"), &le("transitionFromState"), &xe("s0"));
+    nq += &q(&xe("trajR"), &le("transitionFromState"), &xe("s0"));
+    nq += &schema("schL0", &[], &["sitX"]);
+    nq += &schema("schL1", &["sitY"], &["sitZ1"]);
+    nq += &schema("schR0", &[], &["sitY"]);
+    nq += &schema("schR1", &["sitX"], &["sitZ2"]);
+    nq += &call_in("trajL", "callL0", "schL0", "2026-06-12T17:00:00Z");
+    nq += &call_in("trajL", "callL1", "schL1", "2026-06-12T17:00:01Z");
+    nq += &call_in("trajR", "callR0", "schR0", "2026-06-12T17:00:00Z");
+    nq += &call_in("trajR", "callR1", "schR1", "2026-06-12T17:00:01Z");
+
+    let out = emit_trajectory_audits(&facts_of(&nq), W).expect("audit runs");
+    assert!(
+        has_type(&out, "SerializationAnomaly"),
+        "cross-dependency trajectories are NOT conflict-serializable"
+    );
+    let precedes = out
+        .iter()
+        .filter(|qd| qd.predicate.ends_with("/precedes"))
+        .count();
+    assert!(
+        precedes >= 2,
+        "a two-transaction cycle has conflict edges in both directions, got {precedes}"
+    );
+}
+
+#[test]
+fn hypothetical_replay_emits_goal_reached_without_committing() {
+    // A single trajectory under logic:HypotheticalExecution whose end-state reaches the goal.
+    let mut nq = String::new();
+    nq += &start_with("h0", &["sReady"]);
+    nq += &q(&xe("htraj"), &le("transitionFromState"), &xe("h0"));
+    nq += &q(&xe("htraj"), &le("executedUnderContract"), &xe("hContract"));
+    nq += &q(
+        &xe("hContract"),
+        &le("executionMode"),
+        &le("HypotheticalExecution"),
+    );
+    nq += &q(&xe("htraj"), &le("planGoal"), &xe("theGoal"));
+    nq += &q(&xe("htraj"), &le("planGoalSituation"), &xe("sDone"));
+    nq += &schema("schDo", &["sReady"], &["sDone"]);
+    nq += &call_in("htraj", "callDo", "schDo", "2026-06-12T17:00:00Z");
+
+    let out = emit_trajectory_audits(&facts_of(&nq), W).expect("audit runs");
+    // Goal reached → a derived gmeow:satisfiedBy edge from the goal to the reached situation.
+    assert!(
+        out.iter().any(|qd| qd.predicate == gns("satisfiedBy")
+            && qd.subject == exns("theGoal")
+            && qd.object == format!("<{}>", exns("sDone"))),
+        "an alternative continuation that reaches the goal emits the satisfiedBy verdict"
+    );
+    // Hypothetical isolation: a content-addressed witness, and NO committed step substrate.
+    assert!(
+        out.iter()
+            .any(|qd| qd.predicate == lns("executedHypotheticallyAs")),
+        "hypothetical run records its witness"
+    );
+    assert_eq!(
+        step_count(&out),
+        0,
+        "a hypothetical run discards its committed effects"
+    );
+}
+
+#[test]
+fn goal_not_reached_emits_no_satisfiedby_verdict() {
+    // The trajectory succeeds but never reaches the goal situation: no satisfiedBy verdict.
+    let mut nq = String::new();
+    nq += &start_with("g0", &["sReady"]);
+    nq += &q(&xe("gtraj"), &le("transitionFromState"), &xe("g0"));
+    nq += &q(&xe("gtraj"), &le("planGoal"), &xe("theGoal"));
+    nq += &q(&xe("gtraj"), &le("planGoalSituation"), &xe("sUnreached"));
+    nq += &schema("schDo", &["sReady"], &["sOther"]);
+    nq += &call_in("gtraj", "callDo", "schDo", "2026-06-12T17:00:00Z");
+
+    let out = emit_trajectory_audits(&facts_of(&nq), W).expect("audit runs");
+    assert!(
+        !out.iter().any(|qd| qd.predicate == gns("satisfiedBy")),
+        "a goal that is not reached emits no satisfiedBy verdict"
+    );
+}
+
+#[test]
+fn plangoal_without_situation_is_a_hard_fail() {
+    let mut nq = String::new();
+    nq += &start_with("g0", &["sReady"]);
+    nq += &q(&xe("gtraj"), &le("transitionFromState"), &xe("g0"));
+    nq += &q(&xe("gtraj"), &le("planGoal"), &xe("theGoal"));
+    nq += &schema("schDo", &["sReady"], &["sOther"]);
+    nq += &call_in("gtraj", "callDo", "schDo", "2026-06-12T17:00:00Z");
+
+    let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
+    assert!(err.contains("logic:planGoalSituation"), "{err}");
+}
+
+#[test]
+fn three_trajectories_sharing_a_start_is_a_hard_fail() {
+    // Conflict-serializability composes exactly two concurrent legs.
+    let mut nq = String::new();
+    nq += &start_with("s0", &[]);
+    nq += &schema("sch", &[], &["sitA"]);
+    for (anchor, call, at) in [
+        ("t1", "c1", "2026-06-12T17:00:00Z"),
+        ("t2", "c2", "2026-06-12T17:00:00Z"),
+        ("t3", "c3", "2026-06-12T17:00:00Z"),
+    ] {
+        nq += &q(&xe(anchor), &le("transitionFromState"), &xe("s0"));
+        nq += &call_in(anchor, call, "sch", at);
+    }
+
+    let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
+    assert!(err.contains("shared by 3 trajectories"), "{err}");
+}
