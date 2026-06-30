@@ -5,7 +5,7 @@
 //!
 //! These are compared **byte-for-byte** against the conformance goldens, so every
 //! separator, quote style, and sort order is golden-pinned.  The Python duplicate
-//! was retired in #727; this is the source of truth.
+//! has been retired; this is the source of truth.
 
 use super::super::ir::{LogicModality, LogicProgram, LogicRule, PreservationKind};
 use super::{
