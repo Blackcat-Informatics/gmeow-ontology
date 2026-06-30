@@ -1,3 +1,7 @@
 <https://blackcatinformatics.ca/#bii> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Party> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/blackcat> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Party> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Offer> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> <http://www.w3.org/ns/odrl/2/assigner> <https://blackcatinformatics.ca/gmeow/examples/graphrag/blackcat> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> <http://www.w3.org/ns/odrl/2/target> <https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> .
 <https://blackcatinformatics.ca/gmeow/self#license-agpl-3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/odrl/2/Offer> .
 <https://blackcatinformatics.ca/gmeow/self#license-agpl-3> <http://www.w3.org/ns/odrl/2/assigner> <https://blackcatinformatics.ca/#bii> .
