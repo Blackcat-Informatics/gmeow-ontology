@@ -9,8 +9,9 @@
 
 use super::super::ir::{LogicModality, LogicProgram, LogicRule, PreservationKind};
 use super::{
-    contract_drop_notes, formula_residue_notes, is_modal_or_scoped, python_repr, target_meta,
-    ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
+    aggregation_drop_notes, contract_drop_notes, formula_residue_notes, is_modal_or_scoped,
+    python_repr, target_meta, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS,
+    RDF_TYPE,
 };
 
 /// Extract a safe Datalog predicate name from an IRI (`_local`-style).
@@ -103,6 +104,12 @@ pub fn project_datalog(program: &LogicProgram) -> ProjectionResult {
     lines.push(String::new());
     lines.push("% === Rules ===".to_owned());
     for rule in &program.rules {
+        // Aggregation (reduce) rules are outside the Datalog fragment emitted here; they are
+        // ledgered (see actual_drops) and projected to the SHACL-AF reduce surface, not
+        // mis-emitted as a plain Horn rule.
+        if rule.aggregation.is_some() {
+            continue;
+        }
         let head = &rule.head;
         let head_pred = if head.predicate == RDF_TYPE {
             "type".to_owned()
@@ -145,7 +152,11 @@ pub fn project_datalog(program: &LogicProgram) -> ProjectionResult {
         preservation: kind,
         complexity: cx.to_owned(),
         lossy_drops: drops.into_iter().map(str::to_owned).collect(),
-        actual_drops: contract_drop_notes(program, "Datalog"),
+        actual_drops: {
+            let mut d = contract_drop_notes(program, "Datalog");
+            d.extend(aggregation_drop_notes(program, "Datalog"));
+            d
+        },
     }
 }
 
@@ -209,6 +220,10 @@ pub fn project_n3(program: &LogicProgram) -> ProjectionResult {
     lines.push(String::new());
     lines.push("# === Rules ===".to_owned());
     for rule in &program.rules {
+        // Aggregation (reduce) rules have no N3 form; ledgered (see actual_drops), not emitted.
+        if rule.aggregation.is_some() {
+            continue;
+        }
         let head = &rule.head;
         let head_subj = n3_term(&head.subject, false);
         let head_pred = if head.predicate == RDF_TYPE {
@@ -266,7 +281,11 @@ pub fn project_n3(program: &LogicProgram) -> ProjectionResult {
         preservation: kind,
         complexity: cx.to_owned(),
         lossy_drops: drops.into_iter().map(str::to_owned).collect(),
-        actual_drops: contract_drop_notes(program, "N3"),
+        actual_drops: {
+            let mut d = contract_drop_notes(program, "N3");
+            d.extend(aggregation_drop_notes(program, "N3"));
+            d
+        },
     }
 }
 
@@ -316,6 +335,11 @@ pub fn project_nemo(program: &LogicProgram) -> Result<ProjectionResult, String> 
     lines.push(String::new());
     lines.push("% === Rules ===".to_owned());
     for rule in &program.rules {
+        // Aggregation (reduce) rules are ledgered (see actual_drops) and projected to the
+        // SHACL-AF reduce surface, not mis-emitted here as a plain Horn rule.
+        if rule.aggregation.is_some() {
+            continue;
+        }
         let head = &rule.head;
         let head_pred = nemo_iri(&head.predicate);
         let head_subj = if head.subject.starts_with('?') {
@@ -440,7 +464,8 @@ pub fn project_nemo(program: &LogicProgram) -> Result<ProjectionResult, String> 
     // formula as flagged residue and make the preservation program-dependent: Exact iff the
     // program carries no formulas, else SoundUnder — so the overclaim gate stays honest
     // instead of a static Exact silently omitting the formula layer.
-    let actual_drops = formula_residue_notes(program, "Nemo");
+    let mut actual_drops = formula_residue_notes(program, "Nemo");
+    actual_drops.extend(aggregation_drop_notes(program, "Nemo"));
     let preservation = if actual_drops.is_empty() {
         kind
     } else {

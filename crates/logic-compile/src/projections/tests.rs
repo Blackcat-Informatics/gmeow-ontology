@@ -332,6 +332,49 @@ fn contract_round_trip_preset_with_full_facets() {
 }
 
 #[test]
+fn aggregation_rule_round_trips_through_canonical_rdf12() {
+    use crate::ir::{AggregateSpec, ContextualScope, LogicAxiom, LogicRule};
+    // ?g gmeow:total ?sum :- ?g gmeow:hasItem ?x  [ SUM(?x) AS ?sum GROUP BY ?g ]
+    let head = LogicAxiom::new(
+        "?g",
+        "https://blackcatinformatics.ca/gmeow/total",
+        "?sum",
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .unwrap();
+    let body = vec![LogicAxiom::new(
+        "?g",
+        "https://blackcatinformatics.ca/gmeow/hasItem",
+        "?x",
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .unwrap()];
+    let rule = LogicRule::new(head, body, vec![], ContextualScope::default()).with_aggregation(
+        AggregateSpec::new("SUM", "?x", "?sum", vec!["?g".to_owned()]),
+    );
+    let program = LogicProgram::new(vec![], vec![rule.clone()], vec![], None);
+
+    let reparsed = reparse_canonical(&program);
+    assert_eq!(reparsed.rules.len(), 1, "exactly one rule survives");
+    let got = &reparsed.rules[0];
+    // The aggregation spec must round-trip exactly through the Exact canonical RDF 1.2 target —
+    // this is the C5 invariant (the head/body atoms carry the standard variable-as-literal
+    // convention, orthogonal to aggregation).
+    assert_eq!(
+        got.aggregation, rule.aggregation,
+        "the aggregation spec must round-trip through canonical RDF 1.2"
+    );
+    assert_eq!(
+        got.head.predicate, rule.head.predicate,
+        "the reduce rule head predicate must round-trip"
+    );
+}
+
+#[test]
 fn contract_round_trip_anonymous_faceted_contract() {
     // No preset — exercises the minted logic:contract/_NNNNNN subject node.
     let mut original = ReasoningContract::new();
