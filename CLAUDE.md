@@ -51,6 +51,7 @@ the no-debug-symbol policy, and `nemo` build-memory caps intact.
 * Check generated artifacts: `make check-generated`
 * Run native reasoning: `make reason`
 * Run native verification: `make verify`
+* Run native reasoning + verification together: `make reason-verify`
 * Run full local gate: `make check`
 
 ## Testing Commands
