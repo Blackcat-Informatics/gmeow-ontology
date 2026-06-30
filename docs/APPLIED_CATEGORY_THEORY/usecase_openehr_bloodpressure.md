@@ -54,12 +54,10 @@ The canonical object is **not** a flat `{systolic: 1.0}`. It is the YAMATO quali
 ```turtle
 # --- The persistent quality (YAMATO: ONE enduring quality; values change, identity persists) ---
 :patientP a gmeow:Person .
-:sysBP-of-P a logic:Quality ;                 # the patient's systolic blood pressure, enduring
-    logic:inheresIn-via :sysBPBearer ;        # (per inherence-bearer doctrine: a branch-specific
-                                              #  bearer prop, not raw gufo:inheresIn)
+:sysBP-of-P a gmeow:Quality ;                 # the patient's systolic blood pressure, enduring (gmeow:Quality ⊑ logic:Quality)
+    gmeow:bearer           :patientP ;        # the by-reference inherence prop (Principle 5), not raw gufo:inheresIn
     logic:genericQuality   gmeow:pressure ;   # YAMATO generic quality  (== OPT property openehr::pressure)
-    logic:qualityRole      gmeow:systolicRole ; # YAMATO quality-role in the arterial-BP context (== at0004)
-    gmeow:bearer           :patientP .
+    logic:qualityRole      gmeow:systolicRole . # YAMATO quality-role in the arterial-BP context (== at0004)
 
 # --- One dated observation = one result of that persistent quality (P9 unified observation) ---
 :obs1 a gmeow:Observation ;
@@ -70,11 +68,11 @@ The canonical object is **not** a flat `{systolic: 1.0}`. It is the YAMATO quali
     logic:accordingTo      :clinicStandpointDE .
 
 # --- The measurement: YAMATO unit-independent true quantity vs the framed measured value (P11) ---
-:meas1 a gmeow:Measurement ;
-    logic:trueQuantity     [ a gmeow:Magnitude ; gmeow:dimension gmeow:pressure ] ;  # frame-independent
-    gmeow:value            1.0 ;
-    gmeow:unit             gmeow:unit_mmHg ;    # the unit belongs to the MEASUREMENT, not the quantity
-    gmeow:referenceFrame   gmeow:frame_clinical_mmHg .
+:meas1 a gmeow:Quantity ;                       # the framed measured value (the observation's result-wrapper)
+    gmeow:trueQuantity     [ a gmeow:Magnitude ; gmeow:dimension gmeow:pressure ] ;  # frame-independent magnitude (⊑ logic:trueQuantity)
+    gmeow:quantityValue    1.0 ;
+    gmeow:unit             qudt:MilliM_HG ;     # the unit belongs to the measured value, by reference (QUDT)
+    gmeow:hasReferenceFrame :clinicFrameDE .    # the frame; a value without its frame is ill-formed (P11)
 
 # --- Coreference by reference (P5), NOT owl:sameAs ---
 :obs1 gmeow:authorityLink <fhir:Observation/816ddebd-…/_history/1> ;
@@ -116,7 +114,7 @@ Everything in the canonical form that has no native RM home:
 1. the **persistent-quality identity** `:sysBP-of-P` (RM has the HISTORY but no first-class
    enduring-quality node the events are *of*);
 2. the **generic-quality↔role ladder** as data (the archetype *implies* `property=pressure` but
-   the RM instance does not carry `gmeow:genericQuality`/`gmeow:qualityRole` reifications);
+   the RM instance does not carry `logic:genericQuality`/`logic:qualityRole` reifications);
 3. the **four axes + determinacy** on the observation (`confidence`, `evidenceStrength`, `weight`,
    `probability`, `Determinacy`) — RM has no slot;
 4. the **standpoint index** `:clinicStandpointDE` and any **multi-vantage** competing claims;
@@ -222,8 +220,8 @@ that motivates promoting merge/colimit to a first-class axis.
 
 ```text
 shape SystolicMeasurement:
-    on  ?m where ?m gmeow:qualityRole gmeow:systolicRole
-    require  ?m gmeow:unit gmeow:unit_mmHg
+    on  ?m where ?q logic:qualityRole gmeow:systolicRole
+    require  ?m gmeow:unit qudt:MilliM_HG
     require  lo ≤ ?m.value  ∧  ?m.value < hi          # [lo, hi):  lower_included, NOT upper_included
 ```
 

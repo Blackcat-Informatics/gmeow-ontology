@@ -810,3 +810,21 @@ ASK {
     logic:planCertification a owl:ObjectProperty .
 }""" ;
     gmeow:saRationale "A logic:Plan MUST reach its reified flow graph (its logic:ControlFlowEdge / logic:DataFlowEdge members) through logic:planFlowEdge — the canonical-plan counterpart of the build pipeline's gmeow:hasStage stage-membership. Without it a plan's flow edges are free-standing individuals unreachable from the plan, so the DAG-workflow certifier has no graph to run over and a cyclic plan could never disclose its logic:dagCycleWitness. The companion logic:planCertification relates the plan to the logic:ReasoningResult the certifier emits, so the `unsupported` verdict (logic:EvaluationUnsupported) and its logic:dagCycleWitness are reachable from the plan rather than computed and discarded. This is the membership-plus-verdict pair the teleology evaluator produces: it gathers planFlowEdge to map an acyclic closure to logic:CompleteForFragment and a cyclic one to the unsupported verdict, linked back by planCertification." .
+
+ex:saQualityStratificationTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:genericQuality a owl:ObjectProperty .
+    logic:qualityRole a owl:ObjectProperty .
+    logic:trueQuantity a owl:ObjectProperty .
+    logic:unit a owl:ObjectProperty .
+    logic:referenceFrame a owl:ObjectProperty .
+    logic:measuredValue a owl:DatatypeProperty .
+    logic:QualityConstraint a owl:Class .
+    logic:QualityRoleWithoutGeneric a logic:QualityConstraint .
+    logic:MeasurementFrameMissing a logic:QualityConstraint .
+}""" ;
+    gmeow:saRationale "The YAMATO quality-stratification foundation vocabulary MUST exist: the generic-quality/quality-role ladder (logic:genericQuality, logic:qualityRole over logic:Role), the true-quantity/measured-value seam (logic:trueQuantity, logic:measuredValue, logic:unit, logic:referenceFrame), and the closed logic:QualityConstraint family (logic:QualityRoleWithoutGeneric, logic:MeasurementFrameMissing) whose named individuals are the labels the native foundation rules point a logic:violation at (Principle 11, Principle 17)." .
