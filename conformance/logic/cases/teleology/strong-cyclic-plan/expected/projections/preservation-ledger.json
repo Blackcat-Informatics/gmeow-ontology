@@ -4,6 +4,11 @@
     "lossy_drops": [],
     "preservation": "ExactPreservation"
   },
+  "clif": {
+    "complexity": "full first-order (semi-decidable)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
+  },
   "datalog": {
     "complexity": "terminating/PTIME-data",
     "lossy_drops": [

@@ -869,6 +869,17 @@ fn build_fanout_opaque_blob(
         .ok_or_else(|| stage_err("missing generated/n3/gmeow.n3 in stage-compile-logic"))?;
     members.insert(crate::stages::compile_logic::N3_PATH.to_string(), n3);
 
+    // CLIF (#721) rides in from the sink-consumed stage-compile-logic product. It is a
+    // non-RDF text projection whose committed form carries generated `;;` comments and
+    // `;; ===` section markers, so it cannot reconstruct from a canonical named-graph
+    // fold; it is carried here as a committed byte projection (byte-identical to the file).
+    let clif = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::CLIF_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing generated/cl/gmeow.clif in stage-compile-logic"))?;
+    members.insert(crate::stages::compile_logic::CLIF_PATH.to_string(), clif);
+
     // context.jsonld + dsl-stats: recomputed from source (the producing stage is not
     // sink-consumed; these are deterministic source projections, byte-identical to
     // the committed files).
@@ -1235,8 +1246,10 @@ impl Stage for SnapshotStage {
         // authored quad carries ≥1 stage-origin (#1132 C9). v14 folds the byte-exact
         // generated metadata, statement, reasoning, and preservation projections into
         // REP_GENERATED so the superset gate can reconstruct every committed
-        // generated file without re-reading disk.
-        "snapshot.v14-generated-byte-projections"
+        // generated file without re-reading disk. v15 folds the #721 CLIF projection
+        // (generated/cl/gmeow.clif) into REP_GENERATED as a committed byte projection
+        // (a non-RDF text dialect with generated comments / section markers).
+        "snapshot.v15-clif-projection"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from

@@ -261,22 +261,34 @@ fn term_to_clif(term: &Term) -> String {
 ///
 /// `path_shapes` are emitted DIRECTLY as the `logic:PathShape` triples the frontend's
 /// `extract_path_shapes` reads (a faithful inverse). `transaction_programs` (a correspondence
-/// leg's `gm:path` body) have no round-trippable RDF serializer in the codebase; the dialect
-/// HARD-FAILS on them rather than silently dropping (the Exact claim stays honest for what it
-/// carries — no construct vanishes in silence). Production carries neither.
+/// leg's `gm:path` body) are emitted as the `gm:` leg-body triples the frontend's
+/// `extract_leg_programs` reads (the faithful inverse of `parse_leg_path`): each leg's body is
+/// serialized as a `gm:InversePath` / `gm:SeqPath` / `gm:AltPath` node graph and bound to its
+/// leg IRI via `gm:path`. A leg round-trips because the correspondence channel re-emits the
+/// `logic:getLeg` / `logic:putLeg` IRIs that name the leg, so the reconstructed leg registry
+/// is exactly the original. The Exact claim therefore carries every construct losslessly.
 fn meta_predications(program: &LogicProgram) -> Vec<String> {
-    assert!(
-        program.transaction_programs.is_empty(),
-        "CLIF dialect: a program carrying logic:TransactionProgram leg bodies has no \
-         round-trippable RDF serializer; refusing to silently drop it (#721 carries the \
-         axiom / rule / formula / contract / correspondence / path-shape channels exactly)"
-    );
-
     let mut preds: Vec<String> = Vec::new();
 
     // (0) Path shapes — emitted as the logic:PathShape triples `extract_path_shapes` reads.
     for shape in &program.path_shapes {
         preds.extend(path_shape_predications(shape));
+    }
+
+    // (0b) Transaction programs (correspondence leg bodies) — emitted as the `gm:` leg-body
+    //      triples `extract_leg_programs` reads (the faithful inverse of `parse_leg_path`).
+    //      A single counter mints deterministic structural node/cell IRIs so the sorted output
+    //      is byte-stable.
+    let mut leg_node_counter: usize = 0;
+    for tp in &program.transaction_programs {
+        let body_root = emit_leg_path(&tp.iri, &tp.body, &mut preds, &mut leg_node_counter);
+        // (gm:path <leg-iri> <body-root-node>)
+        preds.push(format!(
+            "({} {} {})",
+            name_term(&gm("path")),
+            name_term(&tp.iri),
+            name_term(&body_root)
+        ));
     }
 
     // (1) The whole program (axioms + scope + rules + formulas + contracts) → the lossless
@@ -328,6 +340,134 @@ fn meta_predications(program: &LogicProgram) -> Vec<String> {
     preds.sort();
     preds.dedup();
     preds
+}
+
+/// The `gm:` namespace (`gmeow:`) — the leg-body path vocabulary the transaction layer uses.
+/// Mirrors `crate::projections::correspondence::GM_NAMESPACE` and the frontend's `parse_leg_path`.
+const GM_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
+/// `rdf:type`.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// A `gm:`-namespaced IRI.
+fn gm(local: &str) -> String {
+    format!("{GM_NAMESPACE}{local}")
+}
+
+/// Emit the structural `gm:` triples for a [`crate::ir::LegPath`] (the faithful inverse of the
+/// frontend's `parse_leg_path`) into `preds`, returning the body node IRI a `gm:path` (or a
+/// parent combinator) should reference.
+///
+/// * `Step(pred)` → the predicate IRI itself, with NO structural triples.
+/// * `Inverse(inner)` → a `gm:InversePath` node with `gm:pathStep` → the inner body node.
+/// * `Seq(members)` / `Alt(members)` → a `gm:SeqPath` / `gm:AltPath` node with `gm:pathSteps` /
+///   `gm:pathAlts` heading a `gm:pathNext`-linked cell chain; each cell carries `gm:pathItem`.
+///
+/// `base` (the leg IRI) only seeds the deterministic node/cell IRI scheme — `parse_leg_path`
+/// ignores the structural node names, so any unique deterministic naming round-trips. `counter`
+/// is shared across all minted node/cell IRIs to keep them unique and the emission deterministic.
+fn emit_leg_path(
+    base: &str,
+    path: &crate::ir::LegPath,
+    preds: &mut Vec<String>,
+    counter: &mut usize,
+) -> String {
+    use crate::ir::LegPath;
+    match path {
+        LegPath::Step(pred) => pred.clone(),
+        LegPath::Inverse(inner) => {
+            let node = format!("{base}/legnode/{counter}");
+            *counter += 1;
+            preds.push(format!(
+                "({} {} {})",
+                name_term(RDF_TYPE),
+                name_term(&node),
+                name_term(&gm("InversePath"))
+            ));
+            let inner_node = emit_leg_path(base, inner, preds, counter);
+            preds.push(format!(
+                "({} {} {})",
+                name_term(&gm("pathStep")),
+                name_term(&node),
+                name_term(&inner_node)
+            ));
+            node
+        }
+        LegPath::Seq(members) => emit_leg_list(
+            base,
+            members,
+            &gm("SeqPath"),
+            &gm("pathSteps"),
+            preds,
+            counter,
+        ),
+        LegPath::Alt(members) => emit_leg_list(
+            base,
+            members,
+            &gm("AltPath"),
+            &gm("pathAlts"),
+            preds,
+            counter,
+        ),
+    }
+}
+
+/// Emit a `gm:SeqPath` / `gm:AltPath` combinator node and its `gm:pathNext`-linked cell chain,
+/// returning the combinator node IRI. `type_iri` is `gm:SeqPath` / `gm:AltPath`; `head_pred` is
+/// `gm:pathSteps` / `gm:pathAlts`.
+fn emit_leg_list(
+    base: &str,
+    members: &[crate::ir::LegPath],
+    type_iri: &str,
+    head_pred: &str,
+    preds: &mut Vec<String>,
+    counter: &mut usize,
+) -> String {
+    let node = format!("{base}/legnode/{counter}");
+    *counter += 1;
+    preds.push(format!(
+        "({} {} {})",
+        name_term(RDF_TYPE),
+        name_term(&node),
+        name_term(type_iri)
+    ));
+    // Mint every cell IRI first so the (node head_pred cell0) and (cell_i pathNext cell_{i+1})
+    // links use a stable, deterministic naming independent of recursion order.
+    let cell_iris: Vec<String> = members
+        .iter()
+        .map(|_| {
+            let cell = format!("{base}/legcell/{counter}");
+            *counter += 1;
+            cell
+        })
+        .collect();
+    for (i, member) in members.iter().enumerate() {
+        let cell = &cell_iris[i];
+        let member_node = emit_leg_path(base, member, preds, counter);
+        preds.push(format!(
+            "({} {} {})",
+            name_term(&gm("pathItem")),
+            name_term(cell),
+            name_term(&member_node)
+        ));
+        if let Some(next) = cell_iris.get(i + 1) {
+            preds.push(format!(
+                "({} {} {})",
+                name_term(&gm("pathNext")),
+                name_term(cell),
+                name_term(next)
+            ));
+        }
+    }
+    // (node head_pred cell0)
+    if let Some(first) = cell_iris.first() {
+        preds.push(format!(
+            "({} {} {})",
+            name_term(head_pred),
+            name_term(&node),
+            name_term(first)
+        ));
+    }
+    node
 }
 
 /// Emit a [`PathShapeIr`] as the `logic:PathShape` CL predications its frontend extractor
