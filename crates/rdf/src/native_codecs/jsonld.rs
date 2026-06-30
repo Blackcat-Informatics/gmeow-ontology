@@ -710,7 +710,12 @@ pub fn parse_jsonld(json_bytes: &[u8]) -> Result<Arc<RdfDataset>, RdfDiagnostic>
             }
         }
 
-        for (key, val) in node.as_object().unwrap() {
+        // The `@id` extraction above (`node.get("@id")…ok_or_else`) returns Err for any
+        // non-object node, so reaching here guarantees `node` is a JSON object.
+        let node_obj = node
+            .as_object()
+            .expect("emit_node already proved `node` is an object via its @id lookup");
+        for (key, val) in node_obj {
             if matches!(key.as_str(), "@id" | "@type" | "@context" | "@graph") {
                 continue;
             }
@@ -858,7 +863,12 @@ fn emit_value_quad(
             // Reifier bindings + annotations always land in the DEFAULT graph.
             push_quad(quads, reifier.clone(), RDF_REIFIES, quoted, None);
 
-            for (key, val) in ann_node.as_object().unwrap() {
+            // The `@id` extraction above (`ann_node.get("@id")…ok_or_else`) returns Err for
+            // any non-object node, so reaching here guarantees `ann_node` is a JSON object.
+            let ann_obj = ann_node
+                .as_object()
+                .expect("the @id lookup above already proved `ann_node` is an object");
+            for (key, val) in ann_obj {
                 if key == "@id" {
                     continue;
                 }
