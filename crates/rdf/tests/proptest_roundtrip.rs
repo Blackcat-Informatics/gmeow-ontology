@@ -50,6 +50,8 @@ use proptest::prelude::*;
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 
 // ── Canonical comparator (native RDFC-1.0, #910) ─────────────────────────────────
 
@@ -126,6 +128,22 @@ fn arb_literal() -> impl Strategy<Value = RdfLiteral> {
     ]
 }
 
+/// Non-canonical xsd:decimal / xsd:nonNegativeInteger lexical forms (trailing zeros,
+/// leading zeros, leading `+`). The text codecs must round-trip these structurally; the
+/// CANONICAL comparator in the text properties only proves the structural round-trip —
+/// the RAW lexical-form + datatype fidelity (no value-space normalization, no datatype
+/// narrowing) is proven separately in `literal_fidelity.rs`. These inputs are NOT fed to
+/// the GTS property (its preserve-path expects already-canonical literals — see the
+/// module doc), only to the text-only `nquads_roundtrip` / `trig_roundtrip` properties.
+fn arb_noncanonical_literal() -> impl Strategy<Value = RdfLiteral> {
+    prop_oneof![
+        prop::sample::select(vec!["0.90", "0.50", "+1.5", "-0.0", "1.0E0"])
+            .prop_map(|t| RdfLiteral::typed(t, XSD_DECIMAL)),
+        prop::sample::select(vec!["007", "0042", "00"])
+            .prop_map(|t| RdfLiteral::typed(t, XSD_NON_NEGATIVE_INTEGER)),
+    ]
+}
+
 /// Leaf object terms (no quoted triple) — used inside quoted triples to keep the
 /// nesting bounded and free of inner blank nodes.
 fn arb_simple_object() -> impl Strategy<Value = RdfTerm> {
@@ -152,12 +170,14 @@ fn arb_object_basic() -> impl Strategy<Value = RdfTerm> {
     ]
 }
 
-/// Basic objects plus RDF-1.2 quoted triples — round-tripped by the lossless
-/// N-Quads/TriG codecs (NOT GTS, see [`arb_object_basic`]).
+/// Basic objects plus RDF-1.2 quoted triples AND non-canonical decimal /
+/// nonNegativeInteger literals — round-tripped by the lossless N-Quads/TriG codecs (NOT
+/// GTS, which uses [`arb_object_basic`] with already-canonical literals only).
 fn arb_object_star() -> impl Strategy<Value = RdfTerm> {
     prop_oneof![
         4 => arb_object_basic(),
         1 => arb_quoted_triple().prop_map(RdfTerm::triple),
+        2 => arb_noncanonical_literal().prop_map(RdfTerm::literal),
     ]
 }
 
