@@ -4,11 +4,11 @@
 
 ## What it tests
 
-Observation module — retained pytest (#66, #69). Only
+Observation module — retained pytest. Only
 `test_kin_relationship_bridges_fire` remains: a cross-slice sub-property check
 (the KinRelationship bridges are asserted in the GENEALOGY module) over the
 merged graph. The four SOSA `*_mapped_to_*` SSSOM-alignment checks were removed
-(#1092 / F5): the generated-mapping projection is now enforced by the native Rust
+in the correspondence-frontend migration: the generated-mapping projection is now enforced by the native Rust
 dialect lowerings and their byte-iso parity oracles, so the Python `load_mappings`
 surface was the redundant dual authority.
 
