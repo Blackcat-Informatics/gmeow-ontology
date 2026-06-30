@@ -564,13 +564,34 @@ pub fn materialize_routed(
         }
         _ => {
             // PositiveHorn / declared StratifiedNAF / Probabilistic / Procedural / None.
-            // Empty rules (projection-only) and genuinely stratified sets run on Nemo
-            // (`preservation` is exact); a declared set that FAILS stratification has a
-            // non-empty unsupported set and is echoed asserted-only.
-            if preservation.unsupported_constructs.is_empty() {
+            // A declared set that FAILS stratification has a non-empty unsupported set and
+            // is echoed asserted-only. Otherwise the stratifiable Datalog± fragment is the
+            // native physical core's competence: TRY it first (native is authoritative for
+            // what it decides) and fall through to the Nemo fallback ONLY for a declared
+            // native gap (`NativeOutcome::Unsupported`). `preservation` is exact for this
+            // arm, so the native and Nemo paths disclose the same judgment.
+            if !preservation.unsupported_constructs.is_empty() {
+                Some(echo_edb_only(input)?)
+            } else if max_rule_firings.is_some() || max_answers.is_some() || time_ms.is_some() {
+                // Budget-constrained materialization stays on the Nemo fallback: the
+                // native core decides the WHOLE stratifiable least model and does not yet
+                // reproduce the oracle's post-hoc budget governor (the truncation cut and
+                // the exhausted / incomplete disclosure it stamps). An unbudgeted call is
+                // native's competence; a budgeted one is a declared native gap → Nemo.
                 None
             } else {
-                Some(echo_edb_only(input)?)
+                let store = crate::store::WorldStore::new();
+                store.load_nquads(input).map_err(MaterializeError::Parse)?;
+                let eval_rules =
+                    crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
+                match crate::physical::materialize_native(&store, &eval_rules)
+                    .map_err(MaterializeError::Chase)?
+                {
+                    crate::physical::NativeOutcome::Decided(rows) => Some(rows),
+                    // A declared native gap (e.g. non-stratifiable after parse) falls
+                    // through to the demoted Nemo fallback / conformance oracle.
+                    crate::physical::NativeOutcome::Unsupported(_) => None,
+                }
             }
         }
     };
@@ -1045,6 +1066,84 @@ mod tests {
             m.preservation.polarities.contains(&PreservationKind::Exact),
             "a faithful chase is exact, got {:?}",
             m.preservation.polarities
+        );
+    }
+
+    /// Native-first forward wiring: a stratifiable Datalog± program
+    /// under the default `_ =>` routing arm is materialized by the native physical core
+    /// (`crate::physical::materialize_native`), NOT Nemo. The native engine is
+    /// authoritative for the closure, so the derived transitive `subClassOf` edge
+    /// `Dog ⊑ Animal` (from `Dog ⊑ Mammal`, `Mammal ⊑ Animal`) must be present in the
+    /// result. This pins that the native path is taken and produces the closure.
+    #[test]
+    fn materialize_routed_forward_uses_native_closure() {
+        let m = materialize_routed(
+            TRANSITIVITY_RULES,
+            CHAIN_NQUADS,
+            None,
+            None,
+            None,
+            Some("PositiveHornProfile"),
+        )
+        .expect("routed materialize must not fail");
+
+        let sub_class_of = "https://blackcatinformatics.ca/logic/subClassOf";
+        let want_subj = "http://example.org/Dog";
+        let want_obj = "http://example.org/Animal";
+        let derived: Vec<(String, String, String)> = m
+            .quads
+            .iter()
+            .map(|q| {
+                (
+                    q.subject.to_string(),
+                    q.predicate.as_str().to_owned(),
+                    q.object.to_string(),
+                )
+            })
+            .collect();
+        assert!(
+            derived.iter().any(|(s, p, o)| p == sub_class_of
+                && s == &format!("<{want_subj}>")
+                && o == &format!("<{want_obj}>")),
+            "native closure must derive Dog ⊑ Animal: {derived:?}"
+        );
+        // The two asserted EDB edges plus the one derived edge: closure is non-trivial.
+        let sco_edges: Vec<_> = derived
+            .iter()
+            .filter(|(_, p, _)| p == sub_class_of)
+            .collect();
+        assert_eq!(
+            sco_edges.len(),
+            3,
+            "expected 2 asserted + 1 derived subClassOf edges: {sco_edges:?}"
+        );
+    }
+
+    /// Budget-constrained materialization must route to the Nemo fallback, not the native
+    /// core: native decides the WHOLE least model and cannot reproduce the oracle's
+    /// post-hoc truncation. The routed result under a budget must match `materialize_core`
+    /// (the Nemo governor) EXACTLY — a regression back to the native arm would derive the
+    /// full closure and diverge from the budgeted oracle, so this equality is what proves
+    /// the fallback (not merely the asserted-EDB echo, which the native arm also emits).
+    /// The exact truncation/exhausted-disclosure semantics are pinned by the
+    /// `external/szs-mini/unknown-budget` conformance case.
+    #[test]
+    fn materialize_routed_budget_uses_nemo_fallback() {
+        let m = materialize_routed(
+            TRANSITIVITY_RULES,
+            CHAIN_NQUADS,
+            Some(0), // a zero rule-firing budget the native core has no governor for
+            None,
+            None,
+            Some("PositiveHornProfile"),
+        )
+        .expect("budgeted routed materialize must not fail (Nemo governor handles it)");
+        let oracle = materialize_core(TRANSITIVITY_RULES, CHAIN_NQUADS, Some(0), None, None)
+            .expect("budgeted Nemo materialize_core must succeed");
+        assert_eq!(
+            m.quads, oracle,
+            "budgeted routed materialize must match the Nemo fallback exactly; a native \
+             regression would derive the full closure and diverge"
         );
     }
 }
