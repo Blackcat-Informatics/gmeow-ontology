@@ -10,8 +10,9 @@ additional authoring.
 
 Marked ``maintainer`` because it renders every projection profile over the canary
 corpus and re-derives every guarded branch. CI still proves the all-profile
-contract; frequent local ``make check`` runs keep the narrower regression tests
-in ``tests/test_suppress_gen.py`` and ``tests/test_projections.py``.
+contract; the narrower per-projection suppression regressions now live in the
+native Rust dialect lowerings and their byte-iso parity oracles
+(``crates/pipeline/tests/edoal_sparql_correspondence_parity.rs``).
 
 Three layers:
 
@@ -25,11 +26,8 @@ Three layers:
   the suppressed half can never pass vacuously.
 * **Behavioral, coarsen**: the suppress-gen fixture's precise coordinates
   never appear in any profile's output (the declared coarsening branches
-  publish the enclosing city instead — pinned by tests/test_suppress_gen.py;
-  here every OTHER profile proves it does not leak them either).
-
-The hand-written cases in tests/test_suppress_gen.py remain as regression
-tests over this generated suite.
+  publish the enclosing city instead; here every OTHER profile proves it does
+  not leak them either).
 """
 
 from __future__ import annotations

@@ -95,13 +95,14 @@ meta:lint-sameas-ban a meta:Lint ;
 
 meta:lint-equivalence-collapse a meta:Lint ;
     rdfs:label "equivalence-closure collapse gate over disjoint pairs"@x-gmeow-english ;
-    meta:artifact "crates/slice/src/alignment_lint.rs" ;
+    meta:artifact "crates/logic-compile/src/projections/correspondence_soundness.rs" ;
     meta:symbol "check_equivalence_collapse" ;
     meta:makeTarget "lint-alignment" .
 
 meta:tests-alignment a meta:TestSuite ;
     rdfs:label "alignment direction / bridging tests"@x-gmeow-english ;
-    meta:artifact "tests/test_alignment_direction.py", "tests/test_alignments.py",
+    meta:artifact "crates/logic-compile/src/projections/correspondence_soundness.rs",
+        "crates/pipeline/tests/correspondence_soundness_parity.rs",
         "tests/test_coreference.py" .
 
 meta:gate-crosscheck a meta:Gate ;
@@ -141,8 +142,8 @@ meta:gate-suppression a meta:Gate ;
 
 meta:tests-suppression a meta:TestSuite ;
     rdfs:label "suppression and disclosure tests"@x-gmeow-english ;
-    meta:artifact "tests/test_suppress_gen.py", "tests/test_disclosure.py",
-        "tests/test_privacy.py" .
+    meta:artifact "crates/pipeline/tests/edoal_sparql_correspondence_parity.rs",
+        "tests/test_disclosure.py", "tests/test_privacy.py" .
 
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
