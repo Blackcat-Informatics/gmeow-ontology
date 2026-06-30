@@ -7,10 +7,10 @@
 //! separator, quote style, and sort order is golden-pinned.  The Python duplicate
 //! was retired in #727; this is the source of truth.
 
-use super::super::ir::{LogicModality, LogicProgram, LogicRule};
+use super::super::ir::{LogicModality, LogicProgram, LogicRule, PreservationKind};
 use super::{
-    contract_drop_notes, is_modal_or_scoped, python_repr, target_meta, ProjectionResult, GMEOW_NS,
-    LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
+    contract_drop_notes, formula_residue_notes, is_modal_or_scoped, python_repr, target_meta,
+    ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
 };
 
 /// Extract a safe Datalog predicate name from an IRI (`_local`-style).
@@ -435,14 +435,25 @@ pub fn project_nemo(program: &LogicProgram) -> Result<ProjectionResult, String> 
     }
 
     let content = format!("{}\n", lines.join("\n"));
+    // The full-FOL formula layer is carried by the canonical relational-core lane
+    // (`graph/relational-core`), NOT this lossy `.rls` text projection. Disclose each carried
+    // formula as flagged residue and make the preservation program-dependent: Exact iff the
+    // program carries no formulas, else SoundUnder — so the overclaim gate stays honest
+    // instead of a static Exact silently omitting the formula layer.
+    let actual_drops = formula_residue_notes(program, "Nemo");
+    let preservation = if actual_drops.is_empty() {
+        kind
+    } else {
+        PreservationKind::SoundUnder
+    };
     Ok(ProjectionResult {
         target: "nemo".to_owned(),
         content,
         is_rdf: false,
-        preservation: kind,
+        preservation,
         complexity: cx.to_owned(),
         lossy_drops: drops.into_iter().map(str::to_owned).collect(),
-        actual_drops: Vec::new(),
+        actual_drops,
     })
 }
 

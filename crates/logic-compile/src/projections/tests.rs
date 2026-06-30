@@ -730,3 +730,33 @@ fn down_projections_disclose_formula_residue_and_gate_passes() {
     let canon = rdf::project_canonical_rdf12(&program).expect("canon ok");
     report::build_projection_report(&program, &[owl, canon]).expect("report builds");
 }
+
+#[test]
+fn project_nemo_preservation_is_program_dependent_on_formulas() {
+    use crate::ir::{Formula, LogicProgram, PreservationKind, Term};
+
+    // Formula-free → nemo stays Exact (the `.rls` losslessly carries the Horn rule set), so
+    // the shipped bundle's nemo projection is byte- and preservation-unchanged.
+    let plain = LogicProgram::new(vec![], vec![], vec![], None);
+    let nemo_plain = text::project_nemo(&plain).unwrap();
+    assert_eq!(nemo_plain.preservation, PreservationKind::Exact);
+    assert!(nemo_plain.actual_drops.is_empty());
+
+    // A program carrying a non-Horn full-FOL formula (a disjunctive head) → nemo drops to
+    // SoundUnder and the loss ledger NAMES the dropped FOL construct (the Disjunctive tag),
+    // so the overclaim gate stays honest instead of a static Exact omitting the formula layer.
+    let iri = |s: &str| format!("https://blackcatinformatics.ca/gmeow/{s}");
+    let atom = |p: &str, a: Vec<Term>| Formula::atom(Term::Iri(iri(p)), a).unwrap();
+    let disjunctive = Formula::Or(vec![
+        atom("p", vec![Term::Iri(iri("x")), Term::Iri(iri("a"))]),
+        atom("q", vec![Term::Iri(iri("x")), Term::Iri(iri("b"))]),
+    ]);
+    let prog = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![disjunctive]);
+    let nemo = text::project_nemo(&prog).unwrap();
+    assert_eq!(nemo.preservation, PreservationKind::SoundUnder);
+    assert!(
+        nemo.actual_drops.iter().any(|d| d.contains("Disjunctive")),
+        "the nemo loss ledger names the dropped FOL construct: {:?}",
+        nemo.actual_drops
+    );
+}

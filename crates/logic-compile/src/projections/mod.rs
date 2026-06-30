@@ -353,7 +353,7 @@ fn dialect_target(dialect: &str) -> &str {
 /// per-instance, closed-tag form keeps the ledger informative and the goldens stable (no
 /// free text). Emitted only when the program carries formulas, so a formula-free program's
 /// ledger is byte-unchanged.
-fn formula_residue_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+pub(crate) fn formula_residue_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
     program
         .formulas
         .iter()
