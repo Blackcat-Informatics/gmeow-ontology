@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: transaction/trajectory-audit (T6).
+#
+# The READ-ONLY trajectory audit at the corpus level. The world facts (input.nq) record a
+# gmeow:ToolCall SEQUENCE — the memory MCP triad's store_claim then revise_belief — NOT an
+# authored transaction-program combinator. The native auditor
+# (crates/logic/src/transaction/trajectory.rs) discovers the bound ToolCalls
+# (logic:instantiatesSchema), groups them under their logic:properPartOf anchor (which bears
+# the logic:transitionFromState start state), orders them by gmeow:atTime, right-folds them
+# into a logic:SerialConjunction, and runs the SAME executional-entailment engine as the
+# authored transaction cases — verifying pre/postconditions and atomicity with no write-back
+# to the recorded calls.
+#
+# The anchor runs under logic:HypotheticalExecution (a governing logic:ReasoningContract in
+# input.nq), so the verdict is recorded with a single content-addressed
+# logic:executedHypotheticallyAs witness and the committed effect substrate is SUPPRESSED —
+# "would this recorded continuation reach the goal?" answered without committing it. The
+# anchor names a logic:planGoal whose logic:planGoalSituation (claimSuppressed) the trajectory
+# reaches, so the audit emits the goal-reachability verdict by reusing the EXISTING flat
+# gmeow:satisfiedBy projection — which (correctly) discloses the lossy goal-evaluation collapse,
+# flipping runtime preservation to SoundUnder.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this input.logic.ttl
+# carries the minimal, clean-compiling, certifiable program axiom the projections need.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/transaction/trajectory-audit/> .
+
+ex:GoalExpression a logic:GoalExpression .
+
+# The compile-time reasoning contract selects the Evolution facet that classifies the audited
+# transaction. logic:TransactionPathEvolution drives certification to the transaction-path
+# decidability class (conflict-serializability; PTIME classification, not search). The contract
+# also declares logic:executionMode logic:HypotheticalExecution for fidelity with the
+# world-facts wiring that drives the sandbox emission.
+ex:TransactionContract a logic:ReasoningContract ;
+    logic:evolution logic:TransactionPathEvolution ;
+    logic:executionMode logic:HypotheticalExecution .

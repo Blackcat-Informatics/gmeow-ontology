@@ -1,0 +1,96 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the T6 read-only TRAJECTORY AUDIT.
+#
+# A recorded gmeow:ToolCall sequence — here the memory MCP triad's store_claim then
+# revise_belief — is treated AS a Transaction-Logic transaction and verified (pre/post,
+# atomicity, and — given a goal — reachability). The native auditor
+# (crates/logic/src/transaction/trajectory.rs) reads exactly this shape: bound ToolCalls
+# (logic:instantiatesSchema) grouped under a logic:properPartOf anchor that bears the start
+# state, ordered by gmeow:atTime, run through the existing TR engine.
+#
+# EPISTEMIC SHAPE (what is recording vs. what is audit-context):
+#   * The RECORDING is what the harness captured: each ToolCall's gmeow:usedTool (the tool
+#     SoftwareAgent), gmeow:toolArguments / gmeow:toolResult (verbatim-or-digest payloads),
+#     and gmeow:atTime. That half mirrors examples/agent-trajectory.ttl unchanged.
+#   * The AUDIT-CONTEXT is layered ON TOP to make the recording checkable: each call's
+#     logic:instantiatesSchema (a TRUE tool-contract fact — calling store_claim instantiates
+#     the store_claim action schema in examples/mcp-action-policy.ttl), the
+#     logic:transitionFromState start state, and the logic:planGoal the turn pursued. The
+#     start state and goal are SUPPLIED audit context, NOT reconstructed from the bare
+#     recording — the recording alone never asserted a world state or a transaction boundary.
+#
+# This binds to the REAL mcp-action-policy.ttl schemas (no re-minted schema individuals), so
+# completing those schemas with logic:effect (this PR) is what makes the recorded triad
+# auditable. The slice does not reason its examples, so this file is a worked illustration;
+# the engine goldens live in conformance/logic/cases/transaction/trajectory-audit/.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix mcp:   <https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agentic/trajectory-audit/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Agents: the model and the two tools the recording names (gmeow:usedTool targets). ---
+ex:assistant a gmeow:SoftwareAgent ;
+    rdfs:label "assistant model agent"@x-gmeow-english .
+
+ex:storeClaimTool a gmeow:SoftwareAgent ;
+    rdfs:label "memory store_claim tool"@x-gmeow-english .
+
+ex:reviseBeliefTool a gmeow:SoftwareAgent ;
+    rdfs:label "memory revise_belief tool"@x-gmeow-english .
+
+# --- The trajectory anchor: the whole the calls are proper parts of, bearing the start ---
+# state and the goal the turn pursued. A plain gmeow:Activity (NOT logic:Plan), so it grafts
+# the audit context without standing up the full logic:PlanShape governance surface.
+ex:turn a gmeow:Activity ;
+    rdfs:label "agent turn 12 — store then revise a belief"@x-gmeow-english ;
+    logic:transitionFromState ex:startState ;
+    logic:planGoal ex:goalBeliefRevised ;
+    logic:planGoalSituation mcp:claimSuppressed .
+
+# The start state the recorded turn began from (SUPPLIED audit-context). store_claim's
+# precondition (a well-formed claim is presented) obtains here.
+ex:startState a logic:Situation ;
+    rdfs:label "start state of turn 12"@x-gmeow-english ;
+    logic:situationObtains mcp:wellFormedClaim .
+
+# The goal the turn pursued: the belief is revised. The situation that counts as reaching it
+# is declared on the anchor via logic:planGoalSituation (mcp:claimSuppressed) — NOT asserted
+# here as gmeow:satisfiedBy, because a conclusive satisfiedBy edge is a DERIVED verdict (it
+# must be backed by a logic:GoalEvaluation). The T6 audit is what DERIVES that satisfiedBy
+# edge when the trajectory's end state reaches mcp:claimSuppressed.
+ex:goalBeliefRevised a gmeow:Goal ;
+    rdfs:label "the belief is revised"@x-gmeow-english .
+
+# --- Call 1: store_claim. RECORDING: usedTool + args + result + time. AUDIT-CONTEXT: ---
+# instantiatesSchema (the true contract) + properPartOf the turn.
+ex:call-store a gmeow:ToolCall ;
+    rdfs:label "turn 12, call 1: store_claim"@x-gmeow-english ;
+    gmeow:usedTool ex:storeClaimTool ;
+    gmeow:toolArguments "{\"text\": \"the GTS spec mandates RFC 8949 deterministic encoding\"}" ;
+    gmeow:toolResult "{\"ok\": true, \"claim_id\": \"c-2200\"}" ;
+    gmeow:atTime "2026-06-19T14:00:03Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    logic:instantiatesSchema mcp:storeClaim ;
+    logic:properPartOf ex:turn .
+
+# --- Call 2: revise_belief (suppresses the just-stored claim — P10, never deletes). ---
+ex:call-revise a gmeow:ToolCall ;
+    rdfs:label "turn 12, call 2: revise_belief"@x-gmeow-english ;
+    gmeow:usedTool ex:reviseBeliefTool ;
+    gmeow:toolArguments "{\"claim_id\": \"c-2200\", \"reason\": \"superseded by a sharper source\"}" ;
+    gmeow:toolResult "{\"ok\": true, \"suppressed\": \"c-2200\"}" ;
+    gmeow:atTime "2026-06-19T14:00:07Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    logic:instantiatesSchema mcp:reviseBelief ;
+    logic:properPartOf ex:turn .
+
+# The entity the store produced links BACK to its call (P5: no forward output property).
+ex:claim-c2200 a gmeow:Document ;
+    rdfs:label "stored memory claim c-2200"@x-gmeow-english ;
+    gmeow:wasGeneratedBy ex:call-store ;
+    gmeow:wasAttributedTo ex:assistant .
