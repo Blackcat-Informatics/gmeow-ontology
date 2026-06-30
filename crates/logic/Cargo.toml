@@ -17,15 +17,17 @@ keywords = ["rdf", "rdf-star", "reasoning", "knowledge-graph"]
 crate-type = ["rlib"]
 path = "src/lib.rs"
 
+[features]
+python = ["dep:pyo3", "gmeow-diagnostics/python", "gmeow-rdf/python"]
+
 [dependencies]
 # Shared RDF 1.2 adapter boundary for loading GTS/sidecar-aware datasets into
 # world-indexed logic stores (#648, supports #630/#667). The world-store now holds
 # the native `MutableDataset`/`RdfDataset` IR directly — oxigraph-free (EPIC #906).
 # The `python` feature exposes `gmeow_rdf::py_store::quad_to_py`, so the native RL
 # closure returns live `gmeow_rdf.Quad` objects directly instead of an N-Triples
-# string the Python adapter would have to re-parse (#630 seam removal). `gmeow-logic`
-# is only ever built as a PyO3 extension submodule, so this adds no non-Python path.
-gmeow-rdf = { path = "../rdf", features = ["gts", "python"] }
+# string the Python adapter would have to re-parse (#630 seam removal).
+gmeow-rdf = { path = "../rdf", features = ["gts"] }
 # The native SPARQL engine over `Arc<RdfDataset>` (#906): the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (rdf-core/sparql-algebra/xsd
@@ -58,8 +60,8 @@ sha1 = "0.10"
 # sha256(sort_key)[:12], matching the Python compiler byte-for-byte.
 sha2 = "0.10"
 
-# pyo3: PyO3 Python bindings. Hard dependency — HARD FAIL if absent.
-pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
+# pyo3: PyO3 Python bindings. Enabled only for the unified native extension.
+pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 
 # nemo: forward-chaining existential-rule reasoner. Hard dependency — the build
 # MUST succeed with the full Nemo reasoner linked; there is no fallback.

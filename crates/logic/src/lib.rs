@@ -9,7 +9,8 @@
 //! gated against the same language-neutral conformance corpus as `gmeow-gts`.
 //!
 //! This crate is single-target native only.
-//! Nemo-based rule evaluation and PyO3 bindings are unconditionally included.
+//! Nemo-based rule evaluation is unconditional; PyO3 bindings are enabled only
+//! for the unified native extension.
 
 pub mod certificate;
 pub mod counterfactual;
@@ -72,10 +73,12 @@ pub mod wellfounded;
 pub use wellfounded::{WELL_FOUNDED_ITERATED_PHASE, WELL_FOUNDED_PHASES};
 
 // PyO3 Python bindings.
+#[cfg(feature = "python")]
 pub mod py;
 
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.logic` submodule (#630).
+#[cfg(feature = "python")]
 pub use py::register;
 
 // Nemo reasoner bridge.

@@ -453,6 +453,51 @@ mod tests {
     }
 
     #[test]
+    fn substitute_visible_inside_filter_exists_disjunction() {
+        // SHACL ExpectedCell uses this shape: a focus is invalid iff it has both
+        // value properties or neither. The pre-bound focus must be visible inside
+        // FILTER/EXISTS; otherwise the EXISTS probes become whole-dataset globals.
+        let mut b = RdfDatasetBuilder::new();
+        let iri_prop = b.intern_iri("http://ex/cellValueIri".to_owned());
+        let lit_prop = b.intern_iri("http://ex/cellValueLiteral".to_owned());
+        let one = b.intern_iri("http://ex/one".to_owned());
+        let both = b.intern_iri("http://ex/both".to_owned());
+        let value = b.intern_iri("http://ex/value".to_owned());
+        let lit = b.intern_literal(RdfLiteral::simple("literal"));
+        b.push_quad(one, iri_prop, value, None);
+        b.push_quad(both, iri_prop, value, None);
+        b.push_quad(both, lit_prop, lit, None);
+        let ds = Arc::new(b.freeze().expect("freeze"));
+        let engine = NativeSparqlEngine::new();
+        let q = "SELECT ?this WHERE { \
+                 FILTER( \
+                   (EXISTS { ?this <http://ex/cellValueIri> ?i } && EXISTS { ?this <http://ex/cellValueLiteral> ?l }) || \
+                   (!EXISTS { ?this <http://ex/cellValueIri> ?i } && !EXISTS { ?this <http://ex/cellValueLiteral> ?l }) \
+                 ) \
+               }";
+        let run = |focus: &str| {
+            let r = engine
+                .query(
+                    &ds,
+                    SparqlRequest {
+                        query: q,
+                        base_iri: None,
+                        substitutions: &[("this".to_owned(), TermValue::Iri(focus.to_owned()))],
+                    },
+                )
+                .expect("query");
+            col0(r)
+        };
+
+        assert!(
+            run("http://ex/one").is_empty(),
+            "a cell with exactly one value property must conform"
+        );
+        assert_eq!(run("http://ex/both").len(), 1);
+        assert_eq!(run("http://ex/neither").len(), 1);
+    }
+
+    #[test]
     fn filter_not_exists_antijoin_returns_correct_rows() {
         // The class-without-stereotype anti-join shape end-to-end through the parser: FILTER NOT EXISTS whose inner
         // references the outer var only in a triple position. In `social()`, :a knows
