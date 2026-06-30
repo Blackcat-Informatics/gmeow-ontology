@@ -404,3 +404,79 @@ gmeow:eqProc036 a gmeow:TermEquivalence ;
     gmeow:confidence 0.6 ;
     gmeow:comment "Nextflow process (by reference): a procedure step is a Nextflow process node consuming/producing channels." ;
     gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# Guard → structured-program combinator (the combinator TREE).                #
+#                                                                              #
+# W2 minted the flow-GRAPH layer: gmeow:ControlFlow ⊑ logic:ControlFlowEdge,  #
+# the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC  #
+# over. This block adds the COMPLEMENTARY layer the flow-graph alignment did   #
+# NOT carry: the correspondence from a control-flow edge's guard VALUE        #
+# (gmeow:flowGuard, a gmeow:BranchConditionType) onto the canonical           #
+# structured-program COMBINATOR class an interpreter walks as a program TREE  #
+# (logic:Choice / logic:Iteration / logic:ConcurrentComposition /            #
+# logic:Fallback). The two forms are complementary, NOT duplicates            #
+# (LOGIC.md logic:ControlFlowEdge definition): the graph edge is what the     #
+# certifier reads; the combinator is what an interpreter walks.               #
+#                                                                              #
+# These are INTERNAL structural correspondences (gmeow → logic: core, the     #
+# same gmeow→gmeow idiom the deception/narrative slices already use), each a   #
+# skos:relatedMatch — NOT an equivalence: a guard value is a marker on a      #
+# reified edge that INDICATES which combinator the edge realizes; it is not   #
+# the combinator class itself, so equivalence would overclaim. They lower     #
+# through the same SSSOM/EDOAL/SPARQL pipeline and fold into the per-          #
+# correspondence loss ledger (validation-only) like every other cell.         #
+#                                                                              #
+# switch → logic:Choice (n-ary): logic:Choice is the BINARY co-equal-operand  #
+# choice combinator (logic:leftOperand / logic:rightOperand). An n-way switch #
+# corresponds to a right-nested cascade of binary logic:Choice nodes, so the  #
+# single canonical target is logic:Choice; the n-ary nesting is the lossy     #
+# drop recorded on the cell (the flat switch arity is not preserved by the    #
+# binary combinator). The implicit fallback / else arm of an if or a switch   #
+# corresponds to logic:Fallback (try the guarded arm, else the default arm);  #
+# it is recorded as the residue note on those two cells rather than as a      #
+# separate guard value, because the procedures vocabulary has no distinct     #
+# "else" guard — the default arm is the un-guarded ControlFlow edge out of    #
+# the branch step.                                                            #
+# --------------------------------------------------------------------------- #
+
+gmeow:eqProc037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:branchConditionIf ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject logic:Choice ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "An if-then guard on a gmeow:ControlFlow edge realizes the canonical binary choice combinator logic:Choice (the guarded then-arm vs. the alternative). Structural, not equivalent: the guard VALUE marks which combinator the reified edge realizes, it is not the combinator class. The implicit else / default arm corresponds to logic:Fallback (try the guarded arm, else the default)." ;
+    gmeow:lossyDrop "implicit else/default arm → logic:Fallback: the default branch is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:branchConditionLoop ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject logic:Iteration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "A loop-back guard on a gmeow:ControlFlow edge realizes the canonical iteration combinator logic:Iteration (logic:iterationBody gated by logic:iterationCondition). Structural, not equivalent. A loop is a back-edge in the flow graph, so a procedure carrying a loop guard is outside the acyclic DAG fragment the certifier accepts." ;
+    gmeow:lossyDrop "loop body / loop condition split (logic:iterationBody, logic:iterationCondition) is not carried by the flat guard value; the back-edge places the procedure outside the DAG fragment" ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:branchConditionParallel ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject logic:ConcurrentComposition ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "A parallel split/join guard on a gmeow:ControlFlow edge realizes the canonical concurrent-composition combinator logic:ConcurrentComposition (two co-equal legs run concurrently). Structural, not equivalent." ;
+    gmeow:lossyDrop "the conflict-serializability surface of a concurrent run (logic:ConcurrentHistory, logic:serializabilityCriterion) is derived by the native evaluator, not carried by the flat parallel guard value" ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:branchConditionSwitch ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject logic:Choice ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "An n-way switch guard on a gmeow:ControlFlow edge realizes the canonical choice combinator logic:Choice. logic:Choice is BINARY (logic:leftOperand / logic:rightOperand), so an n-way switch corresponds to a right-nested cascade of binary logic:Choice nodes; the single canonical combinator target is logic:Choice. Structural, not equivalent. The implicit default case corresponds to logic:Fallback." ;
+    gmeow:lossyDrop "n-ary switch arity → right-nested binary logic:Choice cascade: the flat switch arity is not preserved by the binary combinator" ;
+    gmeow:lossyDrop "implicit default case → logic:Fallback: the default arm is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
