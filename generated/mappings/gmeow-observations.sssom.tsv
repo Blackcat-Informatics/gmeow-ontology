@@ -97,7 +97,7 @@ gmeow:sensoryProperty	skos:closeMatch	sosa:observedProperty	semapv:ManualMapping
 gmeow:streamInterval	skos:closeMatch	sosa:phenomenonTime	semapv:ManualMappingCuration	0.7	Stream interval vs per-observation phenomenon time.
 gmeow:streamSample	skos:closeMatch	sosa:hasMember	semapv:ManualMappingCuration	0.8	Stream sample is a member of the observation collection.
 gmeow:streamSensor	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuration	0.75	Per-stream vs per-observation sensor attribution.
-gmeow:unit	skos:closeMatch	om:Unit	semapv:ManualMappingCuration	0.85	OM Unit is the unit of measure in the OM ontology; GMEOW unit points to QUDT by default, with OM as an alternative by reference.
+gmeow:unit	skos:closeMatch	om:hasUnit	semapv:ManualMappingCuration	0.85	OM models om:hasUnit as the property relating a measure to its om:Unit; gmeow:unit is the parallel property edge (a quantity to its unit IRI), so the alignment stays property-to-property. GMEOW unit points to QUDT by default, with OM as an alternative by reference.
 gmeow:vantage	skos:closeMatch	crm:P14_carried_out_by	semapv:ManualMappingCuration	0.8	crm:P14 is event-centric; gmeow:vantage is relator-centric. Semantic alignment on 'who performed it'.
 gmeow:vantage	skos:closeMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.85	prov:wasAttributedTo is a property, gmeow:vantage is a property; the alignment is on the semantic axis (who is responsible), not structural identity.
 gmeow:vantage	skos:closeMatch	sosa:madeBySensor	semapv:ManualMappingCuration	0.7	SOSA is device-centric; gmeow:vantage covers human standpoints, organizations, and sensors alike. CloseMatch with a note.

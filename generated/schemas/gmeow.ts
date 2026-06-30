@@ -2921,6 +2921,7 @@ export enum TempoMapSegmentEnum {
 }
 
 export enum TemporalFrameEnum {
+    temporalFrameBeforePresent = "temporalFrameBeforePresent",
     temporalFrameGPSGregorian = "temporalFrameGPSGregorian",
     temporalFrameTAI = "temporalFrameTAI",
     temporalFrameTDBGregorian = "temporalFrameTDBGregorian",
@@ -2990,6 +2991,7 @@ export enum TimeMappingKindEnum {
 }
 
 export enum TimeScaleEnum {
+    timeScaleBeforePresent = "timeScaleBeforePresent",
     timeScaleGPS = "timeScaleGPS",
     timeScaleTAI = "timeScaleTAI",
     timeScaleTDB = "timeScaleTDB",

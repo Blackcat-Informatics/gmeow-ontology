@@ -2945,6 +2945,7 @@ class TempoMapSegmentEnum(str, Enum):
 
 
 class TemporalFrameEnum(str, Enum):
+    temporalFrameBeforePresent = "temporalFrameBeforePresent"
     temporalFrameGPSGregorian = "temporalFrameGPSGregorian"
     temporalFrameTAI = "temporalFrameTAI"
     temporalFrameTDBGregorian = "temporalFrameTDBGregorian"
@@ -3014,6 +3015,7 @@ class TimeMappingKindEnum(str, Enum):
 
 
 class TimeScaleEnum(str, Enum):
+    timeScaleBeforePresent = "timeScaleBeforePresent"
     timeScaleGPS = "timeScaleGPS"
     timeScaleTAI = "timeScaleTAI"
     timeScaleTDB = "timeScaleTDB"

@@ -20831,6 +20831,9 @@ enums:
   TemporalFrameEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/TemporalFrame
     permissible_values:
+      temporalFrameBeforePresent:
+        meaning: https://blackcatinformatics.ca/gmeow/temporalFrameBeforePresent
+        title: Before Present (geological/radiometric)
       temporalFrameGPSGregorian:
         meaning: https://blackcatinformatics.ca/gmeow/temporalFrameGPSGregorian
         title: GPS Gregorian (satellite time)
@@ -20990,6 +20993,9 @@ enums:
   TimeScaleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/TimeScale
     permissible_values:
+      timeScaleBeforePresent:
+        meaning: https://blackcatinformatics.ca/gmeow/timeScaleBeforePresent
+        title: Before Present (BP)
       timeScaleGPS:
         meaning: https://blackcatinformatics.ca/gmeow/timeScaleGPS
         title: GPS Time
