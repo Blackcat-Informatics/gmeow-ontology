@@ -97,6 +97,23 @@ Three equivalent names for one construct — the domain-neutral scalar bundle:
 `isResultOf` for provenance. Temperatures, counts, probabilities, masses — all of them,
 one shape.
 
+### YAMATO quality stratification — persistent Quality, generic→role ladder, true quantity
+
+A measured value is the *frame-relative reading* of a *frame-independent quantity* of a
+*persistent quality* (Principle 11). `gmeow:Quality` (⊑ `logic:Quality`) is the enduring
+quality of a `gmeow:bearer` — a patient's systolic blood pressure — that persists while its
+values change; dated `gmeow:Observation`s attach to it via `gmeow:observationOf` +
+`gmeow:observedAt`, so its value-history is a first-class series rather than disconnected
+results. The quality instantiates a generic quality (`logic:genericQuality` → a
+`gmeow:GenericQuality` such as `gmeow:pressure`) and plays an anti-rigid quality-role
+(`logic:qualityRole` over `logic:Role` — `height` is `length` in a body-context). The
+reading carries `gmeow:trueQuantity` → a `gmeow:Magnitude` (the unit-independent magnitude,
+dimension only) plus the frame-relative `gmeow:quantityValue` + `gmeow:unit` +
+`gmeow:hasReferenceFrame`. These ground onto the `logic:` foundation by sub-property, so a
+value expressed in a unit with no frame is the native `logic:MeasurementFrameMissing`
+violation and a role with no generic is `logic:QualityRoleWithoutGeneric`. Worked end-to-end
+in `examples/blood-pressure.ttl`.
+
 ### gmeow:MonetaryAmount
 
 Promoted to core in the dependency refactor: money is frame-relative quantity

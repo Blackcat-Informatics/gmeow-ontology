@@ -193,13 +193,27 @@ primarily as a **source of selected foundational refinements adopted canonically
 (Principle 17), with YAMATO's own terms bridged `skos:closeMatch` by reference. This is the
 *bridge-view-as-refinement-source* case.
 
-The adopted refinements — the **process / event** set is now formalized in `logic:`, while the
-**quality / quantity** set remains tracked-as-terms pending a consumer:
+The adopted refinements — both the **process / event** and the **quality / quantity** sets are now
+formalized canonically in `logic:` (Principle 17), grounded at the domain level:
 
-- **Quality / quantity** (a foundational refinement, tracked as a term): a **persistent
-  `Quality` identity** (one enduring quality whose dated values change); the **generic-quality →
-  quality-role ladder** (`length` playing a `height` role — Principle 11 stated in role terms);
-  and **unit-independent true quantity** (the unit belongs to the *measurement*, not the quantity).
+- **Quality / quantity** (now formalized canonically in `logic:`, Principle 17, grounded in the
+  observation spine):
+  - **persistent `Quality` identity** — one enduring quality whose dated values change. The
+    foundational `logic:Quality` is grounded as the domain `gmeow:Quality`, inhering in its
+    `gmeow:bearer` (by-reference inherence, Principle 5 — never raw `gufo:inheresIn`), with dated
+    `gmeow:Observation`s attached via `gmeow:observationOf` + `gmeow:observedAt`, so a quality's
+    value-history is a first-class series (the openEHR `OBSERVATION/HISTORY`).
+  - **generic-quality → quality-role ladder** (`length` playing a `height` role — Principle 11
+    stated in role terms) — `logic:genericQuality` and `logic:qualityRole` over the existing
+    anti-rigid `logic:Role`; a quality bearing a role with no generic is the
+    `logic:QualityRoleWithoutGeneric` violation, entailed by the native foundation rule.
+  - **unit-independent true quantity** (the unit belongs to the *measurement*, not the quantity,
+    Principle 11) — `logic:trueQuantity` carries the frame-independent magnitude (grounded as
+    `gmeow:Magnitude`), while `logic:measuredValue` + `logic:unit` + `logic:referenceFrame` carry
+    the frame-relative value; a value expressed in a unit with no frame is the
+    `logic:MeasurementFrameMissing` violation, keyed on the IRI-valued `logic:unit` witness since
+    the foundation chase is all-IRI. The domain `gmeow:unit` / `gmeow:hasReferenceFrame` /
+    `gmeow:quantityValue` ground onto the `logic:` seam by sub-property; `gmeow:hasUnit` is retired.
 - **Process / event** (now formalized canonically in `logic:`, Principle 17, grounded at the
   domain level):
   - **process ≠ event** — the change-asymmetry, enforced by the native foundation rule

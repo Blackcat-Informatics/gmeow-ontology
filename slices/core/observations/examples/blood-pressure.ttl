@@ -1,0 +1,95 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the YAMATO quality stratification — the three deltas.
+# (1) ONE persistent gmeow:Quality per enduring quality (systolic / diastolic BP),
+#     inhering in a gmeow:bearer (by-reference, P5 — not raw gufo:inheresIn),
+#     instantiating a generic quality (gmeow:pressure) and playing an anti-rigid
+#     quality-role (logic:qualityRole over logic:Role).
+# (2) Dated gmeow:Observations attach to the enduring quality via gmeow:observationOf
+#     + gmeow:observedAt — a value-history series, not free-floating results.
+# (3) Each framed measured value carries gmeow:trueQuantity -> a frame-independent
+#     gmeow:Magnitude, plus gmeow:quantityValue + gmeow:unit + gmeow:hasReferenceFrame;
+#     the unit belongs to the measured value, never the magnitude (P11). A value with a
+#     unit but no frame would be the logic:MeasurementFrameMissing violation — every
+#     value here carries its frame. (Values are structural test data, not clinical.)
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/bp/> .
+@prefix qudt:  <http://qudt.org/vocab/unit/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:patientP      a gmeow:Person ; gmeow:name "Patient P"@x-gmeow-english .
+ex:practitionerX a gmeow:Person ; gmeow:name "Practitioner X"@x-gmeow-english .
+
+# --- The two quality-roles pressure plays in the arterial-BP bearer-context (logic:Role).
+ex:systolicRole  a logic:Role ; gmeow:name "systolic pressure role"@x-gmeow-english .
+ex:diastolicRole a logic:Role ; gmeow:name "diastolic pressure role"@x-gmeow-english .
+
+# --- The reference frame the readings are expressed in (a scalar measurement frame).
+ex:clinicFrameDE a gmeow:ReferenceFrame ;
+    gmeow:name             "DE clinical mmHg frame"@x-gmeow-english ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount   "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind        gmeow:frameKindScalar ;
+    gmeow:frameRealm       gmeow:frameRealmMeasurement ;
+    gmeow:hasAxis          gmeow:axisScalar ;
+    gmeow:requiresHost     false .
+
+# === (1) Two PERSISTENT qualities of the patient — enduring, value-history-bearing.
+ex:sysBP a gmeow:Quality ;
+    gmeow:bearer         ex:patientP ;
+    logic:genericQuality gmeow:pressure ;
+    logic:qualityRole    ex:systolicRole .
+
+ex:diaBP a gmeow:Quality ;
+    gmeow:bearer         ex:patientP ;
+    logic:genericQuality gmeow:pressure ;
+    logic:qualityRole    ex:diastolicRole .
+
+# === (2) A dated observation series of the SAME systolic quality (value-history),
+#         plus one diastolic reading. observationOf (a observedFeature specialization)
+#         attaches each dated reading to the enduring quality.
+ex:sysObs1 a gmeow:Measurement ;
+    gmeow:vantage           ex:practitionerX ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:observationOf     ex:sysBP ;
+    gmeow:observedAt        "2012-09-17T08:00:00+02:00"^^xsd:dateTime ;
+    gmeow:observationResult ex:sysVal1 .
+
+ex:sysObs2 a gmeow:Measurement ;
+    gmeow:vantage           ex:practitionerX ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:observationOf     ex:sysBP ;
+    gmeow:observedAt        "2012-09-18T08:00:00+02:00"^^xsd:dateTime ;
+    gmeow:observationResult ex:sysVal2 .
+
+ex:diaObs1 a gmeow:Measurement ;
+    gmeow:vantage           ex:practitionerX ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:observationOf     ex:diaBP ;
+    gmeow:observedAt        "2012-09-17T08:00:00+02:00"^^xsd:dateTime ;
+    gmeow:observationResult ex:diaVal1 .
+
+# === (3) Each framed measured value: a frame-independent gmeow:Magnitude (carries only
+#         its dimension) plus the frame-relative value + unit + reference frame.
+ex:sysMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure .
+ex:diaMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure .
+
+ex:sysVal1 a gmeow:Quantity ;
+    gmeow:trueQuantity      ex:sysMagnitude ;
+    gmeow:quantityValue     "120"^^xsd:decimal ;
+    gmeow:unit              qudt:MilliM_HG ;
+    gmeow:hasReferenceFrame ex:clinicFrameDE .
+
+ex:sysVal2 a gmeow:Quantity ;
+    gmeow:trueQuantity      ex:sysMagnitude ;
+    gmeow:quantityValue     "118"^^xsd:decimal ;
+    gmeow:unit              qudt:MilliM_HG ;
+    gmeow:hasReferenceFrame ex:clinicFrameDE .
+
+ex:diaVal1 a gmeow:Quantity ;
+    gmeow:trueQuantity      ex:diaMagnitude ;
+    gmeow:quantityValue     "80"^^xsd:decimal ;
+    gmeow:unit              qudt:MilliM_HG ;
+    gmeow:hasReferenceFrame ex:clinicFrameDE .
