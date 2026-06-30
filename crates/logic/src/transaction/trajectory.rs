@@ -136,11 +136,11 @@ fn order_steps(
 ) -> Result<Vec<(String, String)>, String> {
     // Enforce a single temporal frame across the trajectory (Principle 11): a lexical sort of
     // gmeow:atTime literals is coherent only within one frame.
-    let mut frames: BTreeSet<String> = BTreeSet::new();
+    let mut frames: BTreeSet<&str> = BTreeSet::new();
     for call in &calls {
         match facts.object(call, &gmeow(EVENT_TEMPORAL_FRAME)) {
             Some(frame) => {
-                frames.insert(frame.to_owned());
+                frames.insert(frame);
             }
             None => {
                 return Err(format!(
