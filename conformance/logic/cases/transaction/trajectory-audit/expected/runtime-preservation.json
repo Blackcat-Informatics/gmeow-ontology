@@ -1,0 +1,8 @@
+{
+  "polarities": [
+    "SoundUnderApproximation"
+  ],
+  "unsupported_constructs": [
+    "logic:GoalEvaluation factored axes (satisfaction/feasibility/lifecycle status, satisfaction degree, criterion, evaluator/standpoint vantage multiplicity) collapsed to flat binary gmeow:satisfiedBy edge"
+  ]
+}

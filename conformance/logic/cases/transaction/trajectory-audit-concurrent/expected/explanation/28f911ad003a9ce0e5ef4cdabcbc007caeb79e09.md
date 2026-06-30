@@ -1,0 +1,38 @@
+<!-- cited-iri-skeleton
+  http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+  https://blackcatinformatics.ca/gmeow/derivation/79aee8460356b45aca96ce5850e1ef8670d90cb6
+  https://blackcatinformatics.ca/gmeow/derivation/931b14d0c55195ed512874c9b2a6146f726ad249
+  https://blackcatinformatics.ca/gmeow/reifier/28f911ad003a9ce0e5ef4cdabcbc007caeb79e09
+  https://blackcatinformatics.ca/gmeow/reifier/7e424e56774877fdfc96008eabcf758eaa90625c
+  https://blackcatinformatics.ca/logic/TransactionStep
+  https://blackcatinformatics.ca/logic/assert
+  https://blackcatinformatics.ca/logic/effect
+  https://blackcatinformatics.ca/logic/rule/transaction
+  https://blackcatinformatics.ca/logic/step/8fe36b52bf8205a465801b389a8dd49438990dfb
+  https://example.org/transaction/trajectory-audit-concurrent/schR1
+  https://example.org/transaction/trajectory-audit-concurrent/schR1Eff
+  https://example.org/transaction/trajectory-audit-concurrent/world
+-->
+
+<!-- step-skeleton
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/79aee8460356b45aca96ce5850e1ef8670d90cb6
+    rule=https://blackcatinformatics.ca/logic/rule/transaction
+    term=http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+    term=https://blackcatinformatics.ca/logic/TransactionStep
+    term=https://blackcatinformatics.ca/logic/step/8fe36b52bf8205a465801b389a8dd49438990dfb
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/931b14d0c55195ed512874c9b2a6146f726ad249
+    rule=https://blackcatinformatics.ca/logic/assert
+    term=https://blackcatinformatics.ca/logic/effect
+    term=https://example.org/transaction/trajectory-audit-concurrent/schR1
+    term=https://example.org/transaction/trajectory-audit-concurrent/schR1Eff
+-->
+
+# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/28f911ad003a9ce0e5ef4cdabcbc007caeb79e09>`
+
+**World:** `<https://example.org/transaction/trajectory-audit-concurrent/world>`
+**Target derivation:** `<https://blackcatinformatics.ca/gmeow/derivation/79aee8460356b45aca96ce5850e1ef8670d90cb6>`
+
+**Derived** by rule `<https://blackcatinformatics.ca/logic/rule/transaction>`:
+  `<https://blackcatinformatics.ca/logic/step/8fe36b52bf8205a465801b389a8dd49438990dfb>` `<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>` `<https://blackcatinformatics.ca/logic/TransactionStep>` *(in `<https://example.org/transaction/trajectory-audit-concurrent/world>`)*
+  **Asserted fact** (input — `<https://blackcatinformatics.ca/gmeow/reifier/7e424e56774877fdfc96008eabcf758eaa90625c>`):
+    `<https://example.org/transaction/trajectory-audit-concurrent/schR1>` `<https://blackcatinformatics.ca/logic/effect>` `<https://example.org/transaction/trajectory-audit-concurrent/schR1Eff>` *(in `<https://example.org/transaction/trajectory-audit-concurrent/world>`)*
