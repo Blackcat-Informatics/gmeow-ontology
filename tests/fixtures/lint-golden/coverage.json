@@ -769,7 +769,7 @@
     "https://blackcatinformatics.ca/gmeow/hasTemporalFrame",
     "https://blackcatinformatics.ca/gmeow/hasTitle",
     "https://blackcatinformatics.ca/gmeow/hasTrajectorySample",
-    "https://blackcatinformatics.ca/gmeow/hasUnit",
+    "https://blackcatinformatics.ca/gmeow/unit",
     "https://blackcatinformatics.ca/gmeow/hasVerificationStatus",
     "https://blackcatinformatics.ca/gmeow/hasWebPage",
     "https://blackcatinformatics.ca/gmeow/hasWorkedWith",

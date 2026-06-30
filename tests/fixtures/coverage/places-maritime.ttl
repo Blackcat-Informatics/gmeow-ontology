@@ -67,12 +67,12 @@ ex:jurisdictionB a gmeow:JurisdictionTenure ;
 
 ex:depth0 a gmeow:ScalarQuantity ;
     gmeow:quantityValue "0"^^xsd:decimal ;
-    gmeow:hasUnit qudt:M ;
+    gmeow:unit qudt:M ;
     gmeow:hasReferenceFrame gmeow:referenceFrameDepthBelowSeaLevel .
 
 ex:depth200 a gmeow:ScalarQuantity ;
     gmeow:quantityValue "200"^^xsd:decimal ;
-    gmeow:hasUnit qudt:M ;
+    gmeow:unit qudt:M ;
     gmeow:hasReferenceFrame gmeow:referenceFrameDepthBelowSeaLevel .
 
 # --- Time intervals ---------------------------------------------------------- #

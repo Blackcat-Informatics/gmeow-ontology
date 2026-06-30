@@ -5917,6 +5917,31 @@
         ],
         "type": "object"
       },
+      "Magnitude": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:dimension": {}
+        },
+        "type": "object"
+      },
       "Manifestation": {
         "properties": {
           "@annotation": {
@@ -6009,7 +6034,6 @@
               }
             ]
           },
-          "gmeow:hasUnit": {},
           "gmeow:quantityValue": {
             "anyOf": [
               {
@@ -6028,11 +6052,23 @@
                 "type": "object"
               }
             ]
+          },
+          "gmeow:trueQuantity": {},
+          "gmeow:unit": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
-          "gmeow:hasUnit",
-          "gmeow:quantityValue"
+          "gmeow:quantityValue",
+          "gmeow:unit"
         ],
         "type": "object"
       },
@@ -10129,6 +10165,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:Magnitude"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Magnitude"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/Magnitude"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:Manifestation"
                     },
                     {
@@ -11796,6 +11857,31 @@
             },
             "then": {
               "$ref": "#/$defs/ProximityMeasurement"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Quality"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Quality"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/Quality"
             }
           },
           {
@@ -13655,7 +13741,6 @@
         "type": "object"
       },
       "Observation": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -13673,6 +13758,26 @@
                   "type": "string"
                 },
                 "type": "array"
+              }
+            ]
+          },
+          "gmeow:observedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
               }
             ]
           }
@@ -16303,6 +16408,41 @@
         ],
         "type": "object"
       },
+      "Quality": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:bearer": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
       "Quantity": {
         "properties": {
           "@annotation": {
@@ -16324,7 +16464,6 @@
               }
             ]
           },
-          "gmeow:hasUnit": {},
           "gmeow:quantityValue": {
             "anyOf": [
               {
@@ -16343,11 +16482,23 @@
                 "type": "object"
               }
             ]
+          },
+          "gmeow:trueQuantity": {},
+          "gmeow:unit": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
-          "gmeow:hasUnit",
-          "gmeow:quantityValue"
+          "gmeow:quantityValue",
+          "gmeow:unit"
         ],
         "type": "object"
       },
@@ -16968,7 +17119,6 @@
               }
             ]
           },
-          "gmeow:hasUnit": {},
           "gmeow:quantityValue": {
             "anyOf": [
               {
@@ -16987,11 +17137,23 @@
                 "type": "object"
               }
             ]
+          },
+          "gmeow:trueQuantity": {},
+          "gmeow:unit": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
-          "gmeow:hasUnit",
-          "gmeow:quantityValue"
+          "gmeow:quantityValue",
+          "gmeow:unit"
         ],
         "type": "object"
       },
