@@ -58,33 +58,17 @@ fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, St
     Ok(strings)
 }
 
-/// Parse star-FREE JSON-LD bytes via the native JSON-LD codec
-/// ([`gmeow_rdf::native_codecs::jsonld::parse_jsonld`]) and return RDFC-1.0
-/// canonical quad strings.
-///
-/// Used for the `"rdf"` compare mode when the `to` codec is plain `jsonld`:
-/// JSON-LD has no flat [`NativeRdfFormat`] variant (it is not a line/Turtle-family
-/// format), so the flat `canonical_quads` path cannot ingest it. The JSON-LD
-/// output of a star-dropping transcode is star-free, so the base parser suffices.
-fn canonical_quads_jsonld(bytes: &[u8]) -> Result<Vec<String>, String> {
-    let dataset = gmeow_rdf::native_codecs::jsonld::parse_jsonld(bytes)
-        .map_err(|e| format!("jsonld parse error: {e}"))?;
-    let canonical = gmeow_rdf::canonical_flat_nquads(&dataset)
-        .map_err(|e| format!("RDF canonicalization error: {e}"))?;
-    let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
-    strings.sort();
-    Ok(strings)
-}
-
-/// Parse JSON-LD-star or YAML-LD-star bytes via the pipeline's own round-trip
+/// Parse JSON-LD / JSON-LD-star or YAML-LD-star bytes via the pipeline's own round-trip
 /// path (the inverse of the emitter) and return RDFC-1.0 canonical quad strings.
 ///
-/// Used for the `"star"` compare mode: oxigraph cannot parse jsonld-star /
-/// yaml-ld-star directly, so we decode through `parse_jsonld_star` (which
+/// Used for the `"star"` compare mode and JSON-LD `rdf` comparisons: the native
+/// RDF text format enum has no JSON-LD variant, so we decode through
+/// `parse_jsonld_star` (which
 /// understands the `@annotation` idiom emitted by the GMEOW serializer) and
 /// then canonicalize via gmeow_rdf.
 fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> Result<Vec<String>, String> {
     let json_bytes = match to_codec {
+        "jsonld" | "json-ld" => bytes.to_vec(),
         "jsonld-star" | "json-ld-star" => bytes.to_vec(),
         "yaml-ld-star" | "yamlld-star" => {
             let json_str =
@@ -115,6 +99,14 @@ fn rdf_format_for_codec(codec: &str) -> Option<NativeRdfFormat> {
         // JSON-LD/YAML-LD are compared via the `star` path (`canonical_quads_star`),
         // never the flat `rdf` path, so they have no native flat-format mapping here.
         _ => None,
+    }
+}
+
+fn canonical_quads_for_codec(bytes: &[u8], codec: &str) -> Result<Vec<String>, String> {
+    if let Some(fmt) = rdf_format_for_codec(codec) {
+        canonical_quads(bytes, fmt)
+    } else {
+        canonical_quads_star(bytes, codec)
     }
 }
 
@@ -213,33 +205,10 @@ fn transcode_corpus() {
         // Compare output.
         let compare_err: Option<String> = match profile.compare.as_str() {
             "rdf" => {
-                // JSON-LD has no flat `NativeRdfFormat` variant (it is not a
-                // line/Turtle-family format), so it is canonicalized through the
-                // native JSON-LD codec; every other `rdf`-compare codec maps to a
-                // flat format.
-                let (actual_canon, expected_canon) =
-                    if matches!(profile.to.as_str(), "jsonld" | "json-ld") {
-                        (
-                            canonical_quads_jsonld(&output.bytes),
-                            canonical_quads_jsonld(&expected_bytes),
-                        )
-                    } else {
-                        let fmt = match rdf_format_for_codec(&profile.to) {
-                            Some(f) => f,
-                            None => {
-                                failures.push(format!(
-                                    "[{case_name}] no RDF format mapping for `to` codec `{}`",
-                                    profile.to
-                                ));
-                                continue;
-                            }
-                        };
-                        (
-                            canonical_quads(&output.bytes, fmt),
-                            canonical_quads(&expected_bytes, fmt),
-                        )
-                    };
-                match (actual_canon, expected_canon) {
+                match (
+                    canonical_quads_for_codec(&output.bytes, &profile.to),
+                    canonical_quads_for_codec(&expected_bytes, &profile.to),
+                ) {
                     (Ok(actual), Ok(expected)) if actual == expected => None,
                     (Ok(actual), Ok(expected)) => {
                         let actual_set: std::collections::BTreeSet<_> = actual.iter().collect();

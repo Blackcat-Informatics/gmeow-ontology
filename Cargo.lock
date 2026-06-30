@@ -1919,6 +1919,7 @@ dependencies = [
 name = "gmeow-rdf-core"
 version = "0.1.0"
 dependencies = [
+ "ahash",
  "ciborium",
  "criterion",
  "csv",
@@ -2019,6 +2020,7 @@ dependencies = [
 name = "gmeow-sparql-eval"
 version = "0.1.0"
 dependencies = [
+ "ahash",
  "criterion",
  "gmeow-rdf-core",
  "gmeow-sparql-algebra",

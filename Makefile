@@ -39,6 +39,11 @@ CROSSREF_DEPOSIT_URL ?= https://doi.crossref.org/servlet/deposit
 # Optional cargo-nextest partition for sharded CI runs (e.g., count:1/2)
 NEXTEST_PARTITION ?=
 NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITION) --no-tests pass,)
+# `gmeow-native` is the single CPython extension cdylib and is covered by
+# native-py/native-py-wheel. Selecting it in `cargo test` enables
+# pyo3/extension-module for the shared pyo3 dependency, which is correct for a
+# wheel but wrong for normal Rust test binaries.
+RUST_TEST_WORKSPACE_ARGS := --workspace --exclude gmeow-native
 
 # The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
 # codegen for regenerate/reasoning throughput. CI and release workflows append the
@@ -121,9 +126,9 @@ rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without 
 
 rust-test: rust-build ## Run the Rust workspace tests and doctests.
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
+	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
-	cargo test --doc
+	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
@@ -296,9 +301,9 @@ doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-purity gate, clippy, nextest, the 25s budget gate, and doctests serially.
 	cargo clippy --all-targets -- -D warnings
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
+	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
-	cargo test --doc
+	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
 sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate (EPIC #906 Task 4).
 	@# Replays every captured query through NativeSparqlEngine over the merged ontology,
@@ -731,5 +736,5 @@ native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI co
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)
-	cargo nextest run --no-run $(NEXTEST_PARTITION_ARG)
+	cargo nextest run --no-run $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	@touch $@

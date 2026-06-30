@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Tests for the relational-core lowering waist (#719).
+//! Tests for the relational-core lowering waist.
 
 use super::*;
 use crate::lower::lower_rule;
 use gmeow_logic_compile::ir::{
-    ContextualScope, LogicAxiom, LogicProgram, LogicRule, PreservationKind,
+    ContextualScope, Formula, LogicAxiom, LogicProgram, LogicRule, PreservationKind, Term,
 };
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
@@ -71,6 +71,110 @@ fn horn_formula_matches_the_equivalent_logic_rule() {
     assert_eq!(
         got.body, expected.body,
         "body must match the LogicRule lowering"
+    );
+}
+
+/// A 2-body-atom formula given in NON-canonical source order must produce the same
+/// canonical body ordering as an equivalent `LogicRule`, proving the formula lane's
+/// sort is byte-identical to `LogicRule::new`'s `sort_by_cached_key(LogicAxiom::sort_key)`.
+///
+/// Source order: `q(x,z) ∧ p(x,y)` (q before p — non-canonical).
+/// Canonical order: `p(x,y)` before `q(x,z)` (because "{LOGIC}p" < "{LOGIC}q" lexically
+/// under the `subject\0pred\0obj\0False` key).
+///
+/// The test would FAIL if the sort in `lower_formula_clause` were removed, because the
+/// formula lane would then yield `[q, p]` while the LogicRule path yields `[p, q]`.
+#[test]
+fn multi_atom_formula_body_order_matches_logic_rule_canonical_order() {
+    // ∀x y z. (q(x,z) ∧ p(x,y)) → head(x,z)
+    // Body atoms authored in NON-canonical order (q before p) to exercise the sort.
+    let body_formula = Formula::And(vec![
+        atom("qRel", vec![var("x"), var("z")]), // q first — non-canonical
+        atom("pRel", vec![var("x"), var("y")]), // p second
+    ]);
+    let formula = Formula::Forall {
+        vars: vec!["x".into(), "y".into(), "z".into()],
+        body: Box::new(Formula::Implies(
+            Box::new(body_formula),
+            Box::new(atom("headRel", vec![var("x"), var("z")])),
+        )),
+    };
+
+    // Build the equivalent LogicRule with the SAME atoms in any order; LogicRule::new
+    // canonicalizes the body, so the expected ordering is the canonical one.
+    let head_ax = LogicAxiom::new(
+        "?x",
+        format!("{LOGIC}headRel"),
+        "?z",
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .unwrap();
+    let p_ax = LogicAxiom::new(
+        "?x",
+        format!("{LOGIC}pRel"),
+        "?y",
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .unwrap();
+    let q_ax = LogicAxiom::new(
+        "?x",
+        format!("{LOGIC}qRel"),
+        "?z",
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .unwrap();
+    // Pass body in source (non-canonical) order — LogicRule::new will sort it.
+    let logic_rule = LogicRule::new(
+        head_ax,
+        vec![q_ax, p_ax], // non-canonical: q before p
+        vec![],
+        ContextualScope::default(),
+    );
+    let expected = lower_rule(&logic_rule).expect("lower logic rule");
+
+    // Lower the formula through the full-FOL lane.
+    let out = lower_formulas(&program_with(vec![formula]));
+    assert_eq!(
+        out.rules.len(),
+        1,
+        "the 2-body-atom formula yields one rule"
+    );
+    let got = &out.rules[0];
+
+    // The body must have exactly 2 atoms and be in canonical order (p before q).
+    assert_eq!(got.body.len(), 2, "both body atoms must survive");
+    assert_eq!(
+        expected.body.len(),
+        2,
+        "sanity: LogicRule lowering also has 2 body atoms"
+    );
+
+    assert_eq!(
+        got.head, expected.head,
+        "head must match the LogicRule lowering"
+    );
+    assert_eq!(
+        got.body, expected.body,
+        "body canonical order must match the LogicRule lowering (pRel before qRel)"
+    );
+
+    // Extra explicit check: pRel must appear before qRel in the body.
+    // This would fail if the sort were absent (source order puts q first).
+    let first_pred = &got.body[0].predicate;
+    let second_pred = &got.body[1].predicate;
+    assert!(
+        first_pred.contains("pRel"),
+        "canonical order: pRel must be the first body atom, got: {first_pred}"
+    );
+    assert!(
+        second_pred.contains("qRel"),
+        "canonical order: qRel must be the second body atom, got: {second_pred}"
     );
 }
 
@@ -227,5 +331,51 @@ fn lowering_is_stable_across_repeated_calls() {
     assert_eq!(
         a.preservation.unsupported_constructs,
         b.preservation.unsupported_constructs
+    );
+}
+
+/// Verify that the lane (`lower_formulas_to_rc`) deduplicates by content key (first-wins,
+/// stable order), and that `lower_formulas` inherits that dedup without an extra pass.
+///
+/// Two identical copies of `horn_rule_formula()` reach `lower_formulas_to_rc`; the lane
+/// must collapse them to a single `RcRule` (dedup-at-lane). The adapter then maps that one
+/// `RcRule` onward to one `EvalRule`, with exact preservation (the duplicate is not residue).
+#[test]
+fn duplicate_formulas_produce_one_rule_not_two() {
+    let f = horn_rule_formula();
+    // The lane now dedups, so two identical formulas yield exactly one RcRule.
+    use gmeow_logic_compile::relational_core::lower_formulas_to_rc;
+    let prog = program_with(vec![f.clone(), f.clone()]);
+    let (rc_rules, rc_residue) = lower_formulas_to_rc(&prog);
+    assert_eq!(
+        rc_rules.len(),
+        1,
+        "dedup-at-lane: lower_formulas_to_rc must collapse two identical formulas to one RcRule"
+    );
+    assert!(rc_residue.is_empty(), "no residue from Horn formulas");
+
+    // The adapter inherits the dedup from the lane and maps one RcRule to one EvalRule.
+    let out = lower_formulas(&prog);
+    assert_eq!(
+        out.rules.len(),
+        1,
+        "lower_formulas must yield one EvalRule: duplicate already dropped by the lane"
+    );
+    assert_eq!(
+        out.rules[0].body.len(),
+        1,
+        "the surviving rule has one body atom"
+    );
+    // Exact preservation: a duplicate is not residue.
+    use gmeow_logic_compile::ir::PreservationKind;
+    assert!(
+        out.preservation.unsupported_constructs.is_empty(),
+        "a duplicate identical clause is not residue"
+    );
+    assert!(
+        out.preservation
+            .polarities
+            .contains(&PreservationKind::Exact),
+        "dedup of identical clauses must not degrade preservation to sound-under"
     );
 }
