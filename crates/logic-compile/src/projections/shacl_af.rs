@@ -40,12 +40,40 @@ use super::{
 
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";
 
-/// A SPARQL literal rendered for embedding inside a Turtle `"""…"""` SHACL string: use a
-/// single-quoted SPARQL string (so an inner `"` never collides with the triple-quoted
-/// SHACL literal), escaping `\` and `'`. Mirrors the `result-shapes` embedding convention.
+/// Escape a string for a SPARQL single-quoted string literal (`STRING_LITERAL1`): the
+/// backslash, the single quote, and the C0 control characters that may not appear raw.
+fn sparql_escape(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for c in value.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '\'' => out.push_str("\\'"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            '\u{08}' => out.push_str("\\b"),
+            '\u{0C}' => out.push_str("\\f"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+/// Escape a string for embedding inside a Turtle long string (`"""…"""`): the backslash and
+/// the double quote. Escaping every `"` (so no `"""` can terminate the long string early) and
+/// doubling every `\` makes the embedded text round-trip through the Turtle parser byte-for-byte.
+fn turtle_long_string_escape(value: &str) -> String {
+    value.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
+/// A SPARQL literal rendered for embedding inside a Turtle `"""…"""` SHACL string. The value
+/// passes through TWO parsers — Turtle un-escapes the `"""…"""` carrier, then SHACL parses the
+/// resulting SPARQL — so it is escaped for the SPARQL layer first, then for the Turtle
+/// long-string carrier. A single-quoted SPARQL string keeps an inner `"` off the SPARQL quote;
+/// the Turtle layer then neutralizes every `"` and `\` so a value containing `"""`, a newline,
+/// a tab, or a backslash can never break either parser.
 fn sparql_literal(value: &str) -> String {
-    let escaped = value.replace('\\', "\\\\").replace('\'', "\\'");
-    format!("'{escaped}'")
+    format!("'{}'", turtle_long_string_escape(&sparql_escape(value)))
 }
 
 /// A SPARQL term token for a subject/object position. A variable equal to `focus_var`
@@ -617,6 +645,65 @@ mod tests {
                 .any(|d| d.contains("head subject") && d.contains("not positively bound")),
             "the unbound head subject must be a ledgered drop, never silent: {:?}",
             result.actual_drops
+        );
+    }
+
+    #[test]
+    fn sparql_literal_escapes_both_the_sparql_and_turtle_layers() {
+        // A nasty value: a triple-quote (would end the Turtle long string), a real newline (illegal
+        // raw in a single-quoted SPARQL string), a backslash, and a single quote.
+        let rendered = sparql_literal("a\"\"\"b\nc\\d'e");
+        // No raw triple-quote can terminate the enclosing Turtle """…""".
+        assert!(
+            !rendered.contains("\"\"\""),
+            "raw triple-quote leaks into the Turtle carrier: {rendered}"
+        );
+        // No raw control character survives (the SPARQL single-quoted string forbids it).
+        assert!(
+            !rendered.contains('\n'),
+            "raw newline leaks into the SPARQL literal: {rendered:?}"
+        );
+        // The newline is carried as a doubly-escaped sequence: Turtle un-escapes `\\n` → `\n`,
+        // which the SPARQL layer then reads as a newline.
+        assert!(
+            rendered.contains("\\\\n"),
+            "newline not double-escaped for the two layers: {rendered}"
+        );
+        // Each double-quote is Turtle-escaped so it cannot start a `"""`.
+        assert!(
+            rendered.contains("\\\""),
+            "double-quote not Turtle-escaped: {rendered}"
+        );
+    }
+
+    #[test]
+    fn rule_with_special_char_literal_object_round_trips_safely() {
+        // A rule whose head object is a literal containing a quote + newline must still produce a
+        // single, well-formed CONSTRUCT with no premature Turtle long-string termination.
+        let head = LogicAxiom::new(
+            "?x",
+            "https://blackcatinformatics.ca/gmeow/note",
+            "line1\nsays \"\"\"hi\"\"\"",
+            true,
+            false,
+            ContextualScope::default(),
+        )
+        .unwrap();
+        let body = vec![var_axiom(
+            "?x",
+            "https://blackcatinformatics.ca/logic/links",
+            "?y",
+            false,
+        )];
+        let rule = LogicRule::new(head, body, vec![], ContextualScope::default());
+        let program = LogicProgram::new(vec![], vec![rule], vec![], None);
+        let ttl = project_shacl_af(&program).content;
+        // Exactly one opening and one closing triple-quote per embedded SPARQL string (select +
+        // construct = 4 total); a leaked `"""` from the literal would push this higher.
+        assert_eq!(
+            ttl.matches("\"\"\"").count(),
+            4,
+            "literal special chars broke the Turtle long-string boundary:\n{ttl}"
         );
     }
 
