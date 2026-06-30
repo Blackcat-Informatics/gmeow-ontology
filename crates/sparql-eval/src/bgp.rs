@@ -8,15 +8,17 @@
 //!
 //! 1. **Compile** each triple pattern's three positions to either a [`Pos::Slot`]
 //!    (a variable column) or a [`Pos::Bound`] (a ground constant resolved once via
-//!    `term_id_by_value`, P4 #838). If a ground constant is absent from the dataset
-//!    the whole BGP is empty — that constant cannot match.
-//! 2. **Order** the patterns most-selective-first with a minimal static heuristic
-//!    ([`selectivity_order`], #913): score by constrained positions, keep the join
-//!    connected. Full cardinality-stats cost planning is S7b (#929).
+//!    `term_id_by_value`, the P4 reverse index). If a ground constant is absent from
+//!    the dataset the whole BGP is empty — that constant cannot match.
+//! 2. **Order** the patterns cheapest-first with a cost-based join planner
+//!    ([`cost_based_order`]): probe each pattern's real cardinality through the P4
+//!    lazy permutation index and search join orders (exhaustive left-deep DP for a
+//!    small BGP, greedy beyond) to minimise the estimated total intermediate
+//!    cardinality, keeping the join connected.
 //! 3. **Index-nested-loop join** in that order; for each partial solution, substitute
 //!    its already-bound variables into the next pattern's positions and call the
-//!    indexed `quads_for_pattern` (P4b #891), then extend. Repeated variables
-//!    (`?x p ?x`) and previously-bound variables are enforced at bind time.
+//!    indexed P4 `quads_for_pattern`, then extend. Repeated variables (`?x p ?x`) and
+//!    previously-bound variables are enforced at bind time.
 //!
 //! ## Blank nodes are non-distinguished variables
 //!
@@ -110,15 +112,16 @@ pub(crate) fn eval_bgp(
         }
     }
 
-    // Reorder the patterns most-selective-first before the join (#913). This is a
-    // pure permutation of a commutative join: `Pos::Slot` is an absolute column
-    // index into `working`, so reordering cannot change which columns bind — the
-    // multiset result is identical, only the join shape (and so the cost) changes.
-    let order = selectivity_order(&compiled);
-
     // The graph scope for this BGP (resolved once — `active_graph` is fixed across a
     // single BGP; `GRAPH` wrapping is applied by `eval_graph` before recursing in).
+    // Needed before planning: a pattern's cardinality is scope-dependent.
     let scope = ctx.active_dataset.scope_for(ctx.active_graph);
+
+    // Reorder the patterns cheapest-first with the cost-based planner. This is a pure
+    // permutation of a commutative join: `Pos::Slot` is an absolute column index into
+    // `working`, so reordering cannot change which columns bind — the multiset result
+    // is identical, only the join shape (and so the cost) changes.
+    let order = cost_based_order(&compiled, ctx.dataset, &scope);
 
     // The interned id of `rdf:reifies`, resolved once. `None` ⇒ the dataset has no
     // reifier layer at all (the predicate was never interned), so no virtual reifier
@@ -187,35 +190,61 @@ pub(crate) fn eval_bgp(
     Ok(project_out_blanks(&working, rows))
 }
 
-/// Order compiled BGP patterns most-selective-first (the minimal static heuristic,
-/// #913). Full cardinality-stats cost planning is S7b (#929); this never probes the
-/// dataset — it scores patterns purely by their *structure* (Principle 12: evaluation
-/// order is computed in the engine, never asserted or materialised as triples).
+/// The BGP-size ceiling for exhaustive join-order search. At or below this many
+/// patterns the planner runs a left-deep Selinger DP over all `2^n` subsets
+/// (`n ≤ 8 ⇒ ≤ 256` states — trivial); above it, a greedy minimum-cardinality walk.
+/// Both minimise the same estimated-intermediate-cardinality cost.
+const COST_DP_MAX_PATTERNS: usize = 8;
+
+/// Order compiled BGP patterns cheapest-first with a cost-based join planner — the
+/// native `sparopt` role. Unlike a structural heuristic, this probes the dataset's
+/// real per-pattern cardinalities (the P4 lazy permutation index, via
+/// [`RdfDataset::cardinality_estimate`]) and searches join orders to minimise the
+/// estimated total intermediate cardinality.
 ///
-/// A pattern's score is how many of its three positions are already *constrained*: a
-/// ground constant ([`Pos::Bound`]), or a variable already bound by an
-/// earlier-scheduled pattern. The order is built greedily, most-constrained-first,
-/// under one hard rule:
+/// Cost model (left-deep, uniform-independence): a pattern's base size is its
+/// constants-only cardinality `|p|`; appending one that shares `j` already-bound
+/// positions multiplies the running estimate by `|p| / T^j`, where `T` is the
+/// distinct-term count (the standard `1/T` equality-join selectivity). An order's
+/// cost is the sum of the running estimates (the Selinger proxy); lower is better.
+/// The connectivity rule is preserved — a pattern is only scheduled once it shares a
+/// bound variable with the prefix (no accidental Cartesian product) unless no
+/// connected pattern remains.
 ///
-/// > **never schedule a pattern disconnected from the bindings produced so far while
-/// > a connected pattern still remains.**
+/// Evaluation order is COMPUTED here, never asserted or materialised as triples
+/// (Principle 12). The reorder is a permutation of a commutative join (`Pos::Slot` is
+/// an absolute column index), so it preserves the result *multiset* exactly — a worse
+/// order is only slower, never wrong. It does not preserve the observable row
+/// *sequence* of a `SELECT` without `ORDER BY`, which is spec-permitted (SPARQL §11
+/// leaves solution order unspecified absent `ORDER BY`), so any golden over an
+/// un-`ORDER BY`-ed query must be order-tolerant. Determinism: cardinality probes are
+/// pure, the cost arithmetic is order-stable `f64` (compared via `total_cmp`), and
+/// ties break on the lexicographically smallest order (lowest original index first) —
+/// identical run to run, no hash-iteration leak.
 ///
-/// That keeps the join left-deep and connected (no accidental Cartesian product),
-/// which is what guarantees the reorder is never *slower* than the naive
-/// left-to-right order on the corpus's chain/star shapes. Note that while the
-/// reorder preserves the result *multiset*, it does not preserve the observable row
-/// *sequence* of a `SELECT` without `ORDER BY` — which is spec-permitted (SPARQL §11
-/// leaves solution order unspecified absent `ORDER BY`), so any golden harness over
-/// an un-`ORDER BY`-ed query must be order-tolerant.
-///
-/// Returns a permutation of `0..compiled.len()`. Determinism: a dense `Vec<bool>`
-/// bound-mask (indexed by the dense `0..n_cols` working columns — no hashing, so no
-/// hash-iteration order can ever leak into the result) plus a strict-`>` scan in
-/// original index order (lowest index wins ties) make the order identical run to run.
-fn selectivity_order(compiled: &[CompiledPattern]) -> Vec<usize> {
+/// Returns a permutation of `0..compiled.len()`.
+fn cost_based_order(
+    compiled: &[CompiledPattern],
+    dataset: &RdfDataset,
+    scope: &GraphScope,
+) -> Vec<usize> {
     let n = compiled.len();
-    // Working columns are dense `0..n_cols`; size the bound-mask to the highest slot.
-    // A position may be a nested triple, so descend through it to find every slot.
+    if n <= 1 {
+        return (0..n).collect();
+    }
+
+    // Per-pattern base cardinality (constants only — slots/quoted-triples are free),
+    // the exact stat a structural heuristic ignores. `f64` so the multiplicative join
+    // selectivities never truncate to zero mid-estimate.
+    let base: Vec<f64> = compiled
+        .iter()
+        .map(|cp| base_cardinality(dataset, cp, scope) as f64)
+        .collect();
+    // Distinct-term count as the equality-join domain size (`1/T` per join axis).
+    let t = dataset.term_count().max(1) as f64;
+
+    // The dense bound-mask width: the highest slot column across all patterns. A
+    // position may be a nested triple, so descend through it to find every slot.
     let mut n_cols = 0usize;
     for cp in compiled {
         for pos in [&cp.s, &cp.p, &cp.o] {
@@ -223,21 +252,79 @@ fn selectivity_order(compiled: &[CompiledPattern]) -> Vec<usize> {
         }
     }
 
+    if n <= COST_DP_MAX_PATTERNS {
+        cost_order_dp(compiled, &base, t, n_cols)
+    } else {
+        cost_order_greedy(compiled, &base, t, n_cols)
+    }
+}
+
+/// The constants-only cardinality of a compiled pattern under `scope`: pass each
+/// ground position through, leave slots and quoted-triple positions free. A
+/// quoted-triple position is treated as unconstrained — a conservative over-estimate,
+/// safe by the multiset invariant. For a FROM/USING merge, sum the per-graph estimates.
+fn base_cardinality(dataset: &RdfDataset, cp: &CompiledPattern, scope: &GraphScope) -> usize {
+    let s = constant_of(&cp.s);
+    let p = constant_of(&cp.p);
+    let o = constant_of(&cp.o);
+    match scope {
+        GraphScope::One(gm) => dataset.cardinality_estimate(s, p, o, *gm),
+        GraphScope::Merge(gs) => gs
+            .iter()
+            .map(|&g| dataset.cardinality_estimate(s, p, o, GraphMatch::Named(g)))
+            .sum(),
+    }
+}
+
+/// The ground id of a position, or `None` for a slot or (conservatively) a nested
+/// quoted-triple position.
+fn constant_of(pos: &Pos) -> Option<TermId> {
+    match pos {
+        Pos::Bound(id) => Some(*id),
+        Pos::Slot(_) | Pos::Triple(_) => None,
+    }
+}
+
+/// How many of a pattern's three top-level positions are already bound by an
+/// earlier-scheduled pattern — each is an equality-join axis (selectivity ~`1/T`).
+/// Ground constants are excluded: their selectivity is already folded into the
+/// pattern's base cardinality.
+fn join_positions(cp: &CompiledPattern, bound: &[bool]) -> usize {
+    [&cp.s, &cp.p, &cp.o]
+        .into_iter()
+        .filter(|pos| pos_has_bound_slot(pos, bound))
+        .count()
+}
+
+/// The running intermediate-size estimate after appending a pattern: scale by its
+/// base size, divide by `T` for each already-bound join axis.
+fn step_size(running: f64, base_p: f64, joins: usize, t: f64) -> f64 {
+    running * base_p / t.powi(joins as i32)
+}
+
+/// Greedy minimum-cardinality join order for a large BGP (`n > COST_DP_MAX_PATTERNS`):
+/// repeatedly schedule the connected pattern whose appended intermediate-size estimate
+/// is smallest, lowest-index on ties. Connectivity is enforced exactly as in the DP.
+fn cost_order_greedy(
+    compiled: &[CompiledPattern],
+    base: &[f64],
+    t: f64,
+    n_cols: usize,
+) -> Vec<usize> {
+    let n = compiled.len();
     let mut bound = vec![false; n_cols];
     let mut scheduled = vec![false; n];
     let mut order = Vec::with_capacity(n);
+    let mut running = 1.0f64;
 
     for _ in 0..n {
-        // If any remaining pattern is connected to the bindings so far, only such
-        // patterns are eligible this round — never force a Cartesian product while a
-        // connected join is available. (Round 1: `bound` is empty, nothing is
-        // connected, so every pattern is eligible and the most-constrained — i.e.
-        // the one with the most ground constants — is chosen.)
+        // While a connected pattern remains, only such patterns are eligible — never
+        // force a Cartesian product. (Round 1: nothing bound, nothing connected, so
+        // every pattern is eligible and the lowest-cardinality one seeds the join.)
         let any_connected =
             (0..n).any(|i| !scheduled[i] && pattern_connected(&compiled[i], &bound));
-
         let mut best: Option<usize> = None;
-        let mut best_score = 0usize;
+        let mut best_size = f64::INFINITY;
         for i in 0..n {
             if scheduled[i] {
                 continue;
@@ -245,30 +332,102 @@ fn selectivity_order(compiled: &[CompiledPattern]) -> Vec<usize> {
             if any_connected && !pattern_connected(&compiled[i], &bound) {
                 continue;
             }
-            let score = pattern_score(&compiled[i], &bound);
-            // Strict `>` over an index-order scan ⇒ lowest original index wins ties.
-            if best.is_none() || score > best_score {
+            let joins = join_positions(&compiled[i], &bound);
+            let size = step_size(running, base[i], joins, t);
+            // Strict `<` over an index-order scan ⇒ lowest original index wins ties.
+            if best.is_none() || size < best_size {
                 best = Some(i);
-                best_score = score;
+                best_size = size;
             }
         }
-
         let chosen = best.expect("an unscheduled pattern always remains");
         scheduled[chosen] = true;
         mark_bound(&compiled[chosen], &mut bound);
+        running = best_size;
         order.push(chosen);
     }
     order
 }
 
-/// How many of a pattern's three positions are already constrained — a ground
-/// constant or an already-bound slot. The structural selectivity proxy used by
-/// [`selectivity_order`].
-fn pattern_score(cp: &CompiledPattern, bound: &[bool]) -> usize {
-    [&cp.s, &cp.p, &cp.o]
-        .into_iter()
-        .filter(|pos| pos_is_constrained(pos, bound))
-        .count()
+/// One left-deep plan in the subset DP: its accumulated cost (sum of intermediate
+/// sizes), the running size of its last stage, and the pattern order achieving it.
+#[derive(Clone)]
+struct DpPlan {
+    cost: f64,
+    size: f64,
+    order: Vec<usize>,
+}
+
+/// Exhaustive left-deep Selinger DP for a small BGP (`n ≤ COST_DP_MAX_PATTERNS`):
+/// `dp[mask]` is the minimum-cost connected plan covering exactly the patterns in
+/// `mask`. Transitions append one connected pattern (or, when none is connected, any —
+/// a forced cross product for a genuinely disconnected BGP). Ties break on the
+/// lexicographically smallest order, so the result is deterministic. The `2^n` state
+/// table is a dense `Vec` indexed by the subset bitmask — never a hash map, so no
+/// iteration-order nondeterminism can leak in.
+fn cost_order_dp(compiled: &[CompiledPattern], base: &[f64], t: f64, n_cols: usize) -> Vec<usize> {
+    let n = compiled.len();
+    let full: usize = (1usize << n) - 1;
+    let mut dp: Vec<Option<DpPlan>> = vec![None; full + 1];
+    dp[0] = Some(DpPlan {
+        cost: 0.0,
+        size: 1.0,
+        order: Vec::new(),
+    });
+
+    // Masks ascend, and every transition sets one more bit (a strictly larger mask),
+    // so `dp[mask]` is final by the time the loop reaches it.
+    for mask in 0..=full {
+        let Some(plan) = dp[mask].clone() else {
+            continue;
+        };
+        // The slots bound after this prefix (the union of the set's slots).
+        let mut bound = vec![false; n_cols];
+        for &i in &plan.order {
+            mark_bound(&compiled[i], &mut bound);
+        }
+        let any_connected = mask != 0
+            && (0..n).any(|i| mask & (1usize << i) == 0 && pattern_connected(&compiled[i], &bound));
+
+        for i in 0..n {
+            if mask & (1usize << i) != 0 {
+                continue;
+            }
+            // Seed (mask == 0) is free; afterwards prefer a connected pattern while one
+            // exists (no Cartesian product unless the BGP is genuinely disconnected).
+            if any_connected && !pattern_connected(&compiled[i], &bound) {
+                continue;
+            }
+            let joins = if mask == 0 {
+                0
+            } else {
+                join_positions(&compiled[i], &bound)
+            };
+            let size = step_size(plan.size, base[i], joins, t);
+            let cost = plan.cost + size;
+            let mut order = plan.order.clone();
+            order.push(i);
+            let next = mask | (1usize << i);
+            let better = match &dp[next] {
+                None => true,
+                // `total_cmp` is a deterministic total order (and avoids comparing
+                // floats with `==`); ties fall through to the lexicographic order.
+                Some(cur) => match cost.total_cmp(&cur.cost) {
+                    std::cmp::Ordering::Less => true,
+                    std::cmp::Ordering::Greater => false,
+                    std::cmp::Ordering::Equal => order < cur.order,
+                },
+            };
+            if better {
+                dp[next] = Some(DpPlan { cost, size, order });
+            }
+        }
+    }
+
+    dp[full]
+        .take()
+        .expect("the DP always reaches the full set")
+        .order
 }
 
 /// Whether a pattern shares at least one already-bound variable with the bindings
@@ -288,18 +447,6 @@ fn pos_has_bound_slot(pos: &Pos, bound: &[bool]) -> bool {
         Pos::Triple(t) => [&t.s, &t.p, &t.o]
             .into_iter()
             .any(|p| pos_has_bound_slot(p, bound)),
-    }
-}
-
-/// A position is constrained iff it is a ground constant, an already-bound slot, or a
-/// nested triple whose every component is itself constrained.
-fn pos_is_constrained(pos: &Pos, bound: &[bool]) -> bool {
-    match pos {
-        Pos::Bound(_) => true,
-        Pos::Slot(c) => bound[*c],
-        Pos::Triple(t) => [&t.s, &t.p, &t.o]
-            .into_iter()
-            .all(|p| pos_is_constrained(p, bound)),
     }
 }
 
@@ -1159,16 +1306,76 @@ mod tests {
         assert!(rows.is_empty());
     }
 
-    // ---- selectivity_order (#913) -----------------------------------------
-
-    /// A dataset-local id for a hand-built compiled pattern. The actual value is
-    /// irrelevant to ordering — `selectivity_order` only inspects `Bound` vs `Slot`.
-    fn tid(i: u32) -> TermId {
-        TermId::from_index(i)
-    }
+    // ---- cost_based_order --------------------------------------------------
 
     fn cp(s: Pos, p: Pos, o: Pos) -> CompiledPattern {
         CompiledPattern { s, p, o }
+    }
+
+    /// Plan a hand-built BGP over `ds` (default-graph scope `Any`, so estimates equal
+    /// the full per-pattern counts of these single-graph fixtures).
+    fn plan(ds: &RdfDataset, compiled: &[CompiledPattern]) -> Vec<usize> {
+        cost_based_order(compiled, ds, &GraphScope::One(GraphMatch::Any))
+    }
+
+    /// Replay an order through the cost model and return its total estimated cost (the
+    /// sum of intermediate sizes) — the objective the planner minimises.
+    fn order_cost(
+        compiled: &[CompiledPattern],
+        order: &[usize],
+        base: &[f64],
+        t: f64,
+        n_cols: usize,
+    ) -> f64 {
+        let mut bound = vec![false; n_cols];
+        let mut running = 1.0f64;
+        let mut total = 0.0f64;
+        for (k, &i) in order.iter().enumerate() {
+            let joins = if k == 0 {
+                0
+            } else {
+                join_positions(&compiled[i], &bound)
+            };
+            running = step_size(running, base[i], joins, t);
+            total += running;
+            mark_bound(&compiled[i], &mut bound);
+        }
+        total
+    }
+
+    /// Interned ids of a deliberately skewed graph: `:hot` links the hub to 20 leaves,
+    /// `:mid` to 5, `:rare` to 1 — so the per-predicate cardinalities are 20 / 5 / 1.
+    struct Skewed {
+        ds: Arc<RdfDataset>,
+        hot: TermId,
+        mid: TermId,
+        rare: TermId,
+        hub: TermId,
+    }
+
+    fn skewed_graph() -> Skewed {
+        let mut b = RdfDatasetBuilder::new();
+        let hot = b.intern_iri("http://ex/hot".to_owned());
+        let mid = b.intern_iri("http://ex/mid".to_owned());
+        let rare = b.intern_iri("http://ex/rare".to_owned());
+        let hub = b.intern_iri("http://ex/hub".to_owned());
+        for i in 0..20 {
+            let leaf = b.intern_iri(format!("http://ex/hot{i}"));
+            b.push_quad(hub, hot, leaf, None);
+        }
+        for i in 0..5 {
+            let leaf = b.intern_iri(format!("http://ex/mid{i}"));
+            b.push_quad(hub, mid, leaf, None);
+        }
+        let only = b.intern_iri("http://ex/rare0".to_owned());
+        b.push_quad(hub, rare, only, None);
+        Skewed {
+            ds: b.freeze().expect("freeze"),
+            hot,
+            mid,
+            rare,
+            hub,
+        }
     }
 
     /// Reordering the *source* order of a BGP never changes its result multiset:
@@ -1188,157 +1395,188 @@ mod tests {
         assert_eq!(forward, reversed);
     }
 
-    /// A more-constrained pattern (more ground constants) is scheduled first.
+    /// The core cost-based win: with all three patterns equally constrained
+    /// *structurally* (one bound predicate each — the old heuristic would tie them and
+    /// keep source order `[0, 1, 2]`), the planner orders by REAL cardinality, seeding
+    /// with the lowest-cardinality predicate and ascending from there.
     #[test]
-    fn most_constrained_pattern_goes_first() {
-        // index 0: all variables (score 0); index 1: two constants (score 2).
-        let all_vars = cp(Pos::Slot(0), Pos::Slot(1), Pos::Slot(2));
-        let two_const = cp(Pos::Bound(tid(0)), Pos::Bound(tid(1)), Pos::Slot(3));
-        let order = selectivity_order(&[all_vars, two_const]);
-        assert_eq!(order, vec![1, 0]);
+    fn cost_order_seeds_with_lowest_cardinality_pattern() {
+        let g = skewed_graph();
+        // All three share ?s (col 0). Cardinalities: hot 20, mid 5, rare 1.
+        let p0 = cp(Pos::Slot(0), Pos::Bound(g.hot), Pos::Slot(1)); // 20
+        let p1 = cp(Pos::Slot(0), Pos::Bound(g.mid), Pos::Slot(2)); // 5
+        let p2 = cp(Pos::Slot(0), Pos::Bound(g.rare), Pos::Slot(3)); // 1
+        assert_eq!(plan(&g.ds, &[p0, p1, p2]), vec![2, 1, 0]);
     }
 
-    /// The no-cross-product invariant: a disconnected pattern is never scheduled
-    /// while a connected one remains, even when the disconnected one scores higher.
+    /// The no-cross-product invariant: once the seed binds a variable, a *connected*
+    /// pattern is scheduled before a *disconnected* one even when the disconnected one
+    /// has the lower base cardinality.
     #[test]
-    fn connected_pattern_beats_a_higher_scoring_disconnected_one() {
-        // Component A: P0 (:alice :knows ?b)  score 2, anchors the join (slots {b=0}).
-        //              P1 (?b :name ?n)        score 1, connected via ?b.
-        // Component B: P2 (:bob :age ?x)       score 2, disconnected from A.
-        let p0 = cp(Pos::Bound(tid(10)), Pos::Bound(tid(11)), Pos::Slot(0)); // ?b = col 0
-        let p1 = cp(Pos::Slot(0), Pos::Bound(tid(12)), Pos::Slot(1)); // ?n = col 1
-        let p2 = cp(Pos::Bound(tid(13)), Pos::Bound(tid(14)), Pos::Slot(2)); // ?x = col 2
+    fn connectivity_keeps_connected_before_disconnected() {
+        let g = skewed_graph();
+        // P0 seeds (rare, card 1) and binds ?b = col 0.
+        let p0 = cp(Pos::Bound(g.hub), Pos::Bound(g.rare), Pos::Slot(0));
+        // P1 (hot, card 20) is connected via ?b.
+        let p1 = cp(Pos::Slot(0), Pos::Bound(g.hot), Pos::Slot(1));
+        // P2 (mid, card 5) is disconnected — lower base than P1, but cut off.
+        let p2 = cp(Pos::Slot(2), Pos::Bound(g.mid), Pos::Slot(3));
 
-        let order = selectivity_order(&[p0, p1, p2]);
-        // P0 (score 2) and P2 (score 2) tie for the seed → lowest index P0 wins.
-        // Then P1 (connected, score 1) MUST precede P2 (disconnected, score 2).
+        let order = plan(&g.ds, &[p0, p1, p2]);
         assert_eq!(order, vec![0, 1, 2]);
         let pos_of = |i: usize| order.iter().position(|&x| x == i).unwrap();
         assert!(
             pos_of(1) < pos_of(2),
-            "connected P1 must precede disconnected P2"
+            "connected P1 must precede disconnected P2 (no Cartesian product)"
         );
     }
 
     /// A fully disconnected BGP still yields a complete, valid permutation
-    /// (most-constrained first), without panicking.
+    /// (lowest-cardinality first), without panicking.
     #[test]
     fn disconnected_bgp_yields_a_valid_permutation() {
-        let p0 = cp(Pos::Slot(0), Pos::Bound(tid(1)), Pos::Slot(1)); // score 1
-        let p1 = cp(Pos::Slot(2), Pos::Bound(tid(2)), Pos::Bound(tid(3))); // score 2
-        let order = selectivity_order(&[p0, p1]);
-        assert_eq!(order, vec![1, 0]); // higher-scoring disconnected pattern first.
+        let g = skewed_graph();
+        let p0 = cp(Pos::Slot(0), Pos::Bound(g.hot), Pos::Slot(1)); // 20
+        let p1 = cp(Pos::Slot(2), Pos::Bound(g.rare), Pos::Slot(3)); // 1, disconnected
+        let order = plan(&g.ds, &[p0, p1]);
+        assert_eq!(order, vec![1, 0]); // cheaper disconnected pattern first.
         let mut sorted = order.clone();
         sorted.sort_unstable();
         assert_eq!(sorted, vec![0, 1]); // a genuine permutation of 0..n.
     }
 
-    /// The order is identical run to run (no hash-iteration nondeterminism).
+    /// The order is identical run to run (no hash-iteration nondeterminism): the cost
+    /// arithmetic is order-stable and ties break on lowest index.
     #[test]
     fn order_is_deterministic() {
+        let g = skewed_graph();
         let make = || {
             vec![
-                cp(Pos::Slot(0), Pos::Bound(tid(1)), Pos::Slot(1)),
-                cp(Pos::Slot(0), Pos::Bound(tid(2)), Pos::Slot(2)),
-                cp(Pos::Slot(0), Pos::Bound(tid(3)), Pos::Slot(3)),
+                cp(Pos::Slot(0), Pos::Bound(g.hot), Pos::Slot(1)),
+                cp(Pos::Slot(0), Pos::Bound(g.mid), Pos::Slot(2)),
+                cp(Pos::Slot(0), Pos::Bound(g.rare), Pos::Slot(3)),
             ]
         };
-        assert_eq!(selectivity_order(&make()), selectivity_order(&make()));
+        assert_eq!(plan(&g.ds, &make()), plan(&g.ds, &make()));
     }
 
-    /// Equal-scoring patterns are broken by lowest original index (stable).
+    /// Equal-cardinality patterns are broken by lowest original index (stable).
     #[test]
     fn ties_break_on_lowest_original_index() {
-        // Two disconnected patterns, each score 1 → index 0 must lead.
-        let p0 = cp(Pos::Slot(0), Pos::Bound(tid(9)), Pos::Slot(1));
-        let p1 = cp(Pos::Slot(2), Pos::Bound(tid(9)), Pos::Slot(3));
-        assert_eq!(selectivity_order(&[p0, p1]), vec![0, 1]);
+        let g = skewed_graph();
+        // Two disconnected patterns, both `:mid` (card 5) → index 0 must lead.
+        let p0 = cp(Pos::Slot(0), Pos::Bound(g.mid), Pos::Slot(1));
+        let p1 = cp(Pos::Slot(2), Pos::Bound(g.mid), Pos::Slot(3));
+        assert_eq!(plan(&g.ds, &[p0, p1]), vec![0, 1]);
     }
 
-    /// An empty BGP produces an empty order — the `0..n` loop runs zero times so the
-    /// `.expect("an unscheduled pattern always remains")` inside the loop is never
-    /// reached. Guards the n == 0 boundary.
+    /// An empty BGP plans to an empty order (the `n <= 1` fast path), and a single
+    /// pattern plans to `[0]` — neither probes the dataset.
     #[test]
-    fn empty_bgp_orders_to_empty() {
-        assert_eq!(selectivity_order(&[]), Vec::<usize>::new());
+    fn trivial_bgps_plan_without_probing() {
+        let g = skewed_graph();
+        assert_eq!(plan(&g.ds, &[]), Vec::<usize>::new());
+        let one = cp(Pos::Slot(0), Pos::Bound(g.hot), Pos::Slot(1));
+        assert_eq!(plan(&g.ds, &[one]), vec![0]);
     }
 
-    /// All-ground patterns contain no `Pos::Slot` positions, so `n_cols == 0` and
-    /// the bound-mask is zero-length. `pattern_connected` and `mark_bound` must not
-    /// index the empty mask. Every position is `Pos::Bound`, so every pattern scores 3
-    /// (all constrained) and none is ever "connected" (no slots). Two such patterns tie
-    /// at score 3 — lowest-index-wins gives [0, 1].
+    /// All-ground patterns contain no `Pos::Slot`, so `n_cols == 0` and the bound-mask
+    /// is zero-length. `join_positions` and `mark_bound` must not index the empty mask.
+    /// Both existing ground triples have cardinality 1, so the tie breaks on index.
     #[test]
-    fn all_ground_bgp_orders_by_score() {
-        // p0 and p1: all three positions Bound → score 3 each, n_cols == 0.
-        let p0 = cp(Pos::Bound(tid(0)), Pos::Bound(tid(1)), Pos::Bound(tid(2)));
-        let p1 = cp(Pos::Bound(tid(3)), Pos::Bound(tid(4)), Pos::Bound(tid(5)));
-        let order = selectivity_order(&[p0, p1]);
-        // Tie at score 3 → lowest original index wins → [0, 1].
+    fn all_ground_bgp_orders_without_panicking() {
+        let mut b = RdfDatasetBuilder::new();
+        let p = b.intern_iri("http://ex/p".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let c = b.intern_iri("http://ex/c".to_owned());
+        b.push_quad(a, p, c, None);
+        b.push_quad(c, p, a, None);
+        let ds = b.freeze().expect("freeze");
+
+        let p0 = cp(Pos::Bound(a), Pos::Bound(p), Pos::Bound(c)); // card 1
+        let p1 = cp(Pos::Bound(c), Pos::Bound(p), Pos::Bound(a)); // card 1
+        let order = plan(&ds, &[p0, p1]);
         assert_eq!(order, vec![0, 1]);
-        // Confirm it is a genuine permutation of 0..2.
         let mut sorted = order.clone();
         sorted.sort_unstable();
         assert_eq!(sorted, vec![0, 1]);
     }
 
-    /// A ≥3-pattern STAR shape: one shared hub variable (?hub = col 0) appears in
-    /// every spoke. Guards two invariants simultaneously:
-    ///
-    /// 1. **Connectivity**: after the seed pattern binds `?hub`, every remaining spoke
-    ///    shares col 0 — so `pattern_connected` returns `true` for all of them and no
-    ///    Cartesian product is ever forced.
-    /// 2. **Score-then-index ordering among connected spokes**: once all spokes are
-    ///    connected the algorithm still picks the highest-scoring eligible pattern,
-    ///    breaking ties by lowest original index.
-    ///
-    /// Pattern layout (col 0 = ?hub, cols 1–4 are distinct leaf slots):
-    ///   P0 (index 0): Bound Bound Slot(0)   — seed; score 2 in round 1 (two constants)
-    ///   P1 (index 1): Slot(0) Bound Slot(1) — spoke A; score 2 after hub bound
-    ///   P2 (index 2): Slot(0) Slot(2) Slot(3) — spoke B; score 1 after hub bound
-    ///   P3 (index 3): Slot(0) Bound Slot(4) — spoke C; score 2 after hub bound
-    ///
-    /// Hand-simulated rounds:
-    ///   Round 1: nothing bound; scores P0=2, P1=1, P2=0, P3=1 → P0 wins; binds col 0.
-    ///   Round 2: col 0 bound; all of P1/P2/P3 connected; scores P1=2, P2=1, P3=2
-    ///            → P1 and P3 tie at 2; lowest index → P1 wins; binds col 0,1.
-    ///   Round 3: cols 0,1 bound; P2 and P3 connected; scores P2=1, P3=2 → P3 wins;
-    ///            binds cols 0,1,4.
-    ///   Round 4: only P2 remains, connected → P2 scheduled.
-    ///   Expected order: [0, 1, 3, 2].
+    /// A STAR shape: one shared hub variable (col 0) in every spoke. After the
+    /// lowest-cardinality spoke seeds and binds the hub, every remaining spoke is
+    /// connected (no Cartesian product) and they schedule in ascending cardinality.
     #[test]
-    fn star_bgp_schedules_spokes_connected_after_hub() {
-        // P0: seed — two ground constants anchor ?hub (col 0) in the object position.
-        let p0 = cp(Pos::Bound(tid(10)), Pos::Bound(tid(11)), Pos::Slot(0));
-        // P1: spoke A — hub in subject, one ground predicate, leaf in object (col 1).
-        let p1 = cp(Pos::Slot(0), Pos::Bound(tid(12)), Pos::Slot(1));
-        // P2: spoke B — hub in subject, two free leaf slots (cols 2, 3); lowest score.
-        let p2 = cp(Pos::Slot(0), Pos::Slot(2), Pos::Slot(3));
-        // P3: spoke C — hub in subject, one ground predicate, leaf in object (col 4).
-        let p3 = cp(Pos::Slot(0), Pos::Bound(tid(13)), Pos::Slot(4));
+    fn star_spokes_follow_hub_ordered_by_cardinality() {
+        let g = skewed_graph();
+        // P0 hot (20), P1 mid (5), P2 rare (1) — all share ?hub (col 0).
+        let p0 = cp(Pos::Slot(0), Pos::Bound(g.hot), Pos::Slot(1));
+        let p1 = cp(Pos::Slot(0), Pos::Bound(g.mid), Pos::Slot(2));
+        let p2 = cp(Pos::Slot(0), Pos::Bound(g.rare), Pos::Slot(3));
 
-        let order = selectivity_order(&[p0, p1, p2, p3]);
+        let order = plan(&g.ds, &[p0, p1, p2]);
+        // Ascending cardinality: rare (idx 2), mid (idx 1), hot (idx 0).
+        assert_eq!(order, vec![2, 1, 0]);
+        let mut sorted = order.clone();
+        sorted.sort_unstable();
+        assert_eq!(sorted, vec![0, 1, 2]); // valid permutation, every spoke present.
+    }
 
-        // The unique deterministic output derived by hand-simulation above.
-        assert_eq!(order, vec![0, 1, 3, 2]);
+    /// The left-deep DP is never worse than the greedy walk on the same BGP: greedy is
+    /// itself a connected left-deep plan the DP also enumerates, so `dp_cost <=
+    /// greedy_cost`. Exercised on a 4-pattern cyclic BGP (a–b–c–d–a) with skewed
+    /// per-predicate cardinalities.
+    #[test]
+    fn dp_is_never_worse_than_greedy() {
+        let g = skewed_graph();
+        // cols: a=0, b=1, c=2, d=3.
+        let compiled = [
+            cp(Pos::Slot(0), Pos::Bound(g.hot), Pos::Slot(1)), // ?a :hot ?b  (20)
+            cp(Pos::Slot(1), Pos::Bound(g.mid), Pos::Slot(2)), // ?b :mid ?c  (5)
+            cp(Pos::Slot(2), Pos::Bound(g.rare), Pos::Slot(3)), // ?c :rare ?d (1)
+            cp(Pos::Slot(0), Pos::Bound(g.mid), Pos::Slot(3)), // ?a :mid ?d  (5)
+        ];
+        let scope = GraphScope::One(GraphMatch::Any);
+        let base: Vec<f64> = compiled
+            .iter()
+            .map(|c| base_cardinality(&g.ds, c, &scope) as f64)
+            .collect();
+        let t = g.ds.term_count().max(1) as f64;
+        let mut n_cols = 0usize;
+        for c in &compiled {
+            for pos in [&c.s, &c.p, &c.o] {
+                for_each_slot(pos, &mut |col| n_cols = n_cols.max(col + 1));
+            }
+        }
 
-        // Connectivity invariant: every pattern scheduled after the seed (position 0)
-        // must share the hub column (col 0), so no Cartesian product is forced.
-        let pos_of = |i: usize| order.iter().position(|&x| x == i).unwrap();
-        assert!(pos_of(0) == 0, "P0 is the seed");
-        // P1, P2, P3 all share col 0 with P0 — assert each follows the seed.
-        assert!(pos_of(1) > pos_of(0), "P1 (spoke A) follows the seed");
-        assert!(pos_of(2) > pos_of(0), "P2 (spoke B) follows the seed");
-        assert!(pos_of(3) > pos_of(0), "P3 (spoke C) follows the seed");
-        // Score ordering among connected spokes: P3 (score 2) before P2 (score 1).
+        let dp = cost_order_dp(&compiled, &base, t, n_cols);
+        let greedy = cost_order_greedy(&compiled, &base, t, n_cols);
+
+        // Both are valid permutations of 0..4.
+        let mut dp_sorted = dp.clone();
+        dp_sorted.sort_unstable();
+        assert_eq!(dp_sorted, vec![0, 1, 2, 3]);
+
+        let dp_cost = order_cost(&compiled, &dp, &base, t, n_cols);
+        let greedy_cost = order_cost(&compiled, &greedy, &base, t, n_cols);
         assert!(
-            pos_of(3) < pos_of(2),
-            "higher-scoring spoke P3 precedes lower-scoring P2"
+            dp_cost <= greedy_cost + 1e-9,
+            "DP cost {dp_cost} must not exceed greedy cost {greedy_cost}"
         );
-        // Tie-break: P1 and P3 both score 2 as connected; P1 (index 1) precedes P3 (index 3).
-        assert!(
-            pos_of(1) < pos_of(3),
-            "lower-index P1 beats equal-scoring P3 in the tie"
-        );
+    }
+
+    /// Above the DP ceiling the planner switches to the greedy walk and still returns a
+    /// valid permutation. A connected chain one pattern longer than the DP ceiling
+    /// (?v0 :hot ?v1 … so the greedy branch is taken).
+    #[test]
+    fn large_bgp_uses_greedy_and_returns_valid_permutation() {
+        let g = skewed_graph();
+        let n = COST_DP_MAX_PATTERNS + 1; // strictly above the ceiling ⇒ greedy branch.
+        let compiled: Vec<CompiledPattern> = (0..n)
+            .map(|i| cp(Pos::Slot(i), Pos::Bound(g.hot), Pos::Slot(i + 1)))
+            .collect();
+        let order = plan(&g.ds, &compiled);
+        let mut sorted = order.clone();
+        sorted.sort_unstable();
+        assert_eq!(sorted, (0..n).collect::<Vec<_>>());
     }
 }
