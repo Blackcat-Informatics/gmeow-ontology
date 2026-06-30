@@ -33,8 +33,9 @@ pub struct GtsSinkStage {
 
 impl GtsSinkStage {
     /// Construct the sink. It consumes the assembled carrier (`stage-snapshot`) and the
-    /// by-reference blob sources it folds into the terminal `gmeow.gts` package
-    /// (#1132 Stage C): the in-memory JSON-Schema/axiom/reasoning/SHACL-report products.
+    /// by-reference blob sources it folds into the terminal `gmeow.gts` package:
+    /// the in-memory JSON-Schema/axiom/reasoning/SHACL-report products plus the
+    /// byte-decorated RDF 1.2 statement lanes (`stage-statements`).
     /// It holds [`SINK_CAPABILITY`] — the sole serialization exit the loader requires
     /// exactly one stage to hold (mirrored by the slice
     /// `gmeow:stage-gts-sink gmeow:hasCapability gmeow:sinkCapability`).
@@ -45,6 +46,7 @@ impl GtsSinkStage {
                 "stage-export-json-schema".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-reason".to_string(),
+                "stage-statements".to_string(),
                 "stage-validate".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
