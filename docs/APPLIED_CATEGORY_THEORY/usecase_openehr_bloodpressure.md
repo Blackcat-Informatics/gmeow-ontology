@@ -220,7 +220,7 @@ that motivates promoting merge/colimit to a first-class axis.
 
 ```text
 shape SystolicMeasurement:
-    on  ?m where ?q logic:qualityRole gmeow:systolicRole
+    on  ?m where ?m gmeow:observationOf ?q  ∧  ?q logic:qualityRole gmeow:systolicRole
     require  ?m gmeow:unit qudt:MilliM_HG
     require  lo ≤ ?m.value  ∧  ?m.value < hi          # [lo, hi):  lower_included, NOT upper_included
 ```

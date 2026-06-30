@@ -408,7 +408,7 @@ const STRATUM_1: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── YAMATO occurrent mereology (#1081) ──────────────────────────────────────
+    // ── YAMATO occurrent mereology ──────────────────────────────────────────────
     // Inert on inputs without logic:causalPartOf — temporalPartOf has no other
     // consumer in this program, so these only ever ADD causal/temporal-part facts.
     //
@@ -1211,7 +1211,7 @@ const STRATUM_3: &[Rule] = &[
 ];
 
 const STRATUM_4: &[Rule] = &[
-    // ── YAMATO occurrent constraints (#1081) ────────────────────────────────────
+    // ── YAMATO occurrent constraints ────────────────────────────────────────────
     // Inert unless the input carries logic:occurrentBoundary facts.
     //
     // violation(?E, OccurrentChangeAsymmetry) :-
