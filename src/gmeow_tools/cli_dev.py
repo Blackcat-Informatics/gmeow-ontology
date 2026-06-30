@@ -1628,8 +1628,11 @@ def extract(
     Refuses (exit 1) for reference-only targets — the license guard that
     prevents copying NC/ND/copyleft axioms into CC BY 4.0 GMEOW.
     """
-    from gmeow_tools.config import ALIGNMENT_TARGETS
-    from gmeow_tools.extract import LicensePolicyError, guard_importable
+    from gmeow_tools.config import (
+        ALIGNMENT_TARGETS,
+        LicensePolicyError,
+        guard_importable,
+    )
 
     try:
         guard_importable(target)
@@ -1765,8 +1768,12 @@ def refresh_target_axioms(
     """
     import httpx
 
-    from gmeow_tools.config import ALIGNMENT_TARGETS, PROJECT_ROOT, LinkPolicy
-    from gmeow_tools.extract import LicensePolicyError
+    from gmeow_tools.config import (
+        ALIGNMENT_TARGETS,
+        PROJECT_ROOT,
+        LicensePolicyError,
+        LinkPolicy,
+    )
     from gmeow_tools.target_axioms import TARGET_SOURCES, refresh_snapshot
 
     prefixes = list(TARGET_SOURCES) if target == "all" else [target]

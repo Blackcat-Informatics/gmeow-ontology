@@ -16,7 +16,7 @@ enforce that:
   (``imports/targets/``) — a SUBDIR of ``imports/``, invisible to
   ``iter_import_files()`` (which globs ``imports/*.ttl`` non-recursively).
 * :func:`refresh_snapshot` refuses to vendor a ``REFERENCE_ONLY`` target (the same
-  license gate as :func:`gmeow_tools.extract.guard_importable`). schema.org
+  license gate as :func:`gmeow_tools.config.guard_importable`). schema.org
   (CC-BY-SA) is therefore never written to disk; its axioms are fetched **live**
   only, under the ``network`` test mark / ``--network`` CLI flag.
 
@@ -53,6 +53,7 @@ from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     PREFIXES,
     TARGET_SNAPSHOT_DIR,
+    LicensePolicyError,
     LinkPolicy,
 )
 from gmeow_tools.graph import bind_prefixes
@@ -296,9 +297,6 @@ def refresh_snapshot(
             no configured fetch source.
         httpx.HTTPError: On a network/HTTP failure.
     """
-    # Imported here to avoid a module-level cycle (extract imports config too).
-    from gmeow_tools.extract import LicensePolicyError
-
     target = ALIGNMENT_TARGETS.get(prefix)
     if target is None:
         raise LicensePolicyError(
