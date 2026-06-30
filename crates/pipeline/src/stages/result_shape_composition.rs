@@ -20,7 +20,7 @@ use oxigraph::sparql::{QueryResults, QuerySolution, SparqlEvaluator};
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::result_shapes::competency_files;
 
 // ── Namespace constants ────────────────────────────────────────────────────────
@@ -320,9 +320,6 @@ pub struct ResultShapeCompositionStage;
 impl Stage for ResultShapeCompositionStage {
     fn id(&self) -> &str {
         "stage-validate-result-shape-composition"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Validate
     }
     fn consumes(&self) -> &[String] {
         &[]

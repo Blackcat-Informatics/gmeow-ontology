@@ -30,7 +30,7 @@ use parquet::basic::Compression;
 use parquet::file::properties::WriterProperties;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::read_fold_upstream;
 // The gts-`Graph` arena read shape, materialized over the native carrier — the SAME
 // adapter the `yaml_ld` leaf uses (no per-leaf shim). GTS is exit-only.
@@ -263,9 +263,6 @@ impl Default for ParquetStage {
 impl Stage for ParquetStage {
     fn id(&self) -> &str {
         "stage-export-parquet"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

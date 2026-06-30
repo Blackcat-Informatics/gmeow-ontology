@@ -428,6 +428,26 @@ impl PreservationClaim {
         }
     }
 
+    /// `{unsupported}` carrying the `constructs` the lowering refused — the
+    /// legalization floor with disclosure. Like [`Self::unsupported`] (the program
+    /// was refused and never evaluated, so no answer-preservation polarity applies),
+    /// but the refused constructs are NAMED in `unsupported_constructs` so a consumer
+    /// sees exactly what could not be carried (never silently truncated). The single
+    /// place the unsupported-with-disclosure shape is built (One-Path), used by the
+    /// DAG-workflow certifier for the offending cycle members.
+    pub fn unsupported_with<I, S>(constructs: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        let mut polarities = BTreeSet::new();
+        polarities.insert(PreservationKind::Unsupported);
+        Self {
+            polarities,
+            unsupported_constructs: constructs.into_iter().map(Into::into).collect(),
+        }
+    }
+
     /// Insert a polarity, rejecting [`PreservationKind::ValidationOnly`] (which is
     /// not an answer-preservation polarity).
     ///

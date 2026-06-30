@@ -66,6 +66,10 @@ pub mod transition;
 pub mod verify;
 pub mod versioning;
 pub mod wellfounded;
+// The intra-engine phase descriptor of the well-founded materializer — the
+// runtime twin the dogfood parity gate checks the authored
+// `logic:wellFoundedMaterializerPlan` against (Principle 12).
+pub use wellfounded::{WELL_FOUNDED_ITERATED_PHASE, WELL_FOUNDED_PHASES};
 
 // PyO3 Python bindings.
 pub mod py;
