@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Projection tests — unit checks plus the **insta snapshot goldens** (T8,
-//! #789): every projection of every `conformance/logic/cases/projections/*` case
+//! every projection of every `conformance/logic/cases/projections/*` case
 //! is pinned by a committed `.snap` golden (text targets byte-for-byte; RDF
 //! targets as a canonicalized sorted triple-set, since no golden uses blank
 //! nodes). The `.snap` files ARE the byte-exact unit golden; cross-engine
@@ -188,7 +188,7 @@ fn parse(ttl: &str) -> LogicProgram {
 /// Canonical sorted triple lines of a Turtle document (default graph), for
 /// triple-set equality (valid because no golden uses blank nodes).
 ///
-/// Wasm-clean (#732): native codec parse → frozen IR → canonical N-Triples of the
+/// Wasm-clean: native codec parse → frozen IR → canonical N-Triples of the
 /// default graph, one sorted line per triple (the trailing ` .` is stripped so a
 /// line reads `<s> <p> <o>`). No oxigraph Store — the compiler crate's test harness
 /// rides the same `gmeow-rdf` `gts` surface the projections themselves use.
@@ -259,7 +259,7 @@ fn run_case(case: &str) {
     });
 }
 
-// ── ReasoningContract round-trip (#767, Task 6) ──────────────────────────────
+// ── ReasoningContract round-trip ─────────────────────────────────────────────
 //
 // The canonical RDF 1.2 projection of a ReasoningContract must be LOSSLESS:
 // re-parsing the emitted triples through `extract_contracts` (via parse_logic_str)
@@ -360,7 +360,7 @@ fn contract_round_trip_anonymous_faceted_contract() {
 
 #[test]
 fn contract_round_trip_custom_iri_facet_value() {
-    // #767, Gap 3: the open facet-value vocabulary admits a value that is a full
+    // The open facet-value vocabulary admits a value that is a full
     // CUSTOM IRI (not under the logic: namespace). The projection must emit it
     // verbatim (never re-prefixed to a corrupt `…/logic/https://…`) and storage
     // must keep the full IRI, so project → reparse round-trips identically.
@@ -631,7 +631,7 @@ fn no_satisfied_by_axiom_leaves_ledger_clean() {
     }
 }
 
-// ── Full first-order formula round-trip + residue disclosure (#719) ──────────
+// ── Full first-order formula round-trip + residue disclosure ─────────────────
 
 use crate::ir::{Formula, Term};
 
