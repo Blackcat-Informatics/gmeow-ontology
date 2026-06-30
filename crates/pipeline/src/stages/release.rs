@@ -655,6 +655,22 @@ mod tests {
         b
     }
 
+    /// Re-render a read-back GTS [`Graph`] to N-Quads through the native codec
+    /// (`dataset_from_gts_graph` → `serialize_dataset`), never the gmeow-gts codec —
+    /// gmeow-gts is the gmeow.gts container layer only. This is the same lossless
+    /// container→dataset bridge the production replay path uses, so the rendered quads
+    /// match what the snapshot committed.
+    fn graph_nquads(graph: &Graph) -> String {
+        let dataset = dataset_from_gts_graph(graph).expect("fold the GTS graph into a dataset");
+        let bytes = gmeow_rdf::serialize_dataset(
+            &dataset,
+            NativeRdfFormat::NQuads.media_type(),
+            gmeow_rdf::SerializeGraph::Dataset,
+        )
+        .expect("serialize the dataset to N-Quads");
+        String::from_utf8(bytes).expect("native N-Quads is valid UTF-8")
+    }
+
     /// Deterministic Ed25519 key from a seed (mirrors validate/signature.rs).
     fn deterministic_signing_key(seed: u8) -> SigningKey {
         let mut bytes = [0u8; 32];
@@ -903,7 +919,7 @@ mod tests {
         );
 
         // (b) the attestations named graph carries the expected frames.
-        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        let nquads = graph_nquads(&graph);
         assert!(
             nquads.contains(GRAPH_ATTESTATIONS),
             "graph/attestations named graph must be present"
@@ -1096,7 +1112,7 @@ mod tests {
 
         // Both digests stay recoverable and attested by gmeow:contentDigest.
         let graph = read(&bundle, true, None);
-        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        let nquads = graph_nquads(&graph);
         for digest in [&shared_digest, &fresh_digest] {
             assert!(
                 graph.blob_entry(digest).is_some(),
@@ -1176,7 +1192,7 @@ mod tests {
 
         // Sanity: the fixture really does carry many blank nodes.
         let base = read(&snapshot, true, None);
-        let base_nq = gmeow_gts::nquads::to_nquads(&base);
+        let base_nq = graph_nquads(&base);
         assert!(
             base_nq.matches("owl#Restriction").count() >= 50,
             "fixture must carry 50+ owl:Restriction blank nodes"
@@ -1264,7 +1280,7 @@ mod tests {
             graph.meta.iter().any(|(k, _)| k == "gts:transportKey"),
             "an evidence-free release still signs the manifest"
         );
-        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        let nquads = graph_nquads(&graph);
         assert!(
             nquads.contains("attestationTypeReleaseManifest"),
             "the release-manifest frame is present even with no evidence"
@@ -1297,7 +1313,7 @@ mod tests {
 
         let bundle = fold(&snapshot, Vec::new(), "2026-06-25T00:00:00Z");
         let graph = read(&bundle, true, None);
-        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        let nquads = graph_nquads(&graph);
         assert!(
             nquads.contains("<https://blackcatinformatics.ca/gmeow/graph/metadata>"),
             "the committed snapshot's named graph must survive the replay"
