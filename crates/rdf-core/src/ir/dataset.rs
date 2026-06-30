@@ -22,7 +22,7 @@
 //!
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
+use std::hash::{BuildHasherDefault, Hash, Hasher};
 use std::sync::{Arc, OnceLock};
 
 use crate::dataset_view::GraphMatch;
@@ -37,6 +37,9 @@ use super::term::{arena_str, BlankScope, InternedTerm, TermId, TermValue};
 /// layer (`reifier rdf:reifies <<( s p o )>>`). Used to expose the reifier side-table
 /// as virtual triples in [`RdfDataset::reifier_quads`].
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
+type FastHasher = BuildHasherDefault<ahash::AHasher>;
+type ValueIndex = HashMap<u64, Vec<TermId>, FastHasher>;
 
 /// A handle identifying a pushed quad by its dense (deduplicated) ordinal, used to
 /// attach a source location sparsely. Like [`TermId`], it is local to one frozen
@@ -160,7 +163,7 @@ pub struct RdfDataset {
     /// [`TermValue`] copies — so building it duplicates **no** term strings (~10×
     /// leaner than an owned-key map). Built lazily (the builder's interner index is
     /// dropped at freeze); `OnceLock` keeps the frozen dataset `Send + Sync`.
-    value_index: OnceLock<HashMap<u64, Vec<TermId>>>,
+    value_index: OnceLock<ValueIndex>,
     /// Lazy permutation quad indexes for indexed
     /// [`quads_for_pattern`](RdfDataset::quads_for_pattern_indexed) (#891 P4b). SPOG
     /// is free (the `quads` table is already freeze-sorted by `(s, p, o, g)`); the
@@ -875,7 +878,7 @@ impl RdfDataset {
 
     /// Canonical hash of a value, matching [`hash_term`](Self::hash_term).
     fn hash_of<T: Hash>(value: &T) -> u64 {
-        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        let mut hasher = ahash::AHasher::default();
         value.hash(&mut hasher);
         hasher.finish()
     }
@@ -893,10 +896,11 @@ impl RdfDataset {
     #[must_use]
     pub fn term_id_by_value(&self, value: &TermValue) -> Option<TermId> {
         let index = self.value_index.get_or_init(|| {
-            let mut map: HashMap<u64, Vec<TermId>> = HashMap::with_capacity(self.terms.len());
+            let mut map: ValueIndex =
+                HashMap::with_capacity_and_hasher(self.terms.len(), FastHasher::default());
             for i in 0..self.terms.len() {
                 let id = TermId::from_index(i as u32);
-                let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                let mut hasher = ahash::AHasher::default();
                 self.hash_term(id, &mut hasher);
                 map.entry(hasher.finish()).or_default().push(id);
             }

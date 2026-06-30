@@ -58,15 +58,17 @@ fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, St
     Ok(strings)
 }
 
-/// Parse JSON-LD-star or YAML-LD-star bytes via the pipeline's own round-trip
+/// Parse JSON-LD / JSON-LD-star or YAML-LD-star bytes via the pipeline's own round-trip
 /// path (the inverse of the emitter) and return RDFC-1.0 canonical quad strings.
 ///
-/// Used for the `"star"` compare mode: oxigraph cannot parse jsonld-star /
-/// yaml-ld-star directly, so we decode through `parse_jsonld_star` (which
+/// Used for the `"star"` compare mode and JSON-LD `rdf` comparisons: the native
+/// RDF text format enum has no JSON-LD variant, so we decode through
+/// `parse_jsonld_star` (which
 /// understands the `@annotation` idiom emitted by the GMEOW serializer) and
 /// then canonicalize via gmeow_rdf.
 fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> Result<Vec<String>, String> {
     let json_bytes = match to_codec {
+        "jsonld" | "json-ld" => bytes.to_vec(),
         "jsonld-star" | "json-ld-star" => bytes.to_vec(),
         "yaml-ld-star" | "yamlld-star" => {
             let json_str =
@@ -97,6 +99,14 @@ fn rdf_format_for_codec(codec: &str) -> Option<NativeRdfFormat> {
         // JSON-LD/YAML-LD are compared via the `star` path (`canonical_quads_star`),
         // never the flat `rdf` path, so they have no native flat-format mapping here.
         _ => None,
+    }
+}
+
+fn canonical_quads_for_codec(bytes: &[u8], codec: &str) -> Result<Vec<String>, String> {
+    if let Some(fmt) = rdf_format_for_codec(codec) {
+        canonical_quads(bytes, fmt)
+    } else {
+        canonical_quads_star(bytes, codec)
     }
 }
 
@@ -195,19 +205,9 @@ fn transcode_corpus() {
         // Compare output.
         let compare_err: Option<String> = match profile.compare.as_str() {
             "rdf" => {
-                let fmt = match rdf_format_for_codec(&profile.to) {
-                    Some(f) => f,
-                    None => {
-                        failures.push(format!(
-                            "[{case_name}] no RDF format mapping for `to` codec `{}`",
-                            profile.to
-                        ));
-                        continue;
-                    }
-                };
                 match (
-                    canonical_quads(&output.bytes, fmt),
-                    canonical_quads(&expected_bytes, fmt),
+                    canonical_quads_for_codec(&output.bytes, &profile.to),
+                    canonical_quads_for_codec(&expected_bytes, &profile.to),
                 ) {
                     (Ok(actual), Ok(expected)) if actual == expected => None,
                     (Ok(actual), Ok(expected)) => {
