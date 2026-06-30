@@ -14,7 +14,7 @@ use std::path::Path;
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::{module_files, turtle_bytes_to_store};
 
 /// Committed logical path of the module-status matrix.
@@ -242,9 +242,6 @@ pub struct MatrixStage;
 impl Stage for MatrixStage {
     fn id(&self) -> &str {
         "stage-export-matrix"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

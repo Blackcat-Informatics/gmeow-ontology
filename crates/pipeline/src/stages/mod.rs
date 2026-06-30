@@ -60,7 +60,7 @@ pub mod yaml_ld;
 /// key. The single inventory the loader and `run_pipeline` (P6) share. Stages
 /// land here as P3–P5 implement them.
 pub fn register_default(registry: &mut StageRegistry) {
-    registry.register("source_load", Arc::new(source_load::SourceLoadStage));
+    registry.register("source_load", Arc::new(source_load::SourceLoadStage::new()));
     registry.register("statements", Arc::new(statements::StatementsStage));
     registry.register(
         "compile_logic",

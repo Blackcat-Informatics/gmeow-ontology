@@ -36,6 +36,9 @@ pub mod obligations;
 // crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
 #[cfg(test)]
 mod path_projection_tests;
+// Native physical execution core: columnar RelationStore + the semi-naive / magic-sets
+// engine that the materialize and dispatch routers invoke native-first. Crate-internal.
+mod physical;
 pub mod probabilistic;
 pub mod profile_gate;
 pub mod provenance;
@@ -63,6 +66,10 @@ pub mod transition;
 pub mod verify;
 pub mod versioning;
 pub mod wellfounded;
+// The intra-engine phase descriptor of the well-founded materializer — the
+// runtime twin the dogfood parity gate checks the authored
+// `logic:wellFoundedMaterializerPlan` against (Principle 12).
+pub use wellfounded::{WELL_FOUNDED_ITERATED_PHASE, WELL_FOUNDED_PHASES};
 
 // PyO3 Python bindings.
 pub mod py;

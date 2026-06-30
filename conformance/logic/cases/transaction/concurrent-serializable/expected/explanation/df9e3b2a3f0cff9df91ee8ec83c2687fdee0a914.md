@@ -1,0 +1,38 @@
+<!-- cited-iri-skeleton
+  http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+  https://blackcatinformatics.ca/gmeow/derivation/772814b44cf4df1a973e86f56dd12e50acb34a28
+  https://blackcatinformatics.ca/gmeow/derivation/bb3fb2417c0e5b55189913307770693788b57b62
+  https://blackcatinformatics.ca/gmeow/reifier/538c97085869f48fa0aa6ccb1d818fa0e4595a1a
+  https://blackcatinformatics.ca/gmeow/reifier/df9e3b2a3f0cff9df91ee8ec83c2687fdee0a914
+  https://blackcatinformatics.ca/logic/ConcurrentComposition
+  https://blackcatinformatics.ca/logic/assert
+  https://blackcatinformatics.ca/logic/concurrentComposedFrom
+  https://blackcatinformatics.ca/logic/history/c0261a6486e80e043d53aa6d29b21f6f93b24066
+  https://blackcatinformatics.ca/logic/rule/transaction
+  https://example.org/transaction/concurrent-serializable/conc
+  https://example.org/transaction/concurrent-serializable/legL
+  https://example.org/transaction/concurrent-serializable/world
+-->
+
+<!-- step-skeleton
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/bb3fb2417c0e5b55189913307770693788b57b62
+    rule=https://blackcatinformatics.ca/logic/rule/transaction
+    term=https://blackcatinformatics.ca/logic/concurrentComposedFrom
+    term=https://blackcatinformatics.ca/logic/history/c0261a6486e80e043d53aa6d29b21f6f93b24066
+    term=https://example.org/transaction/concurrent-serializable/legL
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/772814b44cf4df1a973e86f56dd12e50acb34a28
+    rule=https://blackcatinformatics.ca/logic/assert
+    term=http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+    term=https://blackcatinformatics.ca/logic/ConcurrentComposition
+    term=https://example.org/transaction/concurrent-serializable/conc
+-->
+
+# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/df9e3b2a3f0cff9df91ee8ec83c2687fdee0a914>`
+
+**World:** `<https://example.org/transaction/concurrent-serializable/world>`
+**Target derivation:** `<https://blackcatinformatics.ca/gmeow/derivation/bb3fb2417c0e5b55189913307770693788b57b62>`
+
+**Derived** by rule `<https://blackcatinformatics.ca/logic/rule/transaction>`:
+  `<https://blackcatinformatics.ca/logic/history/c0261a6486e80e043d53aa6d29b21f6f93b24066>` `<https://blackcatinformatics.ca/logic/concurrentComposedFrom>` `<https://example.org/transaction/concurrent-serializable/legL>` *(in `<https://example.org/transaction/concurrent-serializable/world>`)*
+  **Asserted fact** (input — `<https://blackcatinformatics.ca/gmeow/reifier/538c97085869f48fa0aa6ccb1d818fa0e4595a1a>`):
+    `<https://example.org/transaction/concurrent-serializable/conc>` `<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>` `<https://blackcatinformatics.ca/logic/ConcurrentComposition>` *(in `<https://example.org/transaction/concurrent-serializable/world>`)*

@@ -106,6 +106,21 @@
 <https://blackcatinformatics.ca/logic/defeasibleStrength>(<https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout>, "moderate", "default").
 <https://blackcatinformatics.ca/logic/evidenceFor>(<https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout>, <https://blackcatinformatics.ca/gmeow/knowsAbout>, "default").
 <https://blackcatinformatics.ca/logic/evidenceProperty>(<https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout>, <https://blackcatinformatics.ca/gmeow/hasSkill>, "default").
+<https://blackcatinformatics.ca/logic/planBody>(<https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan>, <https://blackcatinformatics.ca/logic/wfPhaseSequence>, "default").
+<https://blackcatinformatics.ca/logic/planGoal>(<https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan>, <https://blackcatinformatics.ca/logic/goalWellFoundedModel>, "default").
+<https://blackcatinformatics.ca/logic/planSuccessMode>(<https://blackcatinformatics.ca/logic/wellFoundedMaterializerPlan>, <https://blackcatinformatics.ca/logic/StrongPlanSuccess>, "default").
+<https://blackcatinformatics.ca/logic/capability>(<https://blackcatinformatics.ca/logic/wfConstructModel>, <https://blackcatinformatics.ca/logic/wfReductEngineCapability>, "default").
+<https://blackcatinformatics.ca/logic/precondition>(<https://blackcatinformatics.ca/logic/wfConstructModel>, <https://blackcatinformatics.ca/logic/wfWorldSeeded>, "default").
+<https://blackcatinformatics.ca/logic/capability>(<https://blackcatinformatics.ca/logic/wfMaterializeEdb>, <https://blackcatinformatics.ca/logic/wfReductEngineCapability>, "default").
+<https://blackcatinformatics.ca/logic/precondition>(<https://blackcatinformatics.ca/logic/wfMaterializeEdb>, <https://blackcatinformatics.ca/logic/wfWorldSeeded>, "default").
+<https://blackcatinformatics.ca/logic/leftOperand>(<https://blackcatinformatics.ca/logic/wfPhaseSequence>, <https://blackcatinformatics.ca/logic/wfMaterializeEdb>, "default").
+<https://blackcatinformatics.ca/logic/rightOperand>(<https://blackcatinformatics.ca/logic/wfPhaseSequence>, <https://blackcatinformatics.ca/logic/wfResolveThenBuild>, "default").
+<https://blackcatinformatics.ca/logic/capability>(<https://blackcatinformatics.ca/logic/wfResolveFixpoint>, <https://blackcatinformatics.ca/logic/wfReductEngineCapability>, "default").
+<https://blackcatinformatics.ca/logic/precondition>(<https://blackcatinformatics.ca/logic/wfResolveFixpoint>, <https://blackcatinformatics.ca/logic/wfWorldSeeded>, "default").
+<https://blackcatinformatics.ca/logic/iterationBody>(<https://blackcatinformatics.ca/logic/wfResolveLoop>, <https://blackcatinformatics.ca/logic/wfResolveFixpoint>, "default").
+<https://blackcatinformatics.ca/logic/iterationCondition>(<https://blackcatinformatics.ca/logic/wfResolveLoop>, <https://blackcatinformatics.ca/logic/wfFixpointNotReached>, "default").
+<https://blackcatinformatics.ca/logic/leftOperand>(<https://blackcatinformatics.ca/logic/wfResolveThenBuild>, <https://blackcatinformatics.ca/logic/wfResolveLoop>, "default").
+<https://blackcatinformatics.ca/logic/rightOperand>(<https://blackcatinformatics.ca/logic/wfResolveThenBuild>, <https://blackcatinformatics.ca/logic/wfConstructModel>, "default").
 
 % === Rules ===
 #[name("https://blackcatinformatics.ca/logic/ruleProjectHasMastered")]
