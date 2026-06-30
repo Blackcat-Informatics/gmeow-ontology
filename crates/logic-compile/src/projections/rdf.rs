@@ -683,6 +683,30 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         if let Some(p) = &scope.provenance {
             g.add_iri(&rule_node, &logic("provenance"), p);
         }
+
+        // Aggregation (reduce): the function, the aggregated variable, the result variable, and
+        // the group keys, carried directly on the rule node (parallel to the scope properties).
+        // Default-absent so a non-aggregating rule round-trips byte-identically.
+        if let Some(agg) = &rule.aggregation {
+            g.add_lit(
+                &rule_node,
+                &logic("aggregateFunction"),
+                RdfLiteral::simple(&agg.function),
+            );
+            g.add_lit(
+                &rule_node,
+                &logic("aggregateVariable"),
+                RdfLiteral::simple(&agg.aggregate_var),
+            );
+            g.add_lit(
+                &rule_node,
+                &logic("aggregateResult"),
+                RdfLiteral::simple(&agg.result_var),
+            );
+            for key in &agg.group_keys {
+                g.add_lit(&rule_node, &logic("groupKey"), RdfLiteral::simple(key));
+            }
+        }
     }
 
     // Full first-order formulas (the typed full-FOL core beyond the Horn fragment).
