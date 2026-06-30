@@ -39,10 +39,9 @@ CROSSREF_DEPOSIT_URL ?= https://doi.crossref.org/servlet/deposit
 NEXTEST_PARTITION ?=
 NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITION) --no-tests pass,)
 
-# The committed .cargo/config.toml pins Rust to the portable x86-64-v3 floor.
-# Report-only benchmarks opt into host tuning and must restate the bundled-lld
-# linker flags because the RUSTFLAGS env var replaces config rustflags.
-NATIVE_RUSTFLAGS := -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=native
+# The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
+# codegen for regenerate/reasoning throughput. CI and release workflows append the
+# portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
 
 ACCEPTANCE_MIN_RECALL ?= 60
 FUZZ_TARGETS = nquads gts shacl sssom statements
@@ -517,7 +516,7 @@ fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format fron
 	done
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
-	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate -p gmeow-sparql-eval
+	cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate -p gmeow-sparql-eval
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
