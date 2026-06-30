@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conformance case: correspondence/openehr-bloodpressure-section-retraction
+# AC: the openEHR Blutdruck blood-pressure correspondence reaches the
+#     section/retraction rung (u ∘ d = id_GMEOW) — the round-trip + mnemomorphism
+#     gates PASS on the canonical IR.
+#
+# Grounds docs/APPLIED_CATEGORY_THEORY/usecase_openehr_bloodpressure.md against the
+# real GECCO Blutdruck data. The canonical GMEOW source object S is the YAMATO
+# quality ladder (a persistent logic:Quality per arterial role, dated standpoint-
+# indexed observations, a unit-independent true quantity); the down-projection get
+# leg is the archetype_node_id path witness (events → items[at0004] → value) as a
+# gm:SeqPath, so the lawful put = get.invert() recovers S structurally.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix gm:    <https://blackcatinformatics.ca/gmeow/> .
+@prefix qudt:  <http://qudt.org/vocab/unit/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://gmeow.example/openehr/bp/> .
+
+# ── The canonical GMEOW source object S (YAMATO ladder; the part the RM cannot hold) ──
+ex:patientP a gmeow:Person .
+
+ex:sysBP a logic:Quality ;
+    logic:genericQuality gmeow:pressure ;            # == OPT property openehr::pressure
+    logic:qualityRole    gmeow:systolicRole ;        # == archetype node at0004 "Systolisch"
+    gmeow:bearer         ex:patientP ;
+    gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0004]" .
+
+ex:diaBP a logic:Quality ;
+    logic:genericQuality gmeow:pressure ;
+    logic:qualityRole    gmeow:diastolicRole ;       # == archetype node at0005 "Diastolisch"
+    gmeow:bearer         ex:patientP ;
+    gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0005]" .
+
+ex:obsSys1 a gmeow:Observation ;
+    gmeow:observationOf     ex:sysBP ;
+    gmeow:observationResult ex:measSys1 ;
+    gmeow:observedAt        "2012-09-17T00:00:00+02:00"^^xsd:dateTime ;
+    logic:accordingTo       ex:clinicStandpointDE ;
+    logic:confidence        "0.98"^^xsd:decimal ;    # device-calibration confidence
+    logic:evidenceStrength  "device-measured" ;      # provenance warrant (≠ confidence)
+    logic:determinacy       logic:Crisp .            # the relationship is crisp (≠ how sure)
+
+ex:measSys1 a gmeow:Quantity ;
+    gmeow:trueQuantity  ex:bpMagnitude ;             # the frame-independent magnitude (P11)
+    gmeow:quantityValue "1.0"^^xsd:decimal ;
+    gmeow:unit          qudt:MilliM_HG .
+
+ex:bpMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure .
+
+ex:clinicStandpointDE a logic:Standpoint .
+
+# ── The correspondence cell: the section/retraction proof ──
+ex:bpSection a logic:Correspondence ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind  logic:InstitutionMorphism ;
+    logic:mnemomorphic  "true"^^xsd:boolean ;
+    logic:accordingTo   ex:clinicStandpointDE ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:getLeg        ex:bpGet .
+
+# The get-leg body: a SeqPath whose steps ARE the archetype_node_id path witness
+# (events → items[at0004] → value). The lawful put is its structural inverse,
+# auto-derived; the round-trip gate composes put == get.invert() and PASSES.
+ex:bpGet gm:path ex:bpGetSeq .
+ex:bpGetSeq a gm:SeqPath ; gm:pathSteps ex:bpc1 .
+ex:bpc1 gm:pathItem ex:rmEvents      ; gm:pathNext ex:bpc2 .
+ex:bpc2 gm:pathItem ex:rmItemsAt0004 ; gm:pathNext ex:bpc3 .
+ex:bpc3 gm:pathItem ex:rmValue .
