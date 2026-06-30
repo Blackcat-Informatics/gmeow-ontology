@@ -32,12 +32,11 @@ use super::term::{
 };
 use crate::RdfLocation;
 
-/// A fixed-seed hash of a value (`DefaultHasher::new()` keys are constant), so the
-/// store-once tables are deterministic across runs. The frozen output is sorted by
-/// id, not hash-iteration order, so any hash would do — a fixed one just rules out
-/// the whole class of hash-order nondeterminism.
+/// A fixed-key hash of a value, so the store-once tables are deterministic across
+/// runs. The frozen output is sorted by id, not hash-iteration order, so any hash
+/// would do; fixed-key `AHasher` just avoids SipHash on the hot interning path.
 fn hash_of<T: Hash>(value: &T) -> u64 {
-    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    let mut hasher = ahash::AHasher::default();
     value.hash(&mut hasher);
     hasher.finish()
 }
