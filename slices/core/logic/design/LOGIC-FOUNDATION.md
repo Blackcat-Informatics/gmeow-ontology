@@ -665,6 +665,28 @@ is simultaneously a proper part of some whole and itself a whole of some part �
 projection of the relational `logic:HolonicPosition`. All these rules are inert on inputs that carry no
 `logic:properPartOf` facts, so the OntoUML-discipline cases are unaffected.
 
+Quality/quantity constraints are a further violation family, governing the stratification of a
+`logic:Quality` into a frame-independent generic quality, the anti-rigid role it plays in a
+bearer-context, and a frame-relative measured value — the YAMATO refinement adopted by-reference
+(persistent quality identity, the generic-quality→quality-role ladder, and unit-independent true
+quantity; `docs/foundational-bridging.md`). Like the mereology constraints they are
+`logic:QualityConstraint` individuals emitted through the uniform `logic:violation` predicate, and
+their lowerings certify under `logic:StratifiedNAFProfile`. Two are minted, each a single stratified
+rule with a negation-as-failure complement. `logic:QualityRoleWithoutGeneric` fires for a quality
+carrying a `logic:qualityRole` but no `logic:genericQuality` — a frame-relative value standing
+without the frame-independent structure it refines (Principle 11 in role terms), the NAF complement
+ranging over `logic:genericQuality`. `logic:MeasurementFrameMissing` fires for a measurement bearing a
+`logic:unit` but no `logic:referenceFrame` — a value expressed in a unit without its frame, ill-formed
+rather than merely under-specified (Principle 11), the NAF complement ranging over
+`logic:referenceFrame`. Because the foundation chase is all-IRI (it carries no literal facts), the rule
+keys on the IRI-valued `logic:unit` witness rather than the literal `logic:measuredValue` it qualifies —
+the same move the holon coherence rule makes in keying on `logic:hasHolonicPosition` rather than the
+literal `logic:holonicLevel`. The domain measurement predicates `gmeow:unit` and `gmeow:referenceFrame`
+are sub-properties of `logic:unit` and `logic:referenceFrame`, so a domain measurement lifts into the
+constraint's scope without the rule mentioning any `gmeow:` term — the same domain-grounding lift the
+occurrent refinements use. Both rules are inert on inputs carrying no quality stratification, so existing cases
+are unaffected.
+
 Cross-world rigidity — the world-spanning universal quantifier that no ordinary in-world Datalog rule
 expresses — is evaluated as a bounded closure pass over the finite materialized world set, emitting
 `logic:rigidityViolation` quads in the world where rigidity persistence fails. The pass fires when at
