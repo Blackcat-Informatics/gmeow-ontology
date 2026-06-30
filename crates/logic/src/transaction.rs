@@ -1352,5 +1352,10 @@ fn program_type_iri(program: &TransactionProgram) -> String {
 // (`emit_program_outcome`); it mints no RDF vocabulary of its own.
 pub(crate) mod trajectory;
 
+// The live execution façade the MCP memory triad drives — a child module so it reaches the
+// same `emit_program_outcome` path the authored cases and the trajectory audit use; it
+// encodes no action theory of its own.
+pub mod execute;
+
 #[cfg(test)]
 mod tests;
