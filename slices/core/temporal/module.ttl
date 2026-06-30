@@ -126,11 +126,11 @@ gmeow:TemporalMeasurement
             owl:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A measured assignment of a date or age to an entity or sample, carrying the method, uncertainty, and determinacy. Now a subclass of gmeow:Measurement (and therefore gmeow:Observation), realising Principle 9: the measurement is a standpoint-indexed claim (vantage + observedFeature + observationResult), not ground truth."@x-gmeow-english ;
-    skos:example "ex:charcoalDate a gmeow:TemporalMeasurement ; gmeow:vantage ex:labXYZ ; gmeow:observedFeature ex:hearthSample ; gmeow:measuredAge \"4200\"^^xsd:decimal ; gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ."@x-gmeow-english ;
+    skos:example "ex:charcoalDate a gmeow:TemporalMeasurement ; gmeow:vantage ex:labXYZ ; gmeow:observedFeature ex:hearthSample ; gmeow:measuredAge \"4200\"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/YR> ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a simply-stated crisp date (use a gmeow:Instant with gmeow:instantValue) and for non-temporal measurements; this is a gufo:Relator reifying a dating claim, not the date value itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
-    gmeow:howToUse "Mediate a gmeow:vantage (the dating agent/lab) and a gmeow:observedFeature (the dated thing), then attach gmeow:measuredAge or gmeow:measuredDate, gmeow:hasUnit, gmeow:measurementUncertainty, gmeow:measurementMethod, and gmeow:measurementDeterminacy; competing measurements coexist as standpoint-indexed claims (P9)."@x-gmeow-english ;
+    gmeow:howToUse "Mediate a gmeow:vantage (the dating agent/lab) and a gmeow:observedFeature (the dated thing), then attach gmeow:measuredAge or gmeow:measuredDate, gmeow:unit, gmeow:measurementUncertainty, gmeow:measurementMethod, and gmeow:measurementDeterminacy; competing measurements coexist as standpoint-indexed claims (P9)."@x-gmeow-english ;
     gmeow:useWhen "Use when a date or age is a measured, method-bearing, uncertain claim by some vantage — a radiocarbon date, a dendro count, an ICS boundary age — rather than a self-evident timestamp."@x-gmeow-english .
 
 gmeow:TimeInterval
@@ -735,11 +735,11 @@ gmeow:measuredAge
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measured age"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The numeric age yielded by a temporal measurement, in the unit given by gmeow:hasUnit."@x-gmeow-english ;
-    skos:example "ex:charcoalDate gmeow:measuredAge \"4200\"^^xsd:decimal ; gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for an absolute calendar instant (use gmeow:measuredDate, which feeds the periodStart chain) and avoid omitting gmeow:hasUnit; a bare number without a unit is ill-formed."@x-gmeow-english ;
+    skos:definition "The numeric age yielded by a temporal measurement, in the unit given by gmeow:unit."@x-gmeow-english ;
+    skos:example "ex:charcoalDate gmeow:measuredAge \"4200\"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/YR> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an absolute calendar instant (use gmeow:measuredDate, which feeds the periodStart chain) and avoid omitting gmeow:unit; a bare number without a unit is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Write an xsd:decimal age and always pair it with gmeow:hasUnit; record spread with gmeow:measurementUncertainty; converting an age to an absolute date is a solver-layer concern (P12), so age does not trigger the periodStart chain."@x-gmeow-english ;
+    gmeow:howToUse "Write an xsd:decimal age and always pair it with gmeow:unit; record spread with gmeow:measurementUncertainty; converting an age to an absolute date is a solver-layer concern (P12), so age does not trigger the periodStart chain."@x-gmeow-english ;
     gmeow:useWhen "Use for a measurement that yields an elapsed-time figure (years before present, sample age) rather than an absolute calendar date — the radiocarbon/geologic style of result."@x-gmeow-english .
 
 gmeow:measuredDate
@@ -762,7 +762,7 @@ gmeow:measurementCenozoicStart
     rdfs:label "Cenozoic start age"@x-gmeow-english ;
     skos:definition "The cenozoic start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:hasUnit unit:YR ;
+    gmeow:unit unit:YR ;
     gmeow:measuredAge "66000000"^^xsd:decimal ;
     gmeow:measurementUncertainty "500000"^^xsd:decimal ;
     gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
@@ -790,7 +790,7 @@ gmeow:measurementHoloceneStart
     rdfs:label "Holocene start age"@x-gmeow-english ;
     skos:definition "The holocene start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:hasUnit unit:YR ;
+    gmeow:unit unit:YR ;
     gmeow:measuredAge "11700"^^xsd:decimal ;
     gmeow:measurementUncertainty "500"^^xsd:decimal ;
     gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
@@ -818,7 +818,7 @@ gmeow:measurementPhanerozoicStart
     rdfs:label "Phanerozoic start age"@x-gmeow-english ;
     skos:definition "The phanerozoic start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:hasUnit unit:YR ;
+    gmeow:unit unit:YR ;
     gmeow:measuredAge "538800000"^^xsd:decimal ;
     gmeow:measurementUncertainty "5000000"^^xsd:decimal ;
     gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
@@ -831,7 +831,7 @@ gmeow:measurementQuaternaryStart
     rdfs:label "Quaternary start age"@x-gmeow-english ;
     skos:definition "The quaternary start temporal measurement — a measured boundary value expressed in a particular temporal reference frame."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:hasUnit unit:YR ;
+    gmeow:unit unit:YR ;
     gmeow:measuredAge "2580000"^^xsd:decimal ;
     gmeow:measurementUncertainty "10000"^^xsd:decimal ;
     gmeow:observationMethod gmeow:datingMethodStratigraphicCorrelation ;
@@ -847,7 +847,7 @@ gmeow:measurementUncertainty
     rdfs:range xsd:decimal ;
     skos:definition "The uncertainty (e.g. ±1 sigma) of a temporal measurement, in the same unit as the measured age."@x-gmeow-english ;
     skos:example "ex:charcoalDate gmeow:measurementUncertainty \"35\"^^xsd:decimal ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid mixing units (it shares gmeow:hasUnit with gmeow:measuredAge) and avoid using it to express ontic determinacy; that is gmeow:measurementDeterminacy, an orthogonal facet (P9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mixing units (it shares gmeow:unit with gmeow:measuredAge) and avoid using it to express ontic determinacy; that is gmeow:measurementDeterminacy, an orthogonal facet (P9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Write an xsd:decimal in the measurement's unit; the fuzzy/probabilistic interval arithmetic that consumes it lives in the solver layer (P12)."@x-gmeow-english ;
     gmeow:useWhen "Use to record the spread (e.g. ±1σ) of a temporal measurement's age, in the same unit as gmeow:measuredAge — the quantitative error bar on a dating claim."@x-gmeow-english .

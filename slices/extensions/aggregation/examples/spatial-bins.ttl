@@ -31,7 +31,7 @@ ex:householdAgg a gmeow:SpatialAggregation ;
 # P11); a count of persons-per-household is the dimensionless QUDT number unit.
 ex:avgHouseholdSize a gmeow:ScalarQuantity ;
     gmeow:quantityValue "2.4"^^xsd:decimal ;
-    gmeow:hasUnit       <http://qudt.org/vocab/unit/NUM> .
+    gmeow:unit       <http://qudt.org/vocab/unit/NUM> .
 
 ex:downtownBin a gmeow:SpatialBin ;
     rdfs:label "Downtown census tract"@x-gmeow-english .

@@ -92,7 +92,7 @@ ex:obsTempStation1
 ex:tempStation1
     a gmeow:ScalarQuantity ;
     gmeow:quantityValue "25.3"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/DEG_C> ;
+    gmeow:unit <http://qudt.org/vocab/unit/DEG_C> ;
     gmeow:hasDeterminacy gmeow:determinacyCrisp .
 
 ex:weatherStation1
@@ -119,7 +119,7 @@ ex:massSampleA
     a gmeow:Quantity ;
     gmeow:quantityValue "42.195"^^xsd:decimal ;
     gmeow:quantityUncertainty "0.001"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/KiloGM> ;
+    gmeow:unit <http://qudt.org/vocab/unit/KiloGM> ;
     gmeow:hasDeterminacy gmeow:determinacyCrisp ;
     gmeow:isResultOf ex:obsMassLab1 .
 

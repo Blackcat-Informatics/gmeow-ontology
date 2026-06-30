@@ -5,6 +5,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:GenericQuality
@@ -43,12 +44,12 @@ gmeow:MeasuredValue
         gmeow:Entity ;
     owl:equivalentClass gmeow:Quantity ;
     skos:definition "An alias for gmeow:Quantity — the measured-value perspective on the same value×unit/frame×determinacy×provenance bundle (ScalarQuantity alias precedent). Equivalent to gmeow:Quantity and gmeow:ScalarQuantity. Provided for consumers who prefer the 'measured value' terminology common in metrology and sensor standards."@x-gmeow-english ;
-    skos:example "ex:reading22 a gmeow:MeasuredValue ; gmeow:quantityValue 22.5 ; gmeow:hasUnit qudt:DEG_C ."@x-gmeow-english ;
+    skos:example "ex:reading22 a gmeow:MeasuredValue ; gmeow:quantityValue 22.5 ; gmeow:unit qudt:DEG_C ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling it as a separate class from its equivalents (owl:equivalentClass — they denote one thing) and avoid it for currency-framed money (gmeow:MonetaryAmount); pick a single alias per export for consistency."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernFrames ,
         gmeow:concernProvenanceEvidence ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the value gmeow:MeasuredValue, fill gmeow:quantityValue / gmeow:quantityUncertainty, name gmeow:hasUnit and gmeow:hasDeterminacy, and link gmeow:isResultOf; consumers reading any of the three equivalent names see the same value."@x-gmeow-english ;
+    gmeow:howToUse "Type the value gmeow:MeasuredValue, fill gmeow:quantityValue / gmeow:quantityUncertainty, name gmeow:unit and gmeow:hasDeterminacy, and link gmeow:isResultOf; consumers reading any of the three equivalent names see the same value."@x-gmeow-english ;
     gmeow:useWhen "Use as the metrology-flavoured name for the value×unit/frame×determinacy×provenance bundle — the same construct as gmeow:Quantity / gmeow:ScalarQuantity — when aligning with sensor or metrology standards that say 'measured value'."@x-gmeow-english .
 
 gmeow:Measurement
@@ -61,7 +62,7 @@ gmeow:Measurement
     skos:example "ex:tempReading a gmeow:Measurement ; gmeow:observationResult ex:temp22 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a bare standpoint assertion with no assigned value (use gmeow:StandpointClaim) or a raw sensor reading you want typed as such (gmeow:SensoryObservation); specialize further to gmeow:TemporalMeasurement or a spatial coordinate measurement where the slice provides one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the act gmeow:Measurement, make gmeow:observationResult a gmeow:ScalarQuantity (value + gmeow:hasUnit + gmeow:hasDeterminacy + gmeow:quantityUncertainty), and let domain slices deepen it with their own measurement subclasses and seeds."@x-gmeow-english ;
+    gmeow:howToUse "Type the act gmeow:Measurement, make gmeow:observationResult a gmeow:ScalarQuantity (value + gmeow:unit + gmeow:hasDeterminacy + gmeow:quantityUncertainty), and let domain slices deepen it with their own measurement subclasses and seeds."@x-gmeow-english ;
     gmeow:useWhen "Use when an observation assigns a value to its feature — a dating, a coordinate fix, a scalar reading — so the claim inherits the observation roles while signalling it is a quantified/qualified measurement carrying unit, uncertainty, and determinacy."@x-gmeow-english .
 
 gmeow:MonetaryAmount
@@ -77,7 +78,7 @@ gmeow:MonetaryAmount
         ] ;
     skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@x-gmeow-english ;
     skos:example "ex:price a gmeow:MonetaryAmount ; gmeow:monetaryValue 19.99 ; gmeow:currency ex:usd ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a unit-bearing physical quantity (use gmeow:Quantity with gmeow:hasUnit) and avoid stating a bare amount without gmeow:currency — a value without its currency frame is ill-formed (Principle 11)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a unit-bearing physical quantity (use gmeow:Quantity with gmeow:unit) and avoid stating a bare amount without gmeow:currency — a value without its currency frame is ill-formed (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the amount, set gmeow:monetaryValue (xsd:decimal) and the required gmeow:currency reference frame; the generated frame-relativity shape (gmeow:requiresFrame) enforces exactly the currency the amount is denominated in."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:currency ;
@@ -154,13 +155,13 @@ gmeow:Quantity
     rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     owl:equivalentClass gmeow:ScalarQuantity ;
-    skos:definition "A universal scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS (ScalarQuantity alias precedent). Equivalent to gmeow:ScalarQuantity; the domain-neutral name for the same construct. Used for temperatures, distances, counts, probabilities, masses, prices, and any other quantitative observation result. The value lives in gmeow:quantityValue; the unit/frame in gmeow:hasUnit / gmeow:hasReferenceFrame; the determinacy in gmeow:hasDeterminacy; the provenance in gmeow:isResultOf."@x-gmeow-english ;
-    skos:example "ex:distance a gmeow:Quantity ; gmeow:quantityValue 12.4 ; gmeow:hasUnit qudt:M ."@x-gmeow-english ;
+    skos:definition "A universal scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS (ScalarQuantity alias precedent). Equivalent to gmeow:ScalarQuantity; the domain-neutral name for the same construct. Used for temperatures, distances, counts, probabilities, masses, prices, and any other quantitative observation result. The value lives in gmeow:quantityValue; the unit/frame in gmeow:unit / gmeow:hasReferenceFrame; the determinacy in gmeow:hasDeterminacy; the provenance in gmeow:isResultOf."@x-gmeow-english ;
+    skos:example "ex:distance a gmeow:Quantity ; gmeow:quantityValue 12.4 ; gmeow:unit qudt:M ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as a distinct class from gmeow:ScalarQuantity / gmeow:MeasuredValue (they are owl:equivalentClass — pick one name per export) and avoid it for currency-framed money (use gmeow:MonetaryAmount)."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernFrames ,
         gmeow:concernProvenanceEvidence ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the value gmeow:Quantity, set gmeow:quantityValue, name gmeow:hasUnit / gmeow:hasReferenceFrame and gmeow:hasDeterminacy, and carry provenance with gmeow:isResultOf; choose one of the three equivalent names consistently within a projection."@x-gmeow-english ;
+    gmeow:howToUse "Type the value gmeow:Quantity, set gmeow:quantityValue, name gmeow:unit / gmeow:hasReferenceFrame and gmeow:hasDeterminacy, and carry provenance with gmeow:isResultOf; choose one of the three equivalent names consistently within a projection."@x-gmeow-english ;
     gmeow:useWhen "Use as the domain-neutral name for a scalar value bundled with unit/frame, determinacy, and provenance — the same construct as gmeow:ScalarQuantity, preferred when no metrology or observation-result framing is intended."@x-gmeow-english .
 
 gmeow:ScalarQuantity
@@ -171,12 +172,12 @@ gmeow:ScalarQuantity
     rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly."@x-gmeow-english ;
-    skos:example "ex:temp22 a gmeow:ScalarQuantity ; gmeow:quantityValue 22.5 ; gmeow:hasUnit qudt:DEG_C ."@x-gmeow-english ;
+    skos:example "ex:temp22 a gmeow:ScalarQuantity ; gmeow:quantityValue 22.5 ; gmeow:unit qudt:DEG_C ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid hanging the bare literal on the observation directly (wrap it here) and avoid using it for money (use gmeow:MonetaryAmount, whose currency frame is required); for the domain-neutral name prefer the equivalent gmeow:Quantity / gmeow:MeasuredValue."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernFrames ,
         gmeow:concernProvenanceEvidence ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the wrapper, set gmeow:quantityValue (and gmeow:quantityUncertainty), name gmeow:hasUnit and gmeow:hasDeterminacy, and link it back with gmeow:isResultOf so it inherits the observation's reference frame via the property chain."@x-gmeow-english ;
+    gmeow:howToUse "Mint the wrapper, set gmeow:quantityValue (and gmeow:quantityUncertainty), name gmeow:unit and gmeow:hasDeterminacy, and link it back with gmeow:isResultOf so it inherits the observation's reference frame via the property chain."@x-gmeow-english ;
     gmeow:useWhen "Use to wrap a literal scalar reading — temperature, distance, count, probability — as an entity so gmeow:observationResult stays uniformly entity-valued and the value travels with its unit, determinacy, and granularity."@x-gmeow-english .
 
 gmeow:SensoryObservation
@@ -249,7 +250,7 @@ gmeow:currency
     rdfs:subPropertyOf gmeow:hasReferenceFrame ;
     skos:definition "The currency reference frame in which this monetary amount is expressed. Functional: a MonetaryAmount is in exactly one currency frame. A subproperty of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english ;
     skos:example "ex:price gmeow:currency ex:usd ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a non-monetary unit (use gmeow:hasUnit) and avoid asserting two currencies on one amount — it is functional, exactly one currency frame per amount; convert into a separate amount instead."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a non-monetary unit (use gmeow:unit) and avoid asserting two currencies on one amount — it is functional, exactly one currency frame per amount; convert into a separate amount instead."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the amount at one currency ReferenceFrame and read it through gmeow:hasReferenceFrame by inheritance; the generated frame-relativity shape (gmeow:requiresFrame gmeow:currency) enforces its presence."@x-gmeow-english ;
     gmeow:useWhen "Use to name the currency reference frame of a gmeow:MonetaryAmount — the frame that makes its magnitude meaningful, the money-specific specialization of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english .
@@ -444,7 +445,7 @@ gmeow:observationResult
     skos:example "ex:reading gmeow:observationResult ex:temp22 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid hanging a raw literal here (the range is gmeow:Entity — wrap scalars in a gmeow:ScalarQuantity instead) and avoid forcing a single result in a multi-frame or multi-source merge; it is non-functional so competing results coexist."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the Observation at an entity-valued result; for scalar readings make the result a gmeow:ScalarQuantity carrying gmeow:quantityValue, gmeow:hasUnit, and gmeow:hasDeterminacy. The result inherits the observation's reference frame via the isResultOf∘hasReferenceFrame chain."@x-gmeow-english ;
+    gmeow:howToUse "Point the Observation at an entity-valued result; for scalar readings make the result a gmeow:ScalarQuantity carrying gmeow:quantityValue, gmeow:unit, and gmeow:hasDeterminacy. The result inherits the observation's reference frame via the isResultOf∘hasReferenceFrame chain."@x-gmeow-english ;
     gmeow:useWhen "Use to name the value an Observation produces — a coordinate set, instant, quality value, modality, appellation, or a gmeow:ScalarQuantity wrapping a literal reading."@x-gmeow-english .
 
 gmeow:observationType
@@ -588,10 +589,10 @@ gmeow:quantityValue
     rdfs:subPropertyOf logic:measuredValue ;
     skos:definition "The numeric value of a scalar quantity, as an xsd:decimal. Functional: a scalar quantity has exactly one numeric value. Meaningful only with its unit (gmeow:unit) and reference frame — no silent units, no frameless values (Principle 11). The domain grounding of logic:measuredValue (the frame-relative magnitude of the true quantity)."@x-gmeow-english ;
     skos:example "ex:temp22 gmeow:quantityValue 22.5 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid publishing or comparing it without its gmeow:hasUnit (no silent units), avoid it for money (use gmeow:monetaryValue, whose currency frame is required), and avoid asserting two values — it is functional."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid publishing or comparing it without its gmeow:unit (no silent units), avoid it for money (use gmeow:monetaryValue, whose currency frame is required), and avoid asserting two values — it is functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Put the magnitude here as xsd:decimal, name the unit with gmeow:hasUnit, the spread with gmeow:quantityUncertainty, and the ontic model with gmeow:hasDeterminacy; consumers read magnitude and unit together."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the bare numeric magnitude of a gmeow:ScalarQuantity (or its aliases) — the literal that, paired with gmeow:hasUnit, makes the reading meaningful."@x-gmeow-english .
+    gmeow:howToUse "Put the magnitude here as xsd:decimal, name the unit with gmeow:unit, the spread with gmeow:quantityUncertainty, and the ontic model with gmeow:hasDeterminacy; consumers read magnitude and unit together."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the bare numeric magnitude of a gmeow:ScalarQuantity (or its aliases) — the literal that, paired with gmeow:unit, makes the reading meaningful."@x-gmeow-english .
 
 gmeow:statementAbout
     rdfs:subPropertyOf gmeow:observedFeature .
@@ -677,6 +678,21 @@ gmeow:trueQuantity
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point a framed measured value at its gmeow:Magnitude via gmeow:trueQuantity; the foundation reads it as logic:trueQuantity, and value, unit, and frame stay on the measured value."@x-gmeow-english ;
     gmeow:useWhen "Use to link a framed reading to the unit-independent magnitude it measures, so the true quantity round-trips across unit systems and the value-vs-quantity seam (Principle 11) is explicit."@x-gmeow-english .
+
+gmeow:unit
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "unit"@x-gmeow-english ;
+    rdfs:range qudt:Unit ;
+    rdfs:subPropertyOf logic:unit ;
+    skos:definition "Relates a quantitative value or measurement to its QUDT unit (by reference, never imported) — the unit the value is expressed in, held on the measured value, not on the frame-independent gmeow:Magnitude (Principle 11). The domain grounding of logic:unit and the IRI-valued witness that a framed value exists: a value bearing gmeow:unit but no reference frame (gmeow:hasReferenceFrame) is the logic:MeasurementFrameMissing violation. Domain-free: temporal, spatial, and any other quantified claim use it. The canonical unit carrier on the measurement spine (the successor to the retired gmeow:unit)."@x-gmeow-english ;
+    skos:example "ex:duration gmeow:unit qudt:SEC ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting it on the frame-independent gmeow:Magnitude (the unit is frame-relative — keep it on the measured value), avoid inventing local unit individuals or importing QUDT axioms (reference QUDT units by IRI, Principle 5), and avoid a unit-bearing value with no reference frame (a value without its frame is ill-formed, Principle 11)."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernFrames ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the measured value at its QUDT unit IRI and ensure it also carries a gmeow:hasReferenceFrame so the value is well-framed; keep the numeric magnitude on gmeow:quantityValue and let consumers read magnitude, unit, and frame together."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the QUDT unit a measured value is expressed in — the canonical unit carrier on the measurement spine (the successor to gmeow:unit), so a magnitude is never published without its unit and frame (no silent units)."@x-gmeow-english .
 
 gmeow:usageAppellation
     rdfs:subPropertyOf gmeow:observationResult .

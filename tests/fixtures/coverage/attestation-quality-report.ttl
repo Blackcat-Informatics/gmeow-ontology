@@ -17,7 +17,7 @@ ex:qualityAssessment a gmeow:QualityAssessment ;
 
 ex:completenessScore a gmeow:ScalarQuantity ;
     gmeow:quantityValue "98.5"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/PERCENT> .
+    gmeow:unit <http://qudt.org/vocab/unit/PERCENT> .
 
 ex:auditor a gmeow:Organization ;
     rdfs:label "Data Quality Audit Ltd."@en .

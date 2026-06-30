@@ -1388,11 +1388,11 @@ gmeow:ScalarQuantityShape
         sh:message "A Quantity must carry exactly one numeric gmeow:quantityValue." ;
     ] ;
     sh:property [
-        sh:path gmeow:hasUnit ;
+        sh:path gmeow:unit ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A Quantity must declare exactly one unit (gmeow:hasUnit)." ;
+        sh:message "A Quantity must declare exactly one unit (gmeow:unit)." ;
     ] .
 
 # Suppression, never erasure (Principle 10): a superseded or withdrawn
