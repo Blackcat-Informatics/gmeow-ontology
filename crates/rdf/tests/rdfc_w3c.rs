@@ -87,14 +87,14 @@ fn fixtures_dir() -> PathBuf {
 
 /// Fixtures the NATIVE N-Quads text codec cannot yet ingest — carved out of the
 /// gated shards so the suite stays green while the gap stays VISIBLE and tracked
-/// (not silently dropped). `test060` uses `\uXXXX` UCHAR escapes INSIDE an IRIREF
-/// (e.g. `<urn:ex:s:000:s⁰1>`); the native codec rejects them ("invalid
-/// character in IRI"). This is a TEXT-CODEC gap (the native codec / gmeow-gts does
-/// not decode UCHAR inside IRIs), NEWLY EXPOSED by moving this gate off the oxigraph
-/// parser (EPIC #906) — not a regression in the canonicalizer, which is correct for
-/// every fixture whose input the native codec accepts. FOLLOW-UP: teach the native
-/// N-Quads/Turtle IRIREF lexer to decode `\u`/`\U` UCHAR escapes, then delete this.
-const NATIVE_PARSE_GAP_STEMS: &[&str] = &["test060"];
+/// (not silently dropped).
+///
+/// NOW EMPTY (EPIC #906): the first-party N-Triples/N-Quads/Turtle/TriG parser decodes
+/// `\u`/`\U` UCHAR escapes inside IRIREFs (reusing the sparql-algebra term lexer), so
+/// `test060` (`<urn:ex:s:000:s⁰1>` etc.) parses and canonicalizes correctly. The slot
+/// is retained (empty) so a future native-parse gap can be tracked here rather than
+/// silently dropped.
+const NATIVE_PARSE_GAP_STEMS: &[&str] = &[];
 
 fn is_native_parse_gap(stem: &str) -> bool {
     NATIVE_PARSE_GAP_STEMS.contains(&stem)
