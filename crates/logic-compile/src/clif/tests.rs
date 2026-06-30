@@ -9,8 +9,8 @@ use crate::clif::{parse_clif_str, project_clif};
 use crate::frontend::parse_logic_str;
 use crate::ir::{
     ContextualScope, Correspondence, CorrespondenceRelation, Formula, LegPath, LogicAxiom,
-    LogicProgram, LogicRule, MorphismClass, MorphismKind, ReasoningContract, SemanticProfileId,
-    Term, TransactionProgramIr,
+    LogicProgram, LogicRule, MorphismClass, MorphismKind, PathBase, PathShapeIr, ReasoningContract,
+    SemanticProfileId, Term, TransactionProgramIr,
 };
 
 // The real `logic:` namespace (see `crate::ir::LOGIC_NAMESPACE`); a meta-channel triple
@@ -300,6 +300,52 @@ fn forbidden_iriref_chars_survive_the_round_trip() {
     let (fp2, _) = parse_clif_str(&clif2, src).expect("parse_clif_str #2");
     assert_ir_isomorphic(&fp, &fp2)
         .unwrap_or_else(|e| panic!("forbidden-char IRI round-trip not idempotent: {e}"));
+}
+
+#[test]
+fn path_shape_round_trips_with_typed_integer_depths() {
+    // A logic:PathShape rides the RDF/predication channel. Its min/max depths are integers in
+    // the IR (`u32`) and are emitted as typed `xsd:integer` literals; the whole shape — base
+    // predicate, both depths, namespace scope, depth param — must survive the round-trip.
+    let shape = PathShapeIr::new(
+        iri("shape/ancestry"),
+        PathBase::NamedPredicate(iri("parent")),
+        1,
+        Some(7),
+        None,
+        None,
+    )
+    .unwrap();
+    let orig = LogicProgram::new(
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Some("urn:test:pathshape".to_owned()),
+    )
+    .with_path_shapes(vec![shape]);
+
+    let src = Some("urn:test:pathshape".to_owned());
+    let clif1 = project_clif(&orig).expect("project_clif").content;
+    // The depths are carried as typed xsd:integer literals, not bare strings.
+    assert!(
+        clif1.contains("http://www.w3.org/2001/XMLSchema#integer"),
+        "path-shape depths are not emitted as typed xsd:integer literals:\n{clif1}"
+    );
+
+    let (fp, _diags) = parse_clif_str(&clif1, src.clone()).expect("parse_clif_str");
+    assert_eq!(fp.path_shapes.len(), 1, "the path shape must survive");
+    let got = &fp.path_shapes[0];
+    assert_eq!(got.min_depth, 1, "min_depth lost");
+    assert_eq!(got.max_depth, Some(7), "max_depth lost");
+    assert!(
+        matches!(&got.base, PathBase::NamedPredicate(p) if *p == iri("parent")),
+        "path base predicate lost: {:?}",
+        got.base
+    );
+
+    // Idempotent at the fixpoint.
+    let clif2 = project_clif(&fp).expect("project_clif").content;
+    assert_eq!(clif1, clif2, "path-shape CLIF emission is not idempotent");
 }
 
 #[test]
