@@ -199,8 +199,14 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     }
 
     // ── Static certification against the declared profile ────────────────────
-    let verdict = gmeow_logic::certify::certify(&nemo_rules, &profile.semantic_profile)
+    // Thread the program's contract `logic:EvolutionMode` so a facet-direct case
+    // (e.g. transaction-path) carries the right evolution_class; no facet selected
+    // collapses to StaticEvolution at the certify boundary.
+    let evolution = gmeow_logic::certify::program_evolution(&program)
         .map_err(|e| prefix(format!("certify failed: {e}")))?;
+    let verdict =
+        gmeow_logic::certify::certify(&nemo_rules, &profile.semantic_profile, evolution.as_deref())
+            .map_err(|e| prefix(format!("certify failed: {e}")))?;
     let certification = serialize::certification_to_json(&verdict);
 
     // ── Materialization (+ explanations) ─────────────────────────────────────
