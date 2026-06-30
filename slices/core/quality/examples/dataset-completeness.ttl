@@ -26,4 +26,4 @@ ex:assessment a gmeow:QualityAssessment ;
 # --- The result: a scalar percentage, unit-bundled like any measurement.
 ex:completeness a gmeow:ScalarQuantity ;
     gmeow:quantityValue "98.5"^^xsd:decimal ;
-    gmeow:hasUnit       <http://qudt.org/vocab/unit/PERCENT> .
+    gmeow:unit       <http://qudt.org/vocab/unit/PERCENT> .

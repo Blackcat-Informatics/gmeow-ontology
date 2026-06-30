@@ -66,11 +66,11 @@ gmeow:Capacity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Capacity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
-    skos:definition "A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a ScalarQuantity. The entity kind being counted is implicit from the location's placeType and the ScalarQuantity's hasUnit (P11). A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10)."@x-gmeow-english ;
+    skos:definition "A measurement of the maximum number of entities a location can hold. The location is the observedFeature; the result is a ScalarQuantity. The entity kind being counted is implicit from the location's placeType and the ScalarQuantity's gmeow:unit (P11). A contested capacity (e.g., fire code vs. venue claim) is modelled as multiple co-existing Capacity measurements, each standpoint-indexed and confidence-weighted, never collapsing to a single winner (P9). A superseded capacity (e.g., after renovation) is suppressed via displayable false, never deleted (P10)."@x-gmeow-english ;
     skos:example "ex:cap a gmeow:Capacity ; gmeow:capacityOf ex:hall ; gmeow:observationResult ex:scalar500 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid collapsing fire-code vs venue-claim capacities into one (Principle 9) and avoid deleting a post-renovation capacity — suppress with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint Capacity, set gmeow:capacityOf, point gmeow:observationResult at a ScalarQuantity whose hasUnit fixes what is counted, and index competing claims with gmeow:accordingTo."@x-gmeow-english ;
+    gmeow:howToUse "Mint Capacity, set gmeow:capacityOf, point gmeow:observationResult at a ScalarQuantity whose gmeow:unit fixes what is counted, and index competing claims with gmeow:accordingTo."@x-gmeow-english ;
     gmeow:useWhen "Use to reify the maximum number of entities a location can hold, as a Measurement; contested capacities coexist as standpoint-indexed instances."@x-gmeow-english .
 
 gmeow:CelestialCoordinates
@@ -2795,9 +2795,9 @@ gmeow:mileMarker
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "mile marker"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "A linear-referencing mile-marker or chainage — a distance-along-a-line coordinate on a linear feature such as a road, railway, or pipeline (e.g. '42.3'). The unit and direction are solver-layer attributes (Principle 12), or may be declared via gmeow:hasUnit."@x-gmeow-english ;
+    skos:definition "A linear-referencing mile-marker or chainage — a distance-along-a-line coordinate on a linear feature such as a road, railway, or pipeline (e.g. '42.3'). The unit and direction are solver-layer attributes (Principle 12), or may be declared via gmeow:unit."@x-gmeow-english ;
     skos:example "ex:mmLoc gmeow:mileMarker \"42.3\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it off a linear feature and avoid omitting unit/direction context (solver-layer or gmeow:hasUnit)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it off a linear feature and avoid omitting unit/direction context (solver-layer or gmeow:unit)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Set gmeow:mileMarker on a Geocode whose gmeow:geocodeFrame is gmeow:referenceFrameMileMarker."@x-gmeow-english ;
     gmeow:useWhen "Use for a linear-referencing mile-marker / chainage on a Geocode — distance along a road, railway, or pipeline."@x-gmeow-english .

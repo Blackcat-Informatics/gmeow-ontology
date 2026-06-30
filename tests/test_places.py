@@ -645,8 +645,8 @@ def test_regulatory_overlay_3d_bounds() -> None:
             for bound in (lower, upper):
                 sq = g.value(bound, URIRef(GMEOW + "quantityValue"))
                 assert sq is not None, "3D bound ScalarQuantity must have quantityValue"
-                unit = g.value(bound, URIRef(GMEOW + "hasUnit"))
-                assert unit is not None, "3D bound ScalarQuantity must have hasUnit"
+                unit = g.value(bound, URIRef(GMEOW + "unit"))
+                assert unit is not None, "3D bound ScalarQuantity must have unit"
                 frame = g.value(bound, URIRef(GMEOW + "hasReferenceFrame"))
                 assert frame is not None, (
                     "3D bound ScalarQuantity must have hasReferenceFrame"
@@ -777,7 +777,7 @@ def test_storage_capacity_in_bytes() -> None:
     val = g.value(sq, URIRef(GMEOW + "quantityValue"))
     assert val is not None, "ScalarQuantity must have a quantityValue"
     assert Decimal(str(val)) == Decimal("1099511627776")
-    unit = g.value(sq, URIRef(GMEOW + "hasUnit"))
+    unit = g.value(sq, URIRef(GMEOW + "unit"))
     assert unit == URIRef("http://qudt.org/vocab/unit/BYTE")
 
 

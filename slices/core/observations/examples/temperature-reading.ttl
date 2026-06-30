@@ -26,4 +26,4 @@ ex:reading a gmeow:Measurement ;
 ex:temp a gmeow:ScalarQuantity ;
     gmeow:quantityValue       "22.5"^^xsd:decimal ;
     gmeow:quantityUncertainty "0.1"^^xsd:decimal ;
-    gmeow:hasUnit             <http://qudt.org/vocab/unit/DEG_C> .
+    gmeow:unit             <http://qudt.org/vocab/unit/DEG_C> .

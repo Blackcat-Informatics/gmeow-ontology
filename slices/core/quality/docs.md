@@ -67,7 +67,7 @@ lens, with the provenance graph itself untouched (Principle 4: one canonical sou
 
 The module mints no properties for axes that already exist — `observationResult`,
 `observationMethod`, and `vantage` come from observations; `confidence` and
-`wasGeneratedBy` from provenance; `hasDeterminacy` and `hasUnit` from the kernel;
+`wasGeneratedBy` from provenance; `hasDeterminacy` from the kernel; `unit` from observations;
 `hasReferenceFrame` from places; `validFrom`/`validUntil` from temporal. The reuse
 declaration in `module.ttl` is documentation of that fact, and the discipline is
 constitutional (Principle 4): a quality assessment's confidence is the *same* confidence

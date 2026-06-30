@@ -1208,16 +1208,6 @@ expression: alignment_findings
     "check": "domain-range",
     "code": "domain-range",
     "message": "skipped — no axioms available for target 'qudt' (vendor a snapshot or run with --network)",
-    "instance": "http://qudt.org/schema/qudt/hasUnit",
-    "subject_id": "gmeow:hasUnit",
-    "predicate_id": "skos:closeMatch",
-    "object_id": "qudt:hasUnit"
-  },
-  {
-    "severity": "INFO",
-    "check": "domain-range",
-    "code": "domain-range",
-    "message": "skipped — no axioms available for target 'qudt' (vendor a snapshot or run with --network)",
     "instance": "http://qudt.org/schema/qudt/quantityValue",
     "subject_id": "gmeow:quantityValue",
     "predicate_id": "skos:closeMatch",

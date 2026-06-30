@@ -93,12 +93,12 @@ ex:noFlyZone a gmeow:RegulatoryOverlay ;
 
 ex:altitude0 a gmeow:ScalarQuantity ;
     gmeow:quantityValue "0"^^xsd:decimal ;
-    gmeow:hasUnit qudt:M ;
+    gmeow:unit qudt:M ;
     gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 .
 
 ex:altitude3000 a gmeow:ScalarQuantity ;
     gmeow:quantityValue "3000"^^xsd:decimal ;
-    gmeow:hasUnit qudt:M ;
+    gmeow:unit qudt:M ;
     gmeow:hasReferenceFrame gmeow:referenceFrameWGS84 .
 
 # RightsStatement governing the no-fly zone (deontic rules)

@@ -19,7 +19,7 @@ ex:capFireCode a gmeow:Capacity ;
 
 ex:sqFireCode a gmeow:ScalarQuantity ;
     gmeow:quantityValue "450"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/NUM> .
+    gmeow:unit <http://qudt.org/vocab/unit/NUM> .
 
 ex:capVenueClaim a gmeow:Capacity ;
     gmeow:capacityOf ex:venue ;
@@ -30,7 +30,7 @@ ex:capVenueClaim a gmeow:Capacity ;
 
 ex:sqVenue a gmeow:ScalarQuantity ;
     gmeow:quantityValue "600"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/NUM> .
+    gmeow:unit <http://qudt.org/vocab/unit/NUM> .
 
 ex:fireDept a gmeow:Organization ;
     gmeow:hasName [ gmeow:fullName "Fire Department"@x-gmeow-en ] .
@@ -48,7 +48,7 @@ ex:capOld a gmeow:Capacity ;
 
 ex:sqOld a gmeow:ScalarQuantity ;
     gmeow:quantityValue "300"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/NUM> .
+    gmeow:unit <http://qudt.org/vocab/unit/NUM> .
 
 # Current occupancy from a sensor reading.
 ex:occNow a gmeow:Occupancy ;
@@ -60,7 +60,7 @@ ex:occNow a gmeow:Occupancy ;
 
 ex:sqOcc a gmeow:ScalarQuantity ;
     gmeow:quantityValue "412"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/NUM> .
+    gmeow:unit <http://qudt.org/vocab/unit/NUM> .
 
 ex:ticketGate a gmeow:SoftwareAgent ;
     gmeow:hasName [ gmeow:fullName "Ticket Gate Sensor"@x-gmeow-en ] .
@@ -77,7 +77,7 @@ ex:capStorage a gmeow:Capacity ;
 
 ex:sqStorage a gmeow:ScalarQuantity ;
     gmeow:quantityValue "1099511627776"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/BYTE> .
+    gmeow:unit <http://qudt.org/vocab/unit/BYTE> .
 
 ex:cloudProvider a gmeow:Organization ;
     gmeow:hasName [ gmeow:fullName "Cloud Provider"@x-gmeow-en ] .

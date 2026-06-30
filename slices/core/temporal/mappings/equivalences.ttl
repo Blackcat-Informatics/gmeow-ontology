@@ -297,7 +297,7 @@ gmeow:eqTemporal023 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
 gmeow:eqTemporal024 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:hasUnit ;
+    gmeow:alignSubject gmeow:unit ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject qudt:hasUnit ;
     gmeow:justification semapv:ManualMappingCuration ;

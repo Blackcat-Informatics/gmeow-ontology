@@ -92,7 +92,7 @@ over a `streamInterval`. Ordering is implicit in sample timestamps, never an ass
 ### gmeow:Quantity · gmeow:ScalarQuantity · gmeow:MeasuredValue
 
 Three equivalent names for one construct — the domain-neutral scalar bundle:
-`gmeow:quantityValue` (+ `gmeow:quantityUncertainty`) for the number, `hasUnit` /
+`gmeow:quantityValue` (+ `gmeow:quantityUncertainty`) for the number, `unit` /
 `hasReferenceFrame` for the frame (Principle 11), `hasDeterminacy` for ontic vagueness,
 `isResultOf` for provenance. Temperatures, counts, probabilities, masses — all of them,
 one shape.

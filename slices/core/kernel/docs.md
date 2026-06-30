@@ -37,7 +37,7 @@ Domain properties (geographic containment, sub-organizations, spatial links, kin
 citation edges) keep their exact meanings and specialize these so generic consumers can
 ask for parthood or connectivity without collapsing semantics. No domain/range is
 asserted; `connectsTo` is neither symmetric nor transitive, and reachability is solver
-work (P12). Unit linkage (`gmeow:hasUnit`, QUDT by reference — Principle 5) lives here too.
+work (P12). Unit linkage (`gmeow:unit`, QUDT by reference — Principle 5) lives here too.
 
 ## The domain-free epistemic axes
 
