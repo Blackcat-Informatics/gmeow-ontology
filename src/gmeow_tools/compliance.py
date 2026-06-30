@@ -31,7 +31,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import gmeow_slice
+import gmeow_native.pipeline as gmeow_pipeline
 
 from gmeow_tools import __version__
 from gmeow_tools.config import DIST_DIR, PROJECT_ROOT
@@ -75,10 +75,10 @@ def _run_constitution() -> ValidationResult:
 
 
 def _run_alignment() -> ValidationResult:
-    checks = frozenset(gmeow_slice.alignment_policy()["alignment_checks"])
+    checks = frozenset(gmeow_pipeline.alignment_policy()["alignment_checks"])
     findings = [
         finding
-        for finding in gmeow_slice.lint_projection(
+        for finding in gmeow_pipeline.lint_projection(
             str(PROJECT_ROOT), allow_network=False
         )
         if finding["check"] in checks

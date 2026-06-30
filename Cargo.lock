@@ -1987,7 +1987,6 @@ dependencies = [
  "serde",
  "sha2",
  "tempfile",
- "ureq",
 ]
 
 [[package]]

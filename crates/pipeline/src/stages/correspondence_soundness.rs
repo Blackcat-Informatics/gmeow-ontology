@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The file-reading edge for the oxigraph-free correspondence soundness pass (#1092
-//! F5 Task 3a).
+//! The file-reading edge for the oxigraph-free correspondence soundness pass.
 //!
 //! The seven correspondence-stack semantic checks (the five alignment checks + the two
 //! FnO back-end checks — including the sole native enforcer of Constitution Principle 5,
