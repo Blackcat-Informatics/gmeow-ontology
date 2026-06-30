@@ -226,6 +226,23 @@ impl<'a> DslView<'a> {
         }
     }
 
+    /// Every IRI subject of `?s <pred> <object_iri>` in the default graph, in dataset
+    /// order (the inverse-direction of [`Self::object_iris`]). Mirrors the historical
+    /// oxigraph `subjects_iri(store, pred, object)` read the alignment lint used to walk
+    /// `owl:inverseOf` / `schema:inverseOf` both ways.
+    pub fn subjects_with_object_iri(&self, pred: &str, object_iri: &str) -> Vec<String> {
+        let (Some(p), Some(obj)) = (self.iri_id(pred), self.iri_id(object_iri)) else {
+            return Vec::new();
+        };
+        self.ds
+            .quads_for_pattern(None, Some(p), Some(obj), GraphMatch::Default)
+            .filter_map(|q| match self.ds.resolve(q.s) {
+                TermRef::Iri(iri) => Some(iri.to_owned()),
+                _ => None,
+            })
+            .collect()
+    }
+
     /// Every `(subject, object)` pair of `?s <pred> ?o` in the default graph, in
     /// dataset order.
     pub fn quads_with_predicate(&self, pred: &str) -> Vec<(DslTerm, DslTerm)> {

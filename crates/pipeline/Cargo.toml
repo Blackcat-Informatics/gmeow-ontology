@@ -117,6 +117,11 @@ pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], option
 # metadata maps (CBOR `Value`) to recover each blob's declared media-type + rep
 # when replaying them; same ciborium the gts_compose author links.
 ciborium = "0.2"
+# Live target-vocabulary fetch for the correspondence-soundness pass (#1092 F5): the
+# `allow_network=true` leg fetches a canonical target source document and filters it to the
+# minimal structural axiom subset. The on-gate path uses `allow_network=false` (snapshots /
+# fixtures only), so this is never on the gate. Same pin as the slice crate's fetcher.
+ureq = "3"
 
 [build-dependencies]
 # Hash the workspace source into GMEOW_BUILD_FINGERPRINT (build.rs) so the
