@@ -708,7 +708,7 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
     };
 
     // Use the in-memory model, not oxigraph::Store: Store canonicalizes numeric
-    // literal value space and would collapse RDF term identity here (#1169).
+    // literal value space and would collapse RDF term identity here.
     let mut dataset = Dataset::new();
 
     let mut emit_node = |node: &Value, graph_iri: Option<&str>| -> Result<(), PipelineError> {
@@ -994,7 +994,7 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
 ) -> Result<String, PipelineError> {
     let dataset = parse_jsonld_star(json_bytes)?;
     // Keep the downcast lexical-faithful too; Store would normalize typed
-    // numeric literals before the native N-Quads serializer sees them (#1169).
+    // numeric literals before the native N-Quads serializer sees them.
     let mut out = Dataset::new();
 
     // Work with owned quads so subjects/objects are not reference types.
@@ -1105,7 +1105,7 @@ pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> 
         .map_err(|e| PipelineError::Decode(format!("YAML-LD-star bytes are not UTF-8: {e}")))?;
     // Reject anchors/aliases BEFORE deserializing. Markdown emphasis inside
     // plain scalar text can contain `*word*`, so only treat `&id` / `*id` as
-    // YAML syntax where a node value can start (#1169).
+    // YAML syntax where a node value can start.
     if contains_yaml_anchor_or_alias(text) {
         return Err(PipelineError::Decode(
             "YAML-LD-star must not use anchors or aliases".into(),
