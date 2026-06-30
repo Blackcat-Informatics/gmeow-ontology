@@ -347,26 +347,37 @@ fn from_json_ld(py: Python<'_>, text: &str) -> PyResult<Py<PyBytes>> {
     Ok(PyBytes::new(py, nquads.as_bytes()).unbind())
 }
 
-/// Serialize RDF bytes to **RDF/XML** via the gmeow-gts codec: RDF → GTS snapshot
-/// → `gmeow_gts::rdf_codecs::to_rdf_xml`.
+/// Serialize RDF bytes to **RDF/XML** via the FIRST-PARTY native codec (EPIC #906):
+/// parse the input RDF bytes into the frozen IR, then emit RDF/XML through the in-repo
+/// `native_codecs::rdfxml` serializer — no longer the external gmeow-gts RDF/XML codec.
 #[pyfunction]
 #[pyo3(signature = (data, *, format))]
 fn to_rdf_xml(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<String> {
-    let gts_bytes = rdf_to_gts_snapshot(data, format)?;
-    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
-    gmeow_gts::rdf_codecs::to_rdf_xml(&graph)
-        .map_err(|e| PyValueError::new_err(format!("rdf/xml serialization error: {e}")))
+    let dataset = parse_rdf_dataset(data, format)?;
+    let bytes = crate::serialize_dataset(
+        &dataset,
+        NativeRdfFormat::RdfXml.media_type(),
+        crate::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PyValueError::new_err(format!("rdf/xml serialization error: {e}")))?;
+    String::from_utf8(bytes)
+        .map_err(|e| PyValueError::new_err(format!("rdf/xml serialization produced non-utf8: {e}")))
 }
 
-/// Parse **RDF/XML** text into N-Quads bytes, via the gmeow-gts codec:
-/// `gmeow_gts::rdf_codecs::from_rdf_xml` → GTS → N-Quads.
+/// Parse **RDF/XML** text into N-Quads bytes, via the FIRST-PARTY native codec
+/// (EPIC #906): parse RDF/XML into the frozen IR, then serialize to N-Quads — no longer
+/// the external gmeow-gts RDF/XML codec.
 #[pyfunction]
 fn from_rdf_xml(py: Python<'_>, text: &str) -> PyResult<Py<PyBytes>> {
-    let gts_bytes = gmeow_gts::rdf_codecs::from_rdf_xml(text)
+    let dataset = crate::parse_dataset(text.as_bytes(), NativeRdfFormat::RdfXml.media_type(), None)
         .map_err(|e| PyValueError::new_err(format!("rdf/xml parse error: {e}")))?;
-    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
-    let nquads = gmeow_gts::nquads::to_nquads(&graph);
-    Ok(PyBytes::new(py, nquads.as_bytes()).unbind())
+    let nquads = crate::serialize_dataset(
+        &dataset,
+        NativeRdfFormat::NQuads.media_type(),
+        crate::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PyValueError::new_err(format!("rdf/xml→n-quads serialization error: {e}")))?;
+    Ok(PyBytes::new(py, &nquads).unbind())
 }
 
 /// One named-graph ingest row passed from Python: `(data, format, graph_name, scope)`.
