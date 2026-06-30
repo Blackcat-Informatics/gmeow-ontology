@@ -174,6 +174,16 @@ def coverage_analyze(
     aligned: list[str],
     namespace: str,
 ) -> dict[str, list[str]]: ...
+def audit_box_roles(
+    paths: list[str],
+    ontology_iri: str,
+    namespace: str,
+) -> dict[str, Any]: ...
+def box_roles_diagnostics_report(
+    paths: list[str],
+    ontology_iri: str,
+    namespace: str,
+) -> Any: ...
 def wikidata_check_syntax_iri(
     iri: str,
     in_object_position: bool,

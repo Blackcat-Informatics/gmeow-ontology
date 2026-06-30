@@ -22,6 +22,7 @@
 //! without any Python dependency.
 
 pub mod advisory;
+pub mod box_roles;
 pub mod cache;
 pub mod constitution;
 pub mod coverage;

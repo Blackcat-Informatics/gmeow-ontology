@@ -24,6 +24,7 @@ use gmeow_diagnostics::py::PyReport;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyCapsule, PyDict, PyList};
 
+use crate::box_roles;
 use crate::constitution;
 use crate::coverage;
 use crate::crate_layering;
@@ -688,6 +689,80 @@ fn coverage_analyze(
         PyList::new(py, sets.gap_predicates.iter())?,
     )?;
     Ok(out.into_any().unbind())
+}
+
+/// Audit explicit `gmeow:graphBoxRole` coverage over authored sources (mirrors
+/// `box_roles.audit_box_roles`).
+///
+/// `paths` is the authored term-source list (`graph.default_audit_paths()`);
+/// `ontology_iri` / `namespace` are `config.ONTOLOGY_IRI` / `config.NAMESPACE`.
+/// Returns a dict with the FIXED snake_case schema:
+/// `{ ok, term_count, role_counts, missing, invalid, text, json }`, where each of
+/// `missing`/`invalid` is a list of `{term, kind, source, message}` dicts, `text`
+/// is the human render and `json` the stable JSON render. A parse failure maps to
+/// a Python `ValueError` (a hard failure that must surface — the audit has no
+/// rdflib fallback).
+#[pyfunction]
+fn audit_box_roles(
+    py: Python<'_>,
+    paths: Vec<String>,
+    ontology_iri: String,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
+    let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
+    let audit = box_roles::audit_box_roles(&path_bufs, &ontology_iri, &namespace)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let finding_list = |findings: &[box_roles::RoleFinding]| -> PyResult<Bound<'_, PyList>> {
+        let list = PyList::empty(py);
+        for f in findings {
+            let d = PyDict::new(py);
+            d.set_item("term", &f.term)?;
+            d.set_item("kind", &f.kind)?;
+            d.set_item("source", &f.source)?;
+            d.set_item("message", &f.message)?;
+            list.append(d)?;
+        }
+        Ok(list)
+    };
+
+    let role_counts = PyDict::new(py);
+    for (role, count) in &audit.role_counts {
+        role_counts.set_item(role, count)?;
+    }
+
+    let out = PyDict::new(py);
+    out.set_item("ok", audit.ok())?;
+    out.set_item("term_count", audit.term_count)?;
+    out.set_item("role_counts", role_counts)?;
+    out.set_item("missing", finding_list(&audit.missing)?)?;
+    out.set_item("invalid", finding_list(&audit.invalid)?)?;
+    out.set_item(
+        "text",
+        box_roles::render_text(&audit, &ontology_iri, &namespace),
+    )?;
+    out.set_item("json", box_roles::render_json(&audit))?;
+    Ok(out.into_any().unbind())
+}
+
+/// Project the box-role audit into the canonical diagnostics `Report` pyclass
+/// (mirrors `box_roles.to_diagnostics_report`).
+///
+/// `paths` / `ontology_iri` / `namespace` are as for [`audit_box_roles`]. Both
+/// missing and invalid coverage are gate-failing, so every finding is an `error`.
+/// A parse failure maps to a Python `ValueError`.
+#[pyfunction]
+fn box_roles_diagnostics_report(
+    py: Python<'_>,
+    paths: Vec<String>,
+    ontology_iri: String,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
+    let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
+    let audit = box_roles::audit_box_roles(&path_bufs, &ontology_iri, &namespace)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let report = box_roles::to_diagnostics_report(&audit, &ontology_iri, &namespace);
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
 #[pyfunction]
@@ -1428,6 +1503,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
+    m.add_function(wrap_pyfunction!(audit_box_roles, m)?)?;
+    m.add_function(wrap_pyfunction!(box_roles_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_check_syntax_iri, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_mapping_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_collect_ids, m)?)?;
