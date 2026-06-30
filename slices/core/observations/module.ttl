@@ -7,6 +7,20 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+gmeow:Magnitude
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "Magnitude"@x-gmeow-english ;
+    rdfs:subClassOf logic:Object ,
+        gmeow:Entity ;
+    skos:definition "The frame-independent true quantity a measurement is of — the magnitude that exists prior to any unit or reference frame (the pressure itself, not its reading in mmHg). The domain grounding of logic:trueQuantity (Principle 17): a measured value points at its Magnitude via gmeow:trueQuantity, and the Magnitude carries only its gmeow:dimension (the generic quality it is a magnitude of), never a value, unit, or frame — those are the frame-relative facets carried on the measured value (Principle 11). The same Magnitude round-trips across unit systems without re-identification."@x-gmeow-english ;
+    skos:example "ex:bpMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting a value, unit, or reference frame on the Magnitude (those belong on the measured value — the Magnitude is frame-independent by construction) and avoid minting one where a plain framed gmeow:Quantity suffices; reach for it when the unit-independent magnitude must be named in its own right."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the Magnitude, set gmeow:dimension to the generic quality it is a magnitude of, and point the framed measured value at it via gmeow:trueQuantity; keep value, unit, and frame on the measured value, not here."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the frame-independent magnitude a measurement is of — the YAMATO true quantity, distinct from the value+unit+frame measured value — so the same quantity is shared across readings in different unit systems."@x-gmeow-english .
+
 gmeow:MeasuredValue
     a logic:Kind ,
         owl:Class ;
@@ -105,6 +119,20 @@ gmeow:ObservationType
     gmeow:howToUse "Reference the seeded type individuals via the non-functional gmeow:observationType (an observation may carry several), and let the sub-discipline ride on gmeow:observationMethod and the typed-claim distinction on the Observation subclass."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary behind gmeow:observationType — the open set of individuals naming the broad KIND of observation (measurement, sensory reading, standpoint claim, derived inference, simulation, identity, naming, rights, kinship, streaming)."@x-gmeow-english .
 
+gmeow:Quality
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "Quality"@x-gmeow-english ;
+    rdfs:subClassOf logic:Quality ,
+        gmeow:Entity ;
+    skos:definition "A persistent quality of a bearer — a patient's systolic blood pressure, a road's width — that endures while its measured values change over time. The domain grounding of the foundational logic:Quality (Principle 17): it inheres in its gmeow:bearer, instantiates a generic quality via logic:genericQuality, and may play a quality-role in a bearer-context via logic:qualityRole over logic:Role. Dated gmeow:Observations attach to it via gmeow:observationOf rather than minting a fresh free-floating result each time, so 'how did this value change over time?' is a first-class query (Principle 9, the unified observation construct)."@x-gmeow-english ;
+    skos:example "ex:sysBP a gmeow:Quality ; gmeow:bearer ex:patientP ; logic:genericQuality gmeow:pressure ; logic:qualityRole gmeow:systolicRole ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a one-off reading with no enduring identity (wrap that as a gmeow:Quantity result of a single observation) and avoid asserting raw gufo:inheresIn — name the bearer with gmeow:bearer, the by-reference inherence prop (Principle 5)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one persistent Quality per enduring quality of a bearer, set gmeow:bearer, logic:genericQuality, and (where a role applies) logic:qualityRole; attach each dated reading as a gmeow:Observation with gmeow:observationOf this quality and gmeow:observedAt the time."@x-gmeow-english ;
+    gmeow:useWhen "Use when a quality endures across multiple dated observations and you want its value-history as a first-class series — a vital sign, a measured dimension, a monitored property — rather than disconnected per-reading results."@x-gmeow-english .
+
 gmeow:Quantity
     a logic:Kind ,
         owl:Class ;
@@ -184,6 +212,20 @@ gmeow:Stream
     gmeow:howToUse "Mint the Stream, bind its subject with the functional gmeow:streamOf, attach readings via gmeow:streamSample, name gmeow:streamPlatform / gmeow:streamSensor, and bound it with the functional gmeow:streamInterval; an entity reaches its streams through gmeow:hasStream."@x-gmeow-english ;
     gmeow:useWhen "Use to group a time-ordered run of observations or samples about one entity from a sensor or platform — the canonical source a solver derives a continuous trajectory from (no list structure is asserted)."@x-gmeow-english .
 
+gmeow:bearer
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Quality ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "bearer"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The entity in which a persistent gmeow:Quality inheres — the patient whose blood pressure it is, the road whose width it is. Functional: a quality inheres in exactly one bearer. The by-reference inherence relation (Principle 5): the alignment to gufo:inheresIn is a generated mapping cell, never an asserted axiom, and raw gufo:inheresIn or a generic logic:inheresIn predicate is deliberately NOT used (either would trip the inherence surface guard)."@x-gmeow-english ;
+    skos:example "ex:sysBP gmeow:bearer ex:patientP ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting gufo:inheresIn directly (use this branch-specific bearer prop; the gUFO link is a generated alignment) and avoid pointing it at an observation or value — the bearer is the enduring thing the quality is OF."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each gmeow:Quality at the one entity it inheres in; generic consumers read inherence here, and the gufo:inheresIn projection is generated for downstream gUFO tooling."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the entity a persistent quality belongs to — the inherence anchor of the quality stratification, so the quality and its value-history travel with their bearer."@x-gmeow-english .
+
 gmeow:currency
     a owl:FunctionalProperty ,
         owl:ObjectProperty ;
@@ -198,6 +240,19 @@ gmeow:currency
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the amount at one currency ReferenceFrame and read it through gmeow:hasReferenceFrame by inheritance; the generated frame-relativity shape (gmeow:requiresFrame gmeow:currency) enforces its presence."@x-gmeow-english ;
     gmeow:useWhen "Use to name the currency reference frame of a gmeow:MonetaryAmount — the frame that makes its magnitude meaningful, the money-specific specialization of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english .
+
+gmeow:dimension
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Magnitude ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "dimension"@x-gmeow-english ;
+    skos:definition "Relates a gmeow:Magnitude to the generic quality it is a magnitude of — pressure, length, mass. Functional: a magnitude is of exactly one dimension. The frame-independent quality kind (a logic:genericQuality target, aligned by reference to qudt:QuantityKind), distinct from the contextual quality-role the value plays and from the unit it is read in. Range a generic quality (stated in prose, matching the module's convention)."@x-gmeow-english ;
+    skos:example "ex:bpMagnitude gmeow:dimension gmeow:pressure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating the dimension (the generic quality kind — pressure) with the contextual quality-role the value plays (systolic pressure, a logic:qualityRole) or with the unit it is read in (mmHg); the dimension is frame- and role-independent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point a gmeow:Magnitude at its generic quality so the unit-independent magnitude declares what kind of quantity it is, independent of the unit chosen to express its value."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the physical dimension / generic quality of a frame-independent gmeow:Magnitude, so a true quantity carries its kind without committing to a unit or frame."@x-gmeow-english .
 
 gmeow:facetSubject
     a owl:ObjectProperty ;
@@ -228,6 +283,7 @@ gmeow:facetVantage
     gmeow:useWhen "Use to name the agent asserting an identity-facet claim — the IdentityFacet specialization of gmeow:vantage; for a self-asserted facet, this is the subject person themselves."@x-gmeow-english .
 
 gmeow:hasReferenceFrame
+    rdfs:subPropertyOf logic:referenceFrame ;
     owl:propertyChainAxiom ( gmeow:isResultOf gmeow:hasReferenceFrame ) .
 
 gmeow:hasStream
@@ -351,6 +407,20 @@ gmeow:observationMethod
     gmeow:howToUse "Point the observation at a single gmeow:ObservationMethod (generic methods are seeded here; domain ladders such as gmeow:DatingMethod live in their own slices); changing the method is a different observation, since the method is constitutive of its identity."@x-gmeow-english ;
     gmeow:useWhen "Use to record HOW an observation was produced — the protocol, technique, or instrument — naming a gmeow:ObservationMethod individual so consumers can filter by method and weigh readings accordingly."@x-gmeow-english .
 
+gmeow:observationOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "observation of"@x-gmeow-english ;
+    rdfs:range gmeow:Quality ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "Relates a dated gmeow:Observation to the persistent gmeow:Quality it is a reading of — the enduring quality the result is a time-indexed value of. A specialization of gmeow:observedFeature: the quality IS the feature of interest, so generic 'observations about X' queries see it, while this typed edge attaches the reading to the enduring quality rather than to a fresh free-floating result (Principle 9). Together with gmeow:observedAt it makes a quality's value-history a first-class series."@x-gmeow-english ;
+    skos:example "ex:obs1 gmeow:observationOf ex:sysBP ; gmeow:observedAt \"2012-09-17T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a one-off value with no enduring quality (use gmeow:observationResult for the per-reading result) and avoid minting a new quality per reading — the whole point is that many dated observations share one persistent quality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "On each dated observation, point gmeow:observationOf at the persistent gmeow:Quality and set gmeow:observedAt; carry the framed reading as the gmeow:observationResult so value, unit, and frame travel with the dated result."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach a dated observation to the enduring quality it reads, so a vital sign or monitored property accumulates a queryable value-history instead of disconnected results."@x-gmeow-english .
+
 gmeow:observationResult
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
@@ -448,6 +518,20 @@ gmeow:observationTypeStreaming
     skos:definition "A streaming observation — a member of a time-ordered sequence produced by a sensor or platform."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:observedAt
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "observed at"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "The time index of a dated gmeow:Observation — when this reading of its persistent gmeow:Quality was taken. Functional: one observation, one time index. The dating that turns a quality's observations into an ordered value-history (gmeow:observationOf supplies the quality; this supplies the time)."@x-gmeow-english ;
+    skos:example "ex:obs1 gmeow:observedAt \"2012-09-17T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the valid-time interval of the observed fact (that is the statement's temporal scope) — this is the instant the reading was taken — and avoid more than one value (it is functional)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Stamp each dated observation with the instant it was taken as xsd:dateTime, alongside gmeow:observationOf, so a quality's readings sort into a time series."@x-gmeow-english ;
+    gmeow:useWhen "Use to date one observation in a persistent quality's value-history, so 'how did this value change over time?' resolves to an ordered series of dated results."@x-gmeow-english .
+
 gmeow:observedFeature
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
@@ -481,7 +565,8 @@ gmeow:quantityValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "quantity value"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The numeric value of a scalar quantity, as an xsd:decimal. Functional: a scalar quantity has exactly one numeric value. Meaningful only with its unit (gmeow:hasUnit) — no silent units."@x-gmeow-english ;
+    rdfs:subPropertyOf logic:measuredValue ;
+    skos:definition "The numeric value of a scalar quantity, as an xsd:decimal. Functional: a scalar quantity has exactly one numeric value. Meaningful only with its unit (gmeow:unit) and reference frame — no silent units, no frameless values (Principle 11). The domain grounding of logic:measuredValue (the frame-relative magnitude of the true quantity)."@x-gmeow-english ;
     skos:example "ex:temp22 gmeow:quantityValue 22.5 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid publishing or comparing it without its gmeow:hasUnit (no silent units), avoid it for money (use gmeow:monetaryValue, whose currency frame is required), and avoid asserting two values — it is functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -557,6 +642,21 @@ gmeow:streamSensor
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Bind the reading sensor agent; when multiple sensors fuse into one stream, assert each with gmeow:streamSensor and let competing sensor claims coexist (Principle 9)."@x-gmeow-english ;
     gmeow:useWhen "Use to name the specific sensor or agent that reads the samples of a stream — the device doing the measuring."@x-gmeow-english .
+
+gmeow:trueQuantity
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "true quantity"@x-gmeow-english ;
+    rdfs:range gmeow:Magnitude ;
+    rdfs:subPropertyOf logic:trueQuantity ;
+    skos:definition "Relates a framed measured value (a gmeow:Quantity / gmeow:ScalarQuantity / gmeow:MeasuredValue) to the frame-independent gmeow:Magnitude it is a reading of — the domain grounding of logic:trueQuantity (Principle 17). Functional: a measured value reads exactly one true quantity. The value, unit (gmeow:unit), and reference frame (gmeow:hasReferenceFrame) stay on the measured value; the unit-independent magnitude lives on the Magnitude, so the same true quantity is shared across readings in different units (Principle 11)."@x-gmeow-english ;
+    skos:example "ex:bp120 gmeow:trueQuantity ex:bpMagnitude ; gmeow:quantityValue 120 ; gmeow:unit qudt:MilliM_HG ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid moving the value, unit, or frame onto the Magnitude (they are frame-relative and belong on the measured value) and avoid minting a Magnitude where no unit-independent identity is needed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point a framed measured value at its gmeow:Magnitude via gmeow:trueQuantity; the foundation reads it as logic:trueQuantity, and value, unit, and frame stay on the measured value."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a framed reading to the unit-independent magnitude it measures, so the true quantity round-trips across unit systems and the value-vs-quantity seam (Principle 11) is explicit."@x-gmeow-english .
 
 gmeow:usageAppellation
     rdfs:subPropertyOf gmeow:observationResult .
