@@ -59,7 +59,7 @@ const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 
 // ── curie ──────────────────────────────────────────────────────────────────────
 
-fn curie(iri: &str) -> String {
+pub(crate) fn curie(iri: &str) -> String {
     for (prefix, ns) in PREFIXES_BY_LEN.iter() {
         if let Some(rest) = iri.strip_prefix(ns) {
             return format!("{prefix}:{rest}");
@@ -2399,12 +2399,32 @@ fn j_str_key(j: &J) -> String {
 
 // ── render all + Stage impl ──────────────────────────────────────────────────────
 
-/// Render every flat-export artifact from the in-memory carrier dataset.
+/// Render every flat-export artifact from the in-memory carrier dataset, in the
+/// English-only default view. This is the pipeline stage's canonical producer
+/// (committed `dist/` outputs are en-only); `--lang`-flexible callers route
+/// through [`render_all_with_languages`].
 pub(crate) fn render_all(dataset: &RdfDataset) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
-    let view = FoldView::new(dataset);
+    render_all_with_languages(dataset, &["en".to_string()])
+}
+
+/// Render every flat-export artifact honoring a requested public-BCP-47 language
+/// list (precedence order). The first entry drives the primary `label`/
+/// `definition` selection (via [`FoldView::with_requested`]); every entry adds a
+/// `label_<lang>` / `definition_<lang>` CSV column pair. An empty list falls back
+/// to `["en"]`. Mirrors the Python `export` command's `selector` threading.
+pub(crate) fn render_all_with_languages(
+    dataset: &RdfDataset,
+    languages: &[String],
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+    let requested: Vec<String> = if languages.is_empty() {
+        vec!["en".to_string()]
+    } else {
+        languages.to_vec()
+    };
+    let view = FoldView::with_requested(dataset, requested.clone());
     let (title, version) = fold_meta(&view)?;
     let terms = collect_terms(&view);
-    let languages = ["en"];
+    let languages: Vec<&str> = requested.iter().map(String::as_str).collect();
 
     let classes: Vec<&Term> = terms.iter().filter(|t| t.category == "class").collect();
     let properties: Vec<&Term> = terms.iter().filter(|t| t.category == "property").collect();
