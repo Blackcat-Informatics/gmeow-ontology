@@ -88,6 +88,15 @@ pub(crate) fn schema_fingerprint(schema: &crate::solution::VarSchema) -> u64 {
     h
 }
 
+/// The shared, dataset-aware BGP join-order cache: maps `(dataset stats fingerprint,
+/// BGP shape key)` to a cached evaluation order. It lives on the engine and is threaded
+/// into evaluation by reference, so it persists across queries — the static query
+/// corpus re-plans each BGP once per dataset. In-memory engine state only; never
+/// materialised as triples (Principle 12). A stale or colliding key is at worst a
+/// suboptimal order (the reorder is a permutation of a commutative join), never an
+/// incorrect result, so the fingerprint can be cheap.
+pub type BgpOrderCache = std::cell::RefCell<DetHashMap<(u64, u64), std::sync::Arc<[usize]>>>;
+
 /// The mutable evaluation context threaded through [`eval`].
 pub struct EvalCtx<'d> {
     /// The frozen dataset being queried (the concrete IR — see the module docs for
@@ -127,6 +136,13 @@ pub struct EvalCtx<'d> {
     /// the default engine path: a non-silent `SERVICE` then hard-fails. Tests and
     /// the conformance harness inject an in-memory source via [`EvalCtx::with_remote`].
     pub(crate) remote: Option<&'d dyn crate::remote::RemoteQuerySource>,
+    /// The shared, dataset-aware BGP join-order cache, if one is injected. `None` for
+    /// a directly-built context (e.g. a unit test): planning then runs every BGP, which
+    /// is semantically identical — just not memoised. The engine injects its own cache
+    /// via [`EvalCtx::with_order_cache`] so the static query corpus re-plans once per
+    /// dataset. The order itself is computed, never materialised as triples
+    /// (Principle 12).
+    pub(crate) bgp_order_cache: Option<&'d BgpOrderCache>,
     /// Quads invented during evaluation by value-constructing builtins
     /// (`gmeow:listSlice`/`gmeow:listConcat` mint fresh `rdf:List` cells). A SPARQL
     /// expression returns one term, so the new cells are buffered here and surface at
@@ -176,6 +192,7 @@ impl<'d> EvalCtx<'d> {
             options: EvalOptions::default(),
             exists_inner_cache: DetHashMap::default(),
             remote: None,
+            bgp_order_cache: None,
             constructed: Vec::new(),
         }
     }
@@ -237,6 +254,15 @@ impl<'d> EvalCtx<'d> {
     #[must_use]
     pub fn with_remote(mut self, source: &'d dyn crate::remote::RemoteQuerySource) -> Self {
         self.remote = Some(source);
+        self
+    }
+
+    /// Attach the engine's shared BGP join-order cache for this evaluation. The borrow
+    /// shares the dataset lifetime `'d`; a directly-built context leaves it `None` and
+    /// re-plans each BGP (identical result, just not memoised).
+    #[must_use]
+    pub fn with_order_cache(mut self, cache: &'d BgpOrderCache) -> Self {
+        self.bgp_order_cache = Some(cache);
         self
     }
 

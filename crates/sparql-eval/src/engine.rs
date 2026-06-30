@@ -21,7 +21,7 @@ use gmeow_rdf_core::{
 };
 use gmeow_sparql_algebra::{Query, SparqlParser};
 
-use crate::eval::{evaluate_query, EvalCtx, Outcome};
+use crate::eval::{evaluate_query, BgpOrderCache, EvalCtx, Outcome};
 use crate::update::{eval_update, GraphResolver};
 use crate::DetHashMap;
 
@@ -73,6 +73,9 @@ impl PlanCache {
 #[derive(Default)]
 pub struct NativeSparqlEngine {
     cache: RefCell<PlanCache>,
+    /// The dataset-aware BGP join-order cache, shared across this engine's queries so
+    /// the static query corpus re-plans each BGP once per dataset (see [`BgpOrderCache`]).
+    order_cache: BgpOrderCache,
     resolver: Option<Arc<dyn GraphResolver>>,
 }
 
@@ -82,6 +85,7 @@ impl std::fmt::Debug for NativeSparqlEngine {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("NativeSparqlEngine")
             .field("cache", &self.cache)
+            .field("order_cache", &self.order_cache)
             .field(
                 "resolver",
                 match &self.resolver {
@@ -126,7 +130,9 @@ impl NativeSparqlEngine {
             .cache
             .borrow_mut()
             .prepare(request.query, request.base_iri)?;
-        let mut ctx = EvalCtx::new(dataset).with_remote(source);
+        let mut ctx = EvalCtx::new(dataset)
+            .with_remote(source)
+            .with_order_cache(&self.order_cache);
         let outcome = evaluate_with_substitutions(&prepared, request.substitutions, &mut ctx)?;
         Ok(materialize(outcome, &ctx))
     }
@@ -165,7 +171,7 @@ impl SparqlEngine for NativeSparqlEngine {
             .cache
             .borrow_mut()
             .prepare(request.query, request.base_iri)?;
-        let mut ctx = EvalCtx::new(dataset);
+        let mut ctx = EvalCtx::new(dataset).with_order_cache(&self.order_cache);
         let outcome = evaluate_with_substitutions(&prepared, request.substitutions, &mut ctx)?;
         Ok(materialize(outcome, &ctx))
     }
@@ -1060,5 +1066,98 @@ mod tests {
              GROUP BY ?a HAVING (COUNT(*) > 1 && AVG(?b) < 5)",
         );
         assert_eq!(sorted_rows(r), vec![vec!["1"]]);
+    }
+
+    // ── dataset-aware BGP order cache ──────────────────────────────────────────
+
+    /// social() plus an extra `:a :knows :c` edge — same predicates, a different quad
+    /// count (3 vs 2) so a different `stats_fingerprint`.
+    fn social_plus() -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let knows = b.intern_iri("http://ex/knows".to_owned());
+        let name = b.intern_iri("http://ex/name".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let bb = b.intern_iri("http://ex/b".to_owned());
+        let c = b.intern_iri("http://ex/c".to_owned());
+        let ann = b.intern_literal(RdfLiteral::simple("Ann"));
+        b.push_quad(a, knows, bb, None);
+        b.push_quad(a, knows, c, None);
+        b.push_quad(a, name, ann, None);
+        b.freeze().expect("freeze")
+    }
+
+    const TWO_PATTERN_BGP: &str = "SELECT ?o ?n WHERE { \
+         <http://ex/a> <http://ex/knows> ?o . <http://ex/a> <http://ex/name> ?n }";
+
+    /// A repeated query against the same dataset plans its BGP once and reuses the
+    /// cached order: the engine holds a single entry whose `Arc` is the *same
+    /// allocation* before and after the second run (a cache miss would replace it).
+    #[test]
+    fn order_cache_populates_and_reuses() {
+        let ds = social();
+        let engine = NativeSparqlEngine::new();
+        let req = || SparqlRequest {
+            query: TWO_PATTERN_BGP,
+            base_iri: None,
+            substitutions: &[],
+        };
+
+        engine.query(&ds, req()).expect("first query");
+        assert_eq!(engine.order_cache.borrow().len(), 1, "one BGP cached");
+        let first = engine
+            .order_cache
+            .borrow()
+            .values()
+            .next()
+            .expect("cached order")
+            .clone();
+
+        engine.query(&ds, req()).expect("second query");
+        assert_eq!(engine.order_cache.borrow().len(), 1, "no duplicate entry");
+        let second = engine
+            .order_cache
+            .borrow()
+            .values()
+            .next()
+            .expect("cached order")
+            .clone();
+
+        assert!(
+            Arc::ptr_eq(&first, &second),
+            "the second run reused the cached order, not re-planned"
+        );
+    }
+
+    /// The same query text against two datasets with different stats fingerprints keys
+    /// to two distinct cache entries (a cost-based order is dataset-specific), and both
+    /// runs return correct results.
+    #[test]
+    fn order_cache_misses_on_a_different_dataset() {
+        let engine = NativeSparqlEngine::new();
+        let req = || SparqlRequest {
+            query: TWO_PATTERN_BGP,
+            base_iri: None,
+            substitutions: &[],
+        };
+
+        let small = social(); // 2 quads → :a knows {:b}; :a name "Ann"  ⇒ 1 row.
+        let r1 = engine.query(&small, req()).expect("small query");
+        let SparqlResult::Solutions { rows, .. } = r1 else {
+            panic!("expected solutions");
+        };
+        assert_eq!(rows.len(), 1);
+
+        let big = social_plus(); // 3 quads → :a knows {:b,:c} ⇒ 2 rows.
+        let r2 = engine.query(&big, req()).expect("big query");
+        let SparqlResult::Solutions { rows, .. } = r2 else {
+            panic!("expected solutions");
+        };
+        assert_eq!(rows.len(), 2);
+
+        assert_eq!(
+            engine.order_cache.borrow().len(),
+            2,
+            "distinct datasets ⇒ distinct fingerprints ⇒ two cache entries"
+        );
     }
 }

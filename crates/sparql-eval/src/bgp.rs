@@ -37,11 +37,12 @@ use gmeow_sparql_algebra::{NamedNodePattern, TermPattern, TriplePattern, Variabl
 use crate::convert::{ground_term_pattern_to_value, named_node_to_value};
 use crate::dataset_spec::GraphScope;
 use crate::error::EvalError;
-use crate::eval::EvalCtx;
+use crate::eval::{BgpOrderCache, EvalCtx};
 use crate::scratch::SolutionTerm;
 use crate::solution::{Solution, SolutionSeq, VarSchema};
 use crate::DetHashSet;
 use std::rc::Rc;
+use std::sync::Arc;
 
 /// The `rdf:reifies` predicate IRI — the indirection edge of the RDF 1.2 reification
 /// layer. A triple pattern whose predicate is bound to this IRI (and whose object is a
@@ -117,11 +118,12 @@ pub(crate) fn eval_bgp(
     // Needed before planning: a pattern's cardinality is scope-dependent.
     let scope = ctx.active_dataset.scope_for(ctx.active_graph);
 
-    // Reorder the patterns cheapest-first with the cost-based planner. This is a pure
-    // permutation of a commutative join: `Pos::Slot` is an absolute column index into
-    // `working`, so reordering cannot change which columns bind — the multiset result
-    // is identical, only the join shape (and so the cost) changes.
-    let order = cost_based_order(&compiled, ctx.dataset, &scope);
+    // Reorder the patterns cheapest-first with the cost-based planner (memoised by the
+    // engine's dataset-aware order cache when present). This is a pure permutation of a
+    // commutative join: `Pos::Slot` is an absolute column index into `working`, so
+    // reordering cannot change which columns bind — the multiset result is identical,
+    // only the join shape (and so the cost) changes.
+    let order = plan_or_cached_order(&compiled, ctx.dataset, &scope, ctx.bgp_order_cache);
 
     // The interned id of `rdf:reifies`, resolved once. `None` ⇒ the dataset has no
     // reifier layer at all (the predicate was never interned), so no virtual reifier
@@ -132,7 +134,7 @@ pub(crate) fn eval_bgp(
 
     // Index-nested-loop evaluation. Rows start as a single all-unbound solution.
     let mut rows: Vec<Solution> = vec![vec![None; working.len()]];
-    for &i in &order {
+    for &i in order.iter() {
         let cp = &compiled[i];
         let mut next = Vec::new();
         for row in &rows {
@@ -195,6 +197,94 @@ pub(crate) fn eval_bgp(
 /// (`n ≤ 8 ⇒ ≤ 256` states — trivial); above it, a greedy minimum-cardinality walk.
 /// Both minimise the same estimated-intermediate-cardinality cost.
 const COST_DP_MAX_PATTERNS: usize = 8;
+
+/// Return the join order for `compiled`, served from the engine's dataset-aware cache
+/// when one is present, planning + inserting on a miss. Without a cache (a directly
+/// built [`EvalCtx`], e.g. a unit test) every BGP is planned afresh — identical result,
+/// just not memoised. The cache key is `(dataset stats fingerprint, BGP shape key)`; on
+/// a hit the cached order's length is asserted against `compiled` so a (vanishingly
+/// unlikely) shape-key collision re-plans rather than indexing out of bounds.
+fn plan_or_cached_order(
+    compiled: &[CompiledPattern],
+    dataset: &RdfDataset,
+    scope: &GraphScope,
+    cache: Option<&BgpOrderCache>,
+) -> Arc<[usize]> {
+    let Some(cache) = cache else {
+        return Arc::from(cost_based_order(compiled, dataset, scope));
+    };
+    let key = (dataset.stats_fingerprint(), bgp_shape_key(compiled, scope));
+    if let Some(order) = cache.borrow().get(&key) {
+        // A shape-key collision is NOT licensed by the stats-fingerprint safety
+        // argument: a wrong-length order would index out of bounds in the join loop.
+        // Guard it — on a length mismatch fall through and re-plan.
+        if order.len() == compiled.len() {
+            return Arc::clone(order);
+        }
+    }
+    let order: Arc<[usize]> = Arc::from(cost_based_order(compiled, dataset, scope));
+    cache.borrow_mut().insert(key, Arc::clone(&order));
+    order
+}
+
+/// A deterministic hash of a BGP's *shape* — its pattern count, every position's
+/// structure (slot column / bound id / nested quoted-triple), and the graph scope — for
+/// the order cache key. Encodes `compiled.len()` and the full positional structure so two
+/// structurally distinct BGPs cannot collide to one cached order, and folds in the scope
+/// because a pattern's cardinality (hence its best order) is scope-dependent.
+fn bgp_shape_key(compiled: &[CompiledPattern], scope: &GraphScope) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    compiled.len().hash(&mut h);
+    for cp in compiled {
+        hash_pos(&cp.s, &mut h);
+        hash_pos(&cp.p, &mut h);
+        hash_pos(&cp.o, &mut h);
+    }
+    match scope {
+        GraphScope::One(gm) => {
+            0u8.hash(&mut h);
+            match gm {
+                GraphMatch::Any => 0u8.hash(&mut h),
+                GraphMatch::Default => 1u8.hash(&mut h),
+                GraphMatch::Named(id) => {
+                    2u8.hash(&mut h);
+                    id.index().hash(&mut h);
+                }
+            }
+        }
+        GraphScope::Merge(gs) => {
+            1u8.hash(&mut h);
+            gs.len().hash(&mut h);
+            for g in gs {
+                g.index().hash(&mut h);
+            }
+        }
+    }
+    h.finish()
+}
+
+/// Hash one compiled position structurally (tag + payload), descending into nested
+/// quoted triples — a helper for [`bgp_shape_key`].
+fn hash_pos<H: std::hash::Hasher>(pos: &Pos, h: &mut H) {
+    use std::hash::Hash;
+    match pos {
+        Pos::Slot(c) => {
+            0u8.hash(h);
+            c.hash(h);
+        }
+        Pos::Bound(id) => {
+            1u8.hash(h);
+            id.index().hash(h);
+        }
+        Pos::Triple(t) => {
+            2u8.hash(h);
+            hash_pos(&t.s, h);
+            hash_pos(&t.p, h);
+            hash_pos(&t.o, h);
+        }
+    }
+}
 
 /// Order compiled BGP patterns cheapest-first with a cost-based join planner — the
 /// native `sparopt` role. Unlike a structural heuristic, this probes the dataset's

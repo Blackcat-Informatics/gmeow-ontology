@@ -1203,6 +1203,21 @@ impl RdfDataset {
     pub fn quad_count(&self) -> usize {
         self.quads.len()
     }
+
+    /// A cheap, deterministic fingerprint of this frozen dataset's size, for a
+    /// dataset-aware cache key (e.g. a SPARQL join-order cache). Hashes the quad and
+    /// term counts only — enough to discriminate distinct datasets in practice. It is
+    /// a *cache discriminator*, not a content digest: a fingerprint collision can only
+    /// make a cache reuse a join order computed for a same-size dataset, which — the
+    /// reorder being a permutation of a commutative join — is at worst suboptimal,
+    /// never incorrect. For a content-exact identity use the RDFC-1.0 canonical digest.
+    #[inline]
+    pub fn stats_fingerprint(&self) -> u64 {
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        self.quads.len().hash(&mut h);
+        self.terms.len().hash(&mut h);
+        h.finish()
+    }
 }
 
 /// A zero-allocation, zero-dynamic-dispatch iterator over an [`RdfDataset`]'s quads
