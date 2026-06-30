@@ -1,4 +1,4 @@
-"""Universal identity/coreference guards (#74).
+"""Universal identity/coreference guards.
 
 Asserted-TBox MUST/MUST-NOT invariants for authorityLink, counterpartOf,
 versionOf, editionOf, and supersedes are now declarative slicetest cells in
@@ -11,7 +11,7 @@ RETAINED here (not migratable to scopeModule cells):
   test_no_preferred_or_primary_coreference_terms -- whole-graph absence sweep
     over banned IRI names; subjects not home-asserted in module.ttl.
 
-Migrated to crates/validate/tests/ontology_conformance.rs (#867):
+Migrated to crates/validate/tests/ontology_conformance.rs:
   test_authority_link_without_match_strength_warns_only
     (authority_link_without_match_strength_warns_only)
 """
