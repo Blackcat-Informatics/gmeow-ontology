@@ -128,8 +128,7 @@ rust-test: rust-build ## Run the Rust workspace tests and doctests.
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
 
-lsp-build: $(RUST_READY_STAMP) ## Build the gmeow-lsp binary (debug profile).
-	cargo build -p gmeow-lsp
+lsp-build: lsp-release ## Build the gmeow-lsp binary.
 
 lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage it into dist/bin/.
 	cargo build -p gmeow-lsp --release
@@ -137,13 +136,13 @@ lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage
 	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
 	@echo "gmeow-lsp release binary staged at dist/bin/gmeow-lsp"
 
-lsp-sarif: lsp-build ## Emit SARIF from all .ttl files in the workspace root (report-only).
-	$(CARGO_TARGET_DIR)/debug/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
+lsp-sarif: lsp-release ## Emit SARIF from all .ttl files in the workspace root (report-only).
+	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
 	@echo "SARIF written to $(CARGO_TARGET_DIR)/lsp-sarif/gmeow-feedback.sarif"
 
 diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow-lsp.
-	cargo build -p gmeow-lsp
-	./target/debug/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
+	$(MAKE) lsp-release
+	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: native-py ## Run the full Docker-free local quality gate.
 	# check-generated is one of CHECK_TARGETS, so it already runs as one of the
