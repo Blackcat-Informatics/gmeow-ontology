@@ -44,6 +44,8 @@ implemented against rather than only read:
 | [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
 | [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts |
 | [`design/LOGIC-CONFORMANCE.md`](./design/LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
+| [`design/LOGIC-SHACL-AF.md`](./design/LOGIC-SHACL-AF.md) | computation surface | derivation/aggregation (map/reduce) authored as canonical `logic:` rules and projected to a SHACL-AF `sh:SPARQLRule` surface — computation added to the canon and emitted, never bolted onto SHACL; the projectable fragment, the declared exit loss, and the placement/purity rule |
+| [`design/LOGIC-RDFQUERY.md`](./design/LOGIC-RDFQUERY.md) | query surface | RDFQuery framed as a front-end that parses into `logic:` (which already projects out to SPARQL/SHACL/N3/OWL), not a stack bolted onto SPARQL; P15-gated, language not committed, with the named first consumer |
 | [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
 ## What it commits to
