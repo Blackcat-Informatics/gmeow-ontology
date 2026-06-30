@@ -105,6 +105,28 @@ Public trait flexibility is not free: every external implementation becomes a
 compatibility burden. In this repo, correctness and future cleanup normally matter
 more than downstream implementability.
 
+## Current In-Tree Examples
+
+Use these as the reference points before adding a new advanced-language-feature
+optimization:
+
+- Static iterator seams: `DatasetView` in `crates/rdf-core/src/dataset_view.rs`
+  returns `impl Iterator` over borrowed quad views instead of boxed iterator
+  objects.
+- Dense typed IDs: `TermId`, `QuadIds`, and the quad indexes in
+  `crates/rdf-core/src/ir/dataset.rs` keep hot joins on compact local IDs.
+- Const generics: `AxisOrder<const N>` in
+  `crates/rdf-core/src/ir/dataset.rs` carries the fixed quad-axis arity in the
+  helper type instead of spreading parallel `[T; 4]` conventions through the
+  index code.
+- Type-state: `ValidatedRdfDatasetBuilder` in
+  `crates/rdf-core/src/ir/builder.rs` makes validated -> frozen an explicit
+  phase boundary while preserving the one-shot `RdfDatasetBuilder::freeze()` API.
+- SIMD: `crates/iri/src/parse.rs` uses safe portable SIMD only for dense ASCII
+  delimiter scans; semantic validation remains scalar and byte-exact.
+- Sealed traits: `DatasetView` and `DatasetMut` are sealed to the in-tree RDF
+  dataset types so external crates cannot invent invalid storage contracts.
+
 ## Determinism Doctrine
 
 Performance changes must not change output order accidentally.
