@@ -311,6 +311,18 @@ impl WorldFacts {
             .and_then(|idxs| idxs.first().map(|&i| self.triples[i].object_n3.as_str()))
     }
 
+    /// All objects' N3 forms (IRIs or literals) for `(subject, predicate)`, in sorted order.
+    pub(crate) fn objects_n3(&self, subject: &str, predicate: &str) -> Vec<&str> {
+        self.sp_index
+            .get(&(subject.to_owned(), predicate.to_owned()))
+            .map(|idxs| {
+                idxs.iter()
+                    .map(|&i| self.triples[i].object_n3.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
     /// Whether `(subject, predicate, object)` (object an IRI) is present.
     pub(crate) fn has(&self, subject: &str, predicate: &str, object: &str) -> bool {
         self.objects(subject, predicate).contains(&object)
@@ -2359,6 +2371,16 @@ pub fn materialize_teleology(
                 facts, world, &prog,
             )?);
         }
+
+        // ── Family 9b: recorded ToolCall-trajectory audit (T6, read-only) ─────────
+        // A recorded gmeow:ToolCall sequence is mapped to a transaction program and run
+        // through the SAME executional-entailment engine as family 9 — the read-only
+        // Principle-15 verification consumer over already-recorded agentic provenance.
+        // Emits nothing when a world carries no bound trajectory, so the existing
+        // transaction goldens stay byte-stable.
+        out.extend(crate::transaction::trajectory::emit_trajectory_audits(
+            facts, world,
+        )?);
     }
 
     canonical_sort(&mut out);
