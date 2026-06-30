@@ -7,6 +7,19 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+gmeow:GenericQuality
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "Generic Quality"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "A basic generic quality — pressure, length, mass, temperature: the frame-independent kind of quality a measurement is of, prior to any unit, bearer-context, or role. An open value vocabulary of individuals (never subclasses, Principle 9), aligned by reference to qudt:QuantityKind. The target of logic:genericQuality (the quality a persistent gmeow:Quality instantiates) and of gmeow:dimension (the kind a frame-independent gmeow:Magnitude is a magnitude of); distinct from the contextual quality-role the value plays (logic:qualityRole over logic:Role) and from the ISO 19157 data-quality axis gmeow:QualityDimension."@x-gmeow-english ;
+    skos:example "ex:pressure a gmeow:GenericQuality ; rdfs:label \"pressure\"@en ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-quality subclasses (generic qualities are individuals) and avoid conflating it with the ISO 19157 data-quality dimension (gmeow:QualityDimension) or with the contextual quality-role (logic:qualityRole) — the generic quality is the frame- and role-independent kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded generic-quality individuals from logic:genericQuality (on a persistent gmeow:Quality) and gmeow:dimension (on a gmeow:Magnitude); extend the axis by minting a fresh individual aligned to its qudt:QuantityKind, not a subclass."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the frame-independent quality kind — pressure, length, mass — the generic quality a measurement is of, contextualized into a role by logic:qualityRole."@x-gmeow-english .
+
 gmeow:Magnitude
     a logic:Kind ,
         owl:Class ;
@@ -543,6 +556,13 @@ gmeow:observedFeature
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the Observation at its subject; for typed claims assert the bridging subproperty (facetSubject, usageNamed, statementAbout, versionMember) and read gmeow:observedFeature by inheritance. Keep the range open — do not constrain it in the core; per-kind narrowing is SHACL's job."@x-gmeow-english ;
     gmeow:useWhen "Use to name what an Observation is about — its subject of interest — including from a specialized claim where the local subject property (gmeow:facetSubject, gmeow:usageNamed, gmeow:statementAbout, gmeow:versionMember) bridges here so generic consumers find every observation about X."@x-gmeow-english .
+
+gmeow:pressure
+    a gmeow:GenericQuality ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    rdfs:label "pressure"@x-gmeow-english ;
+    skos:definition "The generic quality pressure — force per unit area — the frame-independent kind a blood-pressure or barometric measurement is of, prior to its expression in mmHg, kPa, or bar. Aligned by reference to qudt:QuantityKind Pressure; contextualized into roles such as gmeow:systolicRole and gmeow:diastolicRole by logic:qualityRole."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:quantityUncertainty
     a owl:DatatypeProperty ,

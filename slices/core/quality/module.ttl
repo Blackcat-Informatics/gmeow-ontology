@@ -32,7 +32,7 @@ gmeow:QualityDimension
     rdfs:subClassOf logic:QualityValue ;
     skos:definition "An ISO 19157 data-quality dimension or lineage category — an open value vocabulary of individuals (never subclasses). New dimensions (e.g. a domain-specific 'semantic consistency' or 'usability') are added by minting fresh individuals, not by creating new classes (Principle 9)."@x-gmeow-english ;
     skos:example "ex:usability a gmeow:QualityDimension ; rdfs:label \"usability\"@en ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid creating per-dimension subclasses (dimensions are individuals) and avoid using it for the assessment itself (that is gmeow:QualityAssessment)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating per-dimension subclasses (dimensions are individuals), avoid using it for the assessment itself (that is gmeow:QualityAssessment), and do not confuse it with the physical generic-quality vocabulary gmeow:GenericQuality (pressure, length) — this is the ISO 19157 DATA-quality axis, not a physical quality kind."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Reference the seeded dimension individuals from an assessment; extend the axis for a domain-specific quality concern by minting a fresh gmeow:QualityDimension individual rather than a subclass."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for the data-quality axis — the seeded ISO 19157 dimensions plus lineage, referenced from a QualityAssessment via gmeow:qualityDimension."@x-gmeow-english .
