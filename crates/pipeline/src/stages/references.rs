@@ -17,7 +17,7 @@ use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermRef, Ter
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 pub const CSL_PATH: &str = "generated/references/references.csl.json";
 pub const BIB_PATH: &str = "generated/references/references.bib";
@@ -341,9 +341,6 @@ pub struct ReferencesStage;
 impl Stage for ReferencesStage {
     fn id(&self) -> &str {
         "stage-export-references"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

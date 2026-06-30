@@ -1,6 +1,7 @@
 {
   "certified": false,
   "decidability_class": "terminating/PTIME-data",
+  "evolution_class": "static/single-state",
   "profile_id": "StratifiedNAFProfile",
   "violations": [
     "StratifiedNAFProfile violation: predicate cycle [https://example.org/decidability/non-stratified-flagged/win -> https://example.org/decidability/non-stratified-flagged/lose -> https://example.org/decidability/non-stratified-flagged/win] crosses a negated body atom — not stratifiable (LOGIC-SEMANTICS.md §Semantic profiles)"

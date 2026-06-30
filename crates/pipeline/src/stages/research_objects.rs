@@ -30,7 +30,7 @@ use std::sync::Arc;
 use gmeow_rdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::native_query;
 use crate::stages::source_load::module_files;
 
@@ -1640,9 +1640,6 @@ pub struct ResearchObjectsStage;
 impl Stage for ResearchObjectsStage {
     fn id(&self) -> &str {
         "stage-export-research-objects"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

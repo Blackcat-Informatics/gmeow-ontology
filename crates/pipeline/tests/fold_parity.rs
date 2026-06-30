@@ -15,7 +15,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::{
-    bind, default_registry, run, PipelineCache, PipelineSpec, RunContext, StageKind, StageSpec,
+    bind, default_registry, run, PipelineCache, PipelineSpec, RunContext, StageSpec,
+    ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
 };
 
 fn repo_root() -> PathBuf {
@@ -26,13 +27,41 @@ fn repo_root() -> PathBuf {
         .unwrap()
 }
 
-fn spec(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec {
+/// Build a spine [`StageSpec`], deriving resources / capabilities / typed dataflow
+/// from the stage `id` so each mirrors the real Rust impl and bind's agreement holds.
+fn spec(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    use gmeow_pipeline::stages::compile_logic::{
+        GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE,
+    };
+    let is_reason = id == "stage-reason";
     StageSpec {
         id: id.to_string(),
-        kind,
+        capabilities: match id {
+            "stage-source-load" => vec![SOURCE_ORIGIN.to_string()],
+            "stage-gts-sink" => vec![SINK_CAPABILITY.to_string()],
+            _ => Vec::new(),
+        },
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        engine_lock: kind.carries_engine_lock(),
+        // Mirror ReasonStage::resources() so bind's resource-agreement holds.
+        resources: if is_reason {
+            vec![ENGINE_RESOURCE.to_string()]
+        } else {
+            Vec::new()
+        },
+        // Mirror ReasonStage::consumed_entities() so bind's dataflow-agreement holds.
+        dataflow_entities: if is_reason {
+            vec![(
+                "stage-compile-logic".to_string(),
+                vec![
+                    GRAPH_CORRESPONDENCE.to_string(),
+                    GRAPH_LOGIC.to_string(),
+                    GRAPH_RELATIONAL_CORE.to_string(),
+                ],
+            )]
+        } else {
+            Vec::new()
+        },
         formats: Vec::new(),
     }
 }
@@ -42,28 +71,12 @@ fn spine() -> PipelineSpec {
     PipelineSpec {
         id: "pipeline-spine".to_string(),
         stages: vec![
-            spec(
-                "stage-source-load",
-                StageKind::SourceLoad,
-                "source_load",
-                &[],
-            ),
-            spec("stage-statements", StageKind::Transform, "statements", &[]),
-            spec(
-                "stage-compile-logic",
-                StageKind::Transform,
-                "compile_logic",
-                &[],
-            ),
-            spec(
-                "stage-mappings",
-                StageKind::Transform,
-                "mappings",
-                &["stage-compile-logic"],
-            ),
+            spec("stage-source-load", "source_load", &[]),
+            spec("stage-statements", "statements", &[]),
+            spec("stage-compile-logic", "compile_logic", &[]),
+            spec("stage-mappings", "mappings", &["stage-compile-logic"]),
             spec(
                 "stage-reason",
-                StageKind::Reason,
                 "reason",
                 &[
                     "stage-compile-logic",
@@ -74,7 +87,6 @@ fn spine() -> PipelineSpec {
             ),
             spec(
                 "stage-gts-compose",
-                StageKind::Transform,
                 "gts_compose",
                 &[
                     "stage-mappings",
@@ -83,36 +95,15 @@ fn spine() -> PipelineSpec {
                     "stage-statements",
                 ],
             ),
-            spec(
-                "stage-docs-render",
-                StageKind::DocsRender,
-                "docs_render",
-                &["stage-gts-compose"],
-            ),
-            spec(
-                "stage-validate",
-                StageKind::Validate,
-                "validate",
-                &["stage-source-load"],
-            ),
+            spec("stage-docs-render", "docs_render", &["stage-gts-compose"]),
+            spec("stage-validate", "validate", &["stage-source-load"]),
             // The SHACL→JSON-Schema source leaf the snapshot folds (#700).
-            spec(
-                "stage-export-json-schema",
-                StageKind::ExportLeaf,
-                "json_schema",
-                &[],
-            ),
+            spec("stage-export-json-schema", "json_schema", &[]),
             // The external-corpus divergence grader the snapshot folds into
             // graph/conformance; a source-reading Transform that consumes nothing.
-            spec(
-                "stage-conformance",
-                StageKind::Transform,
-                "conformance",
-                &[],
-            ),
+            spec("stage-conformance", "conformance", &[]),
             spec(
                 "stage-snapshot",
-                StageKind::Transform,
                 "snapshot",
                 &[
                     "stage-compile-logic",
@@ -128,7 +119,6 @@ fn spine() -> PipelineSpec {
             ),
             spec(
                 "stage-gts-sink",
-                StageKind::Sink,
                 "gts_sink",
                 &[
                     "stage-compile-logic",

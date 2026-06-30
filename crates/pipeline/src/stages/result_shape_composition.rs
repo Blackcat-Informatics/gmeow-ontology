@@ -21,7 +21,7 @@ use gmeow_logic_compile::result_shape::{
 use gmeow_rdf::{RdfDataset, TermValue};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::native_query::{self, Solutions};
 use crate::stages::result_shapes::competency_files;
 
@@ -371,9 +371,6 @@ pub struct ResultShapeCompositionStage;
 impl Stage for ResultShapeCompositionStage {
     fn id(&self) -> &str {
         "stage-validate-result-shape-composition"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Validate
     }
     fn consumes(&self) -> &[String] {
         &[]

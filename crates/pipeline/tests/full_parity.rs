@@ -317,14 +317,22 @@ fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
                     local,
                     "Pipeline"
                         | "PipelineStage"
-                        | "StageKind"
+                        | "StageCapability"
+                        | "Resource"
+                        | "BuildDataFlow"
                         | "hasStage"
                         | "dataflowConsumes"
                         | "dataflowProduces"
-                        | "stageKind"
+                        | "hasCapability"
+                        | "sinkCapability"
+                        | "sourceOrigin"
                         | "stageImpl"
                         | "producesFormat"
-                        | "carriesEngineLock"
+                        | "requiresResource"
+                        | "engineResource"
+                        | "flowEntity"
+                        | "buildFlowFrom"
+                        | "buildFlowTo"
                 )
         })
     };
