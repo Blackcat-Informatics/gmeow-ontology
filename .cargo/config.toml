@@ -2,16 +2,14 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [env]
-# Build the vendored C deps (zstd-sys, ring) optimized and host-tuned, but pin an
-# explicit instruction floor instead of inheriting host-wide flags. `force = true`
-# overrides any ambient CFLAGS — crucially it strips a host `-flto`, which leaves
-# LLVM IR (not real objects) in vendored `.a` archives and corrupts the link.
-# `-march=x86-64-v3` is a portable AVX2-era floor that stays safe for distributed
-# wheels (both libs runtime-dispatch their SIMD paths, so a higher -march buys
-# almost nothing here); `-mtune=native` schedules for this host without emitting
-# host-only instructions.
-CFLAGS = { value = "-O2 -march=x86-64-v3 -mtune=native", force = true }
-CXXFLAGS = { value = "-O2 -march=x86-64-v3 -mtune=native", force = true }
+# Build vendored C deps (zstd-sys, ring) optimized and host-tuned for LOCAL
+# regenerate/reasoning paths by default. `force = true` overrides ambient CFLAGS —
+# crucially it strips a host `-flto`, which leaves LLVM IR (not real objects) in
+# vendored `.a` archives and corrupts the link. CI and release workflows opt out
+# with CARGO_ENV_CFLAGS_VALUE / CARGO_ENV_CXXFLAGS_VALUE set to the portable
+# x86-64-v3 floor.
+CFLAGS = { value = "-O2 -march=native -mtune=native", force = true }
+CXXFLAGS = { value = "-O2 -march=native -mtune=native", force = true }
 
 [target.x86_64-unknown-linux-gnu]
 # Link with the toolchain's BUNDLED rust-lld (no system lld / apt install — the
@@ -24,14 +22,10 @@ rustflags = [
     "-Zunstable-options",
     "-Clink-self-contained=+linker",
     "-Clinker-features=+lld",
-    # Give first-party Rust the SAME portable instruction floor the vendored C
-    # deps already get via CFLAGS above. Without this, rustc targets baseline
-    # x86-64 (SSE2 only) and our hot loops never autovectorize, while zstd/ring
-    # run AVX2. `x86-64-v3` is the portable AVX2-era floor that is safe for
-    # distributed wheels (matches the CFLAGS contract). For host-tuned LOCAL
-    # builds; `make bench` exports RUSTFLAGS with `target-cpu=native`
-    # (which fully REPLACES this list, so those targets re-state the lld flags).
-    # The portable floor stays the committed default, so any wheel/CI build with
-    # no extra flags ships correctly — the host-only case is the opt-in.
-    "-Ctarget-cpu=x86-64-v3",
+    # Local regenerate/reasoning paths are CPU-bound and run thousands of times a
+    # day, so the committed default is host-tuned. CI and release workflows append
+    # a portable x86-64-v3 target-cpu through CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS;
+    # rustc uses the last -Ctarget-cpu value, so distributed artifacts do not inherit
+    # host-only instructions.
+    "-Ctarget-cpu=native",
 ]

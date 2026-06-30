@@ -18,12 +18,19 @@
 //! aggregates the loss ledger.
 
 pub mod correspondence;
+// The dsl/mappings/ frontend: authored alignment cells → typed logic:Correspondence set.
+pub mod correspondence_frontend;
 // The correspondence overclaim gate (relation/morphism vs emitted predicate; P5).
 pub mod correspondence_gate;
 // The lawful put leg derived from the same node as get (F4 mnemomorphism up-lift).
 pub mod put_derivation;
 // The five correspondence conformance gates (Law/Overclaim/Round-trip/Mnemomorphism/Composition).
 pub mod correspondence_gates;
+// The seven correspondence-stack soundness checks: the five alignment
+// graph-reasoning checks (inverse-direction / domain-range / property-character /
+// equivalence-collapse=Principle 5 / dc-refinement) + the two FnO back-end checks
+// (fno-type / fno-ref), oxigraph-free over DslView.
+pub mod correspondence_soundness;
 // The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).
 pub mod edoal;
 // The FnO correspondence lowering (get-leg transform functions → FnO catalog).

@@ -1009,7 +1009,9 @@ fn denied_cells(root: &Path) -> Result<Vec<(String, String, String)>, String> {
         "dc-refinement",
         "dc-hand-authored",
     ];
-    let findings = gmeow_slice::lint_projection(root, false).map_err(|e| e.to_string())?;
+    let findings =
+        crate::stages::correspondence_soundness::lint_correspondence_soundness(root, false)
+            .map_err(|e| e.to_string())?;
     let alignment = findings
         .into_iter()
         .filter(|f| ALIGNMENT_CHECKS.contains(&f.check.as_str()))
