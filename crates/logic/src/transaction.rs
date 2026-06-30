@@ -866,7 +866,9 @@ pub(crate) fn emit_transaction_outcome(
     // The execution-commitment mode is read from the program's governing contract; the
     // verdict (plan_path) is computed identically under both modes — only emission differs.
     let mode = root_execution_mode(facts, root)?;
-    emit_program_outcome(facts, world, root, &program, mode, &start, &sits)
+    // An authored program's outcome rests on its own `rdf:type` assertion — a real input quad.
+    let source = crate::teleology::triple_reifier(root, RDF_TYPE, &program_type_iri(&program))?;
+    emit_program_outcome(facts, world, root, &program, mode, &start, &sits, &source)
 }
 
 /// Emit the outcome substrate for an ALREADY-PARSED program from a resolved start state —
@@ -884,6 +886,7 @@ pub(crate) fn emit_transaction_outcome(
 ///
 /// Propagates any STRUCTURAL fault from [`plan_path`] (a primitive schema with no effect, or a
 /// non-terminating program) as a hard error.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn emit_program_outcome(
     facts: &WorldFacts,
     world: &str,
@@ -892,9 +895,10 @@ pub(crate) fn emit_program_outcome(
     mode: ExecutionMode,
     start: &str,
     sits: &BTreeSet<String>,
+    source: &str,
 ) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
     use crate::provenance::mint_derivation_id;
-    use crate::teleology::{n3, triple_reifier, TeleologyQuad};
+    use crate::teleology::{n3, TeleologyQuad};
 
     let mut counter = StepCounter::new();
     let outcome = plan_path(facts, program, start, sits, root, &mut counter)?;
@@ -904,9 +908,11 @@ pub(crate) fn emit_program_outcome(
         "{LOGIC_NAMESPACE}outcome/{}",
         sha1_hex(&format!("{root}\n{start}\n{world}"))
     );
-    // Grounding provenance: the program's type assertion is the link the outcome rests on.
-    let source = triple_reifier(root, RDF_TYPE, &program_type_iri(program))?;
-    let deriv = mint_derivation_id(TRANSACTION_RULE_IRI, &[source.as_str()]);
+    // Grounding provenance: `source` is the reifier of a REAL input quad the outcome rests on
+    // (an authored program's `rdf:type` assertion; a synthesized trajectory's
+    // `logic:transitionFromState` anchor). It MUST resolve to a materialized quad — the explain
+    // engine refuses a dangling reifier — so the caller passes a quad that genuinely exists.
+    let deriv = mint_derivation_id(TRANSACTION_RULE_IRI, &[source]);
 
     let mut out: Vec<TeleologyQuad> = Vec::new();
     let mut emit = |subject: &str, predicate: String, object: String| {
@@ -916,7 +922,7 @@ pub(crate) fn emit_program_outcome(
             predicate,
             object,
             rule_iri: TRANSACTION_RULE_IRI.to_owned(),
-            source_quad_ids: vec![source.clone()],
+            source_quad_ids: vec![source.to_owned()],
             derivation_id: deriv.clone(),
         });
     };
@@ -977,7 +983,7 @@ pub(crate) fn emit_program_outcome(
                 sits,
                 left,
                 right,
-                &source,
+                source,
                 &deriv,
             )?);
         } else {
@@ -994,7 +1000,7 @@ pub(crate) fn emit_program_outcome(
                 &path_iri,
                 &outcome.path,
                 &outcome.steps,
-                &source,
+                source,
                 &deriv,
             )?);
         }

@@ -268,7 +268,11 @@ pub(crate) fn emit_trajectory_audits(
         match members.as_slice() {
             [solo] => {
                 // Standalone serial trajectory — committed or hypothetical per its anchor.
+                // Ground the outcome on the anchor's logic:transitionFromState quad (a REAL
+                // input quad — the synthesized program type is not in the facts, so the explain
+                // engine could not resolve a type-based reifier).
                 let mode = root_execution_mode(facts, &solo.anchor)?;
+                let source = triple_reifier(&solo.anchor, &logic(TRANSITION_FROM_STATE), &start)?;
                 out.extend(emit_program_outcome(
                     facts,
                     world,
@@ -277,6 +281,7 @@ pub(crate) fn emit_trajectory_audits(
                     mode,
                     &start,
                     &solo.sits,
+                    &source,
                 )?);
                 out.extend(goal_reachability(
                     facts,
@@ -300,6 +305,8 @@ pub(crate) fn emit_trajectory_audits(
                     left: Box::new(left.program.clone()),
                     right: Box::new(right.program.clone()),
                 };
+                // Ground on the left leg's logic:transitionFromState quad (real input quad).
+                let source = triple_reifier(&left.anchor, &logic(TRANSITION_FROM_STATE), &start)?;
                 out.extend(emit_program_outcome(
                     facts,
                     world,
@@ -308,6 +315,7 @@ pub(crate) fn emit_trajectory_audits(
                     ExecutionMode::Committed,
                     &start,
                     &left.sits,
+                    &source,
                 )?);
             }
             many => {
