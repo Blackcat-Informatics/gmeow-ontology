@@ -14,6 +14,7 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/nemo> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/owl-dl> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/owl-el> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/shacl-af> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/2000/01/rdf-schema#label> "canonical-rdf12" .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
@@ -87,3 +88,10 @@
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:underMereologyProfile on <https://example.org/foundation/weak-supplementation/W1> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:underMereologyProfile on <https://example.org/foundation/weak-supplementation/W2> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: the logic:WeakSupplementation mereology axiom is not lowered to OWL 2 EL and stays in logic:" .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/2000/01/rdf-schema#label> "shacl-af" .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/logic/complexityClass> "terminating/PTIME-data" .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop" .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "only the stratified Horn-with-stratified-negation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)" .
+<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)" .

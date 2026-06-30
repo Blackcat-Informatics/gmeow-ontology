@@ -130,6 +130,9 @@ mod tests {
             "generated/logic/gmeow.logic.rdf12.ttl",
             "generated/logic/gmeow.rls",
             "generated/datalog/gmeow.dl",
+            // The SHACL-AF rule (computation) surface the generated-fanout archive pulls
+            // from the compile-logic product (design/LOGIC-SHACL-AF.md).
+            crate::stages::compile_logic::SHACL_AF_PATH,
         ] {
             compile_artifacts.insert(path.to_string(), Vec::new());
         }
