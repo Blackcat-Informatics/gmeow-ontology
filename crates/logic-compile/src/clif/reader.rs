@@ -199,7 +199,11 @@ fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
     }
 }
 
-/// Escape an IRI for an N-Triples `<…>` (only the characters the grammar forbids).
+/// Escape an IRI for an N-Triples `<…>`. The N-Triples `IRIREF` grammar (W3C RDF 1.1
+/// §grammar) forbids `<`, `>`, `"`, `{`, `}`, `|`, `^`, `` ` ``, `\`, and every code point
+/// `<= 0x20` (space + C0 controls) appearing raw; each must ride as a `\uXXXX` `UCHAR`.
+/// Emitting any of them raw would make the reader's reconstructed N-Triples re-parse
+/// hard-fail — turning a fail-soft round-trip into a panic — so escape them all.
 fn nt_escape_iri(iri: &str) -> String {
     let mut out = String::with_capacity(iri.len());
     for c in iri.chars() {
@@ -208,9 +212,12 @@ fn nt_escape_iri(iri: &str) -> String {
             '"' => out.push_str("\\u0022"),
             '<' => out.push_str("\\u003C"),
             '>' => out.push_str("\\u003E"),
-            '\n' => out.push_str("\\u000A"),
-            '\r' => out.push_str("\\u000D"),
-            ' ' => out.push_str("\\u0020"),
+            '{' => out.push_str("\\u007B"),
+            '}' => out.push_str("\\u007D"),
+            '|' => out.push_str("\\u007C"),
+            '^' => out.push_str("\\u005E"),
+            '`' => out.push_str("\\u0060"),
+            c if c <= ' ' => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
     }
