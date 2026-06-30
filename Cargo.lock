@@ -1734,9 +1734,9 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gts"
-version = "0.9.10"
+version = "0.9.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f79b93e4ff5b8db77a092227ff65cb584e9d8d45613b4728bfc409eb15f3ba4"
+checksum = "399162bddfe697f5d1b13b4b8205e90f135ddb27fff66db076e4c7ffd63ccabf"
 dependencies = [
  "aes-gcm",
  "blake3",

@@ -936,9 +936,19 @@ pub fn render_evals(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineEr
         LEADERBOARD_PATH.to_string(),
         render_leaderboard(&cards).into_bytes(),
     );
+    // scores.ttl rides as an RDF-fanout named graph: emit EXACTLY the canonical fold
+    // (shared prefix authority, no banner) so the superset gate reconstructs it.
     out.insert(
         SCORES_PATH.to_string(),
-        render_scores_ttl(&cards).into_bytes(),
+        gmeow_rdf::turtle_normalize::canonical_turtle(
+            render_scores_ttl(&cards).as_bytes(),
+            &crate::stages::superset::rdf_prefixes(),
+        )
+        .map(String::into_bytes)
+        .map_err(|e| PipelineError::Stage {
+            stage: "stage-export-evals".to_string(),
+            message: format!("canonicalize scores.ttl: {e}"),
+        })?,
     );
     for card in &cards {
         out.insert(

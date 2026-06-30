@@ -1070,13 +1070,10 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
 pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> {
     let text = std::str::from_utf8(yaml_bytes)
         .map_err(|e| PipelineError::Decode(format!("YAML-LD-star bytes are not UTF-8: {e}")))?;
-    // Reject anchors/aliases BEFORE deserializing, using the repo's trusted
-    // heuristic: a whitespace-delimited token starting with `&` (anchor) or `*`
-    // (alias) signals extended YAML, which is out of scope for #699.
-    if text
-        .split_whitespace()
-        .any(|t| t.starts_with('&') || t.starts_with('*'))
-    {
+    // Reject anchors/aliases BEFORE deserializing — extended YAML is out of scope
+    // (#699). Detection is structural (node-position only), so `&`/`*` inside scalar
+    // definition prose does not false-positive.
+    if yaml_uses_anchor_or_alias(text) {
         return Err(PipelineError::Decode(
             "YAML-LD-star must not use anchors or aliases".into(),
         ));
@@ -1085,6 +1082,74 @@ pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> 
         .map_err(|e| PipelineError::Decode(format!("parse YAML-LD-star: {e}")))?;
     serde_json::to_string(&value)
         .map_err(|e| PipelineError::Decode(format!("YAML-LD-star -> JSON-LD-star: {e}")))
+}
+
+/// Structural YAML anchor/alias detector (node-position only), so a `&`/`*` that
+/// appears inside scalar prose (e.g. a `skos:definition` value) does not
+/// false-positive. Replaces the old whitespace-token heuristic.
+pub(crate) fn yaml_uses_anchor_or_alias(text: &str) -> bool {
+    let mut block_scalar_indent: Option<usize> = None;
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        let indent = line.len() - trimmed.len();
+        // Inside a block scalar: its content is indented deeper than the header.
+        if let Some(header_indent) = block_scalar_indent {
+            if trimmed.is_empty() || indent > header_indent {
+                continue;
+            }
+            block_scalar_indent = None;
+        }
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        // Strip leading block-sequence indicators (possibly nested: "- - x").
+        let mut rest = trimmed;
+        while let Some(r) = rest.strip_prefix("- ") {
+            rest = r.trim_start();
+        }
+        if rest == "-" {
+            continue;
+        }
+        // The node value is the text after the mapping separator (`: `), or the
+        // whole remainder when this line is a bare sequence/scalar node.
+        let value = block_mapping_value(rest).unwrap_or(rest).trim_start();
+        // A block-scalar header (`|`, `>`, `|-`, `>+2`, …) opens here; skip its body.
+        if value.starts_with('|') || value.starts_with('>') {
+            block_scalar_indent = Some(indent);
+            continue;
+        }
+        if value.starts_with('&') || value.starts_with('*') {
+            return true;
+        }
+    }
+    false
+}
+
+/// The block-mapping node value: the text after the `: ` separator, or `None` if
+/// the line is not a `key: value` mapping entry. A quoted key is skipped first so a
+/// `:` inside it is not mistaken for the separator, and IRIs/curies (`https://…`,
+/// `gmeow:foo`) keep their `:`-without-space.
+fn block_mapping_value(s: &str) -> Option<&str> {
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    if let Some(&q @ (b'\'' | b'"')) = bytes.first() {
+        i = 1;
+        while i < bytes.len() && bytes[i] != q {
+            i += 1;
+        }
+        i = (i + 1).min(bytes.len());
+    }
+    while i < bytes.len() {
+        if bytes[i] == b':' && (i + 1 == bytes.len() || bytes[i + 1] == b' ') {
+            return Some(if i + 2 <= bytes.len() {
+                &s[i + 1..]
+            } else {
+                ""
+            });
+        }
+        i += 1;
+    }
+    None
 }
 
 /// Downcast YAML-LD-star bytes to GMEOW statement-metadata N-Quads.
@@ -1294,8 +1359,8 @@ mod tests {
         graph.terms.push(literal_term("meta"));
 
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
         graph
     }
 
@@ -1426,10 +1491,10 @@ mod tests {
         graph.terms.push(literal_term("0.7"));
 
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.reifiers.push((4, (0, 1, 2)));
-        graph.annotations.push((3, 5, 6));
-        graph.annotations.push((4, 7, 8));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.reifiers.push((4, (0, 1, 2), None));
+        graph.annotations.push((3, 5, 6, None));
+        graph.annotations.push((4, 7, 8, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
@@ -1545,7 +1610,7 @@ mod tests {
         for (key, (term_id, quad_key)) in reifier_inputs {
             let q = graph.quads[quad_idx[quad_key]];
             let id = graph.reifiers.len();
-            graph.reifiers.push((term_id, (q.0, q.1, q.2)));
+            graph.reifiers.push((term_id, (q.0, q.1, q.2), None));
             reifier_idx.insert(key, id);
         }
 
@@ -1555,7 +1620,8 @@ mod tests {
         annotation_inputs.insert("a1", (term_idx["r1"], term_idx["ap"], term_idx["av1"]));
         annotation_inputs.insert("a2", (term_idx["r2"], term_idx["ap"], term_idx["av2"]));
         for (_, ann) in annotation_inputs {
-            graph.annotations.push(ann);
+            // gmeow-gts 0.9.11 annotation rows carry an optional graph slot (`None` here).
+            graph.annotations.push((ann.0, ann.1, ann.2, None));
         }
 
         graph
@@ -1670,8 +1736,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1701,8 +1767,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1732,8 +1798,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1780,8 +1846,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1844,8 +1910,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.95"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1882,8 +1948,8 @@ mod tests {
             .push(iri_term("https://blackcatinformatics.ca/gmeow/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1961,8 +2027,8 @@ mod tests {
             reifier: None,
         });
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 6));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 6, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())

@@ -201,14 +201,17 @@ fn panic_payload_message(payload: &(dyn std::any::Any + Send)) -> String {
 /// Walk a folded GTS [`GtsGraph`] into a frozen [`RdfDataset`] through the shared
 /// [`fold_statement_layer`].
 ///
-/// The `gmeow-gts` `from_*` codecs already fold `rdf:reifies` triples into the graph's
-/// `reifiers` table (they never appear in `quads`), but they do NOT classify
-/// annotations. To feed the SAME two-pass fold the oxigraph path uses — and reach the
-/// SAME IR byte-for-byte — this re-materializes each reifier binding as a synthetic
-/// `<reifier> rdf:reifies <<( s p o )>>` row alongside the plain quads, so pass 1
-/// re-binds reifiers and pass 2 reclassifies the reifier subjects' other triples as
-/// annotations. Term interning is shared across all rows, so identical terms collapse
-/// to one id exactly as on the oxigraph path.
+/// The `gmeow-gts` `from_*` codecs (0.9.11) fold `rdf:reifies` triples into the graph's
+/// `reifiers` table (they never appear in `quads`) AND classify a reifier's sibling
+/// triples into the `annotations` table — the codec owns reifier identity, including
+/// anonymous `[]` reifiers. To feed the SAME two-pass fold the oxigraph path uses — and
+/// reach the SAME IR — this re-materializes each reifier binding as a synthetic
+/// `<reifier> rdf:reifies <<( s p o )>>` row and each annotation as a
+/// `<reifier> <predicate> <value>` row alongside the plain quads, so pass 1 re-binds
+/// reifiers and pass 2 classifies the reifier subjects' rows as annotations. Term
+/// interning is shared across all rows, so identical terms collapse to one id exactly as
+/// on the oxigraph path. (Pre-0.9.11 this consumed only `quads`+`reifiers`, silently
+/// dropping every codec-classified annotation — #1155.)
 pub fn dataset_from_gts_graph(graph: &GtsGraph) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
     dataset_from_gts_graph_impl(graph, false)
 }
@@ -233,7 +236,8 @@ fn dataset_from_gts_graph_impl(
     let mut builder = RdfDatasetBuilder::new();
     let interner = GtsInterner { graph };
 
-    let mut rows: Vec<FoldRow> = Vec::with_capacity(graph.quads.len() + graph.reifiers.len());
+    let mut rows: Vec<FoldRow> =
+        Vec::with_capacity(graph.quads.len() + graph.reifiers.len() + graph.annotations.len());
 
     // Synthetic `rdf:reifies` rows reconstructed from the GTS reifier table, so the
     // shared fold re-binds them identically to the oxigraph path (pass 1). A
@@ -243,7 +247,7 @@ fn dataset_from_gts_graph_impl(
     // serializer skips it identically) and is resolved when its parent quad interns the
     // object. Emitting a synthetic row for it would make a quoted triple the subject of
     // `rdf:reifies`, which the IR rejects.
-    for &(reifier_id, (s, p, o)) in &graph.reifiers {
+    for &(reifier_id, (s, p, o), _graph) in &graph.reifiers {
         if graph.terms.get(reifier_id).is_some_and(|term| {
             term.kind == GtsTermKind::Triple && term.reifier == Some(reifier_id)
         }) {
@@ -263,7 +267,7 @@ fn dataset_from_gts_graph_impl(
         });
     }
 
-    // Base quad rows (annotations are still plain quads here; pass 2 reclassifies them).
+    // Base quad rows.
     for &(s, p, o, g) in &graph.quads {
         let subject = interner.intern(&mut builder, s)?;
         let predicate_iri = interner.iri_string(p)?;
@@ -280,6 +284,28 @@ fn dataset_from_gts_graph_impl(
             predicate,
             object,
             graph,
+        });
+    }
+
+    // Annotation rows the codec already classified into the GTS `annotations` table.
+    // Re-materialized as `<reifier> <predicate> <value>` rows so the shared fold's pass 2
+    // classifies them as annotations (the reifier subject is bound above). This is the
+    // GENERAL RDF-1.2 parser, so it must accept arbitrary input including the W3C suite's
+    // graph-scoped (TriG) reification — the optional graph slot is FLATTENED here, exactly
+    // as `fold_statement_layer` already folds the `rdf:reifies` binding graph-blind: the
+    // IR's statement layer is graph-free (world × standpoint = JOIN, not graph). gmeow's
+    // OWN carrier never carries a graph-scoped row (the bundle-import paths enforce that).
+    for &(reifier_id, predicate_id, value_id, _graph_slot) in &graph.annotations {
+        let subject = interner.intern(&mut builder, reifier_id)?;
+        let predicate_iri = interner.iri_string(predicate_id)?;
+        let predicate = interner.intern(&mut builder, predicate_id)?;
+        let object = interner.intern_node(&mut builder, value_id)?;
+        rows.push(FoldRow {
+            subject,
+            predicate_iri,
+            predicate,
+            object,
+            graph: None,
         });
     }
 

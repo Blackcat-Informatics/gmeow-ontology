@@ -1,119 +1,124 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
 <https://blackcatinformatics.ca/gmeow/examples/ai/assistant>
-    a <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "facilities assistant model"@en ;
-    <https://blackcatinformatics.ca/gmeow/hasGoal> <https://blackcatinformatics.ca/gmeow/examples/ai/goal-answer-faithfully> .
+    a gmeow:SoftwareAgent ;
+    rdfs:label "facilities assistant model"@en ;
+    gmeow:hasGoal <https://blackcatinformatics.ca/gmeow/examples/ai/goal-answer-faithfully> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/auditor>
-    a <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "grounding auditor"@en .
+    a gmeow:SoftwareAgent ;
+    rdfs:label "grounding auditor"@en .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/card-assistant>
-    a <https://blackcatinformatics.ca/gmeow/ModelCard> ;
-    <https://blackcatinformatics.ca/gmeow/describesModel> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
-    <https://blackcatinformatics.ca/gmeow/modelContextWindow> "200000"^^<http://www.w3.org/2001/XMLSchema#positiveInteger> ;
-    <https://blackcatinformatics.ca/gmeow/modelProvider> "Example Labs" ;
-    <https://blackcatinformatics.ca/gmeow/modelTrainingCutoff> "2026-01-31"^^<http://www.w3.org/2001/XMLSchema#date> ;
-    <https://blackcatinformatics.ca/gmeow/modelVersionTag> "assistant-2026-05-01" .
+    a gmeow:ModelCard ;
+    gmeow:describesModel <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
+    gmeow:modelContextWindow 200000 ;
+    gmeow:modelProvider "Example Labs" ;
+    gmeow:modelTrainingCutoff "2026-01-31"^^xsd:date ;
+    gmeow:modelVersionTag "assistant-2026-05-01" .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/chunk-042>
-    a <https://blackcatinformatics.ca/gmeow/Chunk> ;
-    <https://blackcatinformatics.ca/gmeow/chunkOf> <https://blackcatinformatics.ca/gmeow/examples/ai/handbook> ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
-    <https://blackcatinformatics.ca/gmeow/spanEnd> "18950"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
-    <https://blackcatinformatics.ca/gmeow/spanStart> "18200"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+    a gmeow:Chunk ;
+    gmeow:chunkOf <https://blackcatinformatics.ca/gmeow/examples/ai/handbook> ;
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
+    gmeow:spanEnd 18950 ;
+    gmeow:spanStart 18200 .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200>
-    a <https://blackcatinformatics.ca/gmeow/MemoryItem> ,
-        <https://blackcatinformatics.ca/gmeow/StandpointClaim> ;
-    <https://blackcatinformatics.ca/gmeow/claimModality> <https://blackcatinformatics.ca/gmeow/probable> ;
-    <https://blackcatinformatics.ca/gmeow/groundedIn> <https://blackcatinformatics.ca/gmeow/examples/ai/span-close-2200> ;
-    <https://blackcatinformatics.ca/gmeow/memoryKind> <https://blackcatinformatics.ca/gmeow/memoryKindSemantic> ;
-    <https://blackcatinformatics.ca/gmeow/memoryOf> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
-    <https://blackcatinformatics.ca/gmeow/observationMethod> <https://blackcatinformatics.ca/gmeow/methodLlmExtraction> ;
-    <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200> ;
-    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
-    <https://blackcatinformatics.ca/gmeow/wasAttributedTo> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19> .
+    a gmeow:MemoryItem ,
+        gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:groundedIn <https://blackcatinformatics.ca/gmeow/examples/ai/span-close-2200> ;
+    gmeow:memoryKind gmeow:memoryKindSemantic ;
+    gmeow:memoryOf <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
+    gmeow:observationMethod gmeow:methodLlmExtraction ;
+    gmeow:observedFeature <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
+    gmeow:wasAttributedTo <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300>
-    a <https://blackcatinformatics.ca/gmeow/StandpointClaim> ;
-    <https://blackcatinformatics.ca/gmeow/claimModality> <https://blackcatinformatics.ca/gmeow/probable> ;
-    <https://blackcatinformatics.ca/gmeow/observationMethod> <https://blackcatinformatics.ca/gmeow/methodLlmExtraction> ;
-    <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300> ;
-    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
-    <https://blackcatinformatics.ca/gmeow/wasAttributedTo> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
-    <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19> .
+    a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:observationMethod gmeow:methodLlmExtraction ;
+    gmeow:observedFeature <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
+    gmeow:wasAttributedTo <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> ;
+    gmeow:wasGeneratedBy <https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/contradiction-close>
-    a <https://blackcatinformatics.ca/gmeow/Contradiction> ;
-    <https://blackcatinformatics.ca/gmeow/contradictionKind> <https://blackcatinformatics.ca/gmeow/contradictionKindNumeric> ;
-    <https://blackcatinformatics.ca/gmeow/contradictsClaim> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200> ,
+    a gmeow:Contradiction ;
+    gmeow:contradictionKind gmeow:contradictionKindNumeric ;
+    gmeow:contradictsClaim <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200> ,
         <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300> ;
-    <https://blackcatinformatics.ca/gmeow/detectedBy> <https://blackcatinformatics.ca/gmeow/examples/ai/auditor> .
+    gmeow:detectedBy <https://blackcatinformatics.ca/gmeow/examples/ai/auditor> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing>
-    <https://blackcatinformatics.ca/gmeow/validUntil> "2026-12-31T22:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+    gmeow:validUntil "2026-12-31T22:00:00Z"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/goal-answer-faithfully>
-    a <https://blackcatinformatics.ca/gmeow/Goal> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "answer facilities questions faithfully to the handbook"@en .
+    a gmeow:Goal ;
+    rdfs:label "answer facilities questions faithfully to the handbook"@en .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/handbook>
-    a <https://blackcatinformatics.ca/gmeow/Document> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "facilities handbook, 2026 edition"@en ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0" ,
+    a gmeow:Document ;
+    rdfs:label "facilities handbook, 2026 edition"@en ;
+    gmeow:contentDigest "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0" ,
         "md5:7b14f3681bed923ac3ddf9af885a5086" ,
         "sha256:45441a53c39d0908231f626f36c99661e78108aca3cb8271e9085d732cb1f3f6" ;
-    <https://blackcatinformatics.ca/gmeow/sourceLocation> "https://blackcatinformatics.ca/gmeow/examples/graphrag/facilities-handbook-2026" .
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/facilities-handbook-2026" .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19>
-    a <https://blackcatinformatics.ca/gmeow/ModelInvocation> ;
-    <https://blackcatinformatics.ca/gmeow/atTime> "2026-05-15T10:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
-    <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
-    <https://blackcatinformatics.ca/gmeow/hasPrompt> <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract> ;
-    <https://blackcatinformatics.ca/gmeow/samplingTemperature> 0.0 ;
-    <https://blackcatinformatics.ca/gmeow/usedModel> <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> .
+    a gmeow:ModelInvocation ;
+    gmeow:atTime "2026-05-15T10:00:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:hasPrompt <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract> ;
+    gmeow:samplingTemperature "0"^^xsd:decimal ;
+    gmeow:usedModel <https://blackcatinformatics.ca/gmeow/examples/ai/assistant> .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/prompt-extract>
-    a <https://blackcatinformatics.ca/gmeow/Prompt> ;
-    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" ;
-    <https://blackcatinformatics.ca/gmeow/filledFrom> <https://blackcatinformatics.ca/gmeow/examples/ai/template-extract-v1> ;
-    <https://blackcatinformatics.ca/gmeow/promptRole> <https://blackcatinformatics.ca/gmeow/promptRoleSystem> .
+    a gmeow:Prompt ;
+    gmeow:contentDigest "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" ;
+    gmeow:filledFrom <https://blackcatinformatics.ca/gmeow/examples/ai/template-extract-v1> ;
+    gmeow:promptRole gmeow:promptRoleSystem .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/span-close-2200>
-    a <https://blackcatinformatics.ca/gmeow/EvidenceSpan> ;
-    <https://blackcatinformatics.ca/gmeow/spanEnd> "366"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
-    <https://blackcatinformatics.ca/gmeow/spanOfChunk> <https://blackcatinformatics.ca/gmeow/examples/ai/chunk-042> ;
-    <https://blackcatinformatics.ca/gmeow/spanStart> "310"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
-    <https://blackcatinformatics.ca/gmeow/supportPolarity> <https://blackcatinformatics.ca/gmeow/polaritySupports> .
+    a gmeow:EvidenceSpan ;
+    gmeow:spanEnd 366 ;
+    gmeow:spanOfChunk <https://blackcatinformatics.ca/gmeow/examples/ai/chunk-042> ;
+    gmeow:spanStart 310 ;
+    gmeow:supportPolarity gmeow:polaritySupports .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200>
-    a <http://www.w3.org/2002/07/owl#Axiom> ;
-    <http://www.w3.org/2002/07/owl#annotatedProperty> <https://blackcatinformatics.ca/gmeow/validUntil> ;
-    <http://www.w3.org/2002/07/owl#annotatedSource> <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> ;
-    <http://www.w3.org/2002/07/owl#annotatedTarget> "2026-12-31T22:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+    a owl:Axiom ;
+    owl:annotatedProperty gmeow:validUntil ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> ;
+    owl:annotatedTarget "2026-12-31T22:00:00Z"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300>
-    a <http://www.w3.org/2002/07/owl#Axiom> ;
-    <http://www.w3.org/2002/07/owl#annotatedProperty> <https://blackcatinformatics.ca/gmeow/validUntil> ;
-    <http://www.w3.org/2002/07/owl#annotatedSource> <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> ;
-    <http://www.w3.org/2002/07/owl#annotatedTarget> "2026-12-31T23:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+    a owl:Axiom ;
+    owl:annotatedProperty gmeow:validUntil ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> ;
+    owl:annotatedTarget "2026-12-31T23:00:00Z"^^xsd:dateTime .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed>
-    a <http://www.w3.org/2002/07/owl#Axiom> ;
-    <http://www.w3.org/2002/07/owl#annotatedProperty> <https://blackcatinformatics.ca/gmeow/claimModality> ;
-    <http://www.w3.org/2002/07/owl#annotatedSource> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300> ;
-    <http://www.w3.org/2002/07/owl#annotatedTarget> <https://blackcatinformatics.ca/gmeow/probable> .
+    a owl:Axiom ;
+    owl:annotatedProperty gmeow:claimModality ;
+    owl:annotatedSource <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300> ;
+    owl:annotatedTarget gmeow:probable .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/template-extract-v1>
-    a <https://blackcatinformatics.ca/gmeow/PromptTemplate> ;
-    <http://www.w3.org/2000/01/rdf-schema#label> "claim-extraction template v1"@en ;
-    <https://blackcatinformatics.ca/gmeow/promptRole> <https://blackcatinformatics.ca/gmeow/promptRoleSystem> .
+    a gmeow:PromptTemplate ;
+    rdfs:label "claim-extraction template v1"@en ;
+    gmeow:promptRole gmeow:promptRoleSystem .
 
 <https://blackcatinformatics.ca/gmeow/examples/ai/verdict-2300>
-    a <https://blackcatinformatics.ca/gmeow/StandpointClaim> ;
-    <https://blackcatinformatics.ca/gmeow/claimModality> <https://blackcatinformatics.ca/gmeow/bullshit> ;
-    <https://blackcatinformatics.ca/gmeow/claimVeridicality> <https://blackcatinformatics.ca/gmeow/veridicalityUntrue> ;
-    <https://blackcatinformatics.ca/gmeow/observationMethod> <https://blackcatinformatics.ca/gmeow/methodNliDerivation> ;
-    <https://blackcatinformatics.ca/gmeow/observedFeature> <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed> ;
-    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/examples/ai/auditor> .
+    a gmeow:StandpointClaim ;
+    gmeow:claimModality gmeow:bullshit ;
+    gmeow:claimVeridicality gmeow:veridicalityUntrue ;
+    gmeow:observationMethod gmeow:methodNliDerivation ;
+    gmeow:observedFeature <https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/examples/ai/auditor> .
