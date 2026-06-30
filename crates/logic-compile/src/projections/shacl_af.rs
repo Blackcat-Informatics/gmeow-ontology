@@ -797,6 +797,84 @@ mod tests {
     }
 
     #[test]
+    fn every_rule_and_axiom_is_emitted_or_ledgered_never_silent() {
+        // The no-silent-drop contract for the SoundUnderApproximation surface: each input rule and
+        // axiom is EITHER projected to a shape OR recorded as a ledger drop — never silently lost.
+        // A projectable rule, a modal rule (skip), a projectable subClassOf axiom, and a type
+        // axiom (skip): exactly 2 emitted shapes and 2 ledger drops, accounting for all 4 inputs.
+        let proj_rule = {
+            let head = var_axiom(
+                "?a",
+                "https://blackcatinformatics.ca/gmeow/knows",
+                "?b",
+                false,
+            );
+            let body = vec![var_axiom(
+                "?a",
+                "https://blackcatinformatics.ca/logic/links",
+                "?b",
+                false,
+            )];
+            LogicRule::new(head, body, vec![], ContextualScope::default())
+        };
+        let modal_rule = {
+            let scope = ContextualScope {
+                standpoint: Some("https://blackcatinformatics.ca/gmeow/sp".to_owned()),
+                ..ContextualScope::default()
+            };
+            let head = var_axiom(
+                "?x",
+                "https://blackcatinformatics.ca/gmeow/scoped",
+                "?y",
+                false,
+            );
+            let body = vec![var_axiom(
+                "?x",
+                "https://blackcatinformatics.ca/logic/links",
+                "?y",
+                false,
+            )];
+            LogicRule::new(head, body, vec![], scope)
+        };
+        let subclass = LogicAxiom::ground(
+            "https://example.org/A",
+            "https://blackcatinformatics.ca/logic/subClassOf",
+            "https://example.org/B",
+            false,
+        )
+        .unwrap();
+        let type_axiom = LogicAxiom::ground(
+            "https://example.org/A",
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            "https://blackcatinformatics.ca/logic/Kind",
+            false,
+        )
+        .unwrap();
+        let program = LogicProgram::new(
+            vec![subclass, type_axiom],
+            vec![proj_rule, modal_rule],
+            vec![],
+            None,
+        );
+        let result = project_shacl_af(&program);
+        // 2 inputs are projectable → 2 NodeShapes.
+        assert_eq!(
+            result.content.matches("a sh:NodeShape").count(),
+            2,
+            "expected exactly two emitted shapes:\n{}",
+            result.content
+        );
+        // The other 2 inputs are carried → 2 ledger drops (no contracts/formulas here, so the
+        // ledger holds only the skip notes).
+        assert_eq!(
+            result.actual_drops.len(),
+            2,
+            "every non-projected input must be a ledgered drop, never silent: {:?}",
+            result.actual_drops
+        );
+    }
+
+    #[test]
     fn subclass_axiom_projects_to_a_subsumption_rule() {
         // A ground subClassOf axiom is projected to a cax-sco sh:SPARQLRule that materializes the
         // subsumption — maximal utility, the SHACL-AF surface actually computes the closure.
