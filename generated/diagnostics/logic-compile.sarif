@@ -541,6 +541,63 @@
             "gmeowFindingHash/v2": "e715d2a21b205c18"
           },
           "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "41708e1787f1e73b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: only the stratified Horn-with-stratified-negation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2269400acca70c21"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5657e412f8ae5d46"
+          },
+          "ruleId": "logic-compile.lossy-drop"
         }
       ],
       "tool": {

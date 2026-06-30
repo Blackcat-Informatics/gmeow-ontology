@@ -7054,6 +7054,22 @@
     logic:complexityClass "PTIME" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/shacl-af>
+    a logic:ProjectionTarget ;
+    rdfs:label "shacl-af" ;
+    gmeow:lossyDrop "actual: reasoning contract (an anonymous faceted contract) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
+        "actual: reasoning contract (preset logic:PositiveHornProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
+        "actual: reasoning contract (preset logic:ProbabilisticProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
+        "actual: reasoning contract (preset logic:ProceduralPrologProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
+        "actual: reasoning contract (preset logic:StableModelProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
+        "actual: reasoning contract (preset logic:StratifiedNAFProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
+        "actual: reasoning contract (preset logic:WellFoundedProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
+        "modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop" ,
+        "only the stratified Horn-with-stratified-negation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)" ,
+        "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)" ;
+    logic:complexityClass "terminating/PTIME-data" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sparql:011d28b7ee1ca288>
     a logic:ProjectionTarget ;
     rdfs:label "sparql:011d28b7ee1ca288" ;
@@ -32936,6 +32952,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/nemo> ,
         <https://blackcatinformatics.ca/logic/target/owl-dl> ,
         <https://blackcatinformatics.ca/logic/target/owl-el> ,
+        <https://blackcatinformatics.ca/logic/target/shacl-af> ,
         <https://blackcatinformatics.ca/logic/target/sparql:011d28b7ee1ca288> ,
         <https://blackcatinformatics.ca/logic/target/sparql:01ef4cd9bbaa3c97> ,
         <https://blackcatinformatics.ca/logic/target/sparql:02ade478d7ee3bf9> ,

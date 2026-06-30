@@ -308,6 +308,39 @@
           "path": "slices/core/logic/module.ttl"
         }
       ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: only the stratified Horn-with-stratified-negation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
     }
   ]
 }
