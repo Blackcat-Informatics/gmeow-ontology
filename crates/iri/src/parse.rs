@@ -12,6 +12,7 @@
 
 use crate::error::{IriError, Result};
 use core::ops::Range;
+use std::simd::{cmp::SimdPartialEq, Simd};
 
 /// A parsed, validated IRI (or URI) with byte-offset spans for each component.
 ///
@@ -123,10 +124,8 @@ fn parse_inner(s: &str, mode: Mode) -> Result<Iri> {
     if bytes[idx..].starts_with(b"//") {
         let astart = idx + 2;
         // authority runs until the next '/', '?', '#' or end.
-        let mut aend = astart;
-        while aend < bytes.len() && !matches!(bytes[aend], b'/' | b'?' | b'#') {
-            aend += 1;
-        }
+        let aend =
+            astart + find_first_of(&bytes[astart..], *b"/?#").unwrap_or(bytes.len() - astart);
         validate_authority(&s[astart..aend], astart, mode)?;
         authority = Some(astart..aend);
         idx = aend;
@@ -134,10 +133,7 @@ fn parse_inner(s: &str, mode: Mode) -> Result<Iri> {
 
     // path: runs until '?' or '#' or end.
     let pstart = idx;
-    let mut pend = pstart;
-    while pend < bytes.len() && !matches!(bytes[pend], b'?' | b'#') {
-        pend += 1;
-    }
+    let pend = pstart + find_first_of(&bytes[pstart..], *b"?#").unwrap_or(bytes.len() - pstart);
     validate_path(&s[pstart..pend], pstart, mode)?;
     // RFC-3986 §4.2: a relative reference with no scheme and no authority has a
     // `path-noscheme`, whose FIRST segment must not contain a ':' — otherwise the
@@ -157,10 +153,7 @@ fn parse_inner(s: &str, mode: Mode) -> Result<Iri> {
     let mut query: Option<Range<usize>> = None;
     if idx < bytes.len() && bytes[idx] == b'?' {
         let qstart = idx + 1;
-        let mut qend = qstart;
-        while qend < bytes.len() && bytes[qend] != b'#' {
-            qend += 1;
-        }
+        let qend = qstart + find_first_byte(&bytes[qstart..], b'#').unwrap_or(bytes.len() - qstart);
         validate_query(&s[qstart..qend], qstart, mode)?;
         query = Some(qstart..qend);
         idx = qend;
@@ -193,14 +186,10 @@ fn find_scheme_colon(s: &str) -> Option<usize> {
     if b.is_empty() || !b[0].is_ascii_alphabetic() {
         return None;
     }
-    for (i, &c) in b.iter().enumerate() {
-        match c {
-            b':' => return Some(i),
-            b'/' | b'?' | b'#' => return None, // delimiter before any ':' => relative
-            _ => {}
-        }
+    match find_first_of(b, *b":/?#") {
+        Some(i) if b[i] == b':' => Some(i),
+        Some(_) | None => None,
     }
-    None
 }
 
 fn validate_scheme(s: &str) -> Result<()> {
@@ -316,7 +305,7 @@ fn validate_authority(s: &str, base_off: usize, mode: Mode) -> Result<()> {
     // authority = [ userinfo "@" ] host [ ":" port ]
     // Split off optional userinfo (last '@' before host — userinfo cannot contain
     // an unescaped '@', so the first '@' delimits it).
-    let (userinfo, rest, host_off) = match s.find('@') {
+    let (userinfo, rest, host_off) = match find_first_byte(s.as_bytes(), b'@') {
         Some(at) => (Some(&s[..at]), &s[at + 1..], base_off + at + 1),
         None => (None, s, base_off),
     };
@@ -422,4 +411,56 @@ fn validate_fragment(s: &str, base_off: usize, mode: Mode) -> Result<()> {
         false,
         mode,
     )
+}
+
+const SCAN_LANES: usize = 16;
+
+#[inline]
+fn find_first_byte(bytes: &[u8], needle: u8) -> Option<usize> {
+    find_first_of(bytes, [needle])
+}
+
+/// Find the first ASCII delimiter byte in a dense byte slice.
+///
+/// IRI component splitting scans long ASCII-heavy strings for a very small set of
+/// delimiters. `std::simd` keeps that hot scan branch-light without changing the
+/// UTF-8 semantics: all delimiter bytes are ASCII and therefore cannot be confused
+/// with a non-ASCII continuation byte.
+#[inline]
+fn find_first_of<const N: usize>(bytes: &[u8], needles: [u8; N]) -> Option<usize> {
+    if N == 0 {
+        return None;
+    }
+
+    let mut offset = 0usize;
+    while offset + SCAN_LANES <= bytes.len() {
+        let chunk = Simd::<u8, SCAN_LANES>::from_slice(&bytes[offset..offset + SCAN_LANES]);
+        let mut mask = chunk.simd_eq(Simd::splat(needles[0]));
+        for &needle in &needles[1..] {
+            mask |= chunk.simd_eq(Simd::splat(needle));
+        }
+        let bits = mask.to_bitmask();
+        if bits != 0 {
+            return Some(offset + bits.trailing_zeros() as usize);
+        }
+        offset += SCAN_LANES;
+    }
+
+    bytes[offset..]
+        .iter()
+        .position(|b| needles.contains(b))
+        .map(|i| offset + i)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn simd_delimiter_scan_matches_first_scalar_hit() {
+        let haystack = b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa?tail#later";
+        assert_eq!(find_first_of(haystack, *b"?#"), Some(32));
+        assert_eq!(find_first_byte(haystack, b'#'), Some(37));
+        assert_eq!(find_first_of(haystack, *b":/"), None);
+    }
 }
