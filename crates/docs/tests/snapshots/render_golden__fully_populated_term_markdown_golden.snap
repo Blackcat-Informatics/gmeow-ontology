@@ -44,7 +44,8 @@ The entity whose data quality is being assessed — the feature of interest of t
 
 ## Alignments
 
-- `closeMatch` → [http://www\.w3\.org/ns/dqv\#computedOn](http://www\.w3\.org/ns/dqv\#computedOn)
+- `closeMatch` → [http://www\.w3\.org/ns/dqv\#computedOn](http://www\.w3\.org/ns/dqv\#computedOn) — *approximate match (close) — not an exact equivalence.*
+- *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Box role
 
