@@ -36,8 +36,11 @@ use crate::up_projection::{self, LiftMap, UpProjectionReport};
 /// {
 ///   "mode":       "check" | "regenerate",
 ///   "produced":   int,        # committed-artifact paths the run produced
-///   "reproduced": int,        # reproduced byte/iso-for-byte (check) / written
+///   "reproduced": int,        # reproduced byte/iso-for-byte (check) / reconciled
+///   "written":    int,        # regenerate only: paths whose bytes changed
+///   "skipped_writes": int,    # regenerate only: paths already up to date
 ///   "drifted":    list[str],  # drifted committed paths (check); empty on regen
+///   "timings":    list[{phase, elapsed_ms, metadata}],
 ///   "findings":   list[{severity, code, message}],  # drift / write findings
 ///   "clean":      bool,       # True ⇒ zero drift, full parity
 /// }
@@ -67,6 +70,8 @@ fn run_pipeline(py: Python<'_>, root: String, jobs: usize, check: bool) -> PyRes
     )?;
     out.set_item("produced", report.produced)?;
     out.set_item("reproduced", report.reproduced)?;
+    out.set_item("written", report.written)?;
+    out.set_item("skipped_writes", report.skipped_writes)?;
     out.set_item("clean", report.is_clean())?;
 
     let drifted = PyList::empty(py);
@@ -84,6 +89,16 @@ fn run_pipeline(py: Python<'_>, root: String, jobs: usize, check: bool) -> PyRes
         findings.append(f)?;
     }
     out.set_item("findings", findings)?;
+
+    let timings = PyList::empty(py);
+    for timing in &report.timings {
+        let t = PyDict::new(py);
+        t.set_item("phase", &timing.phase)?;
+        t.set_item("elapsed_ms", timing.elapsed_ms)?;
+        t.set_item("metadata", timing.metadata.as_deref())?;
+        timings.append(t)?;
+    }
+    out.set_item("timings", timings)?;
 
     Ok(out.into_any().unbind())
 }
