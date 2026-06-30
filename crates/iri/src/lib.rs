@@ -30,6 +30,7 @@
 //! signal, faithful to the SSSOM behavior this crate subsumes.
 
 #![forbid(unsafe_code)]
+#![feature(portable_simd)]
 
 mod curie;
 mod error;

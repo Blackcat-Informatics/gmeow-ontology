@@ -83,7 +83,7 @@ pub use ir::{
     Canonicalized, DatasetDiff, DatasetSink, FrozenDatasetSource, GtsBundle, HandleEntry,
     HandleKey, MutableDataset, PipelineBundle, PipelineBundleError, QuadHandle, QuadIds, QuadRef,
     QuadValues, RdfDataset, RdfDatasetBuilder, RdfDatasetVisitor, RdfEnvelope, TermId, TermRef,
-    TermValue,
+    TermValue, ValidatedRdfDatasetBuilder,
 };
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};

@@ -18,6 +18,13 @@
 use crate::ir::{QuadIds, QuadRef, RdfDataset, TermId, TermRef, TermValue};
 use crate::RdfStoreCapabilities;
 
+mod sealed {
+    pub trait Sealed {}
+
+    impl Sealed for crate::ir::RdfDataset {}
+    impl Sealed for crate::ir::MutableDataset {}
+}
+
 /// How a pattern query matches the graph slot of a quad.
 ///
 /// Storage keeps `g: Option<TermId>` where `None` is the default graph, so
@@ -75,7 +82,7 @@ pub enum GraphMatchValue<'a> {
 
 /// A static, allocation-free read view over an RDF dataset (purrdf backend
 /// contract, C2/C3/C6). All methods are infallible for a frozen, validated dataset.
-pub trait DatasetView {
+pub trait DatasetView: sealed::Sealed {
     /// Iterate every quad as `Copy` [`QuadIds`] (dataset-local term ids).
     fn quads(&self) -> impl Iterator<Item = QuadIds> + '_;
 
@@ -130,7 +137,7 @@ pub trait DatasetView {
 /// All four methods operate on the **effective** set. `insert`/`remove` return whether
 /// the effective set actually changed (so callers can detect no-ops); `contains` and
 /// `quads_for_pattern` reflect the effective set after any sequence of mutations.
-pub trait DatasetMut {
+pub trait DatasetMut: sealed::Sealed {
     /// The owned, dataset-independent quad value this dataset is mutated with.
     type Quad;
 
