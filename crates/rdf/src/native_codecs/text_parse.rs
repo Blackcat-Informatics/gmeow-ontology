@@ -35,7 +35,7 @@
 
 use std::collections::HashMap;
 
-use gmeow_sparql_algebra::lexer::{tokenize, Spanned, Token};
+use gmeow_sparql_algebra::lexer::{tokenize, tokenize_turtle, Spanned, Token};
 
 use super::media_type::NativeRdfFormat;
 use super::ser_model::{SerGraph, SerTerm, SerTermKind, SerTriple3};
@@ -481,7 +481,11 @@ impl<'a> DocParser<'a> {
     }
 
     fn parse(mut self) -> Result<Vec<Statement>, RdfDiagnostic> {
-        self.tokens = tokenize(self.src).map_err(|e| err(e.to_string()))?;
+        // Turtle/TriG admit a bare `/` in a prefixed-name local part (e.g.
+        // `gmeow:report/shacl/sarif`), matching oxigraph/gmeow-gts leniency.
+        // Turtle has no `/` operator, so this is unambiguous in term position;
+        // the SPARQL `tokenize` keeps `/` as the property-path operator.
+        self.tokens = tokenize_turtle(self.src).map_err(|e| err(e.to_string()))?;
         while self.peek().is_some() {
             if self.try_directive()? {
                 continue;
@@ -1418,4 +1422,34 @@ fn set_reifier(
         reifiers.push((rid, spo));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A bare `/` in a prefixed-name local part (e.g. `gmeow:report/shacl/sarif`)
+    /// must parse as ONE prefixed name and expand to the prefix namespace plus the
+    /// slash-bearing local, matching oxigraph/gmeow-gts (strict Turtle would need
+    /// `\/`, but the ontology + fixtures use the bare form).
+    #[test]
+    fn turtle_prefixed_name_allows_bare_slash_in_local() {
+        let text = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+                    gmeow:report/shacl/sarif gmeow:projection/okf gmeow:report/shacl/sarif .";
+        let statements = DocParser::new(text, None, false).parse().expect("parses");
+        assert_eq!(statements.len(), 1);
+        let nodes = &statements[0];
+        assert_eq!(
+            nodes[0],
+            Node::Iri("https://blackcatinformatics.ca/gmeow/report/shacl/sarif".to_owned())
+        );
+        assert_eq!(
+            nodes[1],
+            Node::Iri("https://blackcatinformatics.ca/gmeow/projection/okf".to_owned())
+        );
+        assert_eq!(
+            nodes[2],
+            Node::Iri("https://blackcatinformatics.ca/gmeow/report/shacl/sarif".to_owned())
+        );
+    }
 }

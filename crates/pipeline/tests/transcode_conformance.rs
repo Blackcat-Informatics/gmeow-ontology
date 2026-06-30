@@ -58,6 +58,24 @@ fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, St
     Ok(strings)
 }
 
+/// Parse star-FREE JSON-LD bytes via the native JSON-LD codec
+/// ([`gmeow_rdf::native_codecs::jsonld::parse_jsonld`]) and return RDFC-1.0
+/// canonical quad strings.
+///
+/// Used for the `"rdf"` compare mode when the `to` codec is plain `jsonld`:
+/// JSON-LD has no flat [`NativeRdfFormat`] variant (it is not a line/Turtle-family
+/// format), so the flat `canonical_quads` path cannot ingest it. The JSON-LD
+/// output of a star-dropping transcode is star-free, so the base parser suffices.
+fn canonical_quads_jsonld(bytes: &[u8]) -> Result<Vec<String>, String> {
+    let dataset = gmeow_rdf::native_codecs::jsonld::parse_jsonld(bytes)
+        .map_err(|e| format!("jsonld parse error: {e}"))?;
+    let canonical = gmeow_rdf::canonical_flat_nquads(&dataset)
+        .map_err(|e| format!("RDF canonicalization error: {e}"))?;
+    let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
+    strings.sort();
+    Ok(strings)
+}
+
 /// Parse JSON-LD-star or YAML-LD-star bytes via the pipeline's own round-trip
 /// path (the inverse of the emitter) and return RDFC-1.0 canonical quad strings.
 ///
@@ -195,20 +213,33 @@ fn transcode_corpus() {
         // Compare output.
         let compare_err: Option<String> = match profile.compare.as_str() {
             "rdf" => {
-                let fmt = match rdf_format_for_codec(&profile.to) {
-                    Some(f) => f,
-                    None => {
-                        failures.push(format!(
-                            "[{case_name}] no RDF format mapping for `to` codec `{}`",
-                            profile.to
-                        ));
-                        continue;
-                    }
-                };
-                match (
-                    canonical_quads(&output.bytes, fmt),
-                    canonical_quads(&expected_bytes, fmt),
-                ) {
+                // JSON-LD has no flat `NativeRdfFormat` variant (it is not a
+                // line/Turtle-family format), so it is canonicalized through the
+                // native JSON-LD codec; every other `rdf`-compare codec maps to a
+                // flat format.
+                let (actual_canon, expected_canon) =
+                    if matches!(profile.to.as_str(), "jsonld" | "json-ld") {
+                        (
+                            canonical_quads_jsonld(&output.bytes),
+                            canonical_quads_jsonld(&expected_bytes),
+                        )
+                    } else {
+                        let fmt = match rdf_format_for_codec(&profile.to) {
+                            Some(f) => f,
+                            None => {
+                                failures.push(format!(
+                                    "[{case_name}] no RDF format mapping for `to` codec `{}`",
+                                    profile.to
+                                ));
+                                continue;
+                            }
+                        };
+                        (
+                            canonical_quads(&output.bytes, fmt),
+                            canonical_quads(&expected_bytes, fmt),
+                        )
+                    };
+                match (actual_canon, expected_canon) {
                     (Ok(actual), Ok(expected)) if actual == expected => None,
                     (Ok(actual), Ok(expected)) => {
                         let actual_set: std::collections::BTreeSet<_> = actual.iter().collect();
