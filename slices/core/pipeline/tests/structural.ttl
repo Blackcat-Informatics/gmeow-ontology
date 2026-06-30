@@ -71,7 +71,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The StageCapability value vocabulary MUST seed the two declared stage capabilities the executor reads in place of a kind enum: gmeow:sinkCapability (the single serialization exit / narrow waist) and gmeow:sourceOrigin (the authored-source loader, whose products are provenance-origin Source)." .
 
-# --- 4. Exactly the source loader and the sink carry capabilities (MUST hold) -
+# --- 4. The source loader and the sink carry their capabilities (MUST hold) ----
 ex:saStageCapabilityHolders a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -81,3 +81,20 @@ ASK {
     gmeow:stage-gts-sink     gmeow:hasCapability gmeow:sinkCapability .
 }""" ;
     gmeow:saRationale "Integrity of the dogfooded build pipeline: the authored-source loader MUST hold gmeow:sourceOrigin (so its emitted quads' provenance origin is Source) and the single serialization exit MUST hold gmeow:sinkCapability (the narrow waist the loader requires exactly one stage to hold) — the capability declarations the executor reads instead of a kind enum." .
+
+# --- 4b. NO OTHER stage carries either capability (MUST NOT hold) --------------
+# The positive assertion above only proves the designated holders carry their
+# capability; this pins EXCLUSIVITY. A spurious second gmeow:sinkCapability holder
+# would break the narrow waist, and a spurious gmeow:sourceOrigin holder would mark a
+# non-source stage's products provenance-origin Source — both corruptions the loader
+# rejects (sink) or never intends (source). Neither must exist in the build module.
+ex:saStageCapabilityHolderExclusivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    { ?s gmeow:hasCapability gmeow:sinkCapability . FILTER(?s != gmeow:stage-gts-sink) }
+    UNION
+    { ?s gmeow:hasCapability gmeow:sourceOrigin . FILTER(?s != gmeow:stage-source-load) }
+}""" ;
+    gmeow:saRationale "Exclusivity of the dogfooded build pipeline's capability holders: no stage other than gmeow:stage-gts-sink may hold gmeow:sinkCapability (the single serialization exit) and no stage other than gmeow:stage-source-load may hold gmeow:sourceOrigin (the sole authored-source loader). A spurious holder of either would corrupt the narrow-waist or provenance-origin contract the executor relies on." .

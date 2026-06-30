@@ -140,6 +140,22 @@ fn multiple_sinks_are_rejected() {
     }
 }
 
+#[test]
+fn typed_dataflow_from_non_consumed_producer_is_rejected() {
+    // `a` consumes only `source`; a typed-dataflow narrowing from `b` (a real stage
+    // it does NOT consume) would key `a`'s cache on a graph the scheduler never feeds
+    // it — the validator HARD-fails (no-optionality).
+    let mut s = diamond();
+    let a = s.stages.iter_mut().find(|st| st.id == "a").unwrap();
+    a.dataflow_entities = vec![("b".to_string(), vec!["https://example.org/g".to_string()])];
+    match s.validate() {
+        Err(PipelineError::InvalidDag(msg)) => {
+            assert!(msg.contains("does not gmeow:dataflowConsumes"), "{msg}");
+        }
+        other => panic!("expected typed-dataflow rejection, got {other:?}"),
+    }
+}
+
 // ── Binding agreement ────────────────────────────────────────────────────────
 
 struct FakeStage {

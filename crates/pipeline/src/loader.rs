@@ -78,10 +78,34 @@ impl PipelineSpec {
 
     /// Validate the DAG structure and return the levelled execution plan.
     ///
-    /// HARD-fails on: a dangling `dataflowConsumes`, a cycle, no `Sink`, or more
-    /// than one `Sink`. (Rust/RDF resource agreement is proven at `bind` time,
-    /// once the executable twin is resolved.)
+    /// HARD-fails on: a dangling `dataflowConsumes`, a cycle, no `Sink`, more
+    /// than one `Sink`, or a typed-dataflow narrowing whose producer the consumer
+    /// does not actually `dataflowConsumes`. (Rust/RDF resource agreement is proven
+    /// at `bind` time, once the executable twin is resolved.)
     pub fn validate(&self) -> Result<StageGraph, PipelineError> {
+        // ── Typed-dataflow endpoints: every gmeow:BuildDataFlow producer a consumer
+        //    narrows to must be a declared stage AND one the consumer actually
+        //    gmeow:dataflowConsumes. Otherwise the cache would narrow on a graph the
+        //    scheduler never feeds the stage (its upstream map is built from
+        //    `consumes`), silently serving a stale product — a no-optionality hazard. ──
+        let node_ids: BTreeSet<&str> = self.stages.iter().map(|s| s.id.as_str()).collect();
+        for s in &self.stages {
+            for (producer, _entities) in &s.dataflow_entities {
+                if !node_ids.contains(producer.as_str()) {
+                    return Err(PipelineError::InvalidDag(format!(
+                        "stage {} declares typed dataflow from unknown producer {producer}",
+                        s.id
+                    )));
+                }
+                if !s.consumes.iter().any(|c| c == producer) {
+                    return Err(PipelineError::InvalidDag(format!(
+                        "stage {} declares typed dataflow from {producer} but does not gmeow:dataflowConsumes it",
+                        s.id
+                    )));
+                }
+            }
+        }
+
         // ── Exactly one Sink (the gts narrow waist): the stage holding
         //    gmeow:sinkCapability. ──
         let sinks: Vec<&str> = self
@@ -155,6 +179,16 @@ impl PipelineSpec {
             if let Some(entities) = by_consumer.remove(&s.id) {
                 s.dataflow_entities = entities;
             }
+        }
+        // A gmeow:BuildDataFlow whose gmeow:buildFlowTo is not a hasStage member of
+        // this pipeline would be silently dropped; hard-fail instead (no-optionality).
+        if !by_consumer.is_empty() {
+            let mut unknown: Vec<String> = by_consumer.into_keys().collect();
+            unknown.sort();
+            return Err(PipelineError::InvalidDag(format!(
+                "gmeow:BuildDataFlow targets unknown consumer stage(s): {}",
+                unknown.join(", ")
+            )));
         }
 
         Ok(PipelineSpec {
