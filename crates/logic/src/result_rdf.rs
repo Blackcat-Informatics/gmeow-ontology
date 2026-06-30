@@ -77,12 +77,23 @@ const RESULT_IRI_BASE: &str = "https://blackcatinformatics.ca/gmeow/graph/reason
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
+/// The GMEOW namespace — the assertional `graphBoxRole`/`boxABox` vocabulary the
+/// typed-instance contract (#1104) requires on every materialized A-Box subject.
+const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// `logic:` IRI helper. All container/structure predicates this projection mints
 /// live in the logic namespace (consistent with the axis individuals), so the
 /// projection never collides with the gmeow vocabulary surface.
 fn logic(local: &str) -> String {
     format!("{LOGIC_NAMESPACE}{local}")
+}
+
+/// `gmeow:` IRI helper for the assertional annotation vocabulary.
+fn gmeow(local: &str) -> String {
+    format!("{GMEOW_NAMESPACE}{local}")
 }
 
 /// A node term for N-Triples emission: an IRI, a blank node, or a typed literal.
@@ -204,6 +215,36 @@ pub fn project_reasoning_result(result: &ReasoningResult) -> String {
         subject.clone(),
         RDF_TYPE,
         Node::iri(logic("ReasoningResult")),
+    );
+
+    // ── assertional-tier annotation quartet (#1104) ──────────────────────────────
+    // A materialized ReasoningResult is generated A-Box payload, not vocabulary
+    // surface: it must carry a label, the named-graph provenance anchor, and the
+    // `gmeow:boxABox` role so the folded bundle satisfies the typed-instance
+    // contract. These triples are subject-only (no result-specific value), so they
+    // are stable across the content-address hash placeholder substitution.
+    sink.push(
+        subject.clone(),
+        RDFS_LABEL,
+        Node::string("Reasoning result"),
+    );
+    sink.push(
+        subject.clone(),
+        SKOS_DEFINITION,
+        Node::string(
+            "A materialized logic:ReasoningResult: the typed verdict-and-provenance \
+             record of one reasoning run, projected into the graph/reasoning lane.",
+        ),
+    );
+    sink.push(
+        subject.clone(),
+        RDFS_IS_DEFINED_BY,
+        Node::iri(GRAPH_REASONING),
+    );
+    sink.push(
+        subject.clone(),
+        gmeow("graphBoxRole"),
+        Node::iri(gmeow("boxABox")),
     );
 
     // ── the five axes ──────────────────────────────────────────────────────────

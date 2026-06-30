@@ -16,7 +16,7 @@
 //! These builders are the canonical emitters for the reasoning artifacts (the
 //! Python `build_*_ttl` emitters in `gmeow_tools.reason` they replaced were
 //! retired). They serialize via the gmeow-rdf [`gmeow_rdf::turtle`] emitter
-//! (clean full-IRI RDF 1.2), so the structure (`[] rdf:reifies << … >>`,
+//! (clean full-IRI RDF 1.2), so the structure (`[] rdf:reifies <<( … )>>`,
 //! triple-term objects, anonymous reifiers) matches the committed artifacts and
 //! the drift gate (RDFC-1.0 isomorphism) stays green.
 
@@ -678,7 +678,7 @@ mod tests {
         );
         let ttl = build_inferred_closure_ttl(&result, None).unwrap();
         assert!(ttl.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
-        assert!(ttl.contains("rdf-syntax-ns#reifies> << "));
+        assert!(ttl.contains("rdf-syntax-ns#reifies> <<( "));
         assert!(ttl.contains("rule/el%3AsubClassOf-transitive"));
         assert!(
             ttl.contains("gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction>")
@@ -728,8 +728,8 @@ mod tests {
         );
         let ttl = build_explanations_ttl(&result).unwrap();
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/Derivation>"));
-        assert!(ttl.contains("gmeow/concludes> << "));
-        assert!(ttl.contains("gmeow/hasPremise> << <http://example.org/A>"));
+        assert!(ttl.contains("gmeow/concludes> <<( "));
+        assert!(ttl.contains("gmeow/hasPremise> <<( <http://example.org/A>"));
         assert!(ttl.contains("\"derivation of an inferred axiom\"@en"));
     }
 

@@ -4,12 +4,16 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/2000/01/rdf-schema#label> "GMEOW canonical RDF 1.2 logic projection"@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/2004/02/skos/core#definition> "The canonical, lossless RDF 1.2 projection of the GMEOW logic core: every axiom, rule, reasoning contract, obligation, and scoped statement serialized through the RDF-1.2 reifier surface so the logic: layer round-trips byte-for-byte."@x-gmeow-english .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxTBox> .
 <https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Argument> .
 <https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Attack> .
 <https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Support> .
 <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
 <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
-<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> "https://blackcatinformatics.ca/gmeow/counterpartOf" .
+<https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> "https://blackcatinformatics.ca/gmeow/counterpartOf"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
 <https://blackcatinformatics.ca/logic/GroundedArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> .
 <https://blackcatinformatics.ca/logic/InfoBoth> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/supportBoth> .
 <https://blackcatinformatics.ca/logic/InfoNeither> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/supportNeither> .
@@ -18,7 +22,7 @@
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeFiniteClosure> .
 <https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
-<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim" .
+<https://blackcatinformatics.ca/logic/IntentNotFromDeceptionObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim"^^<http://www.w3.org/2001/XMLSchema#anyURI> .
 <https://blackcatinformatics.ca/logic/NoArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> .
 <https://blackcatinformatics.ca/logic/PolicySpecificArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> .
 <https://blackcatinformatics.ca/logic/PreferredArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> .

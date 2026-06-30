@@ -232,7 +232,7 @@ mod tests {
         // The token contains spaces but no quoting trigger, so it is emitted raw.
         let expected = concat!(
             "t\r\n",
-            "<< <http://example.org/s> <http://example.org/p> <http://example.org/o> >>\r\n",
+            "<<( <http://example.org/s> <http://example.org/p> <http://example.org/o> )>>\r\n",
         );
         assert_eq!(csv_text(&result, &ResultProvenance::default()), expected);
     }

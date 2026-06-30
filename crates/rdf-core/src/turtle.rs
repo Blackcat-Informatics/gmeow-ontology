@@ -5,12 +5,16 @@
 //!
 //! This is a hand-written, full-IRI Turtle serializer over the gmeow-rdf model
 //! ([`RdfQuad`] / [`RdfReifier`] / [`RdfAnnotation`] / [`RdfTerm`]). It exists
-//! because oxigraph's `Store::dump` rewrites the RDF 1.2 reifier shorthand
-//! `<< s p o >>` into an extra `rdf:reifies` indirection node with opaque blank
+//! because oxigraph's `Store::dump` rewrites the RDF 1.2 triple-term value
+//! `<<( s p o )>>` into an extra `rdf:reifies` indirection node with opaque blank
 //! labels — changing the *structure* of the document. The native reasoning lane
-//! commits artifacts whose structure (`[] rdf:reifies << … >>`, triple-term
-//! objects via `gmeow:concludes << … >>`, etc.) must be preserved, so this
+//! commits artifacts whose structure (`[] rdf:reifies <<( … )>>`, triple-term
+//! objects via `gmeow:concludes <<( … )>>`, etc.) must be preserved, so this
 //! emitter writes the clean full-IRI form the committed artifacts use.
+//!
+//! The triple-term object is emitted with the parenthesised `<<( s p o )>>` form
+//! (a non-asserting VALUE), NOT the bare `<< s p o >>` (an asserting *reifying
+//! triple* that mints its own reifier blank) — see [`emit_triple_term`] (#1155).
 //!
 //! The emitter is intentionally *cosmetic-agnostic*: it emits FULL `<iri>` forms
 //! everywhere (no prefix compaction). Banners / `@prefix` blocks are not the
@@ -25,7 +29,8 @@
 //! - Blank node: `_:label` (or `[]` for an empty/anonymous reifier subject —
 //!   see [`emit_reifier`] / [`emit_annotation`])
 //! - Literal: `"lex"`, `"lex"@lang`, `"lex"@lang--ltr`/`"lex"@lang--rtl`, `"lex"^^<datatype>` (escaped)
-//! - Triple term (RDF 1.2): `<< <s> <p> <o> >>` (the reifier-shorthand form)
+//! - Triple term (RDF 1.2): `<<( <s> <p> <o> )>>` (the non-asserting triple-term
+//!   value form, NOT the bare `<< … >>` reifying triple — see [`emit_triple_term`])
 
 use crate::{RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple};
 
@@ -100,7 +105,7 @@ fn emit_literal(literal: &RdfLiteral) -> String {
 }
 
 /// Serialize an [`RdfTerm`] to its Turtle form (full `<iri>`, `_:bnode`, literal,
-/// or the RDF 1.2 triple-term shorthand `<< <s> <p> <o> >>`).
+/// or the RDF 1.2 triple term `<<( <s> <p> <o> )>>`).
 pub fn emit_term(term: &RdfTerm) -> String {
     match term {
         RdfTerm::Iri(iri) => format!("<{iri}>"),
@@ -110,10 +115,18 @@ pub fn emit_term(term: &RdfTerm) -> String {
     }
 }
 
-/// Serialize an [`RdfTriple`] as an RDF 1.2 triple-term: `<< <s> <p> <o> >>`.
+/// Serialize an [`RdfTriple`] as an RDF 1.2 TRIPLE TERM: `<<( <s> <p> <o> )>>`.
+///
+/// The parens matter — the bare `<< s p o >>` form is a *reifying triple* that
+/// ALSO asserts `s p o` and mints its own fresh reifier blank, so as the object
+/// of `rdf:reifies` it produces a doubly-nested binding: the enclosing reifier's
+/// sibling annotations then attach to a DIFFERENT blank than the codec's reifier
+/// row, and re-parsing silently drops every annotation (#1155). A triple term
+/// `<<( s p o )>>` denotes the triple WITHOUT asserting it — exactly what the
+/// byte-exact `turtle_render` fold and the gts codec serializer emit.
 fn emit_triple_term(triple: &RdfTriple) -> String {
     format!(
-        "<< {} <{}> {} >>",
+        "<<( {} <{}> {} )>>",
         emit_term(&triple.subject),
         triple.predicate,
         emit_term(&triple.object)
@@ -134,7 +147,7 @@ pub fn emit_quad(quad: &RdfQuad) -> String {
     )
 }
 
-/// Emit a reifier binding as `<reifier> rdf:reifies << s p o >> ; <pred> <obj> ; … .`
+/// Emit a reifier binding as `<reifier> rdf:reifies <<( s p o )>> ; <pred> <obj> ; … .`
 ///
 /// A blank-node reifier is emitted as the anonymous `[]` form **only when
 /// annotations are folded onto it** — then the whole binding is one
@@ -243,7 +256,7 @@ mod tests {
         );
         assert_eq!(
             emit_term(&RdfTerm::triple(triple)),
-            "<< <http://example.org/s> <http://example.org/p> <http://example.org/o> >>"
+            "<<( <http://example.org/s> <http://example.org/p> <http://example.org/o> )>>"
         );
     }
 
@@ -304,7 +317,7 @@ mod tests {
         );
         // Anonymous reifier subject, rdf:reifies head, triple-term shorthand,
         // and the folded annotation — all in one statement.
-        assert!(out.starts_with("[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << "));
+        assert!(out.starts_with("[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( "));
         assert!(out.contains("gmeow.org/ontology#viaRule> <https://gmeow.org/rule/x>"));
         assert!(out.trim_end().ends_with(" ."));
     }
@@ -324,7 +337,7 @@ mod tests {
 
         let out = emit_reifier(&reifier, &[]);
         assert!(
-            out.starts_with("_:r0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << "),
+            out.starts_with("_:r0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( "),
             "blank reifier must keep its label when annotations ride standalone: {out}"
         );
 

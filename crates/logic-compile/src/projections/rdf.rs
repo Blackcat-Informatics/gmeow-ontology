@@ -19,9 +19,34 @@ use super::{
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
+const SKOS_NS: &str = "http://www.w3.org/2004/02/skos/core#";
+/// The lang tag every authored GMEOW source literal carries (the fail-closed
+/// guard); generators emit it so the header annotations match the surface contract.
+const ENGLISH_LANG: &str = "x-gmeow-english";
 
 fn rdfs(local: &str) -> String {
     format!("{RDFS_NS}{local}")
+}
+fn gmeow(local: &str) -> String {
+    format!("{GMEOW_NS}{local}")
+}
+fn skos(local: &str) -> String {
+    format!("{SKOS_NS}{local}")
+}
+
+/// The declared XSD datatype for a logic: predicate whose object is an
+/// `xsd`-typed literal in the authoring source but is carried as a plain string in
+/// the datatype-erased Axiom IR. Returning `Some(datatype)` makes the RDF 1.2
+/// re-projection faithful to the source assertion (so the typed source triple and
+/// the re-projected triple are identical and dedupe). Currently the only such
+/// shape-gated predicate is `logic:obligationForbiddenPredicate` (`xsd:anyURI`,
+/// naming the forbidden predicate IRI — see `logic:NonEntailmentObligationShape`).
+fn literal_axiom_datatype(predicate: &str) -> Option<String> {
+    if predicate == logic("obligationForbiddenPredicate") {
+        Some(format!("{XSD_NS}anyURI"))
+    } else {
+        None
+    }
 }
 fn owl(local: &str) -> String {
     format!("{OWL_NS}{local}")
@@ -537,11 +562,28 @@ pub fn project_gufo(program: &LogicProgram) -> Result<ProjectionResult, Overclai
 pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
 
-    g.add_iri(
-        &format!("{GMEOW_NS}logic/gmeow.logic.rdf12"),
-        RDF_TYPE,
-        &owl("Ontology"),
+    let header_iri = format!("{GMEOW_NS}logic/gmeow.logic.rdf12");
+    g.add_iri(&header_iri, RDF_TYPE, &owl("Ontology"));
+    // Every GMEOW ontology header must carry the annotation quartet (#221): a
+    // label, a definition, an explicit `rdfs:isDefinedBy` of itself, and an
+    // IRI-valued `gmeow:graphBoxRole` (a header is TBox surface → `gmeow:boxTBox`).
+    g.add_lit(
+        &header_iri,
+        &rdfs("label"),
+        RdfLiteral::language_tagged("GMEOW canonical RDF 1.2 logic projection", ENGLISH_LANG),
     );
+    g.add_lit(
+        &header_iri,
+        &skos("definition"),
+        RdfLiteral::language_tagged(
+            "The canonical, lossless RDF 1.2 projection of the GMEOW logic core: every \
+             axiom, rule, reasoning contract, obligation, and scoped statement serialized \
+             through the RDF-1.2 reifier surface so the logic: layer round-trips byte-for-byte.",
+            ENGLISH_LANG,
+        ),
+    );
+    g.add_iri(&header_iri, &rdfs("isDefinedBy"), &header_iri);
+    g.add_iri(&header_iri, &gmeow("graphBoxRole"), &gmeow("boxTBox"));
 
     let rule_struct_preds = [
         logic("head"),
@@ -555,12 +597,30 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         if rule_struct_preds.contains(&axiom.predicate) {
             continue;
         }
-        g.add_obj(
-            &axiom.subject,
-            &axiom.predicate,
-            &axiom.obj,
-            axiom.obj_is_literal,
-        );
+        // Datatype-faithful re-projection: a handful of logic: predicates are
+        // declared `xsd:anyURI`-valued by their SHACL shape (the IRI naming a
+        // predicate, not a free string). The Axiom IR flattens every literal to a
+        // plain string, so re-emit those object literals with their declared
+        // datatype — otherwise the projection would fold a degraded plain-string
+        // duplicate beside the source-asserted typed triple, breaking the shape's
+        // `sh:datatype` + `sh:maxCount 1` (the two distinct literals count as two).
+        if axiom.obj_is_literal {
+            if let Some(datatype) = literal_axiom_datatype(&axiom.predicate) {
+                g.add_lit(
+                    &axiom.subject,
+                    &axiom.predicate,
+                    RdfLiteral::typed(&axiom.obj, datatype),
+                );
+            } else {
+                g.add_lit(
+                    &axiom.subject,
+                    &axiom.predicate,
+                    RdfLiteral::simple(&axiom.obj),
+                );
+            }
+        } else {
+            g.add_iri(&axiom.subject, &axiom.predicate, &axiom.obj);
+        }
 
         if is_modal_or_scoped(axiom) {
             let key_hash = sha256_12(&axiom.sort_key());

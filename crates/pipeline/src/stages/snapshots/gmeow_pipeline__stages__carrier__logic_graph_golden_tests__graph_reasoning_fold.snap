@@ -1,20 +1,24 @@
 ---
 source: crates/pipeline/src/stages/carrier.rs
-assertion_line: 2660
+assertion_line: 2724
 expression: folded
 ---
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningResult> .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultBudgetConsumed> 0 .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultCompleteness> <https://blackcatinformatics.ca/logic/CompleteForFragment> .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultConclusion>  .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultContractHash> contract:golden .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultEngineName> gmeow-logic .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultEngineVersion> gmeow-logic/0.1.0+nemo+scryer .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted> .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoSupported> .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultInput> <https://blackcatinformatics.ca/logic/InputValid> .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultPayloadCount> 0 .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultPayloadKind> empty .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultPreservationPolarity> <https://blackcatinformatics.ca/logic/ExactPreservation> .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultQuery>  .
-<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/08d3933f25829d60d6010f85aa0dffa4f50cf39ed48d000fb2e4fcbc57a16143> <https://blackcatinformatics.ca/logic/resultWorld> <https://blackcatinformatics.ca/gmeow/graph/world/actual> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningResult> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <http://www.w3.org/2000/01/rdf-schema#label> Reasoning result .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <http://www.w3.org/2004/02/skos/core#definition> A materialized logic:ReasoningResult: the typed verdict-and-provenance record of one reasoning run, projected into the graph/reasoning lane. .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/gmeow/graphBoxRole> <https://blackcatinformatics.ca/gmeow/boxABox> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultBudgetConsumed> 0 .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultCompleteness> <https://blackcatinformatics.ca/logic/CompleteForFragment> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultConclusion>  .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultContractHash> contract:golden .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultEngineName> gmeow-logic .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultEngineVersion> gmeow-logic/0.1.0+nemo+scryer .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultInformation> <https://blackcatinformatics.ca/logic/InfoSupported> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultInput> <https://blackcatinformatics.ca/logic/InputValid> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultPayloadCount> 0 .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultPayloadKind> empty .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultPreservationPolarity> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultQuery>  .
+<https://blackcatinformatics.ca/gmeow/graph/reasoning/result/8eeb5a9460d7b278bb8b748fb0ff6f2996d6c88b9ee60a5ec2fdf3a120204d0f> <https://blackcatinformatics.ca/logic/resultWorld> <https://blackcatinformatics.ca/gmeow/graph/world/actual> .

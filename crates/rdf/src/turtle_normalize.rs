@@ -270,6 +270,117 @@ mod tests {
         assert!(iso(src, &out));
     }
 
+    /// Compute the repo root from CARGO_MANIFEST_DIR (which is `crates/rdf`; go up
+    /// two levels to reach the workspace/repo root).
+    fn repo_root() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root must canonicalize")
+    }
+
+    #[test]
+    fn reifier_round_trip_over_reasoning_closure_heavy_offgate() {
+        // #1155 G1 guard: parse→render→parse byte-idempotence over the REAL reasoning
+        // closure artifacts. This catches the historically-broken case where the first
+        // parse produced annotations=0 (annotations were silently dropped) and
+        // re-renders grew the reifier count on each cycle.
+        //
+        // Heavy (>25 s on the 5 MB inferred-closure.rdf12.ttl) — off-gated via
+        // `default-filter` in .config/nextest.toml; runs on the `maint-heavy` profile.
+        let root = repo_root();
+        let artifacts: &[(&str, bool)] = &[
+            ("generated/logic/inferred-closure.rdf12.ttl", true), // MUST be present
+            ("generated/logic/reasoning-explanations.rdf12.ttl", false),
+            ("generated/logic/dl-el-crosscheck-report.ttl", false),
+        ];
+
+        let mut closure_exercised = false;
+
+        for &(rel_path, must_exist) in artifacts {
+            let path = root.join(rel_path);
+            if !path.exists() {
+                if must_exist {
+                    panic!(
+                        "Required reasoning closure artifact not found: {}",
+                        path.display()
+                    );
+                }
+                continue;
+            }
+
+            let bytes = std::fs::read(&path)
+                .unwrap_or_else(|e| panic!("Failed to read {}: {e}", path.display()));
+
+            // Step 1: parse the committed file.
+            let ds0 = parse_dataset(&bytes, NativeRdfFormat::Turtle.media_type(), None)
+                .unwrap_or_else(|e| panic!("parse error in {}: {e}", rel_path));
+
+            // For inferred-closure.rdf12.ttl, the historically-broken claim is that
+            // the file has reifiers AND annotations (previously annotations=0).
+            if rel_path.contains("inferred-closure") {
+                let r0 = ds0.reifiers().count();
+                let a0 = ds0.annotations().count();
+                assert!(
+                    r0 > 0,
+                    "{rel_path}: expected reifiers > 0 after parse (got {r0}); \
+                     the codec is not preserving the RDF-1.2 statement layer"
+                );
+                assert!(
+                    a0 > 0,
+                    "{rel_path}: expected annotations > 0 after parse (got {a0}); \
+                     this is the #1155 regression — the codec dropped all annotations"
+                );
+                closure_exercised = true;
+            }
+
+            // Step 2: render → parse (b0).
+            let text0 = render(&ds0, &prefixes());
+            let ds1 = parse_dataset(text0.as_bytes(), NativeRdfFormat::Turtle.media_type(), None)
+                .unwrap_or_else(|e| panic!("parse error on first re-render of {rel_path}: {e}"));
+
+            // Step 3: render again → parse (b1). byte-idempotent: text0 == text1.
+            let text1 = render(&ds1, &prefixes());
+            assert_eq!(
+                text0, text1,
+                "{rel_path}: render is NOT byte-idempotent — second render differs from first"
+            );
+
+            // Step 4: counts must be INVARIANT across the round trip (no growth).
+            let q0 = ds0.quad_count();
+            let r0 = ds0.reifiers().count();
+            let a0 = ds0.annotations().count();
+            let q1 = ds1.quad_count();
+            let r1 = ds1.reifiers().count();
+            let a1 = ds1.annotations().count();
+
+            assert_eq!(
+                q1, q0,
+                "{rel_path}: quad count changed across round trip: {q0} → {q1}"
+            );
+            assert_eq!(
+                r1, r0,
+                "{rel_path}: reifier count changed across round trip: {r0} → {r1} \
+                 (classic #1155 non-idempotence: reifiers grow per cycle)"
+            );
+            assert_eq!(
+                a1, a0,
+                "{rel_path}: annotation count changed across round trip: {a0} → {a1}"
+            );
+
+            eprintln!(
+                "{rel_path}: quads={q0} reifiers={r0} annotations={a0} — stable across round trip ✓"
+            );
+        }
+
+        assert!(
+            closure_exercised,
+            "inferred-closure.rdf12.ttl was never exercised — the test is a no-op; \
+             regenerate the reasoning artifacts first"
+        );
+    }
+
     #[test]
     fn nested_sibling_blanks_order_by_deep_content() {
         // Two inline blank siblings under the SAME predicate that are identical except

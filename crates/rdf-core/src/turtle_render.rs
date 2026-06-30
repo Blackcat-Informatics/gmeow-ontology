@@ -496,9 +496,17 @@ impl ContentKeys {
         // blank/triple terms (not just `q.s`/`q.o`) and never recomputes a shared
         // subtree. Cyclic / depth-capped subtrees are deliberately left out (see the
         // `cacheable` flag in `compute_content_key`).
+        //
+        // Seed over `raw` — NOT `dataset.quads()` — so the traversal reaches every
+        // subject and object of the RDF 1.2 statement layer (`reifier_quads` +
+        // `annotation_quads`, folded into `raw` above), not just the base graph. An
+        // anonymous `[]` reifier subject appears ONLY in those side tables, so seeding
+        // from base quads alone would leave its content key empty; every such reifier
+        // would then tie on the structural signature and the `_:bN` labeling (hence the
+        // top-level subject order) would be non-idempotent across interning orders (#1155).
         let mut keys: HashMap<TermId, String> = HashMap::new();
-        for q in dataset.quads() {
-            for term in [q.s, q.o] {
+        for (&subject, preds) in raw {
+            for term in std::iter::once(subject).chain(preds.values().flatten().copied()) {
                 if matches!(
                     dataset.resolve(term),
                     TermRef::Blank { .. } | TermRef::Triple { .. }

@@ -40,6 +40,9 @@
 #   - gmeow-pipeline gts_sink blob-input serialization test:
 #     25.8 s in CI shard 3; it exercises the terminal carrier serialization and
 #     import round-trip, which is codec/I-O-bound and has no remaining headroom.
+#   - gmeow-rdf reifier_round_trip_over_reasoning_closure_heavy_offgate (#1155):
+#     parse→render→parse byte-idempotence guard over the committed 5 MB
+#     inferred-closure.rdf12.ttl reasoning closure; heavy due to I/O + parse cost.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -47,6 +50,7 @@ default-filter = '''
     | (package(gmeow-rdf-capi) & binary(c_smoke))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
+    | (package(gmeow-rdf) & test(/reifier_round_trip_over_reasoning_closure_heavy_offgate/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
