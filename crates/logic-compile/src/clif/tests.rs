@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! CLIF dialect tests (#721): emit-shape, comprehensive IR round-trip, and the
+//! CLIF dialect tests: emit-shape, comprehensive IR round-trip, and the
 //! production round-trip (the acceptance bar that proves the Exact claim is honest).
 
 use crate::adapter::assert_ir_isomorphic;

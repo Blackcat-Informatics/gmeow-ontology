@@ -883,7 +883,7 @@ fn build_fanout_opaque_blob(
         .ok_or_else(|| stage_err("missing generated/n3/gmeow.n3 in stage-compile-logic"))?;
     members.insert(crate::stages::compile_logic::N3_PATH.to_string(), n3);
 
-    // CLIF (#721) rides in from the sink-consumed stage-compile-logic product. It is a
+    // CLIF rides in from the sink-consumed stage-compile-logic product. It is a
     // non-RDF text projection whose committed form carries generated `;;` comments and
     // `;; ===` section markers, so it cannot reconstruct from a canonical named-graph
     // fold; it is carried here as a committed byte projection (byte-identical to the file).
@@ -1275,7 +1275,7 @@ impl Stage for SnapshotStage {
         // authored quad carries ≥1 stage-origin (#1132 C9). v14 folds the byte-exact
         // generated metadata, statement, reasoning, and preservation projections into
         // REP_GENERATED so the superset gate can reconstruct every committed
-        // generated file without re-reading disk. v15 folds the #721 CLIF projection
+        // generated file without re-reading disk. v15 folds the CLIF projection
         // (generated/cl/gmeow.clif) into REP_GENERATED as a committed byte projection
         // (a non-RDF text dialect with generated comments / section markers).
         "snapshot.v15-clif-projection"

@@ -102,7 +102,7 @@ pub const GUFO_PATH: &str = "generated/foundation/gufo.ttl";
 pub const CANONICAL_RDF12_PATH: &str = "generated/logic/gmeow.logic.rdf12.ttl";
 /// Committed Nemo (`.rls`) projection.
 pub const RULES_PATH: &str = "generated/logic/gmeow.rls";
-/// Committed CLIF (Common Logic Interchange Format) projection (#721): the bidirectional,
+/// Committed CLIF (Common Logic Interchange Format) projection: the bidirectional,
 /// `PreservationKind::Exact` s-expression FOL dialect.
 pub const CLIF_PATH: &str = "generated/cl/gmeow.clif";
 /// Committed SHACL-AF rule (computation) projection: the canon's derivation rules
