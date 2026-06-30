@@ -24,7 +24,12 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
 /// Project a [`LogicProgram`] to CLIF text.
-pub fn project_clif(program: &LogicProgram) -> ProjectionResult {
+///
+/// Returns `Err` if the lossless RDF/predication carrier cannot be built (the
+/// canonical-RDF-1.2 projection or its re-parse failing is an invariant break, not a
+/// recoverable condition) — surfacing a structured error to `compile_program` exactly like
+/// the sibling projectors, rather than panicking.
+pub fn project_clif(program: &LogicProgram) -> Result<ProjectionResult, String> {
     // Registry is the single source of truth for (preservation, complexity, drops);
     // mirror `project_datalog`'s pattern so the ledger and the result agree.
     let (kind, cx, drops) = target_meta("clif");
@@ -60,7 +65,7 @@ pub fn project_clif(program: &LogicProgram) -> ProjectionResult {
     // ── RDF / predication channel (the lossless round-trip carrier): the WHOLE program
     //    — axioms (+ scope), rules, formulas, contracts, correspondences — re-emitted as
     //    sorted CL predications from the Exact canonical-RDF-1.2 serializer. ───────────
-    let meta_lines = meta_predications(program);
+    let meta_lines = meta_predications(program)?;
     if !meta_lines.is_empty() {
         lines.push(String::new());
         lines.push(RDF_META_SENTINEL.to_owned());
@@ -72,7 +77,7 @@ pub fn project_clif(program: &LogicProgram) -> ProjectionResult {
     }
 
     let content = format!("{}\n", lines.join("\n"));
-    ProjectionResult {
+    Ok(ProjectionResult {
         target: "clif".to_owned(),
         content,
         is_rdf: false,
@@ -83,7 +88,7 @@ pub fn project_clif(program: &LogicProgram) -> ProjectionResult {
         // the lossless canonical-RDF-1.2 leg). Nothing is dropped — the overclaim gate
         // requires this list be empty under an Exact claim.
         actual_drops: Vec::new(),
-    }
+    })
 }
 
 // --------------------------------------------------------------------------- //
@@ -267,7 +272,10 @@ fn term_to_clif(term: &Term) -> String {
 /// leg IRI via `gm:path`. A leg round-trips because the correspondence channel re-emits the
 /// `logic:getLeg` / `logic:putLeg` IRIs that name the leg, so the reconstructed leg registry
 /// is exactly the original. The Exact claim therefore carries every construct losslessly.
-fn meta_predications(program: &LogicProgram) -> Vec<String> {
+///
+/// Returns `Err` if the canonical-RDF-1.2 leg (or its re-parse) fails — the lossless carrier
+/// cannot be assembled, which is an invariant break surfaced to the caller, not a panic.
+fn meta_predications(program: &LogicProgram) -> Result<Vec<String>, String> {
     let mut preds: Vec<String> = Vec::new();
 
     // (0) Path shapes — emitted as the logic:PathShape triples `extract_path_shapes` reads.
@@ -317,11 +325,10 @@ fn meta_predications(program: &LogicProgram) -> Vec<String> {
         program.source_iri.clone(),
     )
     .with_formulas(program.formulas.clone());
-    let ttl = match rdf::project_canonical_rdf12(&canon_meta) {
-        Ok(r) => r.content,
-        Err(e) => panic!("CLIF meta channel: canonical-rdf12 projection failed: {e}"),
-    };
-    preds.extend(quads_as_predications(ttl.as_bytes(), "text/turtle"));
+    let ttl = rdf::project_canonical_rdf12(&canon_meta)
+        .map_err(|e| format!("CLIF meta channel: canonical-rdf12 projection failed: {e}"))?
+        .content;
+    preds.extend(quads_as_predications(ttl.as_bytes(), "text/turtle")?);
 
     // (2) Correspondences → the faithful correspondence N-Triples projection.
     if !program.correspondences.is_empty() {
@@ -334,12 +341,12 @@ fn meta_predications(program: &LogicProgram) -> Vec<String> {
         preds.extend(quads_as_predications(
             nt.as_bytes(),
             "application/n-triples",
-        ));
+        )?);
     }
 
     preds.sort();
     preds.dedup();
-    preds
+    Ok(preds)
 }
 
 /// The `gm:` namespace (`gmeow:`) — the leg-body path vocabulary the transaction layer uses.
@@ -551,17 +558,20 @@ fn is_correspondence_owned(subject: &str, corr_subjects: &[String]) -> bool {
 }
 
 /// Parse RDF `bytes` of `media_type` and emit each quad as a sorted-later CL predication.
-fn quads_as_predications(bytes: &[u8], media_type: &str) -> Vec<String> {
+/// Returns `Err` if the projection's own serialized output cannot be re-parsed (an invariant
+/// break in the canonical leg, surfaced to the caller rather than panicking).
+fn quads_as_predications(bytes: &[u8], media_type: &str) -> Result<Vec<String>, String> {
     let ds = parse_dataset(bytes, media_type, None)
-        .unwrap_or_else(|e| panic!("CLIF meta channel: re-parse of {media_type} failed: {e}"));
-    ds.quad_refs()
+        .map_err(|e| format!("CLIF meta channel: re-parse of {media_type} failed: {e}"))?;
+    Ok(ds
+        .quad_refs()
         .map(|q| {
             let s = term_ref_to_clif(ds.as_ref(), q.s);
             let p = term_ref_to_clif(ds.as_ref(), q.p);
             let o = term_ref_to_clif(ds.as_ref(), q.o);
             format!("({p} {s} {o})")
         })
-        .collect()
+        .collect())
 }
 
 /// Encode a resolved RDF [`TermRef`] as a CL term, faithfully preserving datatype / lang.
