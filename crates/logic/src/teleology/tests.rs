@@ -1374,6 +1374,87 @@ fn materialize_teleology_serializable_history_emits_no_anomaly() {
 }
 
 #[test]
+fn materialize_teleology_derives_concurrent_anomaly_from_execution() {
+    // T4 end-to-end: a logic:ConcurrentComposition root is EXECUTED through Family 9, which
+    // DERIVES the conflict graph from the interleaved run (NOT an authored logic:precedes
+    // graph as the Family-4 tests above use) and surfaces a SerializationAnomaly. The two
+    // authored-history tests above remain green unchanged — Family 4 reads INPUT precedes
+    // facts, so the derived OUTPUT precedes quads never re-enter its scan (no double-count).
+    let ty = rdf_type_tok();
+    let q = |s: &str, p: &str, o: &str| format!("<{W}#{s}> {p} <{W}#{o}> <{W}> .\n");
+    // A primitive `node`: instantiatesSchema → schema (precondition*, effect → ins*).
+    let prim = |node: &str, precond: &[&str], ins: &[&str]| {
+        let schema = format!("{node}Schema");
+        let effect = format!("{node}Effect");
+        let mut s = q(node, &l("instantiatesSchema"), &schema);
+        s.push_str(&q(&schema, &l("effect"), &effect));
+        for p in precond {
+            s.push_str(&q(&schema, &l("precondition"), p));
+        }
+        for i in ins {
+            s.push_str(&q(&effect, &l("ins"), i));
+        }
+        s
+    };
+    let mut nq = String::new();
+    // Start obtains sitX + sitY so each leg succeeds independently (its read is satisfied).
+    nq.push_str(&q("s0", &l("situationObtains"), "sitX"));
+    nq.push_str(&q("s0", &l("situationObtains"), "sitY"));
+    // The concurrent root + its two serial legs (cross-dependency: opposing-order conflicts).
+    nq.push_str(&format!(
+        "<{W}#cc> {ty} {} <{W}> .\n",
+        l("ConcurrentComposition")
+    ));
+    nq.push_str(&q("cc", &l("transitionFromState"), "s0"));
+    nq.push_str(&q("cc", &l("leftOperand"), "leftSer"));
+    nq.push_str(&q("cc", &l("rightOperand"), "rightSer"));
+    nq.push_str(&format!(
+        "<{W}#leftSer> {ty} {} <{W}> .\n",
+        l("SerialConjunction")
+    ));
+    nq.push_str(&q("leftSer", &l("leftOperand"), "l0"));
+    nq.push_str(&q("leftSer", &l("rightOperand"), "l1"));
+    nq.push_str(&format!(
+        "<{W}#rightSer> {ty} {} <{W}> .\n",
+        l("SerialConjunction")
+    ));
+    nq.push_str(&q("rightSer", &l("leftOperand"), "r0"));
+    nq.push_str(&q("rightSer", &l("rightOperand"), "r1"));
+    nq.push_str(&prim("l0", &[], &["sitX"])); // left writes sitX …
+    nq.push_str(&prim("l1", &["sitY"], &["sitZ1"])); // … then reads sitY
+    nq.push_str(&prim("r0", &[], &["sitY"])); // right writes sitY …
+    nq.push_str(&prim("r1", &["sitX"], &["sitZ2"])); // … then reads sitX
+
+    let store = WorldStore::new();
+    store.load_nquads(&nq).expect("world");
+    let out = materialize_teleology(&store).unwrap().0;
+
+    // Family 9 executed the root and recorded the verdict.
+    assert!(
+        out.iter().any(
+            |q| q.predicate == logic("transactionSucceeds") && q.object.starts_with("\"true\"")
+        ),
+        "the concurrent root must run and succeed"
+    );
+    // A DERIVED ConcurrentHistory + a SerializationAnomaly, produced from the execution.
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("ConcurrentHistory"))),
+        "a concurrent history is derived from the run"
+    );
+    assert!(
+        out.iter()
+            .any(|q| q.predicate == RDF_TYPE && q.object == n3(&logic("SerializationAnomaly"))),
+        "the cross-dependency schedule surfaces a DERIVED anomaly: {out:?}"
+    );
+
+    // Determinism: re-running over a fresh store yields byte-identical quads.
+    let store2 = WorldStore::new();
+    store2.load_nquads(&nq).expect("world");
+    assert_eq!(out, materialize_teleology(&store2).unwrap().0);
+}
+
+#[test]
 fn nonlinear_path_is_hard_error() {
     let nq = format!(
         "<{W}#state2> {0} <{W}#state0> <{W}> .\n<{W}#state2> {0} <{W}#state1> <{W}> .\n",
@@ -1708,6 +1789,142 @@ fn gate_probe_surfaces_invariant_breach_denial() {
             .any(|q| q.subject == format!("{W}#probe") && q.predicate == logic("gateDenialReason")),
         "a denied probe must surface the denial reason"
     );
+}
+
+// ── DAG-workflow certification (logic:DagWorkflowResource) ───────────────────────
+
+/// N-Quads for `<W#plan>` run under the DAG-workflow contract, gathering one reified
+/// control-flow edge per `(edge, from, to)` through `logic:planFlowEdge`.
+fn dag_plan_nq(edges: &[(&str, &str, &str)]) -> String {
+    let mut s = String::new();
+    let plan = format!("<{W}#plan>");
+    s.push_str(&format!(
+        "{plan} {ty} {pl} <{W}> .\n",
+        ty = rdf_type_tok(),
+        pl = l("Plan")
+    ));
+    s.push_str(&format!(
+        "{plan} {} <{W}#dagContract> <{W}> .\n",
+        l("executedUnderContract")
+    ));
+    s.push_str(&format!(
+        "<{W}#dagContract> {} {} <{W}> .\n",
+        l("resourcePolicy"),
+        l("DagWorkflowResource")
+    ));
+    for (edge, from, to) in edges {
+        s.push_str(&format!(
+            "{plan} {} <{W}#{edge}> <{W}> .\n",
+            l("planFlowEdge")
+        ));
+        s.push_str(&format!(
+            "<{W}#{edge}> {} <{W}#{from}> <{W}> .\n",
+            l("flowFrom")
+        ));
+        s.push_str(&format!(
+            "<{W}#{edge}> {} <{W}#{to}> <{W}> .\n",
+            l("flowTo")
+        ));
+    }
+    s
+}
+
+/// The IRI the plan's `logic:planCertification` points at, given the emitted quads.
+fn dag_result_iri(out: &[TeleologyQuad]) -> String {
+    let edge = out
+        .iter()
+        .find(|q| q.subject == format!("{W}#plan") && q.predicate == logic("planCertification"))
+        .expect("plan links to its DAG certification result");
+    edge.object
+        .trim_start_matches('<')
+        .trim_end_matches('>')
+        .to_owned()
+}
+
+#[test]
+fn dag_certification_acyclic_plan_is_complete_for_fragment() {
+    // a -> b -> c : a DAG, the shape of the build pipeline.
+    let nq = dag_plan_nq(&[("e1", "a", "b"), ("e2", "b", "c")]);
+    let facts = facts_of(&nq);
+    let (out, cyclic) = emit_dag_certification(&facts, W, &format!("{W}#plan")).unwrap();
+    assert!(!cyclic, "an acyclic plan must not be unsupported");
+    let result = dag_result_iri(&out);
+    assert!(
+        out.iter().any(|q| q.subject == result
+            && q.predicate == logic("resultEvaluation")
+            && q.object == n3(&logic("EvaluationCompleted"))),
+        "an acyclic plan certifies EvaluationCompleted"
+    );
+    assert!(
+        out.iter().any(|q| q.subject == result
+            && q.predicate == logic("resultCompleteness")
+            && q.object == n3(&logic("CompleteForFragment"))),
+        "an acyclic plan is CompleteForFragment"
+    );
+    assert!(
+        out.iter().all(|q| q.predicate != logic("dagCycleWitness")),
+        "a certified plan carries no cycle witness"
+    );
+}
+
+#[test]
+fn dag_certification_cyclic_plan_is_unsupported_with_witness() {
+    // probe -> recover -> probe (the retry back-edge) + probe -> commit (success).
+    let nq = dag_plan_nq(&[
+        ("e1", "probe", "recover"),
+        ("e2", "recover", "probe"),
+        ("e3", "probe", "commit"),
+    ]);
+    let facts = facts_of(&nq);
+    let (out, cyclic) = emit_dag_certification(&facts, W, &format!("{W}#plan")).unwrap();
+    assert!(cyclic, "a cyclic plan resolves to unsupported");
+    let result = dag_result_iri(&out);
+    assert!(
+        out.iter().any(|q| q.subject == result
+            && q.predicate == logic("resultEvaluation")
+            && q.object == n3(&logic("EvaluationUnsupported"))),
+        "a cyclic plan resolves to EvaluationUnsupported, never silently truncated"
+    );
+    // The witness names EXACTLY the cycle members (probe, recover) — the dropped back-edge.
+    let witnesses: BTreeSet<String> = out
+        .iter()
+        .filter(|q| q.subject == result && q.predicate == logic("dagCycleWitness"))
+        .map(|q| q.object.clone())
+        .collect();
+    assert_eq!(
+        witnesses,
+        BTreeSet::from([n3(&format!("{W}#probe")), n3(&format!("{W}#recover"))]),
+        "the witness discloses the loop the DAG projection drops"
+    );
+}
+
+#[test]
+fn dag_certification_skips_plan_without_dag_contract() {
+    // A plan with flow edges but NO DAG contract is not certified under the profile.
+    let mut nq = String::new();
+    let plan = format!("<{W}#plan>");
+    nq.push_str(&format!(
+        "{plan} {ty} {pl} <{W}> .\n",
+        ty = rdf_type_tok(),
+        pl = l("Plan")
+    ));
+    nq.push_str(&format!("{plan} {} <{W}#e1> <{W}> .\n", l("planFlowEdge")));
+    nq.push_str(&format!("<{W}#e1> {} <{W}#a> <{W}> .\n", l("flowFrom")));
+    nq.push_str(&format!("<{W}#e1> {} <{W}#b> <{W}> .\n", l("flowTo")));
+    let facts = facts_of(&nq);
+    let (out, cyclic) = emit_dag_certification(&facts, W, &format!("{W}#plan")).unwrap();
+    assert!(
+        out.is_empty() && !cyclic,
+        "a plan with no DAG contract is not certified under the profile"
+    );
+}
+
+#[test]
+fn dag_certification_is_deterministic() {
+    let nq = dag_plan_nq(&[("e1", "probe", "recover"), ("e2", "recover", "probe")]);
+    let a = emit_dag_certification(&facts_of(&nq), W, &format!("{W}#plan")).unwrap();
+    let b = emit_dag_certification(&facts_of(&nq), W, &format!("{W}#plan")).unwrap();
+    assert_eq!(a, b, "DAG certification must be byte-deterministic");
 }
 
 // ── logic:evaluationTime vocabulary completeness ─────────────────────────────

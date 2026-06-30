@@ -42,6 +42,11 @@ gmeow-sparql-algebra = { path = "../sparql-algebra" }
 gmeow-logic-compile = { path = "../logic-compile" }
 serde_json = "1"
 blake3 = "1"
+# petgraph: cycle detection (tarjan_scc) for the DAG-workflow profile certifier
+# (crate::dag_profile), the single shared acyclicity certifier crates/pipeline's
+# stage graph delegates to. default-features off — only the core graph + algo are
+# needed. Same version as crates/pipeline so the workspace resolves one copy.
+petgraph = { version = "0.8", default-features = false }
 # rayon: data-parallel iterators for foundation multi-world chase (#822).
 # Worlds are independent: each `chase_world` call is pure and produces its own
 # Vec<FoundationQuad> with no shared mutable state.  Only invoked when

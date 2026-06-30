@@ -18,9 +18,10 @@
 //! amnesic anti-pattern):
 //!
 //! 1. **a mnemomorphic witness** — `mnemomorphic = true` on an injective-enough rung
-//!    (≤ [`MorphismClass::WellBehavedLens`]). The witness recovers `S`, so `put` is the
-//!    projection along it: a `CompleteOver` up-lift carrying a (provisional) discharged
-//!    [`CorrespondenceLaw::SectionLaw`] — `put ∘ get = id_S`.
+//!    (≤ [`crate::ir::MorphismClass::WellBehavedLens`]). The witness recovers
+//!    `S`, so `put` is the projection along it: a `CompleteOver` up-lift carrying
+//!    a (provisional) discharged [`CorrespondenceLaw::SectionLaw`] — `put ∘ get
+//!    = id_S`.
 //! 2. **a co-authored put-with-claim** — the author declares a law status (a non-empty
 //!    `law_claims`) without a retained witness. The `put` is *minted-with-claim*: a
 //!    candidate preimage, `ValidationOnly`, carrying an honest

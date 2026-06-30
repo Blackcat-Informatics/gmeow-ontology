@@ -6,10 +6,10 @@
 //!
 //! Two pieces live here:
 //!
-//! * [`DatasetSink`] — an [`RdfEventSink`](gmeow_rdf_events::RdfEventSink) that folds
+//! * [`DatasetSink`] — an [`RdfEventSink`] that folds
 //!   an external event stream into a frozen [`RdfDataset`]. It is **two-phase**, the
 //!   same shape as the proven [`super::import_sink`] GTS importer: the streaming
-//!   phase buffers raw [`EventTermId`](gmeow_rdf_events::EventTermId) → term
+//!   phase buffers raw [`EventTermId`] → term
 //!   declarations and raw quad / reifier / annotation rows verbatim (resolving
 //!   nothing, so a forward reference is fine), and [`finish`](DatasetSink::finish)
 //!   resolves every id into a fresh [`RdfDatasetBuilder`] inner-first (depth-bounded
@@ -17,7 +17,7 @@
 //!   undeclared.
 //!
 //! * [`FrozenDatasetSource`] — an
-//!   [`RdfEventSource`](gmeow_rdf_events::RdfEventSource) that replays an
+//!   [`RdfEventSource`] that replays an
 //!   already-frozen `&RdfDataset` *into* any sink: it declares a `term` event for
 //!   every term in [`TermId`] order (so it declares-before-reference), then the quad
 //!   / reifier / annotation events. This is the in-repo source that lets P6 be tested

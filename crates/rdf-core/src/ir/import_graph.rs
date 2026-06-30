@@ -218,8 +218,13 @@ pub fn import_gts_graph(graph: Graph) -> Result<GtsBundle, RdfDiagnostic> {
         ..
     } = graph;
 
-    let reifier_bindings: HashMap<usize, (usize, usize, usize)> =
-        reifiers.iter().copied().collect();
+    // gmeow-gts 0.9.11 reifier rows are `(reifier_id, (s,p,o), graph?)`. The IR statement
+    // layer has no graph dimension (reification is standpoint-scoped), so the binding map
+    // drops the graph slot; a non-`None` graph is rejected in the binding loop below.
+    let reifier_bindings: HashMap<usize, (usize, usize, usize)> = reifiers
+        .iter()
+        .map(|&(reifier_id, triple, _graph)| (reifier_id, triple))
+        .collect();
 
     let mut interner = GraphInterner {
         builder: RdfDatasetBuilder::new(),
@@ -250,8 +255,18 @@ pub fn import_gts_graph(graph: Graph) -> Result<GtsBundle, RdfDiagnostic> {
     }
 
     // Reifier bindings: bind the reifier resource to the interned triple term.
-    for (reifier_id, (s, p, o)) in reifiers.iter().copied() {
+    for (reifier_id, (s, p, o), graph) in reifiers.iter().copied() {
         let location = RdfLocation::logical("gts:reifier").with_gts_reifier(reifier_id);
+        if graph.is_some() {
+            return Err(RdfDiagnostic::error(
+                "rdf-ir-graph-scoped-reifier",
+                format!(
+                    "graph-scoped reifier {reifier_id} has no representation in the \
+                     graph-free RDF 1.2 statement layer"
+                ),
+            )
+            .with_location(location));
+        }
         let reifier = interner.resolve_row_term(reifier_id, "reifier", &location)?;
         let s = interner.resolve_row_term(s, "reified subject", &location)?;
         let p = interner.resolve_row_term(p, "reified predicate", &location)?;
@@ -260,9 +275,19 @@ pub fn import_gts_graph(graph: Graph) -> Result<GtsBundle, RdfDiagnostic> {
         interner.builder.push_reifier(reifier, triple);
     }
 
-    // Annotations `(reifier, predicate, object)`.
-    for (r, p, v) in annotations.iter().copied() {
+    // Annotations `(reifier, predicate, value, graph?)`.
+    for (r, p, v, graph) in annotations.iter().copied() {
         let location = RdfLocation::logical("gts:annotation").with_gts_reifier(r);
+        if graph.is_some() {
+            return Err(RdfDiagnostic::error(
+                "rdf-ir-graph-scoped-annotation",
+                format!(
+                    "graph-scoped annotation on reifier {r} has no representation in the \
+                     graph-free RDF 1.2 statement layer"
+                ),
+            )
+            .with_location(location));
+        }
         let r = interner.resolve_row_term(r, "annotation reifier", &location)?;
         let p = interner.resolve_row_term(p, "annotation predicate", &location)?;
         let v = interner.resolve_row_term(v, "annotation object", &location)?;
@@ -373,7 +398,7 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/p")); // 1
         graph.terms.push(iri_term("http://example.org/b")); // 2
         graph.terms.push(iri_term("http://example.org/r0")); // 3 reifier resource
-        graph.reifiers.push((3, (0, 1, 2)));
+        graph.reifiers.push((3, (0, 1, 2), None));
         graph.terms.push(GtsTerm {
             kind: GtsKind::Triple,
             value: None,
@@ -384,7 +409,7 @@ mod tests {
         }); // 4 inner triple term
         graph.terms.push(iri_term("http://example.org/asserts")); // 5
         graph.terms.push(iri_term("http://example.org/r1")); // 6 reifier resource
-        graph.reifiers.push((6, (0, 5, 4)));
+        graph.reifiers.push((6, (0, 5, 4), None));
         graph.terms.push(GtsTerm {
             kind: GtsKind::Triple,
             value: None,
@@ -418,7 +443,7 @@ mod tests {
             reifier: Some(0),
         }); // 0
         graph.terms.push(iri_term("http://example.org/p")); // 1
-        graph.reifiers.push((0, (1, 1, 0)));
+        graph.reifiers.push((0, (1, 1, 0), None));
         let err = import_gts_graph(graph).expect_err("cycle must hit nesting limit");
         assert_eq!(err.code, "gts-term-nesting-limit");
     }

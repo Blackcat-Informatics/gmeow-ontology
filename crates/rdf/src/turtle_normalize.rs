@@ -5,7 +5,7 @@
 //!
 //! Replaces rdflib's `longturtle` as the on-disk normalizer (`gmeow normalize`).
 //! The IR ([`RdfDataset`]) — not oxigraph — is the representation that is read,
-//! ordered, and rendered; the native [`parse_dataset`](crate::parse_dataset) codec
+//! ordered, and rendered; the native [`parse_dataset`] codec
 //! appears only as the text *parser* at the ingest edge. Every triple is interned
 //! into the IR verbatim
 //! (RDF-star triple terms stay triple-term objects, NOT split into reifier
@@ -126,6 +126,69 @@ mod tests {
         assert!(
             once.contains("        a owl:Restriction ;"),
             "a-first nested:\n{once}"
+        );
+    }
+
+    #[test]
+    fn reifier_annotation_render_is_flat_and_idempotent() {
+        // #1155 bug 2 + Task 5 guard. The canonical renderer must emit the RDF 1.2
+        // statement layer (reifier bindings + annotations) from the SIDE-TABLES — which
+        // `canonical_turtle`/`ingest` flattens away, but the #1142 byte-exact fold renders
+        // directly — flat (never nested) and byte-idempotent under parse→render→parse.
+        // Use `parse_dataset` + `render` directly (NOT `canonical_turtle`, which flattens
+        // the side-tables before rendering and so never exercises this path).
+        let nt = concat!(
+            "<http://example.org/s> <http://example.org/label> \"Hello\" .\n",
+            "<http://example.org/r1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
+            "<<( <http://example.org/s> <http://example.org/label> \"Hello\" )>> .\n",
+            "<http://example.org/r1> <http://example.org/confidence> \"0.9\" .\n",
+        );
+        let ds1 = parse_dataset(nt.as_bytes(), NativeRdfFormat::NTriples.media_type(), None)
+            .expect("parse1");
+        assert_eq!(ds1.reifiers().count(), 1, "one reifier folded");
+        assert_eq!(ds1.annotations().count(), 1, "one annotation folded");
+
+        let text1 = render(&ds1, &prefixes());
+        // The reifier statement is EMITTED (not dropped) and FLAT (not a nested
+        // `rdf:reifies [ rdf:reifies … ]`).
+        assert!(
+            text1.contains("rdf:reifies <<"),
+            "reifier emitted flat:\n{text1}"
+        );
+        assert!(
+            !text1.contains("rdf:reifies [\n"),
+            "reifier NOT nested:\n{text1}"
+        );
+        assert!(
+            text1.contains("ex:confidence \"0.9\""),
+            "annotation emitted:\n{text1}"
+        );
+
+        let ds2 = parse_dataset(text1.as_bytes(), NativeRdfFormat::Turtle.media_type(), None)
+            .expect("parse2");
+        // No growth across the round trip — the classic non-idempotence failure adds
+        // `#reifiers` quads per cycle.
+        assert_eq!(
+            ds2.reifiers().count(),
+            ds1.reifiers().count(),
+            "reifier count stable"
+        );
+        assert_eq!(
+            ds2.annotations().count(),
+            ds1.annotations().count(),
+            "annotation count stable"
+        );
+        assert_eq!(
+            ds2.quad_count(),
+            ds1.quad_count(),
+            "base quad count stable (no growth)"
+        );
+
+        // Byte-idempotent: a second render is identical to the first.
+        let text2 = render(&ds2, &prefixes());
+        assert_eq!(
+            text1, text2,
+            "render is byte-idempotent:\n{text1}\n---\n{text2}"
         );
     }
 

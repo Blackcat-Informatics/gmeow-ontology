@@ -433,23 +433,67 @@ impl StreamingSink for SinkImporter {
         self.raw_quads.push((segment_index, quad));
     }
 
-    fn reifier(&mut self, segment_index: usize, reifier: usize, triple: gmeow_gts::model::Triple3) {
+    fn reifier(&mut self, segment_index: usize, reifier: gmeow_gts::model::ReifierRow) {
         if self.error.is_some() {
+            return;
+        }
+        // gmeow-gts 0.9.11 row-array: `(reifier_id, (s, p, o), graph?)`. The RDF 1.2
+        // statement layer is standpoint-scoped, NOT graph-scoped (world × standpoint =
+        // JOIN, not graph) — a graph-scoped reifier has no representation in the IR, so
+        // it is a HARD FAIL (no silent slot drop), not a default-to-None.
+        let (reifier_id, triple, graph) = reifier;
+        if graph.is_some() {
+            self.error = Some(
+                RdfDiagnostic::error(
+                    "rdf-ir-graph-scoped-reifier",
+                    format!(
+                        "graph-scoped reifier {reifier_id} in segment {segment_index} has no \
+                         representation in the graph-free RDF 1.2 statement layer"
+                    ),
+                )
+                .with_location(
+                    RdfLocation::logical("gts:sink")
+                        .with_gts_segment(segment_index)
+                        .with_gts_reifier(reifier_id),
+                ),
+            );
             return;
         }
         // Record the reifier → (s, p, o) binding for this segment so a Triple term
         // (delivered in any order) can resolve its components in phase 2, and stash
         // the row so the reifier resource is bound to the interned triple in phase 2.
         self.reifier_bindings
-            .insert((segment_index, reifier), triple);
-        self.raw_reifiers.push((segment_index, reifier, triple));
+            .insert((segment_index, reifier_id), triple);
+        self.raw_reifiers.push((segment_index, reifier_id, triple));
     }
 
-    fn annotation(&mut self, segment_index: usize, annotation: gmeow_gts::model::Triple3) {
+    fn annotation(&mut self, segment_index: usize, annotation: gmeow_gts::model::AnnotationRow) {
         if self.error.is_some() {
             return;
         }
-        self.raw_annotations.push((segment_index, annotation));
+        // 0.9.11 row-array: `(reifier, predicate, value, graph?)`. Same no-graph-dimension
+        // doctrine as `reifier` above — a graph-scoped annotation hard-fails.
+        let (reifier, predicate, value, graph) = annotation;
+        if graph.is_some() {
+            self.error = Some(
+                RdfDiagnostic::error(
+                    "rdf-ir-graph-scoped-annotation",
+                    format!(
+                        "graph-scoped annotation on reifier {reifier} in segment \
+                         {segment_index} has no representation in the graph-free RDF 1.2 \
+                         statement layer"
+                    ),
+                )
+                .with_location(
+                    RdfLocation::logical("gts:sink")
+                        .with_gts_segment(segment_index)
+                        .with_gts_reifier(reifier),
+                ),
+            );
+            return;
+        }
+        self.raw_annotations
+            .push((segment_index, (reifier, predicate, value)));
     }
 
     fn suppression(&mut self, _segment_index: usize, suppression: &Suppression) {
@@ -786,7 +830,7 @@ mod tests {
         importer.term(0, 1, &iri_term("http://example.org/p"));
         importer.term(0, 2, &iri_term("http://example.org/b"));
         importer.term(0, 3, &iri_term("http://example.org/r0"));
-        importer.reifier(0, 3, (0, 1, 2));
+        importer.reifier(0, (3, (0, 1, 2), None));
         // Inner triple TERM bound to reifier r0 (gts id 3).
         importer.term(
             0,
@@ -802,7 +846,7 @@ mod tests {
         );
         importer.term(0, 5, &iri_term("http://example.org/asserts"));
         importer.term(0, 6, &iri_term("http://example.org/r1"));
-        importer.reifier(0, 6, (0, 5, 4));
+        importer.reifier(0, (6, (0, 5, 4), None));
         importer.term(
             0,
             7,
@@ -841,8 +885,8 @@ mod tests {
         importer.term(0, 2, &iri_term("http://example.org/o"));
         importer.term(0, 3, &iri_term("http://example.org/r1"));
         importer.term(0, 4, &iri_term("http://example.org/r2"));
-        importer.reifier(0, 3, (0, 1, 2));
-        importer.reifier(0, 4, (0, 1, 2));
+        importer.reifier(0, (3, (0, 1, 2), None));
+        importer.reifier(0, (4, (0, 1, 2), None));
         let mut importer = finish_direct(importer);
         assert!(importer.error.is_none(), "{:?}", importer.error);
 
@@ -869,7 +913,7 @@ mod tests {
         graph.terms.push(iri("http://example.org/p")); // 1
         graph.terms.push(iri("http://example.org/o")); // 2
         graph.terms.push(iri("http://example.org/stmt")); // 3 reifier resource
-        graph.reifiers.push((3, (0, 1, 2)));
+        graph.reifiers.push((3, (0, 1, 2), None));
         graph.terms.push(GtsTerm {
             kind: GtsKind::Triple,
             value: None,
@@ -936,7 +980,7 @@ mod tests {
         graph.terms.push(iri("http://example.org/b")); // 1
         graph.terms.push(iri("http://example.org/c")); // 2
         graph.terms.push(iri("http://example.org/r0")); // 3 inner reifier resource
-        graph.reifiers.push((3, (0, 1, 2)));
+        graph.reifiers.push((3, (0, 1, 2), None));
         graph.terms.push(GtsTerm {
             kind: GtsKind::Triple,
             value: None,
@@ -950,7 +994,7 @@ mod tests {
         graph.terms.push(iri("http://example.org/r1")); // 7 outer reifier resource
                                                         // Outer triple: << <<ex:a ex:b ex:c>> ex:p ex:o >> — inner triple (id 4) is
                                                         // the SUBJECT of the outer triple.
-        graph.reifiers.push((7, (4, 5, 6)));
+        graph.reifiers.push((7, (4, 5, 6), None));
         graph.terms.push(GtsTerm {
             kind: GtsKind::Triple,
             value: None,

@@ -27,7 +27,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_logic_compile::projections::report::build_projection_report_from;
+use gmeow_logic_compile::projections::report::{build_projection_report_from, ReportHeader};
 use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_rdf::RdfSeverity;
 use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
@@ -191,17 +191,91 @@ fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, PipelineError> {
 /// routine, so the seven whole-program logic rows stay byte-identical — only the added
 /// correspondence rows differ.
 fn build_union_report(
+    header: ReportHeader,
     channel: &LogicProjectionsChannel,
     correspondence_ledger: &[ProjectionResult],
 ) -> Result<Vec<u8>, PipelineError> {
     let mut rows: Vec<ProjectionResult> = channel.projections.clone();
     rows.extend(correspondence_ledger.iter().cloned());
-    let report =
-        build_projection_report_from(channel.header, &rows).map_err(|e| PipelineError::Stage {
-            stage: "stage-mappings".to_string(),
-            message: format!("projection-report assembly: {e}"),
-        })?;
+    let report = build_projection_report_from(header, &rows).map_err(|e| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message: format!("projection-report assembly: {e}"),
+    })?;
     Ok(report.into_bytes())
+}
+
+/// Fold the gate-derived 591-term up-projection audit into the report header counts: the
+/// `correspondenceCount` becomes the curated production cell PLUS every audited external term;
+/// `lawfulUpliftCount` gains the proved tier (round-trip verified) and `claimedUpliftCount`
+/// the claimed tier (alignment-asserted, not proved). The audit headline thus becomes a
+/// gate-verdict ledger in the canonical loss ledger, not a heuristic bucket count.
+///
+/// Inputs are gathered the same way the `gmeow up-projection-audit` CLI does: the freshly
+/// generated SSSOM (in-memory), the authored projection cells under `root`, and the vendored
+/// coverage corpus (`tests/fixtures/coverage/external/{bii,paudley}.ttl`). The corpus is fixed
+/// real RDF, so the folded counts are deterministic and ride the `generated/` drift gate.
+fn fold_up_projection_audit(
+    root: &Path,
+    artifacts: &BTreeMap<String, Vec<u8>>,
+    mut header: ReportHeader,
+) -> Result<ReportHeader, PipelineError> {
+    let stage_err = |message: String| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message,
+    };
+
+    // The freshly-generated SSSOM (never the on-disk copy, which may be stale this run).
+    let sssom_texts: Vec<String> = artifacts
+        .iter()
+        .filter(|(path, _)| path.starts_with(SSSOM_DIR) && path.ends_with(".sssom.tsv"))
+        .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
+        .collect();
+
+    // The authored projection cells: dsl/mappings/projections/*.ttl + slices/**/mappings/*.ttl.
+    let mut projection_paths: Vec<std::path::PathBuf> = Vec::new();
+    collect_files_recursive(
+        &root.join("dsl").join("mappings").join("projections"),
+        &mut projection_paths,
+    )?;
+    let mut slice_files: Vec<std::path::PathBuf> = Vec::new();
+    collect_files_recursive(&root.join("slices"), &mut slice_files)?;
+    projection_paths.extend(
+        slice_files
+            .into_iter()
+            .filter(|p| p.components().any(|c| c.as_os_str() == "mappings")),
+    );
+    projection_paths.retain(|p| p.extension().is_some_and(|e| e == "ttl"));
+    projection_paths.sort();
+    projection_paths.dedup();
+    let projection_ttls: Vec<String> = projection_paths
+        .iter()
+        .map(|p| std::fs::read_to_string(p).map_err(|e| stage_err(format!("read {p:?}: {e}"))))
+        .collect::<Result<_, _>>()?;
+
+    // The vendored coverage corpus, converted Turtle→N-Triples natively.
+    let mut corpus_nts: Vec<(String, String)> = Vec::new();
+    for name in ["bii", "paudley"] {
+        let path = root
+            .join("tests")
+            .join("fixtures")
+            .join("coverage")
+            .join("external")
+            .join(format!("{name}.ttl"));
+        let ttl =
+            std::fs::read_to_string(&path).map_err(|e| stage_err(format!("read {path:?}: {e}")))?;
+        let nt = crate::up_projection::ttl_to_nt(&ttl)
+            .map_err(|e| stage_err(format!("corpus {name} ttl→nt: {e}")))?;
+        corpus_nts.push((name.to_string(), nt));
+    }
+
+    let ledger =
+        crate::up_projection_gates::gate_derived_audit(&sssom_texts, &projection_ttls, &corpus_nts)
+            .map_err(|e| stage_err(format!("gate-derived up-projection audit: {e}")))?;
+
+    header.correspondence_count += ledger.total();
+    header.lawful_uplift_count += ledger.totals.proved;
+    header.claimed_uplift_count += ledger.totals.claimed;
+    Ok(header)
 }
 
 /// Compile mappings and fold their diagnostics into the native report.
@@ -382,19 +456,30 @@ impl Stage for MappingsStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v7: assemble the final projection-report loss ledger here, over the union of
-        // the logic projection rows (from compile-logic) and the per-correspondence
-        // residue ledger. Bump busts the stage cache.
-        "mappings.v7-union-projection-report"
+        // v8: also folds the gate-derived 591-term up-projection audit (proved/claimed/
+        // red_excluded ledger) into the projection report. Bump busts the stage cache so
+        // existing cached reports are invalidated.
+        "mappings.v8-gate-derived-up-projection-audit"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
         // tree plus the per-slice mapping cells in the slice modules — none of which
-        // any upstream product reflects. Declare them ALL so a mapping edit busts the
+        // any upstream product reflects. The vendored coverage corpus
+        // (tests/fixtures/coverage/external/*.ttl) is also a raw source input that
+        // feeds the committed audit ledger. Declare them ALL so any edit busts the
         // cache. `consumes() == []` (the leaf reads sources, not upstream products).
         let mut files = Vec::new();
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         files.extend(crate::stages::source_load::module_files(root)?);
+        for name in ["bii", "paudley"] {
+            files.push(
+                root.join("tests")
+                    .join("fixtures")
+                    .join("coverage")
+                    .join("external")
+                    .join(format!("{name}.ttl")),
+            );
+        }
         files.sort();
         files.dedup();
         Ok(files)
@@ -422,7 +507,12 @@ impl Stage for MappingsStage {
                 stage: "stage-mappings".to_string(),
                 message: format!("decode logic-projections channel: {e}"),
             })?;
-        let report = build_union_report(&channel, &compiled.ledger)?;
+        // Fold the gate-derived 591-term up-projection audit into the curated-cell header
+        // counts, so the committed loss ledger carries the gate-verdict liftability statistic
+        // (#1149). Then canonicalize the report TTL so `projection-report.ttl` is carried as
+        // the fold of its named graph (#1142 superset gate), not an opaque byte lane.
+        let header = fold_up_projection_audit(input.root, &artifacts, channel.header)?;
+        let report = build_union_report(header, &channel, &compiled.ledger)?;
         artifacts.insert(
             PROJECTION_REPORT_PATH.to_string(),
             canon_fanout_ttl_bytes(&report)?,

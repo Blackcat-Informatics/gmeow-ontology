@@ -1729,23 +1729,30 @@ def up_projection_audit(
         False, "--gaps", help="List the coverage-gap terms."
     ),
 ) -> None:
-    """Audit consumer→GMEOW up-projection invertibility on the real snapshots (#449)."""
-    from gmeow_tools.up_projection_audit import render_markdown, run_audit
+    """Audit consumer→GMEOW up-projection invertibility on the real snapshots.
 
-    report = run_audit()
+    The headline is a correspondence-gate verdict ledger: each liftable target
+    term is a ``logic:Correspondence`` run through the five gates. A term is
+    *proved* only when its round-trip gate passes over two independently-sourced
+    real projection rules; *claimed* terms are liftable by the alignment
+    relation but not proved by inversion.
+    """
+    from gmeow_tools.up_projection_audit import gate_audit
+
+    report = gate_audit()
     if report_path is not None:
-        report_path.write_text(render_markdown(report), encoding="utf-8")
+        report_path.write_text(report["markdown"], encoding="utf-8")
         console.print(f"[green]wrote[/green] {report_path}")
-    pct = (100 * report.liftable // report.total) if report.total else 0
+    liftable, total = report["liftable"], report["total"]
+    pct = (100 * liftable // total) if total else 0
     console.print(
-        f"[green]liftable[/green] {report.liftable}/{report.total} ({pct}%) "
-        f"· SSSOM terms {report.sssom_total} · structural terms {report.struct_total}"
+        f"[green]liftable[/green] {liftable}/{total} ({pct}%) "
+        f"· proved {report['proved']} · claimed {report['claimed']} "
+        f"· excluded {report['red_excluded']} · unsupported {report['unsupported']}"
     )
-    for f in report.files:
-        console.print(f"  {f.name}: {f.liftable}/{f.total}")
-    console.print(f"[yellow]gaps[/yellow] {len(report.gaps)} distinct terms")
+    console.print(f"[yellow]gaps[/yellow] {len(report['gaps'])} distinct terms")
     if show_gaps:
-        for term in report.gaps:
+        for term in report["gaps"]:
             err_console.print(f"[yellow]gap[/yellow] {term}")
 
 
@@ -2271,7 +2278,10 @@ def _signed_gts_copy(
     if graph.quads:
         writer.add_quads(list(graph.quads))
     if graph.reifiers:
-        writer.add_reifies(dict(sorted(graph.reifiers.items())))
+        # gmeow-gts 0.9.11: `reifies` is a row-array `[(rid, (s, p, o), graph?), …]`
+        # (was a reifier-id map). Pass the rows through verbatim for a faithful
+        # re-sign; the writer canonicalizes their order.
+        writer.add_reifies(list(graph.reifiers))
     if graph.annotations:
         writer.add_annot(list(graph.annotations))
 
