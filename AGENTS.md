@@ -32,6 +32,12 @@ run `make help` first when you need the current target surface, and use `make`
 targets rather than calling `gmeow-dev`, `cargo`, or helper scripts directly
 unless you are adding or debugging the target itself.
 
+Rust performance and advanced-language-feature work must also follow
+[`docs/RUST-OPTIMIZATION.md`](./docs/RUST-OPTIMIZATION.md): measure first,
+preserve deterministic output, prefer Rust-native data/dispatch/ownership
+changes over compiler-flag churn, and keep the existing debug-assertion,
+overflow-check, no-debug-symbol, and `nemo` build-memory contracts intact.
+
 ### The CLI razor — `gmeow` vs `gmeow-dev` (#517)
 
 There are two CLIs, and a single razor decides where a command belongs:
@@ -240,6 +246,11 @@ A surviving mutant is a real test-strength gap: kill it by strengthening a test
 (see the `constitution.rs` `literal_i64`/`literal_string` tests added in #790),
 or document why it is acceptable. Coverage/mutation/bench numbers are *evidence
 to act on*, never a fabricated metric — report exactly what ran.
+
+For optimization doctrine beyond the report-only benchmark commands, see
+[`docs/RUST-OPTIMIZATION.md`](./docs/RUST-OPTIMIZATION.md). It is the standing
+guide for static iterator seams, dense typed IDs, const generics/type-state,
+targeted SIMD, sealed traits, deterministic output, and Cargo profile changes.
 
 #### The 25 s per-test budget (#1045)
 
