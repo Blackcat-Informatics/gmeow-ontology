@@ -31,13 +31,29 @@ pub enum PipelineError {
     InvalidDag(String),
     /// A `gmeow:stageImpl` key has no entry in the `STAGE_REGISTRY`.
     UnknownStageImpl { stage: String, impl_key: String },
-    /// The RDF `gmeow:carriesEngineLock` flag disagrees with the stage kind.
-    /// `carriesEngineLock` is DERIVED (`== kind is Reason`), never independent —
-    /// RDF and Rust cannot disagree (single source of truth, ETHOS one-path).
-    EngineLockMismatch {
+    /// The registry stage's `resources()` disagrees with the RDF
+    /// `gmeow:requiresResource` declaration (Rust/RDF resource agreement). A stage
+    /// and its executable twin cannot claim different shared resources — that would
+    /// break the scheduler's serialization (single source of truth, ETHOS one-path).
+    ResourceMismatch {
+        /// The stage whose declarations disagree.
         stage: String,
-        rdf: bool,
-        derived: bool,
+        /// The resource IRIs declared in RDF (`requiresResource`), sorted.
+        rdf: Vec<String>,
+        /// The resource IRIs the Rust impl declares via `resources()`, sorted.
+        rust: Vec<String>,
+    },
+    /// The registry stage's `consumed_entities()` disagrees with the RDF
+    /// `gmeow:DataFlow` typed-dataflow declaration (Rust/RDF dataflow agreement). A
+    /// divergence would let the cache narrow on a different entity set than the stage
+    /// actually reads — a stale-product hazard (single source of truth).
+    DataFlowMismatch {
+        /// The stage whose declarations disagree.
+        stage: String,
+        /// The typed dataflow declared in RDF (`(producer, entities)`), sorted.
+        rdf: Vec<(String, Vec<String>)>,
+        /// The typed dataflow the Rust impl declares via `consumed_entities()`, sorted.
+        rust: Vec<(String, Vec<String>)>,
     },
     /// The registry stage's `consumes()` disagrees with the RDF
     /// `dataflowConsumes` declaration (Rust/RDF consumes agreement).
@@ -49,14 +65,18 @@ pub enum PipelineError {
         /// The dependency ids the Rust impl declares via `consumes()`, sorted.
         rust: Vec<String>,
     },
-    /// The registry stage's `kind()` disagrees with the RDF `gmeow:stageKind`.
-    KindMismatch {
-        /// The stage whose kind disagrees.
+    /// The registry stage's `capabilities()` disagrees with the RDF
+    /// `gmeow:hasCapability` declaration (Rust/RDF capability agreement). A stage and
+    /// its executable twin cannot claim different capabilities — that would let the
+    /// executor read a sink/source role the authored model never declared (single
+    /// source of truth, ETHOS one-path).
+    CapabilityMismatch {
+        /// The stage whose declarations disagree.
         stage: String,
-        /// The RDF-declared kind tag.
-        rdf: String,
-        /// The Rust-declared kind tag.
-        rust: String,
+        /// The capability IRIs declared in RDF (`gmeow:hasCapability`), sorted.
+        rdf: Vec<String>,
+        /// The capability IRIs the Rust impl declares via `capabilities()`, sorted.
+        rust: Vec<String>,
     },
     /// A cached `StageProduct` failed its self-verifying digest recheck. The
     /// cache is never silently repaired (no-optionality, #861 P2).
@@ -79,22 +99,21 @@ impl std::fmt::Display for PipelineError {
                 f,
                 "stage {stage} binds gmeow:stageImpl \"{impl_key}\" which is not in the STAGE_REGISTRY"
             ),
-            PipelineError::EngineLockMismatch {
-                stage,
-                rdf,
-                derived,
-            } => write!(
+            PipelineError::ResourceMismatch { stage, rdf, rust } => write!(
                 f,
-                "stage {stage}: gmeow:carriesEngineLock={rdf} disagrees with the kind-derived value {derived} \
-                 (carriesEngineLock must equal `kind is Reason`)"
+                "stage {stage}: RDF gmeow:requiresResource {rdf:?} disagrees with the Rust impl resources() {rust:?}"
+            ),
+            PipelineError::DataFlowMismatch { stage, rdf, rust } => write!(
+                f,
+                "stage {stage}: RDF gmeow:DataFlow typed entities {rdf:?} disagree with the Rust impl consumed_entities() {rust:?}"
             ),
             PipelineError::ConsumesMismatch { stage, rdf, rust } => write!(
                 f,
                 "stage {stage}: RDF dataflowConsumes {rdf:?} disagrees with the Rust impl consumes() {rust:?}"
             ),
-            PipelineError::KindMismatch { stage, rdf, rust } => write!(
+            PipelineError::CapabilityMismatch { stage, rdf, rust } => write!(
                 f,
-                "stage {stage}: RDF gmeow:stageKind {rdf} disagrees with the Rust impl kind() {rust}"
+                "stage {stage}: RDF gmeow:hasCapability {rdf:?} disagrees with the Rust impl capabilities() {rust:?}"
             ),
             PipelineError::CacheMismatch { expected, actual } => {
                 write!(f, "pipeline cache digest mismatch: expected {expected}, got {actual}")

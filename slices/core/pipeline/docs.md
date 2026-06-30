@@ -19,30 +19,38 @@ validates the graph, binds each stage to its Rust implementation, and runs it si
 source-load → (statements, mappings) → reason → gts-compose → {docs-render + export leaves} → gts-sink
 ```
 
-Each `gmeow:PipelineStage` declares:
+Each `gmeow:PipelineStage` is a `logic:ActionSchema` and declares:
 
 | Property | Meaning |
 |---|---|
-| `gmeow:stageKind` | One `gmeow:StageKind` — selects scheduling treatment. |
 | `gmeow:stageImpl` | The `STAGE_REGISTRY` key binding the stage to its Rust `Stage`. |
 | `gmeow:dataflowConsumes` | The upstream stages whose products it reads (consumer → producer). |
+| `gmeow:requiresResource` | The shared `gmeow:Resource`s it must hold exclusively while running (e.g. `gmeow:engineResource`); stages competing for one serialize. |
+| `gmeow:hasCapability` | The `gmeow:StageCapability`s it holds — the executor reads these in place of a kind enum. |
 | `gmeow:producesFormat` | Output-format tags (export leaves). |
-| `gmeow:carriesEngineLock` | **Derived**: true exactly when the kind is `gmeow:kindReason`. |
 
-## Stage kinds
+Reified `gmeow:BuildDataFlow` edges (`gmeow:buildFlowFrom` / `gmeow:buildFlowTo` / `gmeow:flowEntity`)
+narrow a consumer's dependency to the specific named graphs it reads, so the executor keys that
+stage's cache on only those graphs' digests — artifact-level incremental rebuild.
 
-`gmeow:StageKind` is a closed value vocabulary: `kindSourceLoad`, `kindTransform`, `kindReason`,
-`kindValidate`, `kindDocsRender`, `kindExportLeaf`, `kindSink`. Only `kindReason` carries the
-process-wide engine lock (the Nemo/Scryer engines are not concurrency-safe); everything else is
-parallel-eligible within its topological level. There is exactly one `kindSink` — the gts narrow
-waist, the single serialization exit.
+## Stage capabilities
+
+`gmeow:StageCapability` is the value vocabulary the executor reads instead of a kind enum:
+`gmeow:sinkCapability` (the single serialization exit — the gts narrow waist; the loader HARD-fails
+unless exactly one stage holds it) and `gmeow:sourceOrigin` (the authored-source loader, whose emitted
+quads' provenance origin is `Source`). A stage holding no capability is a plain transform / validate /
+export leaf — provenance-`Generated`, non-sink, parallel-eligible within its topological level.
+Serialization treatment is not a kind: only the reasoning stage `gmeow:requiresResource`
+`gmeow:engineResource` (the Nemo/Scryer engines are not concurrency-safe), so it serializes against
+any stage competing for it.
 
 ## Invariants (HARD-failed before any stage runs)
 
 The loader proves, before scheduling: the DAG is **acyclic** and **complete** (no dangling
-`gmeow:dataflowConsumes`); there is **exactly one Sink**; `gmeow:carriesEngineLock` **equals** the
-kind-derived value (single source of truth — RDF and Rust cannot disagree); and every bound stage's
-`kind` / `consumes` **agree** with its RDF declaration. None of these is optional or repairable.
+`gmeow:dataflowConsumes`); there is **exactly one** stage holding `gmeow:sinkCapability`; and every
+bound stage's `capabilities` / `consumes` / `requiresResource` / typed dataflow **agree** with its RDF
+declaration (single source of truth — RDF and Rust cannot disagree). None of these is optional or
+repairable.
 
 ## Consumer
 

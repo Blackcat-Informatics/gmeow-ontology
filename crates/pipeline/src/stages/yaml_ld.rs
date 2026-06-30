@@ -14,7 +14,7 @@ use oxigraph::store::Store;
 use serde_json::Value;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 // The gts-`Graph` arena read shape, materialized over the native carrier — the SAME
 // adapter the `parquet` leaf uses (no per-leaf shim). GTS is exit-only.
 use crate::stages::fold_arena::{Graph, Term, TermKind};
@@ -88,9 +88,6 @@ impl Default for YamlLdStage {
 impl Stage for YamlLdStage {
     fn id(&self) -> &str {
         "stage-export-yaml-ld"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

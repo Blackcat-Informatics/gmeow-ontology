@@ -37,7 +37,7 @@ use gmeow_slice::{
 };
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::compile_logic::{
     LogicProjectionsChannel, LOGIC_PROJECTIONS_CHANNEL, PROJECTION_REPORT_PATH,
 };
@@ -446,9 +446,6 @@ impl Stage for MappingsStage {
     fn id(&self) -> &str {
         "stage-mappings"
     }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
-    }
     fn consumes(&self) -> &[String] {
         // Reads dsl/mappings + slice mapping cells from the root, AND the compile-logic
         // product (the logic projection rows + header counts) so it can assemble the
@@ -456,10 +453,11 @@ impl Stage for MappingsStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v8: also folds the gate-derived 591-term up-projection audit (proved/claimed/
-        // red_excluded ledger) into the projection report. Bump busts the stage cache so
+        // v9: input_files now declares the slice Mapping cells (slices/**/mappings/*.ttl),
+        // which compile_mappings reads but module_files did not declare — a slice
+        // equivalence edit was silently cache-ignored. Bump busts the stage cache so
         // existing cached reports are invalidated.
-        "mappings.v8-gate-derived-up-projection-audit"
+        "mappings.v9-slice-mapping-cells-in-cache-key"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -471,6 +469,19 @@ impl Stage for MappingsStage {
         let mut files = Vec::new();
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         files.extend(crate::stages::source_load::module_files(root)?);
+        // The slice Mapping cells (slices/**/mappings/*.ttl) are read directly by
+        // compile_mappings (correspondence_lower::lower_all merges every
+        // ArtifactRole::Mapping artifact) AND by fold_up_projection_audit, yet
+        // module_files only declares each slice's module.ttl. Declare every slice
+        // `mappings/` .ttl so an edit to a slice equivalence cell busts the cache
+        // (a missing edge here silently ignores a guard→combinator correspondence
+        // edit until the cache is cleared).
+        let mut slice_files: Vec<std::path::PathBuf> = Vec::new();
+        collect_files_recursive(&root.join("slices"), &mut slice_files)?;
+        files.extend(slice_files.into_iter().filter(|p| {
+            p.extension().is_some_and(|e| e == "ttl")
+                && p.components().any(|c| c.as_os_str() == "mappings")
+        }));
         for name in ["bii", "paudley"] {
             files.push(
                 root.join("tests")

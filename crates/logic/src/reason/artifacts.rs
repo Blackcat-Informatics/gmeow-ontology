@@ -33,7 +33,7 @@ use crate::result::ReasoningResult;
 // ── Namespaces ──────────────────────────────────────────────────────────────────
 
 /// The gmeow vocabulary namespace (term IRIs are `GMEOW_NS + local`).
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+pub(crate) const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 /// The IRI base for a reasoning rule (`GMEOW_NS + "rule/"`, percent-encoded name).
 const RULE_IRI_BASE: &str = "https://blackcatinformatics.ca/gmeow/rule/";
 /// `rdfs:subClassOf` — the subsumption predicate the ledger records native-only.
@@ -41,14 +41,14 @@ const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
 /// `prov:wasDerivedBy`.
 const PROV_WAS_DERIVED_BY: &str = "http://www.w3.org/ns/prov#wasDerivedBy";
 /// `rdf:type` (emitted full so the canonical compare never depends on `a`).
-const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// `rdfs:label`.
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 /// `rdfs:comment`.
-const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+pub(crate) const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 
 /// `gmeow:` term IRI helper.
-fn gmeow(local: &str) -> String {
+pub(crate) fn gmeow(local: &str) -> String {
     format!("{GMEOW_NS}{local}")
 }
 
@@ -546,7 +546,7 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
 /// Escape a string for embedding in a double-quoted Turtle literal (mirrors the
 /// gmeow-rdf emitter's literal escaping; inlined here for ledger string literals
 /// that are not full [`gmeow_rdf::RdfLiteral`] terms).
-fn escape_literal(value: &str) -> String {
+pub(crate) fn escape_literal(value: &str) -> String {
     value
         .replace('\\', "\\\\")
         .replace('"', "\\\"")

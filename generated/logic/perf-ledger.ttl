@@ -1,0 +1,45 @@
+# GMEOW native physical engine performance ledger.
+# A first-class reasoning artifact flagging the deferred / non-incremental parts
+# of the seven-lever execution stack. The built P0 levers (the relational core —
+# semi-naive + stratified negation + index selection — and magic-sets) are NOT
+# rows here; this ledger records ONLY the deferred items, so a row is never
+# misread as a shipped feature. Two honest statuses:
+#   gmeow:FlaggedNonIncremental — a canonical hard part: a native fallback EXISTS,
+#     it is simply not yet incremental and stays a heavy-path fallback longest.
+#   gmeow:DeclaredP1 — an advanced lever intentionally out of the current scope:
+#     NOT a defect, NOT yet built, a declared later stage.
+# DO NOT EDIT.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+# --- ledger header (deferred / non-incremental rows only) ---
+<https://blackcatinformatics.ca/gmeow/perf-ledger> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedger> ;
+   <https://blackcatinformatics.ca/gmeow/entryCount> 6 ;
+   <http://www.w3.org/2000/01/rdf-schema#comment> "the deferred / non-incremental parts of the native physical engine's seven-lever stack; the built P0 levers are not rows here"@en .
+
+# --- deferred / non-incremental entries ---
+<https://blackcatinformatics.ca/gmeow/perf-entry-0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/construct> "incremental well-founded / stable-model semantics"@en ;
+   <https://blackcatinformatics.ca/gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental> ;
+   <https://blackcatinformatics.ca/gmeow/note> "well-founded / stable-model semantics incrementally stays a heavy-path fallback longest; a native fallback exists but is not yet incremental"@en .
+<https://blackcatinformatics.ca/gmeow/perf-entry-1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/construct> "existential-rule chase with termination and incrementality together"@en ;
+   <https://blackcatinformatics.ca/gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental> ;
+   <https://blackcatinformatics.ca/gmeow/note> "existential-rule chase with termination AND incrementality together stays a heavy-path fallback longest; a native fallback exists but is not yet incremental"@en .
+<https://blackcatinformatics.ca/gmeow/perf-entry-2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/construct> "paraconsistent / modal facets"@en ;
+   <https://blackcatinformatics.ca/gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental> ;
+   <https://blackcatinformatics.ca/gmeow/note> "the paraconsistent / modal facets stay heavy-path fallbacks longest; a native fallback exists but is not yet incremental"@en .
+<https://blackcatinformatics.ca/gmeow/perf-entry-3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/construct> "worst-case-optimal joins"@en ;
+   <https://blackcatinformatics.ca/gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1> ;
+   <https://blackcatinformatics.ca/gmeow/note> "worst-case-optimal joins for cyclic graph patterns — an advanced lever declared out of the current scope, not yet built"@en .
+<https://blackcatinformatics.ca/gmeow/perf-entry-4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/construct> "provenance semirings"@en ;
+   <https://blackcatinformatics.ca/gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1> ;
+   <https://blackcatinformatics.ca/gmeow/note> "provenance semirings computing world/standpoint and the quantitative axes in one pass, where the semiring is the axis algebra — an advanced lever declared out of the current scope, not yet built"@en .
+<https://blackcatinformatics.ca/gmeow/perf-entry-5> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/construct> "compile-don't-interpret (specialize per content-addressed contract hash)"@en ;
+   <https://blackcatinformatics.ca/gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1> ;
+   <https://blackcatinformatics.ca/gmeow/note> "compile-don't-interpret, specialized per content-addressed contract hash — an advanced lever declared out of the current scope, not yet built"@en .
