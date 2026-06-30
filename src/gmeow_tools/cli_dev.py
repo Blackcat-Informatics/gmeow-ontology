@@ -35,7 +35,14 @@ if TYPE_CHECKING:
     from gmeow_tools.language_tags import LangSelector
 
     class ProjectionDiagnostic(TypedDict):
-        """One correspondence-soundness finding dict from the native pass."""
+        """Type-only mirror of the Rust ``ProjectionDiagnostic`` struct.
+
+        Declared under ``TYPE_CHECKING`` so it is erased at runtime — no runtime
+        Python, no logic. It only names the shape of each finding dict returned by
+        the native ``gmeow_pipeline.lint_projection`` binding, so the dev-CLI
+        surface (``gmeow-dev``) can render findings with full static typing. The
+        soundness checks themselves live entirely in Rust.
+        """
 
         severity: str
         code: str
