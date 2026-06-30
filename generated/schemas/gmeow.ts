@@ -1073,6 +1073,10 @@ export enum GenerativeProcessKindEnum {
     generativeProcessKindVerbalScore = "generativeProcessKindVerbalScore",
 }
 
+export enum GenericQualityEnum {
+    pressure = "pressure",
+}
+
 export enum GenreEnum {
     genreBlues = "genreBlues",
     genreClassical = "genreClassical",
@@ -2917,6 +2921,7 @@ export enum TempoMapSegmentEnum {
 }
 
 export enum TemporalFrameEnum {
+    temporalFrameBeforePresent = "temporalFrameBeforePresent",
     temporalFrameGPSGregorian = "temporalFrameGPSGregorian",
     temporalFrameTAI = "temporalFrameTAI",
     temporalFrameTDBGregorian = "temporalFrameTDBGregorian",
@@ -2986,6 +2991,7 @@ export enum TimeMappingKindEnum {
 }
 
 export enum TimeScaleEnum {
+    timeScaleBeforePresent = "timeScaleBeforePresent",
     timeScaleGPS = "timeScaleGPS",
     timeScaleTAI = "timeScaleTAI",
     timeScaleTDB = "timeScaleTDB",
@@ -4209,6 +4215,7 @@ export interface Entity {
     storedIn?: StorageLocation[],
     supersededBy?: Entity[],
     supersedes?: Entity[],
+    trueQuantity?: Magnitude,
     usageInfo?: string[],
     versionFingerprint?: string[],
     versionLabel?: string[],
@@ -4478,6 +4485,9 @@ export interface GenerativeProcess extends Entity {
 }
 
 export interface GenerativeProcessKind {
+}
+
+export interface GenericQuality {
 }
 
 export interface Genre extends InformationObject {
@@ -4964,6 +4974,10 @@ export interface LogicalConstraint extends Constraint {
     logicConstraintMember?: Constraint[],
 }
 
+export interface Magnitude extends Entity {
+    dimension?: string,
+}
+
 export interface Mailbox extends InformationObject {
     childMailbox?: Mailbox[],
     mailboxName?: string[],
@@ -5376,8 +5390,10 @@ export interface Observation {
     facetVantage?: Agent[],
     observationEvent?: Event[],
     observationMethod?: ObservationMethod,
+    observationOf?: Quality[],
     observationResult?: Entity[],
     observationType?: ObservationType[],
+    observedAt?: string,
     observedFeature?: string[],
     perceptionEnvironment?: SensoryEnvironment,
     timbreObservationResult?: TimbreDescriptor,
@@ -5844,6 +5860,10 @@ export interface ProximityMeasurement extends Measurement {
 
 export interface Push extends Activity {
     pushTarget?: string[],
+}
+
+export interface Quality extends Entity {
+    bearer?: Entity,
 }
 
 export interface QualityAssessment extends Observation {

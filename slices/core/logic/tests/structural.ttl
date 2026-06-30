@@ -853,3 +853,21 @@ ASK {
     FILTER NOT EXISTS { ?framework a logic:LogicalFramework . }
 }""" ;
     gmeow:saRationale "No logic:instantiatesFramework object MUST be anything other than a declared logic:LogicalFramework individual — the closed-set guard. A term may traffic in several frameworks or none, but every value it names MUST be one of the nine declared disciplines, so a misspelt or undeclared framework is rejected rather than silently minting an open value (the same closed-vocabulary discipline as the typed-verdict classes)." .
+
+ex:saQualityStratificationTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:genericQuality a owl:ObjectProperty .
+    logic:qualityRole a owl:ObjectProperty .
+    logic:trueQuantity a owl:ObjectProperty .
+    logic:unit a owl:ObjectProperty .
+    logic:referenceFrame a owl:ObjectProperty .
+    logic:measuredValue a owl:DatatypeProperty .
+    logic:QualityConstraint a owl:Class .
+    logic:QualityRoleWithoutGeneric a logic:QualityConstraint .
+    logic:MeasurementFrameMissing a logic:QualityConstraint .
+}""" ;
+    gmeow:saRationale "The YAMATO quality-stratification foundation vocabulary MUST exist: the generic-quality/quality-role ladder (logic:genericQuality, logic:qualityRole over logic:Role), the true-quantity/measured-value seam (logic:trueQuantity, logic:measuredValue, logic:unit, logic:referenceFrame), and the closed logic:QualityConstraint family (logic:QualityRoleWithoutGeneric, logic:MeasurementFrameMissing) whose named individuals are the labels the native foundation rules point a logic:violation at (Principle 11, Principle 17)." .

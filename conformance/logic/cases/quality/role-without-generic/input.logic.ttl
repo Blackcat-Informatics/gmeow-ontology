@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: quality/role-without-generic
+# AC: YAMATO quality constraint — QualityRoleWithoutGeneric.
+#
+# ex:Q plays a quality-role (logic:qualityRole) but instantiates no generic
+# quality (logic:genericQuality). A quality playing a role must instantiate the
+# generic quality the role contextualizes (Principle 11 in role terms), so the
+# violation rule must derive violation(Q, QualityRoleWithoutGeneric). The chase
+# seeds only from input.nq world facts; this program is the mirror axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/quality/role-without-generic/> .
+
+ex:Q logic:qualityRole ex:systolicRole .
