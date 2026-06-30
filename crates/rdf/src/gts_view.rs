@@ -296,11 +296,14 @@ impl GtsFoldView {
         out
     }
 
-    pub fn reifiers(&self) -> &[(usize, Triple3)] {
+    /// The gmeow-gts 0.9.11 reifier rows `(reifier_id, (s,p,o), graph?)`. gmeow's
+    /// statement layer is standpoint-scoped, so the graph slot is always `None`.
+    pub fn reifiers(&self) -> &[(usize, Triple3, Option<usize>)] {
         &self.graph.reifiers
     }
 
-    pub fn annotations(&self) -> &[Triple3] {
+    /// The 0.9.11 annotation rows `(reifier, predicate, value, graph?)` (graph `None`).
+    pub fn annotations(&self) -> &[(usize, usize, usize, Option<usize>)] {
         &self.graph.annotations
     }
 
@@ -583,12 +586,18 @@ pub fn relational_rows(graph: &Graph) -> Result<RelationalRows, String> {
             })
             .collect(),
         quads: graph.quads.clone(),
+        // Flatten the 0.9.11 row-array to the narrow relational view, dropping the
+        // always-`None` graph slot (the relational view carries no graph axis).
         reifiers: graph
             .reifiers
             .iter()
-            .map(|&(r, (s, p, o))| (r, s, p, o))
+            .map(|&(r, (s, p, o), _graph)| (r, s, p, o))
             .collect(),
-        annotations: graph.annotations.clone(),
+        annotations: graph
+            .annotations
+            .iter()
+            .map(|&(r, p, o, _graph)| (r, p, o))
+            .collect(),
         blobs,
     })
 }
@@ -790,8 +799,8 @@ mod tests {
             (11, 12, 9, None),
             (11, 13, 14, None),
         ]);
-        writer.add_reifies(&[(16, (0, 1, 2))]);
-        writer.add_annot(&[(16, 17, 18)]);
+        writer.add_reifies(&[(16, (0, 1, 2), None)]);
+        writer.add_annot(&[(16, 17, 18, None)]);
         GtsFoldView::new(gmeow_gts::reader::read(&writer.to_bytes(), true, None))
     }
 
@@ -859,8 +868,8 @@ mod tests {
         );
         let head = view.objects(cat, &(EX.to_string() + "members"), None)[0];
         assert_eq!(view.rdf_list(head, None), vec![cat, dog]);
-        assert_eq!(view.reifiers(), &[(16, (0, 1, 2))]);
-        assert_eq!(view.annotations(), &[(16, 17, 18)]);
+        assert_eq!(view.reifiers(), &[(16, (0, 1, 2), None)]);
+        assert_eq!(view.annotations(), &[(16, 17, 18, None)]);
     }
 
     #[test]
