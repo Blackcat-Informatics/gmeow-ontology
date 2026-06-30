@@ -1,6 +1,7 @@
 {
   "certified": false,
   "decidability_class": "operational/Turing-complete",
+  "evolution_class": "static/single-state",
   "profile_id": "ProceduralPrologProfile",
   "violations": [
     "ProceduralPrologProfile carries no static decidability certification — it is operational / probabilistic, outside the certifiable sufficient-condition fragments (LOGIC-SEMANTICS.md §Decidability)"

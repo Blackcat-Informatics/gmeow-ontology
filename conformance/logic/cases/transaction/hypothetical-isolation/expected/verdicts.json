@@ -1,0 +1,6 @@
+{
+  "https://example.org/transaction/hypothetical-isolation/world": {
+    "quads": 21,
+    "status": "consistent"
+  }
+}
