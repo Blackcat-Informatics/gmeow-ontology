@@ -1,1 +1,2 @@
 claim	model
+[Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300")), Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/assistant"))]
