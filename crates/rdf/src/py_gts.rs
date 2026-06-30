@@ -301,50 +301,33 @@ fn gts_from_rdf12_bytes(
     Ok(PyBytes::new(py, &bytes).unbind())
 }
 
-/// Build a `dist`-profile GTS snapshot from serialized RDF bytes — the shared
-/// front half of the JSON-LD-star / RDF-XML serializers. RDF-1.1 quads only
-/// (the compat `Graph` facade carries no quoted-triple terms).
-fn rdf_to_gts_snapshot(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<Vec<u8>> {
-    let dataset = parse_rdf_dataset(data, format)?;
-    let mut builder = SnapshotBuilder::default();
-    builder
-        .add_dataset(&dataset)
-        .map_err(PyValueError::new_err)?;
-    emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
-    )
-    .map_err(PyValueError::new_err)
-}
-
-/// Serialize RDF bytes to **JSON-LD-star** (RDF-1.2-faithful) via the gmeow-gts
-/// codec: RDF → GTS snapshot → `gmeow_gts::yamlld::to_json_ld_string`. This is the
-/// RDF-1.2-first JSON-LD form the published `*.jsonld` artifacts now emit (#834).
+/// Serialize RDF bytes to **JSON-LD-star** (RDF-1.2-faithful) via the FIRST-PARTY native
+/// codec (issue #1171): parse the input RDF bytes into the frozen IR, then emit
+/// JSON-LD-star through the in-repo `native_codecs::jsonld` serializer — no longer the
+/// external gmeow-gts JSON-LD codec. This is the RDF-1.2-first JSON-LD form the published
+/// `*.jsonld` artifacts emit (#834).
 #[pyfunction]
 #[pyo3(signature = (data, *, format))]
 fn to_json_ld(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<String> {
-    let gts_bytes = rdf_to_gts_snapshot(data, format)?;
-    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
-    gmeow_gts::yamlld::to_json_ld_string(&graph)
+    let dataset = parse_rdf_dataset(data, format)?;
+    crate::native_codecs::jsonld::serialize_dataset_to_jsonld(&dataset)
         .map_err(|e| PyValueError::new_err(format!("json-ld-star serialization error: {e}")))
 }
 
-/// Parse **JSON-LD-star** text into N-Quads bytes, via the gmeow-gts codec:
-/// `gmeow_gts::from_yamlld::from_json_ld` → GTS → N-Quads.
+/// Parse **JSON-LD-star** text into N-Quads bytes, via the FIRST-PARTY native codec
+/// (issue #1171): `native_codecs::jsonld::parse_jsonld` into the frozen IR, then
+/// serialize to N-Quads — no longer the external gmeow-gts JSON-LD codec.
 #[pyfunction]
 fn from_json_ld(py: Python<'_>, text: &str) -> PyResult<Py<PyBytes>> {
-    let gts_bytes = gmeow_gts::from_yamlld::from_json_ld(text)
+    let dataset = crate::native_codecs::jsonld::parse_jsonld(text.as_bytes())
         .map_err(|e| PyValueError::new_err(format!("json-ld-star parse error: {e}")))?;
-    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
-    let nquads = gmeow_gts::nquads::to_nquads(&graph);
-    Ok(PyBytes::new(py, nquads.as_bytes()).unbind())
+    let nquads = crate::serialize_dataset(
+        &dataset,
+        NativeRdfFormat::NQuads.media_type(),
+        crate::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PyValueError::new_err(format!("json-ld-star→n-quads serialization error: {e}")))?;
+    Ok(PyBytes::new(py, &nquads).unbind())
 }
 
 /// Serialize RDF bytes to **RDF/XML** via the FIRST-PARTY native codec (EPIC #906):

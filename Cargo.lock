@@ -1901,6 +1901,8 @@ dependencies = [
  "proptest",
  "pyo3",
  "roxmltree",
+ "serde_json",
+ "serde_yaml",
 ]
 
 [[package]]

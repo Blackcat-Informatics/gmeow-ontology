@@ -57,6 +57,11 @@ gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 # without any feature gate (#1132 carrier-purity — `.goals` forbids optional
 # components). The python-gated py_store value comparator also uses it.
 gmeow-xsd = { path = "../xsd" }
+# JSON / YAML surface for the first-party JSON-LD-star / YAML-LD-star codec
+# (`native_codecs::jsonld`, issue #1171). Already in the validate + pipeline trees, so
+# this adds no new tree-wide dependency.
+serde_json = "1"
+serde_yaml = "0.9"
 ciborium = { version = "0.2", optional = true }
 gmeow-gts = { version = "0.9.11", optional = true, features = ["duckdb"] }
 gmeow-rdf-events = { path = "../rdf-events", optional = true }

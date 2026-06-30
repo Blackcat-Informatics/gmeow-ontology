@@ -167,7 +167,11 @@ pub fn serialize_dataset_to_format(
 
 /// Build the first-party [`SerGraph`] from the frozen IR, applying the
 /// [`SerializeGraph`] filter while populating the quad and statement-row tables.
-fn build_ser_graph(
+///
+/// `pub(crate)` so the JSON-LD / YAML-LD codec ([`super::jsonld`]) can build the same
+/// first-party graph shape it walks (a dataset-capable `format` such as
+/// [`NativeRdfFormat::NQuads`] preserves named graphs).
+pub(crate) fn build_ser_graph(
     dataset: &RdfDataset,
     format: NativeRdfFormat,
     selection: SerializeGraph<'_>,
