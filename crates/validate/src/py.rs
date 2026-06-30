@@ -17,7 +17,7 @@
 //! wasm.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use gmeow_diagnostics::py::PyReport;
@@ -690,6 +690,70 @@ fn coverage_analyze(
         PyList::new(py, sets.gap_predicates.iter())?,
     )?;
     Ok(out.into_any().unbind())
+}
+
+/// Run the coverage harness over the vendored fixtures (mirrors
+/// `coverage.run_coverage`).
+///
+/// `fixtures_dir` / `mappings_dir` / `namespace` are `config.FIXTURES_DIR` /
+/// `config.MAPPINGS_DIR` / `config.NAMESPACE`. Returns a dict with the four
+/// sorted IRI lists plus the two coverage fractions:
+/// `{ covered_classes, gap_classes, covered_predicates, gap_predicates,
+/// class_coverage, predicate_coverage }`. A read/parse failure maps to a Python
+/// `ValueError` (a hard failure that must surface).
+#[pyfunction]
+fn run_coverage(
+    py: Python<'_>,
+    fixtures_dir: String,
+    mappings_dir: String,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
+    let report = coverage::run_coverage(
+        Path::new(&fixtures_dir),
+        Path::new(&mappings_dir),
+        &namespace,
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let out = PyDict::new(py);
+    out.set_item(
+        "covered_classes",
+        PyList::new(py, report.covered_classes.iter())?,
+    )?;
+    out.set_item("gap_classes", PyList::new(py, report.gap_classes.iter())?)?;
+    out.set_item(
+        "covered_predicates",
+        PyList::new(py, report.covered_predicates.iter())?,
+    )?;
+    out.set_item(
+        "gap_predicates",
+        PyList::new(py, report.gap_predicates.iter())?,
+    )?;
+    out.set_item("class_coverage", report.class_coverage())?;
+    out.set_item("predicate_coverage", report.predicate_coverage())?;
+    Ok(out.into_any().unbind())
+}
+
+/// Project the coverage harness into the canonical diagnostics `Report` pyclass
+/// (mirrors `coverage.to_diagnostics_report`).
+///
+/// `fixtures_dir` / `mappings_dir` / `namespace` are as for [`run_coverage`].
+/// Coverage gaps are informational, so every finding is an `info` and the report
+/// stays `ok`. A read/parse failure maps to a Python `ValueError`.
+#[pyfunction]
+fn coverage_diagnostics_report(
+    py: Python<'_>,
+    fixtures_dir: String,
+    mappings_dir: String,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
+    let report = coverage::run_coverage(
+        Path::new(&fixtures_dir),
+        Path::new(&mappings_dir),
+        &namespace,
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let diag = coverage::coverage_to_diagnostics(&report);
+    Ok(Py::new(py, PyReport::from_engine(diag))?.into_any())
 }
 
 /// Audit explicit `gmeow:graphBoxRole` coverage over authored sources (mirrors
@@ -1534,6 +1598,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
+    m.add_function(wrap_pyfunction!(run_coverage, m)?)?;
+    m.add_function(wrap_pyfunction!(coverage_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(audit_box_roles, m)?)?;
     m.add_function(wrap_pyfunction!(box_roles_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_check_syntax_iri, m)?)?;

@@ -722,9 +722,11 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
         return diagnostics.report_from_findings(tool="alignment", findings=items)
 
     def _coverage() -> DiagnosticsReport:
-        from gmeow_tools import coverage
+        from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 
-        return coverage.to_diagnostics_report(coverage.run_coverage())
+        return gmeow_validate.coverage_diagnostics_report(
+            str(FIXTURES_DIR), str(MAPPINGS_DIR), str(NAMESPACE)
+        )
 
     def _acceptance() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
@@ -1998,33 +2000,37 @@ def coverage(
     are the project's vendored-entity coverage contract — the Makefile passes the
     current measured values so any regression below them fails the build.
     """
-    from gmeow_tools.coverage import run_coverage
+    from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 
-    report = run_coverage()
+    report = gmeow_validate.run_coverage(
+        str(FIXTURES_DIR), str(MAPPINGS_DIR), str(NAMESPACE)
+    )
+    class_coverage = report["class_coverage"]
+    predicate_coverage = report["predicate_coverage"]
     console.print(
-        f"[green]classes[/green]   {len(report.covered_classes)} covered / "
-        f"{len(report.gap_classes)} gap "
-        f"({report.class_coverage:.0%})"
+        f"[green]classes[/green]   {len(report['covered_classes'])} covered / "
+        f"{len(report['gap_classes'])} gap "
+        f"({class_coverage:.0%})"
     )
     console.print(
-        f"[green]predicates[/green] {len(report.covered_predicates)} covered / "
-        f"{len(report.gap_predicates)} gap "
-        f"({report.predicate_coverage:.0%})"
+        f"[green]predicates[/green] {len(report['covered_predicates'])} covered / "
+        f"{len(report['gap_predicates'])} gap "
+        f"({predicate_coverage:.0%})"
     )
     if show_gaps:
-        for iri in sorted(report.gap_classes):
+        for iri in sorted(report["gap_classes"]):
             err_console.print(f"[yellow]gap class[/yellow] {iri}")
-        for iri in sorted(report.gap_predicates):
+        for iri in sorted(report["gap_predicates"]):
             err_console.print(f"[yellow]gap predicate[/yellow] {iri}")
 
-    if min_class is not None and report.class_coverage < min_class:
+    if min_class is not None and class_coverage < min_class:
         raise _fail(
-            f"✗ class coverage {report.class_coverage:.4f} is below the "
+            f"✗ class coverage {class_coverage:.4f} is below the "
             f"required floor {min_class:.4f}"
         )
-    if min_predicate is not None and report.predicate_coverage < min_predicate:
+    if min_predicate is not None and predicate_coverage < min_predicate:
         raise _fail(
-            f"✗ predicate coverage {report.predicate_coverage:.4f} is below the "
+            f"✗ predicate coverage {predicate_coverage:.4f} is below the "
             f"required floor {min_predicate:.4f}"
         )
 

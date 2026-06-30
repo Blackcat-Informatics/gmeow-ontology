@@ -137,9 +137,9 @@ def aligned_iris(mappings_dir: Path = MAPPINGS_DIR) -> set[str]:
 
     Builds the alignment graph from the loaded mappings and collects every
     ``URIRef`` mentioned as a subject or object — i.e. every external term GMEOW
-    links to. This is the rdflib-bearing seam ``coverage.covered_iris`` delegates
-    to so the coverage module stays graph-free (#579); the rdflib walk lives here,
-    alongside the rest of the mapping/alignment-graph machinery.
+    links to. The native coverage harness performs the equivalent walk over the
+    SSSOM tables directly; this rdflib-bearing version stays here alongside the
+    rest of the mapping/alignment-graph machinery.
     """
     graph = build_alignment_graph(load_mappings(mappings_dir))
     iris: set[str] = set()

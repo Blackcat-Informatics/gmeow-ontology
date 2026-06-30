@@ -174,6 +174,16 @@ def coverage_analyze(
     aligned: list[str],
     namespace: str,
 ) -> dict[str, list[str]]: ...
+def run_coverage(
+    fixtures_dir: str,
+    mappings_dir: str,
+    namespace: str,
+) -> dict[str, Any]: ...
+def coverage_diagnostics_report(
+    fixtures_dir: str,
+    mappings_dir: str,
+    namespace: str,
+) -> Any: ...
 def audit_box_roles(
     paths: list[str],
     ontology_iri: str,
