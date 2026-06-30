@@ -4,7 +4,12 @@
 
 ## What it tests
 
-Universal identity/coreference guards (#74).
+Universal identity/coreference guards. Only the whole-graph banned-IRI
+absence sweep (`test_no_preferred_or_primary_coreference_terms`) remains. The
+`test_schema_sameas_projection_requires_exact_authority_match` projection check
+was removed in the correspondence-frontend migration: the `schema-org` `sameAs` projection is now enforced by
+the native Rust SPARQL lowering and its byte-iso parity oracle, so the Python
+`project_graph` surface was the redundant dual authority.
 
 ## Why it cannot move to Rust today
 

@@ -12,6 +12,16 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # CI artifacts must not inherit the repo's local `target-cpu=native` default.
+  # This target-specific env appends after .cargo/config.toml; the last
+  # -Ctarget-cpu wins while wasm/cross-target jobs stay unaffected.
+  CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3"
+  CARGO_ENV_CFLAGS_VALUE: "-O2 -march=x86-64-v3 -mtune=generic"
+  CARGO_ENV_CXXFLAGS_VALUE: "-O2 -march=x86-64-v3 -mtune=generic"
+  CARGO_ENV_CFLAGS_FORCE: "true"
+  CARGO_ENV_CXXFLAGS_FORCE: "true"
+
 # The quality gate is split into independent jobs that run in parallel; each
 # restores the uv cache (setup-uv) so `uv sync` is fast. The lint job runs the
 # canonical `make lint` target; the python job keeps a separate mypy invocation

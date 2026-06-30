@@ -386,6 +386,82 @@ fn verify_release_bundle_native(
     ))
 }
 
+/// Run the native correspondence-soundness pass (the five alignment checks + the two
+/// FnO back-end checks, incl. the sole native enforcer of Constitution Principle 5) over
+/// the committed `generated/` tree at `root`, returning one dict per problem.
+///
+/// Each dict carries the common `{severity, code, message, check, instance}` fields plus
+/// optional `{subject_id, predicate_id, object_id}` CURIEs for alignment-row findings. An
+/// empty list means the correspondence stack and SSSOM alignments are internally
+/// consistent.
+///
+/// `allow_network` (default `false`) permits live fetching of missing target-axiom
+/// snapshots.
+///
+/// # Errors
+///
+/// Raises `ValueError` on any missing/unparsable required source (a committed artifact,
+/// the ontology, an SSSOM source) — no degraded fallback.
+#[pyfunction]
+#[pyo3(signature = (root, allow_network = false))]
+fn lint_projection<'py>(
+    py: Python<'py>,
+    root: &str,
+    allow_network: bool,
+) -> PyResult<Vec<Bound<'py, PyDict>>> {
+    let problems = crate::stages::correspondence_soundness::lint_correspondence_soundness(
+        Path::new(root),
+        allow_network,
+    )
+    .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("projection lint failed: {e}")))?;
+    problems
+        .into_iter()
+        .map(|d| {
+            let dict = PyDict::new(py);
+            dict.set_item("severity", d.severity)?;
+            dict.set_item("code", d.code)?;
+            dict.set_item("message", d.message)?;
+            dict.set_item("check", d.check)?;
+            dict.set_item("instance", d.instance)?;
+            dict.set_item("subject_id", d.subject_id)?;
+            dict.set_item("predicate_id", d.predicate_id)?;
+            dict.set_item("object_id", d.object_id)?;
+            Ok(dict)
+        })
+        .collect()
+}
+
+/// Expose alignment policy constants from the Rust authority.
+///
+/// Python callers use this only to filter the combined `lint_projection` stream and to
+/// keep saturation's strong-predicate gate in lockstep with the native pass. The predicate
+/// sets are sourced from the correspondence-soundness module (the single authority).
+#[pyfunction]
+fn alignment_policy<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+    use gmeow_logic_compile::projections::correspondence_soundness as soundness;
+    let dict = PyDict::new(py);
+    dict.set_item(
+        "alignment_checks",
+        vec![
+            "inverse-direction",
+            "domain-range",
+            "property-character",
+            "equivalence-collapse",
+            "dc-refinement",
+            "dc-hand-authored",
+        ],
+    )?;
+    dict.set_item(
+        "strong_class_predicates",
+        soundness::STRONG_CLASS_PREDICATES.to_vec(),
+    )?;
+    dict.set_item(
+        "strong_property_predicates",
+        soundness::STRONG_PROPERTY_PREDICATES.to_vec(),
+    )?;
+    Ok(dict)
+}
+
 /// Classify one SSSOM row for the native up-projection audit.
 #[pyfunction]
 #[pyo3(signature = (subject_id, predicate_id, object_id))]
@@ -889,6 +965,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(roundtrip_isomorphic, m)?)?;
+    m.add_function(wrap_pyfunction!(lint_projection, m)?)?;
+    m.add_function(wrap_pyfunction!(alignment_policy, m)?)?;
     m.add_function(wrap_pyfunction!(fold_release_bundle_native, m)?)?;
     m.add_function(wrap_pyfunction!(verify_release_bundle_native, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_classify_sssom, m)?)?;
