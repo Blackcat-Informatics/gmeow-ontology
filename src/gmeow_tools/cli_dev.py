@@ -2681,6 +2681,7 @@ _LOGIC_MODES = (
     "n3",
     "gufo",
     "canonical-rdf12",
+    "clif",
     "report",
 )
 
@@ -2810,6 +2811,7 @@ def logic_compile(
 
     from gmeow_tools.config import PROJECT_ROOT as _PROJECT_ROOT
     from gmeow_tools.logic_compile import (
+        LOGIC_CLIF_FILE,
         LOGIC_DATALOG_FILE,
         LOGIC_GUFO_FILE,
         LOGIC_N3_FILE,
@@ -2853,6 +2855,7 @@ def logic_compile(
             "n3": LOGIC_N3_FILE,
             "gufo": LOGIC_GUFO_FILE,
             "canonical-rdf12": LOGIC_RDF12_FILE,
+            "clif": LOGIC_CLIF_FILE,
             "report": LOGIC_REPORT_FILE,
         }
         # Projection target short-name → compile_logic dict key.
@@ -2863,6 +2866,7 @@ def logic_compile(
             "n3": "n3",
             "gufo": "gufo",
             "canonical-rdf12": "canonical_rdf12",
+            "clif": "clif",
             "report": "report",
         }
 
@@ -2891,7 +2895,7 @@ def logic_compile(
         # mapping (the key comes from the validated _mode_to_key table).
         _artifacts = cast("dict[str, object]", compiled)
         content = str(_artifacts[_mode_to_key[mode]])
-        _sfx = ".ttl" if mode not in ("datalog", "n3") else f".{mode}"
+        _sfx = ".ttl" if mode not in ("datalog", "n3", "clif") else f".{mode}"
 
         if check:
             import tempfile
