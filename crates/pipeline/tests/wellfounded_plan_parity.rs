@@ -82,6 +82,7 @@ fn is_a(store: &Store, node: &NamedNode, class: &NamedNode) -> bool {
             Some(class.as_ref().into()),
             None,
         )
+        .filter_map(Result::ok)
         .next()
         .is_some()
 }
