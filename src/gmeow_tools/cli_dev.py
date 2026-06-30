@@ -2043,7 +2043,10 @@ def crossref() -> None:
     committed artifact): doi-lint runs first so an inconsistent deposit is never
     produced, then the registrant hand-verifies and submits it to CrossRef.
     """
-    from gmeow_tools.crossref import lint_deposit, write_deposit
+    import gmeow_validate
+
+    from gmeow_tools import self_desc
+    from gmeow_tools.config import DIST_DIR
     from gmeow_tools.self_desc import load_self_description
 
     try:
@@ -2051,7 +2054,7 @@ def crossref() -> None:
     except (FileNotFoundError, ValueError) as exc:
         raise _fail(f"✗ self-description unavailable: {exc}") from exc
 
-    problems = lint_deposit(meta)
+    problems = gmeow_validate.lint_deposit_native(self_desc.lint_input_json(meta))
     if problems:
         for problem in problems:
             err_console.print(f"[red]doi-lint[/red] {problem}")
@@ -2059,7 +2062,13 @@ def crossref() -> None:
             f"✗ {len(problems)} doi-lint problem(s) — fix metadata/gmeow-self.ttl"
         )
 
-    path = write_deposit(meta=meta)
+    ts, batch = self_desc.live_stamp(meta)
+    xml = gmeow_validate.build_deposit_xml_native(
+        self_desc.deposit_input_json(meta), ts, batch
+    )
+    path = DIST_DIR / "crossref-deposit.xml"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(xml + "\n", encoding="utf-8")
     note = "concept-only" if meta.version_doi is None else "concept + version"
     console.print(f"[green]✓ {path} (DOI {meta.doi}, {note})[/green]")
     console.print(

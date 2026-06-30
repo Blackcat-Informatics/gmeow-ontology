@@ -25,6 +25,7 @@ repos:
             LICENSE.*|
             tests/fixtures/coverage/external/.*|
             tests/fixtures/crossref/.*|
+            crates/validate/tests/goldens/crossref/.*|
             crates/rdf/tests/corpus/w3c/.*|
             .*\.(tsv|svg)
           )$

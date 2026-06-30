@@ -63,7 +63,7 @@ submission needs a live, monotonically-increasing `<timestamp>` (Crossref uses i
 to order resubmissions), the deposit is generated fresh each time — it is
 deliberately *not* a committed, drift-gated artifact.
 
-`src/gmeow_tools/crossref.py` builds it from the self-description (Principle 4:
+The native deposit builder (`crates/validate/src/crossref.rs`) builds it from the self-description (Principle 4:
 generated from the one canonical source) and **uses the whole schema** — the
 output validates against `crossref5.4.0.xsd` + `AccessIndicators.xsd` +
 `relations.xsd`. Beyond `<dataset type="record">` it carries:
@@ -172,7 +172,7 @@ resolve — our own DOI is undeposited until submitted, so it 404s):
    `owl:versionIRI`; term IRIs carry no version;
 4. concept-only (no version DOI) is valid and not flagged.
 
-The same invariants are pinned by `tests/test_crossref.py`.
+The same invariants are pinned by the native CrossRef deposit goldens (`crates/validate/tests/crossref_golden.rs`).
 
 ## What hasn't worked elsewhere (and why this fixes it)
 
