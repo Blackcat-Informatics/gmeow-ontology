@@ -40,6 +40,7 @@ logic:ActionSchema
         logic:NodeKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Action Schema"@x-gmeow-english ;
+    logic:instantiatesFramework logic:TeleologicalFramework ;
     skos:definition "A named precondition / effect / invariant template that a transaction program may invoke: the reusable unit of state change. Distinct from the concrete transaction program that instantiates it, so a reusable schema is never conflated with a single state-changing run. Punned (OWL 2 DL metamodelling): it is simultaneously the IR node kind AND the class whose instances are specific reusable action schemas — an action occurrence is a gmeow:Event that instantiates one such schema through logic:instantiatesSchema. The structure means–end reasoning reads is declared on a schema by the eight action-theory facets: logic:precondition, logic:effect, logic:invariant, logic:capability, logic:nondeterministicOutcome, logic:observation, logic:compensation, and logic:actionResource."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -47,6 +48,7 @@ logic:AdmissibleValuationPolicy
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Admissible Valuation Policy"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ParaconsistentFramework ;
     skos:definition "The facet value class of the admissible-valuation (gap/glut) policy: which of the four Belnap values a valuation is ALLOWED to assign. Single-valued on a ReasoningContract. Forbidding the gap, the glut, or both carves the classic sub-logics out of the same logic:BelnapBilattice algebra — it is a FORMAL ERROR to reduce the FDE↔LP difference to the designated-value set, because the two differ precisely in this admissible-valuation set, not in their designated values."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -61,6 +63,7 @@ logic:AgencyAssessment
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Agency Assessment"@x-gmeow-english ;
+    logic:instantiatesFramework logic:HolonicFramework ;
     skos:definition "The canonical relational construct of holonic agency: a four-valued assessment of whether a holon exhibits Koestler's two co-equal Janus tendencies — self-assertive (autonomy, as a whole) and integrative (subordination, as a part) — always made relative to a declared logic:HolonicAgencyProfile. Holon integrity is assessed, never asserted — the assessment is reified with the role properties logic:agencyHolon and logic:agencyProfile, and the engine derives its logic:agencyVerdict (logic:HolonIntegral, logic:AutonomyDeficient, logic:IntegrationDeficient, or logic:AgencyUnknown). The two pathologies are the collapse of one tendency: a 'part' with no autonomy (logic:AutonomyDeficient) and a 'whole' that refuses to integrate (logic:IntegrationDeficient); integrity is both present, and neither face is privileged over the other (Principle 9). The convenient unary reading 'this holon is integral' is the lossy projection of this assessment, exactly as logic:Holon projects logic:HolonicPosition and logic:EmergenceAssessment carries emergence (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -96,6 +99,7 @@ logic:ArgumentationSemantics
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Argumentation Semantics"@x-gmeow-english ;
+    logic:instantiatesFramework logic:EpistemicFramework ;
     skos:definition "The facet value class of the argumentation facet: how conflicts among defeasible arguments are resolved. Single-valued on a ReasoningContract. Its individuals range from no argumentation through the grounded and preferred Dung semantics to a policy-specific resolution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Argument , gmeow:Attack , gmeow:Support .
@@ -119,6 +123,7 @@ logic:BelnapBilattice
         logic:TruthAlgebra ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Belnap Bilattice"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ParaconsistentFramework ;
     skos:definition "The four-valued Belnap truth algebra with the values true, false, both (over-determined / glut) and neither (under-determined / gap). The richest truth algebra a ReasoningContract may select; the classic sub-logics (FDE, LP, K3, classical) are carved out of this same algebra by the admissible-valuation policy and the designated-value set, which vary independently of the algebra."@x-gmeow-english .
 
 logic:BudgetBoundedResource
@@ -376,6 +381,7 @@ logic:EmergenceAssessment
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Emergence Assessment"@x-gmeow-english ;
+    logic:instantiatesFramework logic:MereologicalFramework ;
     skos:definition "The canonical relational construct of emergence: a tri-valued assessment of whether a whole's property is reducible to its proper parts, always made relative to a declared logic:ReductionTheory. Emergence is assessed, never asserted — the assessment is reified with the role properties logic:assessmentWhole, logic:assessmentProperty, and logic:assessmentReductionTheory, and the engine derives its logic:assessmentVerdict (logic:Aggregate, logic:Emergent, or logic:EmergenceUnknown). Failure to derive a property from the parts under one theory is not proof of irreducibility: because the assessment records the theory it is relative to, a later, stronger theory can overturn an logic:Emergent verdict without contradiction. The convenient unary reading 'P is emergent' is the lossy projection of this assessment, exactly as logic:Holon projects logic:HolonicPosition (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -621,6 +627,7 @@ logic:GoalEvaluation
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Goal Evaluation"@x-gmeow-english ;
+    logic:instantiatesFramework logic:TeleologicalFramework ;
     skos:definition "The reified, vantage-indexed record of whether a goal is met: one logic:GoalEvaluation per (goal, situation or world it is judged against, evaluator holding the judgment, time of judgment, criterion applied), identified by that tuple of subjects and attributed through gmeow:accordingTo. Its outcome is factored into independent axes rather than one collapsed label — logic:satisfactionStatus, logic:feasibilityStatus, logic:lifecycleStatus, logic:goalEvaluationStatus, and the logic:satisfactionDegree quantity — each varying independently. The binary gmeow:satisfiedBy edge is the conclusive projection of this record: an edge is generated from each evaluation whose satisfaction status is logic:Satisfied and whose goal-evaluation status is logic:GoalEvaluationCompleted, and a directly authored gmeow:satisfiedBy edge deterministically expands into a default such evaluation under the asserting vantage, so the flat and reified records never disagree. Two evaluators who disagree are two coexisting evaluations, each retained rather than reconciled (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -656,6 +663,7 @@ logic:GoalExpression
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Goal Expression"@x-gmeow-english ;
+    logic:instantiatesFramework logic:TeleologicalFramework ;
     skos:definition "The typed IR term carrying the compositional structure of a goal's target so the engine can evaluate it compositionally, attached to a gmeow:Goal through logic:hasGoalCondition. Its node kind is one of nine variants: atomic (satisfied when a named situation type obtains), conjunctive and disjunctive (satisfied when all, or any, sub-expressions are), achievement (satisfied once the target first obtains along a path), maintenance (satisfied only while the target holds at every state of an interval, violated at the first failure), avoidance (the dual of maintenance — satisfied while a proscribed situation never obtains), optimization (directed at a measure, satisfied to the degree the measure is extremized rather than by a crisp boundary), conditional (a target applying only when a guard situation holds), and deadline-window (an achievement or maintenance target indexed to a bounding interval after which the window closes). Identity is STRUCTURAL: two expressions with the same node kind, operands, and bound situation type are the same term, so a goal condition is data the engine reads and writes rather than prose. The flat gmeow:hasGoal and conclusive gmeow:satisfiedBy edges are the surface views this richer form generates; projections that cannot hold the structure record the loss in the preservation ledger."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -861,6 +869,7 @@ logic:Holon
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Holon"@x-gmeow-english ;
+    logic:instantiatesFramework logic:HolonicFramework ;
     skos:definition "The lossy unary projection of logic:HolonicPosition: an entity that, within some holarchy, is simultaneously a whole and a part — both a proper part of some larger whole and itself having a proper part. Holon-ness is never a bare property of the entity; it is a position occupied in a particular holarchy, context, interval, and path, so logic:Holon is the convenient, lossy projection of that relational logic:HolonicPosition, exactly as the standpoint-modality view projects finer axes (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section). Root wholes and atomic leaves are not holons."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -889,6 +898,7 @@ logic:HolonicPosition
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Holonic Position"@x-gmeow-english ;
+    logic:instantiatesFramework logic:HolonicFramework ;
     skos:definition "The canonical relational construct of holon-ness: an entity occupies a holonic position in a particular holarchy, under a particular context, over a particular interval, along a particular path (entity, holarchy, context, interval, path). Whether an entity is a holon is read off this position, never asserted of the entity alone; the unary logic:Holon is its lossy projection. It is reified with the role properties logic:positionEntity, logic:positionHolarchy, logic:positionContext, logic:positionInterval, and logic:positionPath, because the foundation relation is five-place and the arity-bounded reasoning surface carries it as an objectified position (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -947,6 +957,76 @@ logic:LeastModelSemantics
     rdfs:label "Least Model Semantics"@x-gmeow-english ;
     skos:definition "The model-semantics facet value selecting the unique least Herbrand model of a positive (or stratified) program. Single-valued on a ReasoningContract; the monotonic semantics underlying the positive-Horn and stratified-negation presets, contrasted with the well-founded and stable-model values for unstratified negation."@x-gmeow-english .
 
+logic:LogicalFramework
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Logical Framework"@x-gmeow-english ;
+    skos:definition "The closed class of reasoning disciplines the canonical logic: core formalizes — each a self-contained body of constructs, axioms, and operational semantics co-resident in logic:. Its nine named individuals are logic:HolonicFramework, logic:MereologicalFramework, logic:DeonticFramework, logic:TeleologicalFramework, logic:TemporalFramework, logic:ModalFramework, logic:EpistemicFramework, logic:ProbabilisticFramework, and logic:ParaconsistentFramework. A term declares the disciplines it traffics in via logic:instantiatesFramework, and may instantiate several; absence is meaningful — a plain domain term that traffics in no special discipline carries no framework. The value names WHICH reasoning machinery a term belongs to, orthogonal to the logic:ReasoningContract facets, which describe HOW a particular evaluation is configured rather than which discipline a term inhabits. The set is closed, so a misspelt framework names no declared value and is rejected rather than silently accepted, mirroring logic:AgencyVerdict and logic:EmergenceVerdict (design/LOGIC-SEMANTICS.md, the unified-logic-core section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:HolonicFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Holonic Framework"@x-gmeow-english ;
+    skos:definition "The compositional / systems-theory framework: the contextual, path-relative parthood of logic:HolonicPosition, the Koestlerian self-assertive/integrative assessment of logic:AgencyAssessment, emergence over a declared reduction theory, and non-transitive downward governance. Holon-ness is a position an entity occupies in a holarchy under a context over an interval, never a bare unary type (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:MereologicalFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mereological Framework"@x-gmeow-english ;
+    skos:definition "The part-whole framework: strict parthood (logic:properPartOf, a transitive, asymmetric, irreflexive order), overlap and disjointness, and weak supplementation scoped to a declared logic:MereologyProfile rather than imposed universally. Parthood is profiled, not universal — supplementation is true of functional complexes and quantities but false of singleton collectives and in-progress assemblies (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english .
+
+logic:DeonticFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Deontic Framework"@x-gmeow-english ;
+    skos:definition "The normative framework: obligation, prohibition, permission, and recommendation evaluated against the deontic-ideal worlds of the typed context algebra, with issuer-indexed force (an ought is always according-to an authority, never bare) and serial deontic accessibility so the universal obligation condition is never vacuously satisfied (design/LOGIC-TELEOLOGY.md, the norms-and-deontic-force-over-goals section)."@x-gmeow-english .
+
+logic:TeleologicalFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Teleological Framework"@x-gmeow-english ;
+    skos:definition "The goal-and-action framework: structured logic:GoalExpression (atomic through achievement, maintenance, avoidance, optimization, conditional, and deadline forms), the reified multi-axis logic:GoalEvaluation, and logic:ActionSchema with its precondition / effect / invariant / capability / outcome / observation / compensation facets — the structure that motivates and evaluates transactions, kept distinct from how state changes (design/LOGIC-TELEOLOGY.md, the why-goals-and-action-are-their-own-layer section)."@x-gmeow-english .
+
+logic:TemporalFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Temporal Framework"@x-gmeow-english ;
+    skos:definition "The 4D / path framework: logic:State and logic:Path with the ordered transaction history, logic:TransactionStep instantiation from predecessor to successor, and frame-relative truth where a formula's truth is a property of the path it executes along. Time is one independent index axis of the typed context algebra, coexisting with world, standpoint, and path on a single result (design/LOGIC-SEMANTICS.md, the worlds-modality-and-counterfactuals section; design/LOGIC-TRANSACTION.md, the path-semantics section)."@x-gmeow-english .
+
+logic:ModalFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Modal Framework"@x-gmeow-english ;
+    skos:definition "The alethic-modality and rigidity framework: logic:World / logic:PossibleWorld with typed accessibility, and the modal notion of rigidity (logic:rigidlyAppliesTo, lowering to the constraint that a rigid type held in one world of an individual's existence is held in all). Kripke semantics realized over GMEOW's contextual index — the modal distinctions full UFO needs and OWL cannot hold (design/LOGIC-FOUNDATION.md, the criticism-ledger section; design/LOGIC-SEMANTICS.md, the operational-semantics-modality-and-identity-supply section)."@x-gmeow-english .
+
+logic:EpistemicFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Epistemic Framework"@x-gmeow-english ;
+    skos:definition "The knowledge, justification, and argumentation framework: doxastic accessibility (logic:doxasticallyAccessible), knowing-that that is factive only relative to a world and an epistemic standard, evidential warrant (logic:evidenceStrength), and defeasible argumentation resolved under a declared logic:ArgumentationSemantics with typed attacks. Factivity stays honest in a paraconsistent, world-indexed setting — knowing P in a world entails P in that world, never globally (design/LOGIC-FOUNDATION.md, the argumentation-and-epistemic-standards section)."@x-gmeow-english .
+
+logic:ProbabilisticFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Probabilistic Framework"@x-gmeow-english ;
+    skos:definition "The uncertainty framework: logic:probability as a graded-belief measure over a declared logic:ProbabilityModel (an independence or dependency model), with marginals computed by weighted model counting. A measure on the uncertainty facet, never a model-semantics value, and kept strictly distinct from logic:confidence (epistemic metadata), logic:weight (solver ranking), and logic:evidenceStrength (warrant) — the four are not interchangeable (design/LOGIC-SEMANTICS.md, the confidence-probability-weight-and-evidence section)."@x-gmeow-english .
+
+logic:ParaconsistentFramework
+    a owl:NamedIndividual ,
+        logic:LogicalFramework ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Paraconsistent Framework"@x-gmeow-english ;
+    skos:definition "The multi-valued-truth framework: the logic:BelnapBilattice (true, false, both/glut, neither/gap), the admissible-valuation policy (logic:AdmissibleValuationPolicy — the gap/glut choice distinguishing FDE, LP, K3, classical) and designated-value set carried on a logic:TruthAlgebra, and context-indexed entailment so a contradiction is localized to the contexts that disagree, witnessed explicitly, and reasoned around rather than exploding the model (design/LOGIC-SEMANTICS.md, the unified-logic-core section; design/LOGIC-CONTRACT.md, the truth-values-admissible-valuations-and-the-designated-value-policy section)."@x-gmeow-english .
+
 logic:MaterialRelationshipType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -972,6 +1052,7 @@ logic:MereologyProfile
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Mereology Profile"@x-gmeow-english ;
+    logic:instantiatesFramework logic:MereologicalFramework ;
     skos:definition "A declared scope within which the strong mereological axioms — weak supplementation above all — are taken to hold. Parthood is profiled, not universal: weak supplementation is true of functional complexes and quantities but false of many legitimate wholes (singleton-membered collectives, abstract aggregates, in-progress assemblies), so logic: scopes it to the MereologyProfile a whole is declared under (via logic:underMereologyProfile) rather than asserting it across all logic:properPartOf. A whole outside any profile is never charged with a logic:WeakSupplementation violation (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1216,6 +1297,7 @@ logic:ProbabilisticMeasure
         logic:UncertaintyMeasure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Probabilistic Measure"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ProbabilisticFramework ;
     skos:definition "The uncertainty measure carrying calibrated probabilities, requiring a declared logic:ProbabilityModel. One member of the uncertainty-measure set facet (it may coexist with logic:WeightedRankingMeasure or logic:FuzzyMeasure); it is a measure carried alongside the chosen model semantics, never a model-semantics value of its own, and never the default reading of a logic:confidence number."@x-gmeow-english .
 
 logic:ProbabilisticProfile
@@ -1230,6 +1312,7 @@ logic:ProbabilityModel
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Probability Model"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ProbabilisticFramework ;
     skos:definition "A declared independence or dependency model governing probabilistic inference for a rule set or world. Probabilistic inference under logic:ProbabilisticProfile is available ONLY when such a model is declared via logic:probabilityModel: the model fixes the joint distribution over the logic:probability facts so that marginals are well-defined. Absent a declared model the profile refuses to infer probabilities — it never silently assumes independence, because treating un-modelled confidence metadata as a probability model is the named failure mode this vocabulary exists to prevent."@x-gmeow-english .
 
 logic:ProceduralExecution
@@ -1562,6 +1645,7 @@ logic:TruthAlgebra
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Truth Algebra"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ParaconsistentFramework ;
     skos:definition "The facet value class of the truth algebra: the lattice of truth values over which valuations range. Single-valued on a ReasoningContract. It is one of the three independent components of the truth/inconsistency facet — algebra, admissible-valuation policy, designated values — that together separate FDE, LP, K3 and classical logic; its values are the four-valued Belnap bilattice and the classical two-valued algebra."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1662,6 +1746,7 @@ logic:Path
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Path"@x-gmeow-english ;
+    logic:instantiatesFramework logic:TemporalFramework ;
     skos:definition "An ordered run of states — a history — over which the typed accessibility relation logic:temporallySucceeds is read; the typed context of the context algebra that carries the Transaction-Logic state sequence, whose edges logic:transitionFromState and logic:transitionToState walk and whose positions are gmeow:State configurations, each realizing a logic:Situation. 'History' is the documented synonym. One of the distinct typed contexts (alongside logic:PossibleWorld, gmeow:EpistemicContext, gmeow:Standpoint, gmeow:Scenario, gmeow:State, gmeow:ReferenceFrame, gmeow:NarrativeReferenceFrame); no inference may cross into it by walking the bare logic:accessibleFrom superproperty, and its relation to states and situations is stated in prose, not as a subclass edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1669,6 +1754,7 @@ logic:PossibleWorld
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Possible World"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ModalFramework ;
     skos:definition "A typed alethic context — a logic:World of alethic possibility, one of the distinct typed contexts of the context algebra (alongside the doxastic gmeow:EpistemicContext, the perspectival gmeow:Standpoint, the hypothesized gmeow:Scenario, the gmeow:State along a logic:Path, the gmeow:ReferenceFrame, and the gmeow:NarrativeReferenceFrame). The contexts its typed accessibility relation logic:epistemicallyPossible ranges over; the modal operators (necessity, possibility) are the standard translation over that typed relation, never over a blurred union. It is a logic:World of the alethic world-type (stated in prose, not as a subclass edge), so no inference may cross into it by walking the bare logic:accessibleFrom superproperty."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1676,6 +1762,7 @@ logic:World
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "World"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ModalFramework ;
     skos:definition "A reified, named context relative to which truth is evaluated — a possible world in the Kripke sense, realized by GMEOW's materialized contextual index (standpoints, narrative reference frames, goal-, ought-, feared-, and counterfactual-worlds). Truth is world-relative and entailment is world-indexed: a contradiction within one world is a witness, a contradiction across worlds is not an inconsistency in the model. Carries a world-type taxonomy (epistemic, doxastic, telic, deontic, alethic, representational, counterfactual)."@x-gmeow-english .
 
 logic:WorldBoundary
@@ -1709,6 +1796,7 @@ logic:doxasticallyAccessible
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "doxastically accessible"@x-gmeow-english ;
+    logic:instantiatesFramework logic:EpistemicFramework ;
     skos:definition "The typed doxastic accessibility relation between gmeow:EpistemicContexts — what an agent's beliefs hold accessible. It need not be reflexive (an agent may believe a falsehood); this character is documented in prose, not asserted as an OWL characteristic, matching the kernel convention. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so the bare superproperty licenses no cross-type entailment and what is believed never leaks into what is true."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1716,6 +1804,7 @@ logic:deonticallyIdeal
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "deontically ideal"@x-gmeow-english ;
+    logic:instantiatesFramework logic:DeonticFramework ;
     skos:definition "The typed deontic accessibility relation: a context is deontically ideal — an ought-world — relative to an issuer. Deontic reasoning is a USE of typed contexts, not a separate context type: a deontic claim is truth in the deontically-ideal accessible contexts of an issuer. Deontic accessibility is serial — every context from which an obligation is read has at least one accessible ideal context — so the 'satisfied in every ideal context' condition is never vacuously true; an empty ideal set yields undetermined rather than vacuous truth. logic:accessibleFrom is its generic superproperty in prose only — NOT asserted rdfs:subPropertyOf — so what is ideal never leaks into what is."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1974,6 +2063,7 @@ logic:TransactionStep
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Transaction Step"@x-gmeow-english ;
+    logic:instantiatesFramework logic:TemporalFramework ;
     skos:definition "An elementary update / transaction-path step that instantiates an action schema (logic:instantiatesSchema) and carries the path edge from a predecessor state (logic:transitionFromState) to a successor state (logic:transitionToState). The native evaluator applies the schema's logic:effect over the step, computing the successor situation's support as ins/del supersession: inserted supports become active, deleted supports are recorded via the append-only supersession quartet (logic:activeInState, logic:validUntilState, logic:retiredByTransaction, logic:supersededBy) and never erased."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1991,6 +2081,14 @@ logic:planGoal
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "plan goal"@x-gmeow-english ;
     skos:definition "Relates a logic:Plan to the gmeow:Goal that is its success criterion — the goal the plan's steps, invoking action schemas, are arranged to reach. Domain logic:Plan, range gmeow:Goal (stated in prose). The plan's success against this goal is quantified over nondeterministic outcomes through logic:planSuccessMode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:instantiatesFramework
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "instantiates framework"@x-gmeow-english ;
+    rdfs:range logic:LogicalFramework ;
+    skos:definition "Relates a term to the closed logic:LogicalFramework discipline(s) it traffics in — the reasoning machinery the term belongs to (logic:HolonicPosition instantiates logic:HolonicFramework; gmeow:Norm instantiates logic:DeonticFramework). Multi-valued: a term may inhabit several frameworks (a logic:GoalEvaluation that ranges over deontic-ideal worlds is both teleological and deontic). Classifying metadata, orthogonal to the logic:ReasoningContract facets that configure a particular evaluation; the range is the closed class, so an undeclared value is rejected. Absence is meaningful — a plain domain term that traffics in no special discipline carries no framework, and none is asserted (design/LOGIC-SEMANTICS.md, the unified-logic-core section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:instantiatesSchema
@@ -2511,6 +2609,7 @@ logic:evidenceStrength
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "evidence strength"@x-gmeow-english ;
+    logic:instantiatesFramework logic:EpistemicFramework ;
     skos:definition "Evidential support for a statement, provenance-derived and reusing the evidence-slice warrant axes (source tier, evidence class): how well-warranted a claim is by its evidence. Normatively distinct from logic:probability, logic:confidence, and logic:weight — an evidential warrant is not a calibrated probability, an asserter's confidence, or a solver ranking, and is not interchangeable with any of them."@x-gmeow-english .
 
 logic:evolution
@@ -2844,6 +2943,7 @@ logic:probability
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "probability"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ProbabilisticFramework ;
     skos:definition "A calibrated probability under probabilistic fact/event semantics, requiring an explicit independence or dependency model. Distinct from logic:confidence, logic:weight, and logic:evidenceStrength and not interchangeable with them: probabilistic inference is available only in logic:ProbabilisticProfile. A logic:confidence annotation is NOT a probability unless an explicit mapping to this property is declared."@x-gmeow-english .
 
 logic:probabilityModel
@@ -2866,6 +2966,7 @@ logic:properPartOf
         logic:transitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "proper part of"@x-gmeow-english ;
+    logic:instantiatesFramework logic:MereologicalFramework ;
     skos:definition "STRICT parthood: relates an entity to a whole it is part of but NOT identical to. Transitive, asymmetric, and irreflexive — a genuine strict partial order (proper-part-of, ancestor). This exact combination is illegal in OWL 2 DL, which globally forbids a property being both transitive and asymmetric (criticism 7, LOGIC-FOUNDATION.md §OWL 2 criticisms); logic: imposes no such global restriction and reasons over it completely, recovering decidability by projection rather than by crippling the canon. The deliberate OWL-2-criticism demonstrator."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2899,6 +3000,7 @@ logic:rigidlyAppliesTo
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "rigidly applies to"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ModalFramework ;
     skos:definition "Relates a rigid type to the individuals it necessarily classifies: for every individual and every pair of worlds in which the individual exists, if it instantiates the type in one world it instantiates it in the other. The modal rigidity constraint; a Kind rigidly applies to its instances, an anti-rigid Role or Phase does not (the same constraint negated). Lowered to a universally quantified, world-indexed rule evaluated by closure over the finite materialized world set, needing no native modal operator."@x-gmeow-english .
 
 logic:selfAssertiveBasis
