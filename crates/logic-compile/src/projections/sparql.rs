@@ -16,6 +16,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ingest::prefixes::PREFIX_REGISTRY;
 use crate::ingest::{DslTerm, DslView};
+use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
     curie, projections, render_expr, sparql_string, Atom, Item, MappingPattern, ProfileBinding,
@@ -62,13 +63,17 @@ pub struct SparqlLowering {
 /// Lower every profile's SPARQL projection query, keyed `<profile>.rq`, plus the
 /// per-correspondence loss ledger. `dsl` is the merged mapping-DSL view; `onto` the
 /// merged ontology view (suppression vocabulary).
-pub fn lower_sparql(dsl: &DslView, onto: &DslView) -> Result<SparqlLowering, String> {
+pub fn lower_sparql(
+    dsl: &DslView,
+    onto: &DslView,
+    lookup: &CorrespondenceLookup,
+) -> Result<SparqlLowering, String> {
     let cells = projections(dsl)?;
     let vocab = suppression_vocab(onto);
     let mut queries = BTreeMap::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     for profile in PROFILES {
-        let emitted = emit_sparql(&cells, profile, &vocab)?;
+        let emitted = emit_sparql(&cells, profile, &vocab, lookup)?;
         queries.insert(format!("{profile}.rq"), emitted.query);
         ledger.extend(emitted.ledger);
     }
@@ -155,6 +160,7 @@ fn emit_sparql(
     cells: &[ProjectionCell],
     profile: &str,
     vocab: &SuppressionVocab,
+    lookup: &CorrespondenceLookup,
 ) -> Result<EmittedQuery, String> {
     let mut templates: Vec<String> = Vec::new();
     let mut branches: Vec<String> = Vec::new();
@@ -170,10 +176,19 @@ fn emit_sparql(
             // is an equivalence-style assertion only when its relation is genuine
             // equivalence. A bridge / caveated relation emitting the `=` token is a build
             // failure, propagated as Err. (Corpus relations are `=`/`<=`; the `=` cells are
-            // genuine Equiv, so the gate passes for the committed corpus.)
-            let (rel, mclass, mkind) = b.lattice();
-            assert_relation_no_overclaim("sparql-construct", rel, mclass, mkind, &b.relation)
-                .map_err(|e| e.0)?;
+            // genuine Equiv, so the gate passes for the committed corpus.) The typed
+            // `(relation, class, kind)` is CONSUMED from the materialized correspondence
+            // keyed by `(cell IRI, profile)` — the single source of truth — not re-derived
+            // inline. A miss is a HARD FAIL: every authored binding is transpiled.
+            let typed = lookup.binding(&cell.iri, &b.profile)?;
+            assert_relation_no_overclaim(
+                "sparql-construct",
+                typed.relation,
+                typed.morphism_class,
+                typed.morphism_kind,
+                &b.relation,
+            )
+            .map_err(|e| e.0)?;
 
             for tmpl in templates_of(cell, b)? {
                 if !templates.contains(&tmpl) {
