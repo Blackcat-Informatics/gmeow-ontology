@@ -1564,6 +1564,70 @@ def verify(
     )
 
 
+@app.command("reason-verify")
+def reason_verify(
+    merge: bool = typer.Option(
+        False,
+        "--merge",
+        help=(
+            "Write the inferred-closure artifact as asserted + derived graph "
+            "(native mode only)."
+        ),
+    ),
+    timings_json: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--timings-json",
+        help="Write structured command timings to this JSON file.",
+    ),
+) -> None:
+    """Run native reasoning and reasoned-graph verify from one native closure."""
+    from gmeow_tools import reason as reasoning
+
+    try:
+        from gmeow_tools.diagnostics import emit_legacy_cli
+
+        started = time.perf_counter()
+        reason_report, verify_report = reasoning.reason_and_verify_native(merge=merge)
+        elapsed = _elapsed_ms(started)
+        emit_legacy_cli(reason_report, err_console)
+        emit_legacy_cli(verify_report, err_console)
+        if timings_json is not None:
+            _write_timings_json(
+                timings_json,
+                {
+                    "command": "reason-verify",
+                    "mode": "native",
+                    "merge": merge,
+                    "ok": reason_report.ok and verify_report.ok,
+                    "errors": reason_report.error_count + verify_report.error_count,
+                    "timings": [
+                        {
+                            "phase": "reason-verify-native",
+                            "elapsed_ms": elapsed,
+                            "metadata": f"merge={merge}",
+                        }
+                    ],
+                },
+            )
+    except (
+        ImportError,
+        ValueError,
+        RuntimeError,
+        OSError,
+        FileNotFoundError,
+    ) as exc:
+        raise _fail(f"native reason+verify failed: {exc}") from exc
+    if not reason_report.ok:
+        raise _fail(f"✗ inconsistent / {reason_report.error_count} error(s)")
+    if not verify_report.ok:
+        raise _fail(
+            f"✗ verify: {verify_report.error_count} violation(s) on the reasoned graph"
+        )
+    console.print(
+        "[green]✓ native EL/DL reasoning + reasoned-graph verify (Docker-free)[/green]"
+    )
+
+
 @app.command()
 def temporal(
     query: str = typer.Argument(..., help="TQL query name (e.g. timeline)."),
