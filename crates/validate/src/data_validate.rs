@@ -265,9 +265,9 @@ fn deep_consistency_findings(
 fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
     if is_json_ld(data_format) {
         // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
-        // native JSON-LD-star codec (issue #1171), which folds the RDF 1.2 statement
-        // layer and PRESERVES named graphs — the graph-preserving shape this Tier-2
-        // path needs (no longer the external gmeow-gts JSON-LD codec).
+        // native JSON-LD-star codec, which folds the RDF 1.2 statement layer and
+        // PRESERVES named graphs — the graph-preserving shape this Tier-2 path needs
+        // (no longer the external gmeow-gts JSON-LD codec).
         return gmeow_rdf::native_codecs::jsonld::parse_jsonld(data_bytes)
             .map_err(|e| format!("JSON-LD parse error: {e}"));
     }
@@ -282,9 +282,9 @@ fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>,
 fn data_dataset_flat(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
     if is_json_ld(data_format) {
         // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
-        // native JSON-LD-star codec (issue #1171), then re-home every named graph to the
-        // default graph (the Tier-1 SHACL path needs the whole graph flat). This matches
-        // the prior gmeow-gts → `dataset_from_gts` flattening behavior.
+        // native JSON-LD-star codec, then re-home every named graph to the default graph
+        // (the Tier-1 SHACL path needs the whole graph flat). This matches the prior
+        // gmeow-gts → `dataset_from_gts` flattening behavior.
         let dataset = gmeow_rdf::native_codecs::jsonld::parse_jsonld(data_bytes)
             .map_err(|e| format!("JSON-LD parse error: {e}"))?;
         return flatten_to_default_graph(&dataset);

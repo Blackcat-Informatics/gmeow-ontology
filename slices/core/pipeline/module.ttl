@@ -489,7 +489,7 @@ gmeow:stage-export-schemas
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: schemas"@x-gmeow-english ;
-    skos:definition "Project the carrier dataset to LinkML + downstream schema artifacts. A fold-reading export leaf over the carrier (#1132): reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
+    skos:definition "Project the carrier dataset to LinkML + downstream schema artifacts. A fold-reading export leaf over the carrier: reads the gmeow:stage-snapshot bundle directly, never the gts bytes (GTS is exit-only)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;

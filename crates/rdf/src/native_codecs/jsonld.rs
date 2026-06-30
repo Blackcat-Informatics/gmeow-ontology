@@ -154,8 +154,8 @@ pub fn serialize_dataset_to_yamlld(
     let url = schema_url.unwrap_or(BUNDLED_SCHEMA_REF);
     let header = format!(
         "# yaml-language-server: $schema={url}\n\
-         # TODO(#700): default schema URL is bounded to the bundled gmeow.schema.json;\n\
-         # replace with the canonical public URL once issue #700 finalizes the schema surface.\n"
+         # The default reference is the bundled gmeow.schema.json; pass an explicit\n\
+         # schema_url to point editors at a hosted copy.\n"
     );
     Ok(header + &body)
 }

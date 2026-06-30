@@ -302,10 +302,9 @@ fn gts_from_rdf12_bytes(
 }
 
 /// Serialize RDF bytes to **JSON-LD-star** (RDF-1.2-faithful) via the FIRST-PARTY native
-/// codec (issue #1171): parse the input RDF bytes into the frozen IR, then emit
-/// JSON-LD-star through the in-repo `native_codecs::jsonld` serializer — no longer the
-/// external gmeow-gts JSON-LD codec. This is the RDF-1.2-first JSON-LD form the published
-/// `*.jsonld` artifacts emit (#834).
+/// codec: parse the input RDF bytes into the frozen IR, then emit JSON-LD-star through the
+/// in-repo `native_codecs::jsonld` serializer — no longer the external gmeow-gts JSON-LD
+/// codec. This is the RDF-1.2-first JSON-LD form the published `*.jsonld` artifacts emit.
 #[pyfunction]
 #[pyo3(signature = (data, *, format))]
 fn to_json_ld(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<String> {
@@ -314,9 +313,9 @@ fn to_json_ld(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<String
         .map_err(|e| PyValueError::new_err(format!("json-ld-star serialization error: {e}")))
 }
 
-/// Parse **JSON-LD-star** text into N-Quads bytes, via the FIRST-PARTY native codec
-/// (issue #1171): `native_codecs::jsonld::parse_jsonld` into the frozen IR, then
-/// serialize to N-Quads — no longer the external gmeow-gts JSON-LD codec.
+/// Parse **JSON-LD-star** text into N-Quads bytes, via the FIRST-PARTY native codec:
+/// `native_codecs::jsonld::parse_jsonld` into the frozen IR, then serialize to N-Quads —
+/// no longer the external gmeow-gts JSON-LD codec.
 #[pyfunction]
 fn from_json_ld(py: Python<'_>, text: &str) -> PyResult<Py<PyBytes>> {
     let dataset = crate::native_codecs::jsonld::parse_jsonld(text.as_bytes())
