@@ -1881,6 +1881,7 @@ dependencies = [
  "sha1 0.10.6",
  "sha2",
  "tempfile",
+ "ureq",
 ]
 
 [[package]]
@@ -1973,7 +1974,6 @@ dependencies = [
  "serde",
  "sha2",
  "tempfile",
- "ureq",
 ]
 
 [[package]]
