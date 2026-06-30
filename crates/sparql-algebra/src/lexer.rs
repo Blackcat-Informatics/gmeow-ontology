@@ -104,6 +104,8 @@ pub enum Token {
     TripleOpen,
     /// `>>` (RDF 1.2 triple-term close)
     TripleClose,
+    /// `~` (RDF 1.2 reifier marker, e.g. `:s :p :o ~ :r`)
+    Tilde,
 }
 
 /// A token plus its half-open source byte span `[start, end)`.
@@ -216,6 +218,7 @@ impl<'a> Lexer<'a> {
             '-' => self.single(Token::Minus),
             '!' => Ok(self.two_or_one('!', Token::Bang, '=', Token::NotEq, Token::Bang)),
             '=' => self.single(Token::Eq),
+            '~' => self.single(Token::Tilde),
             '&' => self.lex_and(start),
             '0'..='9' => Ok(self.lex_number()),
             '.' => Ok(self.lex_number()), // a leading-dot decimal like `.5`

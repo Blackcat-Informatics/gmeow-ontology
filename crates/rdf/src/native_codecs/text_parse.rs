@@ -575,11 +575,25 @@ impl<'a> DocParser<'a> {
         Ok(())
     }
 
-    /// A `VERSION`/`@version` argument: a (short) string literal, recorded only to be
-    /// accepted and skipped.
+    /// A `VERSION`/`@version` argument: a **single-line** string literal, recorded only
+    /// to be accepted and skipped. RDF 1.2 forbids a triple-quoted (`'''`/`"""`) long
+    /// string here, so the raw span is checked and a long form is rejected (the lexer
+    /// collapses both quote styles into one `StringLit`, so the source span is the only
+    /// place the distinction survives).
     fn version_string(&mut self) -> Result<(), RdfDiagnostic> {
+        let span = self.tokens.get(self.pos).map(|s| (s.start, s.end));
         match self.bump() {
-            Some(Token::StringLit(_)) => Ok(()),
+            Some(Token::StringLit(_)) => {
+                if let Some((start, _)) = span {
+                    let raw = &self.src[start..];
+                    if raw.starts_with("\"\"\"") || raw.starts_with("'''") {
+                        return Err(err(
+                            "version directive needs a single-line string, found a triple-quoted string",
+                        ));
+                    }
+                }
+                Ok(())
+            }
             other => Err(err(format!(
                 "version directive needs a string, found {other:?}"
             ))),
@@ -714,27 +728,27 @@ impl<'a> DocParser<'a> {
         Ok(Node::Triple(Box::new(s), Box::new(p), Box::new(o)))
     }
 
-    /// RDF 1.2 reifying triple `<< s p o >>`: mints an anonymous reifier node and
-    /// emits `reifier rdf:reifies <<( s p o )>>`, returning the reifier node.
-    ///
-    /// The explicit `~ reifier` identifier and `{| pol |}` annotation forms use the
-    /// `~`/`{|`/`|}` lexemes, which the sparql-algebra term lexer does not model; those
-    /// constructs do not appear in the regenerate corpus this gate covers, so an input
-    /// carrying one HARD-fails at tokenize time rather than being silently mis-parsed.
+    /// RDF 1.2 reifying triple `<< s p o ~r? >>` in subject/object position: emits
+    /// `r rdf:reifies <<( s p o )>>` and returns the reifier `r`. With an explicit
+    /// `~ id`, `r` is that id; otherwise (`~` alone, or no reifier at all) a fresh
+    /// blank node is minted. The inner triple is NOT independently asserted here — the
+    /// reifiedTriple denotes its reifier, so only the `rdf:reifies` statement is emitted.
     fn reifying_triple(&mut self, graph: Option<&Node>) -> Result<Node, RdfDiagnostic> {
         self.expect(&Token::TripleOpen)?;
         let s = self.quoted_component(graph)?;
         let p = self.predicate()?;
         let o = self.quoted_component(graph)?;
+        let reifier = if self.eat(&Token::Tilde) {
+            if self.at_reifier_id() {
+                self.term(graph)?
+            } else {
+                self.next_bnode()
+            }
+        } else {
+            self.next_bnode()
+        };
         self.expect(&Token::TripleClose)?;
-        let reifier = self.next_bnode();
-        let triple_term = Node::Triple(Box::new(s), Box::new(p), Box::new(o));
-        self.emit(
-            &reifier,
-            &Node::Iri(RDF_REIFIES.to_owned()),
-            &triple_term,
-            graph,
-        );
+        self.emit_reifies(&reifier, &s, &p, &o, graph);
         Ok(reifier)
     }
 
@@ -894,7 +908,12 @@ impl<'a> DocParser<'a> {
                 break;
             }
             if self.eat(&Token::Semicolon) {
-                if self.at(&Token::Dot) || self.at(&Token::RBracket) || self.at(&Token::RBrace) {
+                // `Pipe` terminates a trailing `;` inside a `{| … |}` annotation block.
+                if self.at(&Token::Dot)
+                    || self.at(&Token::RBracket)
+                    || self.at(&Token::RBrace)
+                    || self.at(&Token::Pipe)
+                {
                     break;
                 }
                 continue;
@@ -905,18 +924,78 @@ impl<'a> DocParser<'a> {
     }
 
     /// The RDF 1.2 reifier (`~ id`) / annotation (`{| pol |}`) suffix on a just-emitted
-    /// triple. The lexer does NOT model `~`, `{|`, `|}` as tokens; those constructs do
-    /// not appear in the regenerate corpus the gate covers, so they are out of scope
-    /// for this token-stream parser and a `~`/`{|` here is a hard error rather than a
-    /// silent drop.
+    /// `s p o` triple, matching the W3C RDF 1.2 Turtle/TriG reification expansion:
+    ///
+    /// - `~ id?` mints (or names) a reifier `r` and emits `r rdf:reifies <<( s p o )>>`.
+    /// - `{| pol |}` reuses the immediately-preceding `~`-reifier if one is pending,
+    ///   else mints a fresh reifier (with its own `rdf:reifies` triple), then evaluates
+    ///   `pol` with that reifier as subject.
+    ///
+    /// Multiple suffixes chain (`~r1 ~r2`, `{| a |} {| b |}`); each annotation block
+    /// consumes at most the one pending reifier, so a second block mints fresh.
+    /// `~` is `Token::Tilde`; `{|`/`|}` are the `LBrace Pipe` / `Pipe RBrace` pairs.
     fn maybe_reify_and_annotate(
         &mut self,
-        _s: &Node,
-        _p: &Node,
-        _o: &Node,
-        _graph: Option<&Node>,
+        s: &Node,
+        p: &Node,
+        o: &Node,
+        graph: Option<&Node>,
     ) -> Result<(), RdfDiagnostic> {
+        let mut pending: Option<Node> = None;
+        loop {
+            if self.eat(&Token::Tilde) {
+                let reifier = if self.at_reifier_id() {
+                    self.term(graph)?
+                } else {
+                    self.next_bnode()
+                };
+                self.emit_reifies(&reifier, s, p, o, graph);
+                pending = Some(reifier);
+            } else if self.at(&Token::LBrace) && self.peek2() == Some(&Token::Pipe) {
+                self.bump(); // `{`
+                self.bump(); // `|`
+                let reifier = match pending.take() {
+                    Some(reifier) => reifier,
+                    None => {
+                        let reifier = self.next_bnode();
+                        self.emit_reifies(&reifier, s, p, o, graph);
+                        reifier
+                    }
+                };
+                self.predicate_object_list(&reifier, graph)?;
+                self.expect(&Token::Pipe)?; // `|` of `|}`
+                self.expect(&Token::RBrace)?; // `}` of `|}`
+            } else {
+                break;
+            }
+        }
         Ok(())
+    }
+
+    /// Emit `reifier rdf:reifies <<( s p o )>>` (the triple term is self-reifying via
+    /// [`Node::Triple`]), the canonical RDF 1.2 reification triple.
+    fn emit_reifies(&mut self, reifier: &Node, s: &Node, p: &Node, o: &Node, graph: Option<&Node>) {
+        let triple_term = Node::Triple(
+            Box::new(s.clone()),
+            Box::new(p.clone()),
+            Box::new(o.clone()),
+        );
+        self.emit(
+            reifier,
+            &Node::Iri(RDF_REIFIES.to_owned()),
+            &triple_term,
+            graph,
+        );
+    }
+
+    /// Whether the next token can begin a reifier identifier (`iri | BlankNode`).
+    fn at_reifier_id(&self) -> bool {
+        matches!(
+            self.peek(),
+            Some(
+                Token::Iri(_) | Token::PrefixedName(_, _) | Token::BlankNodeLabel(_) | Token::Anon
+            )
+        )
     }
 
     fn emit(&mut self, subject: &Node, predicate: &Node, object: &Node, graph: Option<&Node>) {
