@@ -334,41 +334,32 @@ fn lowering_is_stable_across_repeated_calls() {
     );
 }
 
-/// Verify that `lower_formulas` deduplicates by content key (first-wins, stable order).
+/// Verify that the lane (`lower_formulas_to_rc`) deduplicates by content key (first-wins,
+/// stable order), and that `lower_formulas` inherits that dedup without an extra pass.
 ///
-/// `horn_rule_formula()` included twice in `program_with` reaches `lower_formulas_to_rc`
-/// as two equal `RcRule`s (with_formulas sorts but does NOT dedup identical formulas).
-/// The dedup gate must drop the second occurrence and yield exactly one `EvalRule`, with
-/// exact preservation (the duplicate is not residue — it is a redundant identical clause).
+/// Two identical copies of `horn_rule_formula()` reach `lower_formulas_to_rc`; the lane
+/// must collapse them to a single `RcRule` (dedup-at-lane). The adapter then maps that one
+/// `RcRule` onward to one `EvalRule`, with exact preservation (the duplicate is not residue).
 #[test]
 fn duplicate_formulas_produce_one_rule_not_two() {
     let f = horn_rule_formula();
-    // with_formulas does NOT dedup, so both copies reach lower_formulas_to_rc as two
-    // identical RcRules. Verify this pre-condition first.
+    // The lane now dedups, so two identical formulas yield exactly one RcRule.
     use gmeow_logic_compile::relational_core::lower_formulas_to_rc;
     let prog = program_with(vec![f.clone(), f.clone()]);
     let (rc_rules, rc_residue) = lower_formulas_to_rc(&prog);
     assert_eq!(
         rc_rules.len(),
-        2,
-        "pre-condition: lower_formulas_to_rc must yield two identical RcRules before dedup"
+        1,
+        "dedup-at-lane: lower_formulas_to_rc must collapse two identical formulas to one RcRule"
     );
-    assert!(
-        rc_residue.is_empty(),
-        "pre-condition: no residue from Horn formulas"
-    );
-    assert_eq!(
-        rc_rules[0].key(),
-        rc_rules[1].key(),
-        "pre-condition: both RcRules must have equal content keys"
-    );
+    assert!(rc_residue.is_empty(), "no residue from Horn formulas");
 
-    // Now verify the dedup gate in lower_formulas collapses them to one EvalRule.
+    // The adapter inherits the dedup from the lane and maps one RcRule to one EvalRule.
     let out = lower_formulas(&prog);
     assert_eq!(
         out.rules.len(),
         1,
-        "lower_formulas must dedup identical clauses: duplicate dropped, one rule survives"
+        "lower_formulas must yield one EvalRule: duplicate already dropped by the lane"
     );
     assert_eq!(
         out.rules[0].body.len(),
