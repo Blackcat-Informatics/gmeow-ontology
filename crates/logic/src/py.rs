@@ -1064,6 +1064,7 @@ fn build_divergence_ledger(
 enum NativeReasonPyError {
     GtsRead(String),
     Reason(String),
+    Verify(String),
 }
 
 struct NativeReasonPayload {
@@ -1083,6 +1084,9 @@ fn map_native_reason_error(err: NativeReasonPyError) -> PyErr {
         NativeReasonPyError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
         NativeReasonPyError::Reason(m) => {
             pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
+        }
+        NativeReasonPyError::Verify(m) => {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("verify error: {m}"))
         }
     }
 }
@@ -1121,6 +1125,47 @@ fn native_reason_payload_with_artifacts(
         result: build_reasoning_result_ttl(&typed),
     };
     Ok((NativeReasonPayload { typed, verdict }, artifacts))
+}
+
+fn native_reason_verify_payload_with_artifacts(
+    bytes: Vec<u8>,
+    queries: Vec<(String, String)>,
+    merge: bool,
+) -> Result<
+    (
+        NativeReasonPayload,
+        NativeReasonArtifacts,
+        gmeow_diagnostics::Report,
+    ),
+    NativeReasonPyError,
+> {
+    use crate::reason::artifacts::{
+        build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
+        build_reasoning_result_ttl,
+    };
+
+    let bundle = gmeow_rdf::import_gts_events(&bytes)
+        .map_err(|e| NativeReasonPyError::GtsRead(format!("GTS read error: {e}")))?;
+    let dataset = bundle.dataset.as_ref();
+    let (closure, verdict) =
+        crate::reason::reason_closure(dataset).map_err(NativeReasonPyError::Reason)?;
+    let typed = crate::reason::typed_result(closure, &verdict);
+
+    let merge_store = if merge { Some(dataset) } else { None };
+    let artifacts = NativeReasonArtifacts {
+        closure: build_inferred_closure_ttl(&typed, merge_store)
+            .map_err(NativeReasonPyError::Reason)?,
+        explanations: build_explanations_ttl(&typed).map_err(NativeReasonPyError::Reason)?,
+        ledger: build_dl_el_ledger_ttl(&typed),
+        result: build_reasoning_result_ttl(&typed),
+    };
+    let verify_report = crate::verify::verify_with_reasoning_result(dataset, &typed, &queries)
+        .map_err(NativeReasonPyError::Verify)?;
+    Ok((
+        NativeReasonPayload { typed, verdict },
+        artifacts,
+        verify_report,
+    ))
 }
 
 fn reason_native_to_dict<'py>(
@@ -1278,6 +1323,43 @@ fn reason_native_with_artifacts(
     artifacts_dict.set_item("ledger", artifacts.ledger)?;
     artifacts_dict.set_item("result", artifacts.result)?;
     out.set_item("artifacts", artifacts_dict)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Run native OWL-2 reasoning and native reasoned-graph verify from one closure.
+///
+/// This fused surface exists for Makefile/check-style callers that need both
+/// reports in the same gate. It imports the GTS bundle once, runs the Nemo chase
+/// once, emits the same reasoning artifacts as [`reason_native_with_artifacts`],
+/// then runs verify queries against the shared typed result.
+#[pyfunction]
+#[pyo3(signature = (gts_bytes, queries, merge=false))]
+fn reason_and_verify_native(
+    py: Python<'_>,
+    gts_bytes: &[u8],
+    queries: Vec<(String, String)>,
+    merge: bool,
+) -> PyResult<Py<PyAny>> {
+    let bytes = gts_bytes.to_vec();
+    let (payload, artifacts, verify_report) = py
+        .detach(move || native_reason_verify_payload_with_artifacts(bytes, queries, merge))
+        .map_err(map_native_reason_error)?;
+
+    let reason = reason_native_to_dict(py, &payload)?;
+    let artifacts_dict = PyDict::new(py);
+    artifacts_dict.set_item("closure", artifacts.closure)?;
+    artifacts_dict.set_item("explanations", artifacts.explanations)?;
+    artifacts_dict.set_item("ledger", artifacts.ledger)?;
+    artifacts_dict.set_item("result", artifacts.result)?;
+    reason.set_item("artifacts", artifacts_dict)?;
+
+    let verify = Py::new(
+        py,
+        gmeow_diagnostics::py::PyReport::from_engine(verify_report.normalized()),
+    )?;
+    let out = PyDict::new(py);
+    out.set_item("reason", reason)?;
+    out.set_item("verify", verify)?;
     Ok(out.into_any().unbind())
 }
 
@@ -1607,6 +1689,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reason_native, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native_with_artifacts, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native_artifacts, m)?)?;
+    m.add_function(wrap_pyfunction!(reason_and_verify_native, m)?)?;
     m.add_function(wrap_pyfunction!(rl_closure_nt, m)?)?;
     m.add_function(wrap_pyfunction!(rl_closure_quads, m)?)?;
     m.add_function(wrap_pyfunction!(build_divergence_ledger, m)?)?;

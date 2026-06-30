@@ -14,7 +14,7 @@ use gmeow_rdf::RdfDataset;
 use crate::data::{GraphFilter, IrDataGraph, ShaclDataGraph};
 use crate::model::{rdf, rdfs};
 use crate::report::ValidationReport;
-use crate::shapes::{Shapes, Target};
+use crate::shapes::{Shape, Shapes, Target};
 use crate::term::{NamedNode, Term};
 
 // ── Target resolution helpers ─────────────────────────────────────────────────
@@ -183,6 +183,24 @@ fn resolve_focus_nodes<G: ShaclDataGraph>(
 /// source_constraint_component, source_shape, result_path, value)` so reports are
 /// identical across runs.
 pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> ValidationReport {
+    validate_with_focus_filter(data, shapes, |_, _| true)
+}
+
+/// Validate with an explicit focus-node filter.
+///
+/// The filter is called after target resolution and before constraint evaluation.
+/// It lets callers that already know only a bounded set of focus nodes changed
+/// avoid rechecking the clean base graph, while still resolving targets against
+/// the full data graph.
+pub fn validate_with_focus_filter<G, F>(
+    data: &G,
+    shapes: &Shapes,
+    mut include_focus: F,
+) -> ValidationReport
+where
+    G: ShaclDataGraph,
+    F: FnMut(&Shape, &Term) -> bool,
+{
     let mut all_results = Vec::new();
     // Per-call subclass-closure memo: keyed by class IRI, value is the full
     // transitive closure of asserted rdfs:subClassOf edges below that class.
@@ -208,6 +226,9 @@ pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> Validation
         // i.e. once SHACL-SPARQL constraints are common or the IR-native backend runs
         // end-to-end (dropping the shared-`Store` contention). See #828 (item 2).
         for focus in &focus_nodes {
+            if !include_focus(shape, focus) {
+                continue;
+            }
             all_results.extend(crate::constraints::validate_shape(data, focus, shape));
         }
     }
@@ -257,18 +278,39 @@ pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> Validation
 ///
 /// Returns an error string if the SHACL projection cannot be frozen into the IR.
 pub fn validate_dataset(data: &RdfDataset, shapes: &Shapes) -> Result<ValidationReport, String> {
-    let dataset = shacl_dataset_from_dataset(data)?;
+    let dataset = project_dataset(data)?;
     // The engine reads pattern lookups directly from the frozen IR; SHACL-SPARQL
     // paths run the native SPARQL engine over the same `Arc<RdfDataset>`.
-    let reference = IrDataGraph::new(dataset);
-    let report = validate_with(&reference, shapes);
-    Ok(report)
+    Ok(validate_projected_dataset(dataset, shapes))
+}
+
+/// Validate an already-SHACL-projected dataset.
+///
+/// Call [`project_dataset`] first when the same base graph is reused across many
+/// overlays; this avoids flattening/reifier-projecting the base graph on every
+/// validation pass.
+pub fn validate_projected_dataset(projected: Arc<RdfDataset>, shapes: &Shapes) -> ValidationReport {
+    let reference = IrDataGraph::new(projected);
+    validate_with(&reference, shapes)
+}
+
+/// Validate an already-SHACL-projected dataset with a focus-node filter.
+pub fn validate_projected_dataset_with_focus_filter<F>(
+    projected: Arc<RdfDataset>,
+    shapes: &Shapes,
+    include_focus: F,
+) -> ValidationReport
+where
+    F: FnMut(&Shape, &Term) -> bool,
+{
+    let reference = IrDataGraph::new(projected);
+    validate_with_focus_filter(&reference, shapes, include_focus)
 }
 
 /// Build a SHACL-projection dataset from the source [`RdfDataset`], flattening
 /// every quad into the default graph and materializing reifier bindings as
 /// `rdf:reifies` triples and statement annotations as plain triples.
-pub(crate) fn shacl_dataset_from_dataset(data: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
+pub fn project_dataset(data: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
     use gmeow_rdf::ir::RdfDatasetBuilder;
     use gmeow_rdf::{RdfQuad, RdfTerm};
 
@@ -299,6 +341,11 @@ pub(crate) fn shacl_dataset_from_dataset(data: &RdfDataset) -> Result<Arc<RdfDat
     }
 
     builder.freeze().map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+pub(crate) fn shacl_dataset_from_dataset(data: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
+    project_dataset(data)
 }
 
 /// The `rdf:reifies` predicate IRI, used to project reifier bindings into the
