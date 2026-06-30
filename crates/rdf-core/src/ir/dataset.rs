@@ -377,6 +377,48 @@ impl RdfDataset {
         }
     }
 
+    /// Resolve a term id to its dataset-independent [`TermValue`], recursing through
+    /// the literal datatype and triple components. The inverse of interning a value:
+    /// the literal datatype is expanded to its IRI string, the blank label is
+    /// scope-qualified, and triple terms recurse by value (C0.1/C0.2/C0.3).
+    ///
+    /// This is the value-model companion to [`to_owned_term`](Self::to_owned_term):
+    /// consumers that key on the dataset-independent value identity (LOGIC's
+    /// world-store, the SPARQL egress) resolve through this rather than the
+    /// `RdfTerm` owned model.
+    pub fn term_value(&self, id: TermId) -> crate::TermValue {
+        use crate::TermValue;
+        match self.resolve(id) {
+            TermRef::Iri(iri) => TermValue::Iri(iri.to_owned()),
+            TermRef::Blank { label, scope } => TermValue::Blank {
+                label: label.to_owned(),
+                scope,
+            },
+            TermRef::Literal {
+                lexical,
+                datatype,
+                language,
+                direction,
+            } => {
+                let datatype = match self.resolve(datatype) {
+                    TermRef::Iri(dt) => dt.to_owned(),
+                    other => unreachable!("literal datatype must resolve to an IRI, got {other:?}"),
+                };
+                TermValue::Literal {
+                    lexical_form: lexical.to_owned(),
+                    datatype,
+                    language: language.map(str::to_owned),
+                    direction,
+                }
+            }
+            TermRef::Triple { s, p, o } => TermValue::Triple {
+                s: Box::new(self.term_value(s)),
+                p: Box::new(self.term_value(p)),
+                o: Box::new(self.term_value(o)),
+            },
+        }
+    }
+
     /// Resolve a term id that must be an IRI (a predicate / triple-predicate
     /// position) to its owned IRI string.
     fn iri_string(&self, id: TermId) -> String {
@@ -987,6 +1029,38 @@ impl RdfDataset {
                 o: object,
                 g: None,
             })
+    }
+
+    /// Flatten the dataset into the source-faithful flat **value**-quad stream with
+    /// every quad collapsed to the default graph (`g == None`): the base quads (graph
+    /// names dropped), then the RDF 1.2 statement layer re-materialized as
+    /// `<reifier> rdf:reifies <<( s p o )>>` rows and the annotation rows.
+    ///
+    /// This is the oxigraph-free, value-model twin of the legacy
+    /// `flat_oxigraph_quads_from_dataset` under `GraphPolicy::FlattenToDefaultGraph`:
+    /// a consumer that needs a single merged default graph (the LOGIC reasoned-graph
+    /// verify) folds over these `QuadValues` directly. Deterministic: base quads in
+    /// frozen order, then reifier rows, then annotation rows.
+    pub fn flat_default_graph_quads(&self) -> impl Iterator<Item = crate::QuadValues> + '_ {
+        let base = self.quads().map(move |q| crate::QuadValues {
+            s: self.term_value(q.s),
+            p: self.term_value(q.p),
+            o: self.term_value(q.o),
+            g: None,
+        });
+        let reifiers = self.reifier_quads().map(move |q| crate::QuadValues {
+            s: self.term_value(q.s),
+            p: self.term_value(q.p),
+            o: self.term_value(q.o),
+            g: None,
+        });
+        let annotations = self.annotation_quads().map(move |q| crate::QuadValues {
+            s: self.term_value(q.s),
+            p: self.term_value(q.p),
+            o: self.term_value(q.o),
+            g: None,
+        });
+        base.chain(reifiers).chain(annotations)
     }
 
     /// The source location attached to a quad, if any. `O(log n)` binary search over

@@ -26,12 +26,12 @@ path = "src/lib.rs"
 capi = []
 
 [dependencies]
-# Both features ON: `oxigraph` provides the parse/serialize/SPARQL backends;
 # `gts` provides the oxigraph-free GTS read/write core (gts_write +
 # import_gts_events) — the spec's "libpurrdf statically reuses gmeow-gts so a
-# language shim links one .so" clause. The `python` feature stays OFF: this is a
-# C-ABI, not a PyO3 extension.
-gmeow-rdf = { path = "../rdf", default-features = false, features = ["gts", "oxigraph"] }
+# language shim links one .so" clause. SPARQL is served by the native engine
+# (`gmeow-sparql-eval`, below), so NO `oxigraph` feature is pulled (#906 cutover).
+# The `python` feature stays OFF: this is a C-ABI, not a PyO3 extension.
+gmeow-rdf = { path = "../rdf", default-features = false, features = ["gts"] }
 # gmeow-rdf re-exports the core types, but the capi depends on the kernel
 # directly too so it can name MutableDataset/QuadValues/GraphMatchValue/DatasetMut
 # without leaning on re-export aliasing. Harmless to crate-check (acyclic).
@@ -40,6 +40,11 @@ gmeow-rdf-core = { path = "../rdf-core", default-features = false, features = ["
 # the SAME ../rdf-core, so SparqlResult/TermValue unify — this crate delegates its
 # SRJ emission here instead of carrying a second hand-written serializer.
 gmeow-sparql-results = { path = "../sparql-results" }
+# The native SPARQL engine (purrdf S6, #912): the single `SparqlEngine` impl
+# (`NativeSparqlEngine`) evaluates `purrdf_query` over the frozen `Arc<RdfDataset>`
+# directly — the oxigraph-free query path (#906). Path-depends on the SAME
+# ../rdf-core so `SparqlRequest`/`SparqlResult` unify.
+gmeow-sparql-eval = { path = "../sparql-eval" }
 
 # === cargo-c packaging (the spec-letter build mechanism) ===
 [package.metadata.capi]

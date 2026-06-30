@@ -17,20 +17,11 @@
 //! turn a pathological input into a spurious timeout — a panic is a real find, a
 //! timeout would be a false red.
 //!
-//! `parse_quads` itself is `#[cfg(feature = "python")]`-gated (unreachable from a
-//! default nextest run), so — like `proptest_roundtrip.rs` — the N-Quads/Turtle
-//! contract is exercised through the identical oxigraph `RdfParser` path that
-//! `parse_quads` wraps.
-//!
-//! INTENTIONAL oxigraph cross-check (#909) — NOT a production native-codec path.
-//! These properties deliberately hammer the *oxigraph* `RdfParser` because the
-//! python-gated `py_store::parse_quads` it guards wraps that exact reader; the
-//! native text codec's own "never panic" contract is covered by the cargo-fuzz
-//! `nquads` target (`fuzz/fuzz_targets/nquads.rs`, re-pointed at
-//! `gmeow_rdf::parse_dataset`). So the `oxigraph::io` use here is an explicit,
-//! documented carve-out from the #909 grep gate, not a production parse.
+//! The parser under test is the native, oxigraph-free [`gmeow_rdf::parse_dataset`]
+//! codec (EPIC #906): it must return `Ok`/`Err` and NEVER panic on arbitrary input
+//! across every text format it accepts (N-Quads / Turtle / TriG / N-Triples).
 
-use oxigraph::io::{RdfFormat, RdfParser};
+use gmeow_rdf::{parse_dataset, NativeRdfFormat};
 use proptest::prelude::*;
 
 /// Raw arbitrary bytes, bounded to keep parsing cheap.
@@ -63,24 +54,24 @@ fn structured_turtle() -> impl Strategy<Value = String> {
 proptest! {
     #![proptest_config(ProptestConfig { cases: 256, ..ProptestConfig::default() })]
 
-    /// The oxigraph parse path `parse_quads` wraps (lenient, every format) must
-    /// never panic on arbitrary bytes.
+    /// The native `parse_dataset` codec (every text format) must never panic on
+    /// arbitrary bytes — `Ok`/`Err` is fine, a panic is a failure.
     #[test]
-    fn rdf_parser_lenient_never_panics(data in arbitrary_bytes()) {
-        for format in [RdfFormat::NQuads, RdfFormat::Turtle, RdfFormat::TriG, RdfFormat::N3] {
-            for quad in RdfParser::from_format(format).lenient().for_slice(&data) {
-                // Consume every item; `Err` is fine, a panic is a failure.
-                let _ = quad;
-            }
+    fn native_parse_never_panics(data in arbitrary_bytes()) {
+        for format in [
+            NativeRdfFormat::NQuads,
+            NativeRdfFormat::Turtle,
+            NativeRdfFormat::TriG,
+            NativeRdfFormat::NTriples,
+        ] {
+            let _ = parse_dataset(&data, format.media_type(), None);
         }
     }
 
     /// Structured-Turtle variant: reach deep parser states without timing out.
     #[test]
-    fn rdf_parser_lenient_never_panics_structured(text in structured_turtle()) {
-        for quad in RdfParser::from_format(RdfFormat::Turtle).lenient().for_slice(text.as_bytes()) {
-            let _ = quad;
-        }
+    fn native_parse_never_panics_structured(text in structured_turtle()) {
+        let _ = parse_dataset(text.as_bytes(), NativeRdfFormat::Turtle.media_type(), None);
     }
 
     /// The GTS container reader must never panic on arbitrary bytes, with or

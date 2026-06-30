@@ -30,9 +30,7 @@
 
 mod conformance_support;
 use conformance_support::*;
-use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
-use gmeow_rdf::parse_dataset;
-use oxigraph::model::Term;
+use gmeow_rdf::{flat_rdf_quads_from_dataset, parse_dataset, RdfTerm};
 use rstest::rstest;
 
 /// Turtle prefix block shared by all music analysis conformance tests.
@@ -167,10 +165,20 @@ fn music_foundation_tbox_assertions_are_rust_covered() {
     }
 }
 
-fn object_iri(term: &Term) -> Option<&str> {
+/// The IRI string of an object term, or `None` for blank/literal/triple terms.
+fn object_iri(term: &RdfTerm) -> Option<&str> {
     match term {
-        Term::NamedNode(node) => Some(node.as_str()),
+        RdfTerm::Iri(iri) => Some(iri.as_str()),
         _ => None,
+    }
+}
+
+/// A stable string key for a node term (IRI or blank node) used to join shape rows.
+fn node_key(term: &RdfTerm) -> String {
+    match term {
+        RdfTerm::Iri(iri) => format!("<{iri}>"),
+        RdfTerm::BlankNode(label) => format!("_:{label}"),
+        other => format!("{other:?}"),
     }
 }
 
@@ -179,7 +187,7 @@ fn work_shapes_do_not_require_notated_realization() {
     let shapes = read_ttl(&repo_root().join("shapes").join("gmeow-shapes.ttl"));
     let dataset =
         parse_dataset(shapes.as_bytes(), "text/turtle", None).expect("parse gmeow shapes");
-    let quads = flat_oxigraph_quads_from_dataset(&dataset).expect("flat quads");
+    let quads = flat_rdf_quads_from_dataset(&dataset);
     let sh_target_class = "http://www.w3.org/ns/shacl#targetClass";
     let sh_property = "http://www.w3.org/ns/shacl#property";
     let sh_path = "http://www.w3.org/ns/shacl#path";
@@ -190,34 +198,31 @@ fn work_shapes_do_not_require_notated_realization() {
 
     let work_shapes = quads
         .iter()
-        .filter(|quad| {
-            quad.predicate.as_str() == sh_target_class && object_iri(&quad.object) == Some(work)
-        })
-        .map(|quad| quad.subject.to_string())
+        .filter(|quad| quad.predicate == sh_target_class && object_iri(&quad.object) == Some(work))
+        .map(|quad| node_key(&quad.subject))
         .collect::<std::collections::BTreeSet<_>>();
     let work_shape_properties = quads
         .iter()
         .filter(|quad| {
-            quad.predicate.as_str() == sh_property
-                && work_shapes.contains(&quad.subject.to_string())
+            quad.predicate == sh_property && work_shapes.contains(&node_key(&quad.subject))
         })
-        .map(|quad| quad.object.to_string())
+        .map(|quad| node_key(&quad.object))
         .collect::<std::collections::BTreeSet<_>>();
 
     let offending = work_shape_properties
         .iter()
         .filter(|property| {
             let path_is_realization_mode = quads.iter().any(|quad| {
-                quad.subject.to_string() == **property
-                    && quad.predicate.as_str() == sh_path
+                node_key(&quad.subject) == **property
+                    && quad.predicate == sh_path
                     && object_iri(&quad.object) == Some(realization_mode)
             });
             if !path_is_realization_mode {
                 return false;
             }
             quads.iter().any(|quad| {
-                quad.subject.to_string() == **property
-                    && quad.predicate.as_str() == sh_has_value
+                node_key(&quad.subject) == **property
+                    && quad.predicate == sh_has_value
                     && object_iri(&quad.object) == Some(realization_mode_notated)
             })
         })

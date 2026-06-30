@@ -29,12 +29,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oxigraph::model::{NamedNode, Term};
-use oxigraph::store::Store;
-
 use crate::catalog::SliceCatalog;
 use crate::error::SliceError;
 use crate::ownership::{OwnershipAnalyzer, ReconciliationStatus, SliceIri};
+use crate::rdf_query::Dataset;
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const GMEOW_SLICE_DEPENDS_ON: &str = "https://blackcatinformatics.ca/gmeow/sliceDependsOn";
@@ -130,24 +128,11 @@ fn apply_proposal(original: &str, proposal: &DepProposal) -> Result<String, Slic
     // ── RDF-aware confirmation: parse the manifest, confirm the slice subject,
     // and read its existing sliceDependsOn object set. ──────────────────────────
     let store = parse_turtle(original.as_bytes(), &proposal.manifest_path)?;
-    let subject = NamedNode::new(&proposal.slice_iri).map_err(|e| {
-        SliceError::InvalidManifest(format!("invalid slice IRI {}: {e}", proposal.slice_iri))
-    })?;
-    let pred = NamedNode::new(GMEOW_SLICE_DEPENDS_ON).expect("static IRI");
-    let mut existing: BTreeSet<String> = BTreeSet::new();
-    for quad in store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(pred.as_ref()),
-            None,
-            None,
-        )
-        .flatten()
-    {
-        if let Term::NamedNode(target) = &quad.object {
-            existing.insert(target.as_str().to_string());
-        }
-    }
+    let subject = proposal.slice_iri.as_str();
+    let existing: BTreeSet<String> = store
+        .object_iris(subject, GMEOW_SLICE_DEPENDS_ON)?
+        .into_iter()
+        .collect();
 
     // Only remove targets that are actually declared; only add ones not already
     // present (idempotent, no duplicate patch lines).
@@ -180,20 +165,10 @@ fn apply_proposal(original: &str, proposal: &DepProposal) -> Result<String, Slic
     // ── Post-edit validation: re-parse and confirm the corrected dependency set
     // is present on the slice subject (well-formed Turtle, no terminator slips). ─
     let patched_store = parse_turtle(patched.as_bytes(), &proposal.manifest_path)?;
-    let mut result: BTreeSet<String> = BTreeSet::new();
-    for quad in patched_store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(pred.as_ref()),
-            None,
-            None,
-        )
-        .flatten()
-    {
-        if let Term::NamedNode(target) = &quad.object {
-            result.insert(target.as_str().to_string());
-        }
-    }
+    let result: BTreeSet<String> = patched_store
+        .object_iris(subject, GMEOW_SLICE_DEPENDS_ON)?
+        .into_iter()
+        .collect();
     // Expected = existing − removed + added.
     let mut expected = existing.clone();
     for t in &to_remove {
@@ -210,19 +185,10 @@ fn apply_proposal(original: &str, proposal: &DepProposal) -> Result<String, Slic
         )));
     }
     // Confirm the slice subject still typed as gmeow:Slice (no structural damage).
-    let rdf_type =
-        NamedNode::new("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").expect("static IRI");
-    let gmeow_slice =
-        NamedNode::new("https://blackcatinformatics.ca/gmeow/Slice").expect("static IRI");
     let still_a_slice = patched_store
-        .quads_for_pattern(
-            Some(subject.as_ref().into()),
-            Some(rdf_type.as_ref()),
-            Some(gmeow_slice.as_ref().into()),
-            None,
-        )
-        .next()
-        .is_some();
+        .subjects_of_type("https://blackcatinformatics.ca/gmeow/Slice")?
+        .iter()
+        .any(|s| s == subject);
     if !still_a_slice {
         return Err(SliceError::InvalidManifest(format!(
             "fix-deps: patched {} no longer declares its slice subject {}",
@@ -233,10 +199,10 @@ fn apply_proposal(original: &str, proposal: &DepProposal) -> Result<String, Slic
     Ok(patched)
 }
 
-/// Parse Turtle into an oxigraph store (lenient for `@x-gmeow-*` lang tags),
+/// Parse Turtle into a native dataset (lenient for `@x-gmeow-*` lang tags),
 /// hard-failing on any syntax error.
-fn parse_turtle(bytes: &[u8], path: &str) -> Result<Store, SliceError> {
-    crate::rdf_text::turtle_bytes_to_store(bytes, path)
+fn parse_turtle(bytes: &[u8], path: &str) -> Result<Dataset, SliceError> {
+    Dataset::parse_turtle(bytes, path)
 }
 
 /// Extract the `gmeow:` prefix IRI declared in the Turtle (defaults to the
@@ -558,10 +524,12 @@ mod tests {
         let patched = apply_proposal(manifest, &p).expect("patch must succeed");
         // Re-parse: well-formed Turtle, and the sliceDependsOn is gone.
         let store = parse_turtle(patched.as_bytes(), "test").expect("must re-parse");
-        let pred = NamedNode::new(GMEOW_SLICE_DEPENDS_ON).unwrap();
-        let count = store
-            .quads_for_pattern(None, Some(pred.as_ref()), None, None)
-            .count();
+        let mut count = 0usize;
+        store.for_each_quad(|_, p, _, _| {
+            if p == GMEOW_SLICE_DEPENDS_ON {
+                count += 1;
+            }
+        });
         assert_eq!(count, 0, "stale dependency must be removed");
         // The slice subject must remain typed and the previous predicate must now
         // carry the terminal `.`.
@@ -583,18 +551,13 @@ mod tests {
         let p = proposal("sliceB", &["sliceA"], &[]);
         let patched = apply_proposal(manifest, &p).expect("patch must succeed");
         let store = parse_turtle(patched.as_bytes(), "test").expect("must re-parse");
-        let subject = NamedNode::new(format!("{NS}slices/sliceB")).unwrap();
-        let pred = NamedNode::new(GMEOW_SLICE_DEPENDS_ON).unwrap();
+        let subject = format!("{NS}slices/sliceB");
         let target = format!("{NS}slices/sliceA");
         let found = store
-            .quads_for_pattern(
-                Some(subject.as_ref().into()),
-                Some(pred.as_ref()),
-                None,
-                None,
-            )
-            .flatten()
-            .any(|q| matches!(&q.object, Term::NamedNode(n) if n.as_str() == target));
+            .object_iris(&subject, GMEOW_SLICE_DEPENDS_ON)
+            .unwrap()
+            .iter()
+            .any(|n| n == &target);
         assert!(found, "added dependency must be present and parseable");
     }
 
@@ -616,20 +579,11 @@ mod tests {
         let p = proposal("sliceB", &["sliceA"], &["stale1"]);
         let patched = apply_proposal(manifest, &p).expect("patch must succeed");
         let store = parse_turtle(patched.as_bytes(), "test").expect("must re-parse");
-        let subject = NamedNode::new(format!("{NS}slices/sliceB")).unwrap();
-        let pred = NamedNode::new(GMEOW_SLICE_DEPENDS_ON).unwrap();
+        let subject = format!("{NS}slices/sliceB");
         let deps: BTreeSet<String> = store
-            .quads_for_pattern(
-                Some(subject.as_ref().into()),
-                Some(pred.as_ref()),
-                None,
-                None,
-            )
-            .flatten()
-            .filter_map(|q| match &q.object {
-                Term::NamedNode(n) => Some(n.as_str().to_string()),
-                _ => None,
-            })
+            .object_iris(&subject, GMEOW_SLICE_DEPENDS_ON)
+            .unwrap()
+            .into_iter()
             .collect();
         assert_eq!(
             deps,
@@ -640,17 +594,11 @@ mod tests {
         let add_line_count = patched.matches("slices/sliceA").count();
         assert_eq!(add_line_count, 1, "no duplicate sliceDependsOn lines");
         // Slice subject still typed.
-        let rdf_type = NamedNode::new("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").unwrap();
-        let gmeow_slice = NamedNode::new("https://blackcatinformatics.ca/gmeow/Slice").unwrap();
         assert!(store
-            .quads_for_pattern(
-                Some(subject.as_ref().into()),
-                Some(rdf_type.as_ref()),
-                Some(gmeow_slice.as_ref().into()),
-                None
-            )
-            .next()
-            .is_some());
+            .subjects_of_type("https://blackcatinformatics.ca/gmeow/Slice")
+            .unwrap()
+            .iter()
+            .any(|s| s == &subject));
     }
 
     /// Adding a dependency already declared is a no-op (idempotent, no dupes).
@@ -700,20 +648,11 @@ mod tests {
         let p = proposal("agentic", &["entities"], &["stale"]);
         let patched = apply_proposal(manifest, &p).expect("patch must succeed");
         let store = parse_turtle(patched.as_bytes(), "test").expect("must re-parse");
-        let subject = NamedNode::new(format!("{NS}slices/agentic")).unwrap();
-        let pred = NamedNode::new(GMEOW_SLICE_DEPENDS_ON).unwrap();
+        let subject = format!("{NS}slices/agentic");
         let deps: BTreeSet<String> = store
-            .quads_for_pattern(
-                Some(subject.as_ref().into()),
-                Some(pred.as_ref()),
-                None,
-                None,
-            )
-            .flatten()
-            .filter_map(|q| match &q.object {
-                Term::NamedNode(n) => Some(n.as_str().to_string()),
-                _ => None,
-            })
+            .object_iris(&subject, GMEOW_SLICE_DEPENDS_ON)
+            .unwrap()
+            .into_iter()
             .collect();
         assert_eq!(
             deps,

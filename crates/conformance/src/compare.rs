@@ -4,18 +4,18 @@
 //! The three comparison modes of the runner contract.
 //!
 //! These are the canonical runner comparators; the Python `logic_runner.py` they
-//! replaced was retired in #727. The implementation drives the native oxigraph
-//! kernel (the SAME engine the Python `gmeow_rdf` binding formerly wrapped):
+//! replaced was retired. The implementation drives the native, oxigraph-free RDF
+//! kernel (parse → frozen `RdfDataset` IR → native RDFC-1.0 canonicalization):
 //!
 //! * [`compare_rdf`] — blank-node-aware **graph isomorphism** via RDFC-1.0
 //!   canonicalization. Two serialized RDF documents are equal iff their canonical
-//!   quad lists match (`rdflib.compare.isomorphic` had the same verdict; oxigraph
-//!   additionally reads the RDF 1.2 `<< … >>` triple terms the `canonical-rdf12`
-//!   projection emits). The four RDF projection goldens (`owl-dl`, `owl-el`,
-//!   `gufo`, `canonical-rdf12`) additionally receive a **byte-exact banner-header
-//!   check** via [`leading_comment_block`] — graph isomorphism alone is blind to
-//!   Turtle `#`-comment banners, which caused stale `(logic_projections.py)`
-//!   banners to survive undetected in 92 goldens (fixed in #730).
+//!   quad lists match (`rdflib.compare.isomorphic` had the same verdict; the native
+//!   codecs additionally read the RDF 1.2 `<< … >>` triple terms the
+//!   `canonical-rdf12` projection emits). The four RDF projection goldens
+//!   (`owl-dl`, `owl-el`, `gufo`, `canonical-rdf12`) additionally receive a
+//!   **byte-exact banner-header check** via [`leading_comment_block`] — graph
+//!   isomorphism alone is blind to Turtle `#`-comment banners, which caused stale
+//!   `(logic_projections.py)` banners to survive undetected in goldens.
 //! * [`compare_canonical_json`] — sorted-key **canonical JSON** equality for
 //!   `verdicts.json`, `preservation-ledger.json`, `certification.json`,
 //!   `budget.json`, and `answers/*.json`.
@@ -29,8 +29,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset;
-use oxigraph::model::{GraphName, Quad, Triple};
+use gmeow_rdf::{RdfTerm, SerializeGraph};
 
 use crate::run::CaseOutputs;
 
@@ -41,33 +40,38 @@ const NTRIPLES: &str = "application/n-triples";
 /// IANA media type for N-Quads (the materialized-corpus bucketing).
 const NQUADS: &str = "application/n-quads";
 
-/// Parse serialized RDF `text` of `media_type` into oxigraph quads via the native
-/// codecs (`gmeow_rdf::parse_dataset` → IR → oxigraph quads). The oxigraph
-/// `Dataset` is then built from these for RDFC-1.0 canonicalization (scope-OUT).
-fn parse_oxigraph_quads(
+/// Parse serialized RDF `text` of `media_type` into the frozen [`RdfDataset`] IR via
+/// the native, oxigraph-free codecs (`gmeow_rdf::parse_dataset`, #909).
+fn parse_native_dataset(
     text: &str,
     media_type: &str,
-) -> Result<Vec<oxigraph::model::Quad>, String> {
-    let dataset = gmeow_rdf::parse_dataset(text.as_bytes(), media_type, None)
-        .map_err(|e| format!("RDF parse error: {e}"))?;
-    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| format!("IR → quads error: {e}"))
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, String> {
+    gmeow_rdf::parse_dataset(text.as_bytes(), media_type, None)
+        .map_err(|e| format!("RDF parse error: {e}"))
 }
 
 /// Canonicalize a serialized RDF document to a sorted list of canonical N-Quads
 /// strings.
 ///
-/// Parses `text` in `format`, applies RDFC-1.0 canonical blank-node labelling,
-/// and returns the canonicalized quads as a sorted `Vec` of their N-Quads
-/// strings. Two RDF documents are graph-isomorphic iff their canonical quad
-/// lists are equal — the rdflib-free replacement for `rdflib.compare.isomorphic`.
+/// Parses `text` in `format`, applies RDFC-1.0 canonical blank-node labelling, and
+/// returns the canonicalized quads as a sorted `Vec` of their N-Quads strings. Two
+/// RDF documents are graph-isomorphic iff their canonical quad lists are equal — the
+/// rdflib-free replacement for `rdflib.compare.isomorphic`.
 fn canonical_quads(text: &str, media_type: &str) -> Result<Vec<String>, String> {
     // Native text ingress (#909): parse via the gmeow-gts codecs, not oxigraph::io.
-    let quads: Vec<Quad> = parse_oxigraph_quads(text, media_type)?;
-    // Native full RDFC-1.0 (#910), replacing oxrdf `Dataset::canonicalize`: relabels
-    // blank nodes; the term serialization is unchanged, so the comparison is identical.
-    let canonical = gmeow_rdf::canonicalize_quads(quads)
+    let dataset = parse_native_dataset(text, media_type)?;
+    // Native flat RDFC-1.0 (#910): the oxigraph-free canonical N-Quads document. This
+    // is byte-identical to the prior oxigraph flat-canonical path (proven by the
+    // `canonical_flat_nquads_byte_matches_oxigraph_path` gate in gmeow-rdf), so the
+    // graph-isomorphism verdict is unchanged. Splitting into lines and sorting yields
+    // the same canonical quad set the comparator compared before.
+    let canonical = gmeow_rdf::canonical_flat_nquads(&dataset)
         .map_err(|e| format!("RDF canonicalization error: {e}"))?;
-    let mut quads: Vec<String> = canonical.iter().map(ToString::to_string).collect();
+    let mut quads: Vec<String> = canonical
+        .lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(str::to_owned)
+        .collect();
     quads.sort();
     Ok(quads)
 }
@@ -235,36 +239,36 @@ pub fn parse_explanation_reifier(text: &str) -> String {
 /// are dropped — the materialized-corpus comparison asserts only over named
 /// worlds (issue #501 AC(a)/(b)).
 pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, String>, String> {
-    let mut by_graph: BTreeMap<String, Vec<String>> = BTreeMap::new();
     if nquads_text.trim().is_empty() {
         return Ok(BTreeMap::new());
     }
-    for quad in parse_oxigraph_quads(nquads_text, NQUADS)? {
-        let graph_iri = match &quad.graph_name {
-            GraphName::NamedNode(nn) => nn.as_str().to_string(),
-            // Default graph / blank-node graph triples are not part of the
-            // world-indexed comparison surface — skip them.
-            _ => continue,
-        };
-        let triple = Triple::new(quad.subject, quad.predicate, quad.object);
-        // oxigraph's Triple Display omits the trailing `.`; append it so each
-        // per-world bucket is a valid N-Triples document for the re-parse.
-        by_graph
-            .entry(graph_iri)
-            .or_default()
-            .push(format!("{triple} ."));
+    let dataset = parse_native_dataset(nquads_text, NQUADS)?;
+
+    // Collect the set of named-graph IRIs. Default-graph (graph_name == None) and
+    // blank-node-graph triples are NOT part of the world-indexed comparison surface
+    // (issue #501 AC(a)/(b)), so only IRI-named graphs are bucketed.
+    let mut graph_iris: BTreeSet<String> = BTreeSet::new();
+    for quad in dataset.owned_quads() {
+        if let Some(RdfTerm::Iri(iri)) = &quad.graph_name {
+            graph_iris.insert(iri.clone());
+        }
     }
-    Ok(by_graph
-        .into_iter()
-        .map(|(iri, lines)| {
-            let mut doc = String::new();
-            for line in lines {
-                doc.push_str(&line);
-                doc.push('\n');
-            }
-            (iri, doc)
-        })
-        .collect())
+
+    let mut by_graph: BTreeMap<String, String> = BTreeMap::new();
+    for iri in graph_iris {
+        // Project the named graph into a fresh default-graph dataset, then serialize
+        // it as N-Triples via the native codecs (oxigraph-free). The per-world bucket
+        // is re-parsed downstream by `compare_rdf`, so any valid N-Triples document of
+        // the graph's content suffices.
+        let projected = dataset.project_named_graph(&iri);
+        let bytes =
+            gmeow_rdf::serialize_dataset(&projected, NTRIPLES, SerializeGraph::DefaultGraph)
+                .map_err(|e| format!("named graph <{iri}> N-Triples serialize error: {e}"))?;
+        let doc = String::from_utf8(bytes)
+            .map_err(|e| format!("named graph <{iri}> N-Triples not UTF-8: {e}"))?;
+        by_graph.insert(iri, doc);
+    }
+    Ok(by_graph)
 }
 
 /// Extract the contiguous leading block of `#`-comment lines from a serialized

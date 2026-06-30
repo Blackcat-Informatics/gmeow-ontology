@@ -316,30 +316,23 @@ mod tests {
         // the gmeow:decomposesToAxis bundles committed in module.ttl. Parse the
         // committed Turtle and compare the unordered six-value set per legacy value
         // (local names are globally unique per axis, so set equality ⟺ field-wise).
-        use oxigraph::io::{RdfFormat, RdfParser};
-        use oxigraph::model::{NamedNode, Term};
-        use oxigraph::store::Store;
+        use crate::rdf_query::{Dataset, Object};
 
         let module = repo_root().join("slices/core/standpoint/module.ttl");
         let bytes =
             std::fs::read(&module).unwrap_or_else(|e| panic!("read {}: {e}", module.display()));
-        let store = Store::new().unwrap();
-        for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(bytes.as_slice()) {
-            store.insert(&quad.expect("module.ttl parses")).unwrap();
-        }
+        let ds = Dataset::parse_turtle(&bytes, &module.display().to_string())
+            .expect("module.ttl parses");
 
-        let decomposes = NamedNode::new(format!("{GMEOW}decomposesToAxis")).unwrap();
+        let decomposes = format!("{GMEOW}decomposesToAxis");
         for d in DECOMPOSITIONS {
-            let subject = NamedNode::new(format!("{GMEOW}{}", d.legacy)).unwrap();
-            let committed: BTreeSet<String> = store
-                .quads_for_pattern(
-                    Some((&subject).into()),
-                    Some(decomposes.as_ref()),
-                    None,
-                    None,
-                )
-                .filter_map(|q| match q.unwrap().object {
-                    Term::NamedNode(n) => n.as_str().strip_prefix(GMEOW).map(str::to_owned),
+            let subject = format!("{GMEOW}{}", d.legacy);
+            let committed: BTreeSet<String> = ds
+                .objects(&subject, &decomposes)
+                .unwrap()
+                .into_iter()
+                .filter_map(|o| match o {
+                    Object::Named(n) => n.strip_prefix(GMEOW).map(str::to_owned),
                     _ => None,
                 })
                 .collect();

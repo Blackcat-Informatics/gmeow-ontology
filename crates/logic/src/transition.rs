@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oxigraph::model::{NamedNode, NamedOrBlankNode, Quad, Term};
+use gmeow_rdf::{QuadValues, TermValue};
 
 use crate::entrenchment::{Entrenchment, LeastEntrenched};
 use crate::provenance::{mint_reifier, term_n3};
@@ -30,9 +30,9 @@ pub const SUPERSEDED_BY: &str = "https://blackcatinformatics.ca/gmeow/superseded
 /// One RDF fact/support addressed by an elementary update.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TransitionFact {
-    pub subject: NamedOrBlankNode,
-    pub predicate: NamedNode,
-    pub object: Term,
+    pub subject: TermValue,
+    pub predicate: String,
+    pub object: TermValue,
 }
 
 impl TransitionFact {
@@ -42,25 +42,26 @@ impl TransitionFact {
     /// [`Self::from_quad`] when preserving literal or blank-node terms from a
     /// loaded store.
     pub fn iri(subject: &str, predicate: &str, object: &str) -> Result<Self, String> {
-        let subject = NamedNode::new(subject)
-            .map_err(|e| format!("invalid transition subject IRI {subject:?}: {e}"))?;
-        let predicate = NamedNode::new(predicate)
-            .map_err(|e| format!("invalid transition predicate IRI {predicate:?}: {e}"))?;
-        let object = NamedNode::new(object)
-            .map_err(|e| format!("invalid transition object IRI {object:?}: {e}"))?;
         Ok(Self {
-            subject: NamedOrBlankNode::NamedNode(subject),
-            predicate,
-            object: Term::NamedNode(object),
+            subject: TermValue::iri(subject),
+            predicate: predicate.to_owned(),
+            object: TermValue::iri(object),
         })
     }
 
-    /// Build a fact from an existing quad, discarding only its graph component.
-    pub fn from_quad(quad: &Quad) -> Self {
+    /// Build a fact from an existing value-quad, discarding only its graph component.
+    ///
+    /// The predicate position of an RDF quad is always an IRI; a non-IRI predicate
+    /// (impossible for a well-formed store) renders to its term display.
+    pub fn from_quad(quad: &QuadValues) -> Self {
         Self {
-            subject: quad.subject.clone(),
-            predicate: quad.predicate.clone(),
-            object: quad.object.clone(),
+            subject: quad.s.clone(),
+            predicate: quad
+                .p
+                .as_iri()
+                .map(str::to_owned)
+                .unwrap_or_else(|| crate::provenance::term_display(&quad.p)),
+            object: quad.o.clone(),
         }
     }
 
@@ -68,18 +69,14 @@ impl TransitionFact {
     pub fn key(&self) -> Result<TransitionFactKey, String> {
         Ok(TransitionFactKey {
             subject_n3: subject_n3(&self.subject),
-            predicate_iri: self.predicate.as_str().to_owned(),
+            predicate_iri: self.predicate.clone(),
             object_n3: term_n3(&self.object)?,
         })
     }
 
     /// Content-addressed support/reifier IRI for this fact.
     pub fn reifier(&self) -> Result<String, String> {
-        mint_reifier(
-            &subject_as_term(&self.subject),
-            &self.predicate,
-            &self.object,
-        )
+        mint_reifier(&self.subject, &self.predicate, &self.object)
     }
 }
 
@@ -173,10 +170,7 @@ pub fn apply_elementary_transition(
     if base_state == successor_state {
         return Err("elementary transition requires distinct base and successor states".to_owned());
     }
-    let base_state_node = named_node("base state", base_state)?;
-    let successor_state_node = named_node("successor state", successor_state)?;
-    validate_iri("entrenchment state", entrenchment_state)?;
-    let predicates = MetadataPredicates::new()?;
+    let predicates = MetadataPredicates::new();
 
     if !store
         .quads_for_pattern_in_world(successor_state, None, None, None)
@@ -223,9 +217,9 @@ pub fn apply_elementary_transition(
         }
         store.insert_quad_terms(
             successor_state,
-            quad.subject.clone(),
-            quad.predicate.clone(),
-            quad.object.clone(),
+            quad.s.clone(),
+            quad.p.clone(),
+            quad.o.clone(),
         )?;
         carried_supports += 1;
     }
@@ -240,16 +234,15 @@ pub fn apply_elementary_transition(
         store.insert_quad_terms(
             successor_state,
             update.fact.subject.clone(),
-            update.fact.predicate.clone(),
+            TermValue::iri(update.fact.predicate.clone()),
             update.fact.object.clone(),
         )?;
         let support = update.fact.reifier()?;
-        let support_node = named_node("metadata subject IRI", &support)?;
         store.insert_quad_terms(
             successor_state,
-            NamedOrBlankNode::NamedNode(support_node),
-            predicates.active_in_state.clone(),
-            Term::NamedNode(successor_state_node.clone()),
+            TermValue::iri(support.clone()),
+            TermValue::iri(predicates.active_in_state.clone()),
+            TermValue::iri(successor_state),
         )?;
         inserted_supports.push(support);
     }
@@ -258,34 +251,31 @@ pub fn apply_elementary_transition(
     deletes.sort_by_key(|u| u.sort_key().expect("validated transition fact"));
     for update in deletes {
         let support = update.fact.reifier()?;
-        let support_node = named_node("metadata subject IRI", &support)?;
-        let support_subject = NamedOrBlankNode::NamedNode(support_node);
-        let update_iri_node = named_node("update IRI", &update.update_iri)?;
-        let transaction_iri_node = named_node("transaction IRI", &update.transaction_iri)?;
+        let support_subject = TermValue::iri(support);
 
         store.insert_quad_terms(
             successor_state,
             support_subject.clone(),
-            predicates.active_in_state.clone(),
-            Term::NamedNode(base_state_node.clone()),
+            TermValue::iri(predicates.active_in_state.clone()),
+            TermValue::iri(base_state),
         )?;
         store.insert_quad_terms(
             successor_state,
             support_subject.clone(),
-            predicates.valid_until_state.clone(),
-            Term::NamedNode(successor_state_node.clone()),
+            TermValue::iri(predicates.valid_until_state.clone()),
+            TermValue::iri(successor_state),
         )?;
         store.insert_quad_terms(
             successor_state,
             support_subject.clone(),
-            predicates.superseded_by.clone(),
-            Term::NamedNode(update_iri_node),
+            TermValue::iri(predicates.superseded_by.clone()),
+            TermValue::iri(update.update_iri.clone()),
         )?;
         store.insert_quad_terms(
             successor_state,
             support_subject,
-            predicates.retired_by_transaction.clone(),
-            Term::NamedNode(transaction_iri_node),
+            TermValue::iri(predicates.retired_by_transaction.clone()),
+            TermValue::iri(update.transaction_iri.clone()),
         )?;
     }
 
@@ -309,8 +299,6 @@ fn resolve_updates(
 ) -> Result<Vec<ElementaryUpdate>, String> {
     let mut by_fact: BTreeMap<TransitionFactKey, Vec<&ElementaryUpdate>> = BTreeMap::new();
     for update in updates {
-        validate_iri("update IRI", &update.update_iri)?;
-        validate_iri("transaction IRI", &update.transaction_iri)?;
         by_fact.entry(update.fact.key()?).or_default().push(update);
     }
 
@@ -357,7 +345,7 @@ fn resolve_updates(
     Ok(out)
 }
 
-fn sorted_world_quads(store: &WorldStore, world: &str) -> Result<Vec<Quad>, String> {
+fn sorted_world_quads(store: &WorldStore, world: &str) -> Result<Vec<QuadValues>, String> {
     let mut quads = store.quads_for_pattern_in_world(world, None, None, None);
     let mut keyed = Vec::with_capacity(quads.len());
     for quad in quads.drain(..) {
@@ -369,42 +357,32 @@ fn sorted_world_quads(store: &WorldStore, world: &str) -> Result<Vec<Quad>, Stri
 
 #[derive(Debug, Clone)]
 struct MetadataPredicates {
-    active_in_state: NamedNode,
-    valid_until_state: NamedNode,
-    retired_by_transaction: NamedNode,
-    superseded_by: NamedNode,
+    active_in_state: String,
+    valid_until_state: String,
+    retired_by_transaction: String,
+    superseded_by: String,
 }
 
 impl MetadataPredicates {
-    fn new() -> Result<Self, String> {
-        Ok(Self {
-            active_in_state: named_node("metadata predicate IRI", ACTIVE_IN_STATE)?,
-            valid_until_state: named_node("metadata predicate IRI", VALID_UNTIL_STATE)?,
-            retired_by_transaction: named_node("metadata predicate IRI", RETIRED_BY_TRANSACTION)?,
-            superseded_by: named_node("metadata predicate IRI", SUPERSEDED_BY)?,
-        })
+    fn new() -> Self {
+        Self {
+            active_in_state: ACTIVE_IN_STATE.to_owned(),
+            valid_until_state: VALID_UNTIL_STATE.to_owned(),
+            retired_by_transaction: RETIRED_BY_TRANSACTION.to_owned(),
+            superseded_by: SUPERSEDED_BY.to_owned(),
+        }
     }
 }
 
-fn validate_iri(label: &str, iri: &str) -> Result<(), String> {
-    named_node(label, iri).map(|_| ())
-}
-
-fn named_node(label: &str, iri: &str) -> Result<NamedNode, String> {
-    NamedNode::new(iri).map_err(|e| format!("invalid {label} {iri:?}: {e}"))
-}
-
-fn subject_as_term(subject: &NamedOrBlankNode) -> Term {
+/// The N3 surface of a transition-fact subject (`<iri>` or `_:label`), used as the
+/// content key's subject component. Matches the prior oxigraph rendering.
+fn subject_n3(subject: &TermValue) -> String {
     match subject {
-        NamedOrBlankNode::NamedNode(node) => Term::NamedNode(node.clone()),
-        NamedOrBlankNode::BlankNode(node) => Term::BlankNode(node.clone()),
-    }
-}
-
-fn subject_n3(subject: &NamedOrBlankNode) -> String {
-    match subject {
-        NamedOrBlankNode::NamedNode(node) => format!("<{}>", node.as_str()),
-        NamedOrBlankNode::BlankNode(node) => format!("_:{}", node.as_str()),
+        TermValue::Iri(iri) => format!("<{iri}>"),
+        TermValue::Blank { label, scope } => format!("_:{}", scope.qualify_label(label)),
+        // A literal/triple subject is invalid RDF; fall back to the display form so the
+        // key stays total (callers never construct such a subject).
+        other => crate::provenance::term_display(other),
     }
 }
 

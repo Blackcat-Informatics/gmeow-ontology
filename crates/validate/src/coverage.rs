@@ -25,7 +25,7 @@
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
-use oxigraph::model::Term;
+use gmeow_rdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
 use crate::model::rdf;
 use crate::store;
@@ -91,17 +91,16 @@ pub fn coverage_analyze(
     aligned: &BTreeSet<String>,
     namespace: &str,
 ) -> Result<CoverageSets, String> {
-    let store = store::build_store(fixture_paths)?;
+    let ds = store::dataset_from_paths(fixture_paths)?;
     let mut sets = CoverageSets::default();
 
     // Used classes: the distinct named-node objects of rdf:type.
     let mut classes: BTreeSet<String> = BTreeSet::new();
-    for quad in store
-        .quads_for_pattern(None, Some(rdf::TYPE), None, None)
-        .flatten()
-    {
-        if let Term::NamedNode(n) = &quad.object {
-            classes.insert(n.as_str().to_owned());
+    if let Some(type_id) = ds.term_id_by_value(&TermValue::iri(rdf::TYPE)) {
+        for q in ds.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
+            if let TermRef::Iri(n) = ds.resolve(q.o) {
+                classes.insert(n.to_owned());
+            }
         }
     }
     for iri in classes {
@@ -117,8 +116,10 @@ pub fn coverage_analyze(
 
     // Used predicates: every distinct predicate IRI in the merged graph.
     let mut predicates: BTreeSet<String> = BTreeSet::new();
-    for quad in store.iter().flatten() {
-        predicates.insert(quad.predicate.as_str().to_owned());
+    for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        if let TermRef::Iri(p) = ds.resolve(q.p) {
+            predicates.insert(p.to_owned());
+        }
     }
     for iri in predicates {
         if is_ignored(&iri) {

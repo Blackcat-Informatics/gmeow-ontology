@@ -8,7 +8,7 @@
 //! [`Formula`](gmeow_logic_compile::ir::Formula) becomes Horn. This module is the thin
 //! physical-engine adapter: it asks the lane to lower a program's formulas to relational-core
 //! [`RcRule`]s + flagged residue, then maps each `RcRule` onward to the evaluable
-//! [`EvalRule`] the chase runs (the `oxigraph`/[`EvalTerm`] bridge that cannot live in the
+//! [`EvalRule`] the chase runs (the native [`TermValue`] bridge that cannot live in the
 //! wasm-clean lane), and renders them to Nemo `.rls`.
 //!
 //! The honest [`PreservationClaim`] is `{exact}` only when the whole formula set lowered, else
@@ -23,7 +23,7 @@
 
 use std::collections::BTreeSet;
 
-use oxigraph::model::{Literal, NamedNode, Term as OxTerm};
+use gmeow_rdf::TermValue;
 
 use gmeow_logic_compile::ir::{LogicProgram, LOGIC_NAMESPACE};
 use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm};
@@ -46,8 +46,8 @@ pub(crate) struct RelationalCoreLowering {
 /// Lower every full-FOL formula in `program` to the evaluable engine IR, delegating the
 /// clausification to the canonical lane and mapping each resulting [`RcRule`] to an
 /// [`EvalRule`]. The non-Horn remainder is carried as the lane's flagged residue. An
-/// `RcRule` that cannot be mapped onward (e.g. an IRI the lane admitted but `NamedNode`
-/// rejects) is itself flagged as residue rather than mis-lowered (legalization, total).
+/// `RcRule` that cannot be mapped onward is itself flagged as residue rather than
+/// mis-lowered (legalization, total).
 pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
     let (rc_rules, lane_residue) =
         gmeow_logic_compile::relational_core::lower_formulas_to_rc(program);
@@ -84,7 +84,7 @@ pub fn formula_eval_rls(program: &LogicProgram) -> (String, PreservationClaim) {
 }
 
 // --------------------------------------------------------------------------- //
-// RcRule → EvalRule (the oxigraph / EvalTerm engine bridge)
+// RcRule → EvalRule (the native TermValue engine bridge)
 // --------------------------------------------------------------------------- //
 
 /// Map a lane [`RcRule`] to an evaluable [`EvalRule`]. Mirrors [`crate::lower::lower_rule`]'s
@@ -108,15 +108,13 @@ fn rc_rule_to_eval(rc: &RcRule) -> Result<EvalRule, String> {
     })
 }
 
-/// Map a lane [`RcAtom`] to an [`EvalAtom`].
+/// Map a lane [`RcAtom`] to an [`EvalAtom`] (native predicate IRI string + [`EvalTerm`]s).
 fn rc_atom_to_eval(atom: &RcAtom) -> Result<EvalAtom, String> {
-    let predicate = NamedNode::new(&atom.predicate)
-        .map_err(|e| format!("relational-core predicate IRI {:?}: {e}", atom.predicate))?;
     let subject = rc_term_to_eval(&atom.subject, false)?;
     let object = rc_term_to_eval(&atom.object, true)?;
     Ok(EvalAtom {
         subject,
-        predicate,
+        predicate: atom.predicate.clone(),
         object,
         negated: atom.negated,
     })
@@ -129,9 +127,7 @@ fn rc_term_to_eval(term: &RcTerm, is_object: bool) -> Result<EvalTerm, String> {
     match term {
         // RcTerm::Var already carries the `?` sigil (matching lower::lower_term).
         RcTerm::Var(name) => Ok(EvalTerm::Var(name.clone())),
-        RcTerm::Iri(iri) => NamedNode::new(iri)
-            .map(EvalTerm::ConstNamed)
-            .map_err(|e| format!("relational-core IRI term {iri:?}: {e}")),
+        RcTerm::Iri(iri) => Ok(EvalTerm::ConstNamed(iri.clone())),
         RcTerm::Literal(lex) => {
             if !is_object {
                 return Err(format!(
@@ -139,9 +135,7 @@ fn rc_term_to_eval(term: &RcTerm, is_object: bool) -> Result<EvalTerm, String> {
                      literal)"
                 ));
             }
-            Ok(EvalTerm::ConstLit(OxTerm::Literal(
-                Literal::new_simple_literal(lex),
-            )))
+            Ok(EvalTerm::ConstLit(TermValue::simple_literal(lex)))
         }
         RcTerm::Blank(label) => Err(format!(
             "relational-core blank node {label:?} in a formula-derived rule — the clausifier \

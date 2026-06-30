@@ -25,14 +25,38 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use std::sync::Arc;
 
-use oxigraph::model::{Literal as OxLiteral, NamedNode, Term};
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
-use oxigraph::store::Store;
+use gmeow_rdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::source_load::{module_files, turtle_bytes_into_store_scoped};
+use crate::stages::native_query;
+use crate::stages::source_load::module_files;
+
+/// The native instance graph: a frozen dataset paired with its flat default-graph quad
+/// stream (collected once for the many linear-scan reads the projection performs).
+struct Store {
+    quads: Vec<gmeow_rdf::RdfQuad>,
+}
+
+impl Store {
+    fn from_dataset(dataset: &RdfDataset) -> Self {
+        // The research-object inputs are Turtle (default graph only); keep the default-
+        // graph quads in source-faithful form (statement layer re-materialized so a
+        // `gmeow:contentDigest` etc. is visible exactly as authored).
+        let quads = gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(dataset)
+            .into_iter()
+            .filter(|q| q.graph_name.is_none())
+            .collect();
+        Self { quads }
+    }
+
+    /// Iterate `(subject, predicate, object)` of every default-graph quad.
+    fn triples(&self) -> impl Iterator<Item = &gmeow_rdf::RdfQuad> {
+        self.quads.iter()
+    }
+}
 
 /// Logical-path prefix of the committed research-object artifacts.
 pub const RESEARCH_OBJECTS_DIR: &str = "generated/research-objects/lillith";
@@ -85,21 +109,21 @@ fn g(local: &str) -> String {
 
 // ── helpers: load instance graph ──────────────────────────────────────────────
 
-fn parse_into(store: &Store, bytes: &[u8], path: &str) -> Result<(), PipelineError> {
-    // Scope per source file so the worked-example A-Box files' anonymous blanks stay
-    // disjoint when accumulated into one store.
-    turtle_bytes_into_store_scoped(store, bytes, path)
+/// Parse `bytes` into a frozen native dataset (the canonical native codec).
+fn parse_into(bytes: &[u8], path: &str) -> Result<Arc<RdfDataset>, PipelineError> {
+    native_query::dataset_from_turtle(bytes, path)
 }
 
-/// Parse the six worked-example Turtle files into one oxigraph store (the A-Box).
+/// Parse the six worked-example Turtle files into one native A-Box `Store` (each parsed
+/// through the native codec then unioned, blanks standardized apart per source).
 fn load_instance_graph(root: &Path) -> Result<Store, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+    let mut parsed: Vec<Arc<RdfDataset>> = Vec::with_capacity(EXAMPLE_INPUTS.len());
     for (rel, _) in EXAMPLE_INPUTS {
         let bytes = std::fs::read(root.join(rel))?;
-        parse_into(&store, &bytes, rel)?;
+        parsed.push(parse_into(&bytes, rel)?);
     }
-    Ok(store)
+    let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+    Ok(Store::from_dataset(&RdfDataset::union(&refs)))
 }
 
 // ── instance-graph reads (mirror the Python `_text`/`_label` helpers) ──────────
@@ -107,18 +131,16 @@ fn load_instance_graph(root: &Path) -> Result<Store, PipelineError> {
 /// First object literal lexical value (rdflib `g.value` picks an arbitrary one;
 /// these subjects carry at most one of each text predicate).
 fn text(store: &Store, subject: &str, predicate: &str) -> String {
-    let s = NamedNode::new(subject).unwrap();
-    let p = NamedNode::new(predicate).unwrap();
     let mut best: Option<String> = None;
-    for q in store
-        .quads_for_pattern(Some((&s).into()), Some(p.as_ref()), None, None)
-        .flatten()
-    {
+    for q in store.triples() {
+        if !iri_is(&q.subject, subject) || q.predicate != predicate {
+            continue;
+        }
         let v = match &q.object {
-            Term::Literal(l) => canonical_lexical(l),
-            Term::NamedNode(n) => n.as_str().to_string(),
-            Term::BlankNode(b) => b.as_str().to_string(),
-            Term::Triple(_) => String::new(),
+            RdfTerm::Literal(l) => canonical_lexical(l),
+            RdfTerm::Iri(n) => n.clone(),
+            RdfTerm::BlankNode(b) => b.clone(),
+            RdfTerm::Triple(_) => String::new(),
         };
         // rdflib `value()` returns a deterministic single value; for these
         // single-valued predicates any is fine, but keep the smallest for stability.
@@ -131,18 +153,21 @@ fn text(store: &Store, subject: &str, predicate: &str) -> String {
 }
 
 fn value_node(store: &Store, subject: &str, predicate: &str) -> Option<String> {
-    let s = NamedNode::new(subject).unwrap();
-    let p = NamedNode::new(predicate).unwrap();
     let mut hits: Vec<String> = store
-        .quads_for_pattern(Some((&s).into()), Some(p.as_ref()), None, None)
-        .flatten()
-        .filter_map(|q| match q.object {
-            Term::NamedNode(n) => Some(n.as_str().to_string()),
+        .triples()
+        .filter(|q| iri_is(&q.subject, subject) && q.predicate == predicate)
+        .filter_map(|q| match &q.object {
+            RdfTerm::Iri(n) => Some(n.clone()),
             _ => None,
         })
         .collect();
     hits.sort();
     hits.into_iter().next()
+}
+
+/// True if `term` is the IRI `iri`.
+fn iri_is(term: &RdfTerm, iri: &str) -> bool {
+    matches!(term, RdfTerm::Iri(n) if n == iri)
 }
 
 fn label(store: &Store, subject: &str) -> String {
@@ -159,15 +184,12 @@ fn label(store: &Store, subject: &str) -> String {
 
 /// Subjects of `rdf:type type_iri`, sorted by IRI.
 fn subjects_of_type(store: &Store, type_iri: &str) -> Vec<String> {
-    let p = NamedNode::new(RDF_TYPE).unwrap();
-    let o = NamedNode::new(type_iri).unwrap();
     let mut set: BTreeSet<String> = BTreeSet::new();
-    for q in store
-        .quads_for_pattern(None, Some(p.as_ref()), Some((&o).into()), None)
-        .flatten()
-    {
-        if let oxigraph::model::NamedOrBlankNode::NamedNode(n) = &q.subject {
-            set.insert(n.as_str().to_string());
+    for q in store.triples() {
+        if q.predicate == RDF_TYPE && iri_is(&q.object, type_iri) {
+            if let RdfTerm::Iri(n) = &q.subject {
+                set.insert(n.clone());
+            }
         }
     }
     set.into_iter().collect()
@@ -175,19 +197,17 @@ fn subjects_of_type(store: &Store, type_iri: &str) -> Vec<String> {
 
 /// All object lexical/IRI values for `(subject, predicate)`, sorted unique.
 fn objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
-    let s = NamedNode::new(subject).unwrap();
-    let p = NamedNode::new(predicate).unwrap();
     let mut set: BTreeSet<String> = BTreeSet::new();
-    for q in store
-        .quads_for_pattern(Some((&s).into()), Some(p.as_ref()), None, None)
-        .flatten()
-    {
-        match q.object {
-            Term::Literal(l) => {
-                set.insert(canonical_lexical(&l));
+    for q in store.triples() {
+        if !iri_is(&q.subject, subject) || q.predicate != predicate {
+            continue;
+        }
+        match &q.object {
+            RdfTerm::Literal(l) => {
+                set.insert(canonical_lexical(l));
             }
-            Term::NamedNode(n) => {
-                set.insert(n.as_str().to_string());
+            RdfTerm::Iri(n) => {
+                set.insert(n.clone());
             }
             _ => {}
         }
@@ -197,15 +217,12 @@ fn objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
 
 /// Subjects `s` with `(s, predicate, object)`, sorted by IRI.
 fn subjects_with(store: &Store, predicate: &str, object: &str) -> Vec<String> {
-    let p = NamedNode::new(predicate).unwrap();
-    let o = NamedNode::new(object).unwrap();
     let mut set: BTreeSet<String> = BTreeSet::new();
-    for q in store
-        .quads_for_pattern(None, Some(p.as_ref()), Some((&o).into()), None)
-        .flatten()
-    {
-        if let oxigraph::model::NamedOrBlankNode::NamedNode(n) = &q.subject {
-            set.insert(n.as_str().to_string());
+    for q in store.triples() {
+        if q.predicate == predicate && iri_is(&q.object, object) {
+            if let RdfTerm::Iri(n) = &q.subject {
+                set.insert(n.clone());
+            }
         }
     }
     set.into_iter().collect()
@@ -226,10 +243,9 @@ fn slug(iri: &str) -> String {
 
 /// rdflib's `str(Literal)` / lexical value after parse: xsd:dateTime with a `Z`
 /// offset re-isoformats to `+00:00`; everything else keeps its lexical form.
-fn canonical_lexical(l: &OxLiteral) -> String {
-    let dt = l.datatype().as_str().to_string();
-    let lex = l.value().to_string();
-    if dt == format!("{XSD}dateTime") {
+fn canonical_lexical(l: &RdfLiteral) -> String {
+    let lex = l.lexical_form.clone();
+    if l.datatype.as_deref() == Some(&format!("{XSD}dateTime")[..]) {
         return canonical_datetime(&lex);
     }
     lex
@@ -1356,38 +1372,39 @@ fn build_datacite_xml(ds: &DatasetMeta) -> Vec<u8> {
 /// Load the internal→BCP-47 language-tag map from the ontology's language-tag table
 /// (`gmeow:languageTag` → `gmeow:bcp47Tag`).
 fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+    let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     for module in module_files(root)? {
         let bytes = std::fs::read(&module)?;
-        parse_into(&store, &bytes, &module.display().to_string())?;
+        parsed.push(parse_into(&bytes, &module.display().to_string())?);
     }
     let onto = root.join("ontology").join("gmeow.ttl");
     let bytes = std::fs::read(&onto)?;
-    parse_into(&store, &bytes, "ontology/gmeow.ttl")?;
+    parsed.push(parse_into(&bytes, "ontology/gmeow.ttl")?);
+    let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+    let store = Store::from_dataset(&RdfDataset::union(&refs));
+
+    let p_int = g("languageTag");
+    let p_ext = g("bcp47Tag");
     let mut map: BTreeMap<String, String> = BTreeMap::new();
-    let p_int = NamedNode::new(g("languageTag")).unwrap();
-    let p_ext = NamedNode::new(g("bcp47Tag")).unwrap();
-    for q in store
-        .quads_for_pattern(None, Some(p_int.as_ref()), None, None)
-        .flatten()
-    {
-        let subj = match &q.subject {
-            oxigraph::model::NamedOrBlankNode::NamedNode(n) => n.clone(),
-            _ => continue,
+    for q in store.triples() {
+        if q.predicate != p_int {
+            continue;
+        }
+        let RdfTerm::Iri(subj) = &q.subject else {
+            continue;
         };
-        let internal = match &q.object {
-            Term::Literal(l) => l.value().to_string(),
-            _ => continue,
+        let RdfTerm::Literal(internal_lit) = &q.object else {
+            continue;
         };
-        if let Some(ext) = store
-            .quads_for_pattern(Some((&subj).into()), Some(p_ext.as_ref()), None, None)
-            .flatten()
-            .find_map(|qq| match qq.object {
-                Term::Literal(l) => Some(l.value().to_string()),
-                _ => None,
-            })
-        {
+        let internal = internal_lit.lexical_form.clone();
+        if let Some(ext) = store.triples().find_map(|qq| {
+            (iri_is(&qq.subject, subj) && qq.predicate == p_ext)
+                .then(|| match &qq.object {
+                    RdfTerm::Literal(l) => Some(l.lexical_form.clone()),
+                    _ => None,
+                })
+                .flatten()
+        }) {
             map.insert(internal, ext);
         }
     }
@@ -1409,43 +1426,88 @@ fn serialize_source_turtle(
     path: &str,
     tag_map: &BTreeMap<String, String>,
 ) -> Result<String, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    parse_into(&store, bytes, path)?;
+    let dataset = parse_into(bytes, path)?;
 
-    // Re-emit each triple as N-Triples, retagging `@x-gmeow-*` literal language
-    // tags to their public BCP-47 form on the way through.
-    let mut nt = String::new();
-    for quad in store.iter() {
-        let quad = quad.map_err(|e| PipelineError::Parse(format!("{path}: store iter: {e}")))?;
-        let object = match quad.object {
-            Term::Literal(lit) => Term::Literal(retag_ox_literal(lit, tag_map)),
-            other => other,
-        };
-        let triple = oxigraph::model::Triple::new(quad.subject, quad.predicate, object);
-        nt.push_str(&triple.to_string());
-        nt.push_str(" .\n");
+    // Re-emit each triple, retagging `@x-gmeow-*` literal language tags to their public
+    // BCP-47 form on the way through; the flat quad stream re-materializes the RDF 1.2
+    // statement layer so the source A-Box round-trips through the canonical serializer.
+    let mut retagged: Vec<gmeow_rdf::RdfQuad> =
+        gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(&dataset)
+            .into_iter()
+            .map(|mut quad| {
+                if let RdfTerm::Literal(lit) = &quad.object {
+                    quad.object = RdfTerm::Literal(retag_native_literal(lit, tag_map));
+                }
+                quad
+            })
+            .collect();
+    // Canonicalize every typed-literal lexical form to the W3C XSD canonical mapping
+    // (the native codecs preserve raw lexical forms, so without this the round-trip
+    // would drift) — the SAME normalization the snapshot carrier applies.
+    for quad in &mut retagged {
+        canonicalize_term_xsd(&mut quad.object)?;
     }
+    let flat = gmeow_rdf::native_quads::flat_dataset_from_quads(&retagged)
+        .map_err(|e| PipelineError::Parse(format!("{path}: re-freeze retagged quads: {e}")))?;
+    let nt = gmeow_rdf::serialize_dataset(
+        &flat,
+        "application/n-triples",
+        gmeow_rdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PipelineError::Parse(format!("{path}: serialize N-Triples: {e}")))?;
 
     // Emit EXACTLY the canonical fold (shared prefix authority, no trailing fixup):
     // the file IS `render(graph)`, the same bytes the superset gate reconstructs.
-    gmeow_rdf::turtle_normalize::canonical_turtle(
-        nt.as_bytes(),
-        &crate::stages::superset::rdf_prefixes(),
-    )
-    .map_err(PipelineError::Parse)
+    // `nt` is already bytes from the native serializer, so pass it by reference.
+    gmeow_rdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
+        .map_err(PipelineError::Parse)
 }
 
-/// Retag an oxigraph literal's `@x-gmeow-*` language tag to its public BCP-47 form.
-fn retag_ox_literal(lit: OxLiteral, tag_map: &BTreeMap<String, String>) -> OxLiteral {
-    if let Some(lang) = lit.language() {
+/// Retag a native literal's `@x-gmeow-*` language tag to its public BCP-47 form.
+fn retag_native_literal(lit: &RdfLiteral, tag_map: &BTreeMap<String, String>) -> RdfLiteral {
+    if let Some(lang) = &lit.language {
         if let Some(ext) = tag_map.get(lang) {
-            // `new_language_tagged_literal_unchecked` keeps the public tag verbatim;
-            // the validating constructor rejects the longer `x-gmeow-*` source tags.
-            return OxLiteral::new_language_tagged_literal_unchecked(lit.value(), ext.clone());
+            let mut out = lit.clone();
+            out.language = Some(ext.clone());
+            return out;
         }
     }
-    lit
+    lit.clone()
+}
+
+/// Canonicalize a single owned [`RdfTerm`] in place to the W3C XSD canonical mapping
+/// (the native twin of the literal value-space the transient oxigraph store used to
+/// apply on parse): a typed literal with a recognized XSD datatype is rewritten to its
+/// canonical lexical form, a quoted-triple term recurses, and every other term is left
+/// VERBATIM. A malformed lexical for a RECOGNIZED XSD datatype HARD-fails. Mirrors the
+/// snapshot carrier's `canonicalize_term_xsd` exactly so the two paths cannot drift.
+fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), PipelineError> {
+    match term {
+        RdfTerm::Literal(literal) => {
+            if literal.language.is_some() {
+                return Ok(());
+            }
+            if let Some(datatype_iri) = literal.datatype.as_deref() {
+                match gmeow_xsd::parse_by_iri(&literal.lexical_form, datatype_iri) {
+                    Ok(Some(value)) => literal.lexical_form = value.canonical_lexical(),
+                    Ok(None) => {}
+                    Err(e) => {
+                        return Err(PipelineError::Parse(format!(
+                            "malformed typed literal {:?}^^<{datatype_iri}>: {e:?}",
+                            literal.lexical_form
+                        )));
+                    }
+                }
+            }
+            Ok(())
+        }
+        RdfTerm::Triple(triple) => {
+            canonicalize_term_xsd(&mut triple.subject)?;
+            canonicalize_term_xsd(&mut triple.object)?;
+            Ok(())
+        }
+        RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => Ok(()),
+    }
 }
 
 // ── render: the committed artifact map ─────────────────────────────────────────
@@ -1505,50 +1567,52 @@ pub fn render_research_objects(root: &Path) -> Result<BTreeMap<String, Vec<u8>>,
 
 /// Build the DCAT store (whole ontology + example A-Box), run `dcat.rq`, serialize.
 fn render_dcat(root: &Path) -> Result<String, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+    let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     // The whole authored ontology: ontology/gmeow.ttl + every slice module.ttl.
     let onto = root.join("ontology").join("gmeow.ttl");
     let bytes = std::fs::read(&onto)?;
-    parse_into(&store, &bytes, "ontology/gmeow.ttl")?;
+    parsed.push(parse_into(&bytes, "ontology/gmeow.ttl")?);
     for module in module_files(root)? {
         let bytes = std::fs::read(&module)?;
-        parse_into(&store, &bytes, &module.display().to_string())?;
+        parsed.push(parse_into(&bytes, &module.display().to_string())?);
     }
     // The worked-example A-Box.
     for (rel, _) in EXAMPLE_INPUTS {
         let bytes = std::fs::read(root.join(rel))?;
-        parse_into(&store, &bytes, rel)?;
+        parsed.push(parse_into(&bytes, rel)?);
     }
+    let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+    let dataset = Arc::new(RdfDataset::union(&refs));
 
     let query_text = std::fs::read_to_string(root.join("generated/queries/dcat.rq"))?;
-    let results = SparqlEvaluator::new()
-        .parse_query(&query_text)
-        .map_err(|e| PipelineError::Parse(format!("dcat.rq parse: {e}")))?
-        .on_store(&store)
-        .execute()
-        .map_err(|e| PipelineError::Parse(format!("dcat.rq eval: {e}")))?;
-    let triples = match results {
-        QueryResults::Graph(triples) => triples,
+    let graph = match native_query::query(&dataset, &query_text)? {
+        SparqlResult::Graph(graph) => graph,
         _ => {
             return Err(PipelineError::Parse(
                 "dcat.rq did not return a CONSTRUCT graph".into(),
             ))
         }
     };
-    let mut nt = String::new();
-    for t in triples {
-        let t = t.map_err(|e| PipelineError::Parse(format!("dcat.rq triple: {e}")))?;
-        nt.push_str(&t.to_string());
-        nt.push_str(" .\n");
+    // The CONSTRUCT result is a native dataset; canonicalize its typed-literal lexical
+    // forms to the W3C XSD mapping (the native codecs preserve raw lexical forms),
+    // serialize to N-Triples (NO gts round-trip), then canonicalize to Turtle.
+    let mut quads = gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(&graph);
+    for quad in &mut quads {
+        canonicalize_term_xsd(&mut quad.object)?;
     }
+    let canon = gmeow_rdf::native_quads::flat_dataset_from_quads(&quads)
+        .map_err(|e| PipelineError::Parse(format!("dcat.rq re-freeze: {e}")))?;
+    let nt = gmeow_rdf::serialize_dataset(
+        &canon,
+        "application/n-triples",
+        gmeow_rdf::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PipelineError::Parse(format!("dcat.rq serialize N-Triples: {e}")))?;
     // Emit EXACTLY the canonical fold (shared prefix authority, no banner): the file
     // IS `render(graph)`, the bytes the superset gate reconstructs from the bundle.
-    gmeow_rdf::turtle_normalize::canonical_turtle(
-        nt.as_bytes(),
-        &crate::stages::superset::rdf_prefixes(),
-    )
-    .map_err(PipelineError::Parse)
+    // `nt` is already bytes from the native serializer, so pass it by reference.
+    gmeow_rdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
+        .map_err(PipelineError::Parse)
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────

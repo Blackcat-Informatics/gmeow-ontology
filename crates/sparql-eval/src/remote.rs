@@ -357,6 +357,7 @@ mod tests {
                     query: "SELECT ?o WHERE { ?s <http://ex/knows> ?o \
                             SERVICE <http://ep> { ?o <http://ex/name> ?n } }",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .unwrap_err();

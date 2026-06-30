@@ -3,13 +3,13 @@
 
 [package]
 name = "gmeow-validate"
-description = "GMEOW validation-path lints in Rust: oxigraph-backed Turtle syntax check and the Principle 5 owl:sameAs ban, exposed to Python via PyO3 (#579)"
+description = "GMEOW validation-path lints in Rust: native Turtle syntax check and the Principle 5 owl:sameAs ban, exposed to Python via PyO3 (#579)"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 readme = "README.md"
-keywords = ["rdf", "validation", "lint", "knowledge-graph", "oxigraph"]
+keywords = ["rdf", "validation", "lint", "knowledge-graph", "rdf-12"]
 
 [lib]
 # rlib-only: this crate no longer ships a standalone PyO3 extension. Its bindings
@@ -18,9 +18,6 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# oxigraph in-memory Store with RDF 1.2 (same version + features as crates/shacl):
-# default-features off drops the rocksdb C/C++ backend we never use.
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # Reserved for future lint ports that need regex (kept in lockstep with shacl).
 regex = "1"
 # Serialization for timing records and JSON result export (#634).
@@ -49,8 +46,8 @@ ureq = "3"
 # and validates the shared store directly (#634). The engine core is PyO3-free;
 # only the py modules on both sides touch PyO3.
 gmeow-shacl = { path = "../shacl" }
-# Shared RDF 1.2 kernel: GTS/oxigraph store construction and diagnostics (#648).
-gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
+# Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics (#648).
+gmeow-rdf = { path = "../rdf", features = ["gts"] }
 # Native slice catalog + S6a semantic Merkle cache: the whole-ontology merged-SHACL
 # source key is the path-independent, comment-insensitive product key over the slice
 # composition (RFC #820 §12). gmeow-slice depends only on gmeow-rdf, so this edge

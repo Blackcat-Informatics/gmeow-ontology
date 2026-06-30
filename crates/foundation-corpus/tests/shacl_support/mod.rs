@@ -10,12 +10,12 @@
 #![allow(dead_code)]
 
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
-use gmeow_shacl::engine::validate_graphs;
+use gmeow_rdf::parse_dataset;
+use gmeow_rdf_core::RdfDataset;
+use gmeow_shacl::engine::validate_dataset_graphs;
 use gmeow_shacl::report::{Severity, ValidationReport};
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::store::Store;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
@@ -167,76 +167,48 @@ fn collect_module_ttls(dir: &Path, paths: &mut Vec<PathBuf>) {
     }
 }
 
-/// Merged ontology as a single N-Triples string.
+/// The merged ontology as a single frozen [`RdfDataset`].
 ///
 /// Parses every `slices/*/*/module.ttl` (recursively, files literally named
-/// `module.ttl`) into one oxigraph Store and dumps as N-Triples.
-pub fn base_ontology_nt() -> &'static str {
-    static CACHE: OnceLock<String> = OnceLock::new();
-    CACHE.get_or_init(|| {
-        let root = repo_root();
-        let slices_dir = root.join("slices");
-        let mut module_paths: Vec<PathBuf> = Vec::new();
-        collect_module_ttls(&slices_dir, &mut module_paths);
-        module_paths.sort();
+/// `module.ttl`) through the canonical native codec (lenient on the private-use
+/// `@x-gmeow-*` language tags) and unions them into one dataset — the oxigraph-free
+/// twin of the old "load into a Store and dump N-Triples" path.
+pub fn base_ontology() -> Arc<RdfDataset> {
+    static CACHE: OnceLock<Arc<RdfDataset>> = OnceLock::new();
+    CACHE
+        .get_or_init(|| {
+            let root = repo_root();
+            let slices_dir = root.join("slices");
+            let mut module_paths: Vec<PathBuf> = Vec::new();
+            collect_module_ttls(&slices_dir, &mut module_paths);
+            module_paths.sort();
 
-        let store = Store::new().expect("in-memory store creation is infallible");
-        for path in &module_paths {
-            let ttl = std::fs::read_to_string(path)
-                .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
-            // Use lenient parser to accept private-use language tags.
-            if let Err(e) = store.load_from_reader(
-                RdfParser::from_format(RdfFormat::Turtle).lenient(),
-                ttl.as_bytes(),
-            ) {
-                eprintln!(
-                    "warning: lenient Turtle parse of {} had errors: {e}",
-                    path.display()
-                );
-            }
-        }
-
-        let mut buf: Vec<u8> = Vec::new();
-        store
-            .dump_graph_to_writer(
-                oxigraph::model::GraphNameRef::DefaultGraph,
-                RdfFormat::NTriples,
-                &mut buf,
-            )
-            .expect("N-Triples serialisation is infallible");
-        String::from_utf8(buf).expect("oxigraph N-Triples output is valid UTF-8")
-    })
+            let parsed: Vec<Arc<RdfDataset>> = module_paths
+                .iter()
+                .map(|path| {
+                    let bytes = std::fs::read(path)
+                        .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+                    parse_dataset(&bytes, "text/turtle", None)
+                        .unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
+                })
+                .collect();
+            let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
+            Arc::new(RdfDataset::union(&refs))
+        })
+        .clone()
 }
 
-/// Validate `base_ontology_nt() + "\n" + fixture_nt` against `whole_shapes_ttl()`.
-pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
-    let combined = format!("{}\n{}", base_ontology_nt(), fixture_nt);
-    validate_graphs(&combined, whole_shapes_ttl()).expect("validate_graphs must not error")
-}
-
-// ── Fixture helpers ───────────────────────────────────────────────────────────
-
-/// Parse an inline Turtle string into an oxigraph store and emit as N-Triples.
+/// Validate the merged ontology unioned with `fixture_ttl` against `whole_shapes_ttl()`.
 ///
-/// Uses the lenient parser (same as `gmeow_shacl::engine::validate_graphs`) so
-/// private-use `@x-gmeow-*` language tags are accepted.
-pub fn ttl_str_to_nt(ttl: &str) -> String {
-    let store = Store::new().expect("in-memory store creation is infallible");
-    store
-        .load_from_reader(
-            RdfParser::from_format(RdfFormat::Turtle).lenient(),
-            ttl.as_bytes(),
-        )
-        .unwrap_or_else(|e| panic!("Turtle parse failed: {e}\nInput:\n{ttl}"));
-    let mut buf: Vec<u8> = Vec::new();
-    store
-        .dump_graph_to_writer(
-            oxigraph::model::GraphNameRef::DefaultGraph,
-            RdfFormat::NTriples,
-            &mut buf,
-        )
-        .expect("N-Triples serialisation is infallible");
-    String::from_utf8(buf).expect("oxigraph N-Triples output is valid UTF-8")
+/// The fixture is parsed through the native codec and unioned with [`base_ontology`]
+/// (blank scopes standardized apart), then validated IR-natively via
+/// `validate_dataset_graphs` — no oxigraph Store, no N-Triples text round-trip.
+pub fn validate_with_ontology(fixture_ttl: &str) -> ValidationReport {
+    let fixture = parse_dataset(fixture_ttl.as_bytes(), "text/turtle", None)
+        .unwrap_or_else(|e| panic!("parse fixture turtle: {e}"));
+    let combined = RdfDataset::union(&[base_ontology().as_ref(), fixture.as_ref()]);
+    validate_dataset_graphs(&combined, whole_shapes_ttl())
+        .expect("validate_dataset_graphs must not error")
 }
 
 // ── Report helpers ────────────────────────────────────────────────────────────

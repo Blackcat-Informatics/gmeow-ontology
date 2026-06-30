@@ -11,30 +11,12 @@
 use std::collections::HashSet;
 use std::sync::{Arc, OnceLock};
 
-use oxigraph::model::{NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Term};
-use oxigraph::sparql::PreparedSparqlQuery;
-use oxigraph::store::Store;
+use gmeow_rdf::ir::RdfDataset;
 
+use crate::data::{GraphFilter, IrDataGraph, ShaclDataGraph};
 use crate::model::{gmeow, rdf, rdfs, sh};
 use crate::report::Severity;
-
-// ── Pre-parsed SPARQL query wrapper ───────────────────────────────────────────
-
-/// A thin `Debug`-capable wrapper around [`PreparedSparqlQuery`].
-///
-/// `PreparedSparqlQuery` does not implement `Debug`, but our shape types require
-/// it (via `#[derive(Debug)]` on [`Constraint`] and [`Target`]).  We supply a
-/// minimal `Debug` that just prints the type name, which is sufficient for
-/// diagnostics — the full query text is always retained in the `select: String`
-/// sibling field.
-#[derive(Clone)]
-pub struct DebugPreparedQuery(pub PreparedSparqlQuery);
-
-impl std::fmt::Debug for DebugPreparedQuery {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("PreparedSparqlQuery { .. }")
-    }
-}
+use crate::term::{NamedNode, Term};
 
 // ── Public types ───────────────────────────────────────────────────────────────
 
@@ -79,14 +61,12 @@ pub enum Target {
     ImplicitClass(Term),
     /// `sh:target [ rdf:type sh:SPARQLTarget ; sh:select "SELECT ?this …" ]`
     ///
-    /// The query is pre-parsed once at shape-load time. `select` is retained for
-    /// error messages; `parsed` is the ready-to-execute form (cheaply `Arc`-cloned
-    /// per evaluation call so `substitute_variable` can consume it).
+    /// The query is validated (parseable + SELECT-form) at shape-load time. The
+    /// native SPARQL engine re-parses the text at eval time, so only the query
+    /// string is retained.
     Sparql {
-        /// The SPARQL SELECT query text (for error messages).
+        /// The SPARQL SELECT query text (with any injected PREFIX header).
         select: String,
-        /// Pre-parsed query, shared across all invocations via `Arc`.
-        parsed: Arc<DebugPreparedQuery>,
     },
 }
 
@@ -166,14 +146,12 @@ pub enum Constraint {
     /// `sh:severity` overrides; missing values fall back to the shape defaults
     /// at evaluation time.
     ///
-    /// The query is pre-parsed once at shape-load time. `select` is retained for
-    /// error messages; `parsed` is the ready-to-execute form (cheaply `Arc`-cloned
-    /// per focus node so `substitute_variable` can consume it).
+    /// The query is validated (parseable + SELECT-form) at shape-load time. The
+    /// native SPARQL engine re-parses the text at eval time, so only the query
+    /// string is retained.
     Sparql {
-        /// The SPARQL SELECT query text (for error messages).
+        /// The SPARQL SELECT query text (with any injected PREFIX header).
         select: String,
-        /// Pre-parsed query, shared across all focus-node evaluations via `Arc`.
-        parsed: Arc<DebugPreparedQuery>,
         /// Optional per-constraint message override (from `sh:message` on the
         /// constraint blank node).
         message: Option<String>,
@@ -232,7 +210,7 @@ pub struct Shapes {
 
 // ── Public entry point ─────────────────────────────────────────────────────────
 
-/// Parse shapes from an oxigraph store.
+/// Parse shapes from a frozen [`RdfDataset`].
 ///
 /// Identifies node shapes, parses all their targets, constraints, and property
 /// shapes.  Unsupported SHACL features return `Err` immediately (hard-fail).
@@ -241,29 +219,30 @@ pub struct Shapes {
 ///
 /// Returns `Err(String)` when an unsupported SHACL construct is encountered or
 /// when required structural data (e.g. `sh:path`) is missing.
-pub fn from_store(store: &Store) -> Result<Shapes, String> {
-    from_store_with_prefixes(store, &[])
+pub fn from_dataset(dataset: &Arc<RdfDataset>) -> Result<Shapes, String> {
+    from_dataset_with_prefixes(dataset, &[])
 }
 
-/// Parse shapes from a store, with the shapes document's `@prefix` declarations
+/// Parse shapes from a dataset, with the shapes document's `@prefix` declarations
 /// available as a fallback prefix map for SHACL-AF `sh:select` queries.
 ///
 /// SHACL-AF queries may use prefixed names. The spec resolves them via
 /// `sh:prefixes`/`sh:declare`, but real-world shapes (and pySHACL) also rely on
-/// the shapes *document's* own `@prefix` declarations. Since an oxigraph `Store`
-/// does not retain document prefix maps, the caller (the engine) captures them
-/// from the Turtle parser and threads them here. `sh:prefixes` declarations take
-/// precedence over these document-level fallbacks.
+/// the shapes *document's* own `@prefix` declarations. Since the frozen IR does not
+/// retain document prefix maps, the caller (the engine) captures them from the
+/// Turtle source and threads them here. `sh:prefixes` declarations take precedence
+/// over these document-level fallbacks.
 ///
 /// # Errors
 ///
 /// Returns `Err(String)` on any unsupported SHACL construct or missing
-/// structural data — see [`from_store`].
-pub fn from_store_with_prefixes(
-    store: &Store,
+/// structural data — see [`from_dataset`].
+pub fn from_dataset_with_prefixes(
+    dataset: &Arc<RdfDataset>,
     doc_prefixes: &[(String, String)],
 ) -> Result<Shapes, String> {
-    let mut parser = Parser::new(store, doc_prefixes);
+    let data = IrDataGraph::new(Arc::clone(dataset));
+    let mut parser = Parser::new(&data, doc_prefixes);
     parser.parse()
 }
 
@@ -279,18 +258,18 @@ pub fn from_store_with_prefixes(
 /// are NOT in this set — they are handled or deliberately ignored.
 fn unsupported_predicates() -> HashSet<&'static str> {
     [
-        sh::QUALIFIED_VALUE_SHAPE.as_str(),
-        sh::QUALIFIED_MIN_COUNT.as_str(),
-        sh::QUALIFIED_MAX_COUNT.as_str(),
-        sh::LESS_THAN.as_str(),
-        sh::LESS_THAN_OR_EQUALS.as_str(),
-        sh::EQUALS.as_str(),
-        sh::DISJOINT.as_str(),
+        sh::QUALIFIED_VALUE_SHAPE,
+        sh::QUALIFIED_MIN_COUNT,
+        sh::QUALIFIED_MAX_COUNT,
+        sh::LESS_THAN,
+        sh::LESS_THAN_OR_EQUALS,
+        sh::EQUALS,
+        sh::DISJOINT,
         // unsupported path forms (checked on bnode path objects)
-        sh::ALTERNATIVE_PATH.as_str(),
-        sh::ZERO_OR_MORE_PATH.as_str(),
-        sh::ONE_OR_MORE_PATH.as_str(),
-        sh::ZERO_OR_ONE_PATH.as_str(),
+        sh::ALTERNATIVE_PATH,
+        sh::ZERO_OR_MORE_PATH,
+        sh::ONE_OR_MORE_PATH,
+        sh::ZERO_OR_ONE_PATH,
     ]
     .into_iter()
     .collect()
@@ -299,7 +278,7 @@ fn unsupported_predicates() -> HashSet<&'static str> {
 // ── Internal parser ────────────────────────────────────────────────────────────
 
 struct Parser<'s> {
-    store: &'s Store,
+    data: &'s IrDataGraph,
     unsupported: HashSet<&'static str>,
     /// Tracks shape nodes currently being parsed to prevent infinite recursion
     /// through `sh:node` or `sh:and/or/xone` cycles.
@@ -310,9 +289,9 @@ struct Parser<'s> {
 }
 
 impl<'s> Parser<'s> {
-    fn new(store: &'s Store, doc_prefixes: &[(String, String)]) -> Self {
+    fn new(data: &'s IrDataGraph, doc_prefixes: &[(String, String)]) -> Self {
         Self {
-            store,
+            data,
             unsupported: unsupported_predicates(),
             in_flight: HashSet::new(),
             doc_prefixes: doc_prefixes.to_vec(),
@@ -327,31 +306,13 @@ impl<'s> Parser<'s> {
         let mut property_shape_nodes: HashSet<Term> = HashSet::new();
 
         // 1. Nodes typed sh:NodeShape
-        for quad in self
-            .store
-            .quads_for_pattern(
-                None,
-                Some(rdf::TYPE),
-                Some(Term::NamedNode(sh::NODE_SHAPE.into()).as_ref()),
-                None,
-            )
-            .flatten()
-        {
-            shape_ids.insert(Term::from(quad.subject));
+        for quad in self.quads_with(None, Some(rdf::TYPE), Some(sh::NODE_SHAPE)) {
+            shape_ids.insert(quad.subject);
         }
 
         // 2. Nodes typed sh:PropertyShape (collect to exclude from top-level)
-        for quad in self
-            .store
-            .quads_for_pattern(
-                None,
-                Some(rdf::TYPE),
-                Some(Term::NamedNode(sh::PROPERTY_SHAPE.into()).as_ref()),
-                None,
-            )
-            .flatten()
-        {
-            property_shape_nodes.insert(Term::from(quad.subject));
+        for quad in self.quads_with(None, Some(rdf::TYPE), Some(sh::PROPERTY_SHAPE)) {
+            property_shape_nodes.insert(quad.subject);
         }
 
         // 3. Subjects of sh:targetClass / sh:targetSubjectsOf / sh:targetObjectsOf / sh:targetNode
@@ -361,12 +322,8 @@ impl<'s> Parser<'s> {
             sh::TARGET_OBJECTS_OF,
             sh::TARGET_NODE,
         ] {
-            for quad in self
-                .store
-                .quads_for_pattern(None, Some(pred), None, None)
-                .flatten()
-            {
-                shape_ids.insert(Term::from(quad.subject));
+            for quad in self.quads_with(None, Some(pred), None) {
+                shape_ids.insert(quad.subject);
             }
         }
 
@@ -374,25 +331,16 @@ impl<'s> Parser<'s> {
         //    and nodes that are rdfs:Class AND carry sh:targetClass or sh:NodeShape type
         //    (already caught above).  We also add any node that has sh:property
         //    and is thus acting as a shape container.
-        for quad in self
-            .store
-            .quads_for_pattern(None, Some(sh::PROPERTY), None, None)
-            .flatten()
-        {
-            let subj_term = Term::from(quad.subject);
+        for quad in self.quads_with(None, Some(sh::PROPERTY), None) {
             // Only add if not exclusively a property shape itself
-            if !property_shape_nodes.contains(&subj_term) {
-                shape_ids.insert(subj_term);
+            if !property_shape_nodes.contains(&quad.subject) {
+                shape_ids.insert(quad.subject);
             }
         }
 
         // 5. Nodes that carry sh:property as objects → record as property-shape-only
-        for quad in self
-            .store
-            .quads_for_pattern(None, Some(sh::PROPERTY), None, None)
-            .flatten()
-        {
-            property_shape_nodes.insert(quad.object.clone());
+        for quad in self.quads_with(None, Some(sh::PROPERTY), None) {
+            property_shape_nodes.insert(quad.object);
         }
 
         // Remove property-shape-only nodes from top-level set
@@ -403,7 +351,7 @@ impl<'s> Parser<'s> {
         // Parse each top-level node shape in stable (sorted) order
         let mut node_shapes: Vec<Shape> = Vec::new();
         let mut ids: Vec<Term> = shape_ids.into_iter().collect();
-        ids.sort_by_key(|t| t.to_string());
+        ids.sort_by_key(Term::to_string);
         for term in ids {
             let shape = self.parse_node_shape(term.clone())?;
             node_shapes.push(shape);
@@ -412,41 +360,66 @@ impl<'s> Parser<'s> {
         Ok(Shapes { node_shapes })
     }
 
-    /// Convert a `Term` to a `NamedOrBlankNodeRef` for use in store queries.
-    fn term_as_subject_ref<'t>(term: &'t Term) -> Option<NamedOrBlankNodeRef<'t>> {
-        match term {
-            Term::NamedNode(n) => Some(NamedOrBlankNodeRef::NamedNode(n.as_ref())),
-            Term::BlankNode(b) => Some(NamedOrBlankNodeRef::BlankNode(b.as_ref())),
-            _ => None,
+    /// Pattern-query the shapes dataset over ALL graphs. `subject`/`object` are IRI
+    /// constants or `None` wildcards; `predicate` is an IRI constant or `None`.
+    fn quads_with(
+        &self,
+        subject: Option<&str>,
+        predicate: Option<&str>,
+        object: Option<&str>,
+    ) -> Vec<crate::data::Quad> {
+        let s = subject.map(|iri| Term::NamedNode(NamedNode::from(iri)));
+        let p = predicate.map(|iri| Term::NamedNode(NamedNode::from(iri)));
+        let o = object.map(|iri| Term::NamedNode(NamedNode::from(iri)));
+        self.data
+            .quads_for_pattern(s.as_ref(), p.as_ref(), o.as_ref(), GraphFilter::AnyGraph)
+    }
+
+    /// Whether `(subject, rdf:type, class_iri)` is asserted in any graph.
+    fn has_type(&self, subject: &Term, class_iri: &str) -> bool {
+        if !subject.is_subject() {
+            return false;
         }
+        let rdf_type = Term::NamedNode(NamedNode::from(rdf::TYPE));
+        let class = Term::NamedNode(NamedNode::from(class_iri));
+        !self
+            .data
+            .quads_for_pattern(
+                Some(subject),
+                Some(&rdf_type),
+                Some(&class),
+                GraphFilter::AnyGraph,
+            )
+            .is_empty()
     }
 
     /// Collect all predicate→object pairs for a given subject term.
     fn predicates_of(&self, subject: &Term) -> Vec<(NamedNode, Term)> {
-        let Some(subj_ref) = Self::term_as_subject_ref(subject) else {
+        if !subject.is_subject() {
             return vec![];
-        };
-        self.store
-            .quads_for_pattern(Some(subj_ref), None, None, None)
-            .flatten()
+        }
+        self.data
+            .quads_for_pattern(Some(subject), None, None, GraphFilter::AnyGraph)
+            .into_iter()
             .map(|q| (q.predicate, q.object))
             .collect()
     }
 
     /// Return all objects for `(subject, predicate, ?)`.
-    fn objects_of(&self, subject: &Term, predicate: NamedNodeRef<'_>) -> Vec<Term> {
-        let Some(subj_ref) = Self::term_as_subject_ref(subject) else {
+    fn objects_of(&self, subject: &Term, predicate: &str) -> Vec<Term> {
+        if !subject.is_subject() {
             return vec![];
-        };
-        self.store
-            .quads_for_pattern(Some(subj_ref), Some(predicate), None, None)
-            .flatten()
+        }
+        let pred = Term::NamedNode(NamedNode::from(predicate));
+        self.data
+            .quads_for_pattern(Some(subject), Some(&pred), None, GraphFilter::AnyGraph)
+            .into_iter()
             .map(|q| q.object)
             .collect()
     }
 
     /// Return the first object for `(subject, predicate, ?)`, if any.
-    fn first_object_of(&self, subject: &Term, predicate: NamedNodeRef<'_>) -> Option<Term> {
+    fn first_object_of(&self, subject: &Term, predicate: &str) -> Option<Term> {
         self.objects_of(subject, predicate).into_iter().next()
     }
 
@@ -667,18 +640,7 @@ impl<'s> Parser<'s> {
 
         // Implicit class target: shape node is itself typed rdfs:Class
         if let Term::NamedNode(_) = id {
-            let is_rdfs_class = self
-                .store
-                .quads_for_pattern(
-                    Self::term_as_subject_ref(id),
-                    Some(rdf::TYPE),
-                    Some(Term::NamedNode(rdfs::CLASS.into()).as_ref()),
-                    None,
-                )
-                .flatten()
-                .next()
-                .is_some();
-            if is_rdfs_class {
+            if self.has_type(id, rdfs::CLASS) {
                 targets.push(Target::ImplicitClass(id.clone()));
             }
         }
@@ -686,21 +648,10 @@ impl<'s> Parser<'s> {
         // sh:target — SHACL-AF extension targets.  Only sh:SPARQLTarget is
         // supported; any other rdf:type on the target blank node is a hard error.
         let mut sparql_targets: Vec<Term> = self.objects_of(id, sh::TARGET);
-        sparql_targets.sort_by_key(|t| t.to_string());
+        sparql_targets.sort_by_key(Term::to_string);
         for t_node in sparql_targets {
             // Require rdf:type sh:SPARQLTarget on the target blank node.
-            let is_sparql_target = self
-                .store
-                .quads_for_pattern(
-                    Self::term_as_subject_ref(&t_node),
-                    Some(rdf::TYPE),
-                    Some(Term::NamedNode(sh::SPARQL_TARGET.into()).as_ref()),
-                    None,
-                )
-                .flatten()
-                .next()
-                .is_some();
-            if !is_sparql_target {
+            if !self.has_type(&t_node, sh::SPARQL_TARGET) {
                 return Err(format!(
                     "unsupported sh:target type on shape {id}: target node {t_node} \
                      is not typed sh:SPARQLTarget"
@@ -720,30 +671,25 @@ impl<'s> Parser<'s> {
             // SHACL-AF sh:prefixes may be declared on the shape or the target node.
             let select = format!("{}{raw_select}", self.prefix_header(&[id, &t_node]));
 
-            // Parse-time query validation (hard-fail on unparsable queries).
-            // The parsed form is stored on the Target so it can be reused on
-            // every eval call without re-parsing.
-            let parsed = oxigraph::sparql::SparqlEvaluator::new()
-                .parse_query(&select)
-                .map_err(|e| {
-                    format!("sh:SPARQLTarget on shape {id} has an unparsable sh:select query: {e}")
-                })?;
-
-            // SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/DESCRIBE parse but
-            // cannot bind ?this and would panic at eval — reject at the boundary.
-            if !matches!(
-                gmeow_sparql_algebra::SparqlParser::new().parse_query(&select),
-                Ok(gmeow_sparql_algebra::Query::Select { .. })
-            ) {
-                return Err(format!(
-                    "sh:SPARQLTarget on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
-                ));
+            // Parse-time query validation via the native parser (hard-fail on
+            // unparsable queries). SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/
+            // DESCRIBE parse but cannot bind ?this and would panic at eval — reject
+            // at the boundary.
+            match gmeow_sparql_algebra::SparqlParser::new().parse_query(&select) {
+                Ok(gmeow_sparql_algebra::Query::Select { .. }) => {}
+                Ok(_) => {
+                    return Err(format!(
+                        "sh:SPARQLTarget on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
+                    ));
+                }
+                Err(e) => {
+                    return Err(format!(
+                        "sh:SPARQLTarget on shape {id} has an unparsable sh:select query: {e}"
+                    ));
+                }
             }
 
-            targets.push(Target::Sparql {
-                select,
-                parsed: Arc::new(DebugPreparedQuery(parsed)),
-            });
+            targets.push(Target::Sparql { select });
         }
 
         Ok(targets)
@@ -1010,26 +956,22 @@ impl<'s> Parser<'s> {
             // SHACL-AF sh:prefixes may be declared on the shape or the sh:sparql node.
             let select = format!("{}{raw_select}", self.prefix_header(&[id, &c_node]));
 
-            // Parse-time query validation (hard-fail on unparsable queries).
-            // The parsed form is stored on the Constraint so it can be reused on
-            // every focus-node evaluation without re-parsing.
-            let parsed = oxigraph::sparql::SparqlEvaluator::new()
-                .parse_query(&select)
-                .map_err(|e| {
-                    format!(
+            // Parse-time query validation via the native parser (hard-fail on
+            // unparsable queries). SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/
+            // DESCRIBE parse but cannot bind ?this and would panic at eval — reject
+            // at the boundary.
+            match gmeow_sparql_algebra::SparqlParser::new().parse_query(&select) {
+                Ok(gmeow_sparql_algebra::Query::Select { .. }) => {}
+                Ok(_) => {
+                    return Err(format!(
+                        "sh:sparql constraint on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
+                    ));
+                }
+                Err(e) => {
+                    return Err(format!(
                         "sh:sparql constraint on shape {id} has an unparsable sh:select query: {e}"
-                    )
-                })?;
-
-            // SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/DESCRIBE parse but
-            // cannot bind ?this and would panic at eval — reject at the boundary.
-            if !matches!(
-                gmeow_sparql_algebra::SparqlParser::new().parse_query(&select),
-                Ok(gmeow_sparql_algebra::Query::Select { .. })
-            ) {
-                return Err(format!(
-                    "sh:sparql constraint on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
-                ));
+                    ));
+                }
             }
 
             // Optional per-constraint sh:message override.
@@ -1054,7 +996,6 @@ impl<'s> Parser<'s> {
 
             constraints.push(Constraint::Sparql {
                 select,
-                parsed: Arc::new(DebugPreparedQuery(parsed)),
                 message,
                 severity,
             });
@@ -1155,8 +1096,7 @@ impl<'s> Parser<'s> {
                         .is_some()
                     {
                         return Err(format!(
-                            "unsupported SHACL term <{}> on shape {shape_id}",
-                            unsupported_path_pred.as_str()
+                            "unsupported SHACL term <{unsupported_path_pred}> on shape {shape_id}"
                         ));
                     }
                 }
@@ -1311,8 +1251,15 @@ fn parse_u64(term: &Term) -> Option<u64> {
 mod tests {
     use super::*;
 
-    fn load_store(ttl: &str) -> Store {
-        crate::text_ingest::parse_turtle_to_store(ttl).expect("Turtle parse error")
+    /// Parse Turtle into a frozen dataset (the in-crate tests historically used an
+    /// oxigraph store; the name is kept so the call sites stay stable).
+    fn load_store(ttl: &str) -> Arc<RdfDataset> {
+        crate::text_ingest::parse_turtle_to_dataset(ttl).expect("Turtle parse error")
+    }
+
+    /// Parse shapes from a test dataset (shim over [`from_dataset`]).
+    fn from_store(dataset: &Arc<RdfDataset>) -> Result<Shapes, String> {
+        from_dataset(dataset)
     }
 
     const PREFIXES: &str = r#"
