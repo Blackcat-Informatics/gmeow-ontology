@@ -27,6 +27,9 @@ use serde_json::{json, Value};
 use gmeow_gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
+use gmeow_gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
+use gmeow_gts::writer::Writer as GtsWriter;
+use gmeow_logic::transaction::execute::{execute_transaction, CommitMode, TxReceipt};
 
 use crate::stages::export::{self, FoldView, Term};
 use crate::stages::fold_arena;
@@ -318,12 +321,15 @@ impl McpServer {
             ),
             tool(
                 "store_claim",
-                "Append one attributed memory claim.",
+                "Append one attributed memory claim, executed as a Transaction-Logic \
+                 transaction (the executional-entailment verdict gates the commit). Pass \
+                 dry_run=true for a non-committing sandbox run (verdict only, nothing written).",
                 &[
                     ("text", "string"),
                     ("source", "string"),
                     ("confidence", "number"),
                     ("according_to", "string"),
+                    ("dry_run", "boolean"),
                 ],
             ),
             tool(
@@ -338,11 +344,15 @@ impl McpServer {
             ),
             tool(
                 "revise_belief",
-                "Suppress a stored claim without deleting history.",
+                "Suppress a stored claim without deleting history (the store_claim \
+                 compensation, P10), executed as a Transaction-Logic transaction whose \
+                 precondition is that the target claim exists. Pass dry_run=true for a \
+                 non-committing sandbox run (verdict only, nothing suppressed).",
                 &[
                     ("claim_id", "string"),
                     ("reason", "string"),
                     ("superseded_by", "string"),
+                    ("dry_run", "boolean"),
                 ],
             ),
         ];
@@ -533,6 +543,35 @@ impl McpServer {
     fn tool_store_claim(&self, args: &Value) -> Result<String, String> {
         let text = required_str(args, "text")?;
         let confidence = optional_f64(args, "confidence")?;
+        let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
+
+        // store_claim's precondition — a well-formed claim is presented — obtains once the input
+        // validates (required text + in-range confidence, enforced above). Run the action as a
+        // TR transaction; the engine's executional entailment over THIS start state is the gate
+        // (no synthetic boolean — an absent precondition would fail the run).
+        let obtains = [MCP_WELL_FORMED_CLAIM];
+        let receipt = execute_memory_txn(MCP_STORE_CLAIM_SCHEMA, &obtains, dry_run)?;
+        match &receipt {
+            TxReceipt::CommittedFailure { reason } | TxReceipt::HypotheticalFailure { reason } => {
+                return Ok(json!({
+                    "ok": false,
+                    "error": format!("store_claim precondition unmet: {reason}"),
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            // Sandbox run: the verdict is observed, nothing is written or recorded.
+            TxReceipt::HypotheticalSuccess { .. } => {
+                return Ok(json!({
+                    "ok": true,
+                    "dry_run": true,
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            TxReceipt::CommittedSuccess { .. } => {}
+        }
+
         let memory = self.memory()?;
         let claim = memory
             .store(
@@ -544,20 +583,36 @@ impl McpServer {
                 },
             )
             .map_err(|e| e.to_string())?;
-        let response = json!({"ok": true, "claim": claim_json(&claim)}).to_string();
+        let response =
+            json!({"ok": true, "claim": claim_json(&claim), "transaction": txn_json(&receipt)})
+                .to_string();
         let generated = [claim.id.as_str()];
-        let _ = memory.record_tool_call(
-            &format!("{TOOL_AGENT_NS}store_claim"),
-            ToolCallOptions {
-                arguments: Some(&tool_arguments(
-                    args,
-                    &["text", "source", "confidence", "according_to"],
-                )),
-                result: Some(&response),
-                invocation: None,
-                generated: &generated,
-            },
-        );
+        let call = memory
+            .record_tool_call(
+                &format!("{TOOL_AGENT_NS}store_claim"),
+                ToolCallOptions {
+                    arguments: Some(&tool_arguments(
+                        args,
+                        &["text", "source", "confidence", "according_to", "dry_run"],
+                    )),
+                    result: Some(&response),
+                    invocation: None,
+                    generated: &generated,
+                },
+            )
+            .map_err(|e| e.to_string())?;
+        // Record the T6 audit context on the recorded call so the committed turn is cold-auditable.
+        let at_time = call
+            .created
+            .as_deref()
+            .ok_or("record_tool_call did not stamp a creation time")?;
+        write_audit_segment(
+            memory.path(),
+            &call.id,
+            MCP_STORE_CLAIM_SCHEMA,
+            &obtains,
+            at_time,
+        )?;
         Ok(response)
     }
 
@@ -581,18 +636,15 @@ impl McpServer {
 
     fn tool_revise_belief(&self, args: &Value) -> Result<String, String> {
         let claim_id = required_str(args, "claim_id")?;
+        let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
         let memory = self.memory()?;
-        let known: BTreeSet<String> = memory
-            .claims()
-            .map_err(|e| e.to_string())?
-            .into_iter()
-            .map(|claim| claim.id)
+        let claims = memory.claims().map_err(|e| e.to_string())?;
+        let known: BTreeSet<&str> = claims.iter().map(|claim| claim.id.as_str()).collect();
+        let active: BTreeSet<&str> = claims
+            .iter()
+            .filter(|claim| !claim.suppressed)
+            .map(|claim| claim.id.as_str())
             .collect();
-        if !known.contains(claim_id) {
-            return Ok(
-                json!({"ok": false, "error": format!("unknown claim id: {claim_id}")}).to_string(),
-            );
-        }
         if let Some(successor) = optional_str(args, "superseded_by") {
             if !known.contains(successor) {
                 return Ok(json!({
@@ -602,6 +654,41 @@ impl McpServer {
                 .to_string());
             }
         }
+
+        // revise_belief's precondition — the target claim exists — obtains iff claim_id is a known
+        // claim (the existing pre-flight check, now expressed AS the TR precondition). The del
+        // effect retires the active claim, so claimInMemory obtains iff it is not already
+        // suppressed. The engine's executional entailment is the gate; an unknown id fails the run.
+        let mut obtains: Vec<&str> = Vec::new();
+        if known.contains(claim_id) {
+            obtains.push(MCP_TARGET_CLAIM_EXISTS);
+        }
+        if active.contains(claim_id) {
+            obtains.push(MCP_CLAIM_IN_MEMORY);
+        }
+        let receipt = execute_memory_txn(MCP_REVISE_BELIEF_SCHEMA, &obtains, dry_run)?;
+        match &receipt {
+            TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
+                return Ok(json!({
+                    "ok": false,
+                    "error": format!("unknown claim id: {claim_id}"),
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            // Sandbox run: the verdict is observed, nothing is suppressed or recorded.
+            TxReceipt::HypotheticalSuccess { .. } => {
+                return Ok(json!({
+                    "ok": true,
+                    "dry_run": true,
+                    "suppressed": claim_id,
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            TxReceipt::CommittedSuccess { .. } => {}
+        }
+
         memory
             .revise(
                 claim_id,
@@ -615,20 +702,34 @@ impl McpServer {
             "ok": true,
             "suppressed": claim_id,
             "superseded_by": optional_str(args, "superseded_by"),
+            "transaction": txn_json(&receipt),
         })
         .to_string();
-        let _ = memory.record_tool_call(
-            &format!("{TOOL_AGENT_NS}revise_belief"),
-            ToolCallOptions {
-                arguments: Some(&tool_arguments(
-                    args,
-                    &["claim_id", "reason", "superseded_by"],
-                )),
-                result: Some(&response),
-                invocation: None,
-                generated: &[],
-            },
-        );
+        let call = memory
+            .record_tool_call(
+                &format!("{TOOL_AGENT_NS}revise_belief"),
+                ToolCallOptions {
+                    arguments: Some(&tool_arguments(
+                        args,
+                        &["claim_id", "reason", "superseded_by", "dry_run"],
+                    )),
+                    result: Some(&response),
+                    invocation: None,
+                    generated: &[],
+                },
+            )
+            .map_err(|e| e.to_string())?;
+        let at_time = call
+            .created
+            .as_deref()
+            .ok_or("record_tool_call did not stamp a creation time")?;
+        write_audit_segment(
+            memory.path(),
+            &call.id,
+            MCP_REVISE_BELIEF_SCHEMA,
+            &obtains,
+            at_time,
+        )?;
         Ok(response)
     }
 
@@ -973,6 +1074,236 @@ fn optional_limit(args: &Value, key: &str) -> Result<Option<usize>, String> {
     }
 }
 
+/// A strict boolean argument: present-and-bool → `Some`, absent/null → `None`, anything else is a
+/// HARD FAIL (no silent coercion — `dry_run` is a named default, not a degraded fallback).
+fn optional_bool_checked(args: &Value, key: &str) -> Result<Option<bool>, String> {
+    match args.get(key) {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::Bool(value)) => Ok(Some(*value)),
+        Some(_) => Err(format!("{key} must be a boolean")),
+    }
+}
+
+// ── T7: Transaction-Logic execution of the memory write triad ────────────────────
+//
+// The two memory WRITE tools run as Transaction-Logic transactions: the canonical action theory
+// is the single authority, the engine's executional entailment over the real start state is the
+// commit gate, `dry_run` selects the hypothetical (sandbox) operator, and every committed turn is
+// recorded with the audit context the T6 trajectory audit reads.
+
+/// The canonical memory-triad action theory — the SINGLE authority for how store_claim and
+/// revise_belief behave as transactions (their `logic:precondition` / `logic:effect` /
+/// `logic:compensation`). Embedded at build so the shipped `gmeow` runs repo-free; the slice
+/// file is the one source of truth, and the worked example and conformance case reference these
+/// same schema IRIs (they encode no second copy).
+const MCP_ACTION_POLICY_TTL: &str =
+    include_str!("../../../slices/extensions/agentic/examples/mcp-action-policy.ttl");
+
+/// The transient world the TR run reasons in — a fresh in-memory store per call, NEVER persisted.
+/// The executed verdict gates the write; the materialized outcome rides the tool response.
+const TXN_WORLD: &str = "https://blackcatinformatics.ca/gmeow/agentic/mcp-exec";
+const TXN_ROOT: &str = "https://blackcatinformatics.ca/gmeow/agentic/mcp-exec/txn";
+const TXN_START: &str = "https://blackcatinformatics.ca/gmeow/agentic/mcp-exec/start";
+
+/// The canonical action-schema and situation IRIs defined by `mcp-action-policy.ttl`.
+const MCP_STORE_CLAIM_SCHEMA: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/storeClaim";
+const MCP_REVISE_BELIEF_SCHEMA: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/reviseBelief";
+const MCP_WELL_FORMED_CLAIM: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/wellFormedClaim";
+const MCP_TARGET_CLAIM_EXISTS: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/targetClaimExists";
+const MCP_CLAIM_IN_MEMORY: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/claimInMemory";
+
+const LOGIC_INSTANTIATES_SCHEMA: &str = "https://blackcatinformatics.ca/logic/instantiatesSchema";
+const LOGIC_TRANSITION_FROM_STATE: &str =
+    "https://blackcatinformatics.ca/logic/transitionFromState";
+const LOGIC_SITUATION_OBTAINS: &str = "https://blackcatinformatics.ca/logic/situationObtains";
+const LOGIC_PROPER_PART_OF: &str = "https://blackcatinformatics.ca/logic/properPartOf";
+const GMEOW_AT_TIME: &str = "https://blackcatinformatics.ca/gmeow/atTime";
+const GMEOW_EVENT_TEMPORAL_FRAME: &str = "https://blackcatinformatics.ca/gmeow/eventTemporalFrame";
+const GMEOW_TEMPORAL_FRAME_UTC_GREGORIAN: &str =
+    "https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian";
+const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+
+/// The canonical action theory as N-Quads in [`TXN_WORLD`], parsed once from the embedded slice
+/// file. HARD FAIL if the embedded authority does not parse — that is a build-time invariant, not
+/// a runtime fallback (the `canonical_action_policy_parses` test guards it).
+fn action_policy_nquads() -> &'static str {
+    static CACHE: OnceLock<String> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        let dataset =
+            gmeow_rdf::parse_dataset(MCP_ACTION_POLICY_TTL.as_bytes(), "text/turtle", None)
+                .expect("canonical mcp-action-policy.ttl must parse (single authority)");
+        let mut lines: Vec<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&dataset)
+            .into_iter()
+            // The engine reads only the structural action theory (precondition / effect / ins /
+            // del / compensation), all IRI→IRI — keep those and drop the annotation literals
+            // (labels, comments) the executional-entailment run never consults.
+            .filter(|quad| {
+                let subject = quad.subject.to_string();
+                let object = quad.object.to_string();
+                subject.starts_with('<') && object.starts_with('<')
+            })
+            .map(|quad| {
+                format!(
+                    "{} <{}> {} <{TXN_WORLD}> .",
+                    quad.subject, quad.predicate, quad.object
+                )
+            })
+            .collect();
+        lines.sort();
+        lines.join("\n")
+    })
+}
+
+/// Build the per-call one-step transaction world: the canonical action theory plus this call's
+/// primitive program (`root` instantiates `schema_iri`, transitions from the start state) and the
+/// start state's obtaining situations (`obtains`, derived from REAL memory state).
+fn txn_world_nquads(schema_iri: &str, obtains: &[&str]) -> String {
+    let mut nq = action_policy_nquads().to_string();
+    nq.push('\n');
+    nq.push_str(&format!(
+        "<{TXN_ROOT}> <{LOGIC_INSTANTIATES_SCHEMA}> <{schema_iri}> <{TXN_WORLD}> .\n"
+    ));
+    nq.push_str(&format!(
+        "<{TXN_ROOT}> <{LOGIC_TRANSITION_FROM_STATE}> <{TXN_START}> <{TXN_WORLD}> .\n"
+    ));
+    for situation in obtains {
+        nq.push_str(&format!(
+            "<{TXN_START}> <{LOGIC_SITUATION_OBTAINS}> <{situation}> <{TXN_WORLD}> .\n"
+        ));
+    }
+    nq
+}
+
+/// Execute one memory write action as a TR transaction. `obtains` is the set of situations that
+/// obtain at the start state (real state); the engine's executional entailment over them is the
+/// commit gate. `dry_run` selects the hypothetical (sandbox) operator.
+fn execute_memory_txn(
+    schema_iri: &str,
+    obtains: &[&str],
+    dry_run: bool,
+) -> Result<TxReceipt, String> {
+    let nq = txn_world_nquads(schema_iri, obtains);
+    let mode = if dry_run {
+        CommitMode::Hypothetical
+    } else {
+        CommitMode::Committed
+    };
+    execute_transaction(&nq, TXN_WORLD, TXN_ROOT, mode)
+}
+
+/// The TR outcome rendered for the tool response.
+fn txn_json(receipt: &TxReceipt) -> Value {
+    match receipt {
+        TxReceipt::CommittedSuccess { path_len, .. } => {
+            json!({"committed": true, "succeeded": true, "path_len": path_len})
+        }
+        TxReceipt::CommittedFailure { reason } => {
+            json!({"committed": true, "succeeded": false, "reason": reason})
+        }
+        TxReceipt::HypotheticalSuccess { witness } => {
+            json!({"committed": false, "succeeded": true, "witness": witness})
+        }
+        TxReceipt::HypotheticalFailure { reason } => {
+            json!({"committed": false, "succeeded": false, "reason": reason})
+        }
+    }
+}
+
+fn gts_iri(value: &str) -> GtsTerm {
+    GtsTerm {
+        kind: GtsTermKind::Iri,
+        value: Some(value.to_string()),
+        datatype: None,
+        lang: None,
+        direction: None,
+        reifier: None,
+    }
+}
+
+fn gts_literal_dt(value: &str, datatype: usize) -> GtsTerm {
+    GtsTerm {
+        kind: GtsTermKind::Literal,
+        value: Some(value.to_string()),
+        datatype: Some(datatype),
+        lang: None,
+        direction: None,
+        reifier: None,
+    }
+}
+
+fn push_gts_term(terms: &mut Vec<GtsTerm>, term: GtsTerm) -> usize {
+    terms.push(term);
+    terms.len() - 1
+}
+
+/// Append the T6 audit-context segment for a just-recorded `gmeow:ToolCall` to the SAME
+/// `memory.gts`, keyed to `call_id`: the call's `logic:instantiatesSchema`, its single
+/// `logic:properPartOf` turn anchor (one call = one anchor — the stateless server mints no shared
+/// turn state), its `gmeow:atTime` and the single canonical `gmeow:eventTemporalFrame`
+/// (UTC-Gregorian, P11), the anchor's `logic:transitionFromState` start state, and the start's
+/// obtaining situations. This is exactly the shape `emit_trajectory_audits` reads, so a cold T6
+/// audit of `memory.gts` (unioned with the canonical action theory) verifies the executed turn.
+fn write_audit_segment(
+    memory_path: &Path,
+    call_id: &str,
+    schema_iri: &str,
+    obtains: &[&str],
+    at_time: &str,
+) -> Result<(), String> {
+    let anchor = format!("{call_id}#turn");
+    let start = format!("{call_id}#start");
+
+    let mut terms: Vec<GtsTerm> = Vec::new();
+    let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
+
+    let t_call = push_gts_term(&mut terms, gts_iri(call_id));
+    let t_anchor = push_gts_term(&mut terms, gts_iri(&anchor));
+    let t_start = push_gts_term(&mut terms, gts_iri(&start));
+
+    let t_inst = push_gts_term(&mut terms, gts_iri(LOGIC_INSTANTIATES_SCHEMA));
+    let t_schema = push_gts_term(&mut terms, gts_iri(schema_iri));
+    quads.push((t_call, t_inst, t_schema, None));
+
+    let t_ppo = push_gts_term(&mut terms, gts_iri(LOGIC_PROPER_PART_OF));
+    quads.push((t_call, t_ppo, t_anchor, None));
+
+    let t_dt = push_gts_term(&mut terms, gts_iri(XSD_DATETIME));
+    let t_at_time_p = push_gts_term(&mut terms, gts_iri(GMEOW_AT_TIME));
+    let t_at_time_o = push_gts_term(&mut terms, gts_literal_dt(at_time, t_dt));
+    quads.push((t_call, t_at_time_p, t_at_time_o, None));
+
+    let t_frame_p = push_gts_term(&mut terms, gts_iri(GMEOW_EVENT_TEMPORAL_FRAME));
+    let t_frame_o = push_gts_term(&mut terms, gts_iri(GMEOW_TEMPORAL_FRAME_UTC_GREGORIAN));
+    quads.push((t_call, t_frame_p, t_frame_o, None));
+
+    let t_tfs = push_gts_term(&mut terms, gts_iri(LOGIC_TRANSITION_FROM_STATE));
+    quads.push((t_anchor, t_tfs, t_start, None));
+
+    let t_so = push_gts_term(&mut terms, gts_iri(LOGIC_SITUATION_OBTAINS));
+    for situation in obtains {
+        let t_sit = push_gts_term(&mut terms, gts_iri(situation));
+        quads.push((t_start, t_so, t_sit, None));
+    }
+
+    let mut writer = GtsWriter::new("ai-package");
+    writer.add_terms(&terms);
+    writer.add_quads(&quads);
+    let segment = writer.to_bytes();
+
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(memory_path)
+        .map_err(|e| e.to_string())?;
+    file.write_all(&segment).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 fn tool_arguments(args: &Value, keys: &[&str]) -> String {
     let mut out = serde_json::Map::new();
     for key in keys {
@@ -1189,6 +1520,179 @@ mod tests {
             text_payload(server.call_tool_result("recall", &json!({"query": "real belief"})));
         assert_eq!(live["claims"][0]["id"], claim_id);
         assert_eq!(live["claims"][0]["suppressed"], false);
+    }
+
+    #[test]
+    fn canonical_action_policy_is_the_single_authority_and_parses() {
+        // The embedded slice file is the one source of truth for the action theory.
+        let policy = action_policy_nquads();
+        assert!(!policy.is_empty());
+        assert!(policy.contains(MCP_STORE_CLAIM_SCHEMA));
+        assert!(policy.contains(MCP_REVISE_BELIEF_SCHEMA));
+        assert!(policy.contains(TXN_WORLD));
+    }
+
+    #[test]
+    fn dry_run_must_be_a_boolean() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        env::remove_var("GMEOW_LANG");
+        let (_dir, _memory_path) = temp_memory();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let bad = text_payload(
+            server.call_tool_result("store_claim", &json!({"text": "x", "dry_run": "yes"})),
+        );
+        assert_eq!(bad["ok"], false);
+        assert!(bad["error"]
+            .as_str()
+            .unwrap()
+            .contains("dry_run must be a boolean"));
+    }
+
+    #[test]
+    fn store_claim_dry_run_computes_verdict_without_persisting() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        env::remove_var("GMEOW_LANG");
+        let (_dir, memory_path) = temp_memory();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let dry = text_payload(server.call_tool_result(
+            "store_claim",
+            &json!({"text": "a dry-run belief about orbits", "dry_run": true}),
+        ));
+        assert_eq!(dry["ok"], true);
+        assert_eq!(dry["dry_run"], true);
+        assert_eq!(dry["transaction"]["committed"], false);
+        assert_eq!(dry["transaction"]["succeeded"], true);
+        assert!(
+            dry["transaction"]["witness"].as_str().is_some(),
+            "a sandbox run leaves a content-addressed witness"
+        );
+        assert!(dry.get("claim").is_none(), "dry run writes no claim");
+
+        // Nothing persisted: recall is empty and the memory holds no claims or tool calls.
+        let recalled =
+            text_payload(server.call_tool_result("recall", &json!({"query": "dry-run belief"})));
+        assert!(recalled["claims"].as_array().unwrap().is_empty());
+        let memory = Memory::new(&memory_path);
+        assert!(memory.claims().unwrap().is_empty());
+        assert!(memory.tool_calls().unwrap().is_empty());
+    }
+
+    #[test]
+    fn committed_store_records_the_t6_audit_context() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        env::remove_var("GMEOW_LANG");
+        let (_dir, memory_path) = temp_memory();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let stored = text_payload(server.call_tool_result(
+            "store_claim",
+            &json!({"text": "an audited belief about thrust", "confidence": 0.8}),
+        ));
+        assert_eq!(stored["ok"], true);
+        assert_eq!(stored["transaction"]["committed"], true);
+        assert_eq!(stored["transaction"]["succeeded"], true);
+
+        // The committed turn is cold-auditable: the persisted memory.gts carries exactly the
+        // predicates emit_trajectory_audits (T6) requires on the recorded ToolCall and its anchor.
+        let raw = fs::read(&memory_path).unwrap();
+        let bundle = gmeow_rdf::import_gts_events(&raw).expect("import memory.gts");
+        let predicates: BTreeSet<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&bundle.dataset)
+            .iter()
+            .map(|quad| quad.predicate.clone())
+            .collect();
+        for predicate in [
+            LOGIC_INSTANTIATES_SCHEMA,
+            LOGIC_PROPER_PART_OF,
+            GMEOW_AT_TIME,
+            GMEOW_EVENT_TEMPORAL_FRAME,
+            LOGIC_TRANSITION_FROM_STATE,
+            LOGIC_SITUATION_OBTAINS,
+        ] {
+            assert!(
+                predicates.contains(predicate),
+                "memory.gts must carry {predicate} for the T6 trajectory audit"
+            );
+        }
+        // The single canonical temporal frame is recorded (P11 — one frame per trajectory).
+        let frames: Vec<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&bundle.dataset)
+            .iter()
+            .filter(|quad| quad.predicate == GMEOW_EVENT_TEMPORAL_FRAME)
+            .map(|quad| quad.object.to_string())
+            .collect();
+        assert!(frames
+            .iter()
+            .all(|frame| frame.contains("temporalFrameUTCGregorian")));
+    }
+
+    #[test]
+    fn revise_belief_dry_run_does_not_suppress() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        env::remove_var("GMEOW_LANG");
+        let (_dir, _memory_path) = temp_memory();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let stored = text_payload(
+            server.call_tool_result("store_claim", &json!({"text": "a revisable belief"})),
+        );
+        let claim_id = stored["claim"]["id"].as_str().unwrap().to_string();
+
+        let dry = text_payload(server.call_tool_result(
+            "revise_belief",
+            &json!({"claim_id": claim_id, "dry_run": true}),
+        ));
+        assert_eq!(dry["ok"], true);
+        assert_eq!(dry["dry_run"], true);
+        assert_eq!(dry["transaction"]["committed"], false);
+        assert_eq!(dry["transaction"]["succeeded"], true);
+
+        // The claim is still live — a sandbox revise suppresses nothing (P10 for free).
+        let live =
+            text_payload(server.call_tool_result("recall", &json!({"query": "revisable belief"})));
+        assert_eq!(live["claims"][0]["suppressed"], false);
+    }
+
+    #[test]
+    fn committed_revise_suppresses_but_never_deletes() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        env::remove_var("GMEOW_LANG");
+        let (_dir, _memory_path) = temp_memory();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let stored = text_payload(
+            server.call_tool_result("store_claim", &json!({"text": "a belief to retire"})),
+        );
+        let claim_id = stored["claim"]["id"].as_str().unwrap().to_string();
+
+        let revised = text_payload(server.call_tool_result(
+            "revise_belief",
+            &json!({"claim_id": claim_id, "reason": "superseded"}),
+        ));
+        assert_eq!(revised["ok"], true);
+        assert_eq!(revised["transaction"]["committed"], true);
+
+        // Default recall hides it (suppressed) ...
+        let default =
+            text_payload(server.call_tool_result("recall", &json!({"query": "belief retire"})));
+        assert!(default["claims"].as_array().unwrap().is_empty());
+        // ... but it is still present (supersession, never erasure — P10).
+        let audit = text_payload(server.call_tool_result(
+            "recall",
+            &json!({"query": "belief retire", "include_suppressed": true}),
+        ));
+        assert!(audit["claims"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|claim| claim["id"] == claim_id.as_str() && claim["suppressed"] == true));
     }
 
     #[test]
