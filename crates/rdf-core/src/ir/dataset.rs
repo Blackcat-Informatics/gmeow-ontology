@@ -630,19 +630,23 @@ impl RdfDataset {
         })
     }
 
-    /// Indexed [`DatasetView::quads_for_pattern`](crate::DatasetView::quads_for_pattern)
-    /// (#891 P4b): pick the permutation whose sort prefix covers the most bound
-    /// positions, binary-search the contiguous candidate run, then apply the EXACT
-    /// linear-scan filter to each candidate. Correctness is identical to the scan by
-    /// construction — the index only narrows the candidate set; the residual filter is
-    /// the same id-equality + [`GraphMatch`] predicate the default scan uses.
-    pub(crate) fn quads_for_pattern_indexed(
+    /// The contiguous candidate run for an `(s, p, o, g)` pattern: the chosen
+    /// permutation and the `[lo, hi)` bounds of the index slice whose `prefix`
+    /// leading keys match the bound positions. Pick the permutation whose sort
+    /// prefix covers the most bound positions (SPOG wins ties — it needs no array),
+    /// then binary-search the run. For SPOG the bounds index the freeze-sorted
+    /// `quads` table directly; otherwise they index the permutation's ordinal array.
+    /// The run is the EXACT match set when the bound positions form an index prefix,
+    /// and a superset (narrowed by the residual filter) otherwise. Shared by
+    /// [`Self::quads_for_pattern_indexed`] (iteration) and
+    /// [`Self::cardinality_estimate`] (counting).
+    fn pattern_candidate_run(
         &self,
         s: Option<TermId>,
         p: Option<TermId>,
         o: Option<TermId>,
         g: GraphMatch,
-    ) -> impl Iterator<Item = QuadIds> + '_ {
+    ) -> (QuadPermutation, usize, usize) {
         // The bound key for an axis, or `None` if the pattern leaves it free.
         let bound = |axis: Axis| -> Option<u32> {
             match axis {
@@ -685,9 +689,7 @@ impl RdfDataset {
 
         let axes = best.axes();
         // Binary-search the contiguous run whose `prefix` leading keys equal `target`.
-        // For SPOG the run is a sub-slice of the freeze-sorted table (sequential);
-        // otherwise it is a sub-slice of the permutation array (ordinal indirection).
-        let candidates = match best {
+        match best {
             QuadPermutation::Spog => {
                 let lo = self
                     .quads
@@ -695,7 +697,7 @@ impl RdfDataset {
                 let hi = self
                     .quads
                     .partition_point(|q| compare_prefix(&axes, q, &target, prefix).is_le());
-                QuadCandidates::Slice(self.quads[lo..hi].iter())
+                (best, lo, hi)
             }
             _ => {
                 let arr = self.permutation(best);
@@ -705,18 +707,66 @@ impl RdfDataset {
                 let hi = arr.partition_point(|&ord| {
                     compare_prefix(&axes, &self.quads[ord as usize], &target, prefix).is_le()
                 });
-                // Selectivity guard (#891): a non-identity permutation visits its run
-                // via `u32` ordinal indirection — random access into `quads`. For a
-                // LOW-selectivity prefix (a large run, e.g. a predicate matching much of
-                // the dataset), that scattered access costs more than a sequential pass,
-                // so fall back to a full sequential scan + residual filter (same result).
-                // Random access runs ~4× a sequential pass, so the crossover is a run
-                // wider than a quarter of the table. (Per-predicate cardinality stats
-                // that would let us choose upfront are deferred to the SPARQL round; this
-                // is a free, post-bisection check.)
+                (best, lo, hi)
+            }
+        }
+    }
+
+    /// An O(log n) UPPER-BOUND estimate of the number of quads matching
+    /// `(s, p, o, g)`: the length of the permutation-index candidate run whose
+    /// leading bound axes match the pattern. EXACT when the bound positions (plus any
+    /// graph constraint) form an index prefix; otherwise an upper bound — the
+    /// candidate run before the residual `(s, p, o, g)` filter narrows it. Read
+    /// straight from the index bounds, **independent of the read-path selectivity
+    /// guard** in [`Self::quads_for_pattern_indexed`] (that guard trades a permuted
+    /// run for a sequential scan to cut *iteration* cost — a read concern, not a
+    /// cardinality one; folding it in here would report the whole-table size for any
+    /// low-selectivity prefix and blind a cost planner exactly where skew matters).
+    ///
+    /// FOR COST RANKING ONLY — never an exact cardinality; callers must not treat the
+    /// result as a `COUNT`. The value is computed on demand, never asserted or
+    /// materialised as triples.
+    #[must_use]
+    pub fn cardinality_estimate(
+        &self,
+        s: Option<TermId>,
+        p: Option<TermId>,
+        o: Option<TermId>,
+        g: GraphMatch,
+    ) -> usize {
+        let (_perm, lo, hi) = self.pattern_candidate_run(s, p, o, g);
+        hi - lo
+    }
+
+    /// Indexed [`DatasetView::quads_for_pattern`](crate::DatasetView::quads_for_pattern):
+    /// pick the permutation whose sort prefix covers the most bound positions (via
+    /// [`Self::pattern_candidate_run`]), then apply the EXACT linear-scan filter to
+    /// each candidate. Correctness is identical to the scan by construction — the
+    /// index only narrows the candidate set; the residual filter is the same
+    /// id-equality + [`GraphMatch`] predicate the default scan uses.
+    pub(crate) fn quads_for_pattern_indexed(
+        &self,
+        s: Option<TermId>,
+        p: Option<TermId>,
+        o: Option<TermId>,
+        g: GraphMatch,
+    ) -> impl Iterator<Item = QuadIds> + '_ {
+        let (best, lo, hi) = self.pattern_candidate_run(s, p, o, g);
+        let candidates = match best {
+            // For SPOG the run is a sub-slice of the freeze-sorted table (sequential).
+            QuadPermutation::Spog => QuadCandidates::Slice(self.quads[lo..hi].iter()),
+            _ => {
+                // Selectivity guard: a non-identity permutation visits its run via
+                // `u32` ordinal indirection — random access into `quads`. For a
+                // low-selectivity prefix (a large run, e.g. a predicate matching much
+                // of the dataset), that scattered access costs more than a sequential
+                // pass, so fall back to a full sequential scan + residual filter (same
+                // result). Random access runs ~4× a sequential pass, so the crossover
+                // is a run wider than a quarter of the table.
                 if (hi - lo).saturating_mul(4) > self.quads.len() {
                     QuadCandidates::Slice(self.quads.iter())
                 } else {
+                    let arr = self.permutation(best);
                     QuadCandidates::Permuted {
                         ordinals: arr[lo..hi].iter(),
                         quads: &self.quads,
@@ -1156,6 +1206,21 @@ impl RdfDataset {
     #[inline]
     pub fn quad_count(&self) -> usize {
         self.quads.len()
+    }
+
+    /// A cheap, deterministic fingerprint of this frozen dataset's size, for a
+    /// dataset-aware cache key (e.g. a SPARQL join-order cache). Hashes the quad and
+    /// term counts only — enough to discriminate distinct datasets in practice. It is
+    /// a *cache discriminator*, not a content digest: a fingerprint collision can only
+    /// make a cache reuse a join order computed for a same-size dataset, which — the
+    /// reorder being a permutation of a commutative join — is at worst suboptimal,
+    /// never incorrect. For a content-exact identity use the RDFC-1.0 canonical digest.
+    #[inline]
+    pub fn stats_fingerprint(&self) -> u64 {
+        let mut h = std::collections::hash_map::DefaultHasher::new();
+        self.quads.len().hash(&mut h);
+        self.terms.len().hash(&mut h);
+        h.finish()
     }
 }
 
@@ -1995,6 +2060,97 @@ mod tests {
             let indexed: BTreeSet<_> =
                 ds.quads_for_pattern_indexed(s, p, o, g).map(key).collect();
             prop_assert_eq!(indexed, scan);
+        }
+
+        /// `cardinality_estimate` is a sound UPPER BOUND on the true match count for
+        /// every `(s?, p?, o?) × GraphMatch` shape: the index candidate run before the
+        /// residual filter can only over-count, never under-count, and never exceeds
+        /// the table size.
+        #[test]
+        fn proptest_cardinality_estimate_upper_bounds_count(
+            rows in prop::collection::vec(
+                (0u8..5, 0u8..5, 0u8..5, prop::option::of(0u8..3)),
+                0..48,
+            ),
+            s_sel in prop::option::of(0u8..5),
+            p_sel in prop::option::of(0u8..5),
+            o_sel in prop::option::of(0u8..5),
+            g_sel in 0u8..5,
+        ) {
+            let mut b = RdfDatasetBuilder::new();
+            let pool: Vec<TermId> = (0..5)
+                .map(|n| b.intern_iri(format!("http://example.org/n{n}")))
+                .collect();
+            let graphs: Vec<TermId> = (0..3)
+                .map(|n| b.intern_iri(format!("http://example.org/g{n}")))
+                .collect();
+            for (s, p, o, g) in rows {
+                b.push_quad(pool[s as usize], pool[p as usize], pool[o as usize],
+                    g.map(|gi| graphs[gi as usize]));
+            }
+            let ds = b.freeze().expect("random valid dataset must freeze");
+
+            let s = s_sel.map(|i| pool[i as usize]);
+            let p = p_sel.map(|i| pool[i as usize]);
+            let o = o_sel.map(|i| pool[i as usize]);
+            let g = match g_sel {
+                0 => GraphMatch::Any,
+                1 => GraphMatch::Default,
+                n => GraphMatch::Named(graphs[(n - 2) as usize]),
+            };
+
+            let count = ds.quads_for_pattern_indexed(s, p, o, g).count();
+            let estimate = ds.cardinality_estimate(s, p, o, g);
+            prop_assert!(estimate >= count,
+                "estimate {} must upper-bound count {}", estimate, count);
+            prop_assert!(estimate <= ds.quad_count());
+        }
+
+        /// Under `GraphMatch::Any` (no graph residual) EVERY non-empty subset of the
+        /// `{S, P, O}` axes is covered exactly by an index prefix (SPOG/POS/OSP and
+        /// their pairs), so `cardinality_estimate` must EQUAL the true count, not merely
+        /// upper-bound it. This is the gate against the estimate silently collapsing
+        /// into the read-path selectivity-guard fallback (which returns the whole-table
+        /// size for a low-selectivity prefix).
+        #[test]
+        fn proptest_cardinality_estimate_exact_on_index_prefix(
+            rows in prop::collection::vec(
+                (0u8..5, 0u8..5, 0u8..5, prop::option::of(0u8..3)),
+                1..48,
+            ),
+            pick in 0usize..48,
+            // 3-bit selector over {S, P, O}; 1..=7 never picks the all-free case.
+            mask in 1u8..8,
+        ) {
+            let mut b = RdfDatasetBuilder::new();
+            let pool: Vec<TermId> = (0..5)
+                .map(|n| b.intern_iri(format!("http://example.org/n{n}")))
+                .collect();
+            let graphs: Vec<TermId> = (0..3)
+                .map(|n| b.intern_iri(format!("http://example.org/g{n}")))
+                .collect();
+            let raw: Vec<(TermId, TermId, TermId, Option<TermId>)> = rows
+                .iter()
+                .map(|&(s, p, o, g)| (
+                    pool[s as usize], pool[p as usize], pool[o as usize],
+                    g.map(|gi| graphs[gi as usize]),
+                ))
+                .collect();
+            for &(s, p, o, g) in &raw {
+                b.push_quad(s, p, o, g);
+            }
+            let ds = b.freeze().expect("random valid dataset must freeze");
+
+            // Draw the bound terms from a real quad so the pattern is non-degenerate.
+            let (qs, qp, qo, _qg) = raw[pick % raw.len()];
+            let s = (mask & 0b001 != 0).then_some(qs);
+            let p = (mask & 0b010 != 0).then_some(qp);
+            let o = (mask & 0b100 != 0).then_some(qo);
+
+            let count = ds.quads_for_pattern_indexed(s, p, o, GraphMatch::Any).count();
+            let estimate = ds.cardinality_estimate(s, p, o, GraphMatch::Any);
+            prop_assert_eq!(estimate, count,
+                "a prefix-covered pattern must be EXACT, not just an upper bound");
         }
     }
 }
