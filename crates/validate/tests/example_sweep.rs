@@ -70,6 +70,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
     "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/metacognition/examples/reflection-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/observations/examples/blood-pressure.ttl", // gmeow:observationMethod (methodInstrumentalReading) + the reference frame's shared component individuals (determinacyCrisp, frameKindScalar, frameRealmMeasurement, axisScalar) untyped standalone
     "slices/core/observations/examples/temperature-reading.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/pipeline/examples/minimal-pipeline.ttl", // gmeow:hasCapability → shared gmeow:StageCapability untyped standalone
     "slices/core/profiles/examples/named-profile-membership.ttl", // gmeow:profileAppliesTo → owl:Class target not typed standalone
