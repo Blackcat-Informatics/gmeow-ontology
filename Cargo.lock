@@ -1893,6 +1893,7 @@ dependencies = [
  "gmeow-gts",
  "gmeow-rdf-core",
  "gmeow-rdf-events",
+ "gmeow-sparql-algebra",
  "gmeow-sparql-eval",
  "gmeow-xsd",
  "pretty_assertions",

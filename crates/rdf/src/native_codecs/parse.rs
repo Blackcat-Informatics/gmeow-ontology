@@ -112,11 +112,11 @@ where
 
 /// Parse RDF text bytes of `media_type` into a frozen [`RdfDataset`].
 ///
-/// Steps: UTF-8 validate (hard-fail `native-codec-utf8`); for Turtle/TriG with a base
-/// prepend a `@base` directive; dispatch to the matching `gmeow-gts` `from_*` codec
-/// (RDF/XML uses the base variant when a base is present, N-Quads uses
-/// `from_nquads::from_nquads`); fold the GTS segments to a graph; walk that graph
-/// through [`fold_statement_layer`] and freeze.
+/// Steps: UTF-8 validate (hard-fail `native-codec-utf8`); parse to an in-memory
+/// [`GtsGraph`] — the line/Turtle family (N-Triples, N-Quads, Turtle, TriG) through the
+/// FIRST-PARTY [`text_parse`](crate::native_codecs::text_parse) front-end (EPIC #906,
+/// no gmeow-gts text codec), RDF/XML still through the gmeow-gts codec (follow-up);
+/// then walk that graph through [`fold_statement_layer`] and freeze.
 pub fn parse_dataset(
     bytes: &[u8],
     media_type: &str,
@@ -126,24 +126,58 @@ pub fn parse_dataset(
     let text = std::str::from_utf8(bytes)
         .map_err(|e| RdfDiagnostic::error("native-codec-utf8", e.to_string()))?;
 
-    let gts_bytes = encode_to_gts_without_panicking(format, text, base_iri)?;
-    let graph = crate::gts::read_all_segments(&gts_bytes)?;
+    let graph = match format {
+        // The line/Turtle family parses FIRST-PARTY straight into the in-memory
+        // GtsGraph the statement-layer fold consumes — no gmeow-gts text codec, no
+        // text→bytes→reader indirection. This also decodes `\uXXXX` UCHAR escapes
+        // inside IRIREFs (W3C test060), which the gmeow-gts IRIREF readers rejected.
+        NativeRdfFormat::NTriples
+        | NativeRdfFormat::NQuads
+        | NativeRdfFormat::Turtle
+        | NativeRdfFormat::TriG => text_parse_without_panicking(format, text, base_iri)?,
+        // FOLLOW-UP: first-party RDF/XML + JSON-LD parser (#906). RDF/XML still routes
+        // through the gmeow-gts codec (text → GTS bytes → reader) until then.
+        NativeRdfFormat::RdfXml => {
+            let gts_bytes = encode_rdf_xml_without_panicking(text, base_iri)?;
+            crate::gts::read_all_segments(&gts_bytes)?
+        }
+    };
     dataset_from_gts_graph(&graph)
 }
 
-fn encode_to_gts_without_panicking(
+fn text_parse_without_panicking(
     format: NativeRdfFormat,
     text: &str,
     base_iri: Option<&str>,
-) -> Result<Vec<u8>, RdfDiagnostic> {
-    let outcome = catch_unwind(AssertUnwindSafe(|| encode_to_gts(format, text, base_iri)));
+) -> Result<gmeow_gts::model::Graph, RdfDiagnostic> {
+    let outcome = catch_unwind(AssertUnwindSafe(|| {
+        super::text_parse::parse_to_gts_graph(format, text, base_iri)
+    }));
     match outcome {
         Ok(result) => result,
         Err(payload) => Err(RdfDiagnostic::error(
             "native-codec-panic",
             format!(
-                "native GTS RDF codec panicked while parsing {}: {}",
+                "native RDF text parser panicked while parsing {}: {}",
                 format.media_type(),
+                panic_payload_message(payload.as_ref()),
+            ),
+        )),
+    }
+}
+
+fn encode_rdf_xml_without_panicking(
+    text: &str,
+    base_iri: Option<&str>,
+) -> Result<Vec<u8>, RdfDiagnostic> {
+    let outcome = catch_unwind(AssertUnwindSafe(|| encode_rdf_xml_to_gts(text, base_iri)));
+    match outcome {
+        Ok(result) => result,
+        Err(payload) => Err(RdfDiagnostic::error(
+            "native-codec-panic",
+            format!(
+                "native GTS RDF/XML codec panicked while parsing {}: {}",
+                NativeRdfFormat::RdfXml.media_type(),
                 panic_payload_message(payload.as_ref()),
             ),
         )),
@@ -160,45 +194,21 @@ fn panic_payload_message(payload: &(dyn std::any::Any + Send)) -> String {
     }
 }
 
-/// Drive `text` through the matching `gmeow-gts` `from_*` codec, returning GTS bytes.
+/// Drive RDF/XML `text` through the gmeow-gts codec, returning GTS bytes.
 ///
-/// Turtle/TriG prepend a spec-exact `@base <iri> .` directive when a base is supplied
-/// (the gmeow-gts Turtle/TriG codecs take no base-IRI argument); RDF/XML threads the
-/// base through `from_rdf_xml_with_base_iri`; N-Triples/N-Quads require absolute IRIs,
-/// so the base is structurally inapplicable and ignored.
-fn encode_to_gts(
-    format: NativeRdfFormat,
-    text: &str,
-    base_iri: Option<&str>,
-) -> Result<Vec<u8>, RdfDiagnostic> {
-    use gmeow_gts::rdf_codecs::{
-        from_ntriples, from_rdf_xml, from_rdf_xml_with_base_iri, from_trig, from_turtle,
-    };
+/// FOLLOW-UP: first-party RDF/XML + JSON-LD parser (#906). The N-Triples / N-Quads /
+/// Turtle / TriG formats now parse first-party (see [`parse_dataset`]); only RDF/XML
+/// still routes through the external codec, threading the base through the
+/// `from_rdf_xml_with_base_iri` variant when supplied.
+fn encode_rdf_xml_to_gts(text: &str, base_iri: Option<&str>) -> Result<Vec<u8>, RdfDiagnostic> {
+    use gmeow_gts::rdf_codecs::{from_rdf_xml, from_rdf_xml_with_base_iri};
 
     let codec_error = |e: gmeow_gts::rdf_codecs::RdfCodecError| {
         RdfDiagnostic::error("native-codec-parse", e.to_string())
     };
-    match format {
-        NativeRdfFormat::Turtle => {
-            from_turtle(&with_base_prefix(text, base_iri)).map_err(codec_error)
-        }
-        NativeRdfFormat::TriG => from_trig(&with_base_prefix(text, base_iri)).map_err(codec_error),
-        NativeRdfFormat::NTriples => from_ntriples(text).map_err(codec_error),
-        NativeRdfFormat::NQuads => gmeow_gts::from_nquads::from_nquads(text)
-            .map_err(|e| RdfDiagnostic::error("native-codec-parse", e.to_string())),
-        NativeRdfFormat::RdfXml => match base_iri {
-            Some(base) => from_rdf_xml_with_base_iri(text, base).map_err(codec_error),
-            None => from_rdf_xml(text).map_err(codec_error),
-        },
-    }
-}
-
-/// Prepend a `@base <iri> .` Turtle directive when a base is supplied (spec-exact),
-/// otherwise return the text unchanged.
-fn with_base_prefix(text: &str, base_iri: Option<&str>) -> String {
     match base_iri {
-        Some(base) => format!("@base <{base}> .\n{text}"),
-        None => text.to_owned(),
+        Some(base) => from_rdf_xml_with_base_iri(text, base).map_err(codec_error),
+        None => from_rdf_xml(text).map_err(codec_error),
     }
 }
 
@@ -511,10 +521,16 @@ mod tests {
     }
 
     #[test]
-    fn native_codec_dependency_panic_becomes_diagnostic() {
+    fn malformed_text_is_rejected_without_unwinding() {
+        // The first-party line/Turtle-family parser (EPIC #906) returns a clean parse
+        // diagnostic for malformed input rather than unwinding — strictly better than
+        // the prior gmeow-gts codec, which panicked on this fragment and relied on the
+        // `catch_unwind` guard to convert the panic to `native-codec-panic`. The guard
+        // is retained for any genuine downstream panic; here the path now reports a
+        // structured `native-codec-parse` error.
         let err = parse_dataset("0À".as_bytes(), "text/turtle", None)
             .expect_err("malformed input must be rejected without unwinding");
-        assert_eq!(err.code, "native-codec-panic");
+        assert_eq!(err.code, "native-codec-parse");
     }
 
     #[test]

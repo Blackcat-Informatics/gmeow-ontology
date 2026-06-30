@@ -19,6 +19,10 @@ mod media_type;
 // `fold_statement_layer` (one fold, no drift) — #909 Task 1.
 pub(crate) mod parse;
 mod serialize;
+// First-party N-Triples / N-Quads / Turtle / TriG text parser (EPIC #906): lowers
+// directly to the in-memory GtsGraph the statement-layer fold consumes, replacing the
+// gmeow-gts text codecs for the line/Turtle family.
+mod text_parse;
 
 pub use media_type::{classify, NativeRdfFormat};
 pub use parse::parse_dataset;
