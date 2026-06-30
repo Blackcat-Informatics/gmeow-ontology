@@ -2278,7 +2278,10 @@ def _signed_gts_copy(
     if graph.quads:
         writer.add_quads(list(graph.quads))
     if graph.reifiers:
-        writer.add_reifies(dict(sorted(graph.reifiers.items())))
+        # gmeow-gts 0.9.11: `reifies` is a row-array `[(rid, (s, p, o), graph?), …]`
+        # (was a reifier-id map). Pass the rows through verbatim for a faithful
+        # re-sign; the writer canonicalizes their order.
+        writer.add_reifies(list(graph.reifiers))
     if graph.annotations:
         writer.add_annot(list(graph.annotations))
 
