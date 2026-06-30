@@ -440,41 +440,89 @@ fn cost_order_greedy(
 }
 
 /// One left-deep plan in the subset DP: its accumulated cost (sum of intermediate
-/// sizes), the running size of its last stage, and the pattern order achieving it.
-#[derive(Clone)]
+/// sizes), the running size of its last stage, and the pattern order encoded as a
+/// nibble-packed `u64`.
+///
+/// The order is stored as a sequence of 4-bit nibbles packed into `order_bits`, with
+/// the first-scheduled pattern index occupying the most-significant occupied nibble.
+/// Each nibble stores `index + 1` (1-based) so that index 0 is distinguishable from
+/// the empty zero-padding in less-significant positions. Appending pattern index `i`
+/// shifts left by 4 and OR-s in `i + 1`:
+///
+/// ```text
+/// order_bits = (order_bits << 4) | (i as u64 + 1)
+/// len += 1
+/// ```
+///
+/// This struct is `Copy` — no heap allocation per DP transition. The maximum supported
+/// pattern count is [`COST_DP_MAX_PATTERNS`] = 8, so indices 0–7 fit in a single nibble
+/// (values 1–8), and 8 nibbles occupy exactly 32 bits of the 64-bit word — well within
+/// capacity. An index ≥ 16 would overflow a nibble; this is statically prevented by the
+/// `COST_DP_MAX_PATTERNS ≤ 15` invariant documented on that constant.
+///
+/// Tie-breaking: when two candidate plans for the same `next` mask have equal `cost`,
+/// the winner is the one with the smaller `order_bits`. Because both candidates have
+/// identical `len` (same number of bits set in `next`), their packed words are the same
+/// width, so a simple `u64` comparison reads them left-to-right — exactly equivalent to
+/// the lexicographic `Vec<usize>` comparison it replaces.
+#[derive(Clone, Copy)]
 struct DpPlan {
     cost: f64,
     size: f64,
-    order: Vec<usize>,
+    /// Nibble-packed join order: MSB nibble = first scheduled pattern (1-based index).
+    order_bits: u64,
+    /// Number of patterns scheduled so far (= number of occupied nibbles).
+    len: u8,
 }
 
 /// Exhaustive left-deep Selinger DP for a small BGP (`n ≤ COST_DP_MAX_PATTERNS`):
 /// `dp[mask]` is the minimum-cost connected plan covering exactly the patterns in
 /// `mask`. Transitions append one connected pattern (or, when none is connected, any —
 /// a forced cross product for a genuinely disconnected BGP). Ties break on the
-/// lexicographically smallest order, so the result is deterministic. The `2^n` state
-/// table is a dense `Vec` indexed by the subset bitmask — never a hash map, so no
-/// iteration-order nondeterminism can leak in.
+/// lexicographically smallest order (lowest original index first), so the result is
+/// deterministic. The `2^n` state table is a dense `Vec` indexed by the subset
+/// bitmask — never a hash map, so no iteration-order nondeterminism can leak in.
+///
+/// The order is carried as a nibble-packed `u64` (see [`DpPlan`]): each DP transition
+/// copies the `Copy` struct and shifts in one nibble — no heap allocation per step.
+/// The final order is decoded MSB→LSB into a `Vec<usize>` for the caller.
 fn cost_order_dp(compiled: &[CompiledPattern], base: &[f64], t: f64, n_cols: usize) -> Vec<usize> {
     let n = compiled.len();
+    // Safety invariant: each pattern index must fit in a 4-bit nibble (values 1–15
+    // after the 1-based offset). COST_DP_MAX_PATTERNS == 8 satisfies this with margin.
+    debug_assert!(
+        n <= COST_DP_MAX_PATTERNS,
+        "cost_order_dp called with n={n} > COST_DP_MAX_PATTERNS={COST_DP_MAX_PATTERNS}"
+    );
+    const {
+        assert!(
+            COST_DP_MAX_PATTERNS <= 15,
+            "COST_DP_MAX_PATTERNS must be ≤ 15 so every index fits in a 4-bit nibble"
+        )
+    };
+
     let full: usize = (1usize << n) - 1;
     let mut dp: Vec<Option<DpPlan>> = vec![None; full + 1];
     dp[0] = Some(DpPlan {
         cost: 0.0,
         size: 1.0,
-        order: Vec::new(),
+        order_bits: 0,
+        len: 0,
     });
 
     // Masks ascend, and every transition sets one more bit (a strictly larger mask),
     // so `dp[mask]` is final by the time the loop reaches it.
     for mask in 0..=full {
-        let Some(plan) = dp[mask].clone() else {
+        let Some(plan) = dp[mask] else {
             continue;
         };
         // The slots bound after this prefix (the union of the set's slots).
+        // Decode order_bits MSB→LSB to recover the scheduled indices.
         let mut bound = vec![false; n_cols];
-        for &i in &plan.order {
-            mark_bound(&compiled[i], &mut bound);
+        for k in 0..plan.len {
+            let nibble_pos = plan.len - 1 - k; // 0 = least-significant occupied nibble
+            let idx = ((plan.order_bits >> (4 * nibble_pos)) & 0xF) as usize - 1;
+            mark_bound(&compiled[idx], &mut bound);
         }
         let any_connected = mask != 0
             && (0..n).any(|i| mask & (1usize << i) == 0 && pattern_connected(&compiled[i], &bound));
@@ -495,29 +543,43 @@ fn cost_order_dp(compiled: &[CompiledPattern], base: &[f64], t: f64, n_cols: usi
             };
             let size = step_size(plan.size, base[i], joins, t);
             let cost = plan.cost + size;
-            let mut order = plan.order.clone();
-            order.push(i);
+            // Append pattern index `i` as a new LSB nibble (1-based so index 0 ≠ empty).
+            let order_bits = (plan.order_bits << 4) | (i as u64 + 1);
+            let len = plan.len + 1;
             let next = mask | (1usize << i);
             let better = match &dp[next] {
                 None => true,
                 // `total_cmp` is a deterministic total order (and avoids comparing
-                // floats with `==`); ties fall through to the lexicographic order.
+                // floats with `==`); ties fall through to the nibble-packed order
+                // comparison. Both candidates have the same `len` (identical popcount
+                // of `next`), so their packed words are the same width and `u64`
+                // comparison reads them left-to-right — exactly lexicographic order
+                // on the pattern-index sequence, lowest-index first.
                 Some(cur) => match cost.total_cmp(&cur.cost) {
                     std::cmp::Ordering::Less => true,
                     std::cmp::Ordering::Greater => false,
-                    std::cmp::Ordering::Equal => order < cur.order,
+                    std::cmp::Ordering::Equal => order_bits < cur.order_bits,
                 },
             };
             if better {
-                dp[next] = Some(DpPlan { cost, size, order });
+                dp[next] = Some(DpPlan {
+                    cost,
+                    size,
+                    order_bits,
+                    len,
+                });
             }
         }
     }
 
-    dp[full]
-        .take()
-        .expect("the DP always reaches the full set")
-        .order
+    let best = dp[full].expect("the DP always reaches the full set");
+    // Decode MSB→LSB: the first-scheduled pattern is in the most-significant nibble.
+    (0..best.len)
+        .map(|k| {
+            let nibble_pos = best.len - 1 - k;
+            ((best.order_bits >> (4 * nibble_pos)) & 0xF) as usize - 1
+        })
+        .collect()
 }
 
 /// Whether a pattern shares at least one already-bound variable with the bindings
