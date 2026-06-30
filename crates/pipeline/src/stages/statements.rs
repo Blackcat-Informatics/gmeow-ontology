@@ -22,7 +22,7 @@ use oxigraph::store::Store;
 use sha1::{Digest as Sha1Digest, Sha1};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::{
     rdf_bytes_into_store, turtle_bytes_into_store, turtle_bytes_into_store_scoped,
 };
@@ -438,9 +438,6 @@ pub struct StatementsStage;
 impl Stage for StatementsStage {
     fn id(&self) -> &str {
         "stage-statements"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Transform
     }
     fn consumes(&self) -> &[String] {
         // Declared empty: the compiler reads dsl/statements/ from the root. The

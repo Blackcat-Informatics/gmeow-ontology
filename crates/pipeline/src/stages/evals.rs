@@ -32,7 +32,7 @@ use oxigraph::model::Term;
 use serde_json::Value;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::turtle_bytes_to_store;
 
 /// Logical path of the generated leaderboard.
@@ -949,9 +949,6 @@ pub struct EvalsStage;
 impl Stage for EvalsStage {
     fn id(&self) -> &str {
         "stage-export-evals"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

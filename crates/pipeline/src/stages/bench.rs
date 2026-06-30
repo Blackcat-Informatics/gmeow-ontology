@@ -31,7 +31,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Committed reference-run input (the single source of truth for the leaderboard).
 pub const BASELINE_PATH: &str = "bench/baseline.json";
@@ -343,9 +343,6 @@ pub struct BenchLeaderboardStage;
 impl Stage for BenchLeaderboardStage {
     fn id(&self) -> &str {
         "stage-export-bench"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]
