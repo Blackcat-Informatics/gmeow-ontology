@@ -13,6 +13,8 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Class |
 | Slice | [GMEOW Tags Module](../../slices/tags/index.md) |
 
+![completeness: Docs 5/6](../../badges/completeness/5.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+
 ## Definition
 
 A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval\. Bears provenance \(gmeow:wasAttributedTo\), confidence \(gmeow:confidence\), and suppression \(gmeow:displayable false for retraction without deletion — Principle 10\)\. Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time\-scoping, confidence\-weighting, and retract\-without\-delete for free\. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag\.

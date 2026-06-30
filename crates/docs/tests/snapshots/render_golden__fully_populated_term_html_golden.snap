@@ -39,6 +39,7 @@ expression: "to_html(&model, &Page::Term(slug))"
 <tr><td>Category</td><td>Property</td></tr>
 <tr><td>Slice</td><td><a href="../../slices/quality/index.html">GMEOW Data Quality Module</a></td></tr>
 </tbody></table>
+<p><img src="../../badges/completeness/5.svg" alt="completeness: Docs 5/6" /> <img src="../../badges/stability/stable.svg" alt="stability: stable" /> <img src="../../badges/category/property.svg" alt="category: Property" /> <img src="../../badges/box/boxrbox.svg" alt="box: RBox" /></p>
 <h2>Definition</h2>
 <p>The entity whose data quality is being assessed — the feature of interest of the quality observation. Sub-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment.</p>
 <h2>Neighborhood</h2>

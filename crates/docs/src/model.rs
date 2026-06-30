@@ -94,6 +94,11 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 /// values under it are surfaced as the term's logic stereotypes.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// `logic:instantiatesFramework` — the per-term reasoning-discipline selector;
+/// its objects (closed `logic:LogicalFramework` individuals) surface as the
+/// term's frameworks.
+const LOGIC_INSTANTIATES_FRAMEWORK: &str =
+    "https://blackcatinformatics.ca/logic/instantiatesFramework";
 
 const SKOS_RELATED: &str = "http://www.w3.org/2004/02/skos/core#related";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
@@ -353,6 +358,12 @@ pub struct DocTerm {
     /// as `logic:`-prefixed CURIEs, sorted/deduped. The lowered OntoUML/UFO
     /// discipline of the term (see `slices/core/logic`).
     pub logic_stereotypes: Vec<String>,
+    /// `logic:instantiatesFramework` — the closed `logic:LogicalFramework`
+    /// reasoning discipline(s) the term traffics in (`logic:HolonicFramework`,
+    /// `logic:DeonticFramework`, …), rendered as `logic:`-prefixed CURIEs,
+    /// sorted/deduped. Empty when the term traffics in no special discipline
+    /// (honest absence — not every term inhabits a framework).
+    pub frameworks: Vec<String>,
     /// Related-term IRIs: the union of `skos:related`, `gmeow:pairsWith`, and
     /// `rdfs:seeAlso` objects, resolved BIDIRECTIONALLY in `from_catalog`
     /// (sorted/deduped).
@@ -1018,6 +1029,12 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
         // Logic stereotypes: co-asserted `rdf:type` values under the logic NS.
         let logic_stereotypes = logic_stereotypes(store, &iri);
 
+        // Logical frameworks: the closed logic:LogicalFramework discipline(s) the
+        // term declares via logic:instantiatesFramework (CURIEs, sorted/deduped).
+        let mut frameworks = curie_objects(store, &iri, LOGIC_INSTANTIATES_FRAMEWORK);
+        frameworks.sort();
+        frameworks.dedup();
+
         // Related terms: union of skos:related + gmeow:pairsWith + rdfs:seeAlso
         // (IRIs; resolved bidirectionally in `from_catalog`).
         let mut related_terms = named_objects(store, &iri, SKOS_RELATED);
@@ -1058,6 +1075,7 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
             use_for_consumer,
             avoid_for_consumer,
             logic_stereotypes,
+            frameworks,
             related_terms,
             box_role,
             box_roles,
