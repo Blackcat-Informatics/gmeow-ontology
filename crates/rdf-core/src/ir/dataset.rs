@@ -40,6 +40,7 @@ const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 
 type FastHasher = BuildHasherDefault<ahash::AHasher>;
 type ValueIndex = HashMap<u64, Vec<TermId>, FastHasher>;
+const QUAD_ARITY: usize = 4;
 
 /// A handle identifying a pushed quad by its dense (deduplicated) ordinal, used to
 /// attach a source location sparsely. Like [`TermId`], it is local to one frozen
@@ -196,6 +197,23 @@ enum Axis {
     G,
 }
 
+/// A fixed-size axis order. Quad indexes always have exactly four axes, and the
+/// const parameter keeps that invariant in the helper type instead of in parallel
+/// ad hoc `[Axis; 4]` / `[u32; 4]` conventions.
+#[derive(Clone, Copy)]
+struct AxisOrder<const N: usize> {
+    axes: [Axis; N],
+}
+
+impl<const N: usize> AxisOrder<N> {
+    const fn new(axes: [Axis; N]) -> Self {
+        Self { axes }
+    }
+}
+
+type QuadAxisOrder = AxisOrder<QUAD_ARITY>;
+type QuadAxisKeys = [u32; QUAD_ARITY];
+
 /// The orderable key of one quad axis. Subject/predicate/object map to the dense
 /// `TermId` index; the graph slot maps `None` (default graph) to `0` and `Some(id)`
 /// to `index + 1`, so the default graph sorts before every named graph (matching
@@ -217,8 +235,8 @@ fn axis_key(axis: Axis, q: &QuadRow) -> u32 {
 /// Compare two quads under a permutation's axis order, short-circuiting at the first
 /// differing axis (so it computes only the axis keys it needs, never a full `[u32; 4]`).
 #[inline]
-fn compare_quads(axes: &[Axis; 4], a: &QuadRow, b: &QuadRow) -> Ordering {
-    for &axis in axes {
+fn compare_quads(axes: QuadAxisOrder, a: &QuadRow, b: &QuadRow) -> Ordering {
+    for &axis in &axes.axes {
         match axis_key(axis, a).cmp(&axis_key(axis, b)) {
             Ordering::Equal => {}
             ord => return ord,
@@ -231,9 +249,14 @@ fn compare_quads(axes: &[Axis; 4], a: &QuadRow, b: &QuadRow) -> Ordering {
 /// `target`, short-circuiting at the first differing axis. Drives the `partition_point`
 /// bisection without materializing a key array.
 #[inline]
-fn compare_prefix(axes: &[Axis; 4], q: &QuadRow, target: &[u32; 4], prefix: usize) -> Ordering {
-    for i in 0..prefix {
-        match axis_key(axes[i], q).cmp(&target[i]) {
+fn compare_prefix(
+    axes: QuadAxisOrder,
+    q: &QuadRow,
+    target: &QuadAxisKeys,
+    prefix: usize,
+) -> Ordering {
+    for (&axis, &target_key) in axes.axes.iter().zip(target.iter()).take(prefix) {
+        match axis_key(axis, q).cmp(&target_key) {
             Ordering::Equal => {}
             ord => return ord,
         }
@@ -267,15 +290,15 @@ impl QuadPermutation {
 
     /// This permutation's axis order (its sort-key sequence).
     #[inline]
-    fn axes(self) -> [Axis; 4] {
+    fn axes(self) -> QuadAxisOrder {
         use Axis::{G, O, P, S};
         match self {
-            QuadPermutation::Spog => [S, P, O, G],
-            QuadPermutation::Pos => [P, O, S, G],
-            QuadPermutation::Osp => [O, S, P, G],
-            QuadPermutation::Gspo => [G, S, P, O],
-            QuadPermutation::Gpos => [G, P, O, S],
-            QuadPermutation::Gosp => [G, O, S, P],
+            QuadPermutation::Spog => AxisOrder::new([S, P, O, G]),
+            QuadPermutation::Pos => AxisOrder::new([P, O, S, G]),
+            QuadPermutation::Osp => AxisOrder::new([O, S, P, G]),
+            QuadPermutation::Gspo => AxisOrder::new([G, S, P, O]),
+            QuadPermutation::Gpos => AxisOrder::new([G, P, O, S]),
+            QuadPermutation::Gosp => AxisOrder::new([G, O, S, P]),
         }
     }
 }
@@ -624,7 +647,7 @@ impl RdfDataset {
             let len = u32::try_from(self.quads.len()).expect("dataset quad count exceeds u32::MAX");
             let mut ordinals: Vec<u32> = (0..len).collect();
             ordinals.sort_by(|&a, &b| {
-                compare_quads(&axes, &self.quads[a as usize], &self.quads[b as usize])
+                compare_quads(axes, &self.quads[a as usize], &self.quads[b as usize])
             });
             ordinals.into_boxed_slice()
         })
@@ -666,13 +689,13 @@ impl RdfDataset {
         // holds the bound key for each of the `prefix` leading axes.
         let mut best = QuadPermutation::Spog;
         let mut prefix = 0usize;
-        let mut target = [0u32; 4];
+        let mut target: QuadAxisKeys = [0; QUAD_ARITY];
         for perm in QuadPermutation::ALL {
             let axes = perm.axes();
             let mut k = 0;
-            let mut t = [0u32; 4];
-            while k < 4 {
-                match bound(axes[k]) {
+            let mut t: QuadAxisKeys = [0; QUAD_ARITY];
+            while k < QUAD_ARITY {
+                match bound(axes.axes[k]) {
                     Some(v) => {
                         t[k] = v;
                         k += 1;
@@ -693,19 +716,19 @@ impl RdfDataset {
             QuadPermutation::Spog => {
                 let lo = self
                     .quads
-                    .partition_point(|q| compare_prefix(&axes, q, &target, prefix).is_lt());
+                    .partition_point(|q| compare_prefix(axes, q, &target, prefix).is_lt());
                 let hi = self
                     .quads
-                    .partition_point(|q| compare_prefix(&axes, q, &target, prefix).is_le());
+                    .partition_point(|q| compare_prefix(axes, q, &target, prefix).is_le());
                 (best, lo, hi)
             }
             _ => {
                 let arr = self.permutation(best);
                 let lo = arr.partition_point(|&ord| {
-                    compare_prefix(&axes, &self.quads[ord as usize], &target, prefix).is_lt()
+                    compare_prefix(axes, &self.quads[ord as usize], &target, prefix).is_lt()
                 });
                 let hi = arr.partition_point(|&ord| {
-                    compare_prefix(&axes, &self.quads[ord as usize], &target, prefix).is_le()
+                    compare_prefix(axes, &self.quads[ord as usize], &target, prefix).is_le()
                 });
                 (best, lo, hi)
             }

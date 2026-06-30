@@ -62,12 +62,12 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
-	crate-check audit wikidata coverage acceptance reason verify mappings \
+	crate-check audit wikidata coverage acceptance reason-verify mappings \
 	lint-alignment doc-lint sparql-conformance gts-codec-hygiene
 
 .PHONY: help \
 	install fmt lint \
-	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test rust-docs check \
+	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify test test-fast rust-build rust-test rust-docs check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity gts-codec-hygiene sparql-conformance wasm wasm-pkg wasm-pkg-test \
@@ -115,6 +115,9 @@ reason: native-py ## Run the native Docker-free EL/DL reasoning authority.
 
 verify: native-py ## Run native reasoned-graph negative tests.
 	$(GMEOW_DEV) verify --mode native
+
+reason-verify: native-py ## Run native reasoning + reasoned-graph verify with one closure.
+	$(GMEOW_DEV) reason-verify
 
 test: native-py ## Run the pytest suite, excluding maintainer and oracle lanes.
 	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not classic_cross_check"
@@ -582,9 +585,8 @@ perf-gate: native-py ## Report-only timings for validate, generated drift, reaso
 	mkdir -p $(PERF_DIR)
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
 	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS) --timings-json $(PERF_DIR)/check-generated.json
-	$(GMEOW_DEV) reason --mode native --timings-json $(PERF_DIR)/reason.json
-	$(GMEOW_DEV) verify --mode native --timings-json $(PERF_DIR)/verify.json
-	uv run python -c 'import json, pathlib; p=pathlib.Path("$(PERF_DIR)"); files=["validate.json","check-generated.json","reason.json","verify.json"]; out={"commands":[json.loads((p / f).read_text(encoding="utf-8")) for f in files]}; (p / "gate-timings.json").write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")'
+	$(GMEOW_DEV) reason-verify --timings-json $(PERF_DIR)/reason-verify.json
+	uv run python -c 'import json, pathlib; p=pathlib.Path("$(PERF_DIR)"); files=["validate.json","check-generated.json","reason-verify.json"]; out={"commands":[json.loads((p / f).read_text(encoding="utf-8")) for f in files]}; (p / "gate-timings.json").write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")'
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
 
 rust-coverage: ## Generate report-only Rust region coverage.
