@@ -34,12 +34,13 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::provenance::{sha1_hex, LOGIC_NAMESPACE};
-use crate::teleology::{TeleologyQuad, WorldFacts};
+use crate::provenance::{mint_derivation_id, sha1_hex, LOGIC_NAMESPACE};
+use crate::teleology::{n3, triple_reifier, TeleologyQuad, WorldFacts};
 
 use super::{
-    emit_program_outcome, logic, root_execution_mode, root_start, TransactionProgram,
-    INSTANTIATES_SCHEMA, TRANSITION_FROM_STATE,
+    emit_program_outcome, logic, plan_path, root_execution_mode, root_start, ExecutionMode,
+    StepCounter, TransactionProgram, INSTANTIATES_SCHEMA, TRANSACTION_RULE_IRI,
+    TRANSITION_FROM_STATE,
 };
 
 /// The `gmeow:` namespace.
@@ -54,8 +55,12 @@ fn gmeow(local: &str) -> String {
 const TOOL_CALL: &str = "ToolCall";
 const AT_TIME: &str = "atTime";
 const EVENT_TEMPORAL_FRAME: &str = "eventTemporalFrame";
-// logic: the mereological spine the trajectory anchor groups its calls on.
+const SATISFIED_BY: &str = "satisfiedBy";
+// logic: the mereological spine the trajectory anchor groups its calls on, plus the
+// plan→goal link the goal-reachability check reads (reused, never minted).
 const PROPER_PART_OF: &str = "properPartOf";
+const PLAN_GOAL: &str = "planGoal";
+const PLAN_GOAL_SITUATION: &str = "planGoalSituation";
 
 /// One recorded trajectory: the anchor (the `logic:properPartOf` whole bearing the start
 /// state) and its bound `gmeow:ToolCall` steps, ordered by `gmeow:atTime`.
@@ -211,8 +216,23 @@ fn synthesize_program(anchor: &str, steps: &[(String, String)]) -> TransactionPr
     program
 }
 
+/// One discovered trajectory resolved to an executable program from its start state.
+struct ResolvedTrajectory {
+    anchor: String,
+    sits: BTreeSet<String>,
+    program: TransactionProgram,
+}
+
 /// Audit every recorded trajectory in a world and RETURN the derived `logic:TransactionOutcome`
 /// substrate (verdict + path/step supersession, or — under a hypothetical anchor — the witness).
+///
+/// Trajectories are grouped by their shared `logic:transitionFromState` START STATE: a start
+/// with ONE trajectory is audited as a standalone serial transaction; a start shared by TWO
+/// trajectories is audited as their `logic:ConcurrentComposition` — the deliberate, mint-free
+/// way to record concurrency (an explicit `logic:ConcurrentComposition` node over the anchors
+/// would be picked up by [`super::program_roots`] and mis-parsed).  Reusing a start-state IRI is
+/// the author's explicit concurrency declaration.  A standalone trajectory whose anchor names a
+/// `logic:planGoal` additionally gets a goal-reachability verdict (see [`goal_reachability`]).
 ///
 /// Read-only: the returned quads are DERIVED; the recorded ToolCall facts are never mutated.
 /// Wired into the family-9 transaction-evaluation pass; emits nothing when a world carries no
@@ -221,22 +241,144 @@ fn synthesize_program(anchor: &str, steps: &[(String, String)]) -> TransactionPr
 ///
 /// # Errors
 ///
-/// Propagates discovery faults ([`trajectory_roots`]) and any structural emission fault from
-/// [`super::emit_program_outcome`].
+/// Propagates discovery faults ([`trajectory_roots`]); a start state shared by MORE than two
+/// trajectories (the conflict-serializability engine composes two legs) is a HARD FAIL; and any
+/// structural emission fault from [`super::emit_program_outcome`] propagates.
 pub(crate) fn emit_trajectory_audits(
     facts: &WorldFacts,
     world: &str,
 ) -> Result<Vec<TeleologyQuad>, String> {
-    let mut out = Vec::new();
+    // Resolve each trajectory and group by its shared start state (content-sorted keys for
+    // deterministic emission order).
+    let mut by_start: BTreeMap<String, Vec<ResolvedTrajectory>> = BTreeMap::new();
     for tr in trajectory_roots(facts)? {
         let (start, sits) = root_start(facts, &tr.anchor)?;
-        let mode = root_execution_mode(facts, &tr.anchor)?;
         let program = synthesize_program(&tr.anchor, &tr.steps);
-        out.extend(emit_program_outcome(
-            facts, world, &tr.anchor, &program, mode, &start, &sits,
-        )?);
+        by_start.entry(start).or_default().push(ResolvedTrajectory {
+            anchor: tr.anchor,
+            sits,
+            program,
+        });
+    }
+
+    let mut out = Vec::new();
+    for (start, mut members) in by_start {
+        // Deterministic leg order: by anchor IRI.
+        members.sort_by(|a, b| a.anchor.cmp(&b.anchor));
+        match members.as_slice() {
+            [solo] => {
+                // Standalone serial trajectory — committed or hypothetical per its anchor.
+                let mode = root_execution_mode(facts, &solo.anchor)?;
+                out.extend(emit_program_outcome(
+                    facts,
+                    world,
+                    &solo.anchor,
+                    &solo.program,
+                    mode,
+                    &start,
+                    &solo.sits,
+                )?);
+                out.extend(goal_reachability(
+                    facts,
+                    world,
+                    &solo.anchor,
+                    &solo.program,
+                    &start,
+                    &solo.sits,
+                )?);
+            }
+            [left, right] => {
+                // Two trajectories from one start = concurrent composition; conflict-
+                // serializability is a COMMITTED-history property (emit_concurrent_history
+                // re-runs both legs from the shared start and classifies the conflict graph).
+                let conc_node = format!(
+                    "{LOGIC_NAMESPACE}txconcurrent/{}",
+                    sha1_hex(&format!("{}\n{}\n{start}", left.anchor, right.anchor))
+                );
+                let program = TransactionProgram::Concurrent {
+                    node: conc_node.clone(),
+                    left: Box::new(left.program.clone()),
+                    right: Box::new(right.program.clone()),
+                };
+                out.extend(emit_program_outcome(
+                    facts,
+                    world,
+                    &conc_node,
+                    &program,
+                    ExecutionMode::Committed,
+                    &start,
+                    &left.sits,
+                )?);
+            }
+            many => {
+                return Err(format!(
+                    "start state {start:?} is shared by {} trajectories; conflict-serializability \
+                     composes exactly two concurrent legs (split a >2-way schedule into pairs)",
+                    many.len()
+                ))
+            }
+        }
     }
     Ok(out)
+}
+
+/// Emit the goal-reachability verdict for a trajectory whose anchor names a `logic:planGoal`.
+///
+/// Reuses the EXISTING flat `gmeow:satisfiedBy` projection (no new vocabulary): re-runs the
+/// program (the verdict is computed identically in committed and HYPOTHETICAL mode — only
+/// emission of effects differs, so "would an alternative continuation reach the goal?" is
+/// answered without committing it) and, when the end-state support contains the anchor's
+/// `logic:planGoalSituation`, emits `<goal> gmeow:satisfiedBy <goalSituation>`.  Presence of that
+/// edge IS the verdict; its absence means the goal was not reached.  Emitting a
+/// `gmeow:satisfiedBy` edge deliberately trips the family-1 `GOAL_EVAL_COLLAPSE_DROP` disclosure,
+/// flipping the run's preservation to `SoundUnder` (correct lossy-projection disclosure).
+///
+/// # Errors
+///
+/// An anchor naming `logic:planGoal` but no `logic:planGoalSituation` is a HARD FAIL (the
+/// success criterion would be unstated); a structural fault from [`plan_path`] propagates.
+fn goal_reachability(
+    facts: &WorldFacts,
+    world: &str,
+    anchor: &str,
+    program: &TransactionProgram,
+    start: &str,
+    sits: &BTreeSet<String>,
+) -> Result<Vec<TeleologyQuad>, String> {
+    let goal = match facts.object(anchor, &logic(PLAN_GOAL)) {
+        Some(g) => g,
+        None => return Ok(Vec::new()),
+    };
+    let goal_situation = facts
+        .object(anchor, &logic(PLAN_GOAL_SITUATION))
+        .ok_or_else(|| {
+            format!(
+                "trajectory anchor {anchor:?} names a logic:planGoal but no \
+                 logic:planGoalSituation (the situation that counts as reaching the goal)"
+            )
+        })?;
+
+    // The verdict (path existence + the situations obtaining at the end) is mode-independent —
+    // [`plan_path`] is pure, so re-running it here under a fresh counter yields the same
+    // end-state support whether the run commits its effects or discards them.
+    let mut counter = StepCounter::new();
+    let outcome = plan_path(facts, program, start, sits, anchor, &mut counter)?;
+    if !(outcome.succeeded() && outcome.sits_end.contains(goal_situation)) {
+        return Ok(Vec::new());
+    }
+
+    // Grounding provenance: the verdict rests on the anchor's logic:planGoal link.
+    let source = triple_reifier(anchor, &logic(PLAN_GOAL), goal)?;
+    let deriv = mint_derivation_id(TRANSACTION_RULE_IRI, &[source.as_str()]);
+    Ok(vec![TeleologyQuad {
+        graph: world.to_owned(),
+        subject: goal.to_owned(),
+        predicate: gmeow(SATISFIED_BY),
+        object: n3(goal_situation),
+        rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+        source_quad_ids: vec![source],
+        derivation_id: deriv,
+    }])
 }
 
 #[cfg(test)]
