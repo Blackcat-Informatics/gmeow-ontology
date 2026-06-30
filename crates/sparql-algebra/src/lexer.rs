@@ -119,6 +119,18 @@ pub struct Spanned {
     pub end: usize,
 }
 
+/// Lexer leniency options. These default OFF so [`tokenize`] (the SPARQL entry)
+/// stays byte-for-byte unchanged; only an explicitly opted-in caller (the Turtle
+/// text codec via [`tokenize_turtle`]) flips them.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct LexerOptions {
+    /// When `true`, a bare `/` is admitted as a `PN_LOCAL` character (so
+    /// `gmeow:report/shacl/sarif` tokenizes as ONE prefixed name). This is only
+    /// safe in Turtle/TriG term position, where `/` is NOT an operator. In SPARQL
+    /// `/` is the property-path sequence operator, so this MUST stay `false` there.
+    pub pn_local_allows_slash: bool,
+}
+
 /// Tokenize a full SPARQL query string into a flat token stream.
 ///
 /// Whitespace and `#`-comments are dropped. Returns
@@ -127,19 +139,44 @@ pub fn tokenize(input: &str) -> Result<Vec<Spanned>> {
     Lexer::new(input).run()
 }
 
+/// Tokenize Turtle/TriG text, admitting a bare `/` inside `PN_LOCAL` (e.g.
+/// `gmeow:report/shacl/sarif`). Turtle has no `/` operator, so this is
+/// unambiguous in term position; it differs from [`tokenize`] (SPARQL) ONLY by
+/// the [`LexerOptions::pn_local_allows_slash`] flag.
+pub fn tokenize_turtle(input: &str) -> Result<Vec<Spanned>> {
+    tokenize_with(
+        input,
+        LexerOptions {
+            pn_local_allows_slash: true,
+        },
+    )
+}
+
+/// Tokenize with explicit [`LexerOptions`]. [`tokenize`] is exactly
+/// `tokenize_with(input, LexerOptions::default())`.
+pub fn tokenize_with(input: &str, options: LexerOptions) -> Result<Vec<Spanned>> {
+    Lexer::with_options(input, options).run()
+}
+
 struct Lexer<'a> {
     src: &'a str,
     chars: Vec<(usize, char)>,
     /// Index into `chars`.
     pos: usize,
+    options: LexerOptions,
 }
 
 impl<'a> Lexer<'a> {
     fn new(src: &'a str) -> Self {
+        Self::with_options(src, LexerOptions::default())
+    }
+
+    fn with_options(src: &'a str, options: LexerOptions) -> Self {
         Self {
             src,
             chars: src.char_indices().collect(),
             pos: 0,
+            options,
         }
     }
 
@@ -566,6 +603,16 @@ impl<'a> Lexer<'a> {
                 self.pos += 1;
                 continue;
             }
+            if c == '/' && self.options.pn_local_allows_slash {
+                // Turtle-only leniency: a bare `/` is a PN_LOCAL char (strict
+                // grammar requires `\/`, but oxigraph/gmeow-gts accept the bare
+                // form, e.g. `gmeow:report/shacl/sarif`). Turtle has no `/`
+                // operator, so this is unambiguous in term position.
+                out.push(c);
+                trailing_dots = 0;
+                self.pos += 1;
+                continue;
+            }
             if is_pn_chars(c) || c == ':' || c == '%' {
                 out.push(c);
                 trailing_dots = 0;
@@ -822,5 +869,47 @@ mod tests {
 
     fn var(n: &str) -> Token {
         Token::Variable(n.into())
+    }
+
+    // ── Turtle-only PN_LOCAL slash leniency (default OFF for SPARQL) ─────────
+
+    fn turtle_toks(s: &str) -> Vec<Token> {
+        tokenize_turtle(s)
+            .unwrap()
+            .into_iter()
+            .map(|s| s.token)
+            .collect()
+    }
+
+    #[test]
+    fn turtle_mode_admits_bare_slash_in_pn_local() {
+        // `gmeow:report/shacl/sarif` is ONE prefixed name in Turtle mode.
+        assert_eq!(
+            turtle_toks("gmeow:report/shacl/sarif"),
+            vec![Token::PrefixedName(
+                "gmeow".into(),
+                "report/shacl/sarif".into()
+            )]
+        );
+        assert_eq!(
+            turtle_toks("gmeow:projection/okf"),
+            vec![Token::PrefixedName("gmeow".into(), "projection/okf".into())]
+        );
+    }
+
+    #[test]
+    fn sparql_default_keeps_slash_as_path_operator() {
+        // The SPARQL entry (default options) MUST still split on `/` so property
+        // paths like `foaf:knows/foaf:name` keep the sequence operator.
+        assert_eq!(
+            toks("gmeow:report/shacl/sarif"),
+            vec![
+                Token::PrefixedName("gmeow".into(), "report".into()),
+                Token::Slash,
+                Token::Word("shacl".into()),
+                Token::Slash,
+                Token::Word("sarif".into()),
+            ]
+        );
     }
 }
