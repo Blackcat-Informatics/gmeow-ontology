@@ -18,6 +18,8 @@
 //! aggregates the loss ledger.
 
 pub mod correspondence;
+// The dsl/mappings/ frontend: authored alignment cells → typed logic:Correspondence set.
+pub mod correspondence_frontend;
 // The correspondence overclaim gate (relation/morphism vs emitted predicate; P5).
 pub mod correspondence_gate;
 // The lawful put leg derived from the same node as get (F4 mnemomorphism up-lift).
