@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the LIVE EXECUTION of the memory MCP triad as Transaction-Logic transactions.
+#
+# Where examples/trajectory-audit.ttl shows the READ-ONLY audit of an already-recorded
+# trajectory, this file shows the EXECUTE path: each memory WRITE tool (store_claim,
+# revise_belief) runs THROUGH the Transaction-Logic engine, and the executional-entailment
+# verdict gates the commit. The native server (crates/pipeline/src/mcp.rs) assembles exactly the
+# shape below — the call as a bound logic:instantiatesSchema step under a logic:properPartOf
+# anchor bearing the start state — runs it through the same engine the authored cases use, and on
+# commit RECORDS this audit context onto the persisted gmeow:ToolCall so the turn is afterwards
+# verifiable by the read-only trajectory audit.
+#
+# THREE EXECUTION BEHAVIOURS (all backed by the one engine):
+#   * COMMIT — a write whose precondition obtains runs under logic:CommittedExecution: the verdict
+#     succeeds, the effect is materialized, and the claim is written. This is ex:turn below.
+#   * ROLLBACK is COMPENSATION, not deletion — revise_belief IS store_claim's logic:compensation
+#     (declared in mcp-action-policy.ttl). A committed revise SUPPRESSES the stored claim
+#     (logic:del retires it via the supersession quartet); the bytes are never erased (Principle
+#     10). Re-storing (store_claim, revise_belief's own compensation) re-asserts it.
+#   * SANDBOX (dry run) — a write may be tested under logic:HypotheticalExecution: the same
+#     verdict is computed, the effect substrate is DISCARDED, and only a content-addressed
+#     logic:executedHypotheticallyAs witness is left. Nothing is written. This is ex:dryRunTurn.
+#
+# EPISTEMIC SHAPE (recording vs. supplied audit context), exactly as trajectory-audit.ttl:
+#   * The RECORDING is what the harness captured per call: gmeow:usedTool, gmeow:toolArguments /
+#     gmeow:toolResult, gmeow:atTime, gmeow:eventTemporalFrame.
+#   * The AUDIT CONTEXT is layered on to make the turn checkable: logic:instantiatesSchema (a TRUE
+#     tool-contract fact — calling store_claim instantiates the store_claim action schema in
+#     mcp-action-policy.ttl), the logic:properPartOf anchor, and the anchor's
+#     logic:transitionFromState start state. The native server writes precisely these on commit.
+#
+# This binds to the REAL mcp-action-policy.ttl schemas (mcp:storeClaim / mcp:reviseBelief) — no
+# re-minted schema individuals; their logic:precondition / logic:effect / logic:compensation are
+# the single authority. The slice does not reason its examples, so this file is a worked
+# illustration; the engine goldens live in conformance/logic/cases/transaction/memory-triad-execute/.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix mcp:   <https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/agentic/memory-triad-execute/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Agents: the model and the two tools the recording names. ---
+ex:assistant a gmeow:SoftwareAgent ;
+    rdfs:label "assistant model agent"@x-gmeow-english .
+
+ex:storeClaimTool a gmeow:SoftwareAgent ;
+    rdfs:label "memory store_claim tool"@x-gmeow-english .
+
+ex:reviseBeliefTool a gmeow:SoftwareAgent ;
+    rdfs:label "memory revise_belief tool"@x-gmeow-english .
+
+# --- The COMMITTED turn: store then revise, run under logic:CommittedExecution. The anchor bears
+# the start state the turn began from; the governing contract commits the effects. ---
+ex:turn a gmeow:Activity ;
+    rdfs:label "agent turn — store then suppress a belief, committed"@x-gmeow-english ;
+    logic:transitionFromState ex:startState ;
+    logic:executedUnderContract ex:committedContract .
+
+ex:committedContract a logic:ReasoningContract ;
+    rdfs:label "commit the executed effects"@x-gmeow-english ;
+    logic:executionMode logic:CommittedExecution .
+
+# The start state the turn began from (supplied audit context). store_claim's precondition
+# (a well-formed claim is presented) obtains here.
+ex:startState a logic:Situation ;
+    rdfs:label "start state of the committed turn"@x-gmeow-english ;
+    logic:situationObtains mcp:wellFormedClaim .
+
+# --- Call 1: store_claim. RECORDING: usedTool + args + result + time + frame. AUDIT CONTEXT:
+# instantiatesSchema (the true contract) + properPartOf the turn. ---
+ex:callStore a gmeow:ToolCall ;
+    rdfs:label "turn, call 1: store_claim (committed)"@x-gmeow-english ;
+    gmeow:usedTool ex:storeClaimTool ;
+    gmeow:toolArguments "{\"text\": \"the GTS spec mandates RFC 8949 deterministic encoding\"}" ;
+    gmeow:toolResult "{\"ok\": true, \"claim\": {\"id\": \"c-2300\"}}" ;
+    gmeow:atTime "2026-06-30T09:15:03Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    logic:instantiatesSchema mcp:storeClaim ;
+    logic:properPartOf ex:turn .
+
+# --- Call 2: revise_belief — store_claim's compensation. A committed revise SUPPRESSES the
+# just-stored claim (logic:del, the supersession quartet); it never deletes (Principle 10). ---
+ex:callRevise a gmeow:ToolCall ;
+    rdfs:label "turn, call 2: revise_belief (committed — the rollback/compensation)"@x-gmeow-english ;
+    gmeow:usedTool ex:reviseBeliefTool ;
+    gmeow:toolArguments "{\"claim_id\": \"c-2300\", \"reason\": \"superseded by a sharper source\"}" ;
+    gmeow:toolResult "{\"ok\": true, \"suppressed\": \"c-2300\"}" ;
+    gmeow:atTime "2026-06-30T09:15:07Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    logic:instantiatesSchema mcp:reviseBelief ;
+    logic:properPartOf ex:turn .
+
+# The entity the store produced links BACK to its call (Principle 5: no forward output property).
+ex:claim-c2300 a gmeow:Document ;
+    rdfs:label "stored memory claim c-2300"@x-gmeow-english ;
+    gmeow:wasGeneratedBy ex:callStore ;
+    gmeow:wasAttributedTo ex:assistant .
+
+# --- The SANDBOX (dry-run) turn: the SAME store_claim action tested under
+# logic:HypotheticalExecution. The verdict is computed, the effect is discarded, nothing is
+# written — only a logic:executedHypotheticallyAs witness would be emitted. ---
+ex:dryRunTurn a gmeow:Activity ;
+    rdfs:label "agent turn — dry-run store, non-committing"@x-gmeow-english ;
+    logic:transitionFromState ex:dryRunStartState ;
+    logic:executedUnderContract ex:hypotheticalContract .
+
+ex:hypotheticalContract a logic:ReasoningContract ;
+    rdfs:label "test without committing (sandbox)"@x-gmeow-english ;
+    logic:executionMode logic:HypotheticalExecution .
+
+ex:dryRunStartState a logic:Situation ;
+    rdfs:label "start state of the dry-run turn"@x-gmeow-english ;
+    logic:situationObtains mcp:wellFormedClaim .
+
+ex:callStoreDryRun a gmeow:ToolCall ;
+    rdfs:label "dry-run call: store_claim (sandbox, nothing written)"@x-gmeow-english ;
+    gmeow:usedTool ex:storeClaimTool ;
+    gmeow:toolArguments "{\"text\": \"a tentative belief under test\", \"dry_run\": true}" ;
+    gmeow:toolResult "{\"ok\": true, \"dry_run\": true}" ;
+    gmeow:atTime "2026-06-30T09:16:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    logic:instantiatesSchema mcp:storeClaim ;
+    logic:properPartOf ex:dryRunTurn .
