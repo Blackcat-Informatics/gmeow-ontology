@@ -1391,8 +1391,54 @@ gmeow:ScalarQuantityShape
         sh:path gmeow:unit ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "A Quantity must declare exactly one unit (gmeow:unit)." ;
+        sh:message "A Quantity must declare exactly one unit (gmeow:unit), identified by an IRI." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:trueQuantity ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Quantity may carry at most one frame-independent magnitude (gmeow:trueQuantity)." ;
+    ] .
+
+# Functional-cardinality shapes for the YAMATO quality stratification props. The
+# owl:FunctionalProperty contract is an OWL-DL entailment; these shapes enforce
+# the same exactly-one cardinality on the raw graph, where pySHACL/native SHACL
+# does not read the OWL functionality axiom.
+gmeow:QualityFunctionalShape
+    a sh:NodeShape ;
+    rdfs:label "Quality functional-cardinality shape"@x-gmeow-english ;
+    sh:targetClass gmeow:Quality ;
+    sh:property [
+        sh:path gmeow:bearer ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Quality inheres in at most one bearer (gmeow:bearer)." ;
+    ] .
+
+gmeow:MagnitudeFunctionalShape
+    a sh:NodeShape ;
+    rdfs:label "Magnitude functional-cardinality shape"@x-gmeow-english ;
+    sh:targetClass gmeow:Magnitude ;
+    sh:property [
+        sh:path gmeow:dimension ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A Magnitude carries at most one dimension (gmeow:dimension)." ;
+    ] .
+
+gmeow:ObservationTemporalShape
+    a sh:NodeShape ;
+    rdfs:label "Observation temporal-stamp functional shape"@x-gmeow-english ;
+    sh:targetClass gmeow:Observation ;
+    sh:property [
+        sh:path gmeow:observedAt ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:dateTime ;
+        sh:severity sh:Violation ;
+        sh:message "An Observation records at most one observation time (gmeow:observedAt), an xsd:dateTime." ;
     ] .
 
 # Suppression, never erasure (Principle 10): a superseded or withdrawn
