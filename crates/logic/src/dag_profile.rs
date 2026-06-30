@@ -21,9 +21,17 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 use petgraph::graph::{DiGraph, NodeIndex};
 
-use crate::result::{CompletenessStatus, EvaluationStatus};
+use crate::result::{
+    CompletenessStatus, EvaluationStatus, InformationState, InputStatus, PreservationClaim,
+    ReasoningResult, ResultPayload, ResultProvenance,
+};
+
+/// The `logic:` namespace the DAG-workflow resource IRI is minted under (the same
+/// namespace `teleology::emit_dag_certification` writes the verdict's individuals in).
+const DAG_PROFILE_NAMESPACE: &str = LOGIC_NAMESPACE;
 
 /// The certification verdict of the DAG-workflow profile
 /// (`logic:DagWorkflowResource`) over a directed process flow-graph.
@@ -76,6 +84,67 @@ impl DagCertification {
                 (EvaluationStatus::Unsupported, CompletenessStatus::Unknown)
             }
         }
+    }
+
+    /// Lower this DAG-workflow verdict into the typed [`ReasoningResult`] a build
+    /// run (or a reified `logic:Plan`) surfaces — the Rust-struct counterpart of
+    /// the RDF `logic:ReasoningResult` `teleology::emit_dag_certification` emits.
+    ///
+    /// It REUSES the SAME [`Self::result_status`] / [`Self::witness`] mapping the
+    /// RDF emitter runs, so the two surfaces agree by construction:
+    ///
+    /// - **Certified** ⇒ `(Completed, CompleteForFragment)` with an empty
+    ///   `{exact}` preservation claim and [`InformationState::Supported`] — the
+    ///   plan lies in the certified acyclic fragment; the certification verdict is
+    ///   itself supported, conclusively (complete-for-fragment).
+    /// - **SelfLoop / Cycle** ⇒ `(Unsupported, Unknown)` — the DAG profile has no
+    ///   defined evaluation for a looping plan. The offending cycle members
+    ///   ([`Self::witness`]) are disclosed as the preservation claim's
+    ///   `unsupported_constructs` (the typed "constructs the profile could not
+    ///   carry" set, with the `{unsupported}` polarity), never silently dropped,
+    ///   and the information axis is [`InformationState::NotEvaluated`] (the engine
+    ///   could not look — the `unsupported`-contract floor, mirroring
+    ///   [`ReasoningResult::invalid`]).
+    ///
+    /// `world` is the named-graph IRI the verdict holds in; `contract_hash`
+    /// identifies the DAG-workflow contract the plan executed under. The provenance
+    /// bundle is otherwise minimal (no proof/counterproof — a certification verdict
+    /// is a structural property, not a derived conclusion).
+    pub fn into_reasoning_result(
+        &self,
+        contract_hash: impl Into<String>,
+        world: impl Into<String>,
+    ) -> ReasoningResult {
+        let (evaluation, completeness) = self.result_status();
+        let witness = self.witness();
+        let mut provenance = ResultProvenance::native(contract_hash, world);
+        let (preservation, information) = if self.is_certified() {
+            (PreservationClaim::exact(), InformationState::Supported)
+        } else {
+            // The legalization floor: the looping plan was refused as unsupported
+            // under the DAG profile and never evaluated. The offending cycle members
+            // are the unsupported constructs the lowering could not carry.
+            (
+                PreservationClaim::unsupported_with(witness.iter().cloned()),
+                InformationState::NotEvaluated,
+            )
+        };
+        provenance.projection_class = preservation.clone();
+        if self.is_certified() {
+            // The certified fragment backing the complete-for-fragment claim is the
+            // DAG-workflow resource itself (the profile the plan was certified under).
+            provenance.certified_fragment =
+                Some(format!("{}DagWorkflowResource", DAG_PROFILE_NAMESPACE));
+        }
+        ReasoningResult::new(
+            InputStatus::Valid,
+            evaluation,
+            completeness,
+            preservation,
+            information,
+            provenance,
+            ResultPayload::Empty,
+        )
     }
 }
 
@@ -205,6 +274,64 @@ mod tests {
     fn empty_graph_certifies() {
         let cert = certify_acyclic(std::iter::empty());
         assert_eq!(cert, DagCertification::Certified);
+    }
+
+    #[test]
+    fn certified_verdict_lowers_to_a_complete_for_fragment_reasoning_result() {
+        let cert = certify_acyclic([("a", "b"), ("b", "c")].iter().copied());
+        let result = cert.into_reasoning_result("contract:dag-test", "urn:world:test");
+        // The typed result agrees with the RDF emitter's status mapping.
+        assert_eq!(result.evaluation, EvaluationStatus::Completed);
+        assert_eq!(result.completeness, CompletenessStatus::CompleteForFragment);
+        assert_eq!(result.information, InformationState::Supported);
+        // A certified plan carries an exact (loss-free) preservation claim and names
+        // the fragment backing the complete-for-fragment claim.
+        assert_eq!(result.preservation, PreservationClaim::exact());
+        assert!(result
+            .provenance
+            .certified_fragment
+            .as_deref()
+            .is_some_and(|f| f.ends_with("DagWorkflowResource")));
+        assert!(result.validate().is_ok());
+    }
+
+    #[test]
+    fn cyclic_verdict_lowers_to_an_unsupported_reasoning_result_carrying_the_witness() {
+        // A SYNTHETIC cyclic verdict (no cyclic pipeline needed): the DAG profile
+        // refuses the loop, and the witness members are disclosed on the typed result.
+        let cert = DagCertification::Cycle(vec!["stepProbe".into(), "stepRecover".into()]);
+        let result = cert.into_reasoning_result("contract:dag-test", "urn:world:test");
+        // The issue-mandated `unsupported` verdict, mirroring the RDF emitter.
+        assert_eq!(result.evaluation, EvaluationStatus::Unsupported);
+        assert_eq!(result.completeness, CompletenessStatus::Unknown);
+        // The engine could not look — the unsupported-contract floor.
+        assert_eq!(result.information, InformationState::NotEvaluated);
+        // The offending cycle members are carried as the unsupported constructs the
+        // DAG profile could not lower — never silently truncated.
+        assert_eq!(
+            result.preservation.unsupported_constructs,
+            ["stepProbe".to_string(), "stepRecover".to_string()]
+                .into_iter()
+                .collect()
+        );
+        assert_eq!(
+            result.preservation,
+            PreservationClaim::unsupported_with(cert.witness())
+        );
+        assert!(result.provenance.certified_fragment.is_none());
+        assert!(result.validate().is_ok());
+    }
+
+    #[test]
+    fn self_loop_verdict_also_lowers_to_unsupported_and_names_the_node() {
+        let cert = DagCertification::SelfLoop("stepStuck".into());
+        let result = cert.into_reasoning_result("contract:dag-test", "urn:world:test");
+        assert_eq!(result.evaluation, EvaluationStatus::Unsupported);
+        assert_eq!(
+            result.preservation.unsupported_constructs,
+            ["stepStuck".to_string()].into_iter().collect()
+        );
+        assert!(result.validate().is_ok());
     }
 
     /// The W2 conformance case in executable form (mirrors the SHACL fixture

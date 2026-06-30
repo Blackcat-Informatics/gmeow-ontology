@@ -24,7 +24,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the native JSON Schema (draft 2020-12).
 pub const JSON_SCHEMA_PATH: &str = "generated/schemas/gmeow.schema.json";
@@ -37,9 +37,6 @@ pub struct JsonSchemaStage;
 impl Stage for JsonSchemaStage {
     fn id(&self) -> &str {
         "stage-export-json-schema"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

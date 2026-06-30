@@ -12,8 +12,9 @@
 //! committed artifacts via the `gmeow_logic::reason::artifacts` builders. The single
 //! result also backs the bundle's `graph/reasoning` projection (dual carriage), so
 //! the closure shipped in `gmeow.gts` and the committed files agree by construction —
-//! there is no separate full-fold export leaf. Reasoning serializes under the pipeline
-//! `ENGINE_LOCK` (this is the sole `Reason`-kind stage).
+//! there is no separate full-fold export leaf. Reasoning requires the exclusive
+//! [`ENGINE_RESOURCE`], so the scheduler serializes it against any stage competing
+//! for the reasoning engine (this is the sole resource-bearing build stage).
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -21,6 +22,7 @@ use std::sync::Arc;
 use gmeow_logic::reason::artifacts::{
     build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
 };
+use gmeow_logic::reason::perf_ledger::perf_ledger;
 use gmeow_logic::reason::reason_all;
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::result_rdf::{project_reasoning_result, GRAPH_REASONING};
@@ -28,7 +30,7 @@ use gmeow_rdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, ENGINE_RESOURCE};
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
 /// the SOLE reasoning pass: it reasons once over the object-level EDB
@@ -41,6 +43,11 @@ pub const CLOSURE_PATH: &str = "generated/logic/inferred-closure.rdf12.ttl";
 pub const EXPLANATIONS_PATH: &str = "generated/logic/reasoning-explanations.rdf12.ttl";
 /// COMMITTED logical path of the report-only native DL/EL crosscheck ledger.
 pub const LEDGER_PATH: &str = "generated/logic/dl-el-crosscheck-report.ttl";
+/// COMMITTED logical path of the report-only native physical-engine performance
+/// ledger — the flag-don't-build record of the deferred / non-incremental levers.
+/// Canonical static content (a property of the engine, not of this run's data), so
+/// it is byte-identical run to run.
+pub const PERF_LEDGER_PATH: &str = "generated/logic/perf-ledger.ttl";
 
 /// The reasoned artifacts a single `reason_all` produces: the three committed-style
 /// Turtle blobs plus the typed [`ReasoningResult`] itself (the C7 typed handle's
@@ -52,6 +59,9 @@ pub struct ReasonArtifacts {
     pub explanations: String,
     /// The native DL·EL crosscheck ledger Turtle.
     pub ledger: String,
+    /// The native physical-engine performance ledger Turtle — the flag-don't-build
+    /// record of the deferred / non-incremental levers. Canonical static content.
+    pub perf_ledger: String,
     /// The typed five-axis result (#1132 C7 handle payload).
     pub result: ReasoningResult,
 }
@@ -100,10 +110,15 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, Pipeline
         message: format!("explanations serialization failed: {e}"),
     })?;
     let ledger = build_dl_el_ledger_ttl(&result);
+    // The performance ledger is canonical static content (a property of the native
+    // physical engine's lever staging, not of this run's data), so it is byte-stable
+    // run to run regardless of the reasoned result.
+    let perf = perf_ledger().to_turtle();
     Ok(ReasonArtifacts {
         closure,
         explanations,
         ledger,
+        perf_ledger: perf,
         result,
     })
 }
@@ -144,13 +159,24 @@ fn reason_dataset(
 /// The `reason` pipeline stage — the sole engine-lock-carrying stage.
 pub struct ReasonStage {
     consumes: Vec<String>,
+    resources: Vec<String>,
+    entities: Vec<(String, Vec<String>)>,
 }
 
 impl ReasonStage {
     /// Construct the stage. It reasons over the object-level EDB assembled from the
     /// compile-logic / mappings / source-load / statements producers (plus the on-disk
     /// authored / imports / alignments sources); the slice DAG's `stage-reason`
-    /// `dataflowConsumes` mirrors this set.
+    /// `dataflowConsumes` mirrors this set. It requires the exclusive
+    /// [`ENGINE_RESOURCE`] (the sole resource-bearing build stage), so the scheduler
+    /// serializes it against any stage competing for the reasoning engine.
+    ///
+    /// Typed dataflow (artifact-level): from `stage-compile-logic` it reads ONLY the
+    /// `logic`, `relational-core`, and `correspondence` named graphs (see
+    /// [`crate::stages::carrier::assemble_object_level_edb`]) — never that product's
+    /// other graphs or byte artifacts (diagnostics, the eight projection
+    /// serializations). Declaring those three entities lets a change to compile-logic's
+    /// diagnostics or projection bytes alone skip re-running the (expensive) reasoner.
     pub fn new() -> Self {
         Self {
             consumes: vec![
@@ -159,6 +185,15 @@ impl ReasonStage {
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
             ],
+            resources: vec![ENGINE_RESOURCE.to_string()],
+            entities: vec![(
+                "stage-compile-logic".to_string(),
+                vec![
+                    crate::stages::compile_logic::GRAPH_CORRESPONDENCE.to_string(),
+                    crate::stages::compile_logic::GRAPH_LOGIC.to_string(),
+                    crate::stages::compile_logic::GRAPH_RELATIONAL_CORE.to_string(),
+                ],
+            )],
         }
     }
 }
@@ -173,11 +208,14 @@ impl Stage for ReasonStage {
     fn id(&self) -> &str {
         "stage-reason"
     }
-    fn kind(&self) -> StageKind {
-        StageKind::Reason
-    }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
+    }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
     }
     fn impl_version(&self) -> &str {
         "reason.v1"
@@ -207,6 +245,10 @@ impl Stage for ReasonStage {
             reasoned.explanations.into_bytes(),
         );
         artifacts.insert(LEDGER_PATH.to_string(), reasoned.ledger.into_bytes());
+        artifacts.insert(
+            PERF_LEDGER_PATH.to_string(),
+            reasoned.perf_ledger.into_bytes(),
+        );
 
         // Attach the typed Reasoning handle, pinned to the `graph/reasoning` named
         // graph's canonical digest. `pin_handle` HARD-fails on a digest mismatch, so a
@@ -253,10 +295,18 @@ mod tests {
             ("closure", &reasoned.closure),
             ("explanations", &reasoned.explanations),
             ("ledger", &reasoned.ledger),
+            ("perf_ledger", &reasoned.perf_ledger),
         ] {
             assert!(!ttl.trim().is_empty(), "{name} artifact is empty");
         }
         assert!(reasoned.closure.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
+        // The perf ledger flags the deferred / non-incremental levers (static content).
+        assert!(
+            reasoned
+                .perf_ledger
+                .contains("https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental"),
+            "the perf ledger flags the non-incremental hard parts"
+        );
     }
 
     #[test]

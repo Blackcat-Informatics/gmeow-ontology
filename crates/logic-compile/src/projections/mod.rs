@@ -387,6 +387,12 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "rule bodies mapped to OWL axioms where OWL is expressive enough; \
                  existential rules beyond OWL DL expressivity are dropped",
                 "probabilistic profile not representable in OWL DL",
+                "transaction-path evolution has no faithful OWL DL projection: \
+                 serial conjunction, executional entailment over a path of states, \
+                 elementary update as supersession, the hypothetical-execution \
+                 sandbox and its discarded-run witness, and concurrent composition \
+                 with conflict-serializability have no OWL axiom form and are \
+                 dropped — OWL describes a single static state, not a transaction path",
             ],
         ),
         "owl-el" => (
@@ -398,6 +404,12 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "only EL-safe axioms emitted (no disjointness, no inverseOf, \
                  no cardinality restrictions, no nominals)",
                 "rules beyond EL expressivity are dropped",
+                "transaction-path evolution has no faithful OWL EL projection: \
+                 serial conjunction, executional entailment over a path of states, \
+                 elementary update as supersession, the hypothetical-execution \
+                 sandbox and its discarded-run witness, and concurrent composition \
+                 with conflict-serializability have no OWL axiom form and are \
+                 dropped — OWL describes a single static state, not a transaction path",
             ],
         ),
         "datalog" => (

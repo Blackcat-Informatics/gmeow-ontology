@@ -26,10 +26,12 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_diagnostics::{Finding, Severity};
+use gmeow_logic::dag_profile::certify_acyclic;
+use gmeow_logic::result::ReasoningResult;
 
 use crate::error::PipelineError;
 use crate::loader::{bind, PipelineSpec, StageSpec};
-use crate::node::{StageKind, StageProduct};
+use crate::node::{StageProduct, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN};
 use crate::registry::default_registry;
 use crate::scheduler::{run, RunContext};
 
@@ -39,6 +41,11 @@ const SCHEMAS_STAGE: &str = "stage-export-schemas";
 const SINK_STAGE: &str = "stage-gts-sink";
 /// The committed fold path the sink writes / schemas project.
 const GTS_PATH: &str = "generated/dist/gmeow.gts";
+/// The DAG-workflow contract identity the build plan executes under — the
+/// `gmeow:pipeline-build` `logic:Plan` is certified under `logic:DagWorkflowResource`.
+const BUILD_DAG_CONTRACT: &str = "contract:gmeow:pipeline-build:dag-workflow";
+/// The world the build plan's certification verdict holds in.
+const BUILD_DAG_WORLD: &str = "urn:gmeow:pipeline-build";
 
 /// Whether `run_full` writes artifacts to disk (regenerate) or compares them to
 /// the committed bytes and reports drift (check).
@@ -64,6 +71,14 @@ pub struct RunReport {
     pub findings: Vec<Finding>,
     /// The drifted logical paths (check mode), sorted.
     pub drifted: Vec<String>,
+    /// The build plan's DAG-workflow certification, lowered to the typed
+    /// [`ReasoningResult`] a consumer reads — the Rust-struct counterpart of the
+    /// RDF `logic:ReasoningResult` `teleology::emit_dag_certification` emits, both
+    /// computed from the SAME [`certify_acyclic`] verdict. For the always-acyclic
+    /// `gmeow:pipeline-build` plan this is a `Completed` / `CompleteForFragment`
+    /// (certified) result; a non-certified verdict at this point HARD-fails the run
+    /// (no silent default) — see [`run_full`].
+    pub certification: ReasoningResult,
 }
 
 impl RunReport {
@@ -83,28 +98,12 @@ impl RunReport {
 pub fn full_spec() -> PipelineSpec {
     // ── the spine ──
     let mut stages = vec![
-        st(
-            "stage-source-load",
-            StageKind::SourceLoad,
-            "source_load",
-            &[],
-        ),
-        st("stage-statements", StageKind::Transform, "statements", &[]),
-        st(
-            "stage-compile-logic",
-            StageKind::Transform,
-            "compile_logic",
-            &[],
-        ),
-        st(
-            "stage-mappings",
-            StageKind::Transform,
-            "mappings",
-            &["stage-compile-logic"],
-        ),
-        st(
+        st_source("stage-source-load", "source_load", &[]),
+        st("stage-statements", "statements", &[]),
+        st("stage-compile-logic", "compile_logic", &[]),
+        st("stage-mappings", "mappings", &["stage-compile-logic"]),
+        st_reason(
             "stage-reason",
-            StageKind::Reason,
             "reason",
             &[
                 "stage-compile-logic",
@@ -115,7 +114,6 @@ pub fn full_spec() -> PipelineSpec {
         ),
         st(
             "stage-gts-compose",
-            StageKind::Transform,
             "gts_compose",
             &[
                 "stage-mappings",
@@ -124,27 +122,11 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-statements",
             ],
         ),
-        st(
-            "stage-validate",
-            StageKind::Validate,
-            "validate",
-            &["stage-source-load"],
-        ),
-        st(
-            "stage-conformance",
-            StageKind::Transform,
-            "conformance",
-            &[],
-        ),
-        st(
-            "stage-docs-render",
-            StageKind::DocsRender,
-            "docs_render",
-            &["stage-gts-compose"],
-        ),
+        st("stage-validate", "validate", &["stage-source-load"]),
+        st("stage-conformance", "conformance", &[]),
+        st("stage-docs-render", "docs_render", &["stage-gts-compose"]),
         st(
             "stage-snapshot",
-            StageKind::Transform,
             "snapshot",
             &[
                 "stage-compile-logic",
@@ -172,7 +154,7 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-okf", "okf"),
         ("stage-export-parquet", "parquet"),
     ] {
-        stages.push(st(id, StageKind::ExportLeaf, impl_key, &["stage-snapshot"]));
+        stages.push(st(id, impl_key, &["stage-snapshot"]));
     }
 
     // ── source-reading export leaves (independent; read slices/metadata/evals) ──
@@ -189,14 +171,13 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-research-objects", "research-objects"),
         ("stage-export-bench", "bench"),
     ] {
-        stages.push(st(id, StageKind::ExportLeaf, impl_key, &[]));
+        stages.push(st(id, impl_key, &[]));
     }
 
     // ── source-reading validation leaf: enforces the typed result-shape
     //    composition contract across competency files (emits no bundle artifact). ──
     stages.push(st(
         "stage-validate-result-shape-composition",
-        StageKind::Validate,
         "result_shape_composition",
         &[],
     ));
@@ -205,9 +186,8 @@ pub fn full_spec() -> PipelineSpec {
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
     //    re-assembly) and folds the by-reference blob archives gathered from the
     //    in-memory JSON-Schema / axiom / reasoning / SHACL-report products. ──
-    stages.push(st(
+    stages.push(st_sink(
         SINK_STAGE,
-        StageKind::Sink,
         "gts_sink",
         &[
             "stage-compile-logic",
@@ -220,12 +200,7 @@ pub fn full_spec() -> PipelineSpec {
 
     // ── the schemas tail: a fold-reading export leaf over the carrier dataset
     //    (#1132) — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
-    stages.push(st(
-        SCHEMAS_STAGE,
-        StageKind::ExportLeaf,
-        "schemas",
-        &["stage-snapshot"],
-    ));
+    stages.push(st(SCHEMAS_STAGE, "schemas", &["stage-snapshot"]));
 
     PipelineSpec {
         id: "pipeline-build".to_string(),
@@ -233,15 +208,57 @@ pub fn full_spec() -> PipelineSpec {
     }
 }
 
-fn st(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSpec {
+/// A capability-free stage (Generated provenance, non-sink) — the default for every
+/// transform / validate / docs-render / export leaf (the four behaviorally-inert
+/// former kinds collapse to no declaration).
+fn st(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     StageSpec {
         id: id.to_string(),
-        kind,
+        capabilities: Vec::new(),
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
-        engine_lock: kind.carries_engine_lock(),
+        resources: Vec::new(),
+        dataflow_entities: Vec::new(),
         formats: Vec::new(),
     }
+}
+
+/// The authored-source loader: holds [`SOURCE_ORIGIN`], so its emitted quads' provenance
+/// origin is `Source`. Mirrors [`crate::stages::source_load::SourceLoadStage`]'s
+/// capabilities() so the loader's bind-agreement holds.
+fn st_source(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.capabilities = vec![SOURCE_ORIGIN.to_string()];
+    s
+}
+
+/// The sole serialization exit (the gts narrow waist): holds [`SINK_CAPABILITY`], the
+/// one stage the loader requires to hold it. Mirrors
+/// [`crate::stages::gts_sink::GtsSinkStage`]'s capabilities() for bind-agreement.
+fn st_sink(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.capabilities = vec![SINK_CAPABILITY.to_string()];
+    s
+}
+
+/// The reasoning stage: it requires the exclusive reasoning engine (resource-conflict
+/// serialization) AND reads only the `logic` / `relational-core` / `correspondence`
+/// named graphs from `stage-compile-logic` (artifact-level typed dataflow). Mirrors
+/// [`crate::stages::reason::ReasonStage`]'s resources() + consumed_entities() so the
+/// dag_dogfood parity and the loader's bind-agreement both hold.
+fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    use crate::stages::compile_logic::{GRAPH_CORRESPONDENCE, GRAPH_LOGIC, GRAPH_RELATIONAL_CORE};
+    let mut s = st(id, impl_key, consumes);
+    s.resources = vec![ENGINE_RESOURCE.to_string()];
+    s.dataflow_entities = vec![(
+        "stage-compile-logic".to_string(),
+        vec![
+            GRAPH_CORRESPONDENCE.to_string(),
+            GRAPH_LOGIC.to_string(),
+            GRAPH_RELATIONAL_CORE.to_string(),
+        ],
+    )];
+    s
 }
 
 /// Run the FULL dogfooded build single-pass and either write every produced
@@ -373,12 +390,19 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 
     drifted.sort();
     drifted.dedup();
+
+    // The DAG-workflow certification of the build plan (the W3 typed surface): the
+    // SAME verdict the RDF `emit_dag_certification` emits, lowered to the typed
+    // ReasoningResult a consumer reads. Hard-fails if the plan is not certified.
+    let certification = certify_build_plan(&spec)?;
+
     Ok(RunReport {
         mode,
         produced,
         reproduced,
         findings,
         drifted,
+        certification,
     })
 }
 
@@ -423,6 +447,45 @@ fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>
     None
 }
 
+/// Certify the build plan under the DAG-workflow contract and lower the verdict
+/// into the typed [`ReasoningResult`] a build run surfaces.
+///
+/// The `gmeow:pipeline-build` plan is a `logic:Plan` declared under the DAG-workflow
+/// contract; this certifies its producer → consumer dataflow closure with the SHARED
+/// [`certify_acyclic`] certifier — the SAME one [`crate::graph::StageGraph::build`]
+/// runs at load time and the RDF `teleology::emit_dag_certification` runs for a
+/// reified plan — so the typed result and the RDF surface agree by construction.
+///
+/// The loader already rejected any cycle before a run reaches its result, so in
+/// practice the verdict is `Certified`. The hard-fail here is the no-silent-default
+/// backstop (Principle: no degraded fallback): a build that reached its result yet
+/// is NOT certified is a defect, returned as a [`PipelineError::InvalidDag`] rather
+/// than a degraded result.
+fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, PipelineError> {
+    // Producer → consumer orientation, matching the canonical logic:dataflowConsumes
+    // (consumer → producer) the executor inverts — identical to the edge derivation
+    // `StageGraph::build` and the `dag_profile_tests` use.
+    let edges: Vec<(String, String)> = spec
+        .stages
+        .iter()
+        .flat_map(|s| {
+            s.consumes
+                .iter()
+                .map(move |dep| (dep.clone(), s.id.clone()))
+        })
+        .collect();
+    let cert = certify_acyclic(edges.iter().map(|(a, b)| (a.as_str(), b.as_str())));
+    if !cert.is_certified() {
+        return Err(PipelineError::InvalidDag(format!(
+            "the build plan {} reached its result but is NOT certified under the \
+             DAG-workflow contract; offending cycle members: {}",
+            spec.id,
+            cert.witness().join(" → ")
+        )));
+    }
+    Ok(cert.into_reasoning_result(BUILD_DAG_CONTRACT, BUILD_DAG_WORLD))
+}
+
 /// Write `bytes` to `root.join(path)`, creating parent directories.
 fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<(), PipelineError> {
     let target = root.join(path);
@@ -435,9 +498,11 @@ fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<(), PipelineE
 
 #[cfg(test)]
 mod dag_profile_tests {
-    use super::full_spec;
+    use super::{certify_build_plan, full_spec};
     use gmeow_logic::dag_profile::{certify_acyclic, DagCertification};
-    use gmeow_logic::result::{CompletenessStatus, EvaluationStatus};
+    use gmeow_logic::result::{
+        CompletenessStatus, EvaluationStatus, InformationState, PreservationClaim,
+    };
 
     /// The dogfooded build plan (`gmeow:pipeline-build`, a `logic:Plan`) is
     /// certified under the DAG-workflow profile (`logic:DagWorkflowResource`): its
@@ -473,5 +538,34 @@ mod dag_profile_tests {
             ),
             "an acyclic build plan reports complete-for-fragment under the DAG profile"
         );
+    }
+
+    /// The W3 hand-off: the build run's typed `ReasoningResult` certification
+    /// surface. `certify_build_plan` is the EXACT wiring `run_full` folds into the
+    /// returned `RunReport.certification` — it certifies the real `full_spec()`
+    /// plan via the shared certifier and lowers the verdict to the typed result a
+    /// consumer reads, so this asserts the run's certification field WITHOUT a full
+    /// (off-budget) build. The real build is always acyclic, so the verdict is the
+    /// certified `Completed` / `CompleteForFragment` result.
+    #[test]
+    fn build_run_surfaces_a_certified_typed_reasoning_result() {
+        let spec = full_spec();
+        let cert = certify_build_plan(&spec).expect("the build plan certifies (no cycle)");
+        assert_eq!(
+            cert.evaluation,
+            EvaluationStatus::Completed,
+            "the certified build plan's typed result is evaluation=completed"
+        );
+        assert_eq!(
+            cert.completeness,
+            CompletenessStatus::CompleteForFragment,
+            "the certified build plan's typed result is complete-for-fragment"
+        );
+        assert_eq!(cert.information, InformationState::Supported);
+        // A certified verdict carries an exact (loss-free) preservation claim and no
+        // cycle witness — agreeing with the RDF emit_dag_certification mapping.
+        assert_eq!(cert.preservation, PreservationClaim::exact());
+        assert!(cert.preservation.unsupported_constructs.is_empty());
+        assert!(cert.validate().is_ok());
     }
 }
