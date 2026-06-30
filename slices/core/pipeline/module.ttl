@@ -706,5 +706,7 @@ gmeow:stage-gts-sink
         gmeow:stage-snapshot ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-compile-logic ,
+        gmeow:stage-mappings ,
         gmeow:stage-reason ,
+        gmeow:stage-statements ,
         gmeow:stage-validate .

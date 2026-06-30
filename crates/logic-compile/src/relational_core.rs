@@ -41,7 +41,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_rdf::{RdfDataset, RdfLiteral, RdfTerm};
 
-use crate::ir::{LogicAxiom, LogicProgram, LogicRule, PreservationKind, LOGIC_NAMESPACE};
+use crate::ir::{
+    Formula, LogicAxiom, LogicProgram, LogicRule, PreservationKind, Term, LOGIC_NAMESPACE,
+};
 
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -152,12 +154,30 @@ impl RcTerm {
         }
     }
 
-    fn key(&self) -> String {
+    /// A deterministic, type-tagged content key for this term — the single authority shared
+    /// by the projection, the parse inverse, and the engine adapter's rule-IRI minting.
+    pub fn key(&self) -> String {
         match self {
             Self::Var(v) => format!("V\u{1f}{v}"),
             Self::Iri(i) => format!("I\u{1f}{i}"),
             Self::Blank(b) => format!("B\u{1f}{b}"),
             Self::Literal(l) => format!("L\u{1f}{l}"),
+        }
+    }
+
+    fn key_with_blanks(&self, blanks: &BTreeMap<String, String>) -> String {
+        match self {
+            Self::Blank(b) => {
+                let canonical = blanks.get(b).map_or(b.as_str(), String::as_str);
+                format!("B\u{1f}{canonical}")
+            }
+            _ => self.key(),
+        }
+    }
+
+    fn collect_blanks(&self, blanks: &mut BTreeSet<String>) {
+        if let Self::Blank(b) = self {
+            blanks.insert(b.clone());
         }
     }
 }
@@ -194,7 +214,9 @@ pub struct RcAtom {
 }
 
 impl RcAtom {
-    fn key(&self) -> String {
+    /// A deterministic content key for this atom (subject · predicate · object · negated),
+    /// used by the projection, the parse inverse, and the engine adapter's rule-IRI minting.
+    pub fn key(&self) -> String {
         format!(
             "{}\u{1e}{}\u{1e}{}\u{1e}{}",
             self.subject.key(),
@@ -202,6 +224,21 @@ impl RcAtom {
             self.object.key(),
             self.negated,
         )
+    }
+
+    fn key_with_blanks(&self, blanks: &BTreeMap<String, String>) -> String {
+        format!(
+            "{}\u{1e}{}\u{1e}{}\u{1e}{}",
+            self.subject.key_with_blanks(blanks),
+            self.predicate,
+            self.object.key_with_blanks(blanks),
+            self.negated,
+        )
+    }
+
+    fn collect_blanks(&self, blanks: &mut BTreeSet<String>) {
+        self.subject.collect_blanks(blanks);
+        self.object.collect_blanks(blanks);
     }
 }
 
@@ -218,7 +255,9 @@ pub struct RcRule {
 }
 
 impl RcRule {
-    fn key(&self) -> String {
+    /// A deterministic content key for this rule (head · body atoms · distinct guards),
+    /// used by the projection, the parse inverse, and the engine adapter's rule-IRI minting.
+    pub fn key(&self) -> String {
         let body = self
             .body
             .iter()
@@ -232,6 +271,32 @@ impl RcRule {
             .collect::<Vec<_>>()
             .join("\u{1d}");
         format!("{}\u{1c}{body}\u{1c}{distinct}", self.head.key())
+    }
+
+    fn key_with_blanks(&self, blanks: &BTreeMap<String, String>) -> String {
+        let body = self
+            .body
+            .iter()
+            .map(|atom| atom.key_with_blanks(blanks))
+            .collect::<Vec<_>>()
+            .join("\u{1d}");
+        let distinct = self
+            .distinct_pairs
+            .iter()
+            .map(|(a, b)| format!("{a}\u{1f}{b}"))
+            .collect::<Vec<_>>()
+            .join("\u{1d}");
+        format!(
+            "{}\u{1c}{body}\u{1c}{distinct}",
+            self.head.key_with_blanks(blanks)
+        )
+    }
+
+    fn collect_blanks(&self, blanks: &mut BTreeSet<String>) {
+        self.head.collect_blanks(blanks);
+        for atom in &self.body {
+            atom.collect_blanks(blanks);
+        }
     }
 }
 
@@ -283,13 +348,14 @@ impl RelationalCoreProgram {
     /// program — the content identity the typed handle and the named-graph projection
     /// share.
     pub fn content_key(&self) -> String {
-        let facts = {
-            let mut keys: Vec<String> = self.facts.iter().map(RcAtom::key).collect();
-            keys.sort();
-            keys.join("\n")
-        };
+        let blanks = self.canonical_rule_blank_labels();
+        let facts = canonical_fact_key(&self.facts);
         let rules = {
-            let mut keys: Vec<String> = self.rules.iter().map(RcRule::key).collect();
+            let mut keys: Vec<String> = self
+                .rules
+                .iter()
+                .map(|rule| rule.key_with_blanks(&blanks))
+                .collect();
             keys.sort();
             keys.join("\n")
         };
@@ -303,6 +369,48 @@ impl RelationalCoreProgram {
             self.preservation().as_str(),
             self.source_iri.as_deref().unwrap_or(""),
         )
+    }
+
+    fn canonical_rule_blank_labels(&self) -> BTreeMap<String, String> {
+        let mut labels = BTreeSet::new();
+        for rule in &self.rules {
+            rule.collect_blanks(&mut labels);
+        }
+        labels
+            .into_iter()
+            .enumerate()
+            .map(|(index, label)| (label, format!("b{index}")))
+            .collect()
+    }
+}
+
+fn canonical_fact_key(facts: &[RcAtom]) -> String {
+    let mut lines = facts
+        .iter()
+        .map(|fact| {
+            format!(
+                "{} <{}> {} .",
+                term_nt(&fact.subject),
+                fact.predicate,
+                term_nt(&fact.object)
+            )
+        })
+        .collect::<Vec<_>>();
+    lines.sort();
+    lines.dedup();
+    let mut nt = lines.join("\n");
+    nt.push('\n');
+
+    match gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| e.to_string())
+        .and_then(|dataset| gmeow_rdf::canonical_flat_nquads(dataset.as_ref()))
+    {
+        Ok(canonical) => canonical,
+        Err(_) => {
+            let mut keys: Vec<String> = facts.iter().map(RcAtom::key).collect();
+            keys.sort();
+            keys.join("\n")
+        }
     }
 }
 
@@ -421,6 +529,408 @@ fn lower_body_atom(axiom: &LogicAxiom) -> RcAtom {
         object: RcTerm::from_value(&axiom.obj, axiom.obj_is_literal),
         negated: axiom.negated,
     }
+}
+
+// --------------------------------------------------------------------------- //
+// Full-FOL formula lowering: Formula → RcRule + flagged residue
+// --------------------------------------------------------------------------- //
+//
+// The seam the lane's module doc reserves: a [`LogicProgram::formulas`] entry is
+// negation-normal-form rewritten, its leading existential prefix Skolemized to constants,
+// and the Horn-expressible clauses extracted as [`RcRule`]s the engines run; everything
+// outside the binary-Horn fragment (a disjunctive head, a quantifier alternation `∃` under
+// `∀`, a non-binary or sequence-marker atom, a strong negation that is not a clause literal)
+// is carried as flagged residue ([`RcResidue`]) tagged with the closed [`FormulaShape`] set,
+// never silently dropped (the legalization rule of `design/LOGIC-IR.md`). This is the ONE
+// place a `Formula` becomes Horn — the physical engines map these `RcRule`s onward, never
+// re-clausifying.
+
+/// Lower a program with its full-FOL formulas: the Horn-expressible formula fragment joins
+/// the lane's rules, the non-Horn remainder is carried via [`RelationalCoreProgram::push_residue`]
+/// so the preservation claim drops to `{sound-under}` naming what was carried. A formula-free
+/// program is identical to [`lower_program`], so the historical Horn corpus is byte-unchanged.
+pub fn lower_program_with_formulas(program: &LogicProgram) -> RelationalCoreProgram {
+    let base = lower_program(program);
+    let (formula_rules, formula_residue) = lower_formulas_to_rc(program);
+
+    let mut rules = base.rules;
+    rules.extend(formula_rules);
+    let mut residue: BTreeSet<String> = base.residue.into_iter().map(|r| r.reason).collect();
+    residue.extend(formula_residue);
+
+    finalize(base.facts, rules, residue, base.source_iri)
+}
+
+/// Lower ONLY a program's full-FOL formulas to the relational core, returning the
+/// Horn-expressible fragment as [`RcRule`]s and the non-Horn remainder as flagged residue
+/// reason strings. The physical-engine adapter uses this to evaluate the formula layer
+/// without re-lowering the program's already-Horn `rules`.
+pub fn lower_formulas_to_rc(program: &LogicProgram) -> (Vec<RcRule>, Vec<String>) {
+    let mut rules: Vec<RcRule> = Vec::new();
+    let mut residue: BTreeSet<String> = BTreeSet::new();
+    for formula in &program.formulas {
+        let normalized = skolemize(nnf(formula));
+        lower_formula_top(&normalized, formula, &mut rules, &mut residue);
+    }
+    // Dedup by content key (stable first-wins, preserving canonical formula-source order).
+    // Uses the same key as `LogicRule::new` for authored rules, making the lane the single
+    // dedup authority. Must NOT use `rules.sort(); rules.dedup()` — derived `Ord` orders
+    // by `RcTerm` variant-declaration order (not lexically), which would reorder rules.
+    let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    rules.retain(|rc| seen.insert(rc.key()));
+    (rules, residue.into_iter().collect())
+}
+
+/// Lower a top-level (already NNF + Skolemized) formula: peel the universal closure, flatten
+/// a top-level conjunction into independent clauses, and lower each clause — pushing an
+/// [`RcRule`] when it is a Horn clause of binary atoms, else recording an honest residue
+/// entry keyed on the ORIGINAL `source` formula (so the disclosure is stable and names the
+/// `FormulaShape` constructs that exceeded the fragment).
+fn lower_formula_top(
+    normalized: &Formula,
+    source: &Formula,
+    rules: &mut Vec<RcRule>,
+    residue: &mut BTreeSet<String>,
+) {
+    match normalized {
+        // A universal binder merely closes the rule's variables.
+        Formula::Forall { body, .. } => lower_formula_top(body, source, rules, residue),
+        // A conjunction at the top is independent clauses / assertions.
+        Formula::And(fs) => {
+            for f in fs {
+                lower_formula_top(f, source, rules, residue);
+            }
+        }
+        // A clause (disjunction of literals) or a bare atom.
+        clause => match lower_formula_clause(clause) {
+            Ok(rule) => rules.push(rule),
+            Err(reason) => {
+                residue.insert(formula_residue_reason(source, reason));
+            }
+        },
+    }
+}
+
+/// The stable, self-describing residue note for a carried (non-Horn) formula: the specific
+/// reason, the closed [`FormulaShape`] tag set naming *which* first-order constructs exceed
+/// the fragment, and the formula's alpha-normalized content-key digest (so two
+/// alpha-equivalent formulas disclose identically and the goldens stay byte-stable).
+fn formula_residue_reason(source: &Formula, reason: &str) -> String {
+    let tags = source
+        .shape_tags()
+        .iter()
+        .map(|s| s.as_str())
+        .collect::<Vec<_>>()
+        .join("+");
+    format!("{reason} [{tags}] [{}]", sha256_12(&source.content_key()))
+}
+
+/// Flatten a (possibly nested) disjunction into its flat list of clause literals. NNF
+/// leaves an implication body as a nested `Or` tree, so `Or[Or[a,b],c]` must read as the
+/// flat clause `a ∨ b ∨ c` for the Horn check to see one head + N body literals.
+fn flatten_or<'a>(f: &'a Formula, out: &mut Vec<&'a Formula>) {
+    match f {
+        Formula::Or(fs) => fs.iter().for_each(|x| flatten_or(x, out)),
+        other => out.push(other),
+    }
+}
+
+/// A canonical lexical sort key for an [`RcAtom`] that mirrors [`crate::ir::LogicAxiom::sort_key`]
+/// byte-for-byte, so that the formula lane's body order equals the order produced by
+/// `lower_rule(LogicRule::new(...))` for any equivalent Horn clause.
+///
+/// Key shape: `subject_surface\u{0}predicate\u{0}object_surface\u{0}{obj_is_literal}` with a
+/// trailing `\u{0}{negated_bool}` appended ONLY when `negated == true` — exactly matching
+/// `LogicAxiom::sort_key`'s conditional-append shape.
+///
+/// The *surface* of a term is the inner string of the [`RcTerm`] variant (e.g. `?x` for
+/// `Var("?x")`), NOT the type-tagged [`RcTerm::key`] form (no `V`/`I` prefix).  This matches
+/// `LogicAxiom`'s `subject`/`obj` fields which carry the same raw string.
+fn rc_atom_sort_key(atom: &RcAtom) -> String {
+    // The null byte separator, matching the private `SEP` constant in `ir.rs`.
+    const SEP: char = '\u{0}';
+    // Python-bool rendering, matching the private `py_bool` helper in `ir.rs`.
+    let py_bool = |b: bool| if b { "True" } else { "False" };
+
+    let subject_surface = match &atom.subject {
+        RcTerm::Var(v) => v.as_str(),
+        RcTerm::Iri(i) => i.as_str(),
+        RcTerm::Blank(b) => b.as_str(),
+        RcTerm::Literal(l) => l.as_str(),
+    };
+    let object_surface = match &atom.object {
+        RcTerm::Var(v) => v.as_str(),
+        RcTerm::Iri(i) => i.as_str(),
+        RcTerm::Blank(b) => b.as_str(),
+        RcTerm::Literal(l) => l.as_str(),
+    };
+    let obj_is_literal = matches!(atom.object, RcTerm::Literal(_));
+    let mut key = format!(
+        "{subject_surface}{SEP}{}{SEP}{object_surface}{SEP}{}",
+        atom.predicate,
+        py_bool(obj_is_literal),
+    );
+    // Append negated flag ONLY when true — mirrors LogicAxiom::sort_key's conditional append.
+    if atom.negated {
+        key.push(SEP);
+        key.push_str(py_bool(atom.negated));
+    }
+    key
+}
+
+/// Lower a single clause to a Horn [`RcRule`]. A clause is a bare atom, a strong negation of
+/// an atom, or a disjunction of those; Horn requires exactly one positive literal (the head),
+/// the rest negative (clause `A ∨ ¬B ∨ ¬C` ≡ rule `A ← B ∧ C`, the body atoms positive).
+fn lower_formula_clause(clause: &Formula) -> Result<RcRule, &'static str> {
+    // A clause may be a nested Or tree after NNF; flatten it into a flat literal list
+    // before the Horn check so one head + N negated body literals are seen correctly.
+    let mut literals: Vec<&Formula> = Vec::new();
+    flatten_or(clause, &mut literals);
+
+    let mut head: Option<&Formula> = None;
+    let mut body_atoms: Vec<&Formula> = Vec::new();
+    for lit in literals {
+        match lit {
+            Formula::Atom { .. } => {
+                if head.is_some() {
+                    // Two positive literals → not Horn (a disjunctive head).
+                    return Err("disjunctive head: clause is not Horn (>1 positive literal)");
+                }
+                head = Some(lit);
+            }
+            // `¬B` in the clause becomes a positive body atom `B` in the rule.
+            Formula::Not(inner) if matches!(**inner, Formula::Atom { .. }) => {
+                body_atoms.push(inner);
+            }
+            _ => return Err("non-relational-core formula (not a Horn clause of binary atoms)"),
+        }
+    }
+
+    let head = head.ok_or("headless clause (no positive literal; an integrity constraint)")?;
+    let head_atom = formula_atom_to_rc(head)?;
+    let body: Result<Vec<RcAtom>, &'static str> =
+        body_atoms.iter().map(|a| formula_atom_to_rc(a)).collect();
+    // Sort the body atoms in the canonical order that mirrors `LogicRule::new`'s
+    // `sort_by_cached_key(LogicAxiom::sort_key)` so the formula lane and the Horn rule
+    // lane produce identical body orderings for any equivalent clause.
+    let mut body = body?;
+    body.sort_by_cached_key(rc_atom_sort_key);
+    Ok(RcRule {
+        head: head_atom,
+        body,
+        distinct_pairs: Vec::new(),
+    })
+}
+
+/// Convert a binary [`Formula::Atom`] to an [`RcAtom`] (the relational core is binary:
+/// subject / predicate / object). A clause literal is always positive in the rule (strong
+/// negation `¬B` was peeled into a positive body atom by [`lower_formula_clause`]).
+fn formula_atom_to_rc(atom: &Formula) -> Result<RcAtom, &'static str> {
+    let Formula::Atom { relation, args } = atom else {
+        return Err("clause literal is not an atom");
+    };
+    if args.len() != 2 {
+        return Err("non-binary atom (the relational core is binary; arity != 2)");
+    }
+    let Term::Iri(pred) = relation else {
+        return Err("non-IRI relation in atom");
+    };
+    let subject = formula_term_to_rc(&args[0], false)?;
+    let object = formula_term_to_rc(&args[1], true)?;
+    Ok(RcAtom {
+        subject,
+        predicate: pred.clone(),
+        object,
+        negated: false,
+    })
+}
+
+/// Convert an IR [`Term`] to an [`RcTerm`]. `is_object` gates a literal to the object slot.
+/// The relational core's `RcTerm::Literal` carries the lexical form only (the lane is
+/// datatype-agnostic, matching `RcTerm::from_value`).
+fn formula_term_to_rc(term: &Term, is_object: bool) -> Result<RcTerm, &'static str> {
+    match term {
+        // RcTerm::Var carries the `?` sigil (the surface convention Term drops).
+        Term::Var(name) => Ok(RcTerm::Var(format!("?{name}"))),
+        Term::Iri(iri) => Ok(RcTerm::Iri(iri.clone())),
+        Term::Literal { lexical, .. } => {
+            if !is_object {
+                return Err("literal in subject position (only an object may be a literal)");
+            }
+            Ok(RcTerm::Literal(lexical.clone()))
+        }
+        Term::SequenceMarker(_) => {
+            Err("sequence marker (variadic) is not representable in the relational core")
+        }
+    }
+}
+
+// --------------------------------------------------------------------------- //
+// Negation-normal form
+// --------------------------------------------------------------------------- //
+
+/// Rewrite a formula into negation-normal form: eliminate `→` and `↔`, then push every
+/// negation inward (De Morgan + quantifier duality) until it sits only on atoms.
+fn nnf(formula: &Formula) -> Formula {
+    nnf_inner(formula, false)
+}
+
+/// `neg` = an odd number of negations encloses this node; carry it inward.
+fn nnf_inner(f: &Formula, neg: bool) -> Formula {
+    match f {
+        Formula::Atom { .. } => {
+            if neg {
+                Formula::Not(Box::new(f.clone()))
+            } else {
+                f.clone()
+            }
+        }
+        Formula::Not(inner) => nnf_inner(inner, !neg),
+        Formula::And(fs) => {
+            let parts: Vec<Formula> = fs.iter().map(|x| nnf_inner(x, neg)).collect();
+            if neg {
+                Formula::Or(parts) // ¬(φ ∧ ψ) ≡ ¬φ ∨ ¬ψ
+            } else {
+                Formula::And(parts)
+            }
+        }
+        Formula::Or(fs) => {
+            let parts: Vec<Formula> = fs.iter().map(|x| nnf_inner(x, neg)).collect();
+            if neg {
+                Formula::And(parts) // ¬(φ ∨ ψ) ≡ ¬φ ∧ ¬ψ
+            } else {
+                Formula::Or(parts)
+            }
+        }
+        Formula::Implies(a, b) => {
+            // φ → ψ ≡ ¬φ ∨ ψ
+            let rewritten = Formula::Or(vec![Formula::Not(a.clone()), (**b).clone()]);
+            nnf_inner(&rewritten, neg)
+        }
+        Formula::Iff(a, b) => {
+            // φ ↔ ψ ≡ (φ → ψ) ∧ (ψ → φ)
+            let rewritten = Formula::And(vec![
+                Formula::Implies(a.clone(), b.clone()),
+                Formula::Implies(b.clone(), a.clone()),
+            ]);
+            nnf_inner(&rewritten, neg)
+        }
+        Formula::Forall { vars, body } => {
+            let inner = Box::new(nnf_inner(body, neg));
+            if neg {
+                Formula::Exists {
+                    vars: vars.clone(),
+                    body: inner, // ¬∀x.φ ≡ ∃x.¬φ
+                }
+            } else {
+                Formula::Forall {
+                    vars: vars.clone(),
+                    body: inner,
+                }
+            }
+        }
+        Formula::Exists { vars, body } => {
+            let inner = Box::new(nnf_inner(body, neg));
+            if neg {
+                Formula::Forall {
+                    vars: vars.clone(),
+                    body: inner, // ¬∃x.φ ≡ ∀x.¬φ
+                }
+            } else {
+                Formula::Exists {
+                    vars: vars.clone(),
+                    body: inner,
+                }
+            }
+        }
+    }
+}
+
+// --------------------------------------------------------------------------- //
+// Existential Skolemization (constants only)
+// --------------------------------------------------------------------------- //
+
+/// Skolemize a leading existential prefix over a quantifier-free matrix, replacing each
+/// `∃`-bound variable with a fresh Skolem-constant IRI derived deterministically from the
+/// formula's alpha-normalized content key (so two alpha-equivalent formulas, however
+/// constructed, get identical witnesses). A formula with no leading `∃`, or whose matrix
+/// still holds a quantifier (`∃` under `∀` ⇒ a Skolem *function*; or an inner binder ⇒ a
+/// capture hazard), is returned unchanged — the lowering then flags the surviving `∃`.
+fn skolemize(formula: Formula) -> Formula {
+    if !matches!(formula, Formula::Exists { .. }) {
+        return formula;
+    }
+    let seed = sha256_12(&formula.content_key());
+    let mut names: Vec<String> = Vec::new();
+    let matrix = peel_exists(formula.clone(), &mut names);
+    if has_quantifier(&matrix) {
+        return formula;
+    }
+    let subs: Vec<(String, String)> = names
+        .iter()
+        .enumerate()
+        .map(|(i, n)| (n.clone(), format!("{LOGIC_NAMESPACE}skolem/{seed}-{i}")))
+        .collect();
+    subst_formula(matrix, &subs)
+}
+
+/// Peel a leading existential prefix, collecting its bound-variable names in order.
+fn peel_exists(f: Formula, names: &mut Vec<String>) -> Formula {
+    match f {
+        Formula::Exists { vars, body } => {
+            names.extend(vars);
+            peel_exists(*body, names)
+        }
+        other => other,
+    }
+}
+
+/// `true` if any quantifier appears anywhere in `f`.
+fn has_quantifier(f: &Formula) -> bool {
+    match f {
+        Formula::Forall { .. } | Formula::Exists { .. } => true,
+        Formula::Atom { .. } => false,
+        Formula::Not(b) => has_quantifier(b),
+        Formula::Implies(a, b) | Formula::Iff(a, b) => has_quantifier(a) || has_quantifier(b),
+        Formula::And(fs) | Formula::Or(fs) => fs.iter().any(has_quantifier),
+    }
+}
+
+/// Substitute each `(var → IRI)` binding into every atom term of a quantifier-free matrix.
+fn subst_formula(f: Formula, subs: &[(String, String)]) -> Formula {
+    match f {
+        Formula::Atom { relation, args } => Formula::Atom {
+            relation,
+            args: args.into_iter().map(|t| subst_term(t, subs)).collect(),
+        },
+        Formula::Not(b) => Formula::Not(Box::new(subst_formula(*b, subs))),
+        Formula::And(fs) => Formula::And(fs.into_iter().map(|x| subst_formula(x, subs)).collect()),
+        Formula::Or(fs) => Formula::Or(fs.into_iter().map(|x| subst_formula(x, subs)).collect()),
+        Formula::Implies(a, b) => Formula::Implies(
+            Box::new(subst_formula(*a, subs)),
+            Box::new(subst_formula(*b, subs)),
+        ),
+        Formula::Iff(a, b) => Formula::Iff(
+            Box::new(subst_formula(*a, subs)),
+            Box::new(subst_formula(*b, subs)),
+        ),
+        // Unreachable for a quantifier-free matrix, but total for safety.
+        other => other,
+    }
+}
+
+/// Replace a variable term with its Skolem IRI if bound by `subs`; else leave it. A shadowed
+/// name appears more than once in `subs`; the matrix occurrence is bound by the *innermost*
+/// enclosing quantifier, so the search runs in reverse — innermost binding wins.
+fn subst_term(t: Term, subs: &[(String, String)]) -> Term {
+    if let Term::Var(name) = &t {
+        for (var, iri) in subs.iter().rev() {
+            if var == name {
+                return Term::Iri(iri.clone());
+            }
+        }
+    }
+    t
 }
 
 // --------------------------------------------------------------------------- //
@@ -974,5 +1484,125 @@ mod tests {
             .expect("parse malformed");
         let err = parse_relational_core(ds.as_ref()).expect_err("malformed graph must hard-fail");
         assert!(err.contains("missing rcSubject"), "got: {err}");
+    }
+
+    // ── Full-FOL formula lowering: the seam wiring the clausifier into the lane ──
+
+    fn firi(s: &str) -> String {
+        format!("https://blackcatinformatics.ca/gmeow/{s}")
+    }
+    fn fatom(pred: &str, args: Vec<Term>) -> Formula {
+        Formula::atom(Term::Iri(firi(pred)), args).expect("first-order atom")
+    }
+    fn fvar(n: &str) -> Term {
+        Term::Var(n.to_owned())
+    }
+    fn transitivity_formula() -> Formula {
+        // ∀x y z. (sc(x,y) ∧ sc(y,z)) → sc(x,z)
+        let body = Formula::And(vec![
+            fatom("scA", vec![fvar("x"), fvar("y")]),
+            fatom("scA", vec![fvar("y"), fvar("z")]),
+        ]);
+        let head = fatom("scA", vec![fvar("x"), fvar("z")]);
+        Formula::Forall {
+            vars: vec!["x".into(), "y".into(), "z".into()],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        }
+    }
+
+    /// A Horn-expressible formula (a universally-closed implication with a conjunctive body)
+    /// lowers to exactly one Horn RcRule, leaves no residue, and keeps the lane {exact}.
+    #[test]
+    fn horn_expressible_formula_lowers_to_rcrule_exact() {
+        let program = LogicProgram::new(vec![], vec![], vec![], None)
+            .with_formulas(vec![transitivity_formula()]);
+        let lowered = lower_program_with_formulas(&program);
+        assert!(
+            lowered.residue.is_empty(),
+            "a Horn-expressible formula leaves no residue: {:?}",
+            lowered.residue
+        );
+        assert_eq!(lowered.preservation(), PreservationKind::Exact);
+        assert_eq!(
+            lowered.rules.len(),
+            1,
+            "the implication lowers to one Horn rule"
+        );
+        assert_eq!(lowered.rules[0].body.len(), 2, "both body atoms survive");
+    }
+
+    /// A disjunctive head is beyond Horn: carried + flagged, preservation drops to sound-under,
+    /// and the residue note names BOTH the reason and the Disjunctive FormulaShape tag.
+    #[test]
+    fn disjunctive_head_is_carried_and_named() {
+        let f = Formula::Forall {
+            vars: vec!["x".into()],
+            body: Box::new(Formula::Or(vec![
+                fatom("pA", vec![fvar("x"), Term::Iri(firi("a"))]),
+                fatom("qA", vec![fvar("x"), Term::Iri(firi("b"))]),
+            ])),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert_eq!(lowered.preservation(), PreservationKind::SoundUnder);
+        assert!(lowered.rules.is_empty(), "nothing Horn-expressible here");
+        assert_eq!(lowered.residue.len(), 1);
+        let r = &lowered.residue[0].reason;
+        assert!(r.contains("disjunctive head"), "names the reason: {r}");
+        assert!(r.contains("Disjunctive"), "names the FormulaShape tag: {r}");
+    }
+
+    /// An existential under a universal needs a Skolem *function* the relational term algebra
+    /// cannot hold; it is carried (not mis-lowered to a constant) and tagged Quantified.
+    #[test]
+    fn exists_under_forall_is_carried_and_named() {
+        let f = Formula::Forall {
+            vars: vec!["x".into()],
+            body: Box::new(Formula::Exists {
+                vars: vec!["y".into()],
+                body: Box::new(fatom("rA", vec![fvar("x"), fvar("y")])),
+            }),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert_eq!(lowered.preservation(), PreservationKind::SoundUnder);
+        assert!(lowered.rules.is_empty());
+        assert_eq!(lowered.residue.len(), 1);
+        assert!(
+            lowered.residue[0].reason.contains("Quantified"),
+            "names the Quantified tag: {}",
+            lowered.residue[0].reason
+        );
+    }
+
+    /// A non-binary (ternary) atom is beyond the binary relational core: carried + tagged Variadic.
+    #[test]
+    fn variadic_atom_is_carried_and_named() {
+        let f = fatom("rA", vec![fvar("x"), fvar("y"), fvar("z")]);
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert_eq!(lowered.preservation(), PreservationKind::SoundUnder);
+        assert!(lowered.rules.is_empty());
+        assert_eq!(lowered.residue.len(), 1);
+        let r = &lowered.residue[0].reason;
+        assert!(r.contains("non-binary atom"), "names the reason: {r}");
+        assert!(r.contains("Variadic"), "names the Variadic tag: {r}");
+    }
+
+    /// The Horn-expressible formula fragment survives the lane's RDF projection round-trip,
+    /// so the carrier and the typed handle stay value-identical (dual carriage holds).
+    #[test]
+    fn formula_derived_rules_round_trip_through_the_graph() {
+        let program = LogicProgram::new(vec![], vec![], vec![], None)
+            .with_formulas(vec![transitivity_formula()]);
+        let lowered = lower_program_with_formulas(&program);
+        let nt = project_relational_core(&lowered);
+        let ds = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+            .expect("parse projection");
+        let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
+        assert_eq!(
+            re_derived, lowered,
+            "formula-derived rules round-trip value-identically"
+        );
     }
 }

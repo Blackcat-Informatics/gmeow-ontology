@@ -242,18 +242,20 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let report =
         report::build_projection_report_from(report_header, &owned).map_err(|e| e.to_string())?;
 
-    // Preservation ledger: per-target (kind, complexity, structural drops).  The
-    // runner compares only the structural `lossy_drops` (not `actual_drops`), so
-    // this mirrors the Python `ledger_json` builder exactly.  `owned` already carries
-    // the path `property-path:<iri>` rows (appended above), so the ledger and the
-    // report are built from the SAME target list and cannot drift.
+    // Preservation ledger: per-target (kind, complexity, combined lossy drops).
+    // `lossy_drops` carries the COMBINED drop list — structural drops (sorted) followed
+    // by the runtime formula residue (sorted, `actual: `-prefixed) — matching exactly
+    // what `build_projection_report_from` emits as `gmeow:lossyDrop` in the Turtle
+    // report (single-renderer razor: both outputs share `combined_lossy_drops`).
+    // `owned` already carries the path `property-path:<iri>` rows (appended above),
+    // so the ledger and the report are built from the SAME target list and cannot drift.
     let preservation_ledger: Vec<LedgerEntry> = owned
         .iter()
         .map(|p| LedgerEntry {
             target: p.target.clone(),
             preservation: p.preservation.as_str().to_owned(),
             complexity: p.complexity.clone(),
-            lossy_drops: p.lossy_drops.clone(),
+            lossy_drops: combined_lossy_drops(p),
         })
         .collect();
 
@@ -372,7 +374,7 @@ fn dialect_target(dialect: &str) -> &str {
 /// per-instance, closed-tag form keeps the ledger informative and the goldens stable (no
 /// free text). Emitted only when the program carries formulas, so a formula-free program's
 /// ledger is byte-unchanged.
-fn formula_residue_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+pub(crate) fn formula_residue_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
     program
         .formulas
         .iter()
@@ -702,6 +704,29 @@ pub const GOAL_EVAL_COLLAPSE_DROP: &str = concat!(
 /// targets and carry the full evaluation in their materialized output — they are NOT
 /// augmented.
 pub const GOAL_EVAL_COLLAPSE_TARGETS: &[&str] = &["owl-dl", "owl-el", "gufo", "datalog", "n3"];
+
+// --------------------------------------------------------------------------- //
+// Single-renderer helper: canonical combined lossy-drop list
+// --------------------------------------------------------------------------- //
+
+/// The canonical combined lossy-drop list for one projection: structural drops
+/// (sorted) followed by the runtime formula residue (sorted, `actual: `-prefixed).
+///
+/// This is the single source of truth for what ends up in BOTH the Turtle
+/// `gmeow:lossyDrop` triples (via [`report::build_projection_report_from`]) and the
+/// JSON `preservation-ledger.json` (via the `preservation_ledger` field of
+/// [`CompiledArtifacts`]).  The two output surfaces must agree — callers that need
+/// the drop list delegate here rather than re-implementing the sort+prefix logic.
+pub fn combined_lossy_drops(proj: &ProjectionResult) -> Vec<String> {
+    let mut structural = proj.lossy_drops.clone();
+    structural.sort();
+    let mut actual = proj.actual_drops.clone();
+    actual.sort();
+    structural
+        .into_iter()
+        .chain(actual.into_iter().map(|a| format!("actual: {a}")))
+        .collect()
+}
 
 // --------------------------------------------------------------------------- //
 // Shared helpers (used by both text and rdf back-ends)

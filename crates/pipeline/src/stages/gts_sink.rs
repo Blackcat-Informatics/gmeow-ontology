@@ -44,7 +44,9 @@ impl GtsSinkStage {
                 "stage-snapshot".to_string(),
                 "stage-export-json-schema".to_string(),
                 "stage-compile-logic".to_string(),
+                "stage-mappings".to_string(),
                 "stage-reason".to_string(),
+                "stage-statements".to_string(),
                 "stage-validate".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
@@ -114,6 +116,7 @@ mod tests {
         let root = repo_root();
         let carrier = gmeow_rdf::parse_dataset(
             b"<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+              <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/description> \"test bundle\" .\n\
               <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
               <https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
             "application/n-triples",
@@ -133,6 +136,14 @@ mod tests {
             // The SHACL-AF rule (computation) surface the generated-fanout archive pulls
             // from the compile-logic product (design/LOGIC-SHACL-AF.md).
             crate::stages::compile_logic::SHACL_AF_PATH,
+            crate::stages::compile_logic::N3_PATH,
+            crate::stages::compile_logic::GUFO_PATH,
+            crate::stages::compile_logic::RELATIONAL_CORE_PATH,
+            crate::stages::compile_logic::CORRESPONDENCE_PATH,
+            crate::stages::compile_logic::DIAG_JSON_PATH,
+            crate::stages::compile_logic::DIAG_SARIF_PATH,
+            crate::stages::compile_logic::DIAG_HTML_PATH,
+            crate::stages::compile_logic::DIAG_RDF_PATH,
         ] {
             compile_artifacts.insert(path.to_string(), Vec::new());
         }
@@ -149,7 +160,18 @@ mod tests {
         );
         let json_schema = StageProduct::from_artifacts("stage-export-json-schema", json_artifacts);
 
+        let mut mapping_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        mapping_artifacts.insert(
+            crate::stages::compile_logic::PROJECTION_REPORT_PATH.to_string(),
+            b"@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://example.org/projection-report> a owl:Ontology .\n".to_vec(),
+        );
+        let mappings = StageProduct::from_artifacts("stage-mappings", mapping_artifacts);
+
         let mut reason_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        reason_artifacts.insert(
+            crate::stages::reason::CLOSURE_PATH.to_string(),
+            b"# closure".to_vec(),
+        );
         reason_artifacts.insert(
             crate::stages::reason::EXPLANATIONS_PATH.to_string(),
             b"# explanations".to_vec(),
@@ -158,7 +180,22 @@ mod tests {
             crate::stages::reason::LEDGER_PATH.to_string(),
             b"# ledger".to_vec(),
         );
+        reason_artifacts.insert(
+            crate::stages::reason::PERF_LEDGER_PATH.to_string(),
+            b"# perf".to_vec(),
+        );
         let reason = StageProduct::from_artifacts("stage-reason", reason_artifacts);
+
+        let mut statement_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        statement_artifacts.insert(
+            crate::stages::statements::OWL_PATH.to_string(),
+            b"# statements owl".to_vec(),
+        );
+        statement_artifacts.insert(
+            crate::stages::statements::RDF12_PATH.to_string(),
+            b"# statements rdf12".to_vec(),
+        );
+        let statements = StageProduct::from_artifacts("stage-statements", statement_artifacts);
 
         let mut validate_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         validate_artifacts.insert(
@@ -169,13 +206,19 @@ mod tests {
             crate::stages::validate::SHACL_SARIF_PATH.to_string(),
             b"{}".to_vec(),
         );
+        validate_artifacts.insert(
+            crate::stages::validate::SHACL_HTML_PATH.to_string(),
+            b"".to_vec(),
+        );
         let validate = StageProduct::from_artifacts("stage-validate", validate_artifacts);
 
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert("stage-compile-logic".to_string(), compile);
         upstream.insert("stage-export-json-schema".to_string(), json_schema);
+        upstream.insert("stage-mappings".to_string(), mappings);
         upstream.insert("stage-reason".to_string(), reason);
         upstream.insert("stage-snapshot".to_string(), snapshot);
+        upstream.insert("stage-statements".to_string(), statements);
         upstream.insert("stage-validate".to_string(), validate);
         let out = GtsSinkStage::new()
             .run(StageInput {

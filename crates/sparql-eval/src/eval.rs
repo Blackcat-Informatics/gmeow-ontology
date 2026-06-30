@@ -123,6 +123,10 @@ pub struct EvalCtx<'d> {
     /// re-evaluation *and* per-row index rebuild into a single build per site.
     /// Naturally per-query: a fresh [`EvalCtx`] is built for each `query()` call.
     pub(crate) exists_inner_cache: DetHashMap<ExistsCacheKey, Rc<ExistsInner>>,
+    /// Per-query cache for SPARQL `REGEX`/`REPLACE` pattern+flag compilations.
+    /// Dynamic pattern expressions still compile per distinct value, but a filter
+    /// over many rows no longer rebuilds the same automata for every row.
+    pub(crate) regex_cache: DetHashMap<(String, String), Option<regex::Regex>>,
     /// The `SERVICE` federation source, if one is injected. `None` in
     /// the default engine path: a non-silent `SERVICE` then hard-fails. Tests and
     /// the conformance harness inject an in-memory source via [`EvalCtx::with_remote`].
@@ -175,6 +179,7 @@ impl<'d> EvalCtx<'d> {
             rng_state: rng_seed,
             options: EvalOptions::default(),
             exists_inner_cache: DetHashMap::default(),
+            regex_cache: DetHashMap::default(),
             remote: None,
             constructed: Vec::new(),
         }

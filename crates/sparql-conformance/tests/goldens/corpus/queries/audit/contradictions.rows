@@ -1,1 +1,3 @@
 contradiction	kind	detector	claim
+[Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/contradiction-close")), Some(Iri("https://blackcatinformatics.ca/gmeow/contradictionKindNumeric")), Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/auditor")), Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/contradiction-close")), Some(Iri("https://blackcatinformatics.ca/gmeow/contradictionKindNumeric")), Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/auditor")), Some(Iri("https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300"))]

@@ -1,0 +1,22 @@
+<https://blackcatinformatics.ca/gmeow#standpointLabel> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AnnotationProperty> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300> <https://blackcatinformatics.ca/gmeow/claimModality> <https://blackcatinformatics.ca/gmeow/probable> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> <https://blackcatinformatics.ca/gmeow/validUntil> "2026-12-31T22:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> <https://blackcatinformatics.ca/gmeow/validUntil> "2026-12-31T23:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Axiom> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200> <http://www.w3.org/2002/07/owl#annotatedProperty> <https://blackcatinformatics.ca/gmeow/validUntil> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200> <http://www.w3.org/2002/07/owl#annotatedSource> <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200> <http://www.w3.org/2002/07/owl#annotatedTarget> "2026-12-31T22:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200> <https://blackcatinformatics.ca/gmeow#standpointLabel> "<standpointAxiom><Box><Standpoint name=\"*\"/></Box></standpointAxiom>" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2200> <https://blackcatinformatics.ca/gmeow#standpointLabel> "<standpointAxiom><Diamond><Standpoint name=\"https://blackcatinformatics.ca/gmeow/examples/ai/assistant\"/></Diamond></standpointAxiom>" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Axiom> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed> <http://www.w3.org/2002/07/owl#annotatedProperty> <https://blackcatinformatics.ca/gmeow/claimModality> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed> <http://www.w3.org/2002/07/owl#annotatedSource> <https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2300> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed> <http://www.w3.org/2002/07/owl#annotatedTarget> <https://blackcatinformatics.ca/gmeow/probable> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed> <https://blackcatinformatics.ca/gmeow#standpointLabel> "<standpointAxiom><Box><Standpoint name=\"*\"/></Box></standpointAxiom>" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300-is-claimed> <https://blackcatinformatics.ca/gmeow#standpointLabel> "<standpointAxiom><Box><Standpoint name=\"https://blackcatinformatics.ca/gmeow/examples/ai/auditor\"/></Box></standpointAxiom>" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Axiom> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300> <http://www.w3.org/2002/07/owl#annotatedProperty> <https://blackcatinformatics.ca/gmeow/validUntil> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300> <http://www.w3.org/2002/07/owl#annotatedSource> <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300> <http://www.w3.org/2002/07/owl#annotatedTarget> "2026-12-31T23:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300> <https://blackcatinformatics.ca/gmeow#standpointLabel> "<standpointAxiom><Box><Standpoint name=\"*\"/></Box></standpointAxiom>" .
+<https://blackcatinformatics.ca/gmeow/examples/ai/stmt-2300> <https://blackcatinformatics.ca/gmeow#standpointLabel> "<standpointAxiom><Diamond><Standpoint name=\"https://blackcatinformatics.ca/gmeow/examples/ai/assistant\"/></Diamond></standpointAxiom>" .
