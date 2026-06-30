@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Frozen [`RdfDataset`] IR → native RDF text egress (#909 / EPIC #906 S3).
+//! Frozen [`RdfDataset`] IR → native RDF text egress.
 //!
-//! Builds a [`gmeow_gts::model::Graph`] from the frozen IR — interning every IR term
-//! into the graph's term table, materializing literal datatypes and quoted-triple
-//! reifier bindings the gmeow-gts model expects — then dispatches to the matching
-//! serializer: the Turtle / TriG / N-Triples / N-Quads `gmeow-gts` `to_*` serializers,
-//! and the FIRST-PARTY in-repo [`rdfxml`](super::rdfxml) codec for RDF/XML (EPIC #906,
-//! no external gmeow-gts RDF/XML codec). The graph layout mirrors exactly what
-//! `read_all_segments` produces, so parse and serialize are inverses.
+//! Builds a first-party [`SerGraph`](super::ser_model::SerGraph) from the frozen IR —
+//! interning every IR term into the graph's term table, materializing literal datatypes
+//! and quoted-triple reifier bindings — then dispatches to the matching first-party
+//! serializer: the Turtle / TriG / N-Triples / N-Quads serializers in
+//! [`ser_model`](super::ser_model), and the in-repo [`rdfxml`](super::rdfxml) codec for
+//! RDF/XML. The graph layout mirrors exactly what the parser produces, so parse and
+//! serialize are inverses.
 //!
 //! The [`SerializeGraph`] filter matches `oxigraph/backend.rs:333-391` exactly:
 //! `DefaultGraph` emits the default-graph quads plus ALL statement rows
@@ -20,9 +20,8 @@
 use std::collections::HashMap;
 use std::io::Write;
 
-use gmeow_gts::model::{Graph as GtsGraph, Term as GtsTerm, TermKind as GtsTermKind};
-
 use super::media_type::{classify, NativeRdfFormat};
+use super::ser_model::{self, SerGraph, SerTerm, SerTermKind};
 use crate::ir::TermRef;
 use crate::{RdfDataset, RdfDiagnostic, RdfTextDirection, SerializeGraph, TermId, TermValue};
 
@@ -70,19 +69,19 @@ fn serialize_dataset_inner(
     include_statement_layer: bool,
 ) -> Result<Vec<u8>, RdfDiagnostic> {
     let format = classify(media_type)?;
-    let graph = build_gts_graph(dataset, format, selection, include_statement_layer)?;
+    let graph = build_ser_graph(dataset, format, selection, include_statement_layer)?;
     let text = match format {
-        NativeRdfFormat::Turtle => gmeow_gts::rdf_codecs::to_turtle(&graph).map_err(codec_error)?,
-        NativeRdfFormat::TriG => gmeow_gts::rdf_codecs::to_trig(&graph).map_err(codec_error)?,
-        NativeRdfFormat::NTriples => {
-            gmeow_gts::rdf_codecs::to_ntriples(&graph).map_err(codec_error)?
+        NativeRdfFormat::Turtle => ser_model::to_turtle(&graph)?,
+        NativeRdfFormat::TriG => ser_model::to_trig(&graph),
+        NativeRdfFormat::NTriples => ser_model::to_ntriples(&graph)?,
+        NativeRdfFormat::NQuads => ser_model::to_nquads(&graph),
+        // RDF/XML still routes through the in-repo `rdfxml` codec, which currently
+        // expects a `gmeow_gts::model::Graph`. Bridge the first-party `SerGraph` into
+        // that shape via `ser_to_gts`; this is a TEMPORARY bridge for the RDF/XML arm,
+        // removed when the RDF/XML codec is migrated onto the first-party model.
+        NativeRdfFormat::RdfXml => {
+            super::rdfxml::serialize_gts_graph_to_rdfxml(&ser_to_gts(&graph))?
         }
-        NativeRdfFormat::NQuads => gmeow_gts::nquads::to_nquads(&graph),
-        // RDF/XML serializes FIRST-PARTY (EPIC #906) through the in-repo `rdfxml` codec
-        // (no longer the external gmeow-gts RDF/XML codec). It exports the
-        // graph's quads via `gmeow_gts::rdf::to_rdf_quads` and renders the W3C RDF/XML
-        // surface in-repo, byte-identical to the prior path.
-        NativeRdfFormat::RdfXml => super::rdfxml::serialize_gts_graph_to_rdfxml(&graph)?,
     };
     Ok(text.into_bytes())
 }
@@ -100,8 +99,35 @@ pub(crate) fn serialize_into<W: Write>(
         .map_err(|e| RdfDiagnostic::error("native-codec-write", e.to_string()))
 }
 
-fn codec_error(error: gmeow_gts::rdf_codecs::RdfCodecError) -> RdfDiagnostic {
-    RdfDiagnostic::error("native-codec-serialize", error.to_string())
+/// TEMPORARY bridge: field-by-field copy of the first-party [`SerGraph`] into the
+/// `gmeow_gts::model::Graph` shape the in-repo RDF/XML codec still consumes. Removed
+/// once the RDF/XML codec is migrated onto the first-party serialization model.
+fn ser_to_gts(g: &SerGraph) -> gmeow_gts::model::Graph {
+    use gmeow_gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
+    let terms = g
+        .terms
+        .iter()
+        .map(|t| GtsTerm {
+            kind: match t.kind {
+                SerTermKind::Iri => GtsTermKind::Iri,
+                SerTermKind::Bnode => GtsTermKind::Bnode,
+                SerTermKind::Literal => GtsTermKind::Literal,
+                SerTermKind::Triple => GtsTermKind::Triple,
+            },
+            value: t.value.clone(),
+            datatype: t.datatype,
+            lang: t.lang.clone(),
+            direction: t.direction.clone(),
+            reifier: t.reifier,
+        })
+        .collect();
+    gmeow_gts::model::Graph {
+        terms,
+        quads: g.quads.clone(),
+        reifiers: g.reifiers.clone(),
+        annotations: g.annotations.clone(),
+        ..Default::default()
+    }
 }
 
 /// Outcome of serializing an [`RdfDataset`] to a concrete RDF format through the
@@ -174,19 +200,19 @@ pub fn serialize_dataset_to_format(
     }
 }
 
-/// Build the gmeow-gts [`GtsGraph`] from the frozen IR, applying the [`SerializeGraph`]
-/// filter while populating the quad and statement-row tables.
-fn build_gts_graph(
+/// Build the first-party [`SerGraph`] from the frozen IR, applying the
+/// [`SerializeGraph`] filter while populating the quad and statement-row tables.
+fn build_ser_graph(
     dataset: &RdfDataset,
     format: NativeRdfFormat,
     selection: SerializeGraph<'_>,
     include_statement_layer: bool,
-) -> Result<GtsGraph, RdfDiagnostic> {
-    let mut interner = GtsGraphInterner::default();
+) -> Result<SerGraph, RdfDiagnostic> {
+    let mut interner = SerGraphInterner::default();
 
     // Which quad rows to emit, and whether the statement layer (reifiers/annotations)
     // participates — matching the oxigraph backend's filter exactly.
-    let mut graph = GtsGraph::default();
+    let mut graph = SerGraph::default();
 
     match selection {
         // TriG / N-Quads keep graph names; the single-graph syntaxes fall back to the
@@ -236,8 +262,8 @@ fn build_gts_graph(
     }
 
     graph.terms = std::mem::take(&mut interner.terms);
-    // Widen the narrow interner rows to the gmeow-gts 0.9.11 row-array at the gts
-    // boundary: gmeow reification is standpoint-scoped, so the graph slot is `None`.
+    // Widen the narrow interner rows to the serialization row-array: gmeow reification
+    // is standpoint-scoped, so the graph slot is `None`.
     graph.reifiers = std::mem::take(&mut interner.reifiers)
         .into_iter()
         .map(|(rid, spo)| (rid, spo, None))
@@ -255,9 +281,9 @@ fn build_gts_graph(
 /// interning their terms. The reifier bindings land in `interner.reifiers`; the
 /// annotation triples in `interner.annotations`.
 fn push_statement_rows(
-    interner: &mut GtsGraphInterner,
+    interner: &mut SerGraphInterner,
     dataset: &RdfDataset,
-    _graph: &mut GtsGraph,
+    _graph: &mut SerGraph,
 ) -> Result<(), RdfDiagnostic> {
     for (reifier, triple) in dataset.reifiers() {
         let reifier_id = interner.intern(dataset, reifier)?;
@@ -273,39 +299,39 @@ fn push_statement_rows(
     Ok(())
 }
 
-/// Builds a gmeow-gts term table from the frozen IR, deduplicating terms by value and
-/// materializing literal datatypes + quoted-triple reifier bindings.
+/// Builds the first-party term table from the frozen IR, deduplicating terms by value
+/// and materializing literal datatypes + quoted-triple reifier bindings.
 #[derive(Default)]
-struct GtsGraphInterner {
-    terms: Vec<GtsTerm>,
+struct SerGraphInterner {
+    terms: Vec<SerTerm>,
     /// Reifier-id → `(s, p, o)` bindings. Carries both the statement-layer reifiers
     /// (a resource reifying a statement) and the self-reifier sentinels of inline
     /// quoted-triple terms (skipped by the N-Quads serializer).
     reifiers: Vec<(usize, (usize, usize, usize))>,
     annotations: Vec<(usize, usize, usize)>,
-    /// Value → term-id memo so equal terms collapse to one gmeow-gts term, matching the
-    /// fold the reader produces.
+    /// Value → term-id memo so equal terms collapse to one term, matching the fold the
+    /// reader produces.
     memo: HashMap<TermValue, usize>,
 }
 
-impl GtsGraphInterner {
-    /// Intern an IR term id into the gmeow-gts term table, returning its index.
+impl SerGraphInterner {
+    /// Intern an IR term id into the first-party term table, returning its index.
     fn intern(&mut self, dataset: &RdfDataset, id: TermId) -> Result<usize, RdfDiagnostic> {
         let value = term_value(dataset, id);
         if let Some(&idx) = self.memo.get(&value) {
             return Ok(idx);
         }
         let idx = match dataset.resolve(id) {
-            TermRef::Iri(iri) => self.push_term(GtsTerm {
-                kind: GtsTermKind::Iri,
+            TermRef::Iri(iri) => self.push_term(SerTerm {
+                kind: SerTermKind::Iri,
                 value: Some(iri.to_owned()),
                 datatype: None,
                 lang: None,
                 direction: None,
                 reifier: None,
             }),
-            TermRef::Blank { label, scope } => self.push_term(GtsTerm {
-                kind: GtsTermKind::Bnode,
+            TermRef::Blank { label, scope } => self.push_term(SerTerm {
+                kind: SerTermKind::Bnode,
                 value: Some(scope.qualify_label(label).into_owned()),
                 datatype: None,
                 lang: None,
@@ -320,15 +346,15 @@ impl GtsGraphInterner {
             } => {
                 let datatype_iri = iri_of(dataset, datatype)?;
                 // A plain literal (xsd:string, no language) and a language-tagged
-                // literal carry no explicit datatype term — the gmeow-gts model defaults
+                // literal carry no explicit datatype term — the serializer defaults
                 // them, so emitting one would change the round-trip text.
                 let datatype_slot = if language.is_some() || datatype_iri == XSD_STRING {
                     None
                 } else {
                     Some(self.intern_iri_string(&datatype_iri))
                 };
-                self.push_term(GtsTerm {
-                    kind: GtsTermKind::Literal,
+                self.push_term(SerTerm {
+                    kind: SerTermKind::Literal,
                     value: Some(lexical.to_owned()),
                     datatype: datatype_slot,
                     lang: language.map(str::to_owned),
@@ -337,15 +363,15 @@ impl GtsGraphInterner {
                 })
             }
             TermRef::Triple { s, p, o } => {
-                // A quoted-triple term in the gmeow-gts model is a `Triple` term whose
-                // `reifier` points at a self-reifier binding holding `(s, p, o)`. This
-                // self-reifier sentinel is what the N-Quads serializer skips.
+                // A quoted-triple term is a `Triple` term whose `reifier` points at a
+                // self-reifier binding holding `(s, p, o)`. This self-reifier sentinel
+                // is what the N-Quads serializer skips.
                 let s = self.intern(dataset, s)?;
                 let p = self.intern(dataset, p)?;
                 let o = self.intern(dataset, o)?;
                 let triple_id = self.terms.len();
-                self.terms.push(GtsTerm {
-                    kind: GtsTermKind::Triple,
+                self.terms.push(SerTerm {
+                    kind: SerTermKind::Triple,
                     value: None,
                     datatype: None,
                     lang: None,
@@ -367,8 +393,8 @@ impl GtsGraphInterner {
         if let Some(&idx) = self.memo.get(&value) {
             return idx;
         }
-        let idx = self.push_term(GtsTerm {
-            kind: GtsTermKind::Iri,
+        let idx = self.push_term(SerTerm {
+            kind: SerTermKind::Iri,
             value: Some(iri.to_owned()),
             datatype: None,
             lang: None,
@@ -379,8 +405,8 @@ impl GtsGraphInterner {
         idx
     }
 
-    /// Resolve a triple-term id to the `(s, p, o)` gmeow-gts term indices of its
-    /// components (interning each), for a statement-layer reifier binding.
+    /// Resolve a triple-term id to the `(s, p, o)` term indices of its components
+    /// (interning each), for a statement-layer reifier binding.
     fn intern_triple_components(
         &mut self,
         dataset: &RdfDataset,
@@ -400,7 +426,7 @@ impl GtsGraphInterner {
         }
     }
 
-    fn push_term(&mut self, term: GtsTerm) -> usize {
+    fn push_term(&mut self, term: SerTerm) -> usize {
         let idx = self.terms.len();
         self.terms.push(term);
         idx
