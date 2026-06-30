@@ -36,6 +36,7 @@ use std::collections::BTreeSet;
 use gmeow_gts::model::Graph;
 use gmeow_gts::reader::read;
 use gmeow_gts::writer::digest_string;
+use gmeow_rdf::gts::dataset_from_gts_graph;
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
 use gmeow_rdf::{pair_loss_ledger, parse_dataset, NativeRdfFormat, PROJECTION_CODECS};
 
@@ -294,13 +295,8 @@ pub fn verify_release_bundle(
     // --- 2 + 3. Walk the attestation frames and confirm each attested digest is
     //            backed by a blob actually present in the bundle.
     let graph = read(bundle_bytes, true, None);
-    let nquads = gmeow_gts::nquads::to_nquads(&graph);
-    let dataset = parse_dataset(
-        nquads.as_bytes(),
-        NativeRdfFormat::NQuads.media_type(),
-        None,
-    )
-    .map_err(|e| format!("re-parsing bundle for the attestation walk: {e}"))?;
+    let dataset = dataset_from_gts_graph(&graph)
+        .map_err(|e| format!("folding bundle into a dataset for the attestation walk: {e}"))?;
 
     let content_digest_pred = format!("{GMEOW_NS}contentDigest");
     let attestation_type_pred = format!("{GMEOW_NS}attestationType");
@@ -362,55 +358,27 @@ pub fn verify_release_bundle(
 
 /// Replay a folded [`Graph`] into a fresh [`SnapshotBuilder`].
 ///
-/// The committed snapshot is multi-named-graph and may carry an RDF 1.2
-/// statement layer. We serialize the folded graph to N-Quads (the lossless
-/// dataset form that preserves named graphs AND emits reifier/annotation rows in
-/// the RDF 1.2 reifying style) and re-parse it into a native
-/// [`RdfDataset`](gmeow_rdf::RdfDataset). The native parse folds the `rdf:reifies`
-/// statement layer into the dataset's reifier/annotation side-tables AND preserves
-/// named graphs on base quads, so a single [`SnapshotBuilder::add_dataset`] rebuilds
-/// the base quads (with their graph names) and the reifies/annot tables exactly —
-/// the manual base/rdf12 split is no longer needed.
+/// The committed snapshot is multi-named-graph and may carry an RDF 1.2 statement
+/// layer. We fold the GTS graph straight into a native
+/// [`RdfDataset`](gmeow_rdf::RdfDataset) via the oxigraph-free container→dataset
+/// bridge ([`dataset_from_gts_graph`]) — no codec text in the middle. The bridge
+/// re-binds the `rdf:reifies` statement layer into the dataset's reifier/annotation
+/// side-tables AND preserves named graphs on the base quads, so a single
+/// [`SnapshotBuilder::add_dataset`] rebuilds the base quads (with their graph names)
+/// and the reifies/annot tables exactly. This is the lossless inverse of the old
+/// `to_nquads(graph)` + re-parse round-trip, so the emitted snapshot is byte-identical.
+///
+/// Determinism (§18): the bridge interns terms directly from the GTS graph's own
+/// content-canonical term table (the reader yields it in a process-independent
+/// `(kind, value, datatype, lang)` order), and `SnapshotBuilder::canonical_tables`
+/// re-ids by that same content sort key. The ingestion order is therefore a pure
+/// function of the quad SET, never of any hash-seeded iteration order — exactly the
+/// property the old N-Quads line-sort pinned, now intrinsic to the native fold.
 fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> Result<(), String> {
-    let nquads = gmeow_gts::nquads::to_nquads(graph);
-    if nquads.is_empty() {
-        return Ok(());
-    }
-
-    // Determinism (§18): SORT the N-Quads lines before re-parsing so the order in
-    // which terms are interned into the `SnapshotBuilder` is a pure function of
-    // the quad SET, never of `to_nquads`'s emission order.
-    //
-    // Why this matters: `SnapshotBuilder::canonical_tables` re-ids terms with a
-    // STABLE sort keyed by `(kind, value, datatype, lang)`. When two structurally
-    // distinct blank nodes carry the SAME serialized label (e.g. a multi-segment
-    // union relabels collisions, or a snapshot whose bnode labels are not
-    // globally unique), their sort keys tie and the tie is broken by INGESTION
-    // order — the order the quads arrive from the native parse, i.e. the
-    // `to_nquads` line order. Any iteration-order variance upstream (a HashMap/
-    // HashSet walk in the reader's segment union, or a future serializer change)
-    // would then leak a process-dependent (hash-seed-dependent) term remap into
-    // the emitted snapshot bytes, breaking cross-process reproducibility.
-    //
-    // Sorting the lines here pins that ingestion order to the lexicographic order
-    // of the canonical N-Quads text, which is identical across processes given
-    // the same quad set. It is a no-op when the upstream order already happens to
-    // be deterministic, and a robust guard when it is not. (Sorting raw N-Quads
-    // lines is sound because each line is one self-delimited statement.)
-    let mut lines: Vec<&str> = nquads.lines().collect();
-    lines.sort_unstable();
-    let sorted_nquads = lines.join("\n");
-
-    // The native parse folds the statement layer into the dataset's reifier/
-    // annotation side-tables and preserves named graphs on the base quads, so a
-    // single `add_dataset` reproduces the snapshot's base quads (with their graph
-    // names) AND its reifies/annot tables — no manual base/rdf12 split.
-    let dataset = parse_dataset(
-        sorted_nquads.as_bytes(),
-        NativeRdfFormat::NQuads.media_type(),
-        None,
-    )
-    .map_err(|e| format!("re-parsing committed snapshot N-Quads: {e}"))?;
+    let dataset = dataset_from_gts_graph(graph)
+        .map_err(|e| format!("folding committed snapshot into a dataset: {e}"))?;
+    // `add_dataset` is a no-op for a wholly empty dataset, so no early-return guard
+    // is needed: an empty snapshot contributes no base quads, reifiers, or annotations.
     builder.add_dataset(&dataset)?;
     Ok(())
 }

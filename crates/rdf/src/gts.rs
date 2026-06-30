@@ -48,6 +48,22 @@ pub(crate) fn gts_to_ser(g: &gmeow_gts::model::Graph) -> SerGraph {
     }
 }
 
+/// Load a real `gmeow_gts::model::Graph` (read from a GTS bundle) into a frozen
+/// [`RdfDataset`](crate::RdfDataset), **preserving** every named graph on its base
+/// quads. This is the lossless container→dataset bridge for the release fold:
+/// `gmeow_gts::model::Graph` → [`gts_to_ser`] → the native statement-layer fold
+/// ([`dataset_from_ser_graph`](crate::native_codecs::parse::dataset_from_ser_graph)),
+/// which re-binds the `rdf:reifies` reifier/annotation side-tables and keeps each base
+/// quad's graph component. It is the native inverse of the old `to_nquads(&graph)` +
+/// `parse_dataset(nquads, …)` round-trip — the SAME dataset content, with no codec text
+/// in the middle — so a snapshot rebuilt from it is byte-identical to the round-trip's.
+pub fn dataset_from_gts_graph(
+    g: &gmeow_gts::model::Graph,
+) -> Result<std::sync::Arc<crate::RdfDataset>, RdfDiagnostic> {
+    let ser = gts_to_ser(g);
+    crate::native_codecs::parse::dataset_from_ser_graph(&ser)
+}
+
 /// Load a GTS bundle into a frozen [`RdfDataset`](crate::RdfDataset) with **every**
 /// named graph folded into the default graph. This is the load path the native SPARQL
 /// conformance gate (`crates/sparql-conformance`) replays against the frozen goldens,

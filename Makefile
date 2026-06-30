@@ -57,14 +57,14 @@ NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason verify mappings \
-	lint-alignment doc-lint sparql-conformance
+	lint-alignment doc-lint sparql-conformance gts-codec-hygiene
 
 .PHONY: help \
 	install fmt lint \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test rust-docs check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity sparql-conformance wasm wasm-pkg wasm-pkg-test \
+	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity gts-codec-hygiene sparql-conformance wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -332,6 +332,20 @@ carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport p
 	@# reintroduced accumulation.
 	cargo nextest run -p gmeow-pipeline --test carrier_purity
 	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (native gmeow_xsd literal canon, no sanctioned residual)"
+
+gts-codec-hygiene: rust-build ## Lock the native RDF codec seam: no gmeow_gts codec entrypoint + no oxigraph in production source.
+	@# STRUCTURAL boundary-lock gate. The whole RDF codec seam is native:
+	@# crates/rdf/src/native_codecs/ parses/serializes RDF on the first-party IR with
+	@# NO gmeow_gts codec and NO oxigraph in the middle. The test scans crates/*/src for
+	@# three rules: (1) native_codecs/ is 100% gmeow_gts- AND oxigraph-free (prod OR test);
+	@# (2) the gmeow_gts RDF-codec ENTRYPOINTS (nquads/trig/yamlld/rdf_xml/rdf_codecs/rdf::)
+	@# are banned in PRODUCTION — gmeow.gts CONTAINER symbols (reader/writer/model/verify/
+	@# policy/codec::/ulid/…) STAY and are explicitly allowed; (3) no oxigraph-family crate
+	@# reference in PRODUCTION (complements the crate-dep `rdf-core-hygiene` lock). The
+	@# bundled negative-arm unit tests prove the detector flags each forbidden token and
+	@# does NOT flag an allowed container symbol, so the gate can never silently pass.
+	cargo nextest run -p gmeow-rdf --test gts_codec_hygiene
+	@echo "OK: RDF codec seam is native — no gmeow_gts codec entrypoint, no oxigraph in production source"
 
 rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	cargo build -p gmeow-rdf-core
