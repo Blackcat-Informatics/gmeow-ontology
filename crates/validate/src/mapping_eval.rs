@@ -175,7 +175,7 @@ impl ExistenceStatus {
 }
 
 #[derive(Debug, Clone)]
-struct MappingRow {
+pub(crate) struct MappingRow {
     subject_id: String,
     predicate_id: String,
     object_id: String,
@@ -849,7 +849,7 @@ fn save_cached(project_root: &Path, key: &str, payload: &Value) -> Result<(), St
         .map_err(|e| format!("failed to write cache {}: {e}", path.display()))
 }
 
-fn load_mapping_rows(mappings_dir: &Path) -> Result<Vec<MappingRow>, String> {
+pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> Result<Vec<MappingRow>, String> {
     let mut paths = Vec::new();
     for entry in fs::read_dir(mappings_dir).map_err(|e| {
         format!(
@@ -935,6 +935,28 @@ fn collect_wikidata_ids_from_rows(rows: &[MappingRow]) -> Vec<String> {
 pub fn collect_wikidata_ids(mappings_dir: &Path) -> Result<Vec<String>, String> {
     let rows = load_mapping_rows(mappings_dir)?;
     Ok(collect_wikidata_ids_from_rows(&rows))
+}
+
+/// Every external IRI GMEOW aligns to, from the SSSOM mappings (mirrors
+/// `mappings.aligned_iris`).
+///
+/// Loads every `*.sssom.tsv` under `mappings_dir` via [`load_mapping_rows`] and
+/// collects every IRI mentioned as a mapping *subject* or *object* (never a
+/// predicate) into a sorted set, with CURIEs already expanded by `expand_entity`.
+/// This is the alignment-graph walk `coverage::run_coverage` classifies against.
+///
+/// # Errors
+///
+/// Returns `Err(message)` if the mappings dir cannot be read or a TSV fails to
+/// parse.
+pub(crate) fn aligned_iris(mappings_dir: &Path) -> Result<BTreeSet<String>, String> {
+    let rows = load_mapping_rows(mappings_dir)?;
+    let mut iris: BTreeSet<String> = BTreeSet::new();
+    for row in rows {
+        iris.insert(row.subject_iri);
+        iris.insert(row.object_iri);
+    }
+    Ok(iris)
 }
 
 fn collect_ontology_terms(root: &Path) -> Result<OntologyTerms, String> {
