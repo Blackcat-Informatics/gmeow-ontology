@@ -279,6 +279,11 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
         "diagrams/concerns.svg".to_string(),
         svg::concern_overview_svg(model).into_bytes(),
     );
+    // The per-slice documentation-coverage heatmap embedded on the health page.
+    files.insert(
+        "diagrams/coverage-heatmap.svg".to_string(),
+        svg::coverage_heatmap_svg(model).into_bytes(),
+    );
     for slice in &model.slices {
         files.insert(
             format!("diagrams/slices/{}.svg", slice_slug(slice)),
@@ -648,6 +653,110 @@ fn md_health(model: &DocsModel) -> String {
     }
     blank(&mut out);
 
+    // ── Reasoning (present only when the native-reasoner verdict is attached) ────
+    if let Some(verdict) = &model.reasoning {
+        heading(&mut out, 2, "Reasoning");
+        let classes = model
+            .terms
+            .iter()
+            .filter(|t| t.category == DocTermCategory::Class)
+            .count();
+        let unsat = model
+            .terms
+            .iter()
+            .filter(|t| {
+                t.category == DocTermCategory::Class && verdict.unsatisfiable.contains(&t.iri)
+            })
+            .count();
+        let consistency = if verdict.is_consistent {
+            "consistent"
+        } else {
+            "**inconsistent**"
+        };
+        push_line(
+            &mut out,
+            &format!(
+                "- Native DL reasoning: the ontology is {consistency}. **{unsat}** of {classes} \
+                 documented classes are unsatisfiable; the rest are satisfiable.",
+            ),
+        );
+        blank(&mut out);
+    }
+
+    // ── Coverage heatmap by slice (deterministic SVG, the shared color scale) ────
+    heading(&mut out, 2, "Coverage by slice");
+    line(
+        &mut out,
+        "Per-slice coverage of each documentation dimension — green ≥ 80%, amber ≥ 50%, red below.",
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "![Documentation coverage by slice]({}diagrams/coverage-heatmap.svg)",
+            root_href(&Page::Health.dir())
+        ),
+    );
+    blank(&mut out);
+
+    // ── Linkage: alignment density + orphan terms ───────────────────────────────
+    heading(&mut out, 2, "Linkage");
+    let aligned_count = aligned.len();
+    let orphan_count = model
+        .terms
+        .iter()
+        .filter(|t| {
+            t.parents.is_empty() && t.related_terms.is_empty() && !aligned.contains(t.iri.as_str())
+        })
+        .count();
+    push_line(
+        &mut out,
+        &format!(
+            "- **Alignment density:** {aligned_count} of {total} terms ({}%) are the subject of at \
+             least one external alignment.",
+            (aligned_count * 100).checked_div(total).unwrap_or(0)
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- **Orphan terms:** {orphan_count} term(s) carry no parent, related term, or alignment."
+        ),
+    );
+    blank(&mut out);
+
+    // ── Framework distribution (term count per logic:LogicalFramework) ──────────
+    let mut framework_counts: std::collections::BTreeMap<&str, usize> =
+        std::collections::BTreeMap::new();
+    for term in &model.terms {
+        for framework in &term.frameworks {
+            *framework_counts.entry(framework.as_str()).or_default() += 1;
+        }
+    }
+    if !framework_counts.is_empty() {
+        heading(&mut out, 2, "Framework distribution");
+        push_line(&mut out, "| Framework | Terms |");
+        push_line(&mut out, "| --- | --- |");
+        for (framework, count) in &framework_counts {
+            push_line(
+                &mut out,
+                &format!("| `{}` | {count} |", code_escape(framework)),
+            );
+        }
+        blank(&mut out);
+    }
+
+    // ── Badge legend (rendered from the single badge color authority) ───────────
+    heading(&mut out, 2, "Badge legend");
+    push_line(&mut out, "| Family | What it encodes |");
+    push_line(&mut out, "| --- | --- |");
+    for family in &crate::badge::FAMILIES {
+        push_line(
+            &mut out,
+            &format!("| **{}** | {} |", family.label, family.description),
+        );
+    }
+    blank(&mut out);
+
     out
 }
 
@@ -992,18 +1101,22 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     }
 
     // ── Frameworks (the logical disciplines the term traffics in) ───────────────
-    // Each framework individual is itself a documented logic: term, so it links to
-    // its own page — the per-term counterpart of the logic-stereotype chips.
+    // Rendered as `logic:`-prefixed chips linking the Logic & Reasoning index — the
+    // per-term counterpart of the logic-stereotype chips (the framework individuals
+    // live in the logic: vocabulary, which is documented via that index).
     if !term.frameworks.is_empty() {
         heading(&mut out, 2, "Frameworks");
-        for framework in &term.frameworks {
-            let iri = framework
-                .strip_prefix("logic:")
-                .map(|local| format!("https://blackcatinformatics.ca/logic/{local}"))
-                .unwrap_or_else(|| framework.clone());
-            push_line(&mut out, &format!("- {}", term_link(model, &from, &iri)));
-        }
-        blank(&mut out);
+        let chips = term
+            .frameworks
+            .iter()
+            .map(|f| format!("`{}`", code_escape(f)))
+            .collect::<Vec<_>>()
+            .join(" · ");
+        let logic_href = rel(&from, &Page::Logic.dir());
+        line(
+            &mut out,
+            &format!("{chips} — see the [Logic & Reasoning]({logic_href}index.md) index."),
+        );
     }
 
     // ── Box role badge (links the four-boxes doctrine when that page exists) ─────

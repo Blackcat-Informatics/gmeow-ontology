@@ -1071,8 +1071,16 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
         let logic_stereotypes = logic_stereotypes(store, &iri);
 
         // Logical frameworks: the closed logic:LogicalFramework discipline(s) the
-        // term declares via logic:instantiatesFramework (CURIEs, sorted/deduped).
-        let mut frameworks = curie_objects(store, &iri, LOGIC_INSTANTIATES_FRAMEWORK);
+        // term declares via logic:instantiatesFramework, rendered as `logic:`-prefixed
+        // CURIEs (mirroring logic_stereotypes — `to_curie` only abbreviates gmeow:),
+        // sorted/deduped.
+        let mut frameworks: Vec<String> = named_objects(store, &iri, LOGIC_INSTANTIATES_FRAMEWORK)
+            .iter()
+            .filter_map(|o| {
+                o.strip_prefix(LOGIC_NS)
+                    .map(|local| format!("logic:{local}"))
+            })
+            .collect();
         frameworks.sort();
         frameworks.dedup();
 
