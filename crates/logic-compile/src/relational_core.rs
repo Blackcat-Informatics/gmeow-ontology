@@ -529,6 +529,49 @@ fn flatten_or<'a>(f: &'a Formula, out: &mut Vec<&'a Formula>) {
     }
 }
 
+/// A canonical lexical sort key for an [`RcAtom`] that mirrors [`crate::ir::LogicAxiom::sort_key`]
+/// byte-for-byte, so that the formula lane's body order equals the order produced by
+/// `lower_rule(LogicRule::new(...))` for any equivalent Horn clause.
+///
+/// Key shape: `subject_surface\u{0}predicate\u{0}object_surface\u{0}{obj_is_literal}` with a
+/// trailing `\u{0}{negated_bool}` appended ONLY when `negated == true` — exactly matching
+/// `LogicAxiom::sort_key`'s conditional-append shape.
+///
+/// The *surface* of a term is the inner string of the [`RcTerm`] variant (e.g. `?x` for
+/// `Var("?x")`), NOT the type-tagged [`RcTerm::key`] form (no `V`/`I` prefix).  This matches
+/// `LogicAxiom`'s `subject`/`obj` fields which carry the same raw string.
+fn rc_atom_sort_key(atom: &RcAtom) -> String {
+    // The null byte separator, matching the private `SEP` constant in `ir.rs`.
+    const SEP: char = '\u{0}';
+    // Python-bool rendering, matching the private `py_bool` helper in `ir.rs`.
+    let py_bool = |b: bool| if b { "True" } else { "False" };
+
+    let subject_surface = match &atom.subject {
+        RcTerm::Var(v) => v.as_str(),
+        RcTerm::Iri(i) => i.as_str(),
+        RcTerm::Blank(b) => b.as_str(),
+        RcTerm::Literal(l) => l.as_str(),
+    };
+    let object_surface = match &atom.object {
+        RcTerm::Var(v) => v.as_str(),
+        RcTerm::Iri(i) => i.as_str(),
+        RcTerm::Blank(b) => b.as_str(),
+        RcTerm::Literal(l) => l.as_str(),
+    };
+    let obj_is_literal = matches!(atom.object, RcTerm::Literal(_));
+    let mut key = format!(
+        "{subject_surface}{SEP}{}{SEP}{object_surface}{SEP}{}",
+        atom.predicate,
+        py_bool(obj_is_literal),
+    );
+    // Append negated flag ONLY when true — mirrors LogicAxiom::sort_key's conditional append.
+    if atom.negated {
+        key.push(SEP);
+        key.push_str(py_bool(atom.negated));
+    }
+    key
+}
+
 /// Lower a single clause to a Horn [`RcRule`]. A clause is a bare atom, a strong negation of
 /// an atom, or a disjunction of those; Horn requires exactly one positive literal (the head),
 /// the rest negative (clause `A ∨ ¬B ∨ ¬C` ≡ rule `A ← B ∧ C`, the body atoms positive).
@@ -561,9 +604,14 @@ fn lower_formula_clause(clause: &Formula) -> Result<RcRule, &'static str> {
     let head_atom = formula_atom_to_rc(head)?;
     let body: Result<Vec<RcAtom>, &'static str> =
         body_atoms.iter().map(|a| formula_atom_to_rc(a)).collect();
+    // Sort the body atoms in the canonical order that mirrors `LogicRule::new`'s
+    // `sort_by_cached_key(LogicAxiom::sort_key)` so the formula lane and the Horn rule
+    // lane produce identical body orderings for any equivalent clause.
+    let mut body = body?;
+    body.sort_by_cached_key(rc_atom_sort_key);
     Ok(RcRule {
         head: head_atom,
-        body: body?,
+        body,
         distinct_pairs: Vec::new(),
     })
 }

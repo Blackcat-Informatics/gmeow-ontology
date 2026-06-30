@@ -74,6 +74,110 @@ fn horn_formula_matches_the_equivalent_logic_rule() {
     );
 }
 
+/// A 2-body-atom formula given in NON-canonical source order must produce the same
+/// canonical body ordering as an equivalent `LogicRule`, proving the formula lane's
+/// sort is byte-identical to `LogicRule::new`'s `sort_by_cached_key(LogicAxiom::sort_key)`.
+///
+/// Source order: `q(x,z) ∧ p(x,y)` (q before p — non-canonical).
+/// Canonical order: `p(x,y)` before `q(x,z)` (because "{LOGIC}p" < "{LOGIC}q" lexically
+/// under the `subject\0pred\0obj\0False` key).
+///
+/// The test would FAIL if the sort in `lower_formula_clause` were removed, because the
+/// formula lane would then yield `[q, p]` while the LogicRule path yields `[p, q]`.
+#[test]
+fn multi_atom_formula_body_order_matches_logic_rule_canonical_order() {
+    // ∀x y z. (q(x,z) ∧ p(x,y)) → head(x,z)
+    // Body atoms authored in NON-canonical order (q before p) to exercise the sort.
+    let body_formula = Formula::And(vec![
+        atom("qRel", vec![var("x"), var("z")]), // q first — non-canonical
+        atom("pRel", vec![var("x"), var("y")]), // p second
+    ]);
+    let formula = Formula::Forall {
+        vars: vec!["x".into(), "y".into(), "z".into()],
+        body: Box::new(Formula::Implies(
+            Box::new(body_formula),
+            Box::new(atom("headRel", vec![var("x"), var("z")])),
+        )),
+    };
+
+    // Build the equivalent LogicRule with the SAME atoms in any order; LogicRule::new
+    // canonicalizes the body, so the expected ordering is the canonical one.
+    let head_ax = LogicAxiom::new(
+        "?x",
+        format!("{LOGIC}headRel"),
+        "?z",
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .unwrap();
+    let p_ax = LogicAxiom::new(
+        "?x",
+        format!("{LOGIC}pRel"),
+        "?y",
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .unwrap();
+    let q_ax = LogicAxiom::new(
+        "?x",
+        format!("{LOGIC}qRel"),
+        "?z",
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .unwrap();
+    // Pass body in source (non-canonical) order — LogicRule::new will sort it.
+    let logic_rule = LogicRule::new(
+        head_ax,
+        vec![q_ax, p_ax], // non-canonical: q before p
+        vec![],
+        ContextualScope::default(),
+    );
+    let expected = lower_rule(&logic_rule).expect("lower logic rule");
+
+    // Lower the formula through the full-FOL lane.
+    let out = lower_formulas(&program_with(vec![formula]));
+    assert_eq!(
+        out.rules.len(),
+        1,
+        "the 2-body-atom formula yields one rule"
+    );
+    let got = &out.rules[0];
+
+    // The body must have exactly 2 atoms and be in canonical order (p before q).
+    assert_eq!(got.body.len(), 2, "both body atoms must survive");
+    assert_eq!(
+        expected.body.len(),
+        2,
+        "sanity: LogicRule lowering also has 2 body atoms"
+    );
+
+    assert_eq!(
+        got.head, expected.head,
+        "head must match the LogicRule lowering"
+    );
+    assert_eq!(
+        got.body, expected.body,
+        "body canonical order must match the LogicRule lowering (pRel before qRel)"
+    );
+
+    // Extra explicit check: pRel must appear before qRel in the body.
+    // This would fail if the sort were absent (source order puts q first).
+    let first_pred = &got.body[0].predicate;
+    let second_pred = &got.body[1].predicate;
+    assert!(
+        first_pred.contains("pRel"),
+        "canonical order: pRel must be the first body atom, got: {first_pred}"
+    );
+    assert!(
+        second_pred.contains("qRel"),
+        "canonical order: qRel must be the second body atom, got: {second_pred}"
+    );
+}
+
 #[test]
 fn disjunctive_head_is_unsupported_never_exact() {
     // ∀x. (p(x,a) → (q(x,b) ∨ r(x,c))) — a disjunctive head is not Horn.
