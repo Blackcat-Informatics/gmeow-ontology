@@ -41,6 +41,7 @@ pub mod slice_ownership;
 pub mod statement;
 pub mod store;
 pub mod validate_all;
+pub mod wikidata_audit;
 
 pub mod crossref;
 pub mod data_validate;
