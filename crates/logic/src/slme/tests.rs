@@ -277,6 +277,80 @@ ex:Lonely1 ex:rel ex:Lonely2 .
     );
 }
 
+// ── Test: SLME provenance block (native port of the retired pytest, #1115) ───────
+
+#[test]
+fn slme_provenance_block_is_deterministic_and_complete() {
+    // GMEOW namespace = config NAMESPACE (https://blackcatinformatics.ca/gmeow/);
+    // UMBEL namespace = config PREFIXES["umbel"] (http://umbel.org/umbel#), an
+    // IMPORT_OK (CC-BY-3.0) target. Both literals are hardcoded here to match the
+    // retired tests/test_extract.py::test_extract_emits_slme_provenance.
+    const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
+    const UMBEL_NS: &str = "http://umbel.org/umbel#";
+
+    // A tiny UMBEL module: two owl:Classes, Dog ⊑ Animal, seeded on Dog (method STAR).
+    let ttl = format!(
+        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix ex: <{UMBEL_NS}> .\n\
+         ex:Animal a owl:Class .\n\
+         ex:Dog a owl:Class ; rdfs:subClassOf ex:Animal .\n"
+    );
+    let dog = format!("{UMBEL_NS}Dog");
+
+    let result =
+        extract_module(&ttl, std::slice::from_ref(&dog), "STAR").expect("extraction must not fail");
+
+    let provenance = slme_provenance_ttl(
+        NAMESPACE,
+        UMBEL_NS,
+        result.method.as_str(),
+        result.selected_axiom_count,
+    );
+    let text = format!("{}{provenance}", result.module_ttl);
+
+    // The extracted module is present.
+    assert!(text.contains(&dog), "Dog must be in the module: {text}");
+    // The provenance triples (reused vocab only) are present, deterministic.
+    assert!(
+        text.contains("gmeow:activity/slme-extract a gmeow:Activity"),
+        "activity declaration missing: {text}"
+    );
+    assert!(
+        text.contains("gmeow:wasGeneratedBy gmeow:activity/slme-extract"),
+        "wasGeneratedBy missing: {text}"
+    );
+    assert!(
+        text.contains(&format!("gmeow:wasDerivedFrom <{UMBEL_NS}>")),
+        "wasDerivedFrom missing: {text}"
+    );
+    assert!(
+        text.contains("gmeow:wasAssociatedWith gmeow:agent/native-slme"),
+        "wasAssociatedWith missing: {text}"
+    );
+    assert!(
+        text.contains("SLME method STAR"),
+        "method comment missing: {text}"
+    );
+    // No timestamps — determinism (Principle 4).
+    assert!(
+        !text.contains("wasGeneratedAtTime"),
+        "no timestamp must be emitted: {text}"
+    );
+
+    // Re-running yields byte-identical output (pure function of inputs).
+    let result2 =
+        extract_module(&ttl, std::slice::from_ref(&dog), "STAR").expect("extraction must not fail");
+    let provenance2 = slme_provenance_ttl(
+        NAMESPACE,
+        UMBEL_NS,
+        result2.method.as_str(),
+        result2.selected_axiom_count,
+    );
+    let text2 = format!("{}{provenance2}", result2.module_ttl);
+    assert_eq!(text2, text, "re-run must be byte-identical");
+}
+
 // ── Test 8: bnode predicate collected into Σ (bug A regression) ──────────────────
 
 #[test]

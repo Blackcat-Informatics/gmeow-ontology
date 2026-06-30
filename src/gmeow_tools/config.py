@@ -853,3 +853,29 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
         "SNOMED CT", PREFIXES["snomed"], "REFERENCE_ONLY", "concept_scheme"
     ),
 }
+
+
+class LicensePolicyError(RuntimeError):
+    """Raised when extraction is attempted from a reference-only source."""
+
+
+def guard_importable(target_name: str) -> None:
+    """Raise if a target may not have its axioms copied into GMEOW.
+
+    Args:
+        target_name: Key into :data:`ALIGNMENT_TARGETS`.
+
+    Raises:
+        LicensePolicyError: If the target is unknown or ``REFERENCE_ONLY``.
+    """
+    target = ALIGNMENT_TARGETS.get(target_name)
+    if target is None:
+        raise LicensePolicyError(
+            f"unknown alignment target {target_name!r}; refusing to extract"
+        )
+    if target.policy is not LinkPolicy.IMPORT_OK:
+        raise LicensePolicyError(
+            f"refusing to extract {target.name} ({target.license}): "
+            f"{target.policy.value}. Link it by IRI instead — do not copy its "
+            f"axioms into CC BY 4.0 GMEOW."
+        )
