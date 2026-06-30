@@ -1669,4 +1669,142 @@ mod tests {
         sorted.sort_unstable();
         assert_eq!(sorted, (0..n).collect::<Vec<_>>());
     }
+
+    // ---- measurable win vs the retired structural heuristic -------------------
+
+    /// The retired most-constrained-first STRUCTURAL heuristic, reproduced here ONLY as
+    /// the baseline the cost planner must beat: schedule greedily by the count of bound
+    /// positions, keep the join connected, break ties on lowest index. (This is the S7
+    /// behaviour `cost_based_order` replaced.)
+    fn structural_order(compiled: &[CompiledPattern]) -> Vec<usize> {
+        fn constrained(pos: &Pos, bound: &[bool]) -> bool {
+            match pos {
+                Pos::Bound(_) => true,
+                Pos::Slot(c) => bound[*c],
+                Pos::Triple(t) => {
+                    constrained(&t.s, bound) && constrained(&t.p, bound) && constrained(&t.o, bound)
+                }
+            }
+        }
+        let n = compiled.len();
+        let mut n_cols = 0usize;
+        for cp in compiled {
+            for pos in [&cp.s, &cp.p, &cp.o] {
+                for_each_slot(pos, &mut |c| n_cols = n_cols.max(c + 1));
+            }
+        }
+        let mut bound = vec![false; n_cols];
+        let mut scheduled = vec![false; n];
+        let mut order = Vec::with_capacity(n);
+        for _ in 0..n {
+            let any_connected =
+                (0..n).any(|i| !scheduled[i] && pattern_connected(&compiled[i], &bound));
+            let mut best: Option<usize> = None;
+            let mut best_score = 0usize;
+            for i in 0..n {
+                if scheduled[i] || (any_connected && !pattern_connected(&compiled[i], &bound)) {
+                    continue;
+                }
+                let cp = &compiled[i];
+                let score = [&cp.s, &cp.p, &cp.o]
+                    .into_iter()
+                    .filter(|p| constrained(p, &bound))
+                    .count();
+                if best.is_none() || score > best_score {
+                    best = Some(i);
+                    best_score = score;
+                }
+            }
+            let chosen = best.expect("an unscheduled pattern always remains");
+            scheduled[chosen] = true;
+            mark_bound(&compiled[chosen], &mut bound);
+            order.push(chosen);
+        }
+        order
+    }
+
+    /// GROUND TRUTH: the total number of intermediate solution rows a left-deep
+    /// execution in `order` materialises — the sum over each prefix of the REAL result
+    /// count of that prefix BGP (evaluated through `eval_bgp`). Not the model's estimate:
+    /// if the cost model were wrong, the cost order could lose here and the gate would
+    /// fail.
+    fn materialized_rows(ds: &RdfDataset, patterns: &[TriplePattern], order: &[usize]) -> usize {
+        let mut total = 0usize;
+        for k in 1..=order.len() {
+            let prefix: Vec<TriplePattern> =
+                order[..k].iter().map(|&i| patterns[i].clone()).collect();
+            let mut ctx = EvalCtx::new(ds);
+            total += eval_bgp(&prefix, &mut ctx).expect("bgp").rows.len();
+        }
+        total
+    }
+
+    /// On a skewed multi-join star (predicates of cardinality 20 / 10 / 5 / 1, all
+    /// sharing the hub variable), the cost planner's order materialises STRICTLY fewer
+    /// intermediate rows than the structural heuristic — measured by real result counts,
+    /// not the model — and both orders yield the identical final result multiset.
+    #[test]
+    fn cost_order_materialises_fewer_rows_than_structural() {
+        // Skewed fixture: hub --pred--> N leaves, for N ∈ {20, 10, 5, 1}.
+        let mut b = RdfDatasetBuilder::new();
+        let hub = b.intern_iri("http://ex/hub".to_owned());
+        for (name, count) in [("hot", 20), ("warm", 10), ("mid", 5), ("rare", 1)] {
+            let pred_id = b.intern_iri(format!("http://ex/{name}"));
+            for i in 0..count {
+                let leaf = b.intern_iri(format!("http://ex/{name}{i}"));
+                b.push_quad(hub, pred_id, leaf, None);
+            }
+        }
+        let ds = b.freeze().expect("freeze");
+
+        // Source order hot, warm, mid, rare — all share ?s, all bound on the predicate.
+        let patterns = [
+            triple(var_pos("s"), pred("http://ex/hot"), var_pos("a")),
+            triple(var_pos("s"), pred("http://ex/warm"), var_pos("b")),
+            triple(var_pos("s"), pred("http://ex/mid"), var_pos("c")),
+            triple(var_pos("s"), pred("http://ex/rare"), var_pos("d")),
+        ];
+
+        // Compile the patterns and derive both orders.
+        let mut working = VarSchema::new();
+        for p in &patterns {
+            for key in slot_keys(p) {
+                working.push(key);
+            }
+        }
+        let compiled: Vec<CompiledPattern> = patterns
+            .iter()
+            .map(|p| {
+                compile_pattern(p, &working, &ds)
+                    .expect("compile")
+                    .expect("constant present")
+            })
+            .collect();
+        let cost = cost_based_order(&compiled, &ds, &GraphScope::One(GraphMatch::Any));
+        let structural = structural_order(&compiled);
+
+        // The structural heuristic seeds with the (tied) lowest-index pattern → the hot
+        // predicate; the cost planner seeds with the rare one and ascends.
+        assert_eq!(structural, vec![0, 1, 2, 3]);
+        assert_eq!(cost, vec![3, 2, 1, 0]);
+
+        // GROUND-TRUTH WIN: strictly fewer materialised intermediate rows.
+        let cost_rows = materialized_rows(&ds, &patterns, &cost);
+        let structural_rows = materialized_rows(&ds, &patterns, &structural);
+        assert!(
+            cost_rows < structural_rows,
+            "cost order must materialise strictly fewer rows: cost={cost_rows} structural={structural_rows}"
+        );
+
+        // SAFETY: the final result multiset is identical under both orders.
+        let cost_arranged: Vec<TriplePattern> = cost.iter().map(|&i| patterns[i].clone()).collect();
+        let structural_arranged: Vec<TriplePattern> =
+            structural.iter().map(|&i| patterns[i].clone()).collect();
+        let vars = ["s", "a", "b", "c", "d"];
+        let r_cost = run(&ds, &cost_arranged, &vars);
+        let r_structural = run(&ds, &structural_arranged, &vars);
+        assert_eq!(r_cost, r_structural);
+        // Full cross-on-hub join: 20 (hot) × 10 (warm) × 5 (mid) × 1 (rare).
+        assert_eq!(r_cost.len(), 20 * 10 * 5, "full cross-on-hub join");
+    }
 }
