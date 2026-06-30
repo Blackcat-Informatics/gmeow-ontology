@@ -444,7 +444,6 @@ mod tests {
 
         let before = store.quads_in_world(WORLD).len();
 
-        let world_nn = oxigraph::model::NamedNode::new(WORLD).unwrap();
         let foreign = WorldStoreForeign::from_world(&store, WORLD, PROCEDURAL_PROLOG_PROFILE)
             .expect("from_world must succeed");
 
@@ -461,7 +460,7 @@ mod tests {
 
         let ans = crate::scryer_engine::run_scryer(
             &foreign,
-            &world_nn,
+            WORLD,
             &prog,
             &[], // no tabling — cut program is procedural
             &crate::query_ir::Budget::default(),

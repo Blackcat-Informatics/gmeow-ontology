@@ -4,22 +4,25 @@
 //! SPARQL result model for the `gmeow_rdf` Python extension: the materialized
 //! `QuerySolutions` / `QuerySolution` (SELECT), `QueryTriples` (CONSTRUCT), and
 //! `QueryBoolean` (ASK) pyclasses, plus the `materialize_results` adapter the
-//! store seam uses to turn an oxigraph `QueryResults` into these objects.
+//! store seam uses to turn a native [`SparqlResult`] into these objects.
+//!
+//! Native backing (EPIC #906): solution cells are `gmeow_rdf_core::TermValue`,
+//! CONSTRUCT triples are `RdfTriple`. The engine is `NativeSparqlEngine`; the
+//! oxigraph `QueryResults` type is gone from this surface.
 
-use oxigraph::model::{Term, Triple, Variable};
-use oxigraph::sparql::QueryResults;
 use pyo3::exceptions::{PyKeyError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 
 use super::io::{serialize_triples, PyRdfFormat};
 use super::term::{term_to_py, PyTriple, PyVariable};
+use crate::{RdfDataset, RdfTerm, RdfTriple, SparqlResult, TermValue};
 
 /// SELECT results, materialized. Mirrors the oxigraph Python `QuerySolutions`.
 #[pyclass(name = "QuerySolutions")]
 pub struct PyQuerySolutions {
-    variables: Vec<Variable>,
-    rows: Vec<Vec<Option<Term>>>,
+    variables: Vec<String>,
+    rows: Vec<Vec<Option<RdfTerm>>>,
     pos: usize,
 }
 
@@ -59,8 +62,8 @@ impl PyQuerySolutions {
 /// A single SELECT solution row. Mirrors the oxigraph Python `QuerySolution`.
 #[pyclass(name = "QuerySolution")]
 pub struct PyQuerySolution {
-    variables: Vec<Variable>,
-    row: Vec<Option<Term>>,
+    variables: Vec<String>,
+    row: Vec<Option<RdfTerm>>,
 }
 
 #[pymethods]
@@ -76,7 +79,7 @@ impl PyQuerySolution {
             i
         } else {
             let name = if let Ok(var) = key.cast::<PyVariable>() {
-                var.get().inner.as_str().to_owned()
+                var.get().inner.clone()
             } else if let Ok(s) = key.cast::<PyString>() {
                 s.to_str()?.to_owned()
             } else {
@@ -99,7 +102,7 @@ impl PyQuerySolution {
 /// CONSTRUCT results, materialized. Mirrors the oxigraph Python `QueryTriples`.
 #[pyclass(name = "QueryTriples")]
 pub struct PyQueryTriples {
-    pub(crate) triples: Vec<Triple>,
+    pub(crate) triples: Vec<RdfTriple>,
     pos: usize,
 }
 
@@ -160,23 +163,24 @@ impl PyQueryBoolean {
     }
 }
 
-pub(crate) fn materialize_results(
-    py: Python<'_>,
-    results: QueryResults<'_>,
-) -> PyResult<Py<PyAny>> {
-    match results {
-        QueryResults::Solutions(solutions) => {
-            let variables = solutions.variables().to_vec();
-            let mut rows: Vec<Vec<Option<Term>>> = Vec::new();
-            for solution in solutions {
-                let solution =
-                    solution.map_err(|e| PyValueError::new_err(format!("solution error: {e}")))?;
-                let row = variables
-                    .iter()
-                    .map(|v| solution.get(v.as_str()).cloned())
-                    .collect();
-                rows.push(row);
-            }
+/// Convert a native [`SparqlResult`] into the materialized Python result object.
+///
+/// A SELECT becomes [`PyQuerySolutions`] (each cell a [`RdfTerm`]); a
+/// CONSTRUCT/DESCRIBE [`SparqlResult::Graph`] is flattened into its triple stream
+/// and becomes [`PyQueryTriples`]; an ASK becomes [`PyQueryBoolean`].
+pub(crate) fn materialize_results(py: Python<'_>, result: SparqlResult) -> PyResult<Py<PyAny>> {
+    match result {
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => {
+            let rows: Vec<Vec<Option<RdfTerm>>> = rows
+                .into_iter()
+                .map(|row| {
+                    row.into_iter()
+                        .map(|cell| cell.map(term_value_to_rdf))
+                        .collect()
+                })
+                .collect();
             Ok(Py::new(
                 py,
                 PyQuerySolutions {
@@ -187,20 +191,73 @@ pub(crate) fn materialize_results(
             )?
             .into_any())
         }
-        QueryResults::Graph(triples) => {
-            let mut out = Vec::new();
-            for triple in triples {
-                out.push(triple.map_err(|e| PyValueError::new_err(format!("triple error: {e}")))?);
-            }
-            Ok(Py::new(
-                py,
-                PyQueryTriples {
-                    triples: out,
-                    pos: 0,
-                },
-            )?
-            .into_any())
+        SparqlResult::Graph(graph) => {
+            let triples = graph_to_triples(&graph);
+            Ok(Py::new(py, PyQueryTriples { triples, pos: 0 })?.into_any())
         }
-        QueryResults::Boolean(value) => Ok(Py::new(py, PyQueryBoolean { value })?.into_any()),
+        SparqlResult::Boolean(value) => Ok(Py::new(py, PyQueryBoolean { value })?.into_any()),
+    }
+}
+
+/// Flatten a CONSTRUCT result dataset into its triple stream (source-faithful: the
+/// RDF 1.2 statement layer is re-materialized as `rdf:reifies`/annotation triples),
+/// dropping the graph name (a CONSTRUCT yields a triple graph, matching the oxigraph
+/// `QueryResults::Graph` egress).
+fn graph_to_triples(graph: &RdfDataset) -> Vec<RdfTriple> {
+    crate::flat_rdf_quads_from_dataset(graph)
+        .into_iter()
+        .map(|q| RdfTriple::new(q.subject, q.predicate, q.object))
+        .collect()
+}
+
+/// Lower a dataset-independent [`TermValue`] (the SPARQL egress cell type) into the
+/// owned [`RdfTerm`] the Python term layer wraps.
+pub(crate) fn term_value_to_rdf(value: TermValue) -> RdfTerm {
+    match value {
+        TermValue::Iri(iri) => RdfTerm::Iri(iri),
+        TermValue::Blank { label, scope } => {
+            RdfTerm::BlankNode(scope.qualify_label(&label).into_owned())
+        }
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            direction,
+        } => RdfTerm::Literal(crate::RdfLiteral {
+            // The native IR carries the datatype IRI by value (always present); the
+            // owned model keeps a plain `xsd:string` / lang `rdf:langString` literal
+            // datatype-less, so collapse those back to `None` for term parity.
+            datatype: collapse_synthetic_datatype(&datatype, &language),
+            lexical_form,
+            language,
+            direction,
+        }),
+        TermValue::Triple { s, p, o } => RdfTerm::triple(RdfTriple::new(
+            term_value_to_rdf(*s),
+            term_value_predicate(*p),
+            term_value_to_rdf(*o),
+        )),
+    }
+}
+
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+
+/// Drop the `TermValue` synthetic datatype IRI when it is the one the owned model
+/// leaves implicit: `xsd:string` for a plain literal, `rdf:langString` for a
+/// language-tagged one. Any other datatype is kept verbatim.
+fn collapse_synthetic_datatype(datatype: &str, language: &Option<String>) -> Option<String> {
+    if language.is_some() {
+        return (datatype != RDF_LANG_STRING).then(|| datatype.to_owned());
+    }
+    (datatype != XSD_STRING).then(|| datatype.to_owned())
+}
+
+/// A triple-term predicate `TermValue` must be an IRI; fall back to its lexical form
+/// for any other (ill-formed) shape so the conversion is total.
+fn term_value_predicate(value: TermValue) -> String {
+    match value {
+        TermValue::Iri(iri) => iri,
+        other => term_value_to_rdf(other).to_string(),
     }
 }

@@ -11,11 +11,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oxigraph::store::Store;
+use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::source_load::{module_files, turtle_bytes_to_store};
+use crate::stages::source_load::module_files;
 
 /// Committed logical path of the module-status matrix.
 pub const MATRIX_PATH: &str = "generated/module-status.md";
@@ -114,75 +114,65 @@ pub fn render_matrix(root: &Path) -> Result<String, PipelineError> {
     Ok(format!("{HEADER}{}\n{footer}", lines.join("\n")))
 }
 
-fn parse_store(path: &Path) -> Result<Store, PipelineError> {
+fn parse_store(path: &Path) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
     let bytes = std::fs::read(path)?;
-    turtle_bytes_to_store(&bytes, &path.display().to_string())
+    parse_dataset(&bytes, "text/turtle", None)
+        .map_err(|e| PipelineError::Parse(format!("syntax error in {}: {e}", path.display())))
+}
+
+/// Resolve an IRI to its dataset-local term id (absent IRIs have no id → `None`).
+fn id(ds: &RdfDataset, iri: &str) -> Option<TermId> {
+    ds.term_id_by_value(&TermValue::iri(iri))
 }
 
 /// `(slice_iri, tier, depends_on count)` from a manifest.
 fn parse_manifest(path: &Path) -> Result<(String, String, usize), PipelineError> {
-    let store = parse_store(path)?;
-    let nn = |i: &str| oxigraph::model::NamedNode::new(i).unwrap();
+    let ds = parse_store(path)?;
+    let ds: &RdfDataset = &ds;
     let mut iri = None;
-    for quad in store.quads_for_pattern(
-        None,
-        Some(nn(RDF_TYPE).as_ref()),
-        Some((&nn(&format!("{NS}Slice"))).into()),
-        None,
-    ) {
-        let q = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let oxigraph::model::NamedOrBlankNode::NamedNode(n) = &q.subject {
-            iri = Some(n.as_str().to_string());
-        }
-    }
-    let iri = iri.ok_or_else(|| PipelineError::Parse(format!("no slice in {}", path.display())))?;
-    let subj = nn(&iri);
-    let mut tier = "extension".to_string();
-    for quad in store.quads_for_pattern(
-        Some((&subj).into()),
-        Some(nn(&format!("{NS}sliceTier")).as_ref()),
-        None,
-        None,
-    ) {
-        let q = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
-        if let oxigraph::model::Term::NamedNode(n) = &q.object {
-            if n.as_str() == format!("{NS}tierCore") {
-                tier = "core".to_string();
+    if let (Some(p), Some(o)) = (id(ds, RDF_TYPE), id(ds, &format!("{NS}Slice"))) {
+        for q in ds.quads_for_pattern(None, Some(p), Some(o), GraphMatch::Default) {
+            if let TermRef::Iri(n) = ds.resolve(q.s) {
+                iri = Some(n.to_owned());
             }
         }
     }
-    let deps = store
-        .quads_for_pattern(
-            Some((&subj).into()),
-            Some(nn(&format!("{NS}sliceDependsOn")).as_ref()),
-            None,
-            None,
-        )
-        .filter_map(|q| q.ok())
-        .filter(|q| matches!(q.object, oxigraph::model::Term::NamedNode(_)))
-        .count();
+    let iri = iri.ok_or_else(|| PipelineError::Parse(format!("no slice in {}", path.display())))?;
+    let subj = id(ds, &iri);
+    let mut tier = "extension".to_string();
+    if let (Some(s), Some(p)) = (subj, id(ds, &format!("{NS}sliceTier"))) {
+        for q in ds.quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default) {
+            if let TermRef::Iri(n) = ds.resolve(q.o) {
+                if n == format!("{NS}tierCore") {
+                    tier = "core".to_string();
+                }
+            }
+        }
+    }
+    let deps = match (subj, id(ds, &format!("{NS}sliceDependsOn"))) {
+        (Some(s), Some(p)) => ds
+            .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
+            .filter(|q| matches!(ds.resolve(q.o), TermRef::Iri(_)))
+            .count(),
+        _ => 0,
+    };
     Ok((iri, tier, deps))
 }
 
 /// `(classes, props, individuals, advisory_complete, public_total)` from a module.
 fn term_counts(path: &Path) -> Result<(usize, usize, usize, usize, usize), PipelineError> {
-    let store = parse_store(path)?;
-    let nn = |i: &str| oxigraph::model::NamedNode::new(i).unwrap();
+    let ds = parse_store(path)?;
+    let ds: &RdfDataset = &ds;
     let in_ns = |s: &str| s.starts_with(NS) || s.starts_with(LOGIC_NS);
     let subjects_of = |class: &str| -> BTreeSet<String> {
         let mut set = BTreeSet::new();
-        for q in store
-            .quads_for_pattern(
-                None,
-                Some(nn(RDF_TYPE).as_ref()),
-                Some((&nn(class)).into()),
-                None,
-            )
-            .flatten()
-        {
-            if let oxigraph::model::NamedOrBlankNode::NamedNode(n) = &q.subject {
-                if in_ns(n.as_str()) {
-                    set.insert(n.as_str().to_string());
+        let (Some(p), Some(o)) = (id(ds, RDF_TYPE), id(ds, class)) else {
+            return set;
+        };
+        for q in ds.quads_for_pattern(None, Some(p), Some(o), GraphMatch::Default) {
+            if let TermRef::Iri(n) = ds.resolve(q.s) {
+                if in_ns(n) {
+                    set.insert(n.to_owned());
                 }
             }
         }
@@ -199,13 +189,10 @@ fn term_counts(path: &Path) -> Result<(usize, usize, usize, usize, usize), Pipel
     public.extend(dt);
     public.extend(ann);
     let has = |subj: &str, pred: &str| -> bool {
-        store
-            .quads_for_pattern(
-                Some((&nn(subj)).into()),
-                Some(nn(pred).as_ref()),
-                None,
-                None,
-            )
+        let (Some(s), Some(p)) = (id(ds, subj), id(ds, pred)) else {
+            return false;
+        };
+        ds.quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
             .next()
             .is_some()
     };

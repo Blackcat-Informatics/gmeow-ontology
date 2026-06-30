@@ -448,6 +448,13 @@ fn fmt_ground_term(s: &mut String, gt: &GroundTerm) {
         }
         GroundTerm::Literal(l) => fmt_literal(s, l),
         GroundTerm::Triple(t) => fmt_ground_triple(s, t),
+        // Injection-only (#906 GAP-A): emitted as a blank-node label. This appears
+        // only if a substituted query is re-serialized (e.g. forwarded to SERVICE);
+        // the parser never produces it, so a round-trip of an un-substituted query is
+        // unaffected.
+        GroundTerm::BlankNode(b) => {
+            let _ = write!(s, "_:{}", b.as_str());
+        }
     }
 }
 

@@ -4,29 +4,25 @@
 //! Python-facing copy-on-write mutable dataset for the RDFLib compat shim.
 //!
 //! The canonical mutation semantics live in `gmeow-rdf-core::MutableDataset`.
-//! This adapter keeps Python on that COW surface and materializes to oxigraph only
-//! for the existing SPARQL and serializer engines.
+//! This adapter keeps Python on that COW surface; query / update run on the native
+//! `NativeSparqlEngine` over a frozen snapshot (EPIC #906 — no oxigraph).
 
 use std::sync::Arc;
 
-use oxigraph::model::{
-    BlankNode, GraphName, Literal, NamedNode, NamedOrBlankNode, Quad, Term, Triple,
-};
-use oxigraph::sparql::SparqlEvaluator;
-use oxigraph::store::Store;
+use gmeow_rdf_core::ir::{MutableDataset, QuadValues};
+use gmeow_sparql_eval::NativeSparqlEngine;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict};
 
-use super::io::{parse_quads, read_input, PyRdfFormat};
+use super::io::{dataset_from_quads_verbatim, parse_quads, read_input, PyRdfFormat};
 use super::query::materialize_results;
 use super::store::PyQuadIter;
 use super::term::{extract_graph_name, extract_term, PyQuad, PyVariable};
-use crate::dataset_view::{DatasetMut, GraphMatchValue};
-use crate::ir::{MutableDataset, QuadValues};
 use crate::{
-    serialize_dataset, BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTextDirection,
-    SerializeGraph, TermValue,
+    serialize_dataset, BlankScope, DatasetMut, GraphMatchValue, RdfDataset, RdfDatasetBuilder,
+    RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SerializeGraph, SparqlEngine, SparqlRequest,
+    TermValue,
 };
 
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
@@ -64,24 +60,24 @@ impl PyMutableDataset {
             .map_err(|e| PyValueError::new_err(format!("load parse error: {e}")))?
         {
             self.inner
-                .insert(quad_to_values_scoped(&quad, blank_scope)?);
+                .insert(rdf_quad_to_values_scoped(&quad, blank_scope));
         }
         Ok(())
     }
 
     /// Add a single quad. Returns whether the effective set changed.
     fn add(&mut self, quad: &PyQuad) -> PyResult<bool> {
-        Ok(self.inner.insert(quad_to_values(&quad.inner)?))
+        Ok(self.inner.insert(rdf_quad_to_values(&quad.inner)))
     }
 
     /// Remove a single quad. Returns whether the effective set changed.
     fn remove(&mut self, quad: &PyQuad) -> PyResult<bool> {
-        Ok(self.inner.remove(&quad_to_values(&quad.inner)?))
+        Ok(self.inner.remove(&rdf_quad_to_values(&quad.inner)))
     }
 
     /// Return whether the exact quad is effective.
     fn contains(&self, quad: &PyQuad) -> PyResult<bool> {
-        Ok(self.inner.contains(&quad_to_values(&quad.inner)?))
+        Ok(self.inner.contains(&rdf_quad_to_values(&quad.inner)))
     }
 
     /// Effective quads matching a value pattern.
@@ -109,12 +105,12 @@ impl PyMutableDataset {
         };
         self.inner
             .quads_for_pattern(s.as_ref(), p.as_ref(), o.as_ref(), graph_match)
-            .into_iter()
+            .iter()
             .map(|q| {
                 Py::new(
                     py,
                     PyQuad {
-                        inner: values_to_quad(&q)?,
+                        inner: values_to_rdf_quad(q),
                     },
                 )
             })
@@ -133,8 +129,7 @@ impl PyMutableDataset {
         let format = format.ok_or_else(|| PyValueError::new_err("dump: format is required"))?;
         let native = format.to_native();
         // Materialize the effective set into the IR verbatim, then serialize through
-        // the native codec (#909) — no oxigraph Store serializer round-trip, so the
-        // literal lexical forms are preserved (the Store would canonicalize them).
+        // the native codec (#909) — literal lexical forms are preserved.
         let dataset = self.materialize_dataset()?;
         let graph_filter = match from_graph {
             Some(graph) => optional_graph_value(Some(graph))?,
@@ -166,38 +161,37 @@ impl PyMutableDataset {
         query: &str,
         substitutions: Option<&Bound<'_, PyDict>>,
     ) -> PyResult<Py<PyAny>> {
-        let store = self.materialize_store()?;
-        let mut evaluator = SparqlEvaluator::new()
-            .parse_query(query)
-            .map_err(|e| PyValueError::new_err(format!("query parse error: {e}")))?;
-        if let Some(subs) = substitutions {
-            for (key, value) in subs.iter() {
-                let var = key
-                    .cast::<PyVariable>()
-                    .map_err(|_| PyTypeError::new_err("substitution keys must be Variable"))?
-                    .get()
-                    .inner
-                    .clone();
-                evaluator = evaluator.substitute_variable(var, extract_term(&value)?);
-            }
-        }
-        let results = evaluator
-            .on_store(&store)
-            .execute()
+        let dataset = self.snapshot()?;
+        let subs = collect_substitutions(substitutions)?;
+        let engine = NativeSparqlEngine::new();
+        let result = engine
+            .query(
+                &dataset,
+                SparqlRequest {
+                    query,
+                    base_iri: None,
+                    substitutions: &subs,
+                },
+            )
             .map_err(|e| PyValueError::new_err(format!("query evaluation error: {e}")))?;
-        materialize_results(py, results)
+        materialize_results(py, result)
     }
 
-    /// Run a SPARQL UPDATE by materializing, updating, and rebuilding the COW set.
+    /// Run a SPARQL UPDATE (COW-atomic: a failed update leaves the set unchanged).
     fn update(&mut self, update: &str) -> PyResult<()> {
-        let store = self.materialize_store()?;
-        store
-            .update(update)
+        let mut dataset = self.snapshot()?;
+        let engine = NativeSparqlEngine::new();
+        engine
+            .update(
+                &mut dataset,
+                SparqlRequest {
+                    query: update,
+                    base_iri: None,
+                    substitutions: &[],
+                },
+            )
             .map_err(|e| PyValueError::new_err(format!("update evaluation error: {e}")))?;
-        // Rebuild the COW set directly from the updated store's quads — no N-Quads
-        // text round-trip (#909), so blank labels and literal lexical forms are
-        // preserved verbatim.
-        self.inner = mutable_from_quads(store_quads(&store)?)?;
+        self.inner = MutableDataset::new(dataset);
         Ok(())
     }
 
@@ -221,9 +215,9 @@ impl PyMutableDataset {
         let quads = slf
             .inner
             .quads_for_pattern(None, None, None, GraphMatchValue::Any)
-            .into_iter()
-            .map(|q| values_to_quad(&q))
-            .collect::<PyResult<Vec<_>>>()?;
+            .iter()
+            .map(values_to_rdf_quad)
+            .collect();
         Py::new(py, PyQuadIter { quads, pos: 0 })
     }
 }
@@ -235,35 +229,24 @@ impl PyMutableDataset {
         scope
     }
 
-    fn materialize_store(&self) -> PyResult<Store> {
-        let store = Store::new().map_err(store_err)?;
-        for quad in self
-            .inner
-            .quads_for_pattern(None, None, None, GraphMatchValue::Any)
-        {
-            store.insert(&values_to_quad(&quad)?).map_err(store_err)?;
-        }
-        Ok(store)
+    /// Freeze the effective COW quad set into an immutable `Arc<RdfDataset>` snapshot.
+    fn snapshot(&self) -> PyResult<Arc<RdfDataset>> {
+        self.inner
+            .freeze()
+            .map_err(|e| PyValueError::new_err(format!("snapshot failed: {e}")))
     }
 
-    /// Freeze the effective quad set into the IR verbatim (RDF-star triple-term
+    /// Freeze the effective quad set into the IR verbatim (RDF 1.2 triple-term
     /// objects preserved; no statement-layer fold), for native serialization (#909).
     fn materialize_dataset(&self) -> PyResult<Arc<RdfDataset>> {
-        let quads: Vec<QuadValues> =
-            self.inner
-                .quads_for_pattern(None, None, None, GraphMatchValue::Any);
-        freeze_values(&quads)
+        let quads: Vec<RdfQuad> = self
+            .inner
+            .quads_for_pattern(None, None, None, GraphMatchValue::Any)
+            .iter()
+            .map(values_to_rdf_quad)
+            .collect();
+        dataset_from_quads_verbatim(&quads).map_err(|e| PyValueError::new_err(e.to_string()))
     }
-}
-
-/// Snapshot a store's quads (used to rebuild the COW set after a SPARQL UPDATE
-/// without a text round-trip).
-fn store_quads(store: &Store) -> PyResult<Vec<Quad>> {
-    let mut quads = Vec::new();
-    for quad in store.iter() {
-        quads.push(quad.map_err(store_err)?);
-    }
-    Ok(quads)
 }
 
 fn empty_mutable() -> PyResult<MutableDataset> {
@@ -273,12 +256,23 @@ fn empty_mutable() -> PyResult<MutableDataset> {
     Ok(MutableDataset::new(base))
 }
 
-fn mutable_from_quads(quads: Vec<Quad>) -> PyResult<MutableDataset> {
-    let mut mutable = empty_mutable()?;
-    for quad in quads {
-        mutable.insert(quad_to_values(&quad)?);
+fn collect_substitutions(
+    substitutions: Option<&Bound<'_, PyDict>>,
+) -> PyResult<Vec<(String, TermValue)>> {
+    let Some(subs) = substitutions else {
+        return Ok(Vec::new());
+    };
+    let mut out = Vec::with_capacity(subs.len());
+    for (key, value) in subs.iter() {
+        let name = key
+            .cast::<PyVariable>()
+            .map_err(|_| PyTypeError::new_err("substitution keys must be Variable"))?
+            .get()
+            .inner
+            .clone();
+        out.push((name, rdf_term_to_value(&extract_term(&value)?)));
     }
-    Ok(mutable)
+    Ok(out)
 }
 
 fn optional_term(obj: Option<&Bound<'_, PyAny>>) -> PyResult<Option<TermValue>> {
@@ -288,7 +282,7 @@ fn optional_term(obj: Option<&Bound<'_, PyAny>>) -> PyResult<Option<TermValue>> 
     if obj.is_none() {
         return Ok(None);
     }
-    term_to_value(&extract_term(obj)?).map(Some)
+    Ok(Some(rdf_term_to_value(&extract_term(obj)?)))
 }
 
 fn optional_graph_value(obj: Option<&Bound<'_, PyAny>>) -> PyResult<Option<TermValue>> {
@@ -298,264 +292,140 @@ fn optional_graph_value(obj: Option<&Bound<'_, PyAny>>) -> PyResult<Option<TermV
     if obj.is_none() {
         return Ok(None);
     }
-    match extract_graph_name(Some(obj))? {
-        GraphName::DefaultGraph => Ok(None),
-        GraphName::NamedNode(n) => Ok(Some(TermValue::Iri(n.as_str().to_owned()))),
-        GraphName::BlankNode(b) => Ok(Some(blank_value_scoped(b.as_str(), BlankScope::DEFAULT))),
+    Ok(extract_graph_name(Some(obj))?
+        .as_ref()
+        .map(rdf_term_to_value))
+}
+
+// ── native owned model ⇄ MutableDataset value model ───────────────────────────────
+
+fn rdf_quad_to_values(quad: &RdfQuad) -> QuadValues {
+    rdf_quad_to_values_scoped(quad, BlankScope::DEFAULT)
+}
+
+fn rdf_quad_to_values_scoped(quad: &RdfQuad, scope: BlankScope) -> QuadValues {
+    QuadValues {
+        s: rdf_term_to_value_scoped(&quad.subject, scope),
+        p: TermValue::Iri(quad.predicate.clone()),
+        o: rdf_term_to_value_scoped(&quad.object, scope),
+        g: quad
+            .graph_name
+            .as_ref()
+            .map(|g| rdf_term_to_value_scoped(g, scope)),
     }
 }
 
-fn quad_to_values(quad: &Quad) -> PyResult<QuadValues> {
-    quad_to_values_scoped(quad, BlankScope::DEFAULT)
+fn rdf_term_to_value(term: &RdfTerm) -> TermValue {
+    rdf_term_to_value_scoped(term, BlankScope::DEFAULT)
 }
 
-fn quad_to_values_scoped(quad: &Quad, scope: BlankScope) -> PyResult<QuadValues> {
-    Ok(QuadValues {
-        s: subject_to_value(&quad.subject, scope),
-        p: TermValue::Iri(quad.predicate.as_str().to_owned()),
-        o: term_to_value_scoped(&quad.object, scope)?,
-        g: match &quad.graph_name {
-            GraphName::DefaultGraph => None,
-            GraphName::NamedNode(n) => Some(TermValue::Iri(n.as_str().to_owned())),
-            GraphName::BlankNode(b) => Some(blank_value_scoped(b.as_str(), scope)),
-        },
-    })
-}
-
-fn subject_to_value(subject: &NamedOrBlankNode, scope: BlankScope) -> TermValue {
-    match subject {
-        NamedOrBlankNode::NamedNode(n) => TermValue::Iri(n.as_str().to_owned()),
-        NamedOrBlankNode::BlankNode(b) => blank_value_scoped(b.as_str(), scope),
-    }
-}
-
-fn term_to_value(term: &Term) -> PyResult<TermValue> {
-    term_to_value_scoped(term, BlankScope::DEFAULT)
-}
-
-fn term_to_value_scoped(term: &Term, scope: BlankScope) -> PyResult<TermValue> {
-    Ok(match term {
-        Term::NamedNode(n) => TermValue::Iri(n.as_str().to_owned()),
-        Term::BlankNode(b) => blank_value_scoped(b.as_str(), scope),
-        Term::Literal(l) => TermValue::Literal {
-            lexical_form: l.value().to_owned(),
-            datatype: if l.language().is_some() {
-                RDF_LANG_STRING.to_owned()
-            } else {
-                l.datatype().as_str().to_owned()
+fn rdf_term_to_value_scoped(term: &RdfTerm, scope: BlankScope) -> TermValue {
+    match term {
+        RdfTerm::Iri(iri) => TermValue::Iri(iri.clone()),
+        RdfTerm::BlankNode(label) => blank_value_scoped(label, scope),
+        RdfTerm::Literal(lit) => TermValue::Literal {
+            lexical_form: lit.lexical_form.clone(),
+            datatype: match (&lit.datatype, &lit.language) {
+                (Some(dt), _) => dt.clone(),
+                (None, Some(_)) => RDF_LANG_STRING.to_owned(),
+                (None, None) => XSD_STRING.to_owned(),
             },
-            language: l.language().map(str::to_owned),
-            direction: None,
+            language: lit.language.clone(),
+            direction: lit.direction,
         },
-        Term::Triple(t) => TermValue::Triple {
-            s: Box::new(subject_to_value(&t.subject, scope)),
-            p: Box::new(TermValue::Iri(t.predicate.as_str().to_owned())),
-            o: Box::new(term_to_value_scoped(&t.object, scope)?),
+        RdfTerm::Triple(t) => TermValue::Triple {
+            s: Box::new(rdf_term_to_value_scoped(&t.subject, scope)),
+            p: Box::new(TermValue::Iri(t.predicate.clone())),
+            o: Box::new(rdf_term_to_value_scoped(&t.object, scope)),
         },
-    })
-}
-
-fn blank_value(label: &str, scope: BlankScope) -> TermValue {
-    TermValue::Blank {
-        label: label.to_owned(),
-        scope,
     }
 }
 
+/// Build the `TermValue::Blank` for a surfaced blank-node `label`.
+///
+/// Under a non-default `scope` (the per-load isolation path), the bare label is
+/// tagged with that scope verbatim. Under the DEFAULT scope (a blank node arriving
+/// FROM Python), the label may already carry the `.s{n}` scope suffix
+/// [`BlankScope::qualify_label`] emitted on the way OUT; decode it back to its
+/// `(label, scope)` so a round-tripped blank matches the stored node.
 fn blank_value_scoped(label: &str, scope: BlankScope) -> TermValue {
     if scope == BlankScope::DEFAULT {
         blank_value_from_external_label(label)
     } else {
-        blank_value(label, scope)
+        TermValue::Blank {
+            label: label.to_owned(),
+            scope,
+        }
     }
 }
 
+/// Decode a surfaced blank label, reversing [`BlankScope::qualify_label`]: a label of
+/// the form `"{inner}.s{n}"` (non-empty `inner`, `n > 0`) decodes to
+/// `Blank{inner, scope: n}`; any other label is a DEFAULT-scope blank verbatim.
 fn blank_value_from_external_label(label: &str) -> TermValue {
-    if let Some((raw_label, raw_scope)) = label.rsplit_once(".s") {
-        if !raw_label.is_empty() {
+    if let Some((inner, raw_scope)) = label.rsplit_once(".s") {
+        if !inner.is_empty() {
             if let Ok(scope) = raw_scope.parse::<u32>() {
                 if scope > 0 {
-                    return blank_value(raw_label, BlankScope(scope));
+                    return TermValue::Blank {
+                        label: inner.to_owned(),
+                        scope: BlankScope(scope),
+                    };
                 }
             }
         }
     }
-    blank_value(label, BlankScope::DEFAULT)
+    TermValue::Blank {
+        label: label.to_owned(),
+        scope: BlankScope::DEFAULT,
+    }
 }
 
-fn values_to_quad(values: &QuadValues) -> PyResult<Quad> {
-    Ok(Quad::new(
-        value_to_subject(&values.s)?,
-        value_to_named_node(&values.p)?,
-        value_to_term(&values.o)?,
-        match &values.g {
-            None => GraphName::DefaultGraph,
-            Some(g) => value_to_graph_name(g)?,
-        },
-    ))
+fn values_to_rdf_quad(values: &QuadValues) -> RdfQuad {
+    let mut quad = RdfQuad::new(
+        value_to_rdf_term(&values.s),
+        predicate_iri(&values.p),
+        value_to_rdf_term(&values.o),
+    );
+    quad.graph_name = values.g.as_ref().map(value_to_rdf_term);
+    quad
 }
 
-fn value_to_subject(value: &TermValue) -> PyResult<NamedOrBlankNode> {
+fn predicate_iri(value: &TermValue) -> String {
     match value {
-        TermValue::Iri(iri) => NamedNode::new(iri.as_str())
-            .map(NamedOrBlankNode::NamedNode)
-            .map_err(|e| PyValueError::new_err(format!("invalid subject IRI `{iri}`: {e}"))),
+        TermValue::Iri(iri) => iri.clone(),
+        other => value_to_rdf_term(other).to_string(),
+    }
+}
+
+fn value_to_rdf_term(value: &TermValue) -> RdfTerm {
+    match value {
+        TermValue::Iri(iri) => RdfTerm::Iri(iri.clone()),
         TermValue::Blank { label, scope } => {
-            let qualified = scope.qualify_label(label);
-            BlankNode::new(qualified.as_ref())
-                .map(NamedOrBlankNode::BlankNode)
-                .map_err(|e| {
-                    PyValueError::new_err(format!("invalid blank node `{qualified}`: {e}"))
-                })
+            RdfTerm::BlankNode(scope.qualify_label(label).into_owned())
         }
-        _ => Err(PyTypeError::new_err(
-            "a subject must be an IRI or blank node",
-        )),
-    }
-}
-
-fn value_to_named_node(value: &TermValue) -> PyResult<NamedNode> {
-    match value {
-        TermValue::Iri(iri) => NamedNode::new(iri.as_str())
-            .map_err(|e| PyValueError::new_err(format!("invalid predicate IRI `{iri}`: {e}"))),
-        _ => Err(PyTypeError::new_err("a predicate must be an IRI")),
-    }
-}
-
-fn value_to_graph_name(value: &TermValue) -> PyResult<GraphName> {
-    match value {
-        TermValue::Iri(iri) => NamedNode::new(iri.as_str())
-            .map(GraphName::NamedNode)
-            .map_err(|e| PyValueError::new_err(format!("invalid graph IRI `{iri}`: {e}"))),
-        TermValue::Blank { label, scope } => {
-            let qualified = scope.qualify_label(label);
-            BlankNode::new(qualified.as_ref())
-                .map(GraphName::BlankNode)
-                .map_err(|e| {
-                    PyValueError::new_err(format!("invalid graph blank node `{qualified}`: {e}"))
-                })
-        }
-        _ => Err(PyTypeError::new_err(
-            "a graph name must be an IRI or blank node",
-        )),
-    }
-}
-
-fn value_to_term(value: &TermValue) -> PyResult<Term> {
-    Ok(match value {
-        TermValue::Iri(iri) => Term::NamedNode(
-            NamedNode::new(iri.as_str())
-                .map_err(|e| PyValueError::new_err(format!("invalid IRI `{iri}`: {e}")))?,
-        ),
-        TermValue::Blank { label, scope } => {
-            let qualified = scope.qualify_label(label);
-            Term::BlankNode(BlankNode::new(qualified.as_ref()).map_err(|e| {
-                PyValueError::new_err(format!("invalid blank node `{qualified}`: {e}"))
-            })?)
-        }
-        TermValue::Literal {
-            lexical_form,
-            datatype,
-            language,
-            direction: _,
-        } => {
-            let literal = if let Some(language) = language {
-                Literal::new_language_tagged_literal_unchecked(lexical_form.clone(), language)
-            } else if datatype == XSD_STRING {
-                Literal::new_simple_literal(lexical_form.clone())
-            } else {
-                Literal::new_typed_literal(
-                    lexical_form.clone(),
-                    NamedNode::new(datatype.as_str()).map_err(|e| {
-                        PyValueError::new_err(format!("invalid datatype `{datatype}`: {e}"))
-                    })?,
-                )
-            };
-            Term::Literal(literal)
-        }
-        TermValue::Triple { s, p, o } => Term::Triple(Box::new(Triple::new(
-            value_to_subject(s)?,
-            value_to_named_node(p)?,
-            value_to_term(o)?,
-        ))),
-    })
-}
-
-fn freeze_values(quads: &[QuadValues]) -> PyResult<Arc<RdfDataset>> {
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in quads {
-        let s = intern_subject_value(&mut builder, &quad.s)?;
-        let p = intern_iri_value(&mut builder, &quad.p)?;
-        let o = intern_term_value(&mut builder, &quad.o)?;
-        let g = quad
-            .g
-            .as_ref()
-            .map(|g| intern_graph_value(&mut builder, g))
-            .transpose()?;
-        builder.push_quad(s, p, o, g);
-    }
-    builder
-        .freeze()
-        .map_err(|e| PyValueError::new_err(e.to_string()))
-}
-
-fn intern_subject_value(
-    builder: &mut RdfDatasetBuilder,
-    value: &TermValue,
-) -> PyResult<crate::TermId> {
-    match value {
-        TermValue::Iri(iri) => Ok(builder.intern_iri(iri.clone())),
-        TermValue::Blank { label, scope } => Ok(builder.intern_blank(label.clone(), *scope)),
-        _ => Err(PyTypeError::new_err(
-            "a subject must be an IRI or blank node",
-        )),
-    }
-}
-
-fn intern_iri_value(builder: &mut RdfDatasetBuilder, value: &TermValue) -> PyResult<crate::TermId> {
-    match value {
-        TermValue::Iri(iri) => Ok(builder.intern_iri(iri.clone())),
-        _ => Err(PyTypeError::new_err("a predicate must be an IRI")),
-    }
-}
-
-fn intern_graph_value(
-    builder: &mut RdfDatasetBuilder,
-    value: &TermValue,
-) -> PyResult<crate::TermId> {
-    intern_subject_value(builder, value)
-}
-
-fn intern_term_value(
-    builder: &mut RdfDatasetBuilder,
-    value: &TermValue,
-) -> PyResult<crate::TermId> {
-    Ok(match value {
-        TermValue::Iri(iri) => builder.intern_iri(iri.clone()),
-        TermValue::Blank { label, scope } => builder.intern_blank(label.clone(), *scope),
         TermValue::Literal {
             lexical_form,
             datatype,
             language,
             direction,
-        } => builder.intern_literal(RdfLiteral {
+        } => RdfTerm::Literal(RdfLiteral {
+            datatype: collapse_synthetic_datatype(datatype, language),
             lexical_form: lexical_form.clone(),
-            datatype: Some(datatype.clone()),
             language: language.clone(),
-            direction: direction.map(|d| match d {
-                RdfTextDirection::Ltr => RdfTextDirection::Ltr,
-                RdfTextDirection::Rtl => RdfTextDirection::Rtl,
-            }),
+            direction: *direction,
         }),
-        TermValue::Triple { s, p, o } => {
-            let s = intern_subject_value(builder, s)?;
-            let p = intern_iri_value(builder, p)?;
-            let o = intern_term_value(builder, o)?;
-            builder.intern_triple(s, p, o)
-        }
-    })
+        TermValue::Triple { s, p, o } => RdfTerm::triple(RdfTriple::new(
+            value_to_rdf_term(s),
+            predicate_iri(p),
+            value_to_rdf_term(o),
+        )),
+    }
 }
 
-fn store_err(e: impl std::fmt::Display) -> PyErr {
-    PyValueError::new_err(format!("store error: {e}"))
+fn collapse_synthetic_datatype(datatype: &str, language: &Option<String>) -> Option<String> {
+    if language.is_some() {
+        return (datatype != RDF_LANG_STRING).then(|| datatype.to_owned());
+    }
+    (datatype != XSD_STRING).then(|| datatype.to_owned())
 }

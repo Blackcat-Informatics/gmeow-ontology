@@ -4,61 +4,47 @@
 #![cfg(feature = "gts")]
 
 //! Property-based round-trip tests (#787, T6 of #781): `parse ∘ serialize = id`,
-//! modulo canonical form, for the RDF serialization codecs the kernel exposes.
+//! modulo canonical form, for the native RDF serialization codecs the kernel exposes.
 //!
 //! # Equivalence is canonical, never byte-exact
 //!
 //! A faithful round-trip is allowed to rename blank nodes and to collapse the
 //! `"x"` ≡ `"x"^^xsd:string` distinction. Byte equality would therefore produce
 //! spurious failures (cf. the GTS codec-skew doctrine, PR #595: the drift gate is
-//! semantic). Every property here compares **RDFC-1.0 canonical quad sets**
-//! (oxigraph `Dataset::canonicalize`), which is the same comparator the
-//! python-gated `py_store::canonicalize_quads` core wraps — re-used here against
-//! oxigraph's public API because that core is compiled only under the `python`
-//! feature and is unreachable from a plain `cargo nextest` run.
+//! semantic). Every property here compares **RDFC-1.0 canonical quad sets** via the
+//! native [`gmeow_rdf::canonical_flat_nquads`] (#910), the same comparator the
+//! production native canonicalizer wraps.
 //!
-//! # Single generator, three codecs
+//! # Single generator, three codecs (EPIC #906 — native only)
 //!
-//! One generator authors a frozen [`RdfDataset`] fixture; the reachable production
-//! seam [`store_from_dataset`](gmeow_rdf::oxigraph::store_from_dataset) converts it
-//! once to the oxigraph "before" set, which drives N-Quads, TriG, and GTS
-//! fold/unfold alike.
+//! One generator authors a frozen [`RdfDataset`] fixture; the native text codecs
+//! ([`gmeow_rdf::serialize_dataset`] / [`gmeow_rdf::parse_dataset`]) serialize and
+//! re-parse it for N-Quads and TriG, and the GTS fold/unfold path covers the third
+//! codec. EPIC #906 removed oxigraph, so this gate now exercises the native codecs
+//! against the native RDFC-1.0 comparator directly (it is no longer a cross-check
+//! against an independent oxigraph implementation — the native engine is the sole
+//! authority). The native text codec's own isomorphism round-trips additionally live
+//! in `crates/rdf/src/native_codecs/mod.rs`.
 //!
 //! # Generators dodge codec-lossy inputs deliberately
 //!
-//! GTS drops language *direction* and the oxigraph `Store` canonicalizes
-//! non-canonical typed-literal lexical forms (`0.70` → `0.7`). The generators
-//! therefore emit no direction and only already-canonical literals (`i32`
-//! integers, `true`/`false`, plain/typed strings, standard language tags), so the
-//! preserve-path (GTS) and the normalize-path (Store) cannot disagree.
+//! GTS drops language *direction*, so the generators emit no direction and only
+//! already-canonical literals (`i32` integers, `true`/`false`, plain/typed strings,
+//! standard language tags) so the preserve-path (GTS) and the text codecs agree.
 //!
 //! # Coverage and deferrals
 //!
-//! * **JSON-LD** round-trips basic terms (IRIs, blank nodes, literals, language
-//!   tags, named graphs). **JSON-LD-star** is deferred: oxigraph's JSON-LD
-//!   serializer rejects RDF-1.2 quoted triples (no standard star JSON-LD
-//!   encoding), so the JSON-LD property uses the star-free generator while
-//!   N-Quads/TriG carry the quoted-triple coverage.
+//! * **JSON-LD** is no longer exercised here: the native text codecs cover Turtle /
+//!   TriG / N-Triples / N-Quads / RDF-XML (no JSON-LD), and the prior JSON-LD
+//!   property tested oxigraph's JSON-LD serializer — removed with oxigraph (EPIC #906).
 //! * **CLIF / CGIF / XCL** round-trips: depend on the open Common Logic epic
 //!   (#718/#719) and do not exist yet.
-//!
-//! # INTENTIONAL oxigraph cross-check (#909) — NOT a production native-codec path
-//!
-//! The `oxigraph::io` parse/serialize used here is deliberate: this gate cross-checks
-//! the python-gated `py_store::{canonicalize_quads, parse_quads}` core (which wraps
-//! oxigraph and is unreachable from a plain `cargo nextest` run) against oxigraph's
-//! own public RDFC-1.0 comparator and codecs. Re-using the *independent* oxigraph
-//! implementation as the reference is the whole point. The native text codec's own
-//! round-trip fidelity is covered separately by the isomorphism round-trips in
-//! `crates/rdf/src/native_codecs/mod.rs`. So the `oxigraph::io` use here is an
-//! explicit, documented carve-out from the #909 grep gate, not a production codec.
 
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
 use gmeow_rdf::{
-    RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfLookaside, RdfQuad, RdfTerm, RdfTriple,
+    canonical_flat_nquads, flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
+    NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfLookaside, RdfQuad, RdfTerm,
+    RdfTriple, SerializeGraph,
 };
-use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
-use oxigraph::model::Quad;
 use proptest::prelude::*;
 
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
@@ -67,43 +53,33 @@ const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 
 // ── Canonical comparator (native RDFC-1.0, #910) ─────────────────────────────────
 
-/// The default JSON-LD format (no profile flags).
-fn jsonld() -> RdfFormat {
-    RdfFormat::JsonLd {
-        profile: Default::default(),
+/// The native flat RDFC-1.0 canonical N-Quads of a dataset — the comparator for every
+/// round-trip property (blank-node labels canonicalized, lines sorted/deduped).
+fn canonical(dataset: &RdfDataset) -> String {
+    canonical_flat_nquads(dataset).expect("native RDFC-1.0 canonicalization")
+}
+
+/// Serialize a dataset to RDF text of `format` (full RDF 1.2 statement layer).
+fn serialize(dataset: &RdfDataset, format: NativeRdfFormat) -> Vec<u8> {
+    serialize_dataset(dataset, format.media_type(), SerializeGraph::Dataset)
+        .expect("native serialize")
+}
+
+/// Parse RDF text of `format` back into a frozen dataset.
+fn parse(bytes: &[u8], format: NativeRdfFormat) -> std::sync::Arc<RdfDataset> {
+    parse_dataset(bytes, format.media_type(), None).expect("native parse")
+}
+
+/// Re-freeze a dataset's flat quad stream WITHOUT the RDF 1.2 statement overlay, so the
+/// comparator sees the same flat triple set on both sides of a round-trip (the GTS path
+/// and the text path re-materialize reifiers/annotations as plain `rdf:reifies` rows).
+fn flat(dataset: &RdfDataset) -> std::sync::Arc<RdfDataset> {
+    let quads = flat_rdf_quads_from_dataset(dataset);
+    let mut b = RdfDatasetBuilder::new();
+    for quad in &quads {
+        b.push_owned_quad(quad);
     }
-}
-
-/// Canonicalize a quad set's blank-node labels under the native full RDFC-1.0 and
-/// return the quads in a stable order — this IS `gmeow_rdf::canonicalize_quads`
-/// (which replaced oxrdf `Dataset::canonicalize`).
-fn canonical(quads: Vec<Quad>) -> Vec<Quad> {
-    gmeow_rdf::canonicalize_quads(quads).expect("RDFC-1.0 canonicalization")
-}
-
-fn serialize_quads(quads: &[Quad], format: RdfFormat) -> Vec<u8> {
-    let mut serializer = RdfSerializer::from_format(format).for_writer(Vec::new());
-    for quad in quads {
-        serializer
-            .serialize_quad(quad.as_ref())
-            .expect("serialize quad");
-    }
-    serializer.finish().expect("finish serializer")
-}
-
-fn parse_quads(bytes: &[u8], format: RdfFormat) -> Vec<Quad> {
-    RdfParser::from_format(format)
-        .lenient()
-        .for_slice(bytes)
-        .map(|quad| quad.expect("parse quad"))
-        .collect()
-}
-
-/// The oxigraph "before" quad set for `dataset`, via the reachable production seam.
-fn before_quads(dataset: &RdfDataset) -> Vec<Quad> {
-    let ox = store_from_dataset(dataset, GraphPolicy::PreserveNamedGraphs)
-        .expect("convert RdfDataset to oxigraph store");
-    ox.iter().map(|quad| quad.expect("store quad")).collect()
+    b.freeze().expect("flat dataset must freeze")
 }
 
 /// Freeze generated quads into the IR. The bnode-label rewrite from scope
@@ -129,7 +105,7 @@ fn arb_bnode_label() -> impl Strategy<Value = String> {
 }
 
 fn arb_text() -> impl Strategy<Value = String> {
-    // Printable ASCII without quote/backslash/control chars so GTS and oxigraph
+    // Printable ASCII without quote/backslash/control chars so GTS and the text codecs
     // escaping cannot diverge; widening this is a follow-up, not a v1 concern.
     "[A-Za-z0-9._-]{0,12}".prop_map(String::from)
 }
@@ -143,7 +119,7 @@ fn arb_literal() -> impl Strategy<Value = RdfLiteral> {
         arb_text().prop_map(RdfLiteral::simple),
         arb_text().prop_map(|t| RdfLiteral::typed(t, XSD_STRING)),
         // i32::to_string is already a canonical xsd:integer lexical form (no
-        // leading zeros, no "-0"), so the Store does not rewrite it.
+        // leading zeros, no "-0").
         any::<i32>().prop_map(|n| RdfLiteral::typed(n.to_string(), XSD_INTEGER)),
         prop::sample::select(vec!["true", "false"]).prop_map(|b| RdfLiteral::typed(b, XSD_BOOLEAN)),
         (arb_text(), arb_lang()).prop_map(|(t, l)| RdfLiteral::language_tagged(t, l)),
@@ -252,38 +228,28 @@ proptest! {
     /// including RDF-1.2 quoted triples.
     #[test]
     fn nquads_roundtrip(dataset in arb_dataset_star()) {
-        let before = before_quads(dataset.as_ref());
-        let after = parse_quads(&serialize_quads(&before, RdfFormat::NQuads), RdfFormat::NQuads);
-        prop_assert_eq!(canonical(before), canonical(after));
+        let bytes = serialize(dataset.as_ref(), NativeRdfFormat::NQuads);
+        let after = parse(&bytes, NativeRdfFormat::NQuads);
+        prop_assert_eq!(canonical(&flat(dataset.as_ref())), canonical(after.as_ref()));
     }
 
     /// TriG: same property, exercising named graphs and quoted triples.
     #[test]
     fn trig_roundtrip(dataset in arb_dataset_star()) {
-        let before = before_quads(dataset.as_ref());
-        let after = parse_quads(&serialize_quads(&before, RdfFormat::TriG), RdfFormat::TriG);
-        prop_assert_eq!(canonical(before), canonical(after));
-    }
-
-    /// JSON-LD: serialize → parse round-trips to the same canonical quad set
-    /// (basic terms; quoted triples excluded — see module docs).
-    #[test]
-    fn jsonld_roundtrip(dataset in arb_dataset()) {
-        let before = before_quads(dataset.as_ref());
-        let after = parse_quads(&serialize_quads(&before, jsonld()), jsonld());
-        prop_assert_eq!(canonical(before), canonical(after));
+        let bytes = serialize(dataset.as_ref(), NativeRdfFormat::TriG);
+        let after = parse(&bytes, NativeRdfFormat::TriG);
+        prop_assert_eq!(canonical(&flat(dataset.as_ref())), canonical(after.as_ref()));
     }
 
     /// GTS fold/unfold: RdfDataset → `to_gts` → fold → N-Quads round-trips to the
     /// same canonical quad set.
     #[test]
     fn gts_roundtrip(dataset in arb_dataset()) {
-        let before = before_quads(dataset.as_ref());
         let bytes = gmeow_rdf::gts_write::to_gts(dataset.as_ref(), &RdfLookaside::default(), "gmeow-rdf-proptest")
             .expect("to_gts should succeed");
         let graph = gmeow_gts::reader::read(&bytes, false, None);
         prop_assert!(graph.diagnostics.is_empty(), "GTS fold diagnostics: {:?}", graph.diagnostics);
-        let after = parse_quads(gmeow_gts::nquads::to_nquads(&graph).as_bytes(), RdfFormat::NQuads);
-        prop_assert_eq!(canonical(before), canonical(after));
+        let after = parse(gmeow_gts::nquads::to_nquads(&graph).as_bytes(), NativeRdfFormat::NQuads);
+        prop_assert_eq!(canonical(&flat(dataset.as_ref())), canonical(after.as_ref()));
     }
 }

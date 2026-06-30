@@ -1,0 +1,4 @@
+relationship
+[Some(Iri("https://blackcatinformatics.ca/gmeow/AcquaintanceRelationship"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/InterpersonalRelationship"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/ProfessionalRelationship"))]

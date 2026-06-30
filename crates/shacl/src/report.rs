@@ -10,16 +10,15 @@
 
 use std::collections::BTreeSet;
 
-use oxigraph::model::{
-    BlankNode, GraphName, Literal, NamedNode, NamedNodeRef, NamedOrBlankNode, Quad, Term,
-};
-use oxigraph::store::Store;
-
-use gmeow_rdf::oxigraph::dataset_from_store;
+use gmeow_rdf::ir::RdfDatasetBuilder;
 use gmeow_rdf::provenance::Attribution;
-use gmeow_rdf::{serialize_dataset, SerializeGraph};
+use gmeow_rdf::{serialize_dataset, RdfQuad, RdfTerm, SerializeGraph};
 
+use crate::data::{GraphFilter, IrDataGraph, ShaclDataGraph};
 use crate::model::{rdf, sh, xsd};
+#[cfg(test)]
+use crate::term::Literal;
+use crate::term::{NamedNode, Term};
 
 // ── Severity ──────────────────────────────────────────────────────────────────
 
@@ -38,9 +37,9 @@ impl Severity {
     /// The `sh:` IRI string for this severity level.
     pub fn iri(&self) -> &'static str {
         match self {
-            Severity::Violation => sh::VIOLATION.as_str(),
-            Severity::Warning => sh::WARNING.as_str(),
-            Severity::Info => sh::INFO.as_str(),
+            Severity::Violation => sh::VIOLATION,
+            Severity::Warning => sh::WARNING,
+            Severity::Info => sh::INFO,
         }
     }
 
@@ -90,6 +89,23 @@ pub struct ValidationResult {
 }
 
 impl ValidationResult {
+    /// The focus node's value as a plain string: the IRI for a named node, the label
+    /// for a blank node, the lexical form for a literal, and the canonical rendering for
+    /// a triple term.
+    ///
+    /// This lets a consumer render the focus without naming the (oxigraph) [`Term`] type
+    /// in its own surface (EPIC #906) — it is the exact value-extraction the GMEOW
+    /// scoreboard's `shacl_term_to_str` performed.
+    #[must_use]
+    pub fn focus_value(&self) -> String {
+        match &self.focus_node {
+            Term::NamedNode(n) => n.as_str().to_owned(),
+            Term::BlankNode(b) => b.clone(),
+            Term::Literal(l) => l.value().to_owned(),
+            Term::Triple(_) => self.focus_node.to_string(),
+        }
+    }
+
     /// Apply optional GMEOW graph-box role metadata to this result.
     pub fn apply_box_roles(&mut self, source_roles: &[NamedNode], path_roles: &[NamedNode]) {
         self.source_box_roles = dedup_roles(source_roles);
@@ -140,102 +156,112 @@ impl ValidationReport {
     /// `application/n-quads` codec emits graphless rows (i.e. N-Triples) and is
     /// byte-lenient on language tags, matching the legacy oxigraph serializer.
     pub fn to_ntriples(&self) -> String {
-        let store = Store::new().expect("in-memory store creation is infallible");
+        let mut builder = RdfDatasetBuilder::new();
 
-        let report_bnode = BlankNode::new_unchecked("report");
-        let report_subj = NamedOrBlankNode::BlankNode(report_bnode);
+        let report_subj = RdfTerm::blank_node("report");
 
         // _:report rdf:type sh:ValidationReport
-        insert_triple(
-            &store,
+        push_triple(
+            &mut builder,
             report_subj.clone(),
             rdf::TYPE,
-            Term::NamedNode(sh::VALIDATION_REPORT.into()),
+            RdfTerm::iri(sh::VALIDATION_REPORT),
         );
 
         // _:report sh:conforms "true"^^xsd:boolean (or false)
-        let conforms_lit = Literal::new_typed_literal(
-            if self.conforms { "true" } else { "false" },
-            NamedNode::new_unchecked(xsd::BOOLEAN),
-        );
-        insert_triple(
-            &store,
+        push_triple(
+            &mut builder,
             report_subj.clone(),
             sh::CONFORMS,
-            Term::Literal(conforms_lit),
+            RdfTerm::Literal(gmeow_rdf::RdfLiteral::typed(
+                if self.conforms { "true" } else { "false" },
+                xsd::BOOLEAN,
+            )),
         );
 
         for (i, r) in self.results.iter().enumerate() {
-            let result_id = format!("r{i}");
-            let result_bnode = BlankNode::new_unchecked(result_id);
-            let result_subj = NamedOrBlankNode::BlankNode(result_bnode.clone());
-            let result_term = Term::BlankNode(result_bnode);
+            let result_subj = RdfTerm::blank_node(format!("r{i}"));
 
             // _:report sh:result _:r{i}
-            insert_triple(&store, report_subj.clone(), sh::RESULT, result_term);
+            push_triple(
+                &mut builder,
+                report_subj.clone(),
+                sh::RESULT,
+                result_subj.clone(),
+            );
 
             // _:r{i} rdf:type sh:ValidationResult
-            insert_triple(
-                &store,
+            push_triple(
+                &mut builder,
                 result_subj.clone(),
                 rdf::TYPE,
-                Term::NamedNode(sh::VALIDATION_RESULT.into()),
+                RdfTerm::iri(sh::VALIDATION_RESULT),
             );
 
             // sh:focusNode
-            insert_triple(
-                &store,
+            push_triple(
+                &mut builder,
                 result_subj.clone(),
                 sh::FOCUS_NODE,
-                r.focus_node.clone(),
+                r.focus_node.to_rdf_term(),
             );
 
             // sh:resultSeverity
-            insert_triple(
-                &store,
+            push_triple(
+                &mut builder,
                 result_subj.clone(),
                 sh::RESULT_SEVERITY,
-                Term::NamedNode(NamedNode::new_unchecked(r.severity.iri())),
+                RdfTerm::iri(r.severity.iri()),
             );
 
             // sh:sourceConstraintComponent
-            insert_triple(
-                &store,
+            push_triple(
+                &mut builder,
                 result_subj.clone(),
                 sh::SOURCE_CONSTRAINT_COMPONENT,
-                Term::NamedNode(r.source_constraint_component.clone()),
+                RdfTerm::iri(r.source_constraint_component.as_str()),
             );
 
             // sh:sourceShape
-            insert_triple(
-                &store,
+            push_triple(
+                &mut builder,
                 result_subj.clone(),
                 sh::SOURCE_SHAPE,
-                r.source_shape.clone(),
+                r.source_shape.to_rdf_term(),
             );
 
             // sh:resultPath (optional)
             if let Some(path) = &r.result_path {
-                insert_triple(&store, result_subj.clone(), sh::RESULT_PATH, path.clone());
+                push_triple(
+                    &mut builder,
+                    result_subj.clone(),
+                    sh::RESULT_PATH,
+                    path.to_rdf_term(),
+                );
             }
 
             // sh:value (optional)
             if let Some(value) = &r.value {
-                insert_triple(&store, result_subj.clone(), sh::VALUE, value.clone());
+                push_triple(
+                    &mut builder,
+                    result_subj.clone(),
+                    sh::VALUE,
+                    value.to_rdf_term(),
+                );
             }
 
             // sh:resultMessage (optional plain string literal)
             if let Some(msg) = &r.message {
-                insert_triple(
-                    &store,
+                push_triple(
+                    &mut builder,
                     result_subj.clone(),
                     sh::RESULT_MESSAGE,
-                    Term::Literal(Literal::new_simple_literal(msg.as_str())),
+                    RdfTerm::Literal(gmeow_rdf::RdfLiteral::simple(msg.as_str())),
                 );
             }
         }
 
-        let dataset = dataset_from_store(&store).expect("report store folds to the IR");
+        let dataset = builder.freeze().expect("report quads freeze into the IR");
         let buf = serialize_dataset(
             &dataset,
             "application/n-quads",
@@ -264,23 +290,16 @@ impl ValidationReport {
     }
 }
 
-// ── Store helpers ─────────────────────────────────────────────────────────────
+// ── Builder helpers ───────────────────────────────────────────────────────────
 
-/// Insert a triple into the default graph of `store`.
-fn insert_triple(
-    store: &Store,
-    subject: NamedOrBlankNode,
-    predicate: NamedNodeRef<'_>,
-    object: Term,
+/// Push a triple (default graph) into the report dataset builder.
+fn push_triple(
+    builder: &mut RdfDatasetBuilder,
+    subject: RdfTerm,
+    predicate: &str,
+    object: RdfTerm,
 ) {
-    store
-        .insert(&Quad::new(
-            subject,
-            NamedNode::from(predicate),
-            object,
-            GraphName::DefaultGraph,
-        ))
-        .expect("in-memory store insert is infallible");
+    builder.push_owned_quad(&RdfQuad::new(subject, predicate, object));
 }
 
 // ── Round-trip helpers ────────────────────────────────────────────────────────
@@ -291,64 +310,50 @@ fn insert_triple(
 ///
 /// Returns an error string if the N-Triples cannot be parsed.
 pub fn conforms_from_ntriples(nt: &str) -> Result<bool, String> {
-    let store = store_from_ntriples(nt)?;
-    Ok(conforms_from_store(&store).unwrap_or(true))
+    let data = dataset_from_ntriples(nt)?;
+    Ok(conforms_from_dataset(&data).unwrap_or(true))
 }
 
 /// Extract a `BTreeSet<ResultTuple>` from an N-Triples SHACL report string.
-///
-/// Loads the N-Triples into an in-memory store and delegates to
-/// [`tuples_from_store`].
 ///
 /// # Errors
 ///
 /// Returns an error string if the N-Triples cannot be parsed.
 pub fn tuples_from_ntriples(nt: &str) -> Result<BTreeSet<ResultTuple>, String> {
-    let store = store_from_ntriples(nt)?;
-    Ok(tuples_from_store(&store))
+    let data = dataset_from_ntriples(nt)?;
+    Ok(tuples_from_dataset(&data))
 }
 
-/// Parse a SHACL report N-Triples string into an in-memory store via the native
-/// gmeow-rdf codec (#909) — no oxigraph `io`.
-fn store_from_ntriples(nt: &str) -> Result<Store, String> {
-    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-    use gmeow_rdf::parse_dataset;
-    let dataset = parse_dataset(nt.as_bytes(), "application/n-triples", None)
+/// Parse a SHACL report N-Triples string into a query-able [`IrDataGraph`] via the
+/// native gmeow-rdf codec (#909) — no oxigraph.
+fn dataset_from_ntriples(nt: &str) -> Result<IrDataGraph, String> {
+    let dataset = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .map_err(|e| format!("N-Triples parse error: {e}"))?;
-    store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph)
-        .map_err(|e| format!("N-Triples store build error: {e}"))
+    Ok(IrDataGraph::new(dataset))
 }
 
-/// Walk a SHACL report store and extract result tuples.
+/// Walk a SHACL report dataset and extract result tuples.
 ///
-/// Finds all `?r rdf:type sh:ValidationResult` nodes and reads their
-/// mandatory and optional predicates, building the same tuple shape as
+/// Finds all `?r rdf:type sh:ValidationResult` nodes and reads their mandatory and
+/// optional predicates, building the same tuple shape as
 /// [`ValidationReport::result_tuples`].
-pub fn tuples_from_store(store: &Store) -> BTreeSet<ResultTuple> {
-    let vr_type = Term::NamedNode(sh::VALIDATION_RESULT.into());
-
-    // Collect all result blank/named nodes.
-    let result_nodes: Vec<Term> = store
-        .quads_for_pattern(None, Some(rdf::TYPE), Some(vr_type.as_ref()), None)
-        .filter_map(|q| q.ok().map(|q| Term::from(q.subject)))
-        .collect();
+pub fn tuples_from_dataset(data: &IrDataGraph) -> BTreeSet<ResultTuple> {
+    let result_nodes = subjects_typed(data, sh::VALIDATION_RESULT);
 
     let mut tuples = BTreeSet::new();
 
     for result_node in result_nodes {
-        let subj_ref = term_as_named_or_blank_ref(&result_node);
-
-        let focus = object_as_string(store, subj_ref, sh::FOCUS_NODE).unwrap_or_default();
-        let path = object_as_string(store, subj_ref, sh::RESULT_PATH);
-        let value = object_as_string(store, subj_ref, sh::VALUE);
+        let focus = object_string(data, &result_node, sh::FOCUS_NODE).unwrap_or_default();
+        let path = object_string(data, &result_node, sh::RESULT_PATH);
+        let value = object_string(data, &result_node, sh::VALUE);
         let component =
-            object_as_string(store, subj_ref, sh::SOURCE_CONSTRAINT_COMPONENT).unwrap_or_default();
-        let source_shape = object_as_string(store, subj_ref, sh::SOURCE_SHAPE).unwrap_or_default();
+            object_string(data, &result_node, sh::SOURCE_CONSTRAINT_COMPONENT).unwrap_or_default();
+        let source_shape = object_string(data, &result_node, sh::SOURCE_SHAPE).unwrap_or_default();
         let severity_iri =
-            object_as_string(store, subj_ref, sh::RESULT_SEVERITY).unwrap_or_default();
+            object_string(data, &result_node, sh::RESULT_SEVERITY).unwrap_or_default();
 
-        // Parse severity from the IRI string (strip angle brackets oxigraph adds
-        // when you call Term::to_string() on a NamedNode).
+        // Parse severity from the IRI string (strip angle brackets the term
+        // rendering adds for a NamedNode).
         let sev_str = severity_iri.trim_matches(|c| c == '<' || c == '>');
         let severity = Severity::from_iri(sev_str).unwrap_or(Severity::Violation);
 
@@ -358,16 +363,13 @@ pub fn tuples_from_store(store: &Store) -> BTreeSet<ResultTuple> {
     tuples
 }
 
-/// Extract the `sh:conforms` boolean from a report store, if present.
-pub fn conforms_from_store(store: &Store) -> Option<bool> {
-    let report_type = Term::NamedNode(sh::VALIDATION_REPORT.into());
-    let report_node = store
-        .quads_for_pattern(None, Some(rdf::TYPE), Some(report_type.as_ref()), None)
-        .find_map(|q| q.ok().map(|q| Term::from(q.subject)))?;
-
-    let subj_ref = term_as_named_or_blank_ref(&report_node);
-    let raw = object_as_string(store, subj_ref, sh::CONFORMS)?;
-    // oxigraph serialises boolean literals as `"true"^^<xsd:boolean>`
+/// Extract the `sh:conforms` boolean from a report dataset, if present.
+pub fn conforms_from_dataset(data: &IrDataGraph) -> Option<bool> {
+    let report_node = subjects_typed(data, sh::VALIDATION_REPORT)
+        .into_iter()
+        .next()?;
+    let raw = object_string(data, &report_node, sh::CONFORMS)?;
+    // The boolean literal renders as `"true"^^<xsd:boolean>` (typed).
     match raw.as_str() {
         s if s.starts_with("\"true\"") => Some(true),
         s if s.starts_with("\"false\"") => Some(false),
@@ -377,29 +379,23 @@ pub fn conforms_from_store(store: &Store) -> Option<bool> {
 
 // ── Internal query helpers ────────────────────────────────────────────────────
 
-/// Return the first object of `(subj, pred, ?)` as a `Term::to_string()` string.
-fn object_as_string(
-    store: &Store,
-    subj: oxigraph::model::NamedOrBlankNodeRef<'_>,
-    pred: NamedNodeRef<'_>,
-) -> Option<String> {
-    store
-        .quads_for_pattern(Some(subj), Some(pred), None, None)
-        .find_map(|q| q.ok().map(|q| q.object.to_string()))
+/// All subjects of `(?, rdf:type, class_iri)` in the report dataset.
+fn subjects_typed(data: &IrDataGraph, class_iri: &str) -> Vec<Term> {
+    let rdf_type = Term::NamedNode(NamedNode::from(rdf::TYPE));
+    let class = Term::NamedNode(NamedNode::from(class_iri));
+    data.quads_for_pattern(None, Some(&rdf_type), Some(&class), GraphFilter::AnyGraph)
+        .into_iter()
+        .map(|q| q.subject)
+        .collect()
 }
 
-/// Borrow a `Term` as a `NamedOrBlankNodeRef` for use in store queries.
-///
-/// # Panics
-///
-/// Panics if `term` is a `Literal` or `Triple` — only subject positions are
-/// legal for SHACL report nodes.
-fn term_as_named_or_blank_ref(term: &Term) -> oxigraph::model::NamedOrBlankNodeRef<'_> {
-    match term {
-        Term::NamedNode(n) => oxigraph::model::NamedOrBlankNodeRef::NamedNode(n.as_ref()),
-        Term::BlankNode(b) => oxigraph::model::NamedOrBlankNodeRef::BlankNode(b.as_ref()),
-        other => panic!("expected named or blank node, got {other:?}"),
-    }
+/// Return the first object of `(subj, pred, ?)` as a `Term::to_string()` string.
+fn object_string(data: &IrDataGraph, subj: &Term, pred: &str) -> Option<String> {
+    let predicate = Term::NamedNode(NamedNode::from(pred));
+    data.quads_for_pattern(Some(subj), Some(&predicate), None, GraphFilter::AnyGraph)
+        .into_iter()
+        .next()
+        .map(|q| q.object.to_string())
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -467,9 +463,9 @@ mod tests {
             tuples_from_ntriples(&nt).expect("N-Triples from empty report must parse cleanly");
         assert!(parsed.is_empty(), "empty report must produce zero tuples");
 
-        // Check conforms_from_store directly
-        let store = store_from_ntriples(&nt).unwrap();
-        assert_eq!(conforms_from_store(&store), Some(true));
+        // Check conforms_from_dataset directly
+        let data = dataset_from_ntriples(&nt).unwrap();
+        assert_eq!(conforms_from_dataset(&data), Some(true));
     }
 
     #[test]
@@ -585,7 +581,6 @@ mod tests {
     #[test]
     fn absence_based_violation_carries_scope_and_shape_attributions() {
         use gmeow_rdf::provenance::{Attribution, AttributionRole, UnitInterner};
-        use oxigraph::model::NamedNode;
 
         let mut interner = UnitInterner::new();
         let unit_shape = interner.intern("https://example.org/slices/core/shapes"); // owns the sh:minCount shape

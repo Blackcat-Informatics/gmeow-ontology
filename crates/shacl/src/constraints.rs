@@ -8,13 +8,12 @@
 
 use std::collections::HashSet;
 
-use oxigraph::model::{NamedNode, NamedOrBlankNode, Term, Triple};
-
 use crate::data::{GraphFilter, ShaclDataGraph};
 use crate::model::{gmeow, rdf, sh};
 use crate::path;
 use crate::report::ValidationResult;
 use crate::shapes::{Constraint, NodeKindValue, Path, PropertyShape, Shape};
+use crate::term::{NamedNode, Term, Triple};
 
 // ── Public surface ─────────────────────────────────────────────────────────────
 
@@ -80,7 +79,7 @@ fn eval_closed<G: ShaclDataGraph>(
     ignored: &[NamedNode],
 ) -> Vec<ValidationResult> {
     let mut permitted: HashSet<String> = HashSet::new();
-    permitted.insert(rdf::TYPE.as_str().to_owned());
+    permitted.insert(rdf::TYPE.to_owned());
     for ps in &shape.property_shapes {
         if let Path::Predicate(predicate) = &ps.path {
             permitted.insert(predicate.as_str().to_owned());
@@ -283,20 +282,19 @@ fn eval_reifier_shapes<G: ShaclDataGraph>(ctx: ReifierEvalContext<'_, G>) -> Vec
 }
 
 fn triple_term(focus: &Term, predicate: &NamedNode, value: &Term) -> Option<Term> {
-    let subject = match focus {
-        Term::NamedNode(node) => NamedOrBlankNode::NamedNode(node.clone()),
-        Term::BlankNode(node) => NamedOrBlankNode::BlankNode(node.clone()),
-        _ => return None,
-    };
+    // A quoted triple's subject must be an IRI or blank node.
+    if !focus.is_subject() {
+        return None;
+    }
     Some(Term::Triple(Box::new(Triple::new(
-        subject,
+        focus.clone(),
         predicate.clone(),
         value.clone(),
     ))))
 }
 
 fn reifiers_for<G: ShaclDataGraph>(store: &G, triple_term: &Term) -> Vec<Term> {
-    let reifies = Term::NamedNode(rdf::REIFIES.into_owned());
+    let reifies = Term::NamedNode(NamedNode::from(rdf::REIFIES));
     let reifiers: Vec<Term> = store
         .quads_for_pattern(
             None,
@@ -305,11 +303,11 @@ fn reifiers_for<G: ShaclDataGraph>(store: &G, triple_term: &Term) -> Vec<Term> {
             GraphFilter::DefaultGraph,
         )
         .into_iter()
-        .map(|q| Term::from(q.subject))
+        .map(|q| q.subject)
         .collect();
     let reifiers_set: HashSet<Term> = reifiers.into_iter().collect();
     let mut reifiers: Vec<Term> = reifiers_set.into_iter().collect();
-    reifiers.sort_by_key(|t| t.to_string());
+    reifiers.sort_by_key(Term::to_string);
     reifiers
 }
 
@@ -322,7 +320,7 @@ fn path_box_roles<G: ShaclDataGraph>(store: &G, path: &Path) -> Vec<NamedNode> {
         },
     };
     let predicate_term = Term::NamedNode(predicate.clone());
-    let box_role = Term::NamedNode(gmeow::GRAPH_BOX_ROLE.into_owned());
+    let box_role = Term::NamedNode(NamedNode::from(gmeow::GRAPH_BOX_ROLE));
     let mut roles: Vec<NamedNode> = store
         .quads_for_pattern(
             Some(&predicate_term),
@@ -1053,20 +1051,19 @@ fn eval_constraint<G: ShaclDataGraph>(
         // The constraint blank node may carry its own sh:message / sh:severity;
         // those override the shape-level defaults at eval time.
         // SELECT-form is enforced at shape-load (shapes.rs rejects non-SELECT), so the only Err here is an impossible-by-construction runtime failure; .expect() documents that invariant.
-        // `parsed` is an Arc<PreparedSparqlQuery>; eval_sparql_constraint clones it
-        // cheaply (Arc clone) then substitutes ?this for this focus node.
+        // The native SPARQL engine runs the validated query text over the dataset,
+        // substituting $this for this focus node (SparqlRequest.substitutions).
         Constraint::Sparql {
-            parsed,
+            select,
             message: cmsg,
             severity: csev,
-            ..
         } => {
             let sev = csev.unwrap_or(severity);
             let msg = cmsg.clone().or_else(|| message.clone());
             crate::sparql::eval_sparql_constraint(
-                &store.sparql_store(),
+                &store.sparql_dataset(),
                 focus_node,
-                &parsed.0,
+                select,
                 NamedNode::from(sh::SPARQL_CONSTRAINT_COMPONENT),
                 &source_shape,
                 sev,
@@ -1094,7 +1091,7 @@ fn is_shacl_instance<G: ShaclDataGraph>(
     if !matches!(value, Term::NamedNode(_) | Term::BlankNode(_)) {
         return false;
     }
-    let rdf_type = Term::NamedNode(rdf::TYPE.into_owned());
+    let rdf_type = Term::NamedNode(NamedNode::from(rdf::TYPE));
     store
         .quads_for_pattern(Some(value), Some(&rdf_type), None, GraphFilter::AnyGraph)
         .into_iter()
@@ -1173,9 +1170,41 @@ fn check_datatype(value: &Term, dt_iri: &NamedNode) -> bool {
     let stored_dt = lit.datatype();
     let lex = lit.value();
     if stored_dt.as_str() == dt_iri.as_str() {
+        // Exact datatype-IRI match. For the primitive types validate the lexical
+        // form; for a DERIVED integer type the literal is faithfully typed (the
+        // native value space does not normalize it to xsd:integer the way oxigraph
+        // did), so additionally validate the VALUE space — a `"-2"^^nonNegativeInteger`
+        // is lexically an integer but out of the derived type's range and must
+        // violate. `XSD_INTEGER` is the canonical fold target the value-space check
+        // keys on, so check the stored value against xsd:integer first.
+        if is_derived_integer_type(dt_iri.as_str()) {
+            return derived_integer_matches(XSD_INTEGER, dt_iri.as_str(), lex);
+        }
         return xsd_lexical_valid(dt_iri.as_str(), lex);
     }
     derived_integer_matches(stored_dt.as_str(), dt_iri.as_str(), lex)
+}
+
+/// The XSD integer-derived datatype IRIs whose VALUE space is narrower than
+/// `xsd:integer` (so an exact datatype match still requires a range check).
+const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+
+fn is_derived_integer_type(dt: &str) -> bool {
+    matches!(
+        dt,
+        "http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+            | "http://www.w3.org/2001/XMLSchema#positiveInteger"
+            | "http://www.w3.org/2001/XMLSchema#nonPositiveInteger"
+            | "http://www.w3.org/2001/XMLSchema#negativeInteger"
+            | "http://www.w3.org/2001/XMLSchema#long"
+            | "http://www.w3.org/2001/XMLSchema#int"
+            | "http://www.w3.org/2001/XMLSchema#short"
+            | "http://www.w3.org/2001/XMLSchema#byte"
+            | "http://www.w3.org/2001/XMLSchema#unsignedLong"
+            | "http://www.w3.org/2001/XMLSchema#unsignedInt"
+            | "http://www.w3.org/2001/XMLSchema#unsignedShort"
+            | "http://www.w3.org/2001/XMLSchema#unsignedByte"
+    )
 }
 
 /// Lexical-form validity for an exact datatype-IRI match. Unknown datatypes are
@@ -1281,20 +1310,38 @@ fn language_matches_any(value: &Term, tags: &[String]) -> bool {
 
 /// Parse a numeric value (xsd:integer, xsd:decimal, xsd:double) as `f64`.
 fn numeric_value(term: &Term) -> Option<f64> {
+    const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
     let Term::Literal(lit) = term else {
         return None;
     };
-    let dt = lit.datatype().as_str();
+    // The full XSD numeric lattice: the primitives plus EVERY derived integer
+    // datatype. The set must match the rest of the engine (see
+    // `instance.rs::numeric_or_bool_scalar`); the previous list omitted the
+    // derived/unsigned integers (e.g. `xsd:nonNegativeInteger`), so a faithful
+    // `"1"^^xsd:nonNegativeInteger` value read as non-numeric and spuriously
+    // violated every `sh:minInclusive`/`sh:maxInclusive` facet. (The omission was
+    // masked while data round-tripped through oxigraph's NT serializer, which
+    // value-space-normalized such literals to `xsd:integer`; the oxigraph-free
+    // path, #906, is the faithful one and exposes the gap.)
+    let local = lit.datatype_str().strip_prefix(XSD_NS)?;
     if matches!(
-        dt,
-        "http://www.w3.org/2001/XMLSchema#integer"
-            | "http://www.w3.org/2001/XMLSchema#decimal"
-            | "http://www.w3.org/2001/XMLSchema#double"
-            | "http://www.w3.org/2001/XMLSchema#float"
-            | "http://www.w3.org/2001/XMLSchema#long"
-            | "http://www.w3.org/2001/XMLSchema#int"
-            | "http://www.w3.org/2001/XMLSchema#short"
-            | "http://www.w3.org/2001/XMLSchema#byte"
+        local,
+        "integer"
+            | "decimal"
+            | "double"
+            | "float"
+            | "long"
+            | "int"
+            | "short"
+            | "byte"
+            | "nonNegativeInteger"
+            | "positiveInteger"
+            | "nonPositiveInteger"
+            | "negativeInteger"
+            | "unsignedLong"
+            | "unsignedInt"
+            | "unsignedShort"
+            | "unsignedByte"
     ) {
         lit.value().trim().parse::<f64>().ok()
     } else {
@@ -1358,11 +1405,12 @@ fn build_regex(pattern: &str, flags: Option<&str>) -> Result<regex::Regex, Strin
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::report::Severity;
-    use oxigraph::model::{Literal, NamedNode};
-    use oxigraph::store::Store;
     use std::sync::{Arc, OnceLock};
+
+    use super::*;
+    use crate::data::IrDataGraph;
+    use crate::report::Severity;
+    use crate::term::{Literal, NamedNode};
 
     const EX: &str = "http://example.org/ns#";
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
@@ -1381,6 +1429,50 @@ mod tests {
             value,
             NamedNode::new_unchecked(format!("{XSD}{dt}")),
         ))
+    }
+
+    #[test]
+    fn numeric_value_covers_all_derived_integer_datatypes() {
+        // Regression (#906): `numeric_value` must read EVERY xsd numeric-derived
+        // datatype, not just the primitives. The omission of the derived/unsigned
+        // integers (e.g. xsd:nonNegativeInteger) made a faithful
+        // `"1"^^xsd:nonNegativeInteger` value read as non-numeric and spuriously
+        // violate sh:minInclusive/sh:maxInclusive — masked only while data
+        // round-tripped through oxigraph's value-space-normalizing NT serializer.
+        for dt in [
+            "integer",
+            "decimal",
+            "double",
+            "float",
+            "long",
+            "int",
+            "short",
+            "byte",
+            "nonNegativeInteger",
+            "positiveInteger",
+            "nonPositiveInteger",
+            "negativeInteger",
+            "unsignedLong",
+            "unsignedInt",
+            "unsignedShort",
+            "unsignedByte",
+        ] {
+            // nonPositive/negative datatypes accept a non-positive lexical; use "0"
+            // for those, "1" otherwise — both must parse to a numeric value.
+            let lexical = if dt.contains("nonPositive") || dt.starts_with("negative") {
+                "0"
+            } else {
+                "1"
+            };
+            assert!(
+                numeric_value(&xsd_lit(lexical, dt)).is_some(),
+                "xsd:{dt} must be read as numeric"
+            );
+        }
+        // A non-numeric typed literal stays non-numeric.
+        assert!(numeric_value(&xsd_lit("x", "string")).is_none());
+        // A plain IRI is never numeric.
+        assert!(numeric_value(&ex("thing")).is_none());
     }
 
     fn shape_with(id: &str, constraints: Vec<Constraint>) -> Shape {
@@ -1418,8 +1510,14 @@ mod tests {
         }
     }
 
-    fn load_store(ttl: &str) -> Store {
-        crate::text_ingest::parse_turtle_to_store(ttl).expect("Turtle parse")
+    fn load_store(ttl: &str) -> IrDataGraph {
+        let dataset = crate::text_ingest::parse_turtle_to_dataset(ttl).expect("Turtle parse");
+        // Apply the same SHACL projection `validate_dataset` uses, so RDF-1.2
+        // reifier bindings are materialized as `rdf:reifies` quads the engine's
+        // reifier-shape lookup can find (the IR keeps reifiers in a side table).
+        let projected =
+            crate::engine::shacl_dataset_from_dataset(&dataset).expect("SHACL projection");
+        IrDataGraph::new(projected)
     }
 
     fn component_iri(results: &[ValidationResult]) -> Vec<String> {
@@ -1433,7 +1531,7 @@ mod tests {
         roles.iter().map(|role| role.as_str()).collect()
     }
 
-    fn named_role(role: oxigraph::model::NamedNodeRef<'static>) -> NamedNode {
+    fn named_role(role: &str) -> NamedNode {
         NamedNode::from(role)
     }
 
@@ -1489,16 +1587,13 @@ mod tests {
         let results = validate_shape(&store, &ex("a"), &shape);
         assert_eq!(results.len(), 1);
         let source_roles = role_iris(&results[0].source_box_roles);
-        assert!(source_roles.contains(&gmeow::BOX_TBOX.as_str()));
-        assert!(source_roles.contains(&gmeow::BOX_CONFIG_BOX.as_str()));
-        assert_eq!(
-            role_iris(&results[0].path_box_roles),
-            [gmeow::BOX_RBOX.as_str()]
-        );
+        assert!(source_roles.contains(&gmeow::BOX_TBOX));
+        assert!(source_roles.contains(&gmeow::BOX_CONFIG_BOX));
+        assert_eq!(role_iris(&results[0].path_box_roles), [gmeow::BOX_RBOX]);
         let result_roles = role_iris(&results[0].result_box_roles);
-        assert!(result_roles.contains(&gmeow::BOX_TBOX.as_str()));
-        assert!(result_roles.contains(&gmeow::BOX_CONFIG_BOX.as_str()));
-        assert!(result_roles.contains(&gmeow::BOX_RBOX.as_str()));
+        assert!(result_roles.contains(&gmeow::BOX_TBOX));
+        assert!(result_roles.contains(&gmeow::BOX_CONFIG_BOX));
+        assert!(result_roles.contains(&gmeow::BOX_RBOX));
     }
 
     #[test]
@@ -1547,13 +1642,13 @@ mod tests {
         assert_eq!(results.len(), 1);
         assert!(component_iri(&results)[0].contains("ReifierShapeConstraintComponent"));
         let source_roles = role_iris(&results[0].source_box_roles);
-        assert!(source_roles.contains(&gmeow::BOX_TBOX.as_str()));
-        assert!(source_roles.contains(&gmeow::BOX_CBOX.as_str()));
-        assert!(source_roles.contains(&gmeow::BOX_CONFIG_BOX.as_str()));
+        assert!(source_roles.contains(&gmeow::BOX_TBOX));
+        assert!(source_roles.contains(&gmeow::BOX_CBOX));
+        assert!(source_roles.contains(&gmeow::BOX_CONFIG_BOX));
         let result_roles = role_iris(&results[0].result_box_roles);
-        assert!(result_roles.contains(&gmeow::BOX_TBOX.as_str()));
-        assert!(result_roles.contains(&gmeow::BOX_CBOX.as_str()));
-        assert!(result_roles.contains(&gmeow::BOX_CONFIG_BOX.as_str()));
+        assert!(result_roles.contains(&gmeow::BOX_TBOX));
+        assert!(result_roles.contains(&gmeow::BOX_CBOX));
+        assert!(result_roles.contains(&gmeow::BOX_CONFIG_BOX));
     }
 
     // ── maxCount ───────────────────────────────────────────────────────────────
@@ -1963,7 +2058,9 @@ mod tests {
     fn unique_lang_fail() {
         // Load two English-tagged literals via N-Triples (Turtle deduplicates in the store).
         let nt = format!("<{EX}a> <{EX}label> \"Hello\"@en .\n<{EX}a> <{EX}label> \"Hi\"@en .\n");
-        let store = crate::text_ingest::parse_ntriples_to_store(&nt).expect("N-Triples parse");
+        let store = IrDataGraph::new(
+            crate::text_ingest::parse_ntriples_to_dataset(&nt).expect("N-Triples parse"),
+        );
         let shape = prop_shape(
             "S",
             &format!("{EX}label"),
@@ -2593,11 +2690,11 @@ mod tests {
         assert_eq!(results.len(), 1, "ex:age is an undeclared predicate");
         assert_eq!(
             role_iris(&results[0].path_box_roles),
-            [gmeow::BOX_RBOX.as_str()],
+            [gmeow::BOX_RBOX],
             "closed-world violation must carry the offending predicate's box roles"
         );
         assert!(
-            role_iris(&results[0].result_box_roles).contains(&gmeow::BOX_RBOX.as_str()),
+            role_iris(&results[0].result_box_roles).contains(&gmeow::BOX_RBOX),
             "merged result roles must include the predicate's path role"
         );
     }

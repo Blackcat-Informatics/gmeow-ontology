@@ -21,8 +21,6 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use oxigraph::model::NamedNode;
-
 use crate::error::SliceError;
 use crate::mapping_support::{collect_dsl_store, object_literal, subjects_of_type};
 
@@ -54,9 +52,7 @@ pub fn emit_dsl_stats(root: &Path) -> Result<String, SliceError> {
     let mut equivalences: u64 = 0;
     for cell_iri in subjects_of_type(&store, GM_TERM_EQUIVALENCE)? {
         equivalences += 1;
-        let cell = NamedNode::new(&cell_iri)
-            .map_err(|e| SliceError::Parse(format!("invalid cell IRI {cell_iri}: {e}")))?;
-        let Some(sssom_file) = object_literal(&store, &cell, GM_SSSOM_FILE)? else {
+        let Some(sssom_file) = object_literal(&store, &cell_iri, GM_SSSOM_FILE)? else {
             return Err(SliceError::Parse(format!(
                 "term equivalence {cell_iri} missing sssomFile"
             )));
@@ -74,9 +70,7 @@ pub fn emit_dsl_stats(root: &Path) -> Result<String, SliceError> {
     let mut mapping_set_files: std::collections::BTreeSet<String> =
         std::collections::BTreeSet::new();
     for set_iri in subjects_of_type(&store, GM_MAPPING_SET)? {
-        let set = NamedNode::new(&set_iri)
-            .map_err(|e| SliceError::Parse(format!("invalid mapping set IRI {set_iri}: {e}")))?;
-        let Some(file) = object_literal(&store, &set, GM_SSSOM_FILE)? else {
+        let Some(file) = object_literal(&store, &set_iri, GM_SSSOM_FILE)? else {
             return Err(SliceError::Parse(format!(
                 "mapping set {set_iri} missing sssomFile"
             )));

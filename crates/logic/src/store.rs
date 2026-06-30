@@ -4,35 +4,39 @@
 //! World-indexed named-graph store.
 //!
 //! World-indexed semantics only: no dataset-union queries are provided.
-//! Each world is isolated in its own named graph. The `WorldStore` wraps an
-//! in-memory [`oxigraph::store::Store`] and routes every insert and query
-//! through the named-graph IRI that identifies the world.
+//! Each world is isolated in its own named graph. The `WorldStore` wraps a
+//! native [`MutableDataset`] (oxigraph-free) and routes every insert and query
+//! through the named-graph IRI that identifies the world. Named graphs are
+//! first-class in the dataset IR, so a world is exactly the dataset's named
+//! graph whose graph term is that IRI.
 
-use oxigraph::model::{
-    GraphName, GraphNameRef, NamedNode, NamedNodeRef, NamedOrBlankNode, NamedOrBlankNodeRef, Quad,
-    Term,
+use std::cell::RefCell;
+use std::sync::Arc;
+
+use gmeow_rdf::{
+    parse_dataset, DatasetMut, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, TermValue,
 };
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
-use oxigraph::store::Store;
-
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::{parse_dataset, RdfDataset};
 
 /// A world-indexed RDF store.
 ///
-/// Each world is an oxigraph named graph identified by an IRI string. Only
-/// world-indexed (named-graph–scoped) operations are exposed; no cross-graph
-/// union queries exist by design. This is the core isolation guarantee: a
-/// triple inserted into world A is never visible through a query on world B.
+/// Each world is a named graph identified by an IRI string. Only world-indexed
+/// (named-graph–scoped) operations are exposed; no cross-graph union queries
+/// exist by design. This is the core isolation guarantee: a triple inserted into
+/// world A is never visible through a query on world B.
+///
+/// The backing [`MutableDataset`] is wrapped in a [`RefCell`] so the historic
+/// `&self` insert/query API is preserved without threading any `&mut` through the
+/// reasoning call graph. The store is never shared across threads while mutated
+/// (the multi-world chase reads facts out first, then parallelises over those).
 pub struct WorldStore {
-    inner: Store,
+    inner: RefCell<MutableDataset>,
 }
 
 impl WorldStore {
     /// Create a new, empty in-memory `WorldStore`.
     pub fn new() -> Self {
         Self {
-            inner: Store::new().expect("in-memory oxigraph Store::new() is infallible"),
+            inner: RefCell::new(MutableDataset::new(Arc::new(RdfDataset::union(&[])))),
         }
     }
 
@@ -57,45 +61,37 @@ impl WorldStore {
 
     /// Load a frozen RDF dataset into the world-indexed store, preserving named graphs.
     ///
-    /// GTS-backed sources, oxigraph-parsed stores, and future sidecar-aware inputs
-    /// all cross into LOGIC as the concrete `RdfDataset` IR. Named graphs are
-    /// retained as worlds; default-graph quads are loaded but remain inaccessible
-    /// through the world-only APIs by design.
+    /// GTS-backed sources and future sidecar-aware inputs all cross into LOGIC as
+    /// the concrete `RdfDataset` IR. Named graphs are retained as worlds;
+    /// default-graph quads are loaded but remain inaccessible through the
+    /// world-only APIs by design.
     ///
     /// # Errors
     ///
-    /// Returns `Err(String)` if the dataset cannot be materialized into
-    /// oxigraph or if an insert into the in-memory store fails.
+    /// Infallible in practice (the in-memory delta insert cannot fail); the
+    /// `Result` is kept for API stability with the callers.
     pub fn load_dataset(&self, source: &RdfDataset) -> Result<(), String> {
-        let materialized = store_from_dataset(source, GraphPolicy::PreserveNamedGraphs)
-            .map_err(|e| e.to_string())?;
-        for quad in materialized.iter() {
-            let quad = quad.map_err(|e| format!("RDF store iteration failed: {e}"))?;
-            self.inner
-                .insert(&quad)
-                .map_err(|e| format!("world store insert failed: {e}"))?;
+        let mut inner = self.inner.borrow_mut();
+        for quad in source.quads() {
+            inner.insert(QuadValues {
+                s: source.term_value(quad.s),
+                p: source.term_value(quad.p),
+                o: source.term_value(quad.o),
+                g: quad.g.map(|g| source.term_value(g)),
+            });
         }
         Ok(())
     }
 
     /// Insert the triple `(s, p, o)` — all IRI strings — into the named graph
     /// whose IRI is `world`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if any of the IRI strings is not a valid IRI.
     pub fn insert_quad(&self, world: &str, s: &str, p: &str, o: &str) {
-        let subject =
-            NamedNode::new(s).unwrap_or_else(|e| panic!("invalid subject IRI {s:?}: {e}"));
-        let predicate =
-            NamedNode::new(p).unwrap_or_else(|e| panic!("invalid predicate IRI {p:?}: {e}"));
-        let object = NamedNode::new(o).unwrap_or_else(|e| panic!("invalid object IRI {o:?}: {e}"));
-        let graph =
-            NamedNode::new(world).unwrap_or_else(|e| panic!("invalid world IRI {world:?}: {e}"));
-        let quad = Quad::new(subject, predicate, object, graph);
-        self.inner
-            .insert(&quad)
-            .expect("in-memory store insert is infallible");
+        self.inner.borrow_mut().insert(QuadValues {
+            s: TermValue::iri(s),
+            p: TermValue::iri(p),
+            o: TermValue::iri(o),
+            g: Some(TermValue::iri(world)),
+        });
     }
 
     /// Insert an already-materialized RDF triple into the named graph `world`.
@@ -106,64 +102,55 @@ impl WorldStore {
     ///
     /// # Errors
     ///
-    /// Returns `Err(String)` if `world` is not a valid IRI or if the in-memory
-    /// store rejects the insert.
+    /// Infallible in practice; the `Result` is kept for API stability.
     pub fn insert_quad_terms(
         &self,
         world: &str,
-        subject: NamedOrBlankNode,
-        predicate: NamedNode,
-        object: Term,
+        subject: TermValue,
+        predicate: TermValue,
+        object: TermValue,
     ) -> Result<(), String> {
-        let graph = NamedNode::new(world)
-            .map_err(|e| format!("invalid world IRI {world:?} for insert: {e}"))?;
-        let quad = Quad::new(subject, predicate, object, graph);
-        self.inner
-            .insert(&quad)
-            .map_err(|e| format!("world store insert failed: {e}"))?;
+        self.inner.borrow_mut().insert(QuadValues {
+            s: subject,
+            p: predicate,
+            o: object,
+            g: Some(TermValue::iri(world)),
+        });
         Ok(())
     }
 
     /// Return all quads in the named graph `world`, in unspecified order.
     ///
     /// Returns `Vec<[String; 4]>` where each element is
-    /// `[subject_iri, predicate_iri, object_iri, world_iri]`.
-    /// Only the quads stored under that exact named graph are returned;
-    /// no cross-world union is performed.
+    /// `[subject_n3, predicate_n3, object_n3, world_iri]`. Components are rendered
+    /// in N3/Turtle term form (IRIs as `<iri>`, literals as `"lex"^^<dt>`), matching
+    /// the prior oxigraph `Term::to_string()` rendering. Only the quads stored under
+    /// that exact named graph are returned; no cross-world union is performed.
     pub fn quads_in_world(&self, world: &str) -> Vec<[String; 4]> {
-        let graph_node = match NamedNode::new(world) {
-            Ok(n) => n,
-            Err(_) => return vec![],
-        };
-        let graph_ref: GraphNameRef<'_> = GraphNameRef::NamedNode(graph_node.as_ref());
-        self.inner
-            .quads_for_pattern(None::<NamedOrBlankNodeRef<'_>>, None, None, Some(graph_ref))
-            .filter_map(|r| {
-                r.ok().map(|q| {
-                    [
-                        q.subject.to_string(),
-                        q.predicate.to_string(),
-                        q.object.to_string(),
-                        match &q.graph_name {
-                            GraphName::NamedNode(n) => n.as_str().to_owned(),
-                            GraphName::BlankNode(b) => b.as_str().to_owned(),
-                            GraphName::DefaultGraph => String::new(),
-                        },
-                    ]
-                })
+        self.pattern(world, None, None, None)
+            .into_iter()
+            .map(|q| {
+                [
+                    crate::provenance::term_display(&q.s),
+                    crate::provenance::term_display(&q.p),
+                    crate::provenance::term_display(&q.o),
+                    q.g.as_ref()
+                        .and_then(|g| g.as_iri())
+                        .unwrap_or("")
+                        .to_owned(),
+                ]
             })
             .collect()
     }
 
-    /// Return the oxigraph [`Quad`]s in `world` matching the optional `(s, p, o)` IRI pattern.
+    /// Return the [`QuadValues`] in `world` matching the optional `(s, p, o)` IRI pattern.
     ///
     /// Each of `s`, `p`, `o` is an optional IRI string filter:
     /// - `Some(iri)` — restrict to quads where that component equals the IRI.
     /// - `None` — no restriction on that component.
     ///
     /// Queries are scoped exclusively to the named graph `world`; no cross-world
-    /// union is performed (world-indexed only).  If `world` is not a valid IRI,
-    /// returns `vec![]` (mirrors [`Self::quads_in_world`]).
+    /// union is performed (world-indexed only).
     ///
     /// Used by the SPARQL fast path and the facts-as-DB snapshot in the seam layer.
     pub fn quads_for_pattern_in_world(
@@ -172,43 +159,30 @@ impl WorldStore {
         s: Option<&str>,
         p: Option<&str>,
         o: Option<&str>,
-    ) -> Vec<Quad> {
-        let graph_node = match NamedNode::new(world) {
-            Ok(n) => n,
-            Err(_) => return vec![],
-        };
-        let graph_ref: GraphNameRef<'_> = GraphNameRef::NamedNode(graph_node.as_ref());
+    ) -> Vec<QuadValues> {
+        self.pattern(world, s, p, o)
+    }
 
-        // Build optional NamedNode filters; silently drop quads whose filter IRI
-        // is invalid (caller invariant: filter IRIs are pre-validated).
-        let subject_nn: Option<NamedNode> = s.and_then(|iri| NamedNode::new(iri).ok());
-        let predicate_nn: Option<NamedNode> = p.and_then(|iri| NamedNode::new(iri).ok());
-        let object_nn: Option<NamedNode> = o.and_then(|iri| NamedNode::new(iri).ok());
-
-        // If a filter IRI was provided but invalid, return empty immediately — the
-        // pattern can never match.
-        if s.is_some() && subject_nn.is_none() {
-            return vec![];
-        }
-        if p.is_some() && predicate_nn.is_none() {
-            return vec![];
-        }
-        if o.is_some() && object_nn.is_none() {
-            return vec![];
-        }
-
-        let subject_ref: Option<NamedOrBlankNodeRef<'_>> = subject_nn
-            .as_ref()
-            .map(|n| NamedOrBlankNodeRef::NamedNode(n.as_ref()));
-        let predicate_ref: Option<NamedNodeRef<'_>> = predicate_nn.as_ref().map(|n| n.as_ref());
-        let object_term: Option<Term> = object_nn.map(Term::NamedNode);
-        let object_ref: Option<oxigraph::model::TermRef<'_>> =
-            object_term.as_ref().map(|t| t.as_ref());
-
-        self.inner
-            .quads_for_pattern(subject_ref, predicate_ref, object_ref, Some(graph_ref))
-            .filter_map(|r| r.ok())
-            .collect()
+    /// Internal: resolve a world+pattern to the matching value-quads. The pattern
+    /// components are IRI filters (the prior oxigraph path only ever bound IRI
+    /// positions, never literals).
+    fn pattern(
+        &self,
+        world: &str,
+        s: Option<&str>,
+        p: Option<&str>,
+        o: Option<&str>,
+    ) -> Vec<QuadValues> {
+        let sv = s.map(TermValue::iri);
+        let pv = p.map(TermValue::iri);
+        let ov = o.map(TermValue::iri);
+        let gv = TermValue::iri(world);
+        self.inner.borrow().quads_for_pattern(
+            sv.as_ref(),
+            pv.as_ref(),
+            ov.as_ref(),
+            GraphMatchValue::Named(&gv),
+        )
     }
 
     /// Run a SPARQL SELECT query over the world-indexed store.
@@ -229,29 +203,46 @@ impl WorldStore {
         &self,
         sparql: &str,
     ) -> Result<Vec<std::collections::BTreeMap<String, String>>, String> {
-        let results = SparqlEvaluator::new()
-            .parse_query(sparql)
-            .map_err(|e| format!("SPARQL parse error: {e}"))?
-            .on_store(&self.inner)
-            .execute()
+        use gmeow_rdf::{SparqlEngine, SparqlRequest, SparqlResult};
+        use gmeow_sparql_eval::NativeSparqlEngine;
+
+        let dataset = self
+            .inner
+            .borrow()
+            .freeze()
+            .map_err(|e| format!("freeze failed in select: {e}"))?;
+
+        let engine = NativeSparqlEngine::new();
+        let result = engine
+            .query(
+                &dataset,
+                SparqlRequest {
+                    query: sparql,
+                    base_iri: None,
+                    substitutions: &[],
+                },
+            )
             .map_err(|e| format!("SPARQL evaluation error: {e}"))?;
 
-        match results {
-            QueryResults::Solutions(solutions) => {
+        match result {
+            SparqlResult::Solutions {
+                variables, rows, ..
+            } => {
                 let mut out = Vec::new();
-                for sol in solutions {
-                    let sol = sol.map_err(|e| format!("SPARQL solution error: {e}"))?;
-                    let mut row = std::collections::BTreeMap::new();
-                    for (var, term) in sol.iter() {
-                        let canonical = crate::provenance::term_n3(term)
-                            .map_err(|e| format!("term_n3 failed in select: {e}"))?;
-                        row.insert(var.as_str().to_owned(), canonical);
+                for row in rows {
+                    let mut bindings = std::collections::BTreeMap::new();
+                    for (var, cell) in variables.iter().zip(row.iter()) {
+                        if let Some(term) = cell {
+                            let canonical = crate::provenance::term_n3(term)
+                                .map_err(|e| format!("term_n3 failed in select: {e}"))?;
+                            bindings.insert(var.clone(), canonical);
+                        }
                     }
-                    out.push(row);
+                    out.push(bindings);
                 }
                 Ok(out)
             }
-            QueryResults::Boolean(_) | QueryResults::Graph(_) => Err(
+            SparqlResult::Boolean(_) | SparqlResult::Graph(_) => Err(
                 "select() requires a SPARQL SELECT query; got ASK or CONSTRUCT/DESCRIBE".to_owned(),
             ),
         }
@@ -259,15 +250,15 @@ impl WorldStore {
 
     /// Return the distinct world IRIs (named graph IRIs) present in the store.
     pub fn worlds(&self) -> Vec<String> {
-        self.inner
-            .named_graphs()
-            .filter_map(|r| {
-                r.ok().and_then(|g| match g {
-                    oxigraph::model::NamedOrBlankNode::NamedNode(n) => Some(n.as_str().to_owned()),
-                    oxigraph::model::NamedOrBlankNode::BlankNode(_) => None,
-                })
-            })
-            .collect()
+        let inner = self.inner.borrow();
+        let all = inner.quads_for_pattern(None, None, None, GraphMatchValue::Any);
+        let mut seen = std::collections::BTreeSet::new();
+        for q in all {
+            if let Some(iri) = q.g.as_ref().and_then(|g| g.as_iri()) {
+                seen.insert(iri.to_owned());
+            }
+        }
+        seen.into_iter().collect()
     }
 }
 
@@ -402,8 +393,8 @@ mod tests {
         let quads = store.quads_for_pattern_in_world(WORLD_A, None, None, None);
         assert_eq!(quads.len(), 1, "world A has exactly 1 quad");
         assert_eq!(
-            quads[0].subject.to_string(),
-            format!("<{}>", S_A),
+            quads[0].s.as_iri(),
+            Some(S_A),
             "subject must be world A's subject"
         );
     }
@@ -452,7 +443,7 @@ mod tests {
         let quads_a = store.quads_for_pattern_in_world(WORLD_A, None, None, None);
         for q in &quads_a {
             assert!(
-                !q.subject.to_string().contains("s/b"),
+                !q.s.as_iri().unwrap_or_default().contains("s/b"),
                 "world A pattern returned world B's quad: {q:?}"
             );
         }
@@ -460,7 +451,7 @@ mod tests {
         let quads_b = store.quads_for_pattern_in_world(WORLD_B, None, None, None);
         for q in &quads_b {
             assert!(
-                !q.subject.to_string().contains("s/a"),
+                !q.s.as_iri().unwrap_or_default().contains("s/a"),
                 "world B pattern returned world A's quad: {q:?}"
             );
         }

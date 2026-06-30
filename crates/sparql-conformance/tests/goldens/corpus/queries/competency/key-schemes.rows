@@ -1,0 +1,5 @@
+scheme
+[Some(Iri("https://blackcatinformatics.ca/gmeow/keySchemeNostr"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/keySchemePGP"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/keySchemeSSH"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/keySchemeX509"))]

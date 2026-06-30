@@ -4,8 +4,11 @@
 //! Native RDF text codecs (#909 / EPIC #906 S3).
 //!
 //! The codec-only backend that parses and serializes Turtle / TriG / N-Triples /
-//! N-Quads / RDF/XML through the published `gmeow-gts` codecs, emitting through the
-//! `gmeow-rdf-events` seam into the frozen [`RdfDataset`] IR. It implements the narrow
+//! N-Quads / RDF/XML, emitting through the `gmeow-rdf-events` seam into the frozen
+//! [`RdfDataset`] IR. The line/Turtle family and RDF/XML are now FIRST-PARTY (EPIC
+//! #906: `text_parse` for the line/Turtle family, `rdfxml` for RDF/XML); they no
+//! longer route through the external `gmeow-gts` text/RDF-XML codecs. It implements
+//! the narrow
 //! [`RdfParserBackend`]/[`RdfSerializer`] traits and is **codec-only** — it never
 //! touches the oxigraph Store, so it compiles under `--no-default-features --features
 //! gts` (no oxigraph). That is the EPIC #906 end-state: the text path needs no Store.
@@ -19,9 +22,21 @@ mod media_type;
 // `fold_statement_layer` (one fold, no drift) — #909 Task 1.
 pub(crate) mod parse;
 mod serialize;
+// First-party N-Triples / N-Quads / Turtle / TriG text parser (EPIC #906): lowers
+// directly to the in-memory GtsGraph the statement-layer fold consumes, replacing the
+// gmeow-gts text codecs for the line/Turtle family.
+mod text_parse;
+// First-party RDF/XML codec (EPIC #906): implements the W3C RDF/XML grammar in-repo on
+// a pure-Rust XML DOM (`roxmltree`), lowering to / rising from the `gmeow_gts::rdf`
+// dataset model — replacing the external `gmeow_gts::rdf_codecs::{from_rdf_xml,
+// to_rdf_xml}` codec entry points (the first-party mandate).
+mod rdfxml;
 
 pub use media_type::{classify, NativeRdfFormat};
 pub use parse::parse_dataset;
+// First-party RDF/XML codec entry points (EPIC #906), used by the PyO3 compat surface
+// (`py_gts`) for `to_rdf_xml`/`from_rdf_xml`.
+pub use rdfxml::{parse_rdfxml_to_gts_graph, serialize_gts_graph_to_rdfxml};
 pub use serialize::{
     serialize_dataset, serialize_dataset_base_only, serialize_dataset_to_format, SerializeOutcome,
 };

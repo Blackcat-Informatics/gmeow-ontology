@@ -14,7 +14,7 @@ use crate::rule_ir::{least_model_of_reduct, parse_eval_rules, Fact, FactStore};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{PathBase, PathShapeIr};
 use gmeow_logic_compile::projections::paths::*;
-use oxigraph::model::{NamedNode as OxNamedNode, Term};
+use gmeow_rdf::TermValue;
 
 fn shape(iri: &str, base: PathBase, min: u32, max: Option<u32>, ns: Option<&str>) -> PathShapeIr {
     PathShapeIr::new(
@@ -155,9 +155,9 @@ ex:nearbyOrgs a logic:PathShape ;
 
 fn fact(s: &str, p: &str, o: &str) -> Fact {
     Fact {
-        subject: Term::NamedNode(OxNamedNode::new(s.to_owned()).unwrap()),
-        predicate: OxNamedNode::new(p.to_owned()).unwrap(),
-        object: Term::NamedNode(OxNamedNode::new(o.to_owned()).unwrap()),
+        subject: TermValue::iri(s),
+        predicate: p.to_owned(),
+        object: TermValue::iri(o),
     }
 }
 
@@ -383,8 +383,8 @@ fn nearby_orgs_wildcard_runs_on_the_native_engine() {
 // queries/competency/named-parametric-paths.rq) exercises the bounded path
 // logic:nearbyOrgs over a four-node chain.  GMEOW's native projection lowers that
 // shape to the EXTENDED SPARQL property path `<...linkedTo>{1,2}`; standard SPARQL
-// engines (oxigraph, which runs the competency cell) cannot parse a `{m,n}`
-// quantifier — that is precisely the §9 gap issue #1010 closes — so the .rq embeds
+// engines (the native SPARQL engine that runs the competency cell) cannot parse a
+// `{m,n}` quantifier — that is precisely the §9 gap issue #1010 closes — so the .rq embeds
 // the licensed standard-SPARQL down-projection `(linkedTo|linkedTo/linkedTo)`.
 // This golden pins the lossless extended-SPARQL projection output: if the
 // projection drifts, this test fails (rust-first anti-drift), independent of the
@@ -392,7 +392,7 @@ fn nearby_orgs_wildcard_runs_on_the_native_engine() {
 
 /// The lossless extended-SPARQL property path GMEOW's projection emits for the
 /// bounded `nearbyOrgs` shape (the §9-extended `{1,2}` form, not the standard-SPARQL
-/// down-projection the competency `.rq` executes on oxigraph).
+/// down-projection the competency `.rq` executes on the native SPARQL engine).
 const NEARBY_ORGS_PROJECTED_PATH: &str =
     "<https://blackcatinformatics.ca/gmeow/examples/logic/tests/linkedTo>{1,2}";
 

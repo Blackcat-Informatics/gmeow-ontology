@@ -104,6 +104,8 @@ pub enum Token {
     TripleOpen,
     /// `>>` (RDF 1.2 triple-term close)
     TripleClose,
+    /// `~` (RDF 1.2 reifier marker, e.g. `:s :p :o ~ :r`)
+    Tilde,
 }
 
 /// A token plus its half-open source byte span `[start, end)`.
@@ -216,6 +218,7 @@ impl<'a> Lexer<'a> {
             '-' => self.single(Token::Minus),
             '!' => Ok(self.two_or_one('!', Token::Bang, '=', Token::NotEq, Token::Bang)),
             '=' => self.single(Token::Eq),
+            '~' => self.single(Token::Tilde),
             '&' => self.lex_and(start),
             '0'..='9' => Ok(self.lex_number()),
             '.' => Ok(self.lex_number()), // a leading-dot decimal like `.5`
@@ -532,12 +535,78 @@ impl<'a> Lexer<'a> {
 
     /// `PN_LOCAL`: like a prefix but may also start with a digit or `_`/`:`; must
     /// not end with `.`.
+    ///
+    /// A backslash starts a `PN_LOCAL_ESC` (SPARQL 1.1 §19.8 / Turtle): `\` followed
+    /// by one of `_~.-!$&'()*+,;=/?#@%` denotes that literal character in the local
+    /// name (so `dbr:Semantic_analysis_\(linguistics\)` is one prefixed name whose
+    /// local part is `Semantic_analysis_(linguistics)`). The escaped character is
+    /// emitted UNESCAPED into the returned local — the value-space form the IRI
+    /// expansion uses — and never terminates the scan even when it is a delimiter.
+    /// A trailing UNescaped `.` is the statement terminator and is pushed back; an
+    /// escaped `\.` is a literal dot in PN_LOCAL and is kept.
     fn take_local(&mut self) -> String {
-        let raw = self.take_while(|c| is_pn_chars(c) || c == '.' || c == ':' || c == '%');
-        let trimmed = raw.trim_end_matches('.');
-        self.pos -= raw.chars().count() - trimmed.chars().count();
-        trimmed.to_string()
+        let mut out = String::new();
+        let mut trailing_dots = 0usize;
+        while let Some(c) = self.cur() {
+            if c == '\\' {
+                // PN_LOCAL_ESC: consume the backslash and emit the next char verbatim.
+                if let Some(escaped) = self.peek(1).filter(|e| is_pn_local_esc(*e)) {
+                    out.push(escaped);
+                    self.pos += 2;
+                    trailing_dots = 0;
+                    continue;
+                }
+                break; // a non-PN_LOCAL_ESC backslash does not belong to the local name
+            }
+            if c == '.' {
+                // A dot may be internal, but a RUN of trailing dots is the terminator;
+                // track the run and trim it after the scan.
+                out.push(c);
+                trailing_dots += 1;
+                self.pos += 1;
+                continue;
+            }
+            if is_pn_chars(c) || c == ':' || c == '%' {
+                out.push(c);
+                trailing_dots = 0;
+                self.pos += 1;
+            } else {
+                break;
+            }
+        }
+        if trailing_dots > 0 {
+            // Push back the trailing-dot run: it is the statement terminator.
+            out.truncate(out.len() - trailing_dots);
+            self.pos -= trailing_dots;
+        }
+        out
     }
+}
+
+/// The set of characters a Turtle/SPARQL `PN_LOCAL_ESC` (`\X`) may escape (§19.8).
+fn is_pn_local_esc(c: char) -> bool {
+    matches!(
+        c,
+        '_' | '~'
+            | '.'
+            | '-'
+            | '!'
+            | '$'
+            | '&'
+            | '\''
+            | '('
+            | ')'
+            | '*'
+            | '+'
+            | ','
+            | ';'
+            | '='
+            | '/'
+            | '?'
+            | '#'
+            | '@'
+            | '%'
+    )
 }
 
 fn is_pn_chars_base(c: char) -> bool {

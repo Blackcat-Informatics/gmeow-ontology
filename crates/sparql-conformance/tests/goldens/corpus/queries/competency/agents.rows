@@ -1,0 +1,8 @@
+agentKind
+[Some(Iri("http://www.w3.org/ns/org#FormalOrganization"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Agent"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Builder"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Organization"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Person"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/Sensor"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/SoftwareAgent"))]

@@ -27,7 +27,6 @@
 //! All CBOR encoding, canonicalization, frame-id chaining, and signing is
 //! delegated to `gmeow-gts` — never hand-rolled.
 
-use oxigraph::model::Quad;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyList};
@@ -36,10 +35,10 @@ use crate::bundle::{RdfBundle, UnitMetadata};
 // The byte-emitting compose core now lives in the pyo3-free `gts_compose` module
 // (#861 P6); this surface is the thin pyo3 wrapper that delegates to it.
 use crate::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
-use crate::ir::{RdfDataset, RdfDatasetBuilder};
+use crate::ir::RdfDataset;
 use crate::provenance::{DatasetProvenance, OriginKind};
 use crate::py_store::{parse_quads, PyRdfFormat};
-use crate::NativeRdfFormat;
+use crate::{flat_dataset_from_quads, NativeRdfFormat, RdfQuad};
 
 /// The `rep`-label prefix every S3 slice-artifact blob carries (#820 S3). A blob
 /// authored from the slice catalog rides ahead of the snapshot with
@@ -63,75 +62,11 @@ struct SliceArtifactRow {
     content: Vec<u8>,
 }
 
-/// Intern an oxigraph subject/blank node into the IR builder.
-fn intern_ir_subject(
-    b: &mut RdfDatasetBuilder,
-    s: &oxigraph::model::NamedOrBlankNode,
-) -> crate::ir::TermId {
-    use crate::ir::BlankScope;
-    use oxigraph::model::NamedOrBlankNode;
-    match s {
-        NamedOrBlankNode::NamedNode(n) => b.intern_iri(n.as_str().to_string()),
-        NamedOrBlankNode::BlankNode(bn) => {
-            b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT)
-        }
-    }
-}
-
-/// Intern an oxigraph object term into the IR builder (recursive for triple terms).
-fn intern_ir_object(b: &mut RdfDatasetBuilder, o: &oxigraph::model::Term) -> crate::ir::TermId {
-    use crate::{RdfLiteral, RdfTextDirection};
-    use oxigraph::model::{BaseDirection, Term as OxTerm};
-    match o {
-        OxTerm::NamedNode(n) => b.intern_iri(n.as_str().to_string()),
-        OxTerm::BlankNode(bn) => {
-            use crate::ir::BlankScope;
-            b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT)
-        }
-        OxTerm::Literal(l) => {
-            let direction = l.direction().map(|d| match d {
-                BaseDirection::Ltr => RdfTextDirection::Ltr,
-                BaseDirection::Rtl => RdfTextDirection::Rtl,
-            });
-            b.intern_literal(RdfLiteral {
-                lexical_form: l.value().to_string(),
-                datatype: Some(l.datatype().as_str().to_string()),
-                language: l.language().map(str::to_string),
-                direction,
-            })
-        }
-        OxTerm::Triple(t) => {
-            let s = intern_ir_subject(b, &t.subject);
-            let p = b.intern_iri(t.predicate.as_str().to_string());
-            let inner_o = intern_ir_object(b, &t.object);
-            b.intern_triple(s, p, inner_o)
-        }
-    }
-}
-
-/// Build a frozen [`RdfDataset`] from a flat oxigraph quad list. Used so the
-/// production [`RdfBundle`] carries the actual hot graph (not a placeholder) while
-/// it gates the artifact index.
-fn dataset_from_ox_quads(quads: &[Quad]) -> Result<std::sync::Arc<RdfDataset>, String> {
-    use crate::ir::BlankScope;
-    use oxigraph::model::GraphName;
-
-    let mut b = RdfDatasetBuilder::new();
-    for q in quads {
-        let s = intern_ir_subject(&mut b, &q.subject);
-        let p = b.intern_iri(q.predicate.as_str().to_string());
-        let o = intern_ir_object(&mut b, &q.object);
-        let g = match &q.graph_name {
-            GraphName::DefaultGraph => None,
-            GraphName::NamedNode(n) => Some(b.intern_iri(n.as_str().to_string())),
-            GraphName::BlankNode(bn) => {
-                Some(b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT))
-            }
-        };
-        b.push_quad(s, p, o, g);
-    }
-    b.freeze()
-        .map_err(|e| format!("bundle dataset freeze failed: {e}"))
+/// Build a frozen [`RdfDataset`] from a flat native quad list (verbatim, no RDF 1.2
+/// statement-layer fold). Used so the production [`RdfBundle`] carries the actual hot
+/// graph (not a placeholder) while it gates the artifact index.
+fn dataset_from_quads(quads: &[RdfQuad]) -> Result<std::sync::Arc<RdfDataset>, String> {
+    flat_dataset_from_quads(quads)
 }
 
 /// Assemble the self-describing S3 [`RdfBundle`] from the slice-artifact rows and
@@ -145,12 +80,12 @@ fn dataset_from_ox_quads(quads: &[Quad]) -> Result<std::sync::Arc<RdfDataset>, S
 /// assuming one-segment == one-slice. The blob rows ride the SAME channel
 /// `doc_blobs` use; the bundle's `dataset` carries the real hot graph.
 fn assemble_slice_bundle(
-    base_quads: &[Quad],
+    base_quads: &[RdfQuad],
     rows: &[SliceArtifactRow],
 ) -> Result<Vec<BlobRow>, String> {
     const SNAPSHOT_SEGMENT: usize = 0;
 
-    let dataset = dataset_from_ox_quads(base_quads)?;
+    let dataset = dataset_from_quads(base_quads)?;
     let provenance = DatasetProvenance::new();
     let mut bundle = RdfBundle::new(dataset, provenance);
 
@@ -277,12 +212,27 @@ fn secret_array(secret: Option<&Bound<'_, PyBytes>>) -> PyResult<Option<[u8; 32]
     }
 }
 
-/// Parse RDF bytes leniently into oxigraph quads. The lenient parser accepts
+/// Parse RDF bytes leniently into native quads. The lenient parser accepts
 /// private-use language tags (`@x-gmeow-*`) that the strict `gmeow_rdf.Literal`
 /// constructor would reject — the producer therefore lowers rdflib sources to
 /// N-Quads/Turtle bytes and parses HERE, never building `Quad` objects.
-fn parse_rdf(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<Vec<Quad>> {
+fn parse_rdf(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<Vec<RdfQuad>> {
     parse_quads(data.as_bytes(), rdf_format(format))
+        .map_err(|e| PyValueError::new_err(format!("parse error: {e}")))
+}
+
+/// Parse RDF bytes into a frozen native [`RdfDataset`] for `SnapshotBuilder`
+/// ingestion (the native carrier path, #909). The native parse folds the RDF 1.2
+/// statement layer into the dataset's reifier/annotation side-tables and preserves
+/// named graphs, so `add_dataset_scoped` reproduces the legacy oxigraph ingestion
+/// byte-for-byte. The blank-node `scope` is applied at INGESTION (by
+/// `add_dataset_scoped`), not here — `parse_dataset`'s third argument is the base
+/// IRI, never a blank scope. Private-use language tags (`@x-gmeow-*`) survive.
+fn parse_rdf_dataset(
+    data: &Bound<'_, PyBytes>,
+    format: PyRdfFormat,
+) -> PyResult<std::sync::Arc<RdfDataset>> {
+    crate::parse_dataset(data.as_bytes(), rdf_format(format).media_type(), None)
         .map_err(|e| PyValueError::new_err(format!("parse error: {e}")))
 }
 
@@ -300,9 +250,11 @@ fn gts_from_quads(
     profile: &str,
     transform: Option<Vec<String>>,
 ) -> PyResult<Py<PyBytes>> {
-    let ox_quads = parse_rdf(data, format)?;
+    let dataset = parse_rdf_dataset(data, format)?;
     let mut builder = SnapshotBuilder::default();
-    builder.add_quads(&ox_quads, None, None);
+    builder
+        .add_dataset(&dataset)
+        .map_err(PyValueError::new_err)?;
     let bytes = emit_gts(
         &builder,
         profile,
@@ -329,10 +281,10 @@ fn gts_from_rdf12_bytes(
     profile: &str,
     transform: Option<Vec<String>>,
 ) -> PyResult<Py<PyBytes>> {
-    let quads = parse_rdf(data, format)?;
+    let dataset = parse_rdf_dataset(data, format)?;
     let mut builder = SnapshotBuilder::default();
     builder
-        .add_rdf12(&quads, None, None)
+        .add_dataset(&dataset)
         .map_err(PyValueError::new_err)?;
     let bytes = emit_gts(
         &builder,
@@ -353,9 +305,11 @@ fn gts_from_rdf12_bytes(
 /// front half of the JSON-LD-star / RDF-XML serializers. RDF-1.1 quads only
 /// (the compat `Graph` facade carries no quoted-triple terms).
 fn rdf_to_gts_snapshot(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<Vec<u8>> {
-    let ox_quads = parse_rdf(data, format)?;
+    let dataset = parse_rdf_dataset(data, format)?;
     let mut builder = SnapshotBuilder::default();
-    builder.add_quads(&ox_quads, None, None);
+    builder
+        .add_dataset(&dataset)
+        .map_err(PyValueError::new_err)?;
     emit_gts(
         &builder,
         "dist",
@@ -393,26 +347,37 @@ fn from_json_ld(py: Python<'_>, text: &str) -> PyResult<Py<PyBytes>> {
     Ok(PyBytes::new(py, nquads.as_bytes()).unbind())
 }
 
-/// Serialize RDF bytes to **RDF/XML** via the gmeow-gts codec: RDF → GTS snapshot
-/// → `gmeow_gts::rdf_codecs::to_rdf_xml`.
+/// Serialize RDF bytes to **RDF/XML** via the FIRST-PARTY native codec (EPIC #906):
+/// parse the input RDF bytes into the frozen IR, then emit RDF/XML through the in-repo
+/// `native_codecs::rdfxml` serializer — no longer the external gmeow-gts RDF/XML codec.
 #[pyfunction]
 #[pyo3(signature = (data, *, format))]
 fn to_rdf_xml(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<String> {
-    let gts_bytes = rdf_to_gts_snapshot(data, format)?;
-    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
-    gmeow_gts::rdf_codecs::to_rdf_xml(&graph)
-        .map_err(|e| PyValueError::new_err(format!("rdf/xml serialization error: {e}")))
+    let dataset = parse_rdf_dataset(data, format)?;
+    let bytes = crate::serialize_dataset(
+        &dataset,
+        NativeRdfFormat::RdfXml.media_type(),
+        crate::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PyValueError::new_err(format!("rdf/xml serialization error: {e}")))?;
+    String::from_utf8(bytes)
+        .map_err(|e| PyValueError::new_err(format!("rdf/xml serialization produced non-utf8: {e}")))
 }
 
-/// Parse **RDF/XML** text into N-Quads bytes, via the gmeow-gts codec:
-/// `gmeow_gts::rdf_codecs::from_rdf_xml` → GTS → N-Quads.
+/// Parse **RDF/XML** text into N-Quads bytes, via the FIRST-PARTY native codec
+/// (EPIC #906): parse RDF/XML into the frozen IR, then serialize to N-Quads — no longer
+/// the external gmeow-gts RDF/XML codec.
 #[pyfunction]
 fn from_rdf_xml(py: Python<'_>, text: &str) -> PyResult<Py<PyBytes>> {
-    let gts_bytes = gmeow_gts::rdf_codecs::from_rdf_xml(text)
+    let dataset = crate::parse_dataset(text.as_bytes(), NativeRdfFormat::RdfXml.media_type(), None)
         .map_err(|e| PyValueError::new_err(format!("rdf/xml parse error: {e}")))?;
-    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
-    let nquads = gmeow_gts::nquads::to_nquads(&graph);
-    Ok(PyBytes::new(py, nquads.as_bytes()).unbind())
+    let nquads = crate::serialize_dataset(
+        &dataset,
+        NativeRdfFormat::NQuads.media_type(),
+        crate::SerializeGraph::Dataset,
+    )
+    .map_err(|e| PyValueError::new_err(format!("rdf/xml→n-quads serialization error: {e}")))?;
+    Ok(PyBytes::new(py, &nquads).unbind())
 }
 
 /// One named-graph ingest row passed from Python: `(data, format, graph_name, scope)`.
@@ -474,21 +439,29 @@ fn compile_gts_native(
 ) -> PyResult<Py<PyBytes>> {
     let mut builder = SnapshotBuilder::default();
 
-    let base = parse_rdf(base_data, base_format)?;
-    builder.add_quads(&base, None, base_scope.as_deref());
+    let base_dataset = parse_rdf_dataset(base_data, base_format)?;
+    builder
+        .add_dataset_scoped(&base_dataset, None, base_scope.as_deref())
+        .map_err(PyValueError::new_err)?;
 
     if let Some(data) = rdf12_data {
         let format = rdf12_format
             .ok_or_else(|| PyValueError::new_err("rdf12_data requires rdf12_format"))?;
-        let quads = parse_rdf(data, format)?;
+        let dataset = parse_rdf_dataset(data, format)?;
         builder
-            .add_rdf12(&quads, rdf12_graph_name.as_deref(), rdf12_scope.as_deref())
+            .add_dataset_scoped(
+                &dataset,
+                rdf12_graph_name.as_deref(),
+                rdf12_scope.as_deref(),
+            )
             .map_err(PyValueError::new_err)?;
     }
 
     for (data, format, graph_name, scope) in named_graphs.unwrap_or_default() {
-        let ox = parse_rdf(&data, format)?;
-        builder.add_quads(&ox, graph_name.as_deref(), scope.as_deref());
+        let dataset = parse_rdf_dataset(&data, format)?;
+        builder
+            .add_dataset_scoped(&dataset, graph_name.as_deref(), scope.as_deref())
+            .map_err(PyValueError::new_err)?;
     }
 
     // S3 (#820, gap G4): assemble the self-describing RdfBundle from the slice
@@ -499,6 +472,9 @@ fn compile_gts_native(
     let mut all_doc_blobs = blob_rows_from_py(doc_blobs)?;
     let slice_rows = slice_artifact_rows_from_py(slice_artifacts)?;
     if !slice_rows.is_empty() {
+        // The bundle assembler still consumes a flat oxigraph quad list for its hot
+        // dataset; re-parse the base here (only when slice artifacts are present).
+        let base = parse_rdf(base_data, base_format)?;
         let bundle_blobs =
             assemble_slice_bundle(&base, &slice_rows).map_err(PyValueError::new_err)?;
         all_doc_blobs.extend(bundle_blobs);
@@ -524,9 +500,11 @@ fn compile_gts_native(
 #[pyfunction]
 #[pyo3(signature = (data, *, format))]
 fn snapshot_content_id_native(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<String> {
-    let ox_quads = parse_rdf(data, format)?;
+    let dataset = parse_rdf_dataset(data, format)?;
     let mut builder = SnapshotBuilder::default();
-    builder.add_quads(&ox_quads, None, None);
+    builder
+        .add_dataset(&dataset)
+        .map_err(PyValueError::new_err)?;
     Ok(builder.snapshot_content_id())
 }
 
@@ -540,9 +518,11 @@ fn feedback_bundle_native(
     format: PyRdfFormat,
     report_blobs: Option<&Bound<'_, PyList>>,
 ) -> PyResult<Py<PyBytes>> {
-    let ox_quads = parse_rdf(data, format)?;
+    let dataset = parse_rdf_dataset(data, format)?;
     let mut builder = SnapshotBuilder::default();
-    builder.add_quads(&ox_quads, None, None);
+    builder
+        .add_dataset(&dataset)
+        .map_err(PyValueError::new_err)?;
     let bytes = emit_gts(
         &builder,
         "dist",

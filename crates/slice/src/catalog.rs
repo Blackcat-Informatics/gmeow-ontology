@@ -7,20 +7,18 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use oxigraph::model::{GraphNameRef, Term};
-use oxigraph::store::Store;
 use rayon::prelude::*;
 use sha2::{Digest, Sha256};
 
-use gmeow_rdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral};
+use gmeow_rdf::RdfDataset;
 
 use crate::artifact::{ArtifactRecord, ArtifactRole};
 use crate::error::SliceError;
+use crate::rdf_query::{Dataset, Object};
 
 // ── Namespace constants ───────────────────────────────────────────────────────
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const DCTERMS_TITLE: &str = "http://purl.org/dc/terms/title";
 const DCTERMS_CREATOR: &str = "http://purl.org/dc/terms/creator";
@@ -137,14 +135,16 @@ impl SliceCatalog {
         let manifest_path = dir.join("manifest.ttl");
         let manifest_bytes = std::fs::read(&manifest_path).map_err(SliceError::Io)?;
 
-        // Parse Turtle into an oxigraph store (lenient: accepts @x-gmeow-* lang tags).
-        let store = parse_turtle_to_store(&manifest_bytes, &manifest_path)?;
+        // Parse Turtle once into the native IR (lenient: accepts @x-gmeow-* lang tags).
+        // The frozen dataset serves BOTH the manifest-view extraction and the
+        // lossless `manifest_graph` — no store→IR round-trip.
+        let dataset = parse_manifest(&manifest_bytes, &manifest_path)?;
 
-        // Extract manifest view from the store.
-        let manifest = extract_manifest_view(&store)?;
+        // Extract manifest view from the dataset.
+        let manifest = extract_manifest_view(&dataset)?;
 
-        // Build a frozen RdfDataset from the store for lossless round-trip.
-        let manifest_graph = build_ir_dataset(&store)?;
+        // Keep the frozen RdfDataset for lossless round-trip.
+        let manifest_graph = Arc::new(dataset.into_inner());
 
         // Discover all artifacts.
         let artifacts = discover_artifacts(dir)?;
@@ -170,15 +170,15 @@ impl SliceCatalog {
 
 // ── Turtle parsing ────────────────────────────────────────────────────────────
 
-fn parse_turtle_to_store(bytes: &[u8], path: &Path) -> Result<Store, SliceError> {
-    crate::rdf_text::turtle_bytes_to_store(bytes, &path.display().to_string())
+fn parse_manifest(bytes: &[u8], path: &Path) -> Result<Dataset, SliceError> {
+    Dataset::parse_turtle(bytes, &path.display().to_string())
 }
 
 // ── Manifest extraction ───────────────────────────────────────────────────────
 
-fn extract_manifest_view(store: &Store) -> Result<ManifestView, SliceError> {
+fn extract_manifest_view(ds: &Dataset) -> Result<ManifestView, SliceError> {
     // Find the slice IRI: subject of `a gmeow:Slice`.
-    let slice_iri = find_slice_iri(store)?;
+    let slice_iri = find_slice_iri(ds)?;
 
     let mut label: Option<String> = None;
     let mut title: Option<String> = None;
@@ -189,59 +189,49 @@ fn extract_manifest_view(store: &Store) -> Result<ManifestView, SliceError> {
     let mut profiles: Vec<String> = Vec::new();
     let mut depends_on: Vec<String> = Vec::new();
 
-    let subject = oxigraph::model::NamedNode::new(&slice_iri)
-        .map_err(|e| SliceError::InvalidManifest(format!("invalid slice IRI: {e}")))?;
-
-    for quad in store.quads_for_pattern(
-        Some(subject.as_ref().into()),
-        None,
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        let pred = quad.predicate.as_str();
-        match pred {
+    for (predicate, object) in ds.predicate_objects_of(&slice_iri)? {
+        match predicate.as_str() {
             p if p == RDFS_LABEL => {
                 if label.is_none() {
-                    label = Some(literal_value(&quad.object));
+                    label = Some(literal_value(&object));
                 }
             }
             p if p == DCTERMS_TITLE => {
                 if title.is_none() {
-                    title = Some(literal_value(&quad.object));
+                    title = Some(literal_value(&object));
                 }
             }
             p if p == DCTERMS_CREATOR => {
-                creators.push(literal_value(&quad.object));
+                creators.push(literal_value(&object));
             }
             p if p == DCTERMS_IDENTIFIER => {
                 if identifier.is_none() {
-                    identifier = Some(literal_value(&quad.object));
+                    identifier = Some(literal_value(&object));
                 }
             }
             p if p == GMEOW_SLICE_TIER => {
                 if tier.is_none() {
-                    if let Term::NamedNode(nn) = &quad.object {
-                        tier = Some(SliceTier::from_iri(nn.as_str()));
+                    if let Object::Named(nn) = &object {
+                        tier = Some(SliceTier::from_iri(nn));
                     }
                 }
             }
             p if p == GMEOW_SLICE_CONSUMER => {
-                consumers.push(literal_value(&quad.object));
+                consumers.push(literal_value(&object));
             }
             p if p == GMEOW_SLICE_PROFILE => {
-                profiles.push(literal_value(&quad.object));
+                profiles.push(literal_value(&object));
             }
             p if p == GMEOW_SLICE_DEPENDS_ON => {
-                if let Term::NamedNode(nn) = &quad.object {
-                    depends_on.push(nn.as_str().to_string());
+                if let Object::Named(nn) = &object {
+                    depends_on.push(nn.clone());
                 }
             }
             _ => {}
         }
     }
 
-    // Deterministic order — `quads_for_pattern` iteration order is not stable.
+    // Deterministic order — quad iteration order is not stable.
     profiles.sort_unstable();
     profiles.dedup();
     depends_on.sort_unstable();
@@ -260,25 +250,8 @@ fn extract_manifest_view(store: &Store) -> Result<ManifestView, SliceError> {
     })
 }
 
-fn find_slice_iri(store: &Store) -> Result<String, SliceError> {
-    let rdf_type = oxigraph::model::NamedNode::new(RDF_TYPE)
-        .map_err(|e| SliceError::InvalidManifest(format!("invalid rdf:type IRI: {e}")))?;
-    let gmeow_slice = oxigraph::model::NamedNode::new(GMEOW_SLICE_CLASS)
-        .map_err(|e| SliceError::InvalidManifest(format!("invalid gmeow:Slice IRI: {e}")))?;
-
-    let mut subjects: Vec<String> = Vec::new();
-
-    for quad in store.quads_for_pattern(
-        None,
-        Some(rdf_type.as_ref()),
-        Some(gmeow_slice.as_ref().into()),
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        if let oxigraph::model::NamedOrBlankNode::NamedNode(nn) = &quad.subject {
-            subjects.push(nn.as_str().to_string());
-        }
-    }
+fn find_slice_iri(ds: &Dataset) -> Result<String, SliceError> {
+    let mut subjects: Vec<String> = ds.subjects_of_type(GMEOW_SLICE_CLASS)?;
 
     match subjects.len() {
         0 => Err(SliceError::InvalidManifest(
@@ -296,93 +269,14 @@ fn find_slice_iri(store: &Store) -> Result<String, SliceError> {
     }
 }
 
-fn literal_value(term: &Term) -> String {
+/// The string projection of an object term (a literal's lexical value; an IRI/blank
+/// rendered the way rdflib/oxigraph surfaced them through `.value()`).
+fn literal_value(term: &Object) -> String {
     match term {
-        Term::Literal(lit) => lit.value().to_string(),
-        Term::NamedNode(nn) => nn.as_str().to_string(),
-        Term::BlankNode(bn) => format!("_:{}", bn.as_str()),
-        Term::Triple(_) => "<triple>".to_string(),
-    }
-}
-
-// ── IR dataset builder ────────────────────────────────────────────────────────
-
-fn build_ir_dataset(store: &Store) -> Result<Arc<RdfDataset>, SliceError> {
-    use gmeow_rdf::BlankScope;
-
-    let mut builder = RdfDatasetBuilder::new();
-
-    for quad_result in store.quads_for_pattern(None, None, None, None) {
-        let quad = quad_result.map_err(|e| SliceError::Parse(format!("store iter error: {e}")))?;
-
-        let s = match &quad.subject {
-            oxigraph::model::NamedOrBlankNode::NamedNode(nn) => {
-                builder.intern_iri(nn.as_str().to_string())
-            }
-            oxigraph::model::NamedOrBlankNode::BlankNode(bn) => {
-                builder.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT)
-            }
-        };
-
-        let p = builder.intern_iri(quad.predicate.as_str().to_string());
-
-        let o = ox_term_to_id(&mut builder, &quad.object)?;
-
-        let g = match &quad.graph_name {
-            oxigraph::model::GraphName::NamedNode(nn) => {
-                Some(builder.intern_iri(nn.as_str().to_string()))
-            }
-            oxigraph::model::GraphName::BlankNode(bn) => {
-                Some(builder.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT))
-            }
-            oxigraph::model::GraphName::DefaultGraph => None,
-        };
-
-        builder.push_quad(s, p, o, g);
-    }
-
-    builder
-        .freeze()
-        .map_err(|e| SliceError::Parse(format!("IR dataset freeze failed: {e}")))
-}
-
-fn ox_term_to_id(
-    builder: &mut RdfDatasetBuilder,
-    term: &oxigraph::model::Term,
-) -> Result<gmeow_rdf::TermId, SliceError> {
-    use gmeow_rdf::BlankScope;
-    use oxigraph::model::{BaseDirection, Term};
-
-    match term {
-        Term::NamedNode(nn) => Ok(builder.intern_iri(nn.as_str().to_string())),
-        Term::BlankNode(bn) => {
-            Ok(builder.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT))
-        }
-        Term::Literal(lit) => {
-            let direction = lit.direction().map(|d| match d {
-                BaseDirection::Ltr => gmeow_rdf::RdfTextDirection::Ltr,
-                BaseDirection::Rtl => gmeow_rdf::RdfTextDirection::Rtl,
-            });
-            Ok(builder.intern_literal(RdfLiteral {
-                lexical_form: lit.value().to_string(),
-                datatype: Some(lit.datatype().as_str().to_string()),
-                language: lit.language().map(str::to_string),
-                direction,
-            }))
-        }
-        Term::Triple(triple) => {
-            let inner_s = match &triple.subject {
-                oxigraph::model::NamedOrBlankNode::NamedNode(nn) => {
-                    builder.intern_iri(nn.as_str().to_string())
-                }
-                oxigraph::model::NamedOrBlankNode::BlankNode(bn) => {
-                    builder.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT)
-                }
-            };
-            let inner_p = builder.intern_iri(triple.predicate.as_str().to_string());
-            let inner_o = ox_term_to_id(builder, &triple.object)?;
-            Ok(builder.intern_triple(inner_s, inner_p, inner_o))
-        }
+        Object::Literal { value } => value.clone(),
+        Object::Named(nn) => nn.clone(),
+        Object::Blank(label) => format!("_:{label}"),
+        Object::Triple => "<triple>".to_string(),
     }
 }
 
@@ -465,13 +359,13 @@ fn hex_sha256(bytes: &[u8]) -> String {
     format!("{digest:x}")
 }
 
-fn parse_rdf_to_store(bytes: &[u8], path: &Path) -> Result<Store, SliceError> {
-    let media_type = crate::rdf_text::media_type_for_path(path);
-    crate::rdf_text::rdf_bytes_to_store(bytes, media_type, &path.display().to_string())
+fn parse_rdf_to_dataset(bytes: &[u8], path: &Path) -> Result<Dataset, SliceError> {
+    let media_type = crate::rdf_query::media_type_for_path(path);
+    Dataset::parse(bytes, media_type, &path.display().to_string())
 }
 
 fn compute_semantic_digest(bytes: &[u8], path: &Path) -> Result<String, SliceError> {
-    let store = parse_rdf_to_store(bytes, path)?;
+    let dataset = parse_rdf_to_dataset(bytes, path)?;
 
     // Canonicalize blank-node labels BEFORE digesting. Parsing assigns blank-node IDs
     // non-deterministically, so a plain sorted-N-Triples digest would differ
@@ -480,16 +374,10 @@ fn compute_semantic_digest(bytes: &[u8], path: &Path) -> Result<String, SliceErr
     // function of the graph's identity (RFC #820 §12 — semantic, path-independent,
     // deterministic keys).
     //
-    // Native full RDFC-1.0 (#910), replacing oxrdf's non-spec `Unstable` algorithm:
-    // RDFC-1.0 is the W3C-standard canonical form, so the digest is now stable across
-    // versions/builds (the `Unstable` algorithm was only canonical *within* one
-    // build). `canonical_nquads` already sorts + deduplicates the canonical N-Quads.
-    let quads: Vec<oxigraph::model::Quad> = store
-        .quads_for_pattern(None, None, None, None)
-        .collect::<Result<_, _>>()
-        .map_err(|e| SliceError::Parse(format!("store iter error: {e}")))?;
-    let canonical = gmeow_rdf::canonical_nquads(quads.iter())
-        .map_err(|e| SliceError::Parse(format!("canonicalization error: {e}")))?;
+    // Native full RDFC-1.0 (#910): the `canonical_nquads_flat` projection flattens the
+    // RDF 1.2 statement overlay back to plain `rdf:reifies`/annotation triples and
+    // canonicalizes that flat set, byte-identical to the prior oxigraph-quad path.
+    let canonical = dataset.canonical_nquads_flat()?;
     Ok(hex_sha256(canonical.as_bytes()))
 }
 
@@ -592,9 +480,8 @@ mod tests {
 <https://example.org/slice/beta>  a gmeow:Slice .
 "#;
         let path = Path::new("manifest.ttl");
-        let store =
-            parse_turtle_to_store(ttl.as_bytes(), path).expect("should parse without error");
-        let result = find_slice_iri(&store);
+        let ds = parse_manifest(ttl.as_bytes(), path).expect("should parse without error");
+        let result = find_slice_iri(&ds);
         match result {
             Err(SliceError::InvalidManifest(msg)) => {
                 assert!(

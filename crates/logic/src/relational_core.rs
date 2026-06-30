@@ -29,7 +29,7 @@
 
 use std::collections::BTreeSet;
 
-use oxigraph::model::{Literal, NamedNode, Term as OxTerm};
+use gmeow_rdf::TermValue;
 
 use gmeow_logic_compile::ir::{Formula, LogicProgram, Term, LOGIC_NAMESPACE};
 
@@ -169,7 +169,7 @@ fn atom_to_eval(atom: &Formula) -> Result<EvalAtom, &'static str> {
     let Term::Iri(pred) = relation else {
         return Err("non-IRI relation in atom");
     };
-    let predicate = NamedNode::new(pred).map_err(|_| "invalid predicate IRI")?;
+    let predicate = pred.clone();
     let subject = term_to_eval(&args[0], false)?;
     let object = term_to_eval(&args[1], true)?;
     Ok(EvalAtom {
@@ -185,21 +185,16 @@ fn term_to_eval(term: &Term, is_object: bool) -> Result<EvalTerm, &'static str> 
     match term {
         // EvalTerm::Var carries the `?` sigil (the surface convention Term drops).
         Term::Var(name) => Ok(EvalTerm::Var(format!("?{name}"))),
-        Term::Iri(iri) => NamedNode::new(iri)
-            .map(EvalTerm::ConstNamed)
-            .map_err(|_| "invalid IRI term"),
+        Term::Iri(iri) => Ok(EvalTerm::ConstNamed(iri.clone())),
         Term::Literal { lexical, datatype } => {
             if !is_object {
                 return Err("literal in subject position (only an object may be a literal)");
             }
             let lit = match datatype {
-                Some(dt) => Literal::new_typed_literal(
-                    lexical,
-                    NamedNode::new(dt).map_err(|_| "invalid literal datatype IRI")?,
-                ),
-                None => Literal::new_simple_literal(lexical),
+                Some(dt) => TermValue::typed_literal(lexical, dt),
+                None => TermValue::simple_literal(lexical),
             };
-            Ok(EvalTerm::ConstLit(OxTerm::Literal(lit)))
+            Ok(EvalTerm::ConstLit(lit))
         }
         Term::SequenceMarker(_) => {
             Err("sequence marker (variadic) is not representable in the relational core")
