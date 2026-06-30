@@ -138,6 +138,34 @@ pub struct RunResult {
     pub products: BTreeMap<String, StageProduct>,
     /// The hex SHA-256 over the sorted `(id, product-digest)` pairs.
     pub combined_digest: String,
+    /// Per-stage wall-clock timings in topological execution order.
+    pub stage_timings: Vec<StageTiming>,
+    /// Per-level critical-stage timings in topological level order.
+    pub level_timings: Vec<LevelTiming>,
+}
+
+/// One stage's wall-clock timing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StageTiming {
+    /// The topological level index the stage ran in.
+    pub level: usize,
+    /// The stage identifier.
+    pub stage_id: String,
+    /// Wall-clock spent in `exec_stage`: cache probe/hydration or compute.
+    pub elapsed_ms: u128,
+    /// Whether the product came from the persistent stage cache.
+    pub cached: bool,
+}
+
+/// The slowest stage in one scheduler level.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LevelTiming {
+    /// The topological level index.
+    pub level: usize,
+    /// Wall-clock for the slowest stage in the level.
+    pub elapsed_ms: u128,
+    /// The slowest stage in this level.
+    pub critical_stage: String,
 }
 
 /// One stage's execution outcome, carrying the cache key so a freshly-computed
@@ -174,10 +202,10 @@ pub fn run(
     // (stage_id, elapsed_ms, cached) and dump the slowest stages at the end so the
     // critical path is visible without changing default behaviour.
     let profile = std::env::var_os("GMEOW_PIPELINE_TIMING").is_some();
-    let mut stage_timings: Vec<(String, u128, bool)> = Vec::new();
+    let mut stage_timings: Vec<StageTiming> = Vec::new();
     // (level_index, slowest-stage ms in the level, slowest-stage id): the sum of the
     // per-level maxima is the critical-path floor the level-barrier scheduler imposes.
-    let mut level_walls: Vec<(usize, u128, String)> = Vec::new();
+    let mut level_timings: Vec<LevelTiming> = Vec::new();
 
     for (level_idx, level) in graph.levels.iter().enumerate() {
         // Parallel phase: every stage in the level runs concurrently; stages that
@@ -223,38 +251,51 @@ pub fn run(
             let mut stage_prov = r.product.bundle.provenance().clone();
             register_stage_unit(&mut stage_prov, &r.id, stage.capabilities());
             set_bundle_provenance(&mut r.product.bundle, stage_prov);
-            if profile {
-                if r.elapsed_ms > level_max {
-                    level_max = r.elapsed_ms;
-                    level_max_id = r.id.clone();
-                }
-                stage_timings.push((r.id.clone(), r.elapsed_ms, r.cached));
+            if r.elapsed_ms > level_max {
+                level_max = r.elapsed_ms;
+                level_max_id = r.id.clone();
             }
+            stage_timings.push(StageTiming {
+                level: level_idx,
+                stage_id: r.id.clone(),
+                elapsed_ms: r.elapsed_ms,
+                cached: r.cached,
+            });
             products.insert(r.id, r.product);
         }
-        if profile {
-            level_walls.push((level_idx, level_max, level_max_id));
-        }
+        level_timings.push(LevelTiming {
+            level: level_idx,
+            elapsed_ms: level_max,
+            critical_stage: level_max_id,
+        });
     }
 
     if profile {
-        let floor: u128 = level_walls.iter().map(|l| l.1).sum();
-        let total: u128 = stage_timings.iter().map(|t| t.1).sum();
+        let floor: u128 = level_timings.iter().map(|l| l.elapsed_ms).sum();
+        let total: u128 = stage_timings.iter().map(|t| t.elapsed_ms).sum();
         eprintln!(
             "[pipeline-timing] {} stages over {} levels; summed {total} ms; level-barrier floor {floor} ms",
             stage_timings.len(),
-            level_walls.len(),
+            level_timings.len(),
         );
-        stage_timings.sort_by_key(|t| std::cmp::Reverse(t.1));
-        for (id, ms, cached) in stage_timings.iter().take(25) {
+        let mut slowest = stage_timings.clone();
+        slowest.sort_by_key(|t| std::cmp::Reverse(t.elapsed_ms));
+        for timing in slowest.iter().take(25) {
             eprintln!(
-                "[pipeline-timing]   {ms:>7} ms  {id}{}",
-                if *cached { " (cached)" } else { "" }
+                "[pipeline-timing]   {ms:>7} ms  {id}{cached}",
+                ms = timing.elapsed_ms,
+                id = timing.stage_id,
+                cached = if timing.cached { " (cached)" } else { "" }
             );
         }
         eprintln!("[pipeline-timing] per-level critical stage:");
-        for (idx, ms, id) in &level_walls {
-            eprintln!("[pipeline-timing]   level {idx:>2}: {ms:>7} ms  {id}");
+        for timing in &level_timings {
+            eprintln!(
+                "[pipeline-timing]   level {idx:>2}: {ms:>7} ms  {id}",
+                idx = timing.level,
+                ms = timing.elapsed_ms,
+                id = timing.critical_stage
+            );
         }
     }
 
@@ -262,6 +303,8 @@ pub fn run(
     Ok(RunResult {
         products,
         combined_digest,
+        stage_timings,
+        level_timings,
     })
 }
 
