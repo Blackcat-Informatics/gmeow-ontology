@@ -26,6 +26,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_diagnostics::{Finding, Severity};
+use gmeow_logic::dag_profile::certify_acyclic;
+use gmeow_logic::result::ReasoningResult;
 
 use crate::error::PipelineError;
 use crate::loader::{bind, PipelineSpec, StageSpec};
@@ -39,6 +41,11 @@ const SCHEMAS_STAGE: &str = "stage-export-schemas";
 const SINK_STAGE: &str = "stage-gts-sink";
 /// The committed fold path the sink writes / schemas project.
 const GTS_PATH: &str = "generated/dist/gmeow.gts";
+/// The DAG-workflow contract identity the build plan executes under — the
+/// `gmeow:pipeline-build` `logic:Plan` is certified under `logic:DagWorkflowResource`.
+const BUILD_DAG_CONTRACT: &str = "contract:gmeow:pipeline-build:dag-workflow";
+/// The world the build plan's certification verdict holds in.
+const BUILD_DAG_WORLD: &str = "urn:gmeow:pipeline-build";
 
 /// Whether `run_full` writes artifacts to disk (regenerate) or compares them to
 /// the committed bytes and reports drift (check).
@@ -64,6 +71,14 @@ pub struct RunReport {
     pub findings: Vec<Finding>,
     /// The drifted logical paths (check mode), sorted.
     pub drifted: Vec<String>,
+    /// The build plan's DAG-workflow certification, lowered to the typed
+    /// [`ReasoningResult`] a consumer reads — the Rust-struct counterpart of the
+    /// RDF `logic:ReasoningResult` `teleology::emit_dag_certification` emits, both
+    /// computed from the SAME [`certify_acyclic`] verdict. For the always-acyclic
+    /// `gmeow:pipeline-build` plan this is a `Completed` / `CompleteForFragment`
+    /// (certified) result; a non-certified verdict at this point HARD-fails the run
+    /// (no silent default) — see [`run_full`].
+    pub certification: ReasoningResult,
 }
 
 impl RunReport {
@@ -375,12 +390,19 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 
     drifted.sort();
     drifted.dedup();
+
+    // The DAG-workflow certification of the build plan (the W3 typed surface): the
+    // SAME verdict the RDF `emit_dag_certification` emits, lowered to the typed
+    // ReasoningResult a consumer reads. Hard-fails if the plan is not certified.
+    let certification = certify_build_plan(&spec)?;
+
     Ok(RunReport {
         mode,
         produced,
         reproduced,
         findings,
         drifted,
+        certification,
     })
 }
 
@@ -425,6 +447,45 @@ fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>
     None
 }
 
+/// Certify the build plan under the DAG-workflow contract and lower the verdict
+/// into the typed [`ReasoningResult`] a build run surfaces.
+///
+/// The `gmeow:pipeline-build` plan is a `logic:Plan` declared under the DAG-workflow
+/// contract; this certifies its producer → consumer dataflow closure with the SHARED
+/// [`certify_acyclic`] certifier — the SAME one [`crate::graph::StageGraph::build`]
+/// runs at load time and the RDF `teleology::emit_dag_certification` runs for a
+/// reified plan — so the typed result and the RDF surface agree by construction.
+///
+/// The loader already rejected any cycle before a run reaches its result, so in
+/// practice the verdict is `Certified`. The hard-fail here is the no-silent-default
+/// backstop (Principle: no degraded fallback): a build that reached its result yet
+/// is NOT certified is a defect, returned as a [`PipelineError::InvalidDag`] rather
+/// than a degraded result.
+fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, PipelineError> {
+    // Producer → consumer orientation, matching the canonical logic:dataflowConsumes
+    // (consumer → producer) the executor inverts — identical to the edge derivation
+    // `StageGraph::build` and the `dag_profile_tests` use.
+    let edges: Vec<(String, String)> = spec
+        .stages
+        .iter()
+        .flat_map(|s| {
+            s.consumes
+                .iter()
+                .map(move |dep| (dep.clone(), s.id.clone()))
+        })
+        .collect();
+    let cert = certify_acyclic(edges.iter().map(|(a, b)| (a.as_str(), b.as_str())));
+    if !cert.is_certified() {
+        return Err(PipelineError::InvalidDag(format!(
+            "the build plan {} reached its result but is NOT certified under the \
+             DAG-workflow contract; offending cycle members: {}",
+            spec.id,
+            cert.witness().join(" → ")
+        )));
+    }
+    Ok(cert.into_reasoning_result(BUILD_DAG_CONTRACT, BUILD_DAG_WORLD))
+}
+
 /// Write `bytes` to `root.join(path)`, creating parent directories.
 fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<(), PipelineError> {
     let target = root.join(path);
@@ -437,9 +498,11 @@ fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<(), PipelineE
 
 #[cfg(test)]
 mod dag_profile_tests {
-    use super::full_spec;
+    use super::{certify_build_plan, full_spec};
     use gmeow_logic::dag_profile::{certify_acyclic, DagCertification};
-    use gmeow_logic::result::{CompletenessStatus, EvaluationStatus};
+    use gmeow_logic::result::{
+        CompletenessStatus, EvaluationStatus, InformationState, PreservationClaim,
+    };
 
     /// The dogfooded build plan (`gmeow:pipeline-build`, a `logic:Plan`) is
     /// certified under the DAG-workflow profile (`logic:DagWorkflowResource`): its
@@ -475,5 +538,34 @@ mod dag_profile_tests {
             ),
             "an acyclic build plan reports complete-for-fragment under the DAG profile"
         );
+    }
+
+    /// The W3 hand-off: the build run's typed `ReasoningResult` certification
+    /// surface. `certify_build_plan` is the EXACT wiring `run_full` folds into the
+    /// returned `RunReport.certification` — it certifies the real `full_spec()`
+    /// plan via the shared certifier and lowers the verdict to the typed result a
+    /// consumer reads, so this asserts the run's certification field WITHOUT a full
+    /// (off-budget) build. The real build is always acyclic, so the verdict is the
+    /// certified `Completed` / `CompleteForFragment` result.
+    #[test]
+    fn build_run_surfaces_a_certified_typed_reasoning_result() {
+        let spec = full_spec();
+        let cert = certify_build_plan(&spec).expect("the build plan certifies (no cycle)");
+        assert_eq!(
+            cert.evaluation,
+            EvaluationStatus::Completed,
+            "the certified build plan's typed result is evaluation=completed"
+        );
+        assert_eq!(
+            cert.completeness,
+            CompletenessStatus::CompleteForFragment,
+            "the certified build plan's typed result is complete-for-fragment"
+        );
+        assert_eq!(cert.information, InformationState::Supported);
+        // A certified verdict carries an exact (loss-free) preservation claim and no
+        // cycle witness — agreeing with the RDF emit_dag_certification mapping.
+        assert_eq!(cert.preservation, PreservationClaim::exact());
+        assert!(cert.preservation.unsupported_constructs.is_empty());
+        assert!(cert.validate().is_ok());
     }
 }
