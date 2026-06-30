@@ -48,6 +48,11 @@ use super::ir::{
     LOGIC_NAMESPACE,
 };
 
+/// Re-export the CLIF reader so the FOL-text inverse sits alongside the other frontend
+/// entry points (`gmeow_logic_compile::frontend::parse_clif_str` resolves, as does the
+/// canonical `gmeow_logic_compile::clif::parse_clif_str`).
+pub use crate::clif::parse_clif_str;
+
 fn logic_iri(local: &str) -> String {
     format!("{LOGIC_NAMESPACE}{local}")
 }
