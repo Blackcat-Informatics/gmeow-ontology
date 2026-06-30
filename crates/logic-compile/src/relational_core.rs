@@ -472,6 +472,12 @@ pub fn lower_formulas_to_rc(program: &LogicProgram) -> (Vec<RcRule>, Vec<String>
         let normalized = skolemize(nnf(formula));
         lower_formula_top(&normalized, formula, &mut rules, &mut residue);
     }
+    // Dedup by content key (stable first-wins, preserving canonical formula-source order).
+    // Uses the same key as `LogicRule::new` for authored rules, making the lane the single
+    // dedup authority. Must NOT use `rules.sort(); rules.dedup()` — derived `Ord` orders
+    // by `RcTerm` variant-declaration order (not lexically), which would reorder rules.
+    let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    rules.retain(|rc| seen.insert(rc.key()));
     (rules, residue.into_iter().collect())
 }
 
