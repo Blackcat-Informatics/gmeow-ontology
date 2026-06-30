@@ -120,7 +120,10 @@ fn audit_succeeds_and_emits_one_step_per_toolcall() {
     let out = emit_trajectory_audits(&facts_of(&nq), W).expect("audit runs");
 
     let v = verdict(&out).expect("a transactionSucceeds verdict");
-    assert!(v.contains("true"), "expected a success verdict, got {v:?}");
+    assert_eq!(
+        v, "\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>",
+        "expected an exact xsd:boolean true verdict, got {v:?}"
+    );
     assert_eq!(
         step_count(&out),
         2,
@@ -136,7 +139,10 @@ fn unmet_precondition_makes_the_trajectory_non_atomic() {
     let out = emit_trajectory_audits(&facts_of(&nq), W).expect("audit runs");
 
     let v = verdict(&out).expect("a transactionSucceeds verdict");
-    assert!(v.contains("false"), "expected a failure verdict, got {v:?}");
+    assert_eq!(
+        v, "\"false\"^^<http://www.w3.org/2001/XMLSchema#boolean>",
+        "expected an exact xsd:boolean false verdict, got {v:?}"
+    );
     assert_eq!(
         step_count(&out),
         0,
@@ -197,6 +203,76 @@ fn unanchored_bound_toolcall_is_a_hard_fail() {
 
     let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
     assert!(err.contains("no logic:properPartOf"), "{err}");
+}
+
+#[test]
+fn anchor_without_transition_from_state_is_a_hard_fail() {
+    // A bound ToolCall whose logic:properPartOf anchor EXISTS but bears no
+    // logic:transitionFromState start state — the trajectory has no defined start, which is a
+    // HARD FAIL (trajectory_roots hard-fails at lines 110-118).
+    let mut nq = String::new();
+    // The anchor exists (it is the properPartOf target) but has NO transitionFromState.
+    nq += &q(&xe("orphan"), &format!("<{RDF_TYPE}>"), &ge("ToolCall"));
+    nq += &q(&xe("orphan"), &le("properPartOf"), &xe("anchorNoState"));
+    nq += &q(&xe("orphan"), &le("instantiatesSchema"), &xe("schemaStore"));
+    nq += &q(&xe("orphan"), &ge("atTime"), &dt("2026-06-12T17:03:11Z"));
+    nq += &q(
+        &xe("orphan"),
+        &ge("eventTemporalFrame"),
+        &ge("temporalFrameUTCGregorian"),
+    );
+    nq += &q(&xe("schemaStore"), &le("effect"), &xe("effStore"));
+    nq += &q(&xe("effStore"), &le("ins"), &xe("sStored"));
+    // anchorNoState is referenced but has no logic:transitionFromState quad.
+
+    let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
+    assert!(err.contains("no logic:transitionFromState"), "{err}");
+}
+
+/// A well-formed single-call trajectory with ONE extra copy of `pred → obj` on the call, so the
+/// audited field is multi-valued. Each must hard-fail rather than pick one value by content order.
+fn trajectory_with_extra_call_quad(pred: &str, obj: &str) -> String {
+    let mut nq = String::new();
+    nq += &q(&xe("traj"), &le("transitionFromState"), &xe("start0"));
+    nq += &q(&xe("start0"), &le("situationObtains"), &xe("sReady"));
+    nq += &q(&xe("schemaStore"), &le("precondition"), &xe("sReady"));
+    nq += &q(&xe("schemaStore"), &le("effect"), &xe("effStore"));
+    nq += &q(&xe("effStore"), &le("ins"), &xe("sStored"));
+    nq += &tool_call(
+        "call0",
+        "schemaStore",
+        "2026-06-12T17:03:11Z",
+        "temporalFrameUTCGregorian",
+    );
+    // The offending second value for the field under test.
+    nq += &q(&xe("call0"), pred, obj);
+    nq
+}
+
+#[test]
+fn multi_valued_per_call_fields_are_hard_fails() {
+    // A bound ToolCall with TWO gmeow:eventTemporalFrame / gmeow:atTime / logic:instantiatesSchema
+    // values must hard-fail (no silent first-wins pick by content order — no-optionality).
+    let frame = trajectory_with_extra_call_quad(&ge("eventTemporalFrame"), &ge("temporalFrameTAI"));
+    let err = emit_trajectory_audits(&facts_of(&frame), W).unwrap_err();
+    assert!(
+        err.contains("gmeow:eventTemporalFrame values (exactly one is required)"),
+        "{err}"
+    );
+
+    let at = trajectory_with_extra_call_quad(&ge("atTime"), &dt("2026-06-12T17:03:55Z"));
+    let err = emit_trajectory_audits(&facts_of(&at), W).unwrap_err();
+    assert!(
+        err.contains("gmeow:atTime values (exactly one is required)"),
+        "{err}"
+    );
+
+    let schema = trajectory_with_extra_call_quad(&le("instantiatesSchema"), &xe("schemaOther"));
+    let err = emit_trajectory_audits(&facts_of(&schema), W).unwrap_err();
+    assert!(
+        err.contains("logic:instantiatesSchema values (exactly one is required)"),
+        "{err}"
+    );
 }
 
 #[test]
