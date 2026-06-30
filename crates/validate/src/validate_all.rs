@@ -1281,18 +1281,14 @@ fn run_example_shacl(
         .map_err(|e| format!("example {name}: projected base ∪ example freeze failed: {e}"))?;
     let report = if example_allows_focus_pruning(example_ds.as_ref()) {
         let affected = affected_focus_terms(example_projected.as_ref());
-        let full_scan_shapes: HashSet<usize> = shapes
-            .node_shapes
-            .iter()
-            .filter(|shape| shape_requires_full_example_scan(shape))
-            .map(shape_identity)
-            .collect();
+        // ABox-only examples cannot alter the ontology's target/class/property
+        // structure, so the merged run only needs to recheck focus terms touched
+        // by the example. Examples that edit schema or SHACL shapes take the
+        // full-scan branch above.
         gmeow_shacl::engine::validate_projected_dataset_with_focus_filter(
             merged,
             shapes,
-            |shape, focus| {
-                full_scan_shapes.contains(&shape_identity(shape)) || affected.contains(focus)
-            },
+            |_, focus| affected.contains(focus),
         )
     } else {
         gmeow_shacl::engine::validate_projected_dataset(merged, shapes)
@@ -1337,49 +1333,12 @@ fn affected_focus_terms(example_projected: &RdfDataset) -> HashSet<gmeow_shacl::
     let mut affected = HashSet::new();
     for quad in example_projected.owned_quads() {
         affected.insert(rdf_term_to_shacl_term(&quad.subject));
+        affected.insert(gmeow_shacl::term::Term::NamedNode(
+            gmeow_shacl::term::NamedNode::new_unchecked(quad.predicate.clone()),
+        ));
         affected.insert(rdf_term_to_shacl_term(&quad.object));
     }
     affected
-}
-
-fn shape_requires_full_example_scan(shape: &gmeow_shacl::shapes::Shape) -> bool {
-    shape
-        .targets
-        .iter()
-        .any(|target| matches!(target, gmeow_shacl::shapes::Target::Sparql { .. }))
-        || constraints_require_full_example_scan(&shape.constraints)
-        || shape
-            .property_shapes
-            .iter()
-            .any(property_shape_requires_full_example_scan)
-}
-
-fn shape_identity(shape: &gmeow_shacl::shapes::Shape) -> usize {
-    shape as *const gmeow_shacl::shapes::Shape as usize
-}
-
-fn property_shape_requires_full_example_scan(
-    property: &gmeow_shacl::shapes::PropertyShape,
-) -> bool {
-    constraints_require_full_example_scan(&property.constraints)
-        || property
-            .reifier_shapes
-            .iter()
-            .any(shape_requires_full_example_scan)
-}
-
-fn constraints_require_full_example_scan(constraints: &[gmeow_shacl::shapes::Constraint]) -> bool {
-    constraints.iter().any(|constraint| match constraint {
-        gmeow_shacl::shapes::Constraint::Sparql { .. } => true,
-        gmeow_shacl::shapes::Constraint::Not(shape)
-        | gmeow_shacl::shapes::Constraint::Node(shape) => shape_requires_full_example_scan(shape),
-        gmeow_shacl::shapes::Constraint::And(shapes)
-        | gmeow_shacl::shapes::Constraint::Or(shapes)
-        | gmeow_shacl::shapes::Constraint::Xone(shapes) => {
-            shapes.iter().any(shape_requires_full_example_scan)
-        }
-        _ => false,
-    })
 }
 
 fn rdf_term_to_shacl_term(term: &RdfTerm) -> gmeow_shacl::term::Term {
@@ -1625,6 +1584,29 @@ mod tests {
                 .count(),
             2
         );
+    }
+
+    #[test]
+    fn affected_focus_terms_include_predicate_iris() {
+        use gmeow_shacl::term::{NamedNode, Term};
+
+        let example = parse_dataset(
+            b"@prefix ex: <https://example.org/> .\nex:s ex:p ex:o .\n",
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        let affected = affected_focus_terms(example.as_ref());
+
+        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
+            "https://example.org/s"
+        ))));
+        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
+            "https://example.org/p"
+        ))));
+        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
+            "https://example.org/o"
+        ))));
     }
 
     fn minimal_gts_bytes() -> Vec<u8> {
