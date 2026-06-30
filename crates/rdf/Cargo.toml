@@ -28,7 +28,7 @@ default = ["gts"]
 # WASM-clean oxttl/oxrdfxml/oxrdf/oxsdatatypes subset — no oxigraph Store — so the
 # `--no-default-features --features gts` build parses/serializes RDF text with no
 # Store dependency.
-gts = ["dep:ciborium", "dep:gmeow-gts", "gmeow-gts/rdf-codecs", "dep:gmeow-rdf-events", "dep:ed25519-dalek", "dep:gmeow-sparql-eval", "dep:gmeow-sparql-algebra", "gmeow-rdf-core/gts"]
+gts = ["dep:ciborium", "dep:gmeow-gts", "gmeow-gts/rdf-codecs", "dep:gmeow-rdf-events", "dep:ed25519-dalek", "dep:gmeow-sparql-eval", "dep:gmeow-sparql-algebra", "dep:roxmltree", "gmeow-rdf-core/gts"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
 # (gmeow-logic / gmeow-shacl / gmeow-validate); only maturin enables it. This is
@@ -76,6 +76,13 @@ gmeow-sparql-eval = { path = "../sparql-eval", optional = true }
 # (EPIC #906). NO oxigraph-family edge (only gmeow-iri + gmeow-xsd) — gated by
 # `make rdf-core-hygiene`. Rides the always-on `gts` feature with the native codecs.
 gmeow-sparql-algebra = { path = "../sparql-algebra", optional = true }
+# The XML DOM front-end for the FIRST-PARTY RDF/XML codec (EPIC #906): supplies a
+# namespace-resolved, document-order element tree, on top of which `native_codecs::
+# rdfxml` implements the W3C RDF/XML grammar in-repo (replacing the external
+# `gmeow_gts::rdf_codecs::{from_rdf_xml, to_rdf_xml}`). Pure-Rust, NO oxigraph-family
+# edge (the same crate `crates/music` already vendors). Rides the always-on `gts`
+# feature with the rest of the native codecs.
+roxmltree = { version = "0.20", optional = true }
 
 # Maintainer-only golden-capture binary (EPIC #906 Task 2/8). Freezes the native
 # SPARQL engine over the corpus as committed goldens under
