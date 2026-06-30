@@ -182,13 +182,13 @@ fn render_nquads(quads: &[TeleologyQuad]) -> String {
 mod tests {
     use super::*;
 
-    const W: &str = "https://example.org/t7/world";
+    const W: &str = "https://example.org/txn/world";
 
     fn li(local: &str) -> String {
         format!("https://blackcatinformatics.ca/logic/{local}")
     }
     fn ex(local: &str) -> String {
-        format!("https://example.org/t7/{local}")
+        format!("https://example.org/txn/{local}")
     }
     fn q(s: &str, p: &str, o: &str) -> String {
         format!("<{s}> <{p}> <{o}> <{W}> .\n")

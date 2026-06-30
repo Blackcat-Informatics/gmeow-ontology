@@ -1591,7 +1591,7 @@ mod tests {
     }
 
     #[test]
-    fn committed_store_records_the_t6_audit_context() {
+    fn committed_store_records_the_audit_context() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         env::remove_var("GMEOW_LANG");
