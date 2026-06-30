@@ -174,3 +174,63 @@ class TestVerifyNative:
         for suffix in ("json", "sarif", "html"):
             artifact = tmp_path / f"gmeow-verify-native.{suffix}"
             assert artifact.exists(), f"{artifact.name} was not written"
+
+
+class TestReasonAndVerifyNative:
+    """``reason.reason_and_verify_native`` fused native closure surface."""
+
+    def test_fused_call_writes_reason_and_verify_artifacts(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """The fused wrapper hands queries to Rust and writes both reports."""
+        import gmeow_logic
+
+        import gmeow_tools.reason as reason
+        from gmeow_tools import diagnostics
+
+        bundle = tmp_path / "fixture.gts"
+        bundle.write_bytes(b"bundle")
+        queries = tmp_path / "queries"
+        queries.mkdir()
+        query = queries / "clean.rq"
+        query.write_text("SELECT ?s WHERE { ?s ?p ?o }\n", encoding="utf-8")
+        calls: list[tuple[bytes, list[tuple[str, str]], bool]] = []
+
+        def fake_reason_and_verify_native(
+            gts_bytes: bytes, pairs: list[tuple[str, str]], merge: bool = False
+        ) -> dict[str, object]:
+            calls.append((gts_bytes, pairs, merge))
+            return {
+                "reason": _native_reason_result(),
+                "verify": diagnostics.report(tool="verify"),
+            }
+
+        monkeypatch.setattr(
+            gmeow_logic,
+            "reason_and_verify_native",
+            fake_reason_and_verify_native,
+            raising=False,
+        )
+        monkeypatch.setattr(reason, "PROJECT_ROOT", tmp_path)
+
+        reason_report, verify_report = reason.reason_and_verify_native(
+            gts=bundle,
+            queries=queries,
+            output_dir=tmp_path,
+            run_box_roles=False,
+        )
+
+        assert calls == [
+            (
+                b"bundle",
+                [("queries/clean.rq", query.read_text(encoding="utf-8"))],
+                False,
+            )
+        ]
+        assert reason_report.ok
+        assert verify_report.ok
+        assert (tmp_path / "gmeow-inferred-closure.rdf12.ttl").exists()
+        for stem in ("gmeow-reason-native", "gmeow-verify-native"):
+            for suffix in ("json", "sarif", "html"):
+                artifact = tmp_path / f"{stem}.{suffix}"
+                assert artifact.exists(), f"{artifact.name} was not written"

@@ -317,6 +317,23 @@ pub struct RdfDatasetBuilder {
     next_merge_scope: u32,
 }
 
+/// A dataset builder whose structural validation has already passed.
+///
+/// This type-state splits validation from materialization for callers that need to
+/// make that phase boundary explicit, while [`RdfDatasetBuilder::freeze`] keeps the
+/// traditional one-shot validate-then-freeze API.
+pub struct ValidatedRdfDatasetBuilder {
+    inner: RdfDatasetBuilder,
+}
+
+impl ValidatedRdfDatasetBuilder {
+    /// Materialize the already-validated builder into an immutable dataset.
+    #[must_use]
+    pub fn freeze(self) -> Arc<RdfDataset> {
+        Arc::new(self.inner.materialize())
+    }
+}
+
 impl Default for RdfDatasetBuilder {
     fn default() -> Self {
         Self::new()
@@ -647,8 +664,14 @@ impl RdfDatasetBuilder {
     /// Per the no-optionality doctrine this HARD-fails (`Err`) on malformed
     /// structure — there is no degraded fallback and no silent default.
     pub fn freeze(self) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
+        self.validate().map(ValidatedRdfDatasetBuilder::freeze)
+    }
+
+    /// Validate structure and return the type-state that is allowed to materialize
+    /// the frozen dataset.
+    pub fn validate(self) -> Result<ValidatedRdfDatasetBuilder, RdfDiagnostic> {
         super::validate::validate(&self)?;
-        Ok(Arc::new(self.materialize()))
+        Ok(ValidatedRdfDatasetBuilder { inner: self })
     }
 
     /// Borrow the accumulated quad rows (validation reads these).
@@ -896,6 +919,17 @@ mod tests {
         b.push_quad(s, p, o, None);
         let ds = b.freeze().expect("valid");
         assert_eq!(ds.quads().count(), 1, "duplicate quads collapse to one row");
+    }
+
+    #[test]
+    fn validated_builder_type_state_freezes_after_validation() {
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+        b.push_quad(s, p, o, None);
+
+        let validated = b.validate().expect("well-formed builder validates");
+        let ds = validated.freeze();
+        assert_eq!(ds.quads().count(), 1);
     }
 
     #[test]
