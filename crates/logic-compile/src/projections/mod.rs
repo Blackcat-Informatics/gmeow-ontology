@@ -147,7 +147,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let gufo = rdf::project_gufo(program).map_err(|e| e.to_string())?;
     let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| e.to_string())?;
     let nemo = text::project_nemo(program)?;
-    let clif = crate::clif::project_clif(program);
+    let clif = crate::clif::project_clif(program)?;
     let shacl_af = shacl_af::project_shacl_af(program);
 
     let results = [
