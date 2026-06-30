@@ -5,8 +5,8 @@
 //! dataset/semantic-web tiers (N-Quads, TriG, statements JSONL, SKOS, OBO Graphs,
 //! ShEx) under git-ignored `dist/`.
 //!
-//! A genuine Rust port of `src/gmeow_tools/export.py` (#377, #12): reads ONLY the
-//! committed GTS snapshot (the narrow waist #267) through a fold view that mirrors
+//! The native flat-export leaf: reads ONLY the committed GTS snapshot (the narrow
+//! waist) through a fold view that mirrors
 //! `gmeow_tools.gts_views.FoldView`, collects every class/property/individual as a
 //! [`Term`], then renders the flattened views. Outputs live under git-ignored
 //! `dist/`, so there is NO committed byte-parity gate — the bar is
