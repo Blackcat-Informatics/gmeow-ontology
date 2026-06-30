@@ -105,6 +105,11 @@ pub const RULES_PATH: &str = "generated/logic/gmeow.rls";
 /// Committed CLIF (Common Logic Interchange Format) projection (#721): the bidirectional,
 /// `PreservationKind::Exact` s-expression FOL dialect.
 pub const CLIF_PATH: &str = "generated/cl/gmeow.clif";
+/// Committed SHACL-AF rule (computation) projection: the canon's derivation rules
+/// projected to a `sh:SPARQLRule` surface. Lives under its own `generated/shacl-af/`
+/// directory (NOT `generated/shapes/`) so the SHACL constraint validator never ingests
+/// these inference rules as no-op constraint shapes.
+pub const SHACL_AF_PATH: &str = "generated/shacl-af/gmeow.shacl-af.ttl";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
@@ -260,6 +265,10 @@ impl Stage for CompileLogicStage {
         );
         artifacts.insert(RULES_PATH.to_string(), arts.nemo.into_bytes());
         artifacts.insert(CLIF_PATH.to_string(), arts.clif.into_bytes());
+        // The SHACL-AF rule (computation) surface: the canon's derivation rules projected to
+        // sh:SPARQLRule. A byte-decorated text artifact (carries a GENERATED banner), so it
+        // rides the generated-fanout archive (REP_GENERATED) as a committed byte projection.
+        artifacts.insert(SHACL_AF_PATH.to_string(), arts.shacl_af.into_bytes());
 
         // The COMMITTED projection report is no longer emitted here: the loss ledger
         // must carry BOTH the logic projection rows AND the correspondence-calculus
@@ -534,6 +543,7 @@ mod tests {
             CANONICAL_RDF12_PATH,
             RULES_PATH,
             CLIF_PATH,
+            SHACL_AF_PATH,
             // The in-memory channel that hands the logic projection rows + header
             // counts to stage-mappings (which assembles the committed report).
             LOGIC_PROJECTIONS_CHANNEL,

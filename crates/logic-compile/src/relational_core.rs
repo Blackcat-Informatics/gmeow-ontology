@@ -509,6 +509,25 @@ fn lower_axiom(axiom: &LogicAxiom) -> Result<RcAtom, String> {
 /// the legalization seam: a future non-Horn rule (a disjunctive head, a non-binary
 /// atom) would return `Err(reason)` to be carried as residue rather than mis-lowered.
 fn lower_rule(rule: &LogicRule) -> Result<RcRule, String> {
+    // A stratified aggregation (reduce) rule is outside the binary-Horn fragment the relational
+    // core models: it is carried as flagged residue (never silently dropped, never mis-lowered to
+    // a plain Horn rule), and the projections that can express it (Nemo, SHACL-AF) emit it from
+    // the LogicProgram directly.
+    if let Some(agg) = &rule.aggregation {
+        return Err(format!(
+            "rule deriving <{}> uses aggregation ({} of {} over {}), outside the binary-Horn \
+             relational core; carried in the logic: canon and projected to the aggregating Nemo / \
+             SHACL-AF surfaces",
+            rule.head.predicate,
+            agg.function,
+            agg.aggregate_var,
+            if agg.group_keys.is_empty() {
+                "the whole relation".to_owned()
+            } else {
+                agg.group_keys.join(", ")
+            }
+        ));
+    }
     let head = lower_body_atom(&rule.head);
     let body: Vec<RcAtom> = rule.body.iter().map(lower_body_atom).collect();
     let distinct_pairs = rule.distinct_pairs.clone();

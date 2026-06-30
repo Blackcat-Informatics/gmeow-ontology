@@ -1295,9 +1295,9 @@ gmeow:usesScale
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "uses scale"@x-gmeow-english ;
     rdfs:range gmeow:ScoreScale ;
-    skos:definition "The score scale a rubric or criterion uses. Domain-free (rubric-level default, criterion-level override — the holder is whatever points here); functional: one scale per holder, the gmeow:hasUnit convention."@x-gmeow-english ;
+    skos:definition "The score scale a rubric or criterion uses. Domain-free (rubric-level default, criterion-level override — the holder is whatever points here); functional: one scale per holder, the gmeow:unit convention."@x-gmeow-english ;
     skos:example "ex:voiceRubric gmeow:usesScale ex:zeroToOne ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one scale per holder (it is functional, the gmeow:hasUnit convention) and avoid restating the rubric default on every criterion — set it once and override only where needed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one scale per holder (it is functional, the gmeow:unit convention) and avoid restating the rubric default on every criterion — set it once and override only where needed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:usesScale once from the rubric or criterion to a gmeow:ScoreScale; a criterion-level scale overrides the rubric default."@x-gmeow-english ;
     gmeow:useWhen "Use to name the score scale a rubric (as default) or a criterion (as override) uses."@x-gmeow-english .

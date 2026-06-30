@@ -43,9 +43,9 @@ use super::graphutil::{
     RDF_TYPE,
 };
 use super::ir::{
-    ComplexityClass, ContextualScope, Correspondence, Formula, LogicAxiom, LogicModality,
-    LogicProgram, LogicRule, PathBase, PathShapeIr, ReasoningContract, SemanticProfileId, Term,
-    LOGIC_NAMESPACE,
+    AggregateSpec, ComplexityClass, ContextualScope, Correspondence, Formula, LogicAxiom,
+    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, ReasoningContract,
+    SemanticProfileId, Term, LOGIC_NAMESPACE,
 };
 
 /// Re-export the CLIF reader so the FOL-text inverse sits alongside the other frontend
@@ -234,6 +234,56 @@ fn is_formula_structural_predicate(prop_local: &str) -> bool {
     )
 }
 
+/// The reserved `logic:` predicate-local names that carry a rule's aggregation (reduce) spec.
+/// Like the formula-structural predicates, these are consumed by [`extract_rules`] (not
+/// [`extract_axioms`]) and must NOT leak into `prog.axioms`.
+fn is_rule_aggregation_predicate(prop_local: &str) -> bool {
+    matches!(
+        prop_local,
+        "aggregateFunction" | "aggregateVariable" | "aggregateResult" | "groupKey"
+    )
+}
+
+/// Read a rule node's aggregation (reduce) spec, when present. Requires the function, the
+/// aggregated variable, and the result variable; the group keys are optional (a reduce with no
+/// group key aggregates the whole relation). A node carrying a partial spec is a hard skip with
+/// a diagnostic, never a silent drop.
+fn aggregation_from_node(
+    store: &RdfDataset,
+    node: &Subject,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Option<AggregateSpec> {
+    let function = value(store, node, &nn(&logic_iri("aggregateFunction"))).map(|t| term_str(&t));
+    let aggregate_var =
+        value(store, node, &nn(&logic_iri("aggregateVariable"))).map(|t| term_str(&t));
+    let result_var = value(store, node, &nn(&logic_iri("aggregateResult"))).map(|t| term_str(&t));
+    // No aggregation surface at all → an ordinary Horn rule.
+    if function.is_none() && aggregate_var.is_none() && result_var.is_none() {
+        return None;
+    }
+    let (Some(function), Some(aggregate_var), Some(result_var)) =
+        (function, aggregate_var, result_var)
+    else {
+        diagnostics.push(Diagnostic::warning(
+            "MALFORMED_RULE_AGGREGATION",
+            "logic:Rule aggregation needs logic:aggregateFunction, logic:aggregateVariable, \
+             and logic:aggregateResult; partial spec skipped",
+            Some(subject_str(node)),
+        ));
+        return None;
+    };
+    let group_keys: Vec<String> = objects(store, node, &nn(&logic_iri("groupKey")))
+        .iter()
+        .map(term_str)
+        .collect();
+    Some(AggregateSpec::new(
+        function,
+        aggregate_var,
+        result_var,
+        group_keys,
+    ))
+}
+
 /// Collect the IRIs / blank-node ids of every subject typed
 /// `logic:ReasoningContract`, `logic:ReasoningPreset`, OR `logic:ClosureEntry`.
 /// These are the meta-configuration nodes whose facet-config triples must be kept
@@ -276,6 +326,12 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         // Formula-AST structural triples are consumed by extract_formulas; they are
         // never domain facts (#719).
         if is_formula_structural_predicate(p_local) {
+            continue;
+        }
+        // Rule-aggregation triples (the reduce spec carried on a logic:Rule node) are consumed
+        // by extract_rules; they are rule structure, never domain facts, and must not pollute
+        // the axiom set or the canonical round-trip.
+        if is_rule_aggregation_predicate(p_local) {
             continue;
         }
         match LogicAxiom::new(
@@ -876,12 +932,11 @@ fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<L
             distinct_pairs.push((d_s_str, d_o_str));
         }
 
-        rules.push(LogicRule::new(
-            head_axiom,
-            body_axioms,
-            distinct_pairs,
-            scope,
-        ));
+        let mut rule = LogicRule::new(head_axiom, body_axioms, distinct_pairs, scope);
+        if let Some(agg) = aggregation_from_node(store, &rule_node, diagnostics) {
+            rule = rule.with_aggregation(agg);
+        }
+        rules.push(rule);
     }
 
     rules
