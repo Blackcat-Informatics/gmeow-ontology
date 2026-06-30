@@ -138,15 +138,22 @@ fn order_steps(
     // gmeow:atTime literals is coherent only within one frame.
     let mut frames: BTreeSet<&str> = BTreeSet::new();
     for call in &calls {
-        match facts.object(call, &gmeow(EVENT_TEMPORAL_FRAME)) {
-            Some(frame) => {
-                frames.insert(frame);
+        let call_frames = facts.objects(call, &gmeow(EVENT_TEMPORAL_FRAME));
+        match call_frames.len() {
+            1 => {
+                frames.insert(call_frames[0]);
             }
-            None => {
+            0 => {
                 return Err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} declares no \
                      gmeow:eventTemporalFrame (Principle 11: every crisp timestamp names its \
                      frame)"
+                ))
+            }
+            n => {
+                return Err(format!(
+                    "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} \
+                     gmeow:eventTemporalFrame values (exactly one is required)"
                 ))
             }
         }
@@ -162,21 +169,37 @@ fn order_steps(
     // deterministic temporal order (the call IRI breaks equal-timestamp ties).
     let mut keyed: Vec<(String, String, String)> = Vec::with_capacity(calls.len());
     for call in calls {
-        let at_time = facts
-            .object_n3(&call, &gmeow(AT_TIME))
-            .ok_or_else(|| {
-                format!("gmeow:ToolCall {call:?} in trajectory {anchor:?} has no gmeow:atTime")
-            })?
-            .to_owned();
-        let schema = facts
-            .object(&call, &logic(INSTANTIATES_SCHEMA))
-            .ok_or_else(|| {
-                format!(
+        let at_times = facts.objects_n3(&call, &gmeow(AT_TIME));
+        let at_time = match at_times.len() {
+            1 => at_times[0].to_owned(),
+            0 => {
+                return Err(format!(
+                    "gmeow:ToolCall {call:?} in trajectory {anchor:?} has no gmeow:atTime"
+                ))
+            }
+            n => {
+                return Err(format!(
+                    "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} gmeow:atTime \
+                     values (exactly one is required)"
+                ))
+            }
+        };
+        let schemas = facts.objects(&call, &logic(INSTANTIATES_SCHEMA));
+        let schema = match schemas.len() {
+            1 => schemas[0].to_owned(),
+            0 => {
+                return Err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} lost its \
                      logic:instantiatesSchema target"
-                )
-            })?
-            .to_owned();
+                ))
+            }
+            n => {
+                return Err(format!(
+                    "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} \
+                     logic:instantiatesSchema values (exactly one is required)"
+                ))
+            }
+        };
         keyed.push((at_time, call, schema));
     }
     keyed.sort();

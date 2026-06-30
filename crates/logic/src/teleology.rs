@@ -312,6 +312,18 @@ impl WorldFacts {
             .and_then(|idxs| idxs.first().map(|&i| self.triples[i].object_n3.as_str()))
     }
 
+    /// All objects' N3 forms (IRIs or literals) for `(subject, predicate)`, in sorted order.
+    pub(crate) fn objects_n3(&self, subject: &str, predicate: &str) -> Vec<&str> {
+        self.sp_index
+            .get(&(subject.to_owned(), predicate.to_owned()))
+            .map(|idxs| {
+                idxs.iter()
+                    .map(|&i| self.triples[i].object_n3.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
     /// Whether `(subject, predicate, object)` (object an IRI) is present.
     pub(crate) fn has(&self, subject: &str, predicate: &str, object: &str) -> bool {
         self.objects(subject, predicate).contains(&object)
