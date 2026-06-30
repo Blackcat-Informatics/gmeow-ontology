@@ -445,11 +445,16 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	@# grep can see, and it AUTO-TIGHTENS when nemo is retired (the allowlist shrinks,
 	@# so a remaining first-party path becomes a hard fail). Note: `nemo`/`gmeow-gts`
 	@# are the ONLY two `gmeow-`/external names allowed here — every other gmeow-* is
-	@# rejected, so the gate cannot be widened by accident.
+	@# rejected, so the gate cannot be widened by accident. `--charset utf8` is MANDATORY
+	@# (not cosmetic): `cargo tree` auto-selects ASCII (`|--`/`\--`) under a non-UTF-8
+	@# locale (LANG=C, minimal Docker/CI), which would make the `[├└]` parse below match
+	@# nothing and SILENTLY PASS the gate — the exact degraded-fallback this repo forbids.
+	@# `--workspace` makes every member a reverse-dep root so the proof is truly
+	@# whole-workspace, not just the default members.
 	@ALLOW='nemo|nemo-physical|gmeow-gts|oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld'; \
 	fail=0; \
 	for C in oxigraph oxrdf oxsdatatypes oxiri spargebra spareval sparopt sparesults oxttl oxrdfio oxrdfxml oxjsonld; do \
-		inv=$$(cargo tree -e normal -i "$$C" 2>/dev/null) || continue; \
+		inv=$$(cargo tree --workspace -e normal --charset utf8 -i "$$C" 2>/dev/null) || continue; \
 		[ -n "$$inv" ] || continue; \
 		parents=$$(echo "$$inv" | sed -n '2,$$p' | grep -E '^[├└]── ' | sed -E 's/^[├└]── ([^ ]+).*/\1/'); \
 		bad=$$(echo "$$parents" | grep -vE "^($$ALLOW)$$" | grep -vE '^$$' || true); \
