@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: transaction/trajectory-audit-concurrent (T4 serializability).
+#
+# The READ-ONLY trajectory audit over CONCURRENT trajectories. The world facts (input.nq)
+# record two gmeow:ToolCall trajectories that SHARE one start state (logic:transitionFromState
+# ex:s0). The left trajectory writes ex:sitX then reads ex:sitY; the right trajectory writes
+# ex:sitY then reads ex:sitX — an opposing-order read/write conflict cycle. The native auditor
+# (crates/logic/src/transaction/trajectory.rs) discovers the bound ToolCalls
+# (logic:instantiatesSchema), groups them under their logic:properPartOf anchors, orders each
+# trajectory by gmeow:atTime, right-folds each into a logic:SerialConjunction, and — because the
+# two anchors share a start state — composes them into a logic:ConcurrentComposition.
+#
+# At materialization the audit derives the logic:ConcurrentHistory of that composition: it builds
+# the conflict graph (logic:precedes edges) from the two legs' read/write footprints and runs the
+# serializability classifier. The cross-dependency footprints cycle, so the audit flags a
+# logic:SerializationAnomaly finding alongside the history — proving T4 (conflict-serializability)
+# at the corpus level, mirroring the engine unit test
+# concurrent_cross_dependency_trajectories_flag_a_serialization_anomaly.
+#
+# Unlike the single-trajectory case this run COMMITS (no logic:HypotheticalExecution): the question
+# is serializability of the recorded concurrent history, not hypothetical goal-reachability.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this input.logic.ttl
+# carries the minimal, clean-compiling, certifiable program axiom the projections need.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/transaction/trajectory-audit-concurrent/> .
+
+# The compile-time reasoning contract selects the Evolution facet that classifies the audited
+# transaction. logic:TransactionPathEvolution drives certification to the transaction-path
+# decidability class (conflict-serializability; PTIME classification, not search). The recorded
+# concurrent history COMMITS, so no logic:executionMode logic:HypotheticalExecution is declared.
+ex:TransactionContract a logic:ReasoningContract ;
+    logic:evolution logic:TransactionPathEvolution .

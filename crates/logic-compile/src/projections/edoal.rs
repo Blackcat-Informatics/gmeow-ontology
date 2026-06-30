@@ -20,6 +20,7 @@ use gmeow_rdf::{parse_dataset, NativeRdfFormat};
 
 use crate::ingest::prefixes::registry_pairs;
 use crate::ingest::DslView;
+use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{
     curie, local, projections, Atom, MappingPattern, ProfileBinding, ProjectionCell, PROFILES,
@@ -60,14 +61,18 @@ pub struct EdoalLowering {
 /// Lower every profile's EDOAL alignment, keyed `<profile>.edoal.ttl`, plus the
 /// per-correspondence loss ledger. `dsl` is the merged mapping-DSL view; `onto` the
 /// merged ontology view (the language-tag map).
-pub fn lower_edoal(dsl: &DslView, onto: &DslView) -> Result<EdoalLowering, String> {
+pub fn lower_edoal(
+    dsl: &DslView,
+    onto: &DslView,
+    lookup: &CorrespondenceLookup,
+) -> Result<EdoalLowering, String> {
     let cells = projections(dsl)?;
     let tag_map = build_tag_map(onto);
     let prefixes = registry_pairs();
     let mut alignments = BTreeMap::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     for profile in PROFILES {
-        let emitted = emit_edoal_nt(&cells, profile, &tag_map)?;
+        let emitted = emit_edoal_nt(&cells, profile, &tag_map, lookup)?;
         // Parse the freshly-built N-Triples into a wasm-clean dataset and render it
         // through the canonical-Turtle serializer (object order is content-derived, so
         // no oxigraph re-dump is needed to fix the blank order).
@@ -230,6 +235,7 @@ fn emit_edoal_nt(
     cells: &[ProjectionCell],
     profile: &str,
     tag_map: &BTreeMap<String, String>,
+    lookup: &CorrespondenceLookup,
 ) -> Result<EmittedEdoal, String> {
     let mut nt = Nt::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
@@ -267,10 +273,19 @@ fn emit_edoal_nt(
             // token `b.relation` is emitted verbatim in `make_cell`. A bridge / caveated
             // relation emitting the equivalence token `=` is a build failure. (Corpus
             // relations are `=`/`<=`; the `=` cells are genuine Equiv, so the gate
-            // passes for the committed corpus.)
-            let (rel, mclass, mkind) = b.lattice();
-            assert_relation_no_overclaim("edoal", rel, mclass, mkind, &b.relation)
-                .map_err(|e| e.0)?;
+            // passes for the committed corpus.) The typed `(relation, class, kind)` is
+            // CONSUMED from the materialized correspondence keyed by this cell's natural
+            // identity `(cell IRI, profile)` — the single source of truth — not re-derived
+            // inline. A miss is a HARD FAIL: every authored binding is transpiled.
+            let typed = lookup.binding(&cell.iri, &b.profile)?;
+            assert_relation_no_overclaim(
+                "edoal",
+                typed.relation,
+                typed.morphism_class,
+                typed.morphism_kind,
+                &b.relation,
+            )
+            .map_err(|e| e.0)?;
 
             for map_cell in edoal_cells(&mut nt, cell, b, &en)? {
                 nt.add_bnode_obj(&align, &format!("{ALIGN}map"), &map_cell);
@@ -628,6 +643,7 @@ mod tests {
     #[test]
     fn bridge_cell_emitting_equivalence_fails_the_lowering() {
         use crate::ir::MorphismClass;
+        use crate::projections::correspondence_frontend::{CorrespondenceLookup, TypedRelation};
 
         let gm = "https://blackcatinformatics.ca/gmeow/";
         let bridge_cell = ProjectionCell {
@@ -665,7 +681,20 @@ mod tests {
             }],
         };
         let tag_map = BTreeMap::new();
-        let err = emit_edoal_nt(&[bridge_cell], "schema-org", &tag_map)
+        // The materialized correspondence for this binding: the relation `=` lattices to
+        // Equiv, the authored class is BridgeView, the kind is InstitutionMorphism — the
+        // exact triple `b.lattice()` (and so the transpiler) would mint. The gate consumes
+        // this typed envelope, which forbids a BridgeView surfacing equivalence.
+        let lookup = CorrespondenceLookup::for_binding_test(
+            &format!("{gm}cellBridge"),
+            "schema-org",
+            TypedRelation {
+                relation: crate::ir::CorrespondenceRelation::Equiv,
+                morphism_class: MorphismClass::BridgeView,
+                morphism_kind: crate::ir::MorphismKind::InstitutionMorphism,
+            },
+        );
+        let err = emit_edoal_nt(&[bridge_cell], "schema-org", &tag_map, &lookup)
             .expect_err("a bridge view emitting `=` must be rejected by the lowering");
         assert!(err.contains("bridge"), "{err}");
         assert!(err.contains("Principle 5"), "{err}");

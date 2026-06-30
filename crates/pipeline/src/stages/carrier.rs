@@ -736,12 +736,14 @@ fn opaque_already_carried(path: &str) -> bool {
         || path == "generated/logic/gmeow.rls" // REP_AXIOMS
 }
 
-/// Build the opaque-fanout archive [`REP_GENERATED`]: recompute each opaque
-/// `generated/` fanout output from THIS run's carrier (carrier-reading leaves) or
-/// source (source-reading leaves) and fold the non-RDF bytes into one deterministic
-/// archive, keyed repo-relative. The post-snapshot export leaves still write the
-/// disk files (additive — the writer retirement is a separate concern); the bytes
-/// here are byte-identical to the committed files, which the superset gate proves.
+/// Build the generated-fanout archive [`REP_GENERATED`]: recompute each byte-exact
+/// `generated/` fanout output from THIS run's carrier (carrier-reading leaves),
+/// source (source-reading leaves), or sink-consumed stage products. Plain RDF files
+/// with canonical graph folds ride as named graphs; byte-decorated RDF reports
+/// whose committed form includes generated comments / section markers ride here as
+/// committed byte projections. The post-snapshot export leaves still write the disk
+/// files (additive — the writer retirement is a separate concern); the bytes here
+/// are byte-identical to the committed files, which the superset gate proves.
 fn build_fanout_opaque_blob(
     root: &Path,
     carrier: &gmeow_rdf::RdfDataset,
@@ -811,6 +813,38 @@ fn build_fanout_opaque_blob(
             .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for fanout archive")))?;
         members.insert(path.to_string(), bytes);
     }
+
+    // Byte-decorated RDF artifacts: these are valid RDF, but their committed files
+    // intentionally include generated comments / section markers that are not graph
+    // data and therefore cannot be recovered from a canonical named-graph fold.
+    // Carry their committed byte projections here while the queryable semantics keep
+    // riding the first-class statement / reasoning / metadata graph lanes.
+    for (stage, path) in [
+        ("stage-reason", crate::stages::reason::CLOSURE_PATH),
+        ("stage-reason", crate::stages::reason::EXPLANATIONS_PATH),
+        ("stage-reason", crate::stages::reason::LEDGER_PATH),
+        ("stage-reason", crate::stages::reason::PERF_LEDGER_PATH),
+        ("stage-statements", crate::stages::statements::OWL_PATH),
+        ("stage-statements", crate::stages::statements::RDF12_PATH),
+    ] {
+        let bytes = upstream
+            .get(stage)
+            .and_then(|p| p.artifact(path))
+            .map(<[u8]>::to_vec)
+            .ok_or_else(|| {
+                stage_err(&format!(
+                    "missing byte-decorated RDF artifact {path} in {stage}"
+                ))
+            })?;
+        members.insert(path.to_string(), bytes);
+    }
+    members.extend(crate::stages::metadata::render_metadata_from_dataset(
+        root, carrier,
+    )?);
+    members.insert(
+        crate::stages::yaml_ld::PRESERVATION_PATH.to_string(),
+        crate::stages::yaml_ld::preservation_ledger().into_bytes(),
+    );
 
     // loss matrices: deterministic, code-derived (verified by tests, not stage-built),
     // recomputed verbatim — the committed files equal the function output exactly.
@@ -1198,8 +1232,11 @@ impl Stage for SnapshotStage {
         // published expected verdict. v13 folds the dogfooded occurrence-based
         // provenance projection (graph/provenance) — the public compilation-unit +
         // per-lane carrier manifest (no runtime ids, S0.5) — and gates that every
-        // authored quad carries ≥1 stage-origin (#1132 C9).
-        "snapshot.v13-provenance-graph"
+        // authored quad carries ≥1 stage-origin (#1132 C9). v14 folds the byte-exact
+        // generated metadata, statement, reasoning, and preservation projections into
+        // REP_GENERATED so the superset gate can reconstruct every committed
+        // generated file without re-reading disk.
+        "snapshot.v14-generated-byte-projections"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
