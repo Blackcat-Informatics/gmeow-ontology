@@ -26,18 +26,18 @@ fn slice_dag_binds_and_matches_full_spec() {
         .expect("read pipeline slice");
     let spec = PipelineSpec::from_turtle(&[&ttl]).expect("parse the dogfooded build DAG");
 
-    // The slice DAG validates (acyclic, complete, one Sink, engine-lock derived)
-    // and binds against the default registry (every stageImpl resolves; kind +
-    // consumes agree with the Rust impl).
+    // The slice DAG validates (acyclic, complete, one Sink) and binds against the
+    // default registry (every stageImpl resolves; capabilities + consumes + resources
+    // agree with the Rust impl).
     let graph = spec.validate().expect("slice DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("slice DAG binds to registry");
     assert_eq!(bound.len(), spec.stages.len(), "every slice stage bound");
 
     // The slice DAG is IDENTICAL to the authoritative Rust full_spec — the single
     // authoritative graph the run uses. We compare every field the loader fills
-    // authoritatively from `module.ttl`: id, impl_key, consumes, kind, AND
-    // engine_lock. (`kind` is `gmeow:stageKind`; `engine_lock` is
-    // `gmeow:carriesEngineLock` — both are loaded from the slice, so a drift in
+    // authoritatively from `module.ttl`: id, impl_key, consumes, capabilities, AND
+    // resources. (`capabilities` is `gmeow:hasCapability`; `resources` is
+    // `gmeow:requiresResource` — both are loaded from the slice, so a drift in
     // either must surface here, not just in id/impl_key/consumes.)
     //
     // `formats` (`gmeow:producesFormat`) is loaded from the slice too, but is
@@ -46,14 +46,22 @@ fn slice_dag_binds_and_matches_full_spec() {
     // for it. The slice is the sole formats source; comparing it would compare a
     // populated slice value against an intentionally-empty Rust one. Format
     // coverage is asserted independently against the slice in the loader tests.
-    type StageTuple = (String, String, Vec<String>, &'static str, bool);
+    type StageTuple = (
+        String,
+        String,
+        Vec<String>,
+        Vec<String>,
+        Vec<String>,
+        Vec<(String, Vec<String>)>,
+    );
     let project = |s: &gmeow_pipeline::StageSpec| -> StageTuple {
         (
             s.id.clone(),
             s.impl_key.clone(),
             s.consumes.clone(),
-            s.kind.tag(),
-            s.engine_lock,
+            s.capabilities.clone(),
+            s.resources.clone(),
+            s.dataflow_entities.clone(),
         )
     };
     let full = full_spec();
@@ -64,6 +72,6 @@ fn slice_dag_binds_and_matches_full_spec() {
     assert_eq!(
         slice, rust,
         "the dogfooded slice DAG and the Rust full_spec must be identical \
-         (id, impl_key, consumes, kind, engine_lock)"
+         (id, impl_key, consumes, capabilities, resources, dataflow_entities)"
     );
 }

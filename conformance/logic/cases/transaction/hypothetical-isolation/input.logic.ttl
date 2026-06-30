@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: transaction/hypothetical-isolation.
+#
+# The SAME serial-conjunction transaction program (φ ⊗ ψ over s0 → s1 → s2) is run, but
+# its transaction-program root is bound — IN THE WORLD FACTS (input.nq) — to a governing
+# logic:ReasoningContract whose logic:executionMode is logic:HypotheticalExecution. The
+# sandbox operator is a SEPARATE, orthogonal facet (logic:ExecutionMode: commit vs.
+# discard), NOT modal possibility (◇). The verdict is computed identically to a committed
+# run, but the emission differs: the engine records the logic:TransactionOutcome with its
+# verdict plus a SINGLE content-addressed logic:executedHypotheticallyAs witness, and
+# SUPPRESSES the effect substrate entirely — no logic:Path, no per-step logic:TransactionStep,
+# no supersession quads. Suppression-never-erasure holds for free: the discarded effects are
+# never asserted, so the start state is untouched and the witness is the sole standing trace.
+# Proves the hypothetical (sandbox) isolation contract at the corpus level.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/transaction/hypothetical-isolation/> .
+
+ex:GoalExpression a logic:GoalExpression .
+
+# The compile-time reasoning contract selects the Evolution facet that classifies this
+# transaction program. logic:TransactionPathEvolution drives certification to the
+# transaction-path decidability class (conflict-serializability; PTIME classification,
+# not search). The contract also declares logic:executionMode logic:HypotheticalExecution
+# for fidelity with the world-facts wiring that actually drives the sandbox emission.
+ex:TransactionContract a logic:ReasoningContract ;
+    logic:evolution logic:TransactionPathEvolution ;
+    logic:executionMode logic:HypotheticalExecution .

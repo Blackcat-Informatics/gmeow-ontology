@@ -16,7 +16,7 @@ use gmeow_docs::model::DocsModel;
 use gmeow_docs::rdf::to_gmeow_rdf;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the documentation named graph (N-Quads, in-memory dataflow).
 pub const DOCS_GRAPH_PATH: &str = "pipeline/documentation.nq";
@@ -129,9 +129,6 @@ impl Default for DocsRenderStage {
 impl Stage for DocsRenderStage {
     fn id(&self) -> &str {
         "stage-docs-render"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::DocsRender
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

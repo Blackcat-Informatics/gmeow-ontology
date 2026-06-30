@@ -236,10 +236,15 @@ fn materialize<'py>(
 /// {
 ///   "certified": bool,
 ///   "decidability_class": str,
+///   "evolution_class": str,   # Rust-native logic:EvolutionMode characterization
 ///   "profile_id": str,
 ///   "violations": [str, …]   # sorted, byte-identical to the oracle
 /// }
 /// ```
+///
+/// `evolution_class` is a Rust-native facet characterization beyond the four
+/// oracle keys; this surface does not select an evolution facet, so it always
+/// reports the `StaticEvolution` default (`"static/single-state"`).
 ///
 /// `profile` matches the Python profile-id strings, e.g. `"PositiveHornProfile"`,
 /// `"StratifiedNAFProfile"`, `"StableModelProfile"`. Certification uses
@@ -253,15 +258,19 @@ fn materialize<'py>(
 /// Returns a Python `ValueError` if `rules` is not parseable Nemo `.rls`.
 #[pyfunction]
 fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<Py<PyAny>> {
-    let verdict = certify_rules(rules, profile).map_err(|e| {
+    // No evolution facet is selectable on this surface ⇒ StaticEvolution default.
+    let verdict = certify_rules(rules, profile, None).map_err(|e| {
         pyo3::exceptions::PyValueError::new_err(format!("certify parse error: {e}"))
     })?;
-    let (certified, decidability_class, profile_id, violations) = verdict.to_json_pairs();
+    let (certified, decidability_class, evolution_class, profile_id, violations) =
+        verdict.to_json_pairs();
 
     let d = PyDict::new(py);
-    // Insert in the same sorted-key order Python's `to_json()` literal uses.
+    // Insert in sorted-key order (evolution_class falls between decidability_class
+    // and profile_id).
     d.set_item("certified", certified)?;
     d.set_item("decidability_class", decidability_class)?;
+    d.set_item("evolution_class", evolution_class)?;
     d.set_item("profile_id", profile_id)?;
     d.set_item("violations", violations)?;
     Ok(d.into_any().unbind())

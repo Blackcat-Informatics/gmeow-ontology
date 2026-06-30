@@ -27,7 +27,7 @@ use gmeow_rdf::{
 };
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, SOURCE_ORIGIN};
 
 /// The `OriginKind` an authored file contributes, by its repo-relative role:
 /// `ontology/gmeow.ttl` is the [`OriginKind::RootOntology`], every `imports/*.ttl`
@@ -305,18 +305,38 @@ pub fn turtle_bytes_to_dataset(
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
-/// The `source_load` pipeline stage.
-pub struct SourceLoadStage;
+/// The `source_load` pipeline stage — the authored-source loader. Holds
+/// [`SOURCE_ORIGIN`], so the scheduler stamps its emitted quads' provenance origin as
+/// `Source` (the kind-enum replacement: origin is read off a capability, not a tag).
+pub struct SourceLoadStage {
+    capabilities: Vec<String>,
+}
+
+impl SourceLoadStage {
+    /// Construct the loader, declaring the [`SOURCE_ORIGIN`] capability (mirrored by
+    /// the slice `gmeow:stage-source-load gmeow:hasCapability gmeow:sourceOrigin`).
+    pub fn new() -> Self {
+        Self {
+            capabilities: vec![SOURCE_ORIGIN.to_string()],
+        }
+    }
+}
+
+impl Default for SourceLoadStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for SourceLoadStage {
     fn id(&self) -> &str {
         "stage-source-load"
     }
-    fn kind(&self) -> StageKind {
-        StageKind::SourceLoad
-    }
     fn consumes(&self) -> &[String] {
         &[]
+    }
+    fn capabilities(&self) -> &[String] {
+        &self.capabilities
     }
     fn impl_version(&self) -> &str {
         "source_load.v1"

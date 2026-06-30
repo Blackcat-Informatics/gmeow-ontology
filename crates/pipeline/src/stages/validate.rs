@@ -16,7 +16,7 @@ use gmeow_diagnostics::{Finding, Report, Severity};
 use serde_json::json;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::BASE_GRAPH_PATH;
 
 /// Committed JSON projection of the DAG SHACL diagnostics report.
@@ -114,9 +114,6 @@ impl Default for ValidateStage {
 impl Stage for ValidateStage {
     fn id(&self) -> &str {
         "stage-validate"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::Validate
     }
     fn consumes(&self) -> &[String] {
         &self.consumes

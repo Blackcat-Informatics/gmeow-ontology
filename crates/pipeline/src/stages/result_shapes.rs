@@ -31,7 +31,7 @@ use std::sync::Arc;
 use gmeow_rdf::{RdfDataset, TermValue};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::native_query;
 
 /// Committed logical path of the generated result-shape projection.
@@ -300,9 +300,6 @@ pub struct ResultShapesStage;
 impl Stage for ResultShapesStage {
     fn id(&self) -> &str {
         "stage-export-result-shapes"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

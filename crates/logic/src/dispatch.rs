@@ -1,11 +1,22 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Query classification and fast-path / Scryer dispatch.
+//! Query classification and native / fast-path / Scryer dispatch.
 //!
-//! # Two-path architecture
+//! # Primary path + fallback router
 //!
-//! `dispatch_query` routes a `QProgram` to one of two engines:
+//! `dispatch_query` resolves a `QProgram` native-first, falling back to the legacy
+//! two-path router for a declared native gap OR a step budget:
+//!
+//! - **Native physical core** (the primary path): `crate::physical::resolve_native`
+//!   magic-transforms the query and evaluates it bottom-up over the columnar
+//!   `RelationStore`. It is authoritative for the binary positive query fragment it
+//!   decides; a `NativeOutcome::Unsupported` (cut / arithmetic / non-binary / demand-
+//!   breaks-stratification) is a declared gap that falls through to the router below.
+//!   The native core has no step governor, so a `budget.max_steps` request is also
+//!   demoted to the fallback (which honours it) before native runs; a `max_answers`-only
+//!   budget stays native. A step budget further forces the EDB `Fast` path to Scryer,
+//!   since `fast_path` honours only `max_answers`.
 //!
 //! - **Fast path** (`Dispatch::Fast`): the goal contains only EDB atoms (no rule in the
 //!   program defines any goal predicate). Resolved directly via a single SPARQL
@@ -14,6 +25,10 @@
 //! - **Scryer path** (`Dispatch::Scryer`): the goal hits at least one IDB predicate
 //!   (a predicate defined as a rule head). Delegated to `scryer_engine::run_scryer`
 //!   with `:- table` directives for the cyclic IDB predicates.
+//!
+//! The fast-path / Scryer router is the not-yet-native fallback and conformance oracle
+//! for the fragments the native core does not yet decide; `classify_goal` is ONLY the
+//! fallback router.
 //!
 //! # Cut gate
 //!
@@ -296,8 +311,10 @@ fn term_to_sparql(t: &QTerm) -> String {
 /// Steps:
 /// 1. `profile_gate::check_cut_profile(program, profile)?` — hard-fail if cut is
 ///    present under a non-procedural profile.
-/// 2. Compute `cyclic_predicates(program)` for `:- table` directives.
-/// 3. Dispatch: `classify_goal(program) == Fast` → `fast_path`; else → `run_scryer`.
+/// 2. Native physical core first (`crate::physical::resolve_native`): return its answer
+///    when it decides; fall through on a declared gap.
+/// 3. Fallback router: compute `cyclic_predicates(program)` for `:- table`, then
+///    `classify_goal(program) == Fast` → `fast_path`; else → `run_scryer`.
 ///
 /// # Errors
 ///
@@ -314,13 +331,36 @@ pub fn dispatch_query(
     profile_gate::check_cut_profile(program, profile)?;
     profile_gate::check_builtin_profile(program, profile)?;
 
-    // (2) Cyclic IDB predicates for tabling.
+    // (2) Native physical core first — the primary backward path. The magic-sets engine
+    // (`crate::physical::resolve_native`) answers the binary positive query fragment by
+    // bottom-up demand evaluation; it is authoritative for what it decides. A declared
+    // gap (`NativeOutcome::Unsupported` — cut / arithmetic / non-binary / demand-breaks-
+    // stratification) falls through to the demoted fast-path / Scryer fallback below.
+    //
+    // Step-budget demotion: the native engine runs to fixpoint and has no post-hoc step
+    // governor; it cannot stamp `BudgetStatus::Exhausted` or honour `max_steps`. When
+    // the caller supplies a step limit, route to the Scryer/fast-path fallback (which
+    // does honour it) rather than silently running unbounded and reporting the wrong
+    // status. `max_answers`-only budgets are genuinely handled natively and are NOT
+    // demoted. A query carrying BOTH fields is demoted (max_steps takes precedence).
+    if budget.max_steps.is_none() {
+        match crate::physical::resolve_native(foreign, world, program, budget)? {
+            crate::physical::NativeOutcome::Decided(answer) => return Ok(answer),
+            crate::physical::NativeOutcome::Unsupported(_) => {}
+        }
+    }
+
+    // (3) Fallback: cyclic IDB predicates for tabling, then the legacy router.
     let table_preds = cyclic_predicates(program);
 
-    // (3) Dispatch.
     match classify_goal(program) {
-        Dispatch::Fast => fast_path(store, world, program, budget),
-        Dispatch::Scryer => {
+        // `fast_path` is a single-pass EDB SPARQL optimisation that honours only
+        // `max_answers`; it has no step governor. A step-budgeted query must therefore
+        // bypass it and go to Scryer, which wraps the goal in `call_with_inference_limit`
+        // and stamps `BudgetStatus::Exhausted` on the step ceiling (matching the reference
+        // oracle). Without this, a step-budgeted pure-EDB goal would silently report `Ok`.
+        Dispatch::Fast if budget.max_steps.is_none() => fast_path(store, world, program, budget),
+        Dispatch::Fast | Dispatch::Scryer => {
             scryer_engine::run_scryer(foreign, world, program, &table_preds, budget)
         }
     }
@@ -651,6 +691,111 @@ mod tests {
         );
     }
 
+    // ── Native-first backward wiring ─────────────────────────────────────────────
+
+    /// An IDB (recursive) program is resolved by the native physical core
+    /// (`crate::physical::resolve_native`) — the primary backward path — not Scryer.
+    /// The native magic-sets engine decides the binary positive fragment, so the
+    /// transitive-ancestor answers come back native-authoritative. We assert the full
+    /// answer set (a→b, a→c, a→d) to pin that the native path actually answered.
+    #[test]
+    fn dispatch_query_idb_resolved_by_native() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
+        store.insert_quad(W, &p("b"), &p("parentOf"), &p("c"));
+        store.insert_quad(W, &p("c"), &p("parentOf"), &p("d"));
+        let world_nn = W.to_owned();
+
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Y).\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Z), ex:ancestor(Z, Y).\n\
+             ?- ex:ancestor(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+
+        // The native core MUST decide this binary positive query directly.
+        let native = crate::physical::resolve_native(
+            &WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap(),
+            &world_nn,
+            &prog,
+            &budget,
+        )
+        .unwrap();
+        assert!(
+            matches!(native, crate::physical::NativeOutcome::Decided(_)),
+            "native core must decide an IDB binary positive query: {native:?}"
+        );
+
+        // dispatch_query routes through the native core and returns the same answers.
+        let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+        let ans =
+            dispatch_query(&foreign, &store, &world_nn, &prog, HORN_PROFILE, &budget).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        let ys: BTreeSet<String> = ans.bindings.iter().map(|b| b["Y"].clone()).collect();
+        let want: BTreeSet<String> = ["b", "c", "d"]
+            .into_iter()
+            .map(|x| format!("<{BASE}{x}>"))
+            .collect();
+        assert_eq!(ys, want, "native-resolved transitive ancestors: {ys:?}");
+    }
+
+    /// A declared native gap falls through to the demoted fallback router. A cut under
+    /// the procedural profile is `NativeOutcome::Unsupported(Cut)` for the native core,
+    /// so `dispatch_query` must fall through to Scryer (the procedural cut engine) and
+    /// still answer — the fallback is exercised, not bypassed.
+    #[test]
+    fn dispatch_query_cut_falls_back_to_scryer() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("parentOf"), &p("b"));
+        store.insert_quad(W, &p("a"), &p("parentOf"), &p("c"));
+        let world_nn = W.to_owned();
+
+        // first/2: a cut prunes after the first parentOf solution (procedural semantics).
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:first(X, Y) :- ex:parentOf(X, Y), !.\n\
+             ?- ex:first(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+
+        // The native core declares cut a gap.
+        let native = crate::physical::resolve_native(
+            &WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap(),
+            &world_nn,
+            &prog,
+            &budget,
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                native,
+                crate::physical::NativeOutcome::Unsupported(crate::physical::UnsupportedKind::Cut)
+            ),
+            "cut must be a declared native gap: {native:?}"
+        );
+
+        // dispatch_query falls through to Scryer (the procedural cut engine) and answers.
+        let foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let ans = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            PROCEDURAL_PROFILE,
+            &budget,
+        )
+        .unwrap();
+        // The cut keeps exactly one answer (the first parentOf binding).
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "cut must prune to one answer via the Scryer fallback: {ans:?}"
+        );
+    }
+
     #[test]
     fn builtin_under_non_procedural_profile_is_rejected() {
         let (store, world) = list_world();
@@ -679,6 +824,203 @@ mod tests {
         assert!(
             msg.contains("builtin") && msg.contains(HORN_PROFILE),
             "error must name the offending profile: {msg:?}"
+        );
+    }
+
+    // ── Budget: max_steps demotion parity ─────────────────────────────────────────
+
+    #[test]
+    fn dispatch_budget_max_steps_demotes_native_and_matches_reference() {
+        // Build a chain: a→b→c→d (3 EDB parentOf edges), transitive-closure program.
+        // With a very tight max_steps budget (1), the Scryer fallback exhausts before
+        // fixpoint and reports Exhausted.  The native engine has no step governor and
+        // would silently return all 3 answers with status Ok — the demotion guard must
+        // prevent it from firing at all.
+        let store = WorldStore::new();
+        let base = "https://example.org/";
+        store.insert_quad(
+            W,
+            &format!("{base}a"),
+            &format!("{base}parentOf"),
+            &format!("{base}b"),
+        );
+        store.insert_quad(
+            W,
+            &format!("{base}b"),
+            &format!("{base}parentOf"),
+            &format!("{base}c"),
+        );
+        store.insert_quad(
+            W,
+            &format!("{base}c"),
+            &format!("{base}parentOf"),
+            &format!("{base}d"),
+        );
+        let world_nn = W.to_owned();
+        let foreign = crate::seam::WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+
+        let src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Y).\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Z), ex:ancestor(Z, Y).\n\
+             ?- ex:ancestor(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+
+        // Unbudgeted dispatch goes through native and returns all 3 ancestors.
+        let full = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            HORN_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(
+            full.bindings.len(),
+            3,
+            "unbudgeted should yield all 3 ancestors"
+        );
+        assert_eq!(
+            full.status,
+            BudgetStatus::Ok,
+            "unbudgeted status must be Ok"
+        );
+
+        // Zero-step budget: reference_resolver exhausts at the very first budget_exceeded()
+        // check (steps=0 >= 0) in resolve_conjunct, reporting Exhausted with no bindings.
+        // Scryer's inference limit of 0 also fires immediately.  The native engine has no
+        // step governor and would silently return all 3 answers with status Ok; the
+        // demotion guard must prevent it from being invoked at all.
+        let tight_budget = Budget {
+            max_steps: Some(0),
+            max_answers: None,
+        };
+        let dispatched = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            HORN_PROFILE,
+            &tight_budget,
+        )
+        .unwrap();
+
+        // Core invariant: the native engine was NOT invoked.  If it had been, it would
+        // have returned Ok with 3 bindings; the Scryer fallback honours the step budget
+        // and returns Exhausted before collecting any answer.
+        assert_eq!(
+            dispatched.status,
+            BudgetStatus::Exhausted,
+            "a 1-step budget must be Exhausted (native would wrongly return Ok with 3 answers)"
+        );
+        assert!(
+            dispatched.bindings.len() < 3,
+            "demoted path must not deliver all 3 native answers"
+        );
+
+        // Cross-check the reference oracle under the same budget: reference_resolver hits
+        // budget_exceeded() (steps=0 >= 0) at the top of the first resolve_conjunct call
+        // and stamps Exhausted immediately.  Bindings must also match (both empty).
+        let reference =
+            crate::reference_resolver::resolve(&foreign, &world_nn, &prog, &tight_budget).unwrap();
+        assert_eq!(
+            reference.status,
+            BudgetStatus::Exhausted,
+            "reference oracle must also stamp Exhausted under a zero-step budget"
+        );
+        assert_eq!(
+            dispatched.status, reference.status,
+            "demoted dispatch status must match reference oracle under max_steps budget"
+        );
+        assert_eq!(
+            dispatched.bindings, reference.bindings,
+            "demoted dispatch bindings must match reference oracle under max_steps budget"
+        );
+    }
+
+    #[test]
+    fn dispatch_budget_max_steps_pure_edb_goal_honours_budget() {
+        // A single binary EDB atom classifies as `Dispatch::Fast`. `fast_path` honours
+        // only `max_answers`, so a step budget routed there would silently report `Ok`.
+        // The router must instead send step-budgeted Fast goals to Scryer, which stamps
+        // Exhausted on the step ceiling — matching the reference oracle.
+        let store = WorldStore::new();
+        store.insert_quad(
+            W,
+            &format!("{BASE}a"),
+            &format!("{BASE}parentOf"),
+            &format!("{BASE}b"),
+        );
+        store.insert_quad(
+            W,
+            &format!("{BASE}a"),
+            &format!("{BASE}parentOf"),
+            &format!("{BASE}c"),
+        );
+        let world_nn = W.to_owned();
+        let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+
+        // Pure-EDB goal (no IDB predicate) → classify_goal == Fast.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ?- ex:parentOf(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        assert_eq!(
+            classify_goal(&prog),
+            Dispatch::Fast,
+            "single binary EDB atom must classify as Fast"
+        );
+
+        // Unbudgeted: fast_path returns both children with status Ok.
+        let full = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            HORN_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(
+            full.bindings.len(),
+            2,
+            "unbudgeted Fast goal yields both children"
+        );
+        assert_eq!(full.status, BudgetStatus::Ok);
+
+        // Zero-step budget: must NOT take fast_path (which would report Ok); routes to
+        // Scryer and stamps Exhausted, matching the reference oracle.
+        let tight_budget = Budget {
+            max_steps: Some(0),
+            max_answers: None,
+        };
+        let dispatched = dispatch_query(
+            &foreign,
+            &store,
+            &world_nn,
+            &prog,
+            HORN_PROFILE,
+            &tight_budget,
+        )
+        .unwrap();
+        assert_eq!(
+            dispatched.status,
+            BudgetStatus::Exhausted,
+            "a step-budgeted pure-EDB goal must report Exhausted, not silent Ok via fast_path"
+        );
+
+        let reference =
+            crate::reference_resolver::resolve(&foreign, &world_nn, &prog, &tight_budget).unwrap();
+        assert_eq!(
+            dispatched.status, reference.status,
+            "step-budgeted Fast goal status must match the reference oracle"
+        );
+        assert_eq!(
+            dispatched.bindings, reference.bindings,
+            "step-budgeted Fast goal bindings must match the reference oracle"
         );
     }
 }

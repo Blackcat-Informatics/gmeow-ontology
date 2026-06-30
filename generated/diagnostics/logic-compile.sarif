@@ -440,6 +440,25 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: transaction-path evolution has no faithful OWL DL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "35638e93313643f2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: contextual scope (standpoint, time, confidence) is dropped"
           },
           "partialFingerprints": {
@@ -501,6 +520,25 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "0fbd7de38a2fbbaf"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e715d2a21b205c18"
           },
           "ruleId": "logic-compile.lossy-drop"
         }

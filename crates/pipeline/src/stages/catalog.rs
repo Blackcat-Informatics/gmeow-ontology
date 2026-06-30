@@ -14,7 +14,7 @@ use std::path::Path;
 use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, TermRef, TermValue};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::module_files;
 
 /// Committed logical path of the OASIS catalog.
@@ -123,9 +123,6 @@ pub struct CatalogStage;
 impl Stage for CatalogStage {
     fn id(&self) -> &str {
         "stage-export-catalog"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

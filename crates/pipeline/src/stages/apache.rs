@@ -15,7 +15,7 @@ use std::path::Path;
 use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, TermRef, TermValue};
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the Apache content-negotiation include.
 pub const APACHE_PATH: &str = "generated/apache/gmeow.conf";
@@ -245,9 +245,6 @@ pub struct ApacheStage;
 impl Stage for ApacheStage {
     fn id(&self) -> &str {
         "stage-export-apache"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]

@@ -32,7 +32,7 @@ use gmeow_slice::rdf_query::{Dataset, Object, Subject};
 use serde_json::Value;
 
 use crate::error::PipelineError;
-use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the generated leaderboard.
 pub const LEADERBOARD_PATH: &str = "generated/evals/leaderboard.md";
@@ -957,9 +957,6 @@ pub struct EvalsStage;
 impl Stage for EvalsStage {
     fn id(&self) -> &str {
         "stage-export-evals"
-    }
-    fn kind(&self) -> StageKind {
-        StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
         &[]
