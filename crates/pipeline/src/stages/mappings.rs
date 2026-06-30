@@ -33,7 +33,7 @@ use gmeow_rdf::RdfSeverity;
 use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use gmeow_slice::{
     emit_claim_view, emit_dsl_stats, emit_list_functions, emit_standpoint_sets,
-    lint_prefix_consistency, lint_projection, CLAIM_VIEW_FILE,
+    lint_prefix_consistency, CLAIM_VIEW_FILE,
 };
 
 use crate::error::PipelineError;
@@ -300,7 +300,11 @@ pub fn compile_diagnostics_report(root: &Path) -> Report {
         fold_sssom_findings(&mut report, path, bytes);
     }
 
-    match lint_projection(root, false) {
+    // The seven correspondence-stack soundness checks (the five alignment checks + the two
+    // FnO back-end checks, incl. the sole native enforcer of Constitution Principle 5) run
+    // through the oxigraph-free native pass
+    // (`stages::correspondence_soundness::lint_correspondence_soundness`).
+    match crate::stages::correspondence_soundness::lint_correspondence_soundness(root, false) {
         Ok(problems) => {
             for problem in problems {
                 let mut finding = Finding::new(

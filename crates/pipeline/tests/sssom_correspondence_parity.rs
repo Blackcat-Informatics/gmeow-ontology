@@ -15,6 +15,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
 use gmeow_logic_compile::projections::sssom::lower_sssom;
 use gmeow_rdf::dataset_view::{DatasetView, GraphMatch};
 use gmeow_rdf::{
@@ -124,7 +125,15 @@ fn sssom_lowering_matches_committed_corpus() {
     let view = DslView::new(&merged);
     let (version, release_date) = read_self_metadata(&root);
 
-    let emitted: BTreeMap<String, String> = lower_sssom(&view, &version, &release_date)
+    // The materialized correspondence lookup the SSSOM ledger gate consumes (F5 Task 2),
+    // built from the SAME merged DSL so the consumed typed relation and the rendered TSV
+    // agree by construction. An empty ontology view suffices (equivalence keys read only
+    // the DSL).
+    let empty = parse_turtle(b"");
+    let (_program, lookup) = transpile_correspondences_indexed(&view, &DslView::new(&empty))
+        .expect("transpile correspondence lookup");
+
+    let emitted: BTreeMap<String, String> = lower_sssom(&view, &version, &release_date, &lookup)
         .expect("lower sssom")
         .sets;
     assert!(

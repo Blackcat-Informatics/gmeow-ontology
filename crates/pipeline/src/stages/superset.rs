@@ -6,9 +6,12 @@
 //! For every committed path under `generated/`, this gate resolves the path's
 //! carrier representative from the **shipped** bundle and reconstructs the bytes:
 //!
-//! * an RDF output is the canonical fold of one named graph (Turtle via the
-//!   wasm-clean renderer; N-Quads via a graph-rooted serialization), and
-//! * an opaque output is a member of one inline content-addressed archive blob.
+//! * an RDF output with a canonical graph fold is reconstructed from one named graph
+//!   (Turtle via the wasm-clean renderer; N-Quads via a graph-rooted serialization),
+//!   and
+//! * a byte-decorated output (including generated RDF reports whose committed files
+//!   contain comments / section markers) is a member of one inline content-addressed
+//!   archive blob.
 //!
 //! A committed path with no representative, a representative whose reconstruction
 //! does not match the committed bytes, or a carried representative with no
@@ -72,11 +75,12 @@ struct GraphRep {
     form: GraphForm,
 }
 
-/// Resolve the named-graph representative for a committed `generated/` path. Every
-/// RDF output (`.ttl`/`.nt`/`.nq`) is carried as a named graph (the locked
-/// principle: RDF travels as RDF, the fold is the byte-truth); opaque outputs are
-/// inline blob members. The serialization form is fixed by the file extension and
-/// matches the form the producing stage emits the committed file with, so
+/// Resolve the named-graph representative for a committed `generated/` path. RDF
+/// outputs whose committed bytes are a pure canonical graph fold are carried as
+/// named graphs (RDF travels as RDF, the fold is the byte-truth); byte-decorated
+/// outputs fall through to inline blob members. The serialization form is fixed by
+/// the file extension and matches the form the producing stage emits the committed
+/// file with, so
 /// `file == fold` holds by construction. A path whose graph is not (yet) carried
 /// reconstructs to `None` and surfaces as `missing` — how the gate enumerates the
 /// remaining gap.
@@ -507,6 +511,25 @@ mod tests {
             Some("bare.rq")
         );
         assert_eq!(match_blob_member("generated/x/none.txt", &members), None);
+    }
+
+    #[test]
+    fn byte_decorated_rdf_paths_fall_through_to_blob_members() {
+        for path in [
+            "generated/logic/inferred-closure.rdf12.ttl",
+            "generated/logic/reasoning-explanations.rdf12.ttl",
+            "generated/logic/dl-el-crosscheck-report.ttl",
+            "generated/logic/perf-ledger.ttl",
+            "generated/metadata/void.ttl",
+            "generated/metadata/dcat.ttl",
+            "generated/statements/gmeow-statements.owl.ttl",
+            "generated/statements/gmeow.rdf12.ttl",
+        ] {
+            assert!(
+                graph_rep_for_path(path).is_none(),
+                "{path} has generated comments / section markers and must reconstruct from REP_GENERATED"
+            );
+        }
     }
 
     #[test]

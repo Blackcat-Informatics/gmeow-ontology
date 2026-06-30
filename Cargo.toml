@@ -102,6 +102,8 @@ repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"
 # `debug-assertions` / `overflow-checks` still on (runtime checks, not debuginfo) — so
 # the test suite is unchanged; only the unused symbol tables are dropped.
 debug = false
+debug-assertions = true
+overflow-checks = true
 # Strip the residual symbol tables from the linked test binaries / bins too (panic
 # backtraces lose function names — acceptable, we never debug here).
 strip = "symbols"
@@ -112,6 +114,17 @@ strip = "symbols"
 # warm dev loop. opt-2 buys nothing more (9s→8s) for +15s compile, so opt-1 is the
 # sweet spot. nemo stays RAM-safe at opt-1 / dev's default 256 codegen-units (built
 # clean in the measurement). debug-assertions stay on, so test coverage is unchanged.
+opt-level = 1
+
+[profile.test]
+# `cargo nextest` / `cargo test` build with Cargo's test profile, not `dev`.
+# Keep the always-on Rust gate under the same no-debuginfo contract as `dev`;
+# otherwise CI silently rebuilds the workspace test binaries with full DWARF in
+# `target/debug`, restoring the 20+ GB symbol tree the profile.dev cap removed.
+debug = false
+debug-assertions = true
+overflow-checks = true
+strip = "symbols"
 opt-level = 1
 
 # Workspace-wide thin-LTO (#828 item 3). `lto` is profile-global — it cannot be

@@ -4,12 +4,12 @@
 //! `gmeow-slice` — native slice catalog: manifest-based discovery, typed
 //! artifact inventory, and content-addressed IDs for the GMEOW ontology slices.
 
-pub mod alignment_lint;
 pub mod analysis;
 pub mod artifact;
 pub mod cache;
 pub mod catalog;
 pub mod claim_view;
+pub mod diagnostics;
 pub mod dsl_stats_emit;
 pub mod error;
 pub mod fix_deps;
@@ -18,7 +18,6 @@ pub mod mapping_support;
 pub mod ownership;
 pub mod prefix_emit;
 pub mod prefix_lint;
-pub mod projection_lint;
 pub mod rdf_query;
 pub mod standpoint_emit;
 pub mod standpoint_modality;
@@ -41,6 +40,7 @@ pub use cache::{
 };
 pub use catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
 pub use claim_view::{emit_claim_view, CLAIM_VIEW_FILE};
+pub use diagnostics::ProjectionDiagnostic;
 pub use dsl_stats_emit::emit_dsl_stats;
 pub use error::SliceError;
 pub use fix_deps::{compute_fix_deps, ManifestPatch};
@@ -52,6 +52,5 @@ pub use ownership::{
 };
 pub use prefix_emit::{emit_core_prefixes, emit_jsonld_context, CORE_PREFIXES_IRI};
 pub use prefix_lint::lint_prefix_consistency;
-pub use projection_lint::{lint_projection, ProjectionDiagnostic};
 pub use rdf_query::NamedNode;
 pub use standpoint_emit::emit_standpoint_sets;
