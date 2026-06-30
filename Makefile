@@ -22,6 +22,7 @@ CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
 GTS_OUT ?= dist/gmeow.gts
+PERF_DIR ?= dist/perf
 # Injected release timestamp for the signed evidence fold (§18 determinism): the
 # HEAD commit's strict-ISO committer date — deterministic per release commit, and
 # overridable (e.g. RELEASE_ISSUED_AT=2026-06-25T00:00:00Z) for reproducible rebuilds.
@@ -38,6 +39,11 @@ CROSSREF_DEPOSIT_URL ?= https://doi.crossref.org/servlet/deposit
 # Optional cargo-nextest partition for sharded CI runs (e.g., count:1/2)
 NEXTEST_PARTITION ?=
 NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITION) --no-tests pass,)
+# `gmeow-native` is the single CPython extension cdylib and is covered by
+# native-py/native-py-wheel. Selecting it in `cargo test` enables
+# pyo3/extension-module for the shared pyo3 dependency, which is correct for a
+# wheel but wrong for normal Rust test binaries.
+RUST_TEST_WORKSPACE_ARGS := --workspace --exclude gmeow-native
 
 # The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
 # codegen for regenerate/reasoning throughput. CI and release workflows append the
@@ -68,7 +74,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
-	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report \
+	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
 	maint-classic-cross-check maint-reason-hermit maint-explain maint-697-oracle-gold maint-verify-docker \
 	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
@@ -120,9 +126,9 @@ rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without 
 
 rust-test: rust-build ## Run the Rust workspace tests and doctests.
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
+	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
-	cargo test --doc
+	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
@@ -295,9 +301,9 @@ doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-purity gate, clippy, nextest, the 25s budget gate, and doctests serially.
 	cargo clippy --all-targets -- -D warnings
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo nextest run --profile ci $(NEXTEST_PARTITION_ARG)
+	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
-	cargo test --doc
+	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
 sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate (EPIC #906 Task 4).
 	@# Replays every captured query through NativeSparqlEngine over the merged ontology,
@@ -521,6 +527,15 @@ bench: ## Run criterion benchmarks with host-tuned codegen.
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
 
+perf-gate: native-py ## Report-only timings for validate, generated drift, reason, and verify.
+	mkdir -p $(PERF_DIR)
+	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
+	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS) --timings-json $(PERF_DIR)/check-generated.json
+	$(GMEOW_DEV) reason --mode native --timings-json $(PERF_DIR)/reason.json
+	$(GMEOW_DEV) verify --mode native --timings-json $(PERF_DIR)/verify.json
+	uv run python -c 'import json, pathlib; p=pathlib.Path("$(PERF_DIR)"); files=["validate.json","check-generated.json","reason.json","verify.json"]; out={"commands":[json.loads((p / f).read_text(encoding="utf-8")) for f in files]}; (p / "gate-timings.json").write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")'
+	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
+
 rust-coverage: ## Generate report-only Rust region coverage.
 	cargo llvm-cov nextest --workspace --include-ffi --lcov --output-path lcov.info
 	cargo llvm-cov report --html
@@ -707,5 +722,5 @@ native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI co
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)
-	cargo nextest run --no-run $(NEXTEST_PARTITION_ARG)
+	cargo nextest run --no-run $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	@touch $@
