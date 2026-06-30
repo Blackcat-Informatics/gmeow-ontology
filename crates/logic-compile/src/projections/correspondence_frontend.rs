@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `dsl/mappings/` **correspondence frontend** (#1092 F5): materialize ONE typed
+//! The `dsl/mappings/` **correspondence frontend**: materialize ONE typed
 //! [`Correspondence`] IR node per authored alignment cell, so the carrier holds a real
 //! [`CorrespondenceProgram`] instead of an empty `LogicProgram.correspondences` whose
 //! ledger is reconstructed ad hoc downstream.
@@ -21,10 +21,10 @@
 //! fields), so re-running the transpiler over the same corpus mints byte-identical node
 //! identities — the program keys stably across builds and the cache boundary.
 //!
-//! # Scope (F5 Task 1 + Task 2)
+//! # Scope
 //!
-//! Task 1 materializes the typed set. Task 2 re-seats the dialect gate/ledger paths onto
-//! it: alongside the [`CorrespondenceProgram`], the transpiler builds a
+//! First the typed set is materialized; then the dialect gate/ledger paths are re-seated
+//! onto it: alongside the [`CorrespondenceProgram`], the transpiler builds a
 //! [`CorrespondenceLookup`] keyed by each cell's natural identity, and the SSSOM, EDOAL,
 //! and SPARQL lowerings now CONSUME that materialized typed `(relation, morphism class,
 //! morphism kind)` for their overclaim gate / ledger path instead of re-deriving the
@@ -79,7 +79,7 @@ fn correspondence_iri(tag: &str, key: &str) -> String {
 
 /// The typed `(relation, morphism class, morphism kind)` envelope of one materialized
 /// correspondence — the single source of truth a dialect lowering's overclaim gate and
-/// ledger path now CONSUME (F5 Task 2), instead of re-deriving the relation inline.
+/// ledger path now CONSUME, instead of re-deriving the relation inline.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TypedRelation {
     /// The typed relation on the alignment lattice (`logic:correspondenceRelation`).
@@ -110,7 +110,7 @@ enum NaturalKey {
 /// A lookup from each authored cell's natural identity to its materialized typed
 /// `(relation, morphism class, morphism kind)` — built once by the transpiler so the four
 /// dialect lowerings CONSUME the materialized authority for their overclaim gate / ledger
-/// path rather than re-deriving the relation inline (F5 Task 2). Keyed off the SAME
+/// path rather than re-deriving the relation inline. Keyed off the SAME
 /// extraction the transpiler folds into the [`CorrespondenceProgram`], so the consumed
 /// relation and the materialized typed node are identical by construction.
 #[derive(Debug, Clone, Default)]
@@ -203,7 +203,7 @@ pub fn transpile_correspondences(
 /// Transpile the authored cells into BOTH the typed [`CorrespondenceProgram`] and the
 /// [`CorrespondenceLookup`] keyed by each cell's natural identity. The lookup is the
 /// single source of truth the four dialect lowerings consume for their overclaim gate /
-/// ledger path (F5 Task 2) — both products fold the SAME extraction + SAME shared
+/// ledger path — both products fold the SAME extraction + SAME shared
 /// derivation, so the consumed relation and the materialized typed node agree by
 /// construction.
 ///

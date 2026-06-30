@@ -26,7 +26,7 @@ pub mod conformance;
 // The oxigraph-free correspondence lowerings caller (SSSOM/FnO/EDOAL/SPARQL).
 pub mod carrier;
 pub mod correspondence_lower;
-// The file-reading edge for the oxigraph-free correspondence soundness pass (#1092 F5):
+// The file-reading edge for the oxigraph-free correspondence soundness pass:
 // the seven correspondence-stack semantic checks (incl. the sole native enforcer of
 // Constitution Principle 5, the equivalence-collapse gate).
 pub mod correspondence_soundness;

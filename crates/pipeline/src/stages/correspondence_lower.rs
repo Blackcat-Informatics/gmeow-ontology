@@ -46,10 +46,10 @@ pub struct CorrespondenceArtifacts {
     /// set, per LOGIC-CORRESPONDENCE.md).
     pub ledger: Vec<ProjectionResult>,
     /// The typed `logic:Correspondence` set materialized from the SAME `dsl/mappings/`
-    /// cells the four dialects lower (#1092 F5): one node per `gmeow:TermEquivalence`
+    /// cells the four dialects lower: one node per `gmeow:TermEquivalence`
     /// cell and one per `gmeow:ProjectionMapping` per-profile binding. This is the carried
     /// program the mappings stage threads onto the bundle so `LogicProgram.correspondences`
-    /// is no longer reconstructed ad hoc downstream. As of F5 Task 2 the four dialect
+    /// is no longer reconstructed ad hoc downstream. The four dialect
     /// lowerings CONSUME this materialized set's typed `(relation, morphism class, morphism
     /// kind)` for their overclaim gate / ledger path (via the by-natural-key lookup the
     /// transpiler builds alongside the program) instead of re-deriving the relation inline —
@@ -76,8 +76,8 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
     let (version, release_date) = read_self_metadata(root)?;
 
     // Materialize the typed logic:Correspondence set + its by-natural-key lookup from the
-    // DSL cells (F5 Task 1) FIRST: the lookup is the single source of truth the four
-    // dialect lowerings CONSUME for their overclaim gate / ledger path (F5 Task 2), so it
+    // DSL cells FIRST: the lookup is the single source of truth the four
+    // dialect lowerings CONSUME for their overclaim gate / ledger path, so it
     // must exist before they run. The four RENDERED artifacts are unchanged (they still
     // emit the authored predicate/relation token verbatim).
     let (correspondences, lookup) =

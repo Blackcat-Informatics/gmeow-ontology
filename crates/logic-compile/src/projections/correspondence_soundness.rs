@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native, oxigraph-free correspondence soundness pass (#1092 F5 Task 3a).
+//! Native, oxigraph-free correspondence soundness pass.
 //!
 //! This is the wasm-clean home for the seven correspondence-stack semantic checks the
-//! retired `gmeow-slice` lints (`alignment_lint` + `projection_lint`) enforced over the
-//! committed alignment surface. Each check is ported VERBATIM — message wording,
+//! retired alignment-direction and FnO back-end lints enforced over the committed
+//! alignment surface. Each check is ported VERBATIM — message wording,
 //! severity, check/code tokens, instance/subject/predicate/object slots, and the
 //! deterministic severity→check→instance sort are preserved exactly so the migration is
 //! byte-for-byte equivalent (the parity harness in `crates/pipeline/tests` is the gate).
 //!
-//! The five **alignment** checks (mirroring `alignment_lint.rs`):
+//! The five **alignment** checks:
 //!
 //! * [`check_inverse_direction`] — self-contradiction (a property mapped to a term AND
 //!   its declared inverse) + the domain/range orientation fallback.
@@ -22,7 +22,7 @@
 //!   closure may connect two declared-disjoint terms.
 //! * [`lint_dc_refinement`] — DC refinement consistency + no hand-authored `dc:`.
 //!
-//! The two **FnO back-end soundness** checks (mirroring `projection_lint.rs`):
+//! The two **FnO back-end soundness** checks:
 //!
 //! * [`fno_type_mismatches`] — an `fno:Parameter`/`fno:Output` whose `fno:predicate` is a
 //!   GMEOW property with a declared `rdfs:range` must declare an `fno:type` equal to it.
@@ -128,7 +128,7 @@ pub const DCTERMS_REFINEMENTS: &[(&str, &str)] = &[
     ("dcterms:bibliographicCitation", "dcterms:identifier"),
 ];
 
-/// Grandfathered hand-authored `dc:` alignments (existing before issue #60).
+/// Grandfathered hand-authored `dc:` alignments.
 pub const GRANDFATHERED_DC: &[&str] = &["dc:rights"];
 
 // ── Namespace constants ─────────────────────────────────────────────────────────
@@ -269,9 +269,9 @@ const TARGET_PREFIX_ALIASES: &[(&str, &str)] = &[
 
 // ── Diagnostic carrier ────────────────────────────────────────────────────────
 
-/// One correspondence-soundness problem. The fields mirror the retired
-/// `gmeow_slice::projection_lint::ProjectionDiagnostic` EXACTLY (the parity harness
-/// byte-compares the two), so the finding leg packs both into the same
+/// One correspondence-soundness problem. The fields mirror the canonical projection
+/// diagnostic shape EXACTLY (the parity harness byte-compares the two), so the finding
+/// leg packs both into the same
 /// `{severity, code, message, check, instance}` shape and carries the SSSOM row CURIEs.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct ProjectionDiagnostic {
@@ -872,9 +872,9 @@ fn character_finding(
     }
 }
 
-// ── Equivalence-collapse check (Principle 5, #284) ────────────────────────────
+// ── Equivalence-collapse check (Principle 5) ──────────────────────────────────
 
-/// Principle 5 (#284): no equivalence chain may connect disjoint terms.
+/// Principle 5: no equivalence chain may connect disjoint terms.
 fn check_equivalence_collapse(
     mappings: &[Mapping],
     onto: &DslView<'_>,

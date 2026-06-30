@@ -13,12 +13,9 @@
 //!   [`registry_iri`] lookup;
 //! * the [`GENERATED_BANNER`] generated-artifact comment;
 //! * the [`prefix_block`] SPARQL `PREFIX` emitter;
-//! * the merged-store collectors [`collect_dsl_store`] / [`collect_ontology_store`]
-//!   and the generic store/term helpers (`subjects_of_type`, `term_iri`,
-//!   `term_lexical`, `quads_with_predicate`, `first_lexical_of_iri`,
-//!   [`object_literal`]);
-//! * the FnO range lookup [`predicate_ranges`] and the language-retag helper
-//!   [`retag_quad`].
+//! * the merged-store collector [`collect_dsl_store`] and the generic store/term
+//!   helpers (`subjects_of_type`, [`object_literal`]);
+//! * the language-retag helper [`retag_quad`].
 //!
 //! These are extracted verbatim so every surviving byte output is unchanged.
 
@@ -36,7 +33,6 @@ use crate::error::SliceError;
 // ── Namespace constants ───────────────────────────────────────────────────────
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 
 /// The generated-banner comment shared by every generated artifact.
 pub(crate) const GENERATED_BANNER: &str =
@@ -232,15 +228,6 @@ pub(crate) const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("cp", "http://inspire.ec.europa.eu/ont/cp#"),
 ];
 
-/// The registry namespace IRI for a prefix, or `None` (mirrors `prefix in PREFIXES`
-/// / `PREFIXES[prefix]`).
-pub(crate) fn registry_iri(prefix: &str) -> Option<&'static str> {
-    PREFIX_REGISTRY
-        .iter()
-        .find(|(p, _)| *p == prefix)
-        .map(|(_, ns)| *ns)
-}
-
 // ── Merged-store collection ──────────────────────────────────────────────────────
 
 /// Build the merged DSL store: the shared `dsl/mappings/**/*.ttl` tree + the slice
@@ -269,36 +256,6 @@ pub(crate) fn collect_dsl_store(root: &Path) -> Result<Store, SliceError> {
         }
         slice_mappings.sort_by(|a, b| a.0.cmp(&b.0));
         for (path, bytes) in &slice_mappings {
-            load_into_store(&store, bytes, path)?;
-        }
-    }
-    Ok(store)
-}
-
-/// Build the merged ontology store: `ontology/gmeow.ttl` + every slice
-/// [`ArtifactRole::Module`] artifact (the `load_merged_graph(include_imports=False)`
-/// source set).
-pub(crate) fn collect_ontology_store(root: &Path) -> Result<Store, SliceError> {
-    let store = new_store()?;
-    let ontology_file = root.join("ontology").join("gmeow.ttl");
-    if ontology_file.is_file() {
-        let bytes = std::fs::read(&ontology_file).map_err(SliceError::Io)?;
-        load_into_store(&store, &bytes, &ontology_file)?;
-    }
-    let slices_dir = root.join("slices");
-    if slices_dir.is_dir() {
-        let catalog = SliceCatalog::discover(&slices_dir)?;
-        let mut modules: Vec<(std::path::PathBuf, Vec<u8>)> = Vec::new();
-        for record in catalog.records() {
-            for artifact in &record.artifacts {
-                if artifact.role == ArtifactRole::Module {
-                    let path = record.slice_dir.join(&artifact.logical_path);
-                    modules.push((path, artifact.content.clone()));
-                }
-            }
-        }
-        modules.sort_by(|a, b| a.0.cmp(&b.0));
-        for (path, bytes) in &modules {
             load_into_store(&store, bytes, path)?;
         }
     }
@@ -445,43 +402,6 @@ fn first_object(
     }
 }
 
-/// All object terms of `subject pred ?o` in the default graph.
-fn objects_of(store: &Store, subject: &NamedNode, pred: &str) -> Result<Vec<Term>, SliceError> {
-    let predicate = NamedNode::new(pred)
-        .map_err(|e| SliceError::Parse(format!("invalid predicate IRI {pred}: {e}")))?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some(subject.as_ref().into()),
-        Some(predicate.as_ref()),
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        out.push(quad.map_err(|e| SliceError::Parse(e.to_string()))?.object);
-    }
-    Ok(out)
-}
-
-/// All IRI objects of `subject pred ?o`, in store-iteration order.
-fn object_iris(store: &Store, subject: &NamedNode, pred: &str) -> Result<Vec<String>, SliceError> {
-    let mut out = Vec::new();
-    for obj in objects_of(store, subject, pred)? {
-        if let Term::NamedNode(nn) = obj {
-            out.push(nn.as_str().to_owned());
-        }
-    }
-    Ok(out)
-}
-
-/// Every `rdfs:range` IRI of a predicate in the ontology store, in store-iteration
-/// order (mirrors `set(onto.objects(predicate, RDFS.range))` restricted to URIRef
-/// objects). The single shared range lookup for both the FnO derivation and the
-/// projection lint's `fno-type` check.
-pub(crate) fn predicate_ranges(store: &Store, predicate: &str) -> Result<Vec<String>, SliceError> {
-    let node = NamedNode::new(predicate)
-        .map_err(|e| SliceError::Parse(format!("invalid predicate IRI {predicate}: {e}")))?;
-    object_iris(store, &node, RDFS_RANGE)
-}
-
 // ── Language-tag retag ───────────────────────────────────────────────────────────
 
 /// Retag a quad's language-tagged literal object through `tag_map` (a public tag —
@@ -508,14 +428,5 @@ mod tests {
         assert!(has_prefix_token("gmeow:Place", "gmeow"));
         assert!(!has_prefix_token("foo_ps:bar", "ps"));
         assert!(has_prefix_token("(ps:x)", "ps"));
-    }
-
-    #[test]
-    fn registry_iri_resolves_and_misses() {
-        assert_eq!(
-            registry_iri("gmeow"),
-            Some("https://blackcatinformatics.ca/gmeow/")
-        );
-        assert_eq!(registry_iri("not-a-prefix"), None);
     }
 }

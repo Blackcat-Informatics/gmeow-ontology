@@ -36,20 +36,13 @@ gmeow-sparql-algebra = { path = "../sparql-algebra" }
 petgraph = { version = "0.8", default-features = false }
 sha2 = "0.10"
 hex = "0.4"
-# Faithful port of the projection-lint `spec-drift` CURIE scan: the Python
-# `projection_lint._target_terms_in_query` text-scans `.rq` query bodies with the
-# regex `\b(prefix):([A-Za-z][\w-]*)` (comments stripped), and the
-# `_STRUCTURAL_OUTPUTS` allowlist is tuned against THAT emitted set — so the lint
-# replicates the regex scan, not a SPARQL parse. External published crate (already
-# in the workspace lockfile, used by gmeow-validate/gmeow-shacl), so the S0.9
-# layering gate is unaffected.
+# The prefix-consistency lint scans authored `.ttl` / `.rq` sources for `@prefix` /
+# `PREFIX` declarations with a regex, to police registry-prefix shadowing. External
+# published crate (already in the workspace lockfile, used by gmeow-validate/gmeow-shacl),
+# so the S0.9 layering gate is unaffected.
 regex = "1"
 rayon = "1"
 serde = { version = "1", features = ["derive"] }
-# Lightweight HTTP client for the optional network fetch path of the alignment-
-# direction linter (--network / GMEOW_RUN_NETWORK=1). Default features include
-# rustls/TLS; no native-tls dependency is introduced.
-ureq = "3"
 # pyo3 is pulled ONLY by the `python` feature (maturin builds the unified
 # `gmeow_native` cdylib). Same version/abi3 as the other engine crates. Only
 # `src/py.rs` imports it, so the engine modules stay PyO3-free.

@@ -10,7 +10,7 @@ gmeow:Person`` becomes *simultaneously* ``foaf:Person`` / ``schema:Person`` /
 (lossy) half is the projection engine, P(G).
 
 The correctness keystone: only STRONG predicates materialize —
-:func:`gmeow_slice.alignment_policy` is the single
+``gmeow_native.pipeline.alignment_policy`` is the single
 source of truth, so linter and saturator agree by construction.
 ``skos:closeMatch`` (a hint), ``broadMatch``/``narrowMatch`` (hierarchy), and
 any cell the direction lint rates ERROR never materialize. Suppression is

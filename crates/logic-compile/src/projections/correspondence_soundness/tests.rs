@@ -3,7 +3,7 @@
 
 //! Unit tests for the native correspondence-soundness pass.
 //!
-//! Ported from the retired `gmeow_slice::alignment_lint` / `projection_lint` `#[cfg(test)]`
+//! Ported from the retired alignment-direction and FnO back-end lint `#[cfg(test)]`
 //! blocks, re-seated on the oxigraph-free `DslView`. Each synthetic check (self-contra
 //! inverse, self-inverse, domain-range, property-character, dc-refinement, dc-hand-authored,
 //! Principle-5 equivalence-collapse, fno-type, fno-ref) keeps the same fixture content and
