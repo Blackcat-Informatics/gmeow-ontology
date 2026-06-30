@@ -540,9 +540,14 @@ fn correspondence_subjects(program: &LogicProgram) -> Vec<String> {
 /// `project_correspondence` law-claim IRIs are minted as `<corr-iri>/lawclaim/<i>`, so an
 /// IRI-prefix test catches them).
 fn is_correspondence_owned(subject: &str, corr_subjects: &[String]) -> bool {
-    corr_subjects
-        .iter()
-        .any(|c| subject == c || subject.starts_with(&format!("{c}/")))
+    // Zero-allocation prefix test: a child node is `<corr-iri>/…`, so strip the parent IRI
+    // and require the remainder to start with `/` (avoids a `format!` per axiom×correspondence).
+    corr_subjects.iter().any(|c| {
+        subject == c
+            || subject
+                .strip_prefix(c.as_str())
+                .is_some_and(|r| r.starts_with('/'))
+    })
 }
 
 /// Parse RDF `bytes` of `media_type` and emit each quad as a sorted-later CL predication.
@@ -574,17 +579,17 @@ fn term_ref_to_clif(ds: &RdfDataset, term: TermRef<'_>) -> String {
                 format!("(lit {} @{lang})", quote_string(lexical))
             } else {
                 let dt = match ds.resolve(datatype) {
-                    TermRef::Iri(s) => s.to_owned(),
-                    _ => XSD_STRING.to_owned(),
+                    TermRef::Iri(s) => s,
+                    _ => XSD_STRING,
                 };
                 if dt == XSD_STRING {
                     format!("(lit {})", quote_string(lexical))
                 } else if dt == RDF_LANG_STRING {
                     // A langString with no language is malformed; carry it as typed so the
                     // round-trip is total rather than silently dropping the datatype.
-                    format!("(lit {} {})", quote_string(lexical), name_term(&dt))
+                    format!("(lit {} {})", quote_string(lexical), name_term(dt))
                 } else {
-                    format!("(lit {} {})", quote_string(lexical), name_term(&dt))
+                    format!("(lit {} {})", quote_string(lexical), name_term(dt))
                 }
             }
         }

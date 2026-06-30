@@ -164,7 +164,7 @@ impl LitTerm {
 /// Parse a `(lit "lex")` / `(lit "lex" 'dt')` / `(lit "lex" @lang)` form.
 fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
     let head = items.first().and_then(symbol_of);
-    if head.as_deref() != Some("lit") {
+    if head != Some("lit") {
         return Err(LogicParseError(format!(
             "expected a (lit …) form, found head {head:?}"
         )));
@@ -279,7 +279,7 @@ fn validate_rule(items: &[SExpr]) -> Result<bool, String> {
     let SExpr::List(inner_items) = inner else {
         return Ok(false);
     };
-    match inner_items.first().and_then(symbol_of).as_deref() {
+    match inner_items.first().and_then(symbol_of) {
         Some("if") if inner_items.len() == 3 => {
             parse_horn_atom(&inner_items[2])?; // head
             parse_rule_body(&inner_items[1])?; // body + distinct pairs
@@ -300,10 +300,7 @@ fn parse_rule_body(expr: &SExpr) -> Result<RuleBody, String> {
     let mut distinct: Vec<(String, String)> = Vec::new();
 
     let conjuncts: Vec<&SExpr> = match expr {
-        SExpr::List(items)
-            if symbol_of(items.first().unwrap_or(&SExpr::List(vec![]))).as_deref()
-                == Some("and") =>
-        {
+        SExpr::List(items) if items.first().and_then(symbol_of) == Some("and") => {
             items[1..].iter().collect()
         }
         other => vec![other],
@@ -313,7 +310,7 @@ fn parse_rule_body(expr: &SExpr) -> Result<RuleBody, String> {
         let SExpr::List(items) = c else {
             return Err(format!("rule body conjunct must be a list, found {c:?}"));
         };
-        match symbol_of(items.first().ok_or("empty conjunct")?).as_deref() {
+        match symbol_of(items.first().ok_or("empty conjunct")?) {
             Some("not") => {
                 if items.len() != 2 {
                     return Err("(not …) must have exactly one argument".to_owned());
@@ -380,7 +377,7 @@ fn horn_operand(expr: &SExpr) -> Result<(String, bool), String> {
 /// Parse a `(lit "x")` form's lexical value (the Horn fragment carries no datatype on the
 /// object; the RDF channel carries that detail). Rejects a typed/lang `(lit …)`.
 fn parse_lit_simple(items: &[SExpr]) -> Result<String, String> {
-    if symbol_of(items.first().ok_or("empty list")?).as_deref() != Some("lit") {
+    if symbol_of(items.first().ok_or("empty list")?) != Some("lit") {
         return Err("expected a (lit …) form".to_owned());
     }
     match items.get(1) {
@@ -401,7 +398,7 @@ fn parse_formula(expr: &SExpr) -> Result<Formula, String> {
         return Err(format!("formula must be a list, found {expr:?}"));
     };
     let head = symbol_of(items.first().ok_or("empty formula list")?);
-    match head.as_deref() {
+    match head {
         Some("not") => {
             if items.len() != 2 {
                 return Err("(not …) takes one argument".to_owned());
@@ -440,7 +437,7 @@ fn parse_formula(expr: &SExpr) -> Result<Formula, String> {
             }
             let vars = parse_var_block(&items[1])?;
             let body = Box::new(parse_formula(&items[2])?);
-            if head.as_deref() == Some("forall") {
+            if head == Some("forall") {
                 Ok(Formula::Forall { vars, body })
             } else {
                 Ok(Formula::Exists { vars, body })
@@ -473,7 +470,7 @@ fn parse_formula_term(expr: &SExpr) -> Result<Term, String> {
         SExpr::Atom(Atom::Name(iri)) => Term::iri(iri.clone()),
         SExpr::List(items) => {
             let head = symbol_of(items.first().ok_or("empty term list")?);
-            match head.as_deref() {
+            match head {
                 Some("lit") => {
                     let lit = parse_lit_form_term(items)?;
                     Ok(lit)
@@ -531,10 +528,11 @@ fn var_name(expr: &SExpr) -> Result<String, String> {
 // Small atom helpers
 // --------------------------------------------------------------------------- //
 
-/// The symbol string of an [`SExpr::Atom`] if it is a bare [`Atom::Symbol`].
-fn symbol_of(expr: &SExpr) -> Option<String> {
+/// The symbol string of an [`SExpr::Atom`] if it is a bare [`Atom::Symbol`]. Borrowed (no
+/// clone) — callers only inspect it to recognize a reserved head keyword.
+fn symbol_of(expr: &SExpr) -> Option<&str> {
     match expr {
-        SExpr::Atom(Atom::Symbol(s)) => Some(s.clone()),
+        SExpr::Atom(Atom::Symbol(s)) => Some(s),
         _ => None,
     }
 }
