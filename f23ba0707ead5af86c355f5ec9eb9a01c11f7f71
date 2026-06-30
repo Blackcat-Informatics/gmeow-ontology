@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: f23ba0707ead5af86c355f5ec9eb9a01c11f7f71
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1178
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1178
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 5950e7aef55389d9a61d737c18a4b15b61ff3cf2
+GhpRsq-Head-Ref: paudley/929-cost-based-sparql-planner
+GhpRsq-Head-OID: f23ba0707ead5af86c355f5ec9eb9a01c11f7f71
+GhpRsq-Result-Tree: 8ee7b5607df4278615274dbe14c430b3e4405ffb
+GhpRsq-Result-Commit: 3539af8c3194307d9e1d7897fa0f924f2e2dda7d
+GhpRsq-Parent-Hashes: f23ba0707ead5af86c355f5ec9eb9a01c11f7f71
+GhpRsq-Squash-Notes-SHA256: 18774666d3274929412b2c09482bf023368f2f817773feb8592c591f5d0d9af0
