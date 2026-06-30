@@ -686,20 +686,6 @@ gmeow:hasSensitivity
     gmeow:howToUse "Point the value at a gmeow:SensitivityLevel; combine with gmeow:hasDisclosurePolicy and gmeow:coarsenTo so the solver can resolve the conditional release decision under a consent guard."@x-gmeow-english ;
     gmeow:useWhen "Use to classify how sensitive a value, entity, or claim is, so the projection layer can decide whether to coarsen or withhold it for a given consumer."@x-gmeow-english .
 
-gmeow:hasUnit
-    a owl:FunctionalProperty ,
-        owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
-    rdfs:label "has unit"@x-gmeow-english ;
-    rdfs:range qudt:Unit ;
-    skos:definition "Relates a quantitative value or measurement to its QUDT unit (by reference, never imported). Domain-free: used by temporal measurements, spatial measurements, and any other quantified claim."@x-gmeow-english ;
-    skos:example "ex:duration gmeow:hasUnit qudt:SEC ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid inventing local unit individuals or importing QUDT axioms; reference QUDT units by IRI (Principle 5). Functional by design — one unit per value — so avoid asserting conflicting units on the same node."@x-gmeow-english ;
-    gmeow:docsConcern gmeow:concernFrames ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the value at the QUDT unit IRI; keep the numeric magnitude on its own datatype property and let consumers read magnitude and unit together."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the unit of any quantitative value — duration, distance, angle, mass — so a magnitude is never published or compared without its unit (no silent units)."@x-gmeow-english .
-
 gmeow:howToUse
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;

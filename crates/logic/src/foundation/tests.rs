@@ -1116,6 +1116,57 @@ fn weak_supplementation_inert_without_profile() {
 }
 
 #[test]
+fn quality_role_without_generic_fires_and_is_inert_with_generic() {
+    // YAMATO quality constraint: a logic:Quality playing a logic:qualityRole with NO
+    // logic:genericQuality fires QualityRoleWithoutGeneric — a frame-relative value
+    // standing without the frame-independent structure it refines (Principle 11 in
+    // role terms).  Adding the generic quality fails the NAF complement → no violation.
+    let base = "https://example.org/foundation/quality-role-without-generic";
+    let nq = format!("<{base}/Q> <{LOGIC}qualityRole> <{base}/systolicRole> <{base}/schema> .\n");
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &format!("{base}/Q"), "QualityRoleWithoutGeneric"),
+        "Q (qualityRole, no genericQuality) must fire QualityRoleWithoutGeneric"
+    );
+
+    let nq_ok = format!(
+        "<{base}/Q> <{LOGIC}qualityRole> <{base}/systolicRole> <{base}/schema> .\n\
+         <{base}/Q> <{LOGIC}genericQuality> <{base}/pressure> <{base}/schema> .\n"
+    );
+    let quads_ok = run(&nq_ok, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads_ok, &format!("{base}/Q"), "QualityRoleWithoutGeneric"),
+        "Q with a genericQuality must NOT fire QualityRoleWithoutGeneric"
+    );
+}
+
+#[test]
+fn measurement_frame_missing_fires_and_is_inert_with_frame() {
+    // YAMATO quality constraint: a measurement bearing a logic:unit with NO
+    // logic:referenceFrame fires MeasurementFrameMissing — a value expressed in a unit
+    // without its frame (Principle 11).  The rule keys on the IRI-valued unit witness,
+    // not the literal logic:measuredValue (the foundation chase is all-IRI).  Adding the
+    // frame fails the NAF complement → no violation.
+    let base = "https://example.org/foundation/measurement-frame-missing";
+    let nq = format!("<{base}/M> <{LOGIC}unit> <{base}/mmHg> <{base}/schema> .\n");
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &format!("{base}/M"), "MeasurementFrameMissing"),
+        "M (unit, no referenceFrame) must fire MeasurementFrameMissing"
+    );
+
+    let nq_ok = format!(
+        "<{base}/M> <{LOGIC}unit> <{base}/mmHg> <{base}/schema> .\n\
+         <{base}/M> <{LOGIC}referenceFrame> <{base}/clinicalFrame> <{base}/schema> .\n"
+    );
+    let quads_ok = run(&nq_ok, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads_ok, &format!("{base}/M"), "MeasurementFrameMissing"),
+        "M with a referenceFrame must NOT fire MeasurementFrameMissing"
+    );
+}
+
+#[test]
 fn holonic_emergence_tri_valued_verdicts_and_non_propagation() {
     // One whole (Car, with proper parts Engine + Wheel) under one reduction theory
     // (AdditiveTheory, whose basis carries HasMass but NOT Drivable) drives all three
