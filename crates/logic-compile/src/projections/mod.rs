@@ -508,6 +508,11 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                  default graph) and is recorded as a drop",
                 "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule \
                  into a logic: rule (the logic: canon is the authoring ground, Principle 4)",
+                "ground class/property subsumption axioms are projected as cax-sco / prp-spo1 \
+                 sh:SPARQLRule shapes; every other ground axiom (type / metamodel assertions, \
+                 asserted relations, domain/range, modal or scoped axioms, literal-valued \
+                 assertions) is not a derivation rule, has no SHACL-AF form, and is carried in \
+                 the canonical RDF-1.2 layer (recorded as a drop)",
             ],
         ),
         "property-path" => (

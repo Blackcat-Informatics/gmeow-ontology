@@ -34,7 +34,8 @@
 
 use super::super::ir::{LogicAxiom, LogicProgram, LogicRule};
 use super::{
-    contract_drop_notes, is_modal_or_scoped, target_meta, ProjectionResult, GMEOW_NS, RDF_TYPE,
+    contract_drop_notes, is_modal_or_scoped, target_meta, ProjectionResult, GMEOW_NS, LOGIC_NS,
+    RDF_TYPE,
 };
 
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";
@@ -162,6 +163,45 @@ fn rule_shape_local(rule: &LogicRule, index: usize) -> String {
     format!("GenComputeRule_{sanitized}_r{index}")
 }
 
+/// A deterministic, collision-free local name for a generated subsumption-axiom rule shape:
+/// `GenSubsumptionRule_<superclass-or-superproperty-local>_a<index>` (the axiom `index` keeps
+/// it unique even when two axioms share a target term).
+fn axiom_shape_local(axiom: &LogicAxiom, index: usize) -> String {
+    let target = axiom.obj.rsplit(['/', '#']).next().unwrap_or(&axiom.obj);
+    let sanitized: String = target
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+        .collect();
+    format!("GenSubsumptionRule_{sanitized}_a{index}")
+}
+
+/// Emit one `sh:NodeShape` carrying a `sh:SPARQLTarget` (selecting the focus nodes as `?this`)
+/// and a `sh:rule`/`sh:SPARQLRule` whose `sh:construct` derives `$this <head_pred> <head_obj>`
+/// per focus node. Shared by the derivation-rule and the subsumption-axiom projections so the
+/// two cannot drift.
+fn emit_rule_shape(
+    local: &str,
+    label: &str,
+    head_pred: &str,
+    head_obj: &str,
+    target_where: &str,
+    construct_where: &str,
+) -> String {
+    format!(
+        "gmeow:{local}\n\
+         \x20   a sh:NodeShape ;\n\
+         \x20   rdfs:label \"{label}\"@en ;\n\
+         \x20   sh:target [\n\
+         \x20       a sh:SPARQLTarget ;\n\
+         \x20       sh:select \"\"\"SELECT ?this WHERE {{ {target_where} }}\"\"\" ;\n\
+         \x20   ] ;\n\
+         \x20   sh:rule [\n\
+         \x20       a sh:SPARQLRule ;\n\
+         \x20       sh:construct \"\"\"CONSTRUCT {{ $this {head_pred} {head_obj} }} WHERE {{ {construct_where} }}\"\"\" ;\n\
+         \x20   ] ."
+    )
+}
+
 /// Project the canonical `logic:` program to a SHACL-AF `sh:SPARQLRule` rule document.
 ///
 /// Each non-modal Horn rule with a variable (focus) head subject becomes one
@@ -250,26 +290,88 @@ pub fn project_shacl_af(program: &LogicProgram) -> ProjectionResult {
         let target_where = render_where(rule, focus_var, "?this");
         let construct_where = render_where(rule, focus_var, "$this");
         let head_obj_construct = sparql_term(&head.obj, head.obj_is_literal, focus_var, "$this");
-
-        let block = format!(
-            "gmeow:{local}\n\
-             \x20   a sh:NodeShape ;\n\
-             \x20   rdfs:label \"SHACL-AF projection of the logic: rule deriving <{pred}> (generated)\"@en ;\n\
-             \x20   sh:target [\n\
-             \x20       a sh:SPARQLTarget ;\n\
-             \x20       sh:select \"\"\"SELECT ?this WHERE {{ {target_where} }}\"\"\" ;\n\
-             \x20   ] ;\n\
-             \x20   sh:rule [\n\
-             \x20       a sh:SPARQLRule ;\n\
-             \x20       sh:construct \"\"\"CONSTRUCT {{ $this {head_pred} {head_obj} }} WHERE {{ {construct_where} }}\"\"\" ;\n\
-             \x20   ] .",
-            pred = head.predicate,
-            head_pred = head_pred,
-            head_obj = head_obj_construct,
-            target_where = target_where,
-            construct_where = construct_where,
+        let label = format!(
+            "SHACL-AF projection of the logic: rule deriving <{}> (generated)",
+            head.predicate
         );
-        blocks.push(block);
+        blocks.push(emit_rule_shape(
+            &local,
+            &label,
+            &head_pred,
+            &head_obj_construct,
+            &target_where,
+            &construct_where,
+        ));
+    }
+
+    // Axioms are ground TBox/ABox facts, not derivation rules. Class- and property-subsumption
+    // axioms DO have a sound derivation form (cax-sco / prp-spo1) and are projected to a
+    // sh:SPARQLRule that materializes the subsumption; every other ground axiom (type / metamodel
+    // assertions, asserted relations, domain/range, modal or scoped axioms, literal-valued
+    // assertions) has no SHACL-AF rule form and is carried in the canonical RDF-1.2 layer —
+    // disclosed here as a ledgered drop, never silent (the no-silent-drop contract).
+    let subclass_pred = format!("{LOGIC_NS}subClassOf");
+    let subprop_pred = format!("{LOGIC_NS}subPropertyOf");
+    const RDFS_SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const RDFS_SUBPROP: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+    for (i, axiom) in program.axioms.iter().enumerate() {
+        let scoped = is_modal_or_scoped(axiom)
+            || axiom.scope.modality != super::super::ir::LogicModality::None
+            || axiom.scope.standpoint.is_some()
+            || axiom.scope.time.is_some();
+        let ground =
+            !axiom.subject.starts_with('?') && !axiom.obj.starts_with('?') && !axiom.obj_is_literal;
+        let projectable = !axiom.negated && !scoped && ground;
+        let is_subclass = axiom.predicate == subclass_pred || axiom.predicate == RDFS_SUBCLASS;
+        let is_subprop = axiom.predicate == subprop_pred || axiom.predicate == RDFS_SUBPROP;
+
+        if projectable && is_subclass {
+            // cax-sco: every instance of the subclass is an instance of the superclass.
+            let local = axiom_shape_local(axiom, i);
+            let sub = format!("<{}>", axiom.subject);
+            let sup = format!("<{}>", axiom.obj);
+            let label = format!(
+                "SHACL-AF projection of the logic: subClassOf axiom (<{}> subClassOf <{}>) (generated)",
+                axiom.subject, axiom.obj
+            );
+            blocks.push(emit_rule_shape(
+                &local,
+                &label,
+                "a",
+                &sup,
+                &format!("?this a {sub} ."),
+                &format!("$this a {sub} ."),
+            ));
+        } else if projectable && is_subprop {
+            // prp-spo1: a subject related by the subproperty is related by the superproperty.
+            let local = axiom_shape_local(axiom, i);
+            let subp = format!("<{}>", axiom.subject);
+            let supp = format!("<{}>", axiom.obj);
+            let label = format!(
+                "SHACL-AF projection of the logic: subPropertyOf axiom (<{}> subPropertyOf <{}>) (generated)",
+                axiom.subject, axiom.obj
+            );
+            blocks.push(emit_rule_shape(
+                &local,
+                &label,
+                &supp,
+                "?o",
+                &format!("?this {subp} ?o ."),
+                &format!("$this {subp} ?o ."),
+            ));
+        } else {
+            let obj_disp = if axiom.obj_is_literal {
+                format!("\"{}\"", axiom.obj)
+            } else {
+                format!("<{}>", axiom.obj)
+            };
+            actual_drops.push(format!(
+                "ground axiom <{}> <{}> {obj_disp} is an asserted fact (not a class/property \
+                 subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried \
+                 in the canonical RDF-1.2 layer",
+                axiom.subject, axiom.predicate
+            ));
+        }
     }
 
     // The full-FOL formula layer + reasoning contracts are beyond the Horn-with-NAF fragment;
@@ -514,6 +616,62 @@ mod tests {
                 .iter()
                 .any(|d| d.contains("head subject") && d.contains("not positively bound")),
             "the unbound head subject must be a ledgered drop, never silent: {:?}",
+            result.actual_drops
+        );
+    }
+
+    #[test]
+    fn subclass_axiom_projects_to_a_subsumption_rule() {
+        // A ground subClassOf axiom is projected to a cax-sco sh:SPARQLRule that materializes the
+        // subsumption — maximal utility, the SHACL-AF surface actually computes the closure.
+        let axiom = LogicAxiom::ground(
+            "https://example.org/HonorsStudent",
+            "https://blackcatinformatics.ca/logic/subClassOf",
+            "https://example.org/Student",
+            false,
+        )
+        .unwrap();
+        let program = LogicProgram::new(vec![axiom], vec![], vec![], None);
+        let result = project_shacl_af(&program);
+        let ttl = &result.content;
+        assert!(
+            ttl.contains("a sh:SPARQLRule"),
+            "the subClassOf axiom must project to a SPARQLRule:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("CONSTRUCT { $this a <https://example.org/Student> }"),
+            "cax-sco must derive the superclass type:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("$this a <https://example.org/HonorsStudent> ."),
+            "the rule must trigger on the subclass type:\n{ttl}"
+        );
+    }
+
+    #[test]
+    fn non_subsumption_axiom_is_carried_not_silently_dropped() {
+        // A ground metamodel/type axiom (not a subsumption) has no derivation form: it must be a
+        // ledgered drop, never a silent disappearance.
+        let axiom = LogicAxiom::ground(
+            "https://example.org/Student",
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            "https://blackcatinformatics.ca/logic/Role",
+            false,
+        )
+        .unwrap();
+        let program = LogicProgram::new(vec![axiom], vec![], vec![], None);
+        let result = project_shacl_af(&program);
+        assert!(
+            !result.content.contains("a sh:SPARQLRule"),
+            "a non-subsumption ground axiom must NOT be projected as a rule:\n{}",
+            result.content
+        );
+        assert!(
+            result
+                .actual_drops
+                .iter()
+                .any(|d| d.contains("ground axiom") && d.contains("asserted fact")),
+            "the non-projected ground axiom must be a ledgered drop, never silent: {:?}",
             result.actual_drops
         );
     }
