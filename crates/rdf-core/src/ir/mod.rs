@@ -47,7 +47,7 @@ pub mod ingest;
 pub mod term;
 pub mod validate;
 
-pub use builder::RdfDatasetBuilder;
+pub use builder::{RdfDatasetBuilder, ValidatedRdfDatasetBuilder};
 pub use bundle::{GtsBundle, RdfEnvelope};
 pub use canon::{canonicalize, canonicalize_with, CanonHash, Canonicalized};
 pub use compare::{dataset_diff, datasets_isomorphic, DatasetDiff};

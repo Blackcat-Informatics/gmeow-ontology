@@ -12,7 +12,7 @@
 //! Timing records are collected when [`ValidateOptions::timings`] is true and
 //! can be serialized to JSON alongside the error/warning output.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -21,7 +21,10 @@ use std::sync::Arc;
 use gmeow_diagnostics::{Finding, FindingCategory, Location, Report, Severity};
 use gmeow_gts::model::Graph;
 use gmeow_logic::certificate::ContradictionPolicy;
-use gmeow_rdf::{pair_loss_ledger, RdfDataset, RdfDatasetBuilder, PROJECTION_CODECS};
+use gmeow_rdf::{
+    pair_loss_ledger, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm, RdfTriple,
+    PROJECTION_CODECS,
+};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -34,6 +37,7 @@ use crate::cache::{CachedResult, ValidationCache};
 use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
+use crate::model::{owl, rdf, rdfs};
 use crate::signature;
 use crate::slice_ownership;
 use crate::store;
@@ -1158,12 +1162,9 @@ fn check_examples(
     // `validate` — so validate them in parallel.
     //
     // The SHACL shapes include SHACL-SPARQL targets, which need a queryable
-    // `base ∪ example` graph. We snapshot the base ontology's owned quads ONCE
-    // (`base_quads`, shared read-only across workers), and for each example freeze a
-    // FRESH dataset that re-interns the base quads plus the example's quads under its
-    // own blank scope. Freezing is per-example but reuses the already-decoded base
-    // quad vector, so the parse cost is paid once; the validation is sharded across
-    // rayon workers with no shared mutable state.
+    // `base ∪ example` graph. Project the base ontology into the flattened SHACL
+    // view ONCE, then each example only projects its own small graph before merging
+    // the two projected datasets under fresh blank scopes.
     let examples = find_example_files(slices_dir)?;
 
     // Fast path: if every example's SHACL result is already cached, skip the
@@ -1187,7 +1188,8 @@ fn check_examples(
         }
     }
 
-    let base_quads: Vec<gmeow_rdf::RdfQuad> = dataset.owned_quads().collect();
+    let base_projected = gmeow_shacl::engine::project_dataset(dataset)
+        .map_err(|e| format!("example base SHACL projection failed: {e}"))?;
 
     let results: Vec<CachedPhaseResult> = examples
         .par_iter()
@@ -1202,7 +1204,7 @@ fn check_examples(
                 ])
             };
             run_cached(cache, "example-shacl", &example_key, || {
-                run_example_shacl(&base_quads, shapes, path, name)
+                run_example_shacl(&base_projected, shapes, path, name)
             })
         })
         .collect();
@@ -1232,9 +1234,8 @@ fn check_examples(
 }
 
 /// Validate one example file against the ontology + shapes over a fresh
-/// `base ∪ example` native dataset.
+/// projected `base ∪ example` native dataset.
 ///
-/// `base_quads` are the shared ontology's owned quads (re-interned per example); the
 /// The per-example SHACL cache key: the base graph key combined with the example
 /// file's content key, so an example re-validates only when the base graph OR the
 /// example file changes.
@@ -1250,10 +1251,11 @@ fn example_shacl_key(
     ]))
 }
 
-/// example file is parsed under its own blank scope and merged in, then the union is
-/// frozen and validated with the native SHACL engine.
+/// The example file is parsed under its own blank scope, projected into the SHACL
+/// flattened view, merged with the already-projected base graph, then validated
+/// with the native SHACL engine.
 fn run_example_shacl(
-    base_quads: &[gmeow_rdf::RdfQuad],
+    base_projected: &Arc<RdfDataset>,
     shapes: &gmeow_shacl::shapes::Shapes,
     path: &Path,
     name: &str,
@@ -1269,16 +1271,117 @@ fn run_example_shacl(
             .with_tool("validate")]);
         }
     };
+    let example_projected = gmeow_shacl::engine::project_dataset(example_ds.as_ref())
+        .map_err(|e| format!("example {name}: SHACL projection failed: {e}"))?;
     let mut builder = RdfDatasetBuilder::new();
-    for quad in base_quads {
-        builder.push_owned_quad(quad);
-    }
-    builder.push_dataset(&example_ds);
+    builder.push_dataset(base_projected);
+    builder.push_dataset(&example_projected);
     let merged = builder
         .freeze()
-        .map_err(|e| format!("example {name}: base ∪ example freeze failed: {e}"))?;
-    let report = store::shacl_validate_dataset(&merged, shapes);
+        .map_err(|e| format!("example {name}: projected base ∪ example freeze failed: {e}"))?;
+    let report = if example_allows_focus_pruning(example_ds.as_ref()) {
+        let affected = affected_focus_terms(example_projected.as_ref());
+        // ABox-only examples cannot alter the ontology's target/class/property
+        // structure, so the merged run only needs to recheck focus terms touched
+        // by the example. Examples that edit schema or SHACL shapes take the
+        // full-scan branch above.
+        gmeow_shacl::engine::validate_projected_dataset_with_focus_filter(
+            merged,
+            shapes,
+            |_, focus| affected.contains(focus),
+        )
+    } else {
+        gmeow_shacl::engine::validate_projected_dataset(merged, shapes)
+    };
     Ok(shacl_findings_from_report(&report, Some(name)))
+}
+
+const RDF_PROPERTY: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property";
+const SHACL_NS: &str = "http://www.w3.org/ns/shacl#";
+
+fn example_allows_focus_pruning(example: &RdfDataset) -> bool {
+    for quad in example.owned_quads() {
+        if quad.predicate == rdfs::SUB_CLASS_OF
+            || quad.predicate == rdfs::SUB_PROPERTY_OF
+            || quad.predicate.starts_with(SHACL_NS)
+        {
+            return false;
+        }
+        if quad.predicate == rdf::TYPE && is_schema_type(&quad.object) {
+            return false;
+        }
+    }
+    true
+}
+
+fn is_schema_type(term: &RdfTerm) -> bool {
+    matches!(
+        term,
+        RdfTerm::Iri(iri)
+            if iri == owl::CLASS
+                || iri == rdfs::DATATYPE
+                || iri == RDF_PROPERTY
+                || iri == owl::OBJECT_PROPERTY
+                || iri == owl::DATATYPE_PROPERTY
+                || iri == owl::ANNOTATION_PROPERTY
+                || iri == owl::FUNCTIONAL_PROPERTY
+                || iri.starts_with(SHACL_NS)
+    )
+}
+
+fn affected_focus_terms(example_projected: &RdfDataset) -> HashSet<gmeow_shacl::term::Term> {
+    let mut affected = HashSet::new();
+    for quad in example_projected.owned_quads() {
+        affected.insert(rdf_term_to_shacl_term(&quad.subject));
+        affected.insert(gmeow_shacl::term::Term::NamedNode(
+            gmeow_shacl::term::NamedNode::new_unchecked(quad.predicate),
+        ));
+        affected.insert(rdf_term_to_shacl_term(&quad.object));
+    }
+    affected
+}
+
+fn rdf_term_to_shacl_term(term: &RdfTerm) -> gmeow_shacl::term::Term {
+    use gmeow_shacl::term::{NamedNode, Term};
+
+    match term {
+        RdfTerm::Iri(iri) => Term::NamedNode(NamedNode::new_unchecked(iri.clone())),
+        RdfTerm::BlankNode(label) => Term::BlankNode(label.clone()),
+        RdfTerm::Literal(literal) => Term::Literal(rdf_literal_to_shacl_literal(literal)),
+        RdfTerm::Triple(triple) => Term::Triple(Box::new(rdf_triple_to_shacl_triple(triple))),
+    }
+}
+
+fn rdf_triple_to_shacl_triple(triple: &RdfTriple) -> gmeow_shacl::term::Triple {
+    use gmeow_shacl::term::{NamedNode, Triple};
+
+    let subject = rdf_term_to_shacl_term(&triple.subject);
+    let predicate = NamedNode::new_unchecked(triple.predicate.clone());
+    let object = rdf_term_to_shacl_term(&triple.object);
+    Triple::new(subject, predicate, object)
+}
+
+fn rdf_literal_to_shacl_literal(literal: &RdfLiteral) -> gmeow_shacl::term::Literal {
+    use gmeow_shacl::term::Literal;
+
+    match (&literal.language, &literal.datatype) {
+        (Some(lang), _) => match literal.direction {
+            Some(direction) => Literal::new_directional_language_tagged_literal_unchecked(
+                literal.lexical_form.clone(),
+                lang.clone(),
+                direction,
+            ),
+            None => Literal::new_language_tagged_literal_unchecked(
+                literal.lexical_form.clone(),
+                lang.clone(),
+            ),
+        },
+        (None, Some(datatype)) => Literal::new_typed_literal(
+            literal.lexical_form.clone(),
+            gmeow_shacl::term::NamedNode::new_unchecked(datatype.clone()),
+        ),
+        (None, None) => Literal::new_simple_literal(literal.lexical_form.clone()),
+    }
 }
 
 /// Phase 11/12/13: validate a merged set of DSL Turtle sources against dedicated
@@ -1481,6 +1584,29 @@ mod tests {
                 .count(),
             2
         );
+    }
+
+    #[test]
+    fn affected_focus_terms_include_predicate_iris() {
+        use gmeow_shacl::term::{NamedNode, Term};
+
+        let example = parse_dataset(
+            b"@prefix ex: <https://example.org/> .\nex:s ex:p ex:o .\n",
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        let affected = affected_focus_terms(example.as_ref());
+
+        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
+            "https://example.org/s"
+        ))));
+        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
+            "https://example.org/p"
+        ))));
+        assert!(affected.contains(&Term::NamedNode(NamedNode::new_unchecked(
+            "https://example.org/o"
+        ))));
     }
 
     fn minimal_gts_bytes() -> Vec<u8> {
