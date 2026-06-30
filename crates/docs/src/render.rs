@@ -26,6 +26,7 @@ use std::sync::OnceLock;
 use minijinja::{context, Environment};
 use pulldown_cmark::{html as cmark_html, Options, Parser};
 
+use crate::badge;
 use crate::i18n::{self, ENGLISH};
 use crate::llms::{self, LlmsBullet, LlmsSection};
 use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
@@ -294,6 +295,13 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
                 svg::term_neighbourhood_svg(term).into_bytes(),
             );
         }
+    }
+
+    // Shared color-coded badge SVGs (deduped; one per distinct (family, value)).
+    // Emitted from the same `badge::term_badges` source the term pages reference,
+    // so the referenced and emitted asset sets are identical (no dangling image).
+    for (path, svg) in badge::site_badge_assets(model) {
+        files.insert(path, svg.into_bytes());
     }
 
     // Static indexes (deterministic, pure functions of the model).
@@ -811,6 +819,30 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     );
     blank(&mut out);
 
+    // ── Badges (the term's small-cardinality categories as color-coded SVGs) ─────
+    // A visual summary row: completeness, stability, category, then every box
+    // role, logic stereotype, and framework. Each image points at a shared asset
+    // emitted in `render_site_lang` from this same source (no dangling path); the
+    // detailed, linkable surfaces follow in their own sections below.
+    {
+        let aligned = crate::coverage::alignment_subjects(model);
+        let badges = crate::badge::term_badges(term, &aligned);
+        let row = badges
+            .iter()
+            .map(|b| {
+                format!(
+                    "![{}]({}{})",
+                    md_escape(&format!("{}: {}", b.family, b.label)),
+                    root_href(&from),
+                    crate::badge::badge_path(b)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        push_line(&mut out, &row);
+        blank(&mut out);
+    }
+
     if let Some(def) = &term.definition {
         heading(&mut out, 2, "Definition");
         line(&mut out, &md_escape(def));
@@ -941,6 +973,21 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
             &mut out,
             &format!("{badges} — see the [Logic & Reasoning]({logic_href}index.md) index."),
         );
+    }
+
+    // ── Frameworks (the logical disciplines the term traffics in) ───────────────
+    // Each framework individual is itself a documented logic: term, so it links to
+    // its own page — the per-term counterpart of the logic-stereotype chips.
+    if !term.frameworks.is_empty() {
+        heading(&mut out, 2, "Frameworks");
+        for framework in &term.frameworks {
+            let iri = framework
+                .strip_prefix("logic:")
+                .map(|local| format!("https://blackcatinformatics.ca/logic/{local}"))
+                .unwrap_or_else(|| framework.clone());
+            push_line(&mut out, &format!("- {}", term_link(model, &from, &iri)));
+        }
+        blank(&mut out);
     }
 
     // ── Box role badge (links the four-boxes doctrine when that page exists) ─────
