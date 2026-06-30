@@ -1247,6 +1247,7 @@ classes:
     - storedIn
     - supersededBy
     - supersedes
+    - trueQuantity
     - usageInfo
     - versionFingerprint
     - versionLabel
@@ -1567,6 +1568,9 @@ classes:
   GenerativeProcessKind:
     class_uri: https://blackcatinformatics.ca/gmeow/GenerativeProcessKind
     title: Generative Process Kind
+  GenericQuality:
+    class_uri: https://blackcatinformatics.ca/gmeow/GenericQuality
+    title: Generic Quality
   Genre:
     class_uri: https://blackcatinformatics.ca/gmeow/Genre
     title: Genre
@@ -2159,6 +2163,12 @@ classes:
     slots:
     - constraintLogic
     - logicConstraintMember
+  Magnitude:
+    class_uri: https://blackcatinformatics.ca/gmeow/Magnitude
+    title: Magnitude
+    is_a: Entity
+    slots:
+    - dimension
   Mailbox:
     class_uri: https://blackcatinformatics.ca/gmeow/Mailbox
     title: Mailbox
@@ -2661,8 +2671,10 @@ classes:
     - facetVantage
     - observationEvent
     - observationMethod
+    - observationOf
     - observationResult
     - observationType
+    - observedAt
     - observedFeature
     - perceptionEnvironment
     - timbreObservationResult
@@ -3231,6 +3243,12 @@ classes:
     is_a: Activity
     slots:
     - pushTarget
+  Quality:
+    class_uri: https://blackcatinformatics.ca/gmeow/Quality
+    title: Quality
+    is_a: Entity
+    slots:
+    - bearer
   QualityAssessment:
     class_uri: https://blackcatinformatics.ca/gmeow/QualityAssessment
     title: Quality Assessment
@@ -5121,6 +5139,12 @@ slots:
     range: string
     domain: Language
     multivalued: true
+  bearer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/bearer
+    title: bearer
+    range: Entity
+    domain: Quality
+    multivalued: false
   bearing:
     slot_uri: https://blackcatinformatics.ca/gmeow/bearing
     title: bearing
@@ -6421,6 +6445,12 @@ slots:
     title: diff to
     range: Commit
     domain: Diff
+    multivalued: false
+  dimension:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dimension
+    title: dimension
+    range: uriorcurie
+    domain: Magnitude
     multivalued: false
   dimensionCount:
     slot_uri: https://blackcatinformatics.ca/gmeow/dimensionCount
@@ -8516,11 +8546,6 @@ slots:
     range: TuningSystem
     domain: PitchExpression
     multivalued: true
-  hasUnit:
-    slot_uri: https://blackcatinformatics.ca/gmeow/hasUnit
-    title: has unit
-    range: string
-    multivalued: false
   hasUsed:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasUsed
     title: has used
@@ -10216,6 +10241,12 @@ slots:
     range: ObservationMethod
     domain: Observation
     multivalued: false
+  observationOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/observationOf
+    title: observation of
+    range: Quality
+    domain: Observation
+    multivalued: true
   observationResult:
     slot_uri: https://blackcatinformatics.ca/gmeow/observationResult
     title: observation result
@@ -10228,6 +10259,12 @@ slots:
     range: ObservationType
     domain: Observation
     multivalued: true
+  observedAt:
+    slot_uri: https://blackcatinformatics.ca/gmeow/observedAt
+    title: observed at
+    range: datetime
+    domain: Observation
+    multivalued: false
   observedFeature:
     slot_uri: https://blackcatinformatics.ca/gmeow/observedFeature
     title: observed feature
@@ -13141,6 +13178,12 @@ slots:
     range: SourceNode
     domain: TreeEntry
     multivalued: false
+  trueQuantity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/trueQuantity
+    title: true quantity
+    range: Magnitude
+    domain: Entity
+    multivalued: false
   trustLevel:
     slot_uri: https://blackcatinformatics.ca/gmeow/trustLevel
     title: trust level
@@ -13225,6 +13268,11 @@ slots:
     range: Entity
     domain: Agent
     multivalued: true
+  unit:
+    slot_uri: https://blackcatinformatics.ca/gmeow/unit
+    title: unit
+    range: string
+    multivalued: false
   updatesMentalTenure:
     slot_uri: https://blackcatinformatics.ca/gmeow/updatesMentalTenure
     title: updates mental tenure
@@ -16283,6 +16331,12 @@ enums:
       generativeProcessKindVerbalScore:
         meaning: https://blackcatinformatics.ca/gmeow/generativeProcessKindVerbalScore
         title: verbal score
+  GenericQualityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GenericQuality
+    permissible_values:
+      pressure:
+        meaning: https://blackcatinformatics.ca/gmeow/pressure
+        title: pressure
   GenreEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Genre
     permissible_values:

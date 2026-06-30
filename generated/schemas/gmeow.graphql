@@ -1073,6 +1073,10 @@ enum GenerativeProcessKindEnum {
   generativeProcessKindVerbalScore
 }
 
+enum GenericQualityEnum {
+  pressure
+}
+
 enum GenreEnum {
   genreBlues
   genreClassical
@@ -4589,6 +4593,7 @@ type Entity {
   storedIn: [StorageLocation!]
   supersededBy: [Entity!]
   supersedes: [Entity!]
+  trueQuantity: Magnitude
   usageInfo: [String!]
   versionFingerprint: [String!]
   versionLabel: [String!]
@@ -4950,6 +4955,11 @@ type GenerativeProcess {
 }
 
 type GenerativeProcessKind {
+  id: String
+  iri: String
+}
+
+type GenericQuality {
   id: String
   iri: String
 }
@@ -5634,6 +5644,12 @@ type LogicalConstraint {
   logicConstraintMember: [Constraint!]
 }
 
+type Magnitude {
+  id: String
+  iri: String
+  dimension: String
+}
+
 type Mailbox {
   id: String
   iri: String
@@ -6200,8 +6216,10 @@ type Observation {
   facetVantage: [Agent!]
   observationEvent: [Event!]
   observationMethod: ObservationMethod
+  observationOf: [Quality!]
   observationResult: [Entity!]
   observationType: [ObservationType!]
+  observedAt: String
   observedFeature: [String!]
   perceptionEnvironment: SensoryEnvironment
   timbreObservationResult: TimbreDescriptor
@@ -6840,6 +6858,12 @@ type Push {
   id: String
   iri: String
   pushTarget: [String!]
+}
+
+type Quality {
+  id: String
+  iri: String
+  bearer: Entity
 }
 
 type QualityAssessment {

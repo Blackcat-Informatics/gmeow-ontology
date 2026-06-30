@@ -1097,6 +1097,10 @@ class GenerativeProcessKindEnum(str, Enum):
     generativeProcessKindVerbalScore = "generativeProcessKindVerbalScore"
 
 
+class GenericQualityEnum(str, Enum):
+    pressure = "pressure"
+
+
 class GenreEnum(str, Enum):
     genreBlues = "genreBlues"
     genreClassical = "genreClassical"
@@ -3339,8 +3343,10 @@ class Observation(ConfiguredBaseModel):
     facetVantage: list[Agent] | None = Field(default=None)
     observationEvent: list[Event] | None = Field(default=None)
     observationMethod: ObservationMethod | None = Field(default=None)
+    observationOf: list[Quality] | None = Field(default=None)
     observationResult: list[Entity] | None = Field(default=None)
     observationType: list[ObservationType] | None = Field(default=None)
+    observedAt: str | None = Field(default=None)
     observedFeature: list[str] | None = Field(default=None)
     perceptionEnvironment: SensoryEnvironment | None = Field(default=None)
     timbreObservationResult: TimbreDescriptor | None = Field(default=None)
@@ -3421,6 +3427,7 @@ class Entity(ConfiguredBaseModel):
     storedIn: list[StorageLocation] | None = Field(default=None)
     supersededBy: list[Entity] | None = Field(default=None)
     supersedes: list[Entity] | None = Field(default=None)
+    trueQuantity: Magnitude | None = Field(default=None)
     usageInfo: list[str] | None = Field(default=None)
     versionFingerprint: list[str] | None = Field(default=None)
     versionLabel: list[str] | None = Field(default=None)
@@ -5272,6 +5279,11 @@ class GenerativeProcessKind(ConfiguredBaseModel):
     pass
 
 
+class GenericQuality(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GenericQuality"
+    pass
+
+
 class Genre(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Genre"
     is_a: ClassVar[str] = "InformationObject"
@@ -5847,6 +5859,12 @@ class LogicalConstraint(Constraint):
     is_a: ClassVar[str] = "Constraint"
     constraintLogic: ConstraintLogic | None = Field(default=None)
     logicConstraintMember: list[Constraint] | None = Field(default=None)
+
+
+class Magnitude(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Magnitude"
+    is_a: ClassVar[str] = "Entity"
+    dimension: str | None = Field(default=None)
 
 
 class Mailbox(InformationObject):
@@ -6988,6 +7006,12 @@ class Push(Activity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Push"
     is_a: ClassVar[str] = "Activity"
     pushTarget: list[str] | None = Field(default=None)
+
+
+class Quality(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Quality"
+    is_a: ClassVar[str] = "Entity"
+    bearer: Entity | None = Field(default=None)
 
 
 class QualityAssessment(Observation):

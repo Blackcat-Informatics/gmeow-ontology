@@ -6009,7 +6009,6 @@
               }
             ]
           },
-          "gmeow:hasUnit": {},
           "gmeow:quantityValue": {
             "anyOf": [
               {
@@ -6028,11 +6027,12 @@
                 "type": "object"
               }
             ]
-          }
+          },
+          "gmeow:unit": {}
         },
         "required": [
-          "gmeow:hasUnit",
-          "gmeow:quantityValue"
+          "gmeow:quantityValue",
+          "gmeow:unit"
         ],
         "type": "object"
       },
@@ -16324,7 +16324,6 @@
               }
             ]
           },
-          "gmeow:hasUnit": {},
           "gmeow:quantityValue": {
             "anyOf": [
               {
@@ -16343,11 +16342,12 @@
                 "type": "object"
               }
             ]
-          }
+          },
+          "gmeow:unit": {}
         },
         "required": [
-          "gmeow:hasUnit",
-          "gmeow:quantityValue"
+          "gmeow:quantityValue",
+          "gmeow:unit"
         ],
         "type": "object"
       },
@@ -16968,7 +16968,6 @@
               }
             ]
           },
-          "gmeow:hasUnit": {},
           "gmeow:quantityValue": {
             "anyOf": [
               {
@@ -16987,11 +16986,12 @@
                 "type": "object"
               }
             ]
-          }
+          },
+          "gmeow:unit": {}
         },
         "required": [
-          "gmeow:hasUnit",
-          "gmeow:quantityValue"
+          "gmeow:quantityValue",
+          "gmeow:unit"
         ],
         "type": "object"
       },

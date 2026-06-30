@@ -49,7 +49,6 @@ gmeow:datingMethodUraniumLead	skos:exactMatch	wd:Q1930710	semapv:ManualMappingCu
 gmeow:edtfValue	skos:relatedMatch	edtf:EDTF	semapv:ManualMappingCuration	0.75	GMEOW stores EDTF as plain literal; the EDTF Ontology treats it as a datatype. Alignment is by reference/convention.
 gmeow:endedAtTime	skos:exactMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85	the end-boundary twin of eqTemporal053 (PROV activity alignment phase 2)
 gmeow:hasReferenceFrame	skos:closeMatch	time:hasTRS	semapv:ManualMappingCuration	0.85	links a temporal position to its calendar/timescale frame
-gmeow:hasUnit	skos:closeMatch	qudt:hasUnit	semapv:ManualMappingCuration	0.9	QUDT unit linkage
 gmeow:inTemporalFrame	skos:closeMatch	time:hasTRS	semapv:ManualMappingCuration	0.8	links an instant to its temporal reference system/frame
 gmeow:instantValue	skos:closeMatch	time:inXSDDateTimeStamp	semapv:ManualMappingCuration	0.85	crisp instant as xsd:dateTime
 gmeow:intervalAfter	skos:closeMatch	time:intervalAfter	semapv:ManualMappingCuration	0.95	
@@ -87,3 +86,4 @@ gmeow:timeScaleTT	skos:exactMatch	wd:Q649548	semapv:ManualMappingCuration	0.95	T
 gmeow:timeScaleUT1	skos:closeMatch	ivoa:timescale/UT1	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleUTC	skos:closeMatch	ivoa:timescale/UTC	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleUTC	skos:exactMatch	wd:Q170788	semapv:ManualMappingCuration	0.95	Coordinated Universal Time (Q170788)
+gmeow:unit	skos:closeMatch	qudt:hasUnit	semapv:ManualMappingCuration	0.9	QUDT unit linkage

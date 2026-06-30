@@ -16,7 +16,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/bp/> .
-@prefix qudt:  <http://qudt.org/vocab/unit/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 ex:patientP      a gmeow:Person ; gmeow:name "Patient P"@x-gmeow-english .
@@ -79,17 +78,17 @@ ex:diaMagnitude a gmeow:Magnitude ; gmeow:dimension gmeow:pressure .
 ex:sysVal1 a gmeow:Quantity ;
     gmeow:trueQuantity      ex:sysMagnitude ;
     gmeow:quantityValue     "120"^^xsd:decimal ;
-    gmeow:unit              qudt:MilliM_HG ;
+    gmeow:unit              <http://qudt.org/vocab/unit/MilliM_HG> ;
     gmeow:hasReferenceFrame ex:clinicFrameDE .
 
 ex:sysVal2 a gmeow:Quantity ;
     gmeow:trueQuantity      ex:sysMagnitude ;
     gmeow:quantityValue     "118"^^xsd:decimal ;
-    gmeow:unit              qudt:MilliM_HG ;
+    gmeow:unit              <http://qudt.org/vocab/unit/MilliM_HG> ;
     gmeow:hasReferenceFrame ex:clinicFrameDE .
 
 ex:diaVal1 a gmeow:Quantity ;
     gmeow:trueQuantity      ex:diaMagnitude ;
     gmeow:quantityValue     "80"^^xsd:decimal ;
-    gmeow:unit              qudt:MilliM_HG ;
+    gmeow:unit              <http://qudt.org/vocab/unit/MilliM_HG> ;
     gmeow:hasReferenceFrame ex:clinicFrameDE .
