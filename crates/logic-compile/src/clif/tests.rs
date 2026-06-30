@@ -264,6 +264,45 @@ fn comprehensive_round_trip_is_isomorphic() {
 }
 
 #[test]
+fn forbidden_iriref_chars_survive_the_round_trip() {
+    // An IRI carrying every character the N-Triples `IRIREF` grammar forbids raw —
+    // `{ } | ^ ` `` ` `` — plus a space and a TAB control. Both legs must `\uXXXX`-escape
+    // it: the writer's RDF carrier (the native codec serializer) when it emits the
+    // canonical-RDF-1.2 turtle, and the reader (`nt_escape_iri`) when it reconstructs the
+    // N-Triples to re-parse. A raw character on either leg HARD-FAILS the parse — turning
+    // the fail-soft round-trip into a panic and silently losing the triple. It must survive
+    // verbatim through `project_clif` ∘ `parse_clif_str`.
+    let weird = format!("{LOGIC}weird/a{{b}}c|d^e`f g\th");
+    let axiom = LogicAxiom::ground(weird.clone(), iri("knows"), iri("target"), false).unwrap();
+    let orig = LogicProgram::new(
+        vec![axiom],
+        Vec::new(),
+        Vec::new(),
+        Some("urn:test:iri".to_owned()),
+    );
+
+    let src = Some("urn:test:iri".to_owned());
+    let clif1 = project_clif(&orig).content;
+    let (fp, _diags) = parse_clif_str(&clif1, src.clone())
+        .expect("parse_clif_str must not hard-fail on a forbidden-IRIREF-char subject");
+    assert!(
+        fp.axioms.iter().any(|a| a.subject == weird),
+        "the forbidden-char IRI subject was lost or mangled by the round-trip:\n{:#?}",
+        fp.axioms
+    );
+
+    // Idempotent at the fixpoint: a second round-trip is the byte identity.
+    let clif2 = project_clif(&fp).content;
+    assert_eq!(
+        clif1, clif2,
+        "CLIF emission is not idempotent for a forbidden-IRIREF-char IRI"
+    );
+    let (fp2, _) = parse_clif_str(&clif2, src).expect("parse_clif_str #2");
+    assert_ir_isomorphic(&fp, &fp2)
+        .unwrap_or_else(|e| panic!("forbidden-char IRI round-trip not idempotent: {e}"));
+}
+
+#[test]
 fn production_module_round_trip_is_isomorphic() {
     // The hard Exact proof: the real logic: slice module must round-trip through CLIF with
     // ZERO loss against the Exact `canonical-rdf12` reference.
