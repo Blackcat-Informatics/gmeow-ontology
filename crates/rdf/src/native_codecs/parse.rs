@@ -140,15 +140,9 @@ pub fn parse_dataset(
             dataset_from_ser_graph(&graph)
         }
         // RDF/XML parses FIRST-PARTY through the in-repo `rdfxml` codec (W3C RDF/XML
-        // grammar over a pure-Rust XML DOM). The codec still hands back a
-        // `gmeow_gts::model::Graph`; the GtsGraph→SerGraph hop here is TEMPORARY,
-        // pending the native RDF/XML cutover that retires the gmeow-gts model from
-        // the RDF/XML arm.
-        NativeRdfFormat::RdfXml => {
-            let graph = parse_rdfxml_without_panicking(text, base_iri)?;
-            let ser = crate::gts::gts_to_ser(&graph);
-            dataset_from_ser_graph(&ser)
-        }
+        // grammar over a pure-Rust XML DOM), which interns straight into the frozen IR
+        // through the SAME shared statement-layer fold — no intermediate GTS graph.
+        NativeRdfFormat::RdfXml => parse_rdfxml_without_panicking(text, base_iri),
     }
 }
 
@@ -176,9 +170,9 @@ fn text_parse_without_panicking(
 fn parse_rdfxml_without_panicking(
     text: &str,
     base_iri: Option<&str>,
-) -> Result<gmeow_gts::model::Graph, RdfDiagnostic> {
+) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
     let outcome = catch_unwind(AssertUnwindSafe(|| {
-        super::rdfxml::parse_rdfxml_to_gts_graph(text, base_iri)
+        super::rdfxml::parse_rdfxml_to_dataset(text, base_iri)
     }));
     match outcome {
         Ok(result) => result,

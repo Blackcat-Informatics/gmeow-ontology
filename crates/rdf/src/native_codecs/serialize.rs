@@ -75,13 +75,9 @@ fn serialize_dataset_inner(
         NativeRdfFormat::TriG => ser_model::to_trig(&graph),
         NativeRdfFormat::NTriples => ser_model::to_ntriples(&graph)?,
         NativeRdfFormat::NQuads => ser_model::to_nquads(&graph),
-        // RDF/XML still routes through the in-repo `rdfxml` codec, which currently
-        // expects a `gmeow_gts::model::Graph`. Bridge the first-party `SerGraph` into
-        // that shape via `ser_to_gts`; this is a TEMPORARY bridge for the RDF/XML arm,
-        // removed when the RDF/XML codec is migrated onto the first-party model.
-        NativeRdfFormat::RdfXml => {
-            super::rdfxml::serialize_gts_graph_to_rdfxml(&ser_to_gts(&graph))?
-        }
+        // RDF/XML serializes FIRST-PARTY from the same `SerGraph`, walking its base
+        // quads (the star layer is declared loss for the star-incapable target).
+        NativeRdfFormat::RdfXml => super::rdfxml::serialize_ser_graph_to_rdfxml(&graph)?,
     };
     Ok(text.into_bytes())
 }
@@ -97,37 +93,6 @@ pub(crate) fn serialize_into<W: Write>(
     output
         .write_all(&bytes)
         .map_err(|e| RdfDiagnostic::error("native-codec-write", e.to_string()))
-}
-
-/// TEMPORARY bridge: field-by-field copy of the first-party [`SerGraph`] into the
-/// `gmeow_gts::model::Graph` shape the in-repo RDF/XML codec still consumes. Removed
-/// once the RDF/XML codec is migrated onto the first-party serialization model.
-fn ser_to_gts(g: &SerGraph) -> gmeow_gts::model::Graph {
-    use gmeow_gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
-    let terms = g
-        .terms
-        .iter()
-        .map(|t| GtsTerm {
-            kind: match t.kind {
-                SerTermKind::Iri => GtsTermKind::Iri,
-                SerTermKind::Bnode => GtsTermKind::Bnode,
-                SerTermKind::Literal => GtsTermKind::Literal,
-                SerTermKind::Triple => GtsTermKind::Triple,
-            },
-            value: t.value.clone(),
-            datatype: t.datatype,
-            lang: t.lang.clone(),
-            direction: t.direction.clone(),
-            reifier: t.reifier,
-        })
-        .collect();
-    gmeow_gts::model::Graph {
-        terms,
-        quads: g.quads.clone(),
-        reifiers: g.reifiers.clone(),
-        annotations: g.annotations.clone(),
-        ..Default::default()
-    }
 }
 
 /// Outcome of serializing an [`RdfDataset`] to a concrete RDF format through the
