@@ -87,6 +87,29 @@ fn body_triple(atom: &LogicAxiom, focus_var: Option<&str>, focus_render: &str) -
     format!("{s} {p} {o} .")
 }
 
+/// The set of variables a rule's body binds **positively**: the subject/object variables
+/// of its non-negated body atoms. A variable that occurs only inside a negated atom
+/// (lowered to `FILTER NOT EXISTS { … }`) is out of scope in the surrounding SPARQL, and an
+/// inequality guard (`distinct_pairs`, lowered to `FILTER`) constrains but never binds — so
+/// neither contributes a binding. A `CONSTRUCT`/target `SELECT` head variable absent from
+/// this set would emit an **unbound** variable, so the projection must refuse it.
+fn positive_body_vars(rule: &LogicRule) -> std::collections::BTreeSet<String> {
+    let mut bound = std::collections::BTreeSet::new();
+    for atom in &rule.body {
+        if atom.negated {
+            continue;
+        }
+        if atom.subject.starts_with('?') {
+            bound.insert(atom.subject.clone());
+        }
+        // A literal object is never a variable; a variable object is a positive binding.
+        if atom.obj.starts_with('?') && !atom.obj_is_literal {
+            bound.insert(atom.obj.clone());
+        }
+    }
+    bound
+}
+
 /// Render the shared `WHERE { … }` group body of a rule: positive atoms as graph
 /// patterns, NAF atoms as `FILTER NOT EXISTS`, inequality guards as `FILTER(?a != ?b)`.
 /// `focus_render` distinguishes the target SELECT (`?this`) from the rule CONSTRUCT
@@ -181,8 +204,7 @@ pub fn project_shacl_af(program: &LogicProgram) -> ProjectionResult {
         }
 
         // The focus is the head subject when it is a variable. A ground-subject head (no focus
-        // variable) or an existential head variable absent from the body cannot be expressed as a
-        // focus-node SHACL-AF rule soundly; record it and skip.
+        // variable) cannot be expressed as a focus-node SHACL-AF rule soundly; record it and skip.
         if !rule.head.subject.starts_with('?') {
             actual_drops.push(format!(
                 "rule deriving <{}> has a ground (non-variable) head subject; the focus-node \
@@ -191,18 +213,30 @@ pub fn project_shacl_af(program: &LogicProgram) -> ProjectionResult {
             ));
             continue;
         }
-        let focus_var = Some(rule.head.subject.as_str());
-        // Existential-head safety: a head object variable absent from the body would invent a
-        // value, which a sound CONSTRUCT cannot do.
-        if rule.head.obj.starts_with('?')
-            && !rule
-                .body
-                .iter()
-                .any(|b| b.subject == rule.head.obj || b.obj == rule.head.obj)
-        {
+        // Head-variable safety: every CONSTRUCT-head variable (subject AND object) must be bound
+        // by a POSITIVE body atom. A head variable bound only inside a negated atom
+        // (`FILTER NOT EXISTS`) or only by an inequality guard is out of scope in the surrounding
+        // SPARQL — emitting it would produce an unbound variable in the target SELECT / rule
+        // CONSTRUCT (selecting/deriving nothing, or an invalid query). The derivation is carried
+        // in the canon and recorded as a ledgered drop, never emitted unsoundly nor dropped
+        // silently.
+        let pos_bound = positive_body_vars(rule);
+        if !pos_bound.contains(&rule.head.subject) {
             actual_drops.push(format!(
-                "rule deriving <{}> has an existential (unbound) head object variable; no sound \
-                 SHACL-AF CONSTRUCT exists, so it is carried in the canon, not emitted",
+                "rule deriving <{}> has a head subject variable not positively bound by the body \
+                 (it occurs only under negation or an inequality guard); no sound SHACL-AF \
+                 CONSTRUCT exists, so it is carried in the canon, not emitted",
+                rule.head.predicate
+            ));
+            continue;
+        }
+        let focus_var = Some(rule.head.subject.as_str());
+        // A head object variable absent from the positive body would invent a value (existential),
+        // which a sound CONSTRUCT cannot do.
+        if rule.head.obj.starts_with('?') && !pos_bound.contains(&rule.head.obj) {
+            actual_drops.push(format!(
+                "rule deriving <{}> has an existential (positively unbound) head object variable; \
+                 no sound SHACL-AF CONSTRUCT exists, so it is carried in the canon, not emitted",
                 rule.head.predicate
             ));
             continue;
@@ -397,6 +431,89 @@ mod tests {
                 .iter()
                 .any(|d| d.contains("context-scoped")),
             "the skipped modal rule must be recorded as a drop: {:?}",
+            result.actual_drops
+        );
+    }
+
+    #[test]
+    fn head_object_bound_only_by_negation_is_carried_not_emitted() {
+        // Head: gmeow:derived(?x, ?y). Body binds ?x positively, but ?y appears ONLY inside a
+        // negated atom (FILTER NOT EXISTS), so ?y is out of scope in the surrounding SPARQL.
+        // Emitting would produce an unbound CONSTRUCT object — the rule must be carried, not emitted.
+        let head = var_axiom(
+            "?x",
+            "https://blackcatinformatics.ca/gmeow/derived",
+            "?y",
+            false,
+        );
+        let pos = var_axiom(
+            "?x",
+            "https://blackcatinformatics.ca/logic/links",
+            "?z",
+            false,
+        );
+        let mut neg = var_axiom(
+            "?x",
+            "https://blackcatinformatics.ca/logic/blocked",
+            "?y",
+            false,
+        );
+        neg.negated = true;
+        let rule = LogicRule::new(head, vec![pos, neg], vec![], ContextualScope::default());
+        let program = LogicProgram::new(vec![], vec![rule], vec![], None);
+        let result = project_shacl_af(&program);
+        assert!(
+            !result.content.contains("a sh:SPARQLRule"),
+            "a rule with a negation-only head object must NOT be emitted:\n{}",
+            result.content
+        );
+        assert!(
+            result
+                .actual_drops
+                .iter()
+                .any(|d| d.contains("existential") && d.contains("head object")),
+            "the unbound head object must be a ledgered drop, never silent: {:?}",
+            result.actual_drops
+        );
+    }
+
+    #[test]
+    fn head_subject_bound_only_by_negation_is_carried_not_emitted() {
+        // Head subject ?x is a variable but appears ONLY inside a negated body atom, so it is not
+        // positively bound: the target SELECT ?this would be unbound. Carry, do not emit.
+        let head = var_axiom(
+            "?x",
+            "https://blackcatinformatics.ca/gmeow/derived",
+            "?y",
+            false,
+        );
+        let pos = var_axiom(
+            "?w",
+            "https://blackcatinformatics.ca/logic/links",
+            "?y",
+            false,
+        );
+        let mut neg = var_axiom(
+            "?x",
+            "https://blackcatinformatics.ca/logic/blocked",
+            "?y",
+            false,
+        );
+        neg.negated = true;
+        let rule = LogicRule::new(head, vec![pos, neg], vec![], ContextualScope::default());
+        let program = LogicProgram::new(vec![], vec![rule], vec![], None);
+        let result = project_shacl_af(&program);
+        assert!(
+            !result.content.contains("a sh:SPARQLRule"),
+            "a rule with a negation-only head subject must NOT be emitted:\n{}",
+            result.content
+        );
+        assert!(
+            result
+                .actual_drops
+                .iter()
+                .any(|d| d.contains("head subject") && d.contains("not positively bound")),
+            "the unbound head subject must be a ledgered drop, never silent: {:?}",
             result.actual_drops
         );
     }
