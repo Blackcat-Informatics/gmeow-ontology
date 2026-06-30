@@ -143,7 +143,8 @@ meta:gate-suppression a meta:Gate ;
 meta:tests-suppression a meta:TestSuite ;
     rdfs:label "suppression and disclosure tests"@x-gmeow-english ;
     meta:artifact "crates/pipeline/tests/edoal_sparql_correspondence_parity.rs",
-        "tests/test_disclosure.py", "tests/test_privacy.py" .
+        "tests/test_disclosure.py", "tests/test_privacy.py",
+        "tests/test_suppression_conformance.py" .
 
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
