@@ -409,7 +409,7 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 288,
+  "shape_count": 291,
   "competency_count": 53,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
