@@ -213,7 +213,27 @@ def extract_module(ontology_ttl: str, terms: list[str], method: str) -> dict[str
     """
     ...
 
-def certify(rules: str, profile: str) -> dict[str, Any]: ...
+def certify(rules: str, profile: str) -> dict[str, Any]:
+    """Statically certify a Nemo ``.rls`` rule set against a declared profile.
+
+    Rust mirror of the Python oracle (``gmeow_tools.logic_certify.certify_program``);
+    the returned dict has the same shape, keys, and values as the oracle's
+    ``CertificationVerdict.to_json()``. Keys (sorted):
+
+    * ``certified`` (bool) — whether the rule set meets the profile's sufficient
+      structural conditions (certification is *necessarily incomplete*).
+    * ``decidability_class`` (str) — the profile's decidability characterization.
+    * ``evolution_class`` (str) — Rust-native ``logic:EvolutionMode`` facet
+      characterization. This surface selects no evolution facet, so it always
+      reports the ``StaticEvolution`` default (``"static/single-state"``).
+    * ``profile_id`` (str) — the normalized profile id, e.g.
+      ``"PositiveHornProfile"``, ``"StratifiedNAFProfile"``.
+    * ``violations`` (list[str]) — sorted, byte-identical to the oracle.
+
+    Raises ``ValueError`` if ``rules`` is not parseable Nemo ``.rls``.
+    """
+    ...
+
 def stable_models(rules: str, input: str) -> dict[str, Any]: ...
 def query(
     world_nquads: str,

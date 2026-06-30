@@ -15,6 +15,13 @@
 //! the diagnostic-string format verbatim (the strings cite
 //! `LOGIC-SEMANTICS.md`, so a failure self-documents on both sides).
 //!
+//! The verdict's `evolution_class` is a **Rust-native facet characterization that
+//! goes BEYOND the (retiring) Python `_DECIDABILITY_CLASS` oracle**: it derives the
+//! decidability of the contract's `logic:EvolutionMode` (static / state-transition /
+//! transaction-path), an orthogonal facet the Python oracle never modelled.  It is
+//! always present on the verdict (collapsing a missing facet to `StaticEvolution`),
+//! so the Rust JSON carries five keys to the oracle's four.
+//!
 //! # The predicate-naming parity normalization (the crux)
 //!
 //! The legacy typed-IR certifier ran over a `LogicProgram` value (the `logic_ir`
@@ -116,6 +123,13 @@ pub struct CertificationVerdict {
     pub profile_id: String,
     /// The decidability class string, e.g. `"terminating/PTIME-data"`.
     pub decidability_class: String,
+    /// The evolution-facet decidability class derived from the contract's
+    /// `logic:EvolutionMode` (see [`evolution_decidability_class`]). ALWAYS
+    /// present: a contract with no evolution facet selected collapses to
+    /// `StaticEvolution` → `"static/single-state"` at this boundary, so the
+    /// field is a required `String`, never an `Option`. Transaction Logic is the
+    /// `transaction-path` value of this orthogonal facet, not a 7th profile.
+    pub evolution_class: String,
     /// True iff no violations were found (StableModel advisories count).
     pub certified: bool,
     /// The deterministic, sorted list of diagnostic strings.
@@ -123,27 +137,30 @@ pub struct CertificationVerdict {
 }
 
 impl CertificationVerdict {
-    /// Render the verdict as `(key, value)` pairs in the same shape as Python's
-    /// `CertificationVerdict.to_json()`:
+    /// Render the verdict as `(key, value)` pairs in sorted-key order:
     ///
     /// ```json
     /// {
     ///   "certified": <bool>,
     ///   "decidability_class": <string>,
+    ///   "evolution_class": <string>,
     ///   "profile_id": <string>,
     ///   "violations": [<string>, …]   // sorted
     /// }
     /// ```
     ///
-    /// Keys are sorted (the Python `to_json` literal is already in sorted-key
-    /// order). `violations` is sorted, identically to Python. The PyO3 surface
-    /// in `py.rs` materialises this into a `PyDict` with the same four keys.
-    pub fn to_json_pairs(&self) -> (bool, &str, &str, Vec<String>) {
+    /// Keys are sorted. `evolution_class` sorts AFTER `decidability_class` and
+    /// BEFORE `profile_id` (the tuple order below reflects that). `violations` is
+    /// sorted. `evolution_class` is a Rust-native facet characterization beyond
+    /// the (retiring) Python oracle's four keys; the PyO3 surface in `py.rs` and
+    /// the conformance serializer materialise this into the same five keys.
+    pub fn to_json_pairs(&self) -> (bool, &str, &str, &str, Vec<String>) {
         let mut sorted = self.violations.clone();
         sorted.sort();
         (
             self.certified,
             self.decidability_class.as_str(),
+            self.evolution_class.as_str(),
             self.profile_id.as_str(),
             sorted,
         )
@@ -825,6 +842,12 @@ fn certify_sticky(_views: &[RuleView]) -> Vec<String> {
 
 /// The decidability-class string emitted per declared profile.
 /// Mirrors Python `_DECIDABILITY_CLASS`.
+///
+/// NOTE — knowingly-untouched asymmetry: this profile dispatch still has a soft
+/// `_ => "unknown"` fallback arm, whereas [`evolution_decidability_class`] (the
+/// orthogonal Evolution-facet characterization) hard-fails on an unrecognized
+/// value. That asymmetry is out of the Evolution-facet work's scope and is left
+/// deliberately untouched here so it can be flagged rather than silently changed.
 fn decidability_class(profile: &str) -> &'static str {
     match profile {
         "PositiveHornProfile" => "terminating/PTIME-data",
@@ -834,6 +857,47 @@ fn decidability_class(profile: &str) -> &'static str {
         "ProceduralPrologProfile" => "operational/Turing-complete",
         "ProbabilisticProfile" => "probabilistic/#P-hard",
         _ => "unknown",
+    }
+}
+
+/// The evolution-facet decidability class for a `logic:EvolutionMode` reference.
+///
+/// Transaction Logic is the `transaction-path` value of the orthogonal Evolution
+/// facet, NOT a 7th profile. The reference is first normalized to its bare local
+/// name via [`crate::profile_gate::evolution_mode_local`] (full IRI,
+/// `logic:Local`, or bare local name all accepted), then mapped to the locked
+/// decidability-class strings grounded in `LOGIC-SEMANTICS.md
+/// §Turing-Completeness, Decidability, and Termination` and `LOGIC-TRANSACTION.md`
+/// (conflict-serializability is classified — not searched — in polynomial time,
+/// bounded by the same step governor the sequential core uses).
+///
+/// Unlike the profile [`decidability_class`], there is NO soft `"unknown"` arm: a
+/// non-empty value that denotes none of the three modes is a HARD FAIL.
+///
+/// # Errors
+///
+/// Returns `Err` naming the offending value when `evolution` denotes none of the
+/// three `logic:EvolutionMode` values.
+pub fn evolution_decidability_class(evolution: &str) -> Result<&'static str, String> {
+    match crate::profile_gate::evolution_mode_local(evolution) {
+        Some("StaticEvolution") => Ok("static/single-state"),
+        Some("StateTransitionEvolution") => Ok("state-transition/PTIME-per-step"),
+        Some("TransactionPathEvolution") => Ok(
+            "transaction-path/PTIME-classification (conflict-serializability; \
+             classification not search; step-governor bounded)",
+        ),
+        // `evolution_mode_local` only ever returns those three (or None); the
+        // catch-all keeps the match total without inventing a fourth class.
+        Some(other) => Err(format!(
+            "unrecognized logic:EvolutionMode {other:?} — expected one of \
+             StaticEvolution / StateTransitionEvolution / TransactionPathEvolution \
+             ({DOC} {SEC_DECIDABILITY})"
+        )),
+        None => Err(format!(
+            "unrecognized logic:EvolutionMode {evolution:?} — expected one of \
+             StaticEvolution / StateTransitionEvolution / TransactionPathEvolution \
+             ({DOC} {SEC_DECIDABILITY})"
+        )),
     }
 }
 
@@ -852,10 +916,26 @@ fn decidability_class(profile: &str) -> &'static str {
 /// `"StratifiedNAFProfile"`, `"WellFoundedProfile"`, `"StableModelProfile"`,
 /// `"ProceduralPrologProfile"`, `"ProbabilisticProfile"`.
 ///
+/// `evolution` is the contract's `logic:EvolutionMode` reference (full IRI,
+/// `logic:Local`, or bare local name). `None` means no evolution facet was
+/// selected and collapses to `StaticEvolution` at this boundary — the resulting
+/// [`CertificationVerdict::evolution_class`] is ALWAYS a required `String`, never
+/// an `Option`. An unrecognized non-empty value is a HARD FAIL (see
+/// [`evolution_decidability_class`]).
+///
 /// # Errors
 ///
-/// Returns the Nemo parse-error string if `rules` does not parse as `.rls`.
-pub fn certify(rules: &str, profile: &str) -> Result<CertificationVerdict, String> {
+/// Returns the Nemo parse-error string if `rules` does not parse as `.rls`, or the
+/// evolution hard-fail string if `evolution` denotes an unrecognized mode.
+pub fn certify(
+    rules: &str,
+    profile: &str,
+    evolution: Option<&str>,
+) -> Result<CertificationVerdict, String> {
+    // Collapse the Option → StaticEvolution at the certify boundary, then map to
+    // the required evolution_class string (unknown non-empty value → hard fail).
+    let evolution_class = evolution_decidability_class(evolution.unwrap_or("StaticEvolution"))?;
+
     let views = parse_rule_views(rules)?;
     let graph = DepGraph::from_views(&views);
 
@@ -903,6 +983,7 @@ pub fn certify(rules: &str, profile: &str) -> Result<CertificationVerdict, Strin
     Ok(CertificationVerdict {
         profile_id: profile.to_owned(),
         decidability_class: decidability_class(profile).to_owned(),
+        evolution_class: evolution_class.to_owned(),
         certified,
         violations,
     })
@@ -921,7 +1002,42 @@ pub fn certify_program(
     let nemo = gmeow_logic_compile::projections::text::project_nemo(program)?;
     let rules_section =
         gmeow_logic_compile::projections::text::extract_nemo_rules_section(&nemo.content)?;
-    certify(&rules_section, profile)
+    let evolution = program_evolution(program)?;
+    certify(&rules_section, profile, evolution.as_deref())
+}
+
+/// The single governing `logic:EvolutionMode` of a program's reasoning contracts,
+/// or `None` when no contract selects one (⇒ `StaticEvolution` at the certify
+/// boundary).
+///
+/// Zero or one contract carries an evolution facet in practice; if two contracts
+/// disagree (distinct non-`None` evolution values) that is genuine ambiguity and a
+/// HARD FAIL rather than silently picking one. Contracts that agree on the same
+/// value collapse to that one value.
+///
+/// # Errors
+///
+/// Returns `Err` when two contracts select different `logic:EvolutionMode` values.
+pub fn program_evolution(
+    program: &gmeow_logic_compile::ir::LogicProgram,
+) -> Result<Option<String>, String> {
+    let mut chosen: Option<&str> = None;
+    for contract in &program.contracts {
+        if let Some(ev) = contract.evolution.as_deref() {
+            match chosen {
+                None => chosen = Some(ev),
+                Some(prev) if prev == ev => {}
+                Some(prev) => {
+                    return Err(format!(
+                        "conflicting logic:EvolutionMode across reasoning contracts: \
+                         {prev:?} vs {ev:?} — the governing evolution facet is ambiguous \
+                         ({DOC} {SEC_DECIDABILITY})"
+                    ));
+                }
+            }
+        }
+    }
+    Ok(chosen.map(str::to_owned))
 }
 
 // ── Unit tests ────────────────────────────────────────────────────────────────
@@ -985,7 +1101,7 @@ mod tests {
 
     #[test]
     fn stratified_set_certifies() {
-        let verdict = certify(&stratified_rls(), "StratifiedNAFProfile").expect("parse");
+        let verdict = certify(&stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
         assert!(verdict.certified, "violations: {:?}", verdict.violations);
         assert!(verdict.violations.is_empty());
         assert_eq!(verdict.decidability_class, "terminating/PTIME-data");
@@ -993,7 +1109,7 @@ mod tests {
 
     #[test]
     fn non_stratified_set_is_flagged_with_cycle_message() {
-        let verdict = certify(&non_stratified_rls(), "StratifiedNAFProfile").expect("parse");
+        let verdict = certify(&non_stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
         assert!(!verdict.certified);
         // The pathological fixture (a negation-only body, no positive atom to bind
         // the world var) legitimately also trips DL-safety / weak-acyclicity — the
@@ -1020,8 +1136,8 @@ mod tests {
 
     #[test]
     fn stratified_naf_check_is_deterministic() {
-        let a = certify(&non_stratified_rls(), "StratifiedNAFProfile").expect("parse");
-        let b = certify(&non_stratified_rls(), "StratifiedNAFProfile").expect("parse");
+        let a = certify(&non_stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
+        let b = certify(&non_stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
         assert_eq!(a, b);
     }
 
@@ -1030,7 +1146,7 @@ mod tests {
     #[test]
     fn positive_horn_rejects_negation() {
         let rls = format!("<{P}>(?x, ?y, ?W) :- ~<{Q}>(?x, ?y, ?W) .\n");
-        let verdict = certify(&rls, "PositiveHornProfile").expect("parse");
+        let verdict = certify(&rls, "PositiveHornProfile", None).expect("parse");
         assert!(!verdict.certified);
         assert!(
             verdict
@@ -1046,7 +1162,7 @@ mod tests {
     #[test]
     fn positive_program_certifies_under_positive_horn() {
         let rls = format!("<{R}>(?x, ?y, ?W) :- <{P}>(?x, ?y, ?W), <{Q}>(?x, ?y, ?W) .\n");
-        let verdict = certify(&rls, "PositiveHornProfile").expect("parse");
+        let verdict = certify(&rls, "PositiveHornProfile", None).expect("parse");
         assert!(verdict.certified, "violations: {:?}", verdict.violations);
     }
 
@@ -1056,7 +1172,7 @@ mod tests {
     fn dl_safety_violation_detected() {
         // ?z appears only in the head — unbound by any positive body atom.
         let rls = format!("<{R}>(?x, ?z, ?W) :- <{P}>(?x, ?y, ?W) .\n");
-        let verdict = certify(&rls, "StratifiedNAFProfile").expect("parse");
+        let verdict = certify(&rls, "StratifiedNAFProfile", None).expect("parse");
         assert!(!verdict.certified);
         assert!(
             verdict
@@ -1074,7 +1190,7 @@ mod tests {
 
     #[test]
     fn stable_model_advisory_present_when_not_stratified() {
-        let verdict = certify(&non_stratified_rls(), "StableModelProfile").expect("parse");
+        let verdict = certify(&non_stratified_rls(), "StableModelProfile", None).expect("parse");
         assert!(!verdict.certified);
         assert_eq!(verdict.decidability_class, "NP-hard");
         assert!(
@@ -1091,7 +1207,7 @@ mod tests {
     #[test]
     fn stable_model_advisory_absent_when_stratified() {
         // A stratified set is also stable=well-founded ⇒ no NP-hard advisory.
-        let verdict = certify(&stratified_rls(), "StableModelProfile").expect("parse");
+        let verdict = certify(&stratified_rls(), "StableModelProfile", None).expect("parse");
         assert!(
             !verdict.violations.iter().any(|v| v.contains("NP-hard")),
             "{:?}",
@@ -1105,7 +1221,7 @@ mod tests {
     fn function_free_program_certifies_acyclicity() {
         // The stratified, function-free program certifies under StratifiedNAF
         // (weak/joint acyclicity, guard, sticky all vacuously pass).
-        let verdict = certify(&stratified_rls(), "StratifiedNAFProfile").expect("parse");
+        let verdict = certify(&stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
         assert!(verdict.certified, "violations: {:?}", verdict.violations);
     }
 
@@ -1117,7 +1233,7 @@ mod tests {
         // on the class IRI in the object slot, so the cycle is visible.
         let cls = "http://example.org/C";
         let rls = format!("<{RDF_TYPE}>(?x, <{cls}>, ?W) :- ~<{RDF_TYPE}>(?x, <{cls}>, ?W) .\n");
-        let verdict = certify(&rls, "StratifiedNAFProfile").expect("parse");
+        let verdict = certify(&rls, "StratifiedNAFProfile", None).expect("parse");
         let cycle = verdict
             .violations
             .iter()
@@ -1134,7 +1250,7 @@ mod tests {
     #[test]
     fn procedural_prolog_has_no_static_certification() {
         let rls = format!("<{R}>(?x, ?y, ?W) :- <{P}>(?x, ?y, ?W) .\n");
-        let verdict = certify(&rls, "ProceduralPrologProfile").expect("parse");
+        let verdict = certify(&rls, "ProceduralPrologProfile", None).expect("parse");
         assert!(!verdict.certified);
         assert!(
             verdict
@@ -1154,13 +1270,77 @@ mod tests {
         let verdict = CertificationVerdict {
             profile_id: "StratifiedNAFProfile".into(),
             decidability_class: "terminating/PTIME-data".into(),
+            evolution_class: "static/single-state".into(),
             certified: false,
             violations: vec!["zeta".into(), "alpha".into(), "mu".into()],
         };
-        let (certified, dc, pid, violations) = verdict.to_json_pairs();
+        let (certified, dc, ec, pid, violations) = verdict.to_json_pairs();
         assert!(!certified);
         assert_eq!(dc, "terminating/PTIME-data");
+        assert_eq!(ec, "static/single-state");
         assert_eq!(pid, "StratifiedNAFProfile");
         assert_eq!(violations, vec!["alpha", "mu", "zeta"]);
+    }
+
+    // ── Evolution-facet decidability class ───────────────────────────────────────
+
+    #[test]
+    fn evolution_class_locked_strings() {
+        assert_eq!(
+            evolution_decidability_class("StaticEvolution").unwrap(),
+            "static/single-state"
+        );
+        assert_eq!(
+            evolution_decidability_class("StateTransitionEvolution").unwrap(),
+            "state-transition/PTIME-per-step"
+        );
+        assert_eq!(
+            evolution_decidability_class("TransactionPathEvolution").unwrap(),
+            "transaction-path/PTIME-classification (conflict-serializability; \
+             classification not search; step-governor bounded)"
+        );
+        // Full-IRI and prefixed forms normalize the same way.
+        assert_eq!(
+            evolution_decidability_class(
+                "https://blackcatinformatics.ca/logic/TransactionPathEvolution"
+            )
+            .unwrap(),
+            "transaction-path/PTIME-classification (conflict-serializability; \
+             classification not search; step-governor bounded)"
+        );
+    }
+
+    #[test]
+    fn evolution_class_unknown_hard_fails() {
+        assert!(evolution_decidability_class("NotAMode").is_err());
+        assert!(evolution_decidability_class("").is_err());
+    }
+
+    #[test]
+    fn certify_defaults_to_static_evolution_when_none() {
+        let verdict = certify(&stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
+        assert_eq!(verdict.evolution_class, "static/single-state");
+    }
+
+    #[test]
+    fn certify_threads_transaction_path_evolution() {
+        let verdict = certify(
+            &stratified_rls(),
+            "StratifiedNAFProfile",
+            Some("TransactionPathEvolution"),
+        )
+        .expect("parse");
+        assert_eq!(
+            verdict.evolution_class,
+            "transaction-path/PTIME-classification (conflict-serializability; \
+             classification not search; step-governor bounded)"
+        );
+    }
+
+    #[test]
+    fn certify_unknown_evolution_hard_fails() {
+        let err = certify(&stratified_rls(), "StratifiedNAFProfile", Some("Bogus"))
+            .expect_err("unknown evolution must hard-fail");
+        assert!(err.contains("unrecognized logic:EvolutionMode"), "{err}");
     }
 }

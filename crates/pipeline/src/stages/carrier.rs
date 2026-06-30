@@ -615,6 +615,10 @@ fn build_reasoning_blob(
             "reason/dl-el-crosscheck-report.ttl".to_string(),
             get(crate::stages::reason::LEDGER_PATH)?,
         ),
+        (
+            "reason/perf-ledger.ttl".to_string(),
+            get(crate::stages::reason::PERF_LEDGER_PATH)?,
+        ),
     ];
     archive_blob(REP_REASONING, &members)
 }
@@ -2305,6 +2309,10 @@ mod ustar_tests {
             crate::stages::reason::LEDGER_PATH.to_string(),
             b"# ledger".to_vec(),
         );
+        artifacts.insert(
+            crate::stages::reason::PERF_LEDGER_PATH.to_string(),
+            b"# perf ledger".to_vec(),
+        );
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert(
             "stage-reason".to_string(),
@@ -2320,11 +2328,12 @@ mod ustar_tests {
             names,
             [
                 "reason/dl-el-crosscheck-report.ttl",
+                "reason/perf-ledger.ttl",
                 "reason/reasoning-explanations.rdf12.ttl"
             ]
             .into_iter()
             .collect::<std::collections::BTreeSet<&str>>(),
-            "REP_REASONING carries the two report artifacts under bundle-relative keys"
+            "REP_REASONING carries the report artifacts under bundle-relative keys"
         );
         // Missing artifact HARD-fails (no-optionality, fail-closed).
         let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
