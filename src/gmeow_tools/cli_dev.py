@@ -750,9 +750,14 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
         return gmeow_validate.repo_static_diagnostics_report(str(PROJECT_ROOT))
 
     def _box_roles() -> DiagnosticsReport:
-        from gmeow_tools import box_roles
+        from gmeow_tools import graph
+        from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 
-        return box_roles.to_diagnostics_report(box_roles.audit_box_roles())
+        return gmeow_validate.box_roles_diagnostics_report(
+            [str(p) for p in graph.default_audit_paths()],
+            ONTOLOGY_IRI,
+            NAMESPACE,
+        )
 
     def _audit() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
@@ -1125,13 +1130,19 @@ def box_roles_audit(
     ),
 ) -> None:
     """Audit explicit ABox/TBox/RBox/CBox/ConfigBox role coverage."""
-    from gmeow_tools.box_roles import audit_box_roles, render_json, render_text
+    from gmeow_tools import graph
+    from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 
-    report = audit_box_roles()
-    console.print(render_json(report) if json_out else render_text(report))
-    if not report.ok:
+    report = gmeow_validate.audit_box_roles(
+        [str(p) for p in graph.default_audit_paths()],
+        ONTOLOGY_IRI,
+        NAMESPACE,
+    )
+    console.print(report["json"] if json_out else report["text"])
+    if not report["ok"]:
         raise _fail(
-            f"✗ {len(report.missing)} missing, {len(report.invalid)} invalid role(s)"
+            f"✗ {len(report['missing'])} missing, "
+            f"{len(report['invalid'])} invalid role(s)"
         )
 
 
