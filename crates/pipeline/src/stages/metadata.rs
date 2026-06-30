@@ -666,6 +666,23 @@ fn serialize(quads: &[RdfQuad]) -> Result<Vec<u8>, PipelineError> {
     Ok(buf)
 }
 
+/// Render the committed metadata artifacts from the same carrier dataset the
+/// export leaf reads. The snapshot folds these byte projections into the generated
+/// archive so the superset gate can reconstruct the committed files without adding
+/// self-describing metadata graphs back into the carrier they describe.
+pub(crate) fn render_metadata_from_dataset(
+    root: &Path,
+    store: &RdfDataset,
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+    let void = build_void_quads(store)?;
+    let dcat = build_dcat_quads(store, root)?;
+
+    let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    artifacts.insert(VOID_PATH.to_string(), serialize(&void)?);
+    artifacts.insert(DCAT_PATH.to_string(), serialize(&dcat)?);
+    Ok(artifacts)
+}
+
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `metadata` export-leaf stage.
@@ -703,13 +720,7 @@ impl Stage for MetadataStage {
         // no re-parse of the gmeow.gts bytes (GTS is exit-only).
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
         let store = dataset.as_ref();
-
-        let void = build_void_quads(store)?;
-        let dcat = build_dcat_quads(store, input.root)?;
-
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(VOID_PATH.to_string(), serialize(&void)?);
-        artifacts.insert(DCAT_PATH.to_string(), serialize(&dcat)?);
+        let artifacts = render_metadata_from_dataset(input.root, store)?;
 
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), artifacts),
