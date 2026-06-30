@@ -4,7 +4,7 @@
 //! Projection back-ends: [`LogicProgram`] → each target format.
 //!
 //! The projection phase of the GMEOW Logic compiler; the Python duplicate
-//! (`logic_projections.py`) has been retired.  Eight targets:
+//! (`logic_projections.py`) has been retired.  Nine whole-program targets:
 //!
 //! * [`text::project_datalog`], [`text::project_n3`], [`text::project_nemo`] —
 //!   **byte-identical** text targets (the conformance goldens compare bytes).
@@ -13,6 +13,9 @@
 //!   oxigraph; the goldens compare by graph isomorphism).
 //! * [`crate::clif::project_clif`] — the bidirectional **CLIF** s-expression FOL
 //!   dialect (#721), `PreservationKind::Exact` in both directions.
+//! * [`shacl_af::project_shacl_af`] — the SHACL-AF `sh:SPARQLRule` **computation**
+//!   surface (a byte-stable text target; the canon's derivation rules projected to a
+//!   SHACL rule dialect, never bolted onto SHACL — `design/LOGIC-SHACL-AF.md`).
 //!
 //! Each projection declares its [`PreservationKind`] + complexity class; the
 //! overclaim gate ([`assert_no_overclaim`]) turns the build red when a target
@@ -42,6 +45,10 @@ pub mod get_leg;
 pub mod paths;
 pub mod rdf;
 pub mod report;
+// The SHACL-AF rule projection (logic: derivation rules → sh:SPARQLRule) — the
+// computation surface (design/LOGIC-SHACL-AF.md): computation added to the canon and
+// emitted, never bolted onto SHACL (Principle 17).
+pub mod shacl_af;
 // The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
 pub mod sparql;
 // The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
@@ -74,6 +81,8 @@ pub struct CompiledArtifacts {
     pub nemo: String,
     /// `generated/cl/gmeow.clif`.
     pub clif: String,
+    /// `generated/shacl-af/gmeow.shacl-af.ttl` — the SHACL-AF rule (computation) surface.
+    pub shacl_af: String,
     /// `generated/logic/projection-report.ttl`.
     pub report: String,
     /// The `% === Rules ===` section of [`nemo`](Self::nemo) — the rule text the
@@ -139,6 +148,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| e.to_string())?;
     let nemo = text::project_nemo(program)?;
     let clif = crate::clif::project_clif(program);
+    let shacl_af = shacl_af::project_shacl_af(program);
 
     let results = [
         &owl_dl,
@@ -149,6 +159,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         &canonical_rdf12,
         &nemo,
         &clif,
+        &shacl_af,
     ];
     let mut owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
 
@@ -266,6 +277,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         canonical_rdf12: canonical_rdf12.content,
         nemo: nemo.content,
         clif: clif.content,
+        shacl_af: shacl_af.content,
         report,
         nemo_rules,
         preservation_ledger,
@@ -497,6 +509,29 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             "full first-order (semi-decidable)",
             vec![],
         ),
+        "shacl-af" => (
+            PreservationKind::SoundUnder,
+            "terminating/PTIME-data",
+            vec![
+                "the stratified Horn-with-stratified-negation-and-aggregation rule fragment is \
+                 projected (positive body → graph patterns, negation-as-failure → \
+                 FILTER NOT EXISTS, inequality guards → FILTER, and a reduce rule → an \
+                 aggregating sh:SPARQLRule with a GROUP-BY sub-SELECT): full first-order formula \
+                 bodies, existential (value-inventing) rule heads, and ground-subject rules have \
+                 no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer \
+                 (carried by canonical-rdf12)",
+                "modal / world / standpoint context of a contextualized rule has no SHACL-AF \
+                 form; a context-scoped rule is not projected (it would be unsound over the \
+                 default graph) and is recorded as a drop",
+                "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule \
+                 into a logic: rule (the logic: canon is the authoring ground, Principle 4)",
+                "ground class/property subsumption axioms are projected as cax-sco / prp-spo1 \
+                 sh:SPARQLRule shapes; every other ground axiom (type / metamodel assertions, \
+                 asserted relations, domain/range, modal or scoped axioms, literal-valued \
+                 assertions) is not a derivation rule, has no SHACL-AF form, and is carried in \
+                 the canonical RDF-1.2 layer (recorded as a drop)",
+            ],
+        ),
         "property-path" => (
             PreservationKind::SoundUnder,
             "terminating/PTIME-data (bounded); regular (unbounded)",
@@ -554,7 +589,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 13] = [
+const LEDGER_TARGETS: [&str; 14] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -563,6 +598,7 @@ const LEDGER_TARGETS: [&str; 13] = [
     "canonical-rdf12",
     "nemo",
     "clif",
+    "shacl-af",
     "property-path",
     // The correspondence-calculus alignment lowerings: each carries its own
     // preservation judgment in the same loss ledger as OWL/Datalog/gUFO.
@@ -756,6 +792,25 @@ pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) ->
     // silent). A formula-free program adds nothing, so its ledger is byte-unchanged.
     notes.extend(formula_residue_notes(program, target_label));
     notes
+}
+
+/// One drop note per stratified-aggregation (reduce) rule, for a target that cannot represent
+/// aggregation (Datalog / N3 / Nemo). Carried-and-flagged, never silent; an aggregation-free
+/// program adds nothing, so its ledger is byte-unchanged.
+pub(crate) fn aggregation_drop_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+    program
+        .rules
+        .iter()
+        .filter(|r| r.aggregation.is_some())
+        .map(|r| {
+            format!(
+                "rule deriving <{}> uses stratified aggregation (reduce/GROUP BY), which \
+                 {target_label} does not represent; it is carried in the canonical logic: layer \
+                 and projected to the SHACL-AF reduce surface",
+                r.head.predicate
+            )
+        })
+        .collect()
 }
 
 /// The standard GENERATED header for a target.
