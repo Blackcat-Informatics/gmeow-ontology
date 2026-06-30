@@ -10,7 +10,6 @@ use std::collections::BTreeMap;
 
 use gmeow_rdf::RdfDataset;
 use oxigraph::model::{Dataset, GraphName, NamedNode, NamedOrBlankNode, Quad, Term as OxTerm};
-use oxigraph::store::Store;
 use serde_json::Value;
 
 use crate::error::PipelineError;
@@ -708,9 +707,11 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
         curie_or_iri.to_string()
     };
 
-    let store = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
+    // Use the in-memory model, not oxigraph::Store: Store canonicalizes numeric
+    // literal value space and would collapse RDF term identity here.
+    let mut dataset = Dataset::new();
 
-    let emit_node = |node: &Value, graph_iri: Option<&str>| -> Result<(), PipelineError> {
+    let mut emit_node = |node: &Value, graph_iri: Option<&str>| -> Result<(), PipelineError> {
         let id = node
             .get("@id")
             .and_then(Value::as_str)
@@ -743,14 +744,12 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
                 let obj: oxigraph::model::Term = NamedNode::new(expand(t_id))
                     .map_err(|e| PipelineError::Decode(e.to_string()))?
                     .into();
-                store
-                    .insert(&Quad::new(
-                        subject.clone(),
-                        rdf_type.clone(),
-                        obj,
-                        graph_name.clone(),
-                    ))
-                    .map_err(|e| PipelineError::Parse(e.to_string()))?;
+                dataset.insert(&Quad::new(
+                    subject.clone(),
+                    rdf_type.clone(),
+                    obj,
+                    graph_name.clone(),
+                ));
             }
         }
 
@@ -767,7 +766,7 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
             };
             for v in values {
                 emit_value_quad(
-                    &store,
+                    &mut dataset,
                     subject.clone(),
                     predicate.clone(),
                     graph_name.clone(),
@@ -782,7 +781,7 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
     match &value {
         Value::Array(entries) => {
             for entry in entries {
-                emit_graph_entry(entry, &emit_node)?;
+                emit_graph_entry(entry, &mut emit_node)?;
             }
         }
         Value::Object(obj) if obj.contains_key("@graph") => {
@@ -791,7 +790,7 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
                 .and_then(Value::as_array)
                 .ok_or_else(|| PipelineError::Decode("@graph must be an array".to_string()))?;
             for entry in graphs {
-                emit_graph_entry(entry, &emit_node)?;
+                emit_graph_entry(entry, &mut emit_node)?;
             }
         }
         Value::Object(_) => {
@@ -804,15 +803,12 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
         }
     }
 
-    store
-        .iter()
-        .collect::<Result<Dataset, _>>()
-        .map_err(|e| PipelineError::Parse(e.to_string()))
+    Ok(dataset)
 }
 
-type EmitNodeFn<'a> = dyn Fn(&Value, Option<&str>) -> Result<(), PipelineError> + 'a;
+type EmitNodeFn<'a> = dyn FnMut(&Value, Option<&str>) -> Result<(), PipelineError> + 'a;
 
-fn emit_graph_entry(entry: &Value, emit_node: &EmitNodeFn<'_>) -> Result<(), PipelineError> {
+fn emit_graph_entry(entry: &Value, emit_node: &mut EmitNodeFn<'_>) -> Result<(), PipelineError> {
     if entry.get("@graph").is_some() {
         let graph_id = entry
             .get("@id")
@@ -832,7 +828,7 @@ fn emit_graph_entry(entry: &Value, emit_node: &EmitNodeFn<'_>) -> Result<(), Pip
 }
 
 fn emit_value_quad(
-    store: &Store,
+    dataset: &mut Dataset,
     subject: NamedOrBlankNode,
     predicate: NamedNode,
     graph_name: oxigraph::model::GraphName,
@@ -840,14 +836,12 @@ fn emit_value_quad(
     expand: &dyn Fn(&str) -> String,
 ) -> Result<(), PipelineError> {
     let (object, annotation) = parse_value_object(value, expand)?;
-    store
-        .insert(&Quad::new(
-            subject.clone(),
-            predicate.clone(),
-            object.clone(),
-            graph_name.clone(),
-        ))
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    dataset.insert(&Quad::new(
+        subject.clone(),
+        predicate.clone(),
+        object.clone(),
+        graph_name.clone(),
+    ));
 
     if let Some(ann) = annotation {
         // The emitter may attach one annotation object or an array when several
@@ -877,14 +871,12 @@ fn emit_value_quad(
                 predicate.clone(),
                 object.clone(),
             )));
-            store
-                .insert(&Quad::new(
-                    reifier.clone(),
-                    reifies,
-                    quoted,
-                    oxigraph::model::GraphName::DefaultGraph,
-                ))
-                .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            dataset.insert(&Quad::new(
+                reifier.clone(),
+                reifies,
+                quoted,
+                oxigraph::model::GraphName::DefaultGraph,
+            ));
 
             for (key, val) in ann_node.as_object().unwrap() {
                 if key == "@id" {
@@ -899,14 +891,12 @@ fn emit_value_quad(
                 };
                 for v in vals {
                     let (ann_object, _) = parse_value_object(&v, expand)?;
-                    store
-                        .insert(&Quad::new(
-                            reifier.clone(),
-                            ann_predicate.clone(),
-                            ann_object,
-                            oxigraph::model::GraphName::DefaultGraph,
-                        ))
-                        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+                    dataset.insert(&Quad::new(
+                        reifier.clone(),
+                        ann_predicate.clone(),
+                        ann_object,
+                        oxigraph::model::GraphName::DefaultGraph,
+                    ));
                 }
             }
         }
@@ -1003,7 +993,9 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
     json_bytes: &[u8],
 ) -> Result<String, PipelineError> {
     let dataset = parse_jsonld_star(json_bytes)?;
-    let out = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
+    // Keep the downcast lexical-faithful too; Store would normalize typed
+    // numeric literals before the native N-Quads serializer sees them.
+    let mut out = Dataset::new();
 
     // Work with owned quads so subjects/objects are not reference types.
     let quads: Vec<Quad> = dataset.iter().map(|q| q.into_owned()).collect();
@@ -1049,22 +1041,19 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
                 rdf_type.clone(),
                 OxTerm::NamedNode(statement_metadata.clone()),
                 GraphName::DefaultGraph,
-            ))
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            ));
             out.insert(&Quad::new(
                 r.clone(),
                 q_subject.clone(),
                 OxTerm::from(s.clone()),
                 GraphName::DefaultGraph,
-            ))
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            ));
             out.insert(&Quad::new(
                 r.clone(),
                 q_predicate.clone(),
                 OxTerm::NamedNode(p.clone()),
                 GraphName::DefaultGraph,
-            ))
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            ));
             let q_object_pred = if matches!(o, OxTerm::Literal(_)) {
                 q_object_literal.clone()
             } else {
@@ -1075,8 +1064,7 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
                 q_object_pred,
                 o.clone(),
                 GraphName::DefaultGraph,
-            ))
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            ));
         } else if reifier_quotes.contains_key(&quad.subject) {
             // Annotation triple on a reifier: keep it, but move it to the default graph
             // so the downstream rdflib-compat graph (single-graph) sees it.
@@ -1085,19 +1073,18 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
                 quad.predicate.clone(),
                 quad.object.clone(),
                 GraphName::DefaultGraph,
-            ))
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            ));
         } else {
             // Plain base triple or named-graph triple.
-            out.insert(quad)
-                .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            out.insert(quad);
         }
     }
 
     // `out` holds only the downcast-flat statement-metadata cells (no
     // object-position quoted triples), so the native N-Quads serializer applies.
-    let ir = gmeow_rdf::oxigraph::dataset_from_store(&out)
-        .map_err(|e| PipelineError::Decode(format!("store → IR: {e}")))?;
+    let out_quads: Vec<Quad> = out.iter().map(|q| q.into_owned()).collect();
+    let ir = gmeow_rdf::dataset_from_oxigraph_quads(&out_quads)
+        .map_err(|e| PipelineError::Decode(format!("quads → IR: {e}")))?;
     let buf = gmeow_rdf::serialize_dataset(
         &ir,
         "application/n-quads",
@@ -1116,13 +1103,10 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
 pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> {
     let text = std::str::from_utf8(yaml_bytes)
         .map_err(|e| PipelineError::Decode(format!("YAML-LD-star bytes are not UTF-8: {e}")))?;
-    // Reject anchors/aliases BEFORE deserializing, using the repo's trusted
-    // heuristic: a whitespace-delimited token starting with `&` (anchor) or `*`
-    // (alias) signals extended YAML, which is out of scope for #699.
-    if text
-        .split_whitespace()
-        .any(|t| t.starts_with('&') || t.starts_with('*'))
-    {
+    // Reject anchors/aliases BEFORE deserializing. Markdown emphasis inside
+    // plain scalar text can contain `*word*`, so only treat `&id` / `*id` as
+    // YAML syntax where a node value can start.
+    if contains_yaml_anchor_or_alias(text) {
         return Err(PipelineError::Decode(
             "YAML-LD-star must not use anchors or aliases".into(),
         ));
@@ -1131,6 +1115,32 @@ pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> 
         .map_err(|e| PipelineError::Decode(format!("parse YAML-LD-star: {e}")))?;
     serde_json::to_string(&value)
         .map_err(|e| PipelineError::Decode(format!("YAML-LD-star -> JSON-LD-star: {e}")))
+}
+
+fn contains_yaml_anchor_or_alias(text: &str) -> bool {
+    text.lines().any(|line| {
+        let trimmed = line.trim_start();
+        if starts_yaml_anchor_or_alias_token(trimmed) {
+            return true;
+        }
+        if let Some(rest) = trimmed.strip_prefix("- ") {
+            if starts_yaml_anchor_or_alias_token(rest.trim_start()) {
+                return true;
+            }
+        }
+        trimmed
+            .split_once(':')
+            .is_some_and(|(_, rest)| starts_yaml_anchor_or_alias_token(rest.trim_start()))
+    })
+}
+
+fn starts_yaml_anchor_or_alias_token(text: &str) -> bool {
+    let Some(rest) = text.strip_prefix('&').or_else(|| text.strip_prefix('*')) else {
+        return false;
+    };
+    rest.chars()
+        .next()
+        .is_some_and(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-'))
 }
 
 /// Downcast YAML-LD-star bytes to GMEOW statement-metadata N-Quads.
@@ -1590,11 +1600,8 @@ mod tests {
             yaml.contains("@graph"),
             "YAML-LD must carry an explicit @graph: {yaml}"
         );
-        // Anchor/alias tokens appear as whitespace-delimited `&id` or `*id`.
         assert!(
-            !yaml
-                .split_whitespace()
-                .any(|t| t.starts_with('&') || t.starts_with('*')),
+            !contains_yaml_anchor_or_alias(&yaml),
             "YAML-LD must not use anchors or aliases: {yaml}"
         );
         assert!(
@@ -2014,6 +2021,78 @@ mod tests {
         assert!(
             dataset_has(&dataset, &claim, &confidence, &meta),
             "typed annotation triple must survive downcast"
+        );
+    }
+
+    #[test]
+    fn jsonld_star_downcast_preserves_numeric_literal_identity() {
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("https://example.org/s"));
+        graph.terms.push(iri_term("https://example.org/p"));
+        graph
+            .terms
+            .push(iri_term("http://www.w3.org/2001/XMLSchema#decimal"));
+        graph.terms.push(Term {
+            kind: TermKind::Literal,
+            value: Some("0.90".to_string()),
+            datatype: Some(2),
+            lang: None,
+            direction: None,
+            reifier: None,
+        });
+        graph
+            .terms
+            .push(iri_term("https://example.org/claim-numeric"));
+        graph
+            .terms
+            .push(iri_term("https://blackcatinformatics.ca/gmeow/rank"));
+        graph.terms.push(iri_term(
+            "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
+        ));
+        graph.terms.push(Term {
+            kind: TermKind::Literal,
+            value: Some("0".to_string()),
+            datatype: Some(6),
+            lang: None,
+            direction: None,
+            reifier: None,
+        });
+        graph.quads.push((0, 1, 3, None));
+        graph.reifiers.push((4, (0, 1, 3), None));
+        graph.annotations.push((4, 5, 7, None));
+
+        let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
+        let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
+            .expect("downcast numeric JSON-LD-star");
+        let dataset = parse_nquads(&nquads);
+
+        let s: NamedOrBlankNode = ox_named_node("https://example.org/s").into();
+        let p = ox_named_node("https://example.org/p");
+        let o: OxTerm = oxigraph::model::Literal::new_typed_literal(
+            "0.90",
+            ox_named_node("http://www.w3.org/2001/XMLSchema#decimal"),
+        )
+        .into();
+        let r: NamedOrBlankNode = ox_named_node("https://example.org/claim-numeric").into();
+        let q_object_literal = ox_named_node(GMEOW_QOBJECTLITERAL);
+        let rank = ox_named_node("https://blackcatinformatics.ca/gmeow/rank");
+        let rank_value: OxTerm = oxigraph::model::Literal::new_typed_literal(
+            "0",
+            ox_named_node("http://www.w3.org/2001/XMLSchema#nonNegativeInteger"),
+        )
+        .into();
+
+        assert!(
+            dataset_has(&dataset, &s, &p, &o),
+            "base numeric literal triple must retain lexical form and datatype"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &q_object_literal, &o),
+            "gmeow:qObjectLiteral must retain lexical form and datatype"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &rank, &rank_value),
+            "typed numeric annotation must retain datatype IRI"
         );
     }
 
@@ -2476,6 +2555,23 @@ mod tests {
     }
 
     #[test]
+    fn yaml_ld_star_ingest_allows_markdown_emphasis_in_scalars() {
+        let yaml = r#"
+"@context":
+  ex: "https://example.org/"
+"@id": "ex:s"
+"ex:description":
+  "@value": "The *who* and **kern** labels are scalar text, not aliases."
+"#;
+        let json = yaml_ld_star_to_json(yaml.as_bytes())
+            .expect("markdown emphasis in a scalar is not YAML alias syntax");
+        assert!(
+            json.contains("*who*") && json.contains("**kern**"),
+            "scalar text must survive YAML-LD-star conversion: {json}"
+        );
+    }
+
+    #[test]
     fn roundtrip_isomorphic_accepts_emitted_jsonld() {
         let graph = minimal_graph();
         let json =
@@ -2498,6 +2594,95 @@ mod tests {
             roundtrip_isomorphic(nquads.as_bytes(), yaml.as_bytes(), "yamlld")
                 .expect("roundtrip_isomorphic for yamlld"),
             "emitted YAML-LD-star must round-trip isomorphic to the source N-Quads-star"
+        );
+    }
+
+    const NUMERIC_LITERAL_NQUADS: &str = r#"<https://e/s> <https://e/dec090> "0.90"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+<https://e/s> <https://e/dec10> "1.0"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+<https://e/s> <https://e/dec440> "440.0"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+<https://e/s> <https://e/nni> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+"#;
+
+    #[test]
+    fn roundtrip_isomorphic_preserves_numeric_literal_identity_jsonld() {
+        let original = dataset_from_nquads(NUMERIC_LITERAL_NQUADS.as_bytes())
+            .expect("parse numeric literal fixture");
+        let original_ir = gmeow_rdf::parse_dataset(
+            NUMERIC_LITERAL_NQUADS.as_bytes(),
+            "application/n-quads",
+            None,
+        )
+        .expect("parse numeric literal fixture into native IR");
+        let json =
+            serialize_graph(&original_ir).expect("serialize numeric fixture as JSON-LD-star");
+
+        assert!(
+            json.contains("\"@value\": \"0.90\""),
+            "decimal lexical form must be emitted verbatim: {json}"
+        );
+        assert!(
+            json.contains("\"@value\": \"1.0\""),
+            "decimal lexical form must be emitted verbatim: {json}"
+        );
+        assert!(
+            json.contains("\"@value\": \"440.0\""),
+            "decimal lexical form must be emitted verbatim: {json}"
+        );
+        assert!(
+            json.contains("xsd:nonNegativeInteger"),
+            "integer subtype datatype must be emitted verbatim: {json}"
+        );
+
+        let roundtrip = parse_jsonld_star(json.as_bytes()).expect("parse emitted JSON-LD-star");
+        assert!(
+            roundtrip_isomorphic(NUMERIC_LITERAL_NQUADS.as_bytes(), json.as_bytes(), "jsonld")
+                .expect("roundtrip_isomorphic for numeric JSON-LD-star"),
+            "numeric literal identity must survive JSON-LD-star round-trip\noriginal:\n{}\nroundtrip:\n{}",
+            canonical_lines(&original).join("\n"),
+            canonical_lines(&roundtrip).join("\n")
+        );
+    }
+
+    #[test]
+    fn roundtrip_isomorphic_preserves_numeric_literal_identity_yamlld() {
+        let original = dataset_from_nquads(NUMERIC_LITERAL_NQUADS.as_bytes())
+            .expect("parse numeric literal fixture");
+        let original_ir = gmeow_rdf::parse_dataset(
+            NUMERIC_LITERAL_NQUADS.as_bytes(),
+            "application/n-quads",
+            None,
+        )
+        .expect("parse numeric literal fixture into native IR");
+        let yaml = serialize_graph_yaml(&original_ir, None)
+            .expect("serialize numeric fixture as YAML-LD-star");
+        let roundtrip_json =
+            yaml_ld_star_to_json(yaml.as_bytes()).expect("convert emitted YAML-LD-star to JSON");
+        let roundtrip =
+            parse_jsonld_star(roundtrip_json.as_bytes()).expect("parse emitted YAML-LD-star");
+
+        assert!(
+            yaml.contains("0.90"),
+            "decimal lexical form must be emitted verbatim: {yaml}"
+        );
+        assert!(
+            yaml.contains("1.0"),
+            "decimal lexical form must be emitted verbatim: {yaml}"
+        );
+        assert!(
+            yaml.contains("440.0"),
+            "decimal lexical form must be emitted verbatim: {yaml}"
+        );
+        assert!(
+            yaml.contains("xsd:nonNegativeInteger"),
+            "integer subtype datatype must be emitted verbatim: {yaml}"
+        );
+
+        assert!(
+            roundtrip_isomorphic(NUMERIC_LITERAL_NQUADS.as_bytes(), yaml.as_bytes(), "yamlld")
+                .expect("roundtrip_isomorphic for numeric YAML-LD-star"),
+            "numeric literal identity must survive YAML-LD-star round-trip\noriginal:\n{}\nroundtrip:\n{}",
+            canonical_lines(&original).join("\n"),
+            canonical_lines(&roundtrip).join("\n")
         );
     }
 
