@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `yaml_ld` export leaf (#699): RDF → YAML-LD-star / JSON-LD-star.
+//! The `yaml_ld` export leaf: RDF → YAML-LD-star / JSON-LD-star.
 //!
 //! Emits both the JSON-LD-star lead artifact and a deterministic YAML-LD-star
 //! derivative, plus a small serialization-preservation ledger.
 //!
 //! The JSON-LD-star / YAML-LD-star CODEC now lives in the lowest crate the rdf /
-//! validate / pipeline consumers share (`gmeow_rdf::native_codecs::jsonld`, issue
-//! #1171). The production functions in this stage are thin wrappers over it; only the
+//! validate / pipeline consumers share (`gmeow_rdf::native_codecs::jsonld`). The
+//! production functions in this stage are thin wrappers over it; only the
 //! stage-specific code (the stage entry, the preservation ledger, the build-time
 //! round-trip gate) lives here.
 
@@ -81,7 +81,7 @@ impl Stage for YamlLdStage {
     }
     fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // THIS run's carrier dataset, read directly off the snapshot product's bundle
-        // (#1132) — no re-parse of the gmeow.gts bytes (GTS is exit-only).
+        // — no re-parse of the gmeow.gts bytes (GTS is exit-only).
         let dataset = crate::stages::carrier::snapshot_dataset(_input.upstream)?;
         let json = serialize_graph(dataset.as_ref())?;
         let yaml = serialize_graph_yaml(dataset.as_ref(), None)?;
@@ -173,7 +173,7 @@ pub fn yaml_ld_star_to_gmeow_statement_metadata_nquads(
 /// Return an RDFC-1.0 canonical, deterministically sorted quad representation.
 ///
 /// The build-time round-trip gate ([`roundtrip_isomorphic`]) and the tests share one
-/// canonicalizer (#699).
+/// canonicalizer.
 pub(crate) fn canonical_lines(dataset: &RdfDataset) -> Vec<String> {
     // Native full RDFC-1.0 over the FLATTENED carrier (#910): `canonical_flat_nquads`
     // re-materializes the RDF 1.2 statement overlay to plain `rdf:reifies` / annotation
@@ -243,8 +243,8 @@ mod tests {
     // the RDF 1.2 reifier / annotation side-tables) that the serializer-fixture builders
     // construct as ground truth, then bridge to the native carrier [`RdfDataset`] via
     // [`synth_to_dataset`] before feeding the production `serialize_graph` entrypoint.
-    // This replaces the former GTS-archive model test fixtures (issue #1171): GTS is
-    // exit-only and the test fixtures must not depend on the archive model.
+    // This replaces the former GTS-archive model test fixtures: GTS is exit-only and
+    // the test fixtures must not depend on the archive model.
 
     #[derive(Clone, Copy, PartialEq, Eq, Debug)]
     enum TermKind {
@@ -1201,8 +1201,7 @@ mod tests {
             .to_path_buf()
     }
 
-    /// Full-graph round-trip gate for the committed RDF 1.2 statement artifact
-    /// (#699 acceptance criterion #2).
+    /// Full-graph round-trip gate for the committed RDF 1.2 statement artifact.
     #[test]
     fn committed_rdf12_statements_roundtrip_through_jsonld_star() {
         let path = repo_root().join("generated/statements/gmeow.rdf12.ttl");
@@ -1247,8 +1246,8 @@ mod tests {
         );
     }
 
-    /// Acceptance criterion #5 (issue #699): a hand-authored YAML-LD-star statement-layer
-    /// fixture losslessly transpiles into GMEOW through the Rust native downcast path.
+    /// A hand-authored YAML-LD-star statement-layer fixture losslessly transpiles into
+    /// GMEOW through the Rust native downcast path.
     #[test]
     fn hand_authored_yaml_ld_star_fixture_transpiles_to_gmeow() {
         let path = repo_root().join("slices/core/standpoint/examples/claim-bullshit.yamlld");
@@ -1359,9 +1358,8 @@ mod tests {
         );
     }
 
-    /// Issue #699 MEDIUM gap #7 item 4: a sample `@annotation` fragment shaped like
-    /// serializer output must validate against the SHACL-derived JSON Schema
-    /// `$defs/Annotation` from #700.
+    /// A sample `@annotation` fragment shaped like serializer output must validate
+    /// against the SHACL-derived JSON Schema `$defs/Annotation`.
     #[test]
     fn annotation_fragment_validates_against_json_schema() {
         use std::path::Path;
@@ -1407,7 +1405,7 @@ mod tests {
             .collect();
         assert!(
             errors.is_empty(),
-            "sample @annotation fragment must validate against #700 $defs/Annotation: {errors:?}"
+            "sample @annotation fragment must validate against the $defs/Annotation schema: {errors:?}"
         );
     }
 
@@ -1464,7 +1462,7 @@ mod tests {
         );
     }
 
-    /// Acceptance criterion #5 (issue #699): the YAML-LD-star lift through
+    /// The YAML-LD-star lift through
     /// `yaml_ld_star_to_gmeow_statement_metadata_nquads` produces a graph that is
     /// RDFC-1.0 canonically equal to the native Turtle (StatementMetadata) authoring of
     /// the same claim.
