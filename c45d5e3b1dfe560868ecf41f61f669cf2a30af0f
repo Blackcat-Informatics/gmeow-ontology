@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: c45d5e3b1dfe560868ecf41f61f669cf2a30af0f
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1180
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1180
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 8ac3f4044c5fc1cba5cfa9ad293019ac3ca70112
+GhpRsq-Head-Ref: paudley/rust-gate-optimization
+GhpRsq-Head-OID: c45d5e3b1dfe560868ecf41f61f669cf2a30af0f
+GhpRsq-Result-Tree: 53d1ad3c9907233f2bd044faed77647489f567bb
+GhpRsq-Result-Commit: d195686f5e7f4bfed1c5b85afcf89f931aaa384e
+GhpRsq-Parent-Hashes: c45d5e3b1dfe560868ecf41f61f669cf2a30af0f
+GhpRsq-Squash-Notes-SHA256: 878387d11c83a70758b2e6f37dcea4c122db7b5a5ec316ce7d05be2667e37a0a
