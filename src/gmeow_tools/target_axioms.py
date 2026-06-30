@@ -1,6 +1,7 @@
 """Validation-time snapshots of target-vocabulary *axioms* (domain/range/inverse).
 
-The native SSSOM alignment-direction linter (``gmeow_slice.lint_projection``) needs the
+The native correspondence-soundness pass
+(``gmeow_native.pipeline.lint_projection``) needs the
 *target* terms' own structural axioms — ``rdfs:domain``/``rdfs:range`` (or
 schema.org's ``schema:domainIncludes``/``rangeIncludes``), ``owl:inverseOf`` (or
 ``schema:inverseOf``), and property-character types — to tell whether a GMEOW

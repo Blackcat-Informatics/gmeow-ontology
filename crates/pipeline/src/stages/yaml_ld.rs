@@ -171,7 +171,7 @@ pub fn serialize_graph_yaml(
 }
 
 /// Serialization-preservation ledger: records JSON-LD-star and YAML-LD-star as lossless.
-fn preservation_ledger() -> String {
+pub(crate) fn preservation_ledger() -> String {
     // A deliberately simple, versioned JSON ledger. It is intentionally NOT
     // conflated with the logic-projection PreservationKind vocabulary.
     let mut map: BTreeMap<String, Value> = BTreeMap::new();

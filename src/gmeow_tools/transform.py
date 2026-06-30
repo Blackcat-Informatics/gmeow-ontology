@@ -34,7 +34,6 @@ from dataclasses import dataclass, field
 from types import ModuleType
 from typing import TYPE_CHECKING, cast
 
-import gmeow_slice
 from gmeow_rdf.compat.rdflib import Graph, URIRef
 
 from gmeow_tools.config import DIST_DIR, PREFIXES, PROJECT_ROOT
@@ -102,12 +101,11 @@ def _denied_cells() -> set[tuple[str, str, str]]:
         if precomputed is not None:
             return set(precomputed)
 
-    checks = frozenset(gmeow_slice.alignment_policy()["alignment_checks"])
+    pipeline = _pipeline()
+    checks = frozenset(pipeline.alignment_policy()["alignment_checks"])
     findings = [
         finding
-        for finding in gmeow_slice.lint_projection(
-            str(PROJECT_ROOT), allow_network=False
-        )
+        for finding in pipeline.lint_projection(str(PROJECT_ROOT), allow_network=False)
         if finding["check"] in checks
     ]
     collapses = [
