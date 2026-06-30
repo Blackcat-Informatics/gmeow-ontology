@@ -17,13 +17,14 @@
 mod shacl_support;
 
 use std::path::Path;
+use std::sync::Arc;
 
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
-use oxigraph::store::Store;
+use gmeow_rdf::parse_dataset;
+use gmeow_rdf_core::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
+use gmeow_sparql_eval::NativeSparqlEngine;
 
 use gmeow_foundation_corpus::run_import;
-use shacl_support::{ok, ttl_str_to_nt, validate_with_ontology, violations};
+use shacl_support::{ok, validate_with_ontology, violations};
 
 const CORP: &str = "https://blackcatinformatics.ca/gmeow/corpus/foundation/";
 
@@ -39,27 +40,33 @@ fn imported_ttl() -> (tempfile::TempDir, String) {
     (tmp, ttl)
 }
 
-/// Load the imported `foundation.ttl` into an oxigraph store (lenient parser).
-fn imported_store() -> (tempfile::TempDir, Store) {
+/// Load the imported `foundation.ttl` into a native frozen dataset (canonical codec).
+fn imported_store() -> (tempfile::TempDir, Arc<RdfDataset>) {
     let (tmp, ttl) = imported_ttl();
-    let store = Store::new().expect("store");
-    store
-        .load_from_reader(
-            RdfParser::from_format(RdfFormat::Turtle).lenient(),
-            ttl.as_bytes(),
-        )
-        .expect("parse foundation.ttl");
-    (tmp, store)
+    let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse foundation.ttl");
+    (tmp, dataset)
 }
 
-/// Evaluate a SPARQL query against `store` (non-deprecated `SparqlEvaluator`).
-fn query<'a>(store: &'a Store, sparql: &str) -> QueryResults<'a> {
-    SparqlEvaluator::new()
-        .parse_query(sparql)
-        .unwrap_or_else(|e| panic!("parse SPARQL: {e}\n{sparql}"))
-        .on_store(store)
-        .execute()
-        .unwrap_or_else(|e| panic!("execute SPARQL: {e}"))
+/// Evaluate a SPARQL query against `dataset` via the native engine.
+fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> SparqlResult {
+    NativeSparqlEngine::new()
+        .query(
+            dataset,
+            SparqlRequest {
+                query: sparql,
+                base_iri: None,
+                substitutions: &[],
+            },
+        )
+        .unwrap_or_else(|e| panic!("execute SPARQL: {e}\n{sparql}"))
+}
+
+/// The lexical form of a literal term, panicking on a non-literal.
+fn literal_value(term: &TermValue) -> String {
+    match term {
+        TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+        other => panic!("expected literal, got {other:?}"),
+    }
 }
 
 // --------------------------------------------------------------------------- //
@@ -69,8 +76,7 @@ fn query<'a>(store: &'a Store, sparql: &str) -> QueryResults<'a> {
 #[test]
 fn imported_graph_conforms_to_shapes() {
     let (_tmp, ttl) = imported_ttl();
-    let fixture_nt = ttl_str_to_nt(&ttl);
-    let report = validate_with_ontology(&fixture_nt);
+    let report = validate_with_ontology(&ttl);
     assert!(ok(&report), "SHACL violations: {:?}", violations(&report));
 }
 
@@ -90,15 +96,20 @@ fn zeros_are_scores() {
             FILTER(?v = "0"^^xsd:decimal)
         }
     "#;
-    let QueryResults::Solutions(solutions) = query(&store, sparql) else {
+    let SparqlResult::Solutions {
+        variables, rows, ..
+    } = query(&store, sparql)
+    else {
         panic!("expected SELECT solutions");
     };
+    let n_idx = variables
+        .iter()
+        .position(|v| v == "n")
+        .expect("?n projected");
     let mut count: Option<i64> = None;
-    for sol in solutions {
-        let sol = sol.expect("solution");
-        let term = sol.get("n").expect("?n bound");
-        if let oxigraph::model::Term::Literal(lit) = term {
-            count = Some(lit.value().parse().expect("integer count"));
+    for row in &rows {
+        if let Some(TermValue::Literal { lexical_form, .. }) = &row[n_idx] {
+            count = Some(lexical_form.parse().expect("integer count"));
         }
     }
     assert_eq!(count, Some(1), "exactly one Assessment must score 0.0");
@@ -120,7 +131,7 @@ fn unknown_role_mints_open_vocabulary_value() {
         ASK {{ <{minted}> a gmeow:NarrativeRole }}
         "#
     );
-    let QueryResults::Boolean(is_role) = query(&store, &type_query) else {
+    let SparqlResult::Boolean(is_role) = query(&store, &type_query) else {
         panic!("expected ASK boolean");
     };
     assert!(is_role, "{minted} must be a gmeow:NarrativeRole");
@@ -132,14 +143,20 @@ fn unknown_role_mints_open_vocabulary_value() {
         SELECT (COUNT(?s) AS ?n) WHERE {{ ?s gmeow:narrativeRoleValue <{minted}> }}
         "#
     );
-    let QueryResults::Solutions(solutions) = query(&store, &count_query) else {
+    let SparqlResult::Solutions {
+        variables, rows, ..
+    } = query(&store, &count_query)
+    else {
         panic!("expected SELECT solutions");
     };
+    let n_idx = variables
+        .iter()
+        .position(|v| v == "n")
+        .expect("?n projected");
     let mut count: Option<i64> = None;
-    for sol in solutions {
-        let sol = sol.expect("solution");
-        if let Some(oxigraph::model::Term::Literal(lit)) = sol.get("n") {
-            count = Some(lit.value().parse().expect("integer count"));
+    for row in &rows {
+        if let Some(TermValue::Literal { lexical_form, .. }) = &row[n_idx] {
+            count = Some(lexical_form.parse().expect("integer count"));
         }
     }
     assert_eq!(
@@ -176,18 +193,31 @@ fn competency_demo_trajectory_against_exemplified_principia() {
         }
         ORDER BY ?ordinal
     "#;
-    let QueryResults::Solutions(solutions) = query(&store, sparql) else {
+    let SparqlResult::Solutions {
+        variables,
+        rows: solutions,
+        ..
+    } = query(&store, sparql)
+    else {
         panic!("expected SELECT solutions");
     };
+    let idx = |name: &str| {
+        variables
+            .iter()
+            .position(|v| v == name)
+            .unwrap_or_else(|| panic!("?{name} projected"))
+    };
+    let (ord_i, state_i, crit_i) = (idx("ordinal"), idx("stateLabel"), idx("criterionLabel"));
     let mut rows: Vec<(i64, String, String)> = Vec::new();
-    for sol in solutions {
-        let sol = sol.expect("solution");
-        let ordinal = match sol.get("ordinal").expect("?ordinal") {
-            oxigraph::model::Term::Literal(lit) => lit.value().parse::<i64>().expect("ordinal int"),
-            other => panic!("unexpected ?ordinal term: {other}"),
+    for sol in &solutions {
+        let ordinal = match sol[ord_i].as_ref().expect("?ordinal bound") {
+            TermValue::Literal { lexical_form, .. } => {
+                lexical_form.parse::<i64>().expect("ordinal int")
+            }
+            other => panic!("unexpected ?ordinal term: {other:?}"),
         };
-        let state = literal_value(sol.get("stateLabel").expect("?stateLabel"));
-        let criterion = literal_value(sol.get("criterionLabel").expect("?criterionLabel"));
+        let state = literal_value(sol[state_i].as_ref().expect("?stateLabel bound"));
+        let criterion = literal_value(sol[crit_i].as_ref().expect("?criterionLabel bound"));
         rows.push((ordinal, state, criterion));
     }
     assert_eq!(
@@ -205,13 +235,6 @@ fn competency_demo_trajectory_against_exemplified_principia() {
             ),
         ]
     );
-}
-
-fn literal_value(term: &oxigraph::model::Term) -> String {
-    match term {
-        oxigraph::model::Term::Literal(lit) => lit.value().to_string(),
-        other => panic!("expected literal, got {other}"),
-    }
 }
 
 // --------------------------------------------------------------------------- //

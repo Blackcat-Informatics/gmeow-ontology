@@ -97,7 +97,7 @@ impl Entrenchment {
         let mut edges: BTreeSet<(String, String)> = BTreeSet::new();
         for pred in DIRECT_EDGE_PREDICATES {
             for q in store.quads_for_pattern_in_world(base_world, None, Some(pred), None) {
-                if let (Some(s), Some(o)) = (named_iri(&q.subject), term_iri(&q.object)) {
+                if let (Some(s), Some(o)) = (named_iri(&q.s), term_iri(&q.o)) {
                     edges.insert((s, o));
                 }
             }
@@ -113,7 +113,7 @@ impl Entrenchment {
         let mut norm_level: BTreeMap<String, String> = BTreeMap::new();
         for q in store.quads_for_pattern_in_world(base_world, None, Some(HAS_AUTHORITY_LEVEL), None)
         {
-            if let (Some(s), Some(o)) = (named_iri(&q.subject), term_iri(&q.object)) {
+            if let (Some(s), Some(o)) = (named_iri(&q.s), term_iri(&q.o)) {
                 if let Some(prev) = norm_level.get(&s) {
                     if prev != &o {
                         return Err(format!(
@@ -132,7 +132,7 @@ impl Entrenchment {
             // a level individual must NOT synthesize false authority precedence.
             let mut level_edges: BTreeSet<(String, String)> = BTreeSet::new();
             for q in store.quads_for_pattern_in_world(base_world, None, Some(STRONGER_THAN), None) {
-                if let (Some(s), Some(o)) = (named_iri(&q.subject), term_iri(&q.object)) {
+                if let (Some(s), Some(o)) = (named_iri(&q.s), term_iri(&q.o)) {
                     level_edges.insert((s, o));
                 }
             }
@@ -391,20 +391,15 @@ fn reaches(m: &BTreeMap<String, BTreeSet<String>>, a: &str, b: &str) -> bool {
     m.get(a).map(|s| s.contains(b)).unwrap_or(false)
 }
 
-/// Extract the IRI string from an oxigraph subject (`NamedOrBlankNode`).
-fn named_iri(s: &oxigraph::model::NamedOrBlankNode) -> Option<String> {
-    match s {
-        oxigraph::model::NamedOrBlankNode::NamedNode(n) => Some(n.as_str().to_owned()),
-        oxigraph::model::NamedOrBlankNode::BlankNode(_) => None,
-    }
+/// Extract the IRI string from a native subject term (IRIs only; blank nodes and
+/// non-IRI terms yield `None`).
+fn named_iri(s: &gmeow_rdf::TermValue) -> Option<String> {
+    s.as_iri().map(str::to_owned)
 }
 
-/// Extract the IRI string from an oxigraph object [`Term`] (IRIs only).
-fn term_iri(o: &oxigraph::model::Term) -> Option<String> {
-    match o {
-        oxigraph::model::Term::NamedNode(n) => Some(n.as_str().to_owned()),
-        _ => None,
-    }
+/// Extract the IRI string from a native object [`gmeow_rdf::TermValue`] (IRIs only).
+fn term_iri(o: &gmeow_rdf::TermValue) -> Option<String> {
+    o.as_iri().map(str::to_owned)
 }
 
 #[cfg(test)]

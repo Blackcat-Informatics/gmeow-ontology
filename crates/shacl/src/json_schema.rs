@@ -31,10 +31,10 @@
 
 use std::collections::BTreeSet;
 
-use oxigraph::model::Term;
 use serde_json::{json, Map, Value};
 
 use crate::shapes::{Constraint, NodeKindValue, Path, Shape, Shapes, Target};
+use crate::term::Term;
 
 /// The GMEOW namespace (matches `crate::model::gmeow`).
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -990,7 +990,7 @@ fn to_pretty(value: &Value) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shapes::from_store;
+    use crate::shapes::from_dataset;
 
     const PREFIXES: &str = r#"
         @prefix sh:    <http://www.w3.org/ns/shacl#> .
@@ -1002,8 +1002,8 @@ mod tests {
 
     fn compile_ttl(body: &str) -> CompiledSchema {
         let ttl = format!("{PREFIXES}{body}");
-        let store = crate::text_ingest::parse_turtle_to_store(&ttl).expect("Turtle parse");
-        let shapes = from_store(&store).expect("shape parse");
+        let dataset = crate::text_ingest::parse_turtle_to_dataset(&ttl).expect("Turtle parse");
+        let shapes = from_dataset(&dataset).expect("shape parse");
         compile(&shapes)
     }
 

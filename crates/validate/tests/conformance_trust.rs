@@ -17,10 +17,7 @@
 mod conformance_support;
 use conformance_support::*;
 
-use oxigraph::model::GraphNameRef;
-
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::parse_dataset;
+use gmeow_rdf::{flat_rdf_quads_from_dataset, parse_dataset, RdfTerm};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -28,24 +25,16 @@ const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const EX_TRUST: &str = "https://blackcatinformatics.ca/gmeow/examples/trust/";
 const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
 
-/// Parse `data_nt` (N-Triples) into an in-memory oxigraph store and check
-/// that the triple `(subject, predicate, object)` is present (all named nodes).
+/// Parse `data_nt` (N-Triples) into the native IR and check that the all-IRI triple
+/// `(subject, predicate, object)` is present.
 fn has_triple_nnn(data_nt: &str, subject: &str, predicate: &str, object: &str) -> bool {
     let dataset = parse_dataset(data_nt.as_bytes(), "application/n-triples", None)
         .expect("N-Triples parse must succeed");
-    let store = store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph)
-        .expect("store from dataset");
-    let s = oxigraph::model::NamedNode::new(subject).expect("valid IRI");
-    let p = oxigraph::model::NamedNode::new(predicate).expect("valid IRI");
-    let o = oxigraph::model::NamedNode::new(object).expect("valid IRI");
-    store
-        .contains(&oxigraph::model::Quad::new(
-            s,
-            p,
-            oxigraph::model::Term::NamedNode(o),
-            GraphNameRef::DefaultGraph,
-        ))
-        .expect("store.contains must not error")
+    flat_rdf_quads_from_dataset(&dataset).iter().any(|quad| {
+        matches!(&quad.subject, RdfTerm::Iri(s) if s == subject)
+            && quad.predicate == predicate
+            && matches!(&quad.object, RdfTerm::Iri(o) if o == object)
+    })
 }
 
 // ── Migrated tests ────────────────────────────────────────────────────────────

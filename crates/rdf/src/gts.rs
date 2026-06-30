@@ -5,41 +5,32 @@
 //!
 //! The oxigraph-free reader half (`read_graph`, `read_all_segments`,
 //! `lookaside_from_graph`, …) lives in the ring-fenced `gmeow-rdf-core` kernel and
-//! is re-exported wholesale below (#885 / purrdf P2b). This module keeps only the
-//! two `oxigraph`-gated flattening helpers, which depend on oxigraph and therefore
-//! cannot live in the oxigraph-free core.
+//! is re-exported wholesale below (#885 / purrdf P2b). The oxigraph-FREE
+//! [`flattened_dataset_from_bytes`] (EPIC #906 Task 4) is the load path the native
+//! SPARQL conformance gate replays against the frozen goldens.
 
 pub use gmeow_rdf_core::gts::*;
 
-#[cfg(feature = "oxigraph")]
 use crate::RdfDiagnostic;
 
-#[cfg(feature = "oxigraph")]
-pub fn flattened_oxigraph_store_from_bytes(
+/// Load a GTS bundle into a frozen [`RdfDataset`](crate::RdfDataset) with **every**
+/// named graph folded into the default graph. This is the load path the EPIC #906
+/// Task-4 native SPARQL conformance gate (`crates/sparql-conformance`) replays
+/// against the frozen goldens, which were captured over the same
+/// flatten-to-default-graph view. Implemented entirely on the oxigraph-free `gts`
+/// reader path: `read_all_segments` (re-exported from the `gmeow-rdf-core` kernel) →
+/// the native statement-layer fold (`flattened_dataset_from_gts_graph`), which
+/// re-homes each base quad's graph component to the default graph (`None`) before
+/// `freeze()`.
+pub fn flattened_dataset_from_bytes(
     bytes: &[u8],
-) -> Result<::oxigraph::store::Store, RdfDiagnostic> {
+) -> Result<std::sync::Arc<crate::RdfDataset>, RdfDiagnostic> {
     let graph = read_all_segments(bytes)?;
-    flattened_oxigraph_store_from_graph(&graph)
-}
-
-#[cfg(feature = "oxigraph")]
-pub fn flattened_oxigraph_store_from_graph(
-    graph: &gmeow_gts::model::Graph,
-) -> Result<::oxigraph::store::Store, RdfDiagnostic> {
-    // Text-free path (#909): fold the gmeow-gts graph straight into the IR (the same
-    // statement-layer fold the native parser uses) and materialize it into the
-    // oxigraph Store, flattening every named graph into the default graph. The
-    // previous implementation round-tripped through N-Quads TEXT (`to_nquads` → an
-    // oxigraph text parser); that text codec is retired.
-    let dataset = crate::native_codecs::parse::dataset_from_gts_graph(graph)?;
-    crate::oxigraph::store_from_dataset(
-        &dataset,
-        crate::oxigraph::GraphPolicy::FlattenToDefaultGraph,
-    )
+    crate::native_codecs::parse::flattened_dataset_from_gts_graph(&graph)
 }
 
 #[cfg(test)]
-#[cfg(all(feature = "oxigraph", feature = "gts"))]
+#[cfg(feature = "gts")]
 mod tests {
     use super::*;
     use ciborium::value::Value;
@@ -89,13 +80,23 @@ mod tests {
         graph
     }
 
+    /// The oxigraph-free [`flattened_dataset_from_bytes`] folds the one named-graph
+    /// quad into the DEFAULT graph (graph component `None`). This is the load contract
+    /// the EPIC #906 Task-4 native conformance gate relies on, and it accepts a
+    /// private (`x-gmeow-…`) language tag.
     #[test]
-    fn flattened_oxigraph_adapter_accepts_private_lang_tag() {
+    fn flattened_dataset_from_bytes_folds_named_graph_into_default() {
         let graph = private_lang_named_graph();
         let writer =
             Writer::deterministic(&graph, "gmeow-rdf-test").expect("deterministic GTS writer");
-        let folded = read_all_segments(&writer.to_bytes()).expect("folded graph");
-        let store = flattened_oxigraph_store_from_graph(&folded).expect("oxigraph store");
-        assert_eq!(store.len().unwrap(), 1);
+        let bytes = writer.to_bytes();
+
+        let dataset = flattened_dataset_from_bytes(&bytes).expect("native flattened dataset");
+        let quads: Vec<_> = dataset.quads().collect();
+        assert_eq!(quads.len(), 1, "the single source quad survives the fold");
+        assert!(
+            quads[0].g.is_none(),
+            "the named graph was re-homed to the default graph (None)"
+        );
     }
 }

@@ -16,12 +16,9 @@
 //! default), [`materialize_core`] produces the exact same `DerivedQuad` sequence
 //! the inlined FFI path did, preserving the oracle≡engine parity guarantee.
 
-use oxigraph::model::{GraphName, NamedNode, Term};
-
 use std::time::Instant;
 
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::parse_dataset;
+use gmeow_rdf::{parse_dataset, TermValue};
 
 use crate::encode::{
     decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
@@ -69,23 +66,23 @@ impl std::error::Error for MaterializeError {}
 
 /// Compute the reifier IRI for a decoded quad's (S, P, O) triple.
 ///
-/// Uses [`crate::provenance::mint_reifier`] on the already-decoded oxigraph
+/// Uses [`crate::provenance::mint_reifier`] on the already-decoded native
 /// terms so the result is byte-identical to the Python oracle.
 ///
 /// # Errors
 ///
 /// Returns an error if subject or object is an RDF-star quoted triple.
 pub(crate) fn reifier_for_quad(
-    subject: &Term,
-    predicate: &NamedNode,
-    object: &Term,
+    subject: &TermValue,
+    predicate: &str,
+    object: &TermValue,
 ) -> Result<String, String> {
     mint_reifier(subject, predicate, object)
 }
 
 /// Compute the reifier IRI for an antecedent ChaseRow.
 ///
-/// Decodes the Nemo display-form row (ternary: S, O, world) back to oxigraph
+/// Decodes the Nemo display-form row (ternary: S, O, world) back to native
 /// terms and calls `mint_reifier`.  Returns an error if decode fails — a
 /// partial antecedent list would produce a wrong derivation_id, which is
 /// worse than failing loudly.
@@ -98,17 +95,14 @@ pub(crate) fn reifier_for_antecedent_row(row: &ChaseRow) -> Result<String, Strin
         ));
     }
     // predicate: raw IRI string
-    let pred_nn = NamedNode::new(&row.predicate)
-        .map_err(|e| format!("antecedent predicate IRI {:?}: {e}", row.predicate))?;
+    let predicate = row.predicate.as_str();
     // subject: IRI
     let subj_iri = decode_iri_term(&row.values[0])?;
-    let subj_nn = NamedNode::new(&subj_iri)
-        .map_err(|e| format!("antecedent subject IRI {subj_iri:?}: {e}"))?;
-    let subj_term = Term::NamedNode(subj_nn);
+    let subj_term = TermValue::iri(subj_iri);
     // object: any term
     let obj_term = decode_nemo_term(&row.values[1])?;
 
-    mint_reifier(&subj_term, &pred_nn, &obj_term)
+    mint_reifier(&subj_term, predicate, &obj_term)
 }
 
 /// Determine the `rule_iri` for a derived quad's provenance record.
@@ -159,31 +153,35 @@ pub fn materialize_core(
         return Ok(vec![]);
     }
 
-    // ── 1. Parse input N-Quads through the native codec, then fold into an
-    //       oxigraph Store (text-free IR → Store hop, #909) ───────────────────
+    // ── 1. Parse input N-Quads through the native codec into the frozen IR ────
     let dataset = parse_dataset(input.as_bytes(), "application/n-quads", None)
         .map_err(|e| MaterializeError::Parse(format!("N-Quads parse error: {e}")))?;
-    let store = store_from_dataset(dataset.as_ref(), GraphPolicy::PreserveNamedGraphs)
-        .map_err(|e| MaterializeError::Chase(format!("store materialization failed: {e}")))?;
 
-    // ── 2. Encode each quad as a Nemo ground-fact line ───────────────────────
+    // ── 2. Encode each named-graph quad as a Nemo ground-fact line ───────────
     let mut fact_lines: Vec<String> = Vec::new();
-    for result in store.iter() {
-        let quad =
-            result.map_err(|e| MaterializeError::Chase(format!("store iteration error: {e}")))?;
-
+    for quad in dataset.quads() {
         // Resolve the world IRI (named-graph component).
         // Default and blank-node graphs are skipped — matching the Python oracle
         // (_extract_worlds checks `isinstance(graph_id, URIRef)` and skips non-named
         // graphs).  Fabricating synthetic world IRIs for unnamed graphs would break
         // the oracle≡engine parity guarantee (AC-d).
-        let world_iri: String = match &quad.graph_name {
-            GraphName::NamedNode(nn) => nn.as_str().to_owned(),
-            GraphName::DefaultGraph | GraphName::BlankNode(_) => continue,
+        let world_iri: String = match quad.g.map(|g| dataset.term_value(g)) {
+            Some(TermValue::Iri(iri)) => iri,
+            // Default graph (None), blank-node graph, or any non-IRI graph: skip.
+            _ => continue,
         };
 
-        let line =
-            encode_quad_to_nemo_fact(&quad.subject, &quad.predicate, &quad.object, &world_iri);
+        let subject = dataset.term_value(quad.s);
+        let predicate = dataset.term_value(quad.p);
+        let object = dataset.term_value(quad.o);
+        // The predicate of an RDF quad is always an IRI; render to its IRI string.
+        let predicate_iri = match &predicate {
+            TermValue::Iri(iri) => iri.as_str(),
+            // Defensive: a non-IRI predicate is invalid RDF and cannot be a fact line.
+            _ => continue,
+        };
+
+        let line = encode_quad_to_nemo_fact(&subject, predicate_iri, &object, &world_iri);
         fact_lines.push(line);
     }
 
@@ -214,18 +212,12 @@ pub fn materialize_core(
         }
 
         // predicate: raw IRI string (Nemo strips angle brackets in Tag::to_string)
-        let predicate_iri = &row.predicate;
-        let predicate_nn = NamedNode::new(predicate_iri.as_str()).map_err(|e| {
-            MaterializeError::Chase(format!("invalid predicate IRI {predicate_iri:?}: {e}"))
-        })?;
+        let predicate_iri = row.predicate.clone();
 
         // subject: must be an IRI term
         let subject_iri = decode_iri_term(&row.values[0])
             .map_err(|e| MaterializeError::Chase(format!("row[{idx}] subject: {e}")))?;
-        let subject_nn = NamedNode::new(&subject_iri).map_err(|e| {
-            MaterializeError::Chase(format!("row[{idx}] subject IRI {subject_iri:?}: {e}"))
-        })?;
-        let subject_term = Term::NamedNode(subject_nn);
+        let subject_term = TermValue::iri(subject_iri);
 
         // object: IRI, typed literal, language literal, or plain literal
         let object_term = decode_nemo_term(&row.values[1])
@@ -234,12 +226,9 @@ pub fn materialize_core(
         // context (world): Nemo string constant → strip outer double-quotes
         let world_str = decode_string_constant(&row.values[2])
             .map_err(|e| MaterializeError::Chase(format!("row[{idx}] world: {e}")))?;
-        let graph_nn = NamedNode::new(&world_str).map_err(|e| {
-            MaterializeError::Chase(format!("row[{idx}] world IRI {world_str:?}: {e}"))
-        })?;
 
         // ── Real provenance computation ───────────────────────────────────────
-        let self_reifier = reifier_for_quad(&subject_term, &predicate_nn, &object_term)
+        let self_reifier = reifier_for_quad(&subject_term, &predicate_iri, &object_term)
             .map_err(|e| MaterializeError::Chase(format!("row[{idx}] reifier error: {e}")))?;
 
         let (rule_iri, source_quad_ids, derivation_id) = if prov.is_edb {
@@ -268,11 +257,11 @@ pub fn materialize_core(
 
         let is_edb = prov.is_edb;
         let dq = DerivedQuad {
-            graph: graph_nn.clone(),
+            graph: world_str.clone(),
             subject: subject_term,
-            predicate: predicate_nn,
+            predicate: predicate_iri,
             object: object_term,
-            graph_component: graph_nn,
+            graph_component: world_str,
             derivation_id: DerivationId(derivation_id),
             rule_iri,
             source_quad_ids,
@@ -303,10 +292,10 @@ pub fn materialize_core(
 /// projects (`graph`/`subject`/`predicate`/`object` display forms).
 fn budget_sort_key(dq: &DerivedQuad) -> (String, String, String, String) {
     (
-        dq.graph.as_str().to_owned(),
-        dq.subject.to_string(),
-        dq.predicate.as_str().to_owned(),
-        dq.object.to_string(),
+        dq.graph.clone(),
+        crate::provenance::term_display(&dq.subject),
+        dq.predicate.clone(),
+        crate::provenance::term_display(&dq.object),
     )
 }
 
@@ -415,14 +404,12 @@ fn apply_budget(
 /// [`ASSERTED_PROFILE`] / [`BudgetStatus::Ok`], and the quad is self-contained
 /// (`graph_component == graph`).
 fn derived_row_to_quad(row: crate::rule_ir::DerivedRow) -> Result<DerivedQuad, MaterializeError> {
-    let graph = NamedNode::new(&row.graph)
-        .map_err(|e| MaterializeError::Chase(format!("invalid world IRI {:?}: {e}", row.graph)))?;
     Ok(DerivedQuad {
-        graph: graph.clone(),
+        graph: row.graph.clone(),
         subject: row.subject,
         predicate: row.predicate,
         object: row.object,
-        graph_component: graph,
+        graph_component: row.graph,
         derivation_id: DerivationId(row.derivation_id),
         rule_iri: row.rule_iri,
         source_quad_ids: row.source_quad_ids,
@@ -676,7 +663,12 @@ mod tests {
         quads
             .iter()
             .filter(|q| q.predicate.as_str() == SUBCLASS_PRED)
-            .map(|q| (q.subject.to_string(), q.object.to_string()))
+            .map(|q| {
+                (
+                    crate::provenance::term_display(&q.subject),
+                    crate::provenance::term_display(&q.object),
+                )
+            })
             .collect()
     }
 
@@ -686,8 +678,10 @@ mod tests {
     fn materialize_core_returns_all_input_quads() {
         let result = run("", TWO_WORLD_NQUADS);
         assert_eq!(result.len(), 3, "expected 3 quads back");
-        let subjects: std::collections::HashSet<String> =
-            result.iter().map(|q| q.subject.to_string()).collect();
+        let subjects: std::collections::HashSet<String> = result
+            .iter()
+            .map(|q| crate::provenance::term_display(&q.subject))
+            .collect();
         let expected: std::collections::HashSet<String> = [
             "<http://example.org/s/1>",
             "<http://example.org/s/2>",
@@ -764,10 +758,10 @@ mod tests {
         // Every materialized quad must carry non-degenerate values across all the
         // surface fields the FFI marshals into the Python dict.
         for q in run("", TWO_WORLD_NQUADS) {
-            assert!(!q.graph.as_str().is_empty());
-            assert!(!q.subject.to_string().is_empty());
-            assert!(!q.predicate.as_str().is_empty());
-            assert!(!q.object.to_string().is_empty());
+            assert!(!q.graph.is_empty());
+            assert!(!crate::provenance::term_display(&q.subject).is_empty());
+            assert!(!q.predicate.is_empty());
+            assert!(!crate::provenance::term_display(&q.object).is_empty());
             assert!(!q.derivation_id.as_str().is_empty());
             assert!(!q.rule_iri.is_empty());
             assert!(!q.profile.is_empty());
@@ -795,10 +789,14 @@ mod tests {
         assert_eq!(alpha.len(), 2, "expected 2 Alpha quads");
         assert_eq!(beta.len(), 1, "expected 1 Beta quad");
 
-        let alpha_subjects: std::collections::HashSet<String> =
-            alpha.iter().map(|q| q.subject.to_string()).collect();
-        let beta_subjects: std::collections::HashSet<String> =
-            beta.iter().map(|q| q.subject.to_string()).collect();
+        let alpha_subjects: std::collections::HashSet<String> = alpha
+            .iter()
+            .map(|q| crate::provenance::term_display(&q.subject))
+            .collect();
+        let beta_subjects: std::collections::HashSet<String> = beta
+            .iter()
+            .map(|q| crate::provenance::term_display(&q.subject))
+            .collect();
         assert!(
             alpha_subjects.is_disjoint(&beta_subjects),
             "cross-world subject leak detected"
@@ -885,8 +883,8 @@ mod tests {
             .iter()
             .filter(|q| {
                 q.predicate.as_str() == SUBCLASS_PRED
-                    && q.subject.to_string() == "<http://example.org/Dog>"
-                    && q.object.to_string() == "<http://example.org/Animal>"
+                    && crate::provenance::term_display(&q.subject) == "<http://example.org/Dog>"
+                    && crate::provenance::term_display(&q.object) == "<http://example.org/Animal>"
             })
             .collect();
         assert_eq!(
@@ -1095,9 +1093,9 @@ mod tests {
             .iter()
             .map(|q| {
                 (
-                    q.subject.to_string(),
+                    crate::provenance::term_display(&q.subject),
                     q.predicate.as_str().to_owned(),
-                    q.object.to_string(),
+                    crate::provenance::term_display(&q.object),
                 )
             })
             .collect();

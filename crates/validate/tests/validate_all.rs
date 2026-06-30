@@ -6,11 +6,10 @@
 use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
+use gmeow_rdf::{DatasetView, GraphMatch, RdfDatasetBuilder};
 use gmeow_validate::lint::LintConfig;
-use gmeow_validate::store::parse_file;
-use gmeow_validate::validate_all::{
-    scoped_overlay_insert, scoped_overlay_remove, ValidateOptions, ValidationRun,
-};
+use gmeow_validate::store::{dataset_from_paths, parse_file_dataset};
+use gmeow_validate::validate_all::{ValidateOptions, ValidationRun};
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -97,78 +96,50 @@ fn store_is_reused_across_phases() {
         "declared_terms must include all typed terms"
     );
 
-    // The shared store still contains both classes after all phases (9 triples
+    // The shared dataset still contains both classes after all phases (9 triples
     // total: 5 for Documented, 4 for Undocumented).
     assert_eq!(
-        run.store.len().unwrap(),
+        run.dataset.quad_count(),
         9,
-        "base store size must be unchanged after phases"
+        "base dataset size must be unchanged after phases"
     );
 }
 
 #[test]
-fn scoped_overlay_does_not_leak_example_quads() {
+fn example_merge_unions_base_and_example_without_leaking() {
     // Base graph with one triple.
     let base_path = write_tmp(
         "gmeow_validate_all_base.ttl",
         "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
     );
-    let store = build_store(&[base_path.to_string_lossy().to_string()]);
+    let base = build_store(&[base_path.to_string_lossy().to_string()]);
     std::fs::remove_file(&base_path).ok();
+    assert_eq!(base.quad_count(), 1, "base dataset starts with one triple");
 
-    assert_eq!(store.len().unwrap(), 1, "base store starts with one triple");
-
-    // Example graph adds a distinct triple.
+    // Example carrying one duplicate of the base triple plus one new triple.
     let example_path = write_tmp(
         "gmeow_validate_all_example.ttl",
-        "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
-    );
-    let quads = parse_file(&example_path).expect("example must parse");
-    std::fs::remove_file(&example_path).ok();
-
-    let inserted = scoped_overlay_insert(&store, quads.iter());
-    assert_eq!(inserted.len(), 1, "example-only quad must be inserted");
-    assert_eq!(
-        store.len().unwrap(),
-        2,
-        "overlay quad must be visible during validation"
-    );
-
-    scoped_overlay_remove(&store, &inserted);
-    assert_eq!(
-        store.len().unwrap(),
-        1,
-        "base store must be restored after overlay removal"
-    );
-}
-
-#[test]
-fn scoped_overlay_skips_quads_already_in_base() {
-    // Base graph already contains the example triple.
-    let base_path = write_tmp(
-        "gmeow_validate_all_base_dup.ttl",
-        "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
-    );
-    let store = build_store(&[base_path.to_string_lossy().to_string()]);
-    std::fs::remove_file(&base_path).ok();
-
-    let example_path = write_tmp(
-        "gmeow_validate_all_example_dup.ttl",
         "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\nex:c ex:p ex:d .\n",
     );
-    let quads = parse_file(&example_path).expect("example must parse");
+    let example = parse_file_dataset(&example_path).expect("example must parse");
     std::fs::remove_file(&example_path).ok();
 
-    let inserted = scoped_overlay_insert(&store, quads.iter());
+    // The per-example merge re-interns the base quads + the example quads into a fresh
+    // dataset; duplicates dedup and the base is untouched (no shared mutable store).
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in base.owned_quads() {
+        builder.push_owned_quad(&quad);
+    }
+    builder.push_dataset(&example);
+    let merged = builder.freeze().expect("merge must freeze");
+    assert_eq!(merged.quad_count(), 2, "the duplicate base triple dedups");
+    assert_eq!(base.quad_count(), 1, "the base dataset is untouched");
     assert_eq!(
-        inserted.len(),
-        1,
-        "only the quad not already in base must be tracked"
+        merged
+            .quads_for_pattern(None, None, None, GraphMatch::Default)
+            .count(),
+        2
     );
-    assert_eq!(store.len().unwrap(), 2);
-
-    scoped_overlay_remove(&store, &inserted);
-    assert_eq!(store.len().unwrap(), 1, "base triple must survive removal");
 }
 
 #[test]
@@ -306,8 +277,8 @@ fn test_dsl_shacl_runs_in_orchestration() {
     );
 }
 
-/// Helper: build a store from a list of Turtle file paths.
-fn build_store(paths: &[String]) -> oxigraph::store::Store {
+/// Helper: build a frozen native dataset from a list of Turtle file paths.
+fn build_store(paths: &[String]) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
     let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
-    gmeow_validate::store::build_store(&path_bufs).expect("store must build")
+    dataset_from_paths(&path_bufs).expect("dataset must build")
 }

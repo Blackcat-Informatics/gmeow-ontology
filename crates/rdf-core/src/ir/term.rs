@@ -231,6 +231,93 @@ pub enum TermValue {
     },
 }
 
+impl TermValue {
+    /// An IRI term from its full string.
+    #[inline]
+    pub fn iri(value: impl Into<String>) -> Self {
+        TermValue::Iri(value.into())
+    }
+
+    /// A blank node in the default scope, from its bare label.
+    #[inline]
+    pub fn blank(label: impl Into<String>) -> Self {
+        TermValue::Blank {
+            label: label.into(),
+            scope: BlankScope::DEFAULT,
+        }
+    }
+
+    /// A plain `xsd:string` literal (datatype expanded per C0.1).
+    #[inline]
+    pub fn simple_literal(lexical_form: impl Into<String>) -> Self {
+        TermValue::Literal {
+            lexical_form: lexical_form.into(),
+            datatype: XSD_STRING.to_owned(),
+            language: None,
+            direction: None,
+        }
+    }
+
+    /// A typed literal with an explicit datatype IRI.
+    #[inline]
+    pub fn typed_literal(lexical_form: impl Into<String>, datatype: impl Into<String>) -> Self {
+        TermValue::Literal {
+            lexical_form: lexical_form.into(),
+            datatype: datatype.into(),
+            language: None,
+            direction: None,
+        }
+    }
+
+    /// A language-tagged literal (datatype expanded to `rdf:langString`, language
+    /// **lowercased** for the identity key per C0.1).
+    #[inline]
+    pub fn lang_literal(lexical_form: impl Into<String>, language: impl AsRef<str>) -> Self {
+        TermValue::Literal {
+            lexical_form: lexical_form.into(),
+            datatype: RDF_LANG_STRING.to_owned(),
+            language: Some(language.as_ref().to_lowercase()),
+            direction: None,
+        }
+    }
+
+    /// The IRI string, if this term is an [`TermValue::Iri`].
+    #[inline]
+    pub fn as_iri(&self) -> Option<&str> {
+        match self {
+            TermValue::Iri(iri) => Some(iri.as_str()),
+            _ => None,
+        }
+    }
+
+    /// The blank-node `(label, scope)`, if this term is a [`TermValue::Blank`].
+    #[inline]
+    pub fn as_blank(&self) -> Option<(&str, BlankScope)> {
+        match self {
+            TermValue::Blank { label, scope } => Some((label.as_str(), *scope)),
+            _ => None,
+        }
+    }
+
+    /// `true` iff this term is an IRI.
+    #[inline]
+    pub fn is_iri(&self) -> bool {
+        matches!(self, TermValue::Iri(_))
+    }
+
+    /// `true` iff this term is a literal.
+    #[inline]
+    pub fn is_literal(&self) -> bool {
+        matches!(self, TermValue::Literal { .. })
+    }
+
+    /// `true` iff this term is a blank node.
+    #[inline]
+    pub fn is_blank(&self) -> bool {
+        matches!(self, TermValue::Blank { .. })
+    }
+}
+
 // `Hash` is hand-written (not derived) with **explicit** discriminant tags so it is
 // robust against compiler-dependent enum-discriminant hashing AND matches the
 // allocation-free `RdfDataset::hash_term` (which hashes the interned representation

@@ -1,0 +1,9 @@
+relationship
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasAncestor"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasChild"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasDescendant"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasFather"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasMother"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasParent"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasSibling"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/hasSpouse"))]

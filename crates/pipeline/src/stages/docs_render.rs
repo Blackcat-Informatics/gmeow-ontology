@@ -156,7 +156,7 @@ impl Stage for DocsRenderStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::rdf_bytes_to_store;
+    use crate::stages::source_load::rdf_bytes_to_dataset;
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -205,8 +205,9 @@ mod tests {
     fn docs_graph_is_nonempty_and_parses() {
         let root = repo_root();
         let nq = render_docs_graph(&root).expect("render docs graph");
-        let store = rdf_bytes_to_store(nq.as_bytes(), "application/n-quads", "docs-graph").unwrap();
-        let count = store.len().unwrap();
+        let dataset =
+            rdf_bytes_to_dataset(nq.as_bytes(), "application/n-quads", "docs-graph").unwrap();
+        let count = dataset.quad_count();
         // The documentation graph covers 50+ slices and their terms.
         assert!(
             count > 200,

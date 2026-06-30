@@ -19,7 +19,7 @@ pub mod ownership;
 pub mod prefix_emit;
 pub mod prefix_lint;
 pub mod projection_lint;
-pub(crate) mod rdf_text;
+pub mod rdf_query;
 pub mod standpoint_emit;
 pub mod standpoint_modality;
 
@@ -53,4 +53,5 @@ pub use ownership::{
 pub use prefix_emit::{emit_core_prefixes, emit_jsonld_context, CORE_PREFIXES_IRI};
 pub use prefix_lint::lint_prefix_consistency;
 pub use projection_lint::{lint_projection, ProjectionDiagnostic};
+pub use rdf_query::NamedNode;
 pub use standpoint_emit::emit_standpoint_sets;

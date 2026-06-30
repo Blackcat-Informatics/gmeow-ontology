@@ -229,12 +229,16 @@ fn canonical_quads(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
         let Ok(ir) = gmeow_rdf::parse_dataset(bytes, media_type, None) else {
             continue;
         };
-        let Ok(quads) = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(&ir) else {
-            continue;
-        };
+        let quads = gmeow_rdf::flat_rdf_quads_from_dataset(&ir);
         if !quads.is_empty() {
-            let canonical = gmeow_rdf::canonicalize_quads(quads).ok()?;
-            return Some(canonical.iter().map(|q| format!("{q} .")).collect());
+            let flat = gmeow_rdf::flat_dataset_from_quads(&quads).ok()?;
+            return Some(
+                gmeow_rdf::canonicalize(&flat)
+                    .nquads
+                    .lines()
+                    .map(str::to_owned)
+                    .collect(),
+            );
         }
     }
     None

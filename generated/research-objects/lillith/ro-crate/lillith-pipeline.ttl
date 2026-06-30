@@ -6,8 +6,8 @@
     a gmeow:Chunk ;
     gmeow:chunkOf <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> ;
     gmeow:contentDigest "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" ;
-    gmeow:spanEnd 6100 ;
-    gmeow:spanStart 5200 .
+    gmeow:spanEnd "6100"^^xsd:nonNegativeInteger ;
+    gmeow:spanStart "5200"^^xsd:nonNegativeInteger .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/cluster-run>
     a gmeow:Activity ;
@@ -18,7 +18,7 @@
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/community-infra>
     a gmeow:Community ;
     rdfs:label "infrastructure community"@en ;
-    gmeow:communityLevel 0 ;
+    gmeow:communityLevel "0"^^xsd:nonNegativeInteger ;
     gmeow:communityMember <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-buildsys> ,
         <https://blackcatinformatics.ca/gmeow/examples/graphrag/desc-mara> ;
     gmeow:contentDigest "blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44" ;
@@ -58,7 +58,7 @@
     a gmeow:Embedding ;
     gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" ;
     gmeow:distanceMetric gmeow:distanceMetricCosine ;
-    gmeow:embeddingDimensions 1024 ;
+    gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
     gmeow:embeddingModel <https://blackcatinformatics.ca/gmeow/examples/graphrag/embedder> ;
     gmeow:embeddingOf <https://blackcatinformatics.ca/gmeow/examples/graphrag/chunk-7> ;
     gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
@@ -88,7 +88,7 @@
     a gmeow:ModelInvocation ;
     gmeow:atTime "2026-06-01T12:00:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
-    gmeow:samplingTemperature "0"^^xsd:decimal ;
+    gmeow:samplingTemperature 0.0 ;
     gmeow:usedModel <https://blackcatinformatics.ca/gmeow/examples/graphrag/extractor> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive>

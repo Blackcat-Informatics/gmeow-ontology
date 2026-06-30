@@ -264,6 +264,15 @@ pub enum GroundTerm {
     Literal(Literal),
     /// A ground RDF 1.2 quoted triple term.
     Triple(Box<GroundTriple>),
+    /// A blank node — **injection-only** (purrdf S5, EPIC #906 GAP-A). The SPARQL
+    /// grammar forbids a blank node in a `VALUES`/`DataBlock` cell, so the
+    /// [parser](crate::parser) NEVER produces this variant. It exists solely so
+    /// [`Query::substitute_variable`](crate::Query::substitute_variable) can pre-bind
+    /// a **blank-node** focus node (SHACL `$this` may be a blank) through the same
+    /// single-row `VALUES`-join rewrite the IRI/literal/triple cases use, keeping the
+    /// substitution path uniform across every term kind. The evaluator interns it as
+    /// an ordinary blank (`gmeow-rdf-core` `TermValue::Blank`).
+    BlankNode(BlankNode),
 }
 
 /// A ground triple term `s p o` (no variables), used inside [`GroundTerm`].

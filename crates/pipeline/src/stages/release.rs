@@ -36,12 +36,8 @@ use std::collections::BTreeSet;
 use gmeow_gts::model::Graph;
 use gmeow_gts::reader::read;
 use gmeow_gts::writer::digest_string;
-use gmeow_rdf::gts_compose::{
-    emit_gts, parse_quads_lenient, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD,
-    RDF_REIFIES,
-};
-use gmeow_rdf::{pair_loss_ledger, NativeRdfFormat, PROJECTION_CODECS};
-use oxigraph::model::Quad;
+use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
+use gmeow_rdf::{pair_loss_ledger, parse_dataset, NativeRdfFormat, PROJECTION_CODECS};
 
 /// The named graph the release-manifest + per-artifact attestations ride in.
 pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
@@ -115,9 +111,13 @@ pub fn fold_release_bundle(
 
     let attestations_nq =
         build_attestations_nquads(&sorted, attester_iri, issued_at, release_subject_iri);
-    let att_quads = parse_quads_lenient(attestations_nq.as_bytes(), NativeRdfFormat::NQuads)
-        .map_err(|e| format!("parsing minted attestations graph: {e}"))?;
-    builder.add_quads(&att_quads, None, None);
+    let att_dataset = parse_dataset(
+        attestations_nq.as_bytes(),
+        NativeRdfFormat::NQuads.media_type(),
+        None,
+    )
+    .map_err(|e| format!("parsing minted attestations graph: {e}"))?;
+    builder.add_dataset(&att_dataset)?;
 
     // 3. Fold each evidence artifact as a content-addressed report blob — but
     //    NEVER a second time for bytes the committed snapshot already carries.
@@ -272,7 +272,7 @@ pub fn verify_release_bundle(
     expected_public_armor: Option<&str>,
 ) -> Result<ReleaseVerifyReport, String> {
     use gmeow_gts::verify::{verify_file_with_options, VerifyOptions};
-    use oxigraph::model::{GraphName, Term};
+    use gmeow_rdf::RdfTerm;
 
     // --- 1. Cryptographic signature + trust policy (native, subsumes gts verify).
     let mut opts = VerifyOptions::default().require_signatures(true);
@@ -295,8 +295,12 @@ pub fn verify_release_bundle(
     //            backed by a blob actually present in the bundle.
     let graph = read(bundle_bytes, true, None);
     let nquads = gmeow_gts::nquads::to_nquads(&graph);
-    let quads = parse_quads_lenient(nquads.as_bytes(), NativeRdfFormat::NQuads)
-        .map_err(|e| format!("re-parsing bundle for the attestation walk: {e}"))?;
+    let dataset = parse_dataset(
+        nquads.as_bytes(),
+        NativeRdfFormat::NQuads.media_type(),
+        None,
+    )
+    .map_err(|e| format!("re-parsing bundle for the attestation walk: {e}"))?;
 
     let content_digest_pred = format!("{GMEOW_NS}contentDigest");
     let attestation_type_pred = format!("{GMEOW_NS}attestationType");
@@ -304,23 +308,23 @@ pub fn verify_release_bundle(
 
     let mut saw_manifest = false;
     let mut digests: Vec<String> = Vec::new();
-    for q in &quads {
+    for q in dataset.owned_quads() {
         let in_attestations = matches!(
             &q.graph_name,
-            GraphName::NamedNode(n) if n.as_str() == GRAPH_ATTESTATIONS
+            Some(RdfTerm::Iri(g)) if g == GRAPH_ATTESTATIONS
         );
         if !in_attestations {
             continue;
         }
-        if q.predicate.as_str() == attestation_type_pred {
-            if let Term::NamedNode(o) = &q.object {
-                if o.as_str() == manifest_type {
+        if q.predicate == attestation_type_pred {
+            if let RdfTerm::Iri(o) = &q.object {
+                if o == &manifest_type {
                     saw_manifest = true;
                 }
             }
-        } else if q.predicate.as_str() == content_digest_pred {
-            if let Term::Literal(lit) = &q.object {
-                digests.push(lit.value().to_string());
+        } else if q.predicate == content_digest_pred {
+            if let RdfTerm::Literal(lit) = &q.object {
+                digests.push(lit.lexical_form.clone());
             }
         }
     }
@@ -361,12 +365,12 @@ pub fn verify_release_bundle(
 /// The committed snapshot is multi-named-graph and may carry an RDF 1.2
 /// statement layer. We serialize the folded graph to N-Quads (the lossless
 /// dataset form that preserves named graphs AND emits reifier/annotation rows in
-/// the RDF 1.2 reifying style) and re-parse leniently. Base quads keep their
-/// graph names; the `rdf:reifies` statement layer is routed through
-/// [`SnapshotBuilder::add_rdf12`] so the reifier/annotation tables rebuild
-/// exactly. Splitting here (rather than feeding everything to `add_rdf12`, which
-/// collapses base quads onto a single graph name) keeps the named-graph
-/// partitioning intact.
+/// the RDF 1.2 reifying style) and re-parse it into a native
+/// [`RdfDataset`](gmeow_rdf::RdfDataset). The native parse folds the `rdf:reifies`
+/// statement layer into the dataset's reifier/annotation side-tables AND preserves
+/// named graphs on base quads, so a single [`SnapshotBuilder::add_dataset`] rebuilds
+/// the base quads (with their graph names) and the reifies/annot tables exactly —
+/// the manual base/rdf12 split is no longer needed.
 fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> Result<(), String> {
     let nquads = gmeow_gts::nquads::to_nquads(graph);
     if nquads.is_empty() {
@@ -382,7 +386,7 @@ fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> Result<(), Stri
     // distinct blank nodes carry the SAME serialized label (e.g. a multi-segment
     // union relabels collisions, or a snapshot whose bnode labels are not
     // globally unique), their sort keys tie and the tie is broken by INGESTION
-    // order — the order quads arrive from `parse_quads_lenient`, i.e. the
+    // order — the order the quads arrive from the native parse, i.e. the
     // `to_nquads` line order. Any iteration-order variance upstream (a HashMap/
     // HashSet walk in the reader's segment union, or a future serializer change)
     // would then leak a process-dependent (hash-seed-dependent) term remap into
@@ -397,42 +401,17 @@ fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> Result<(), Stri
     lines.sort_unstable();
     let sorted_nquads = lines.join("\n");
 
-    let quads = parse_quads_lenient(sorted_nquads.as_bytes(), NativeRdfFormat::NQuads)
-        .map_err(|e| format!("re-parsing committed snapshot N-Quads: {e}"))?;
-
-    // Pass 1: the subjects of `rdf:reifies` quads are reifiers; everything a
-    // reifier subjects belongs to the RDF 1.2 statement layer, the rest are base
-    // quads (which keep their own graph names).
-    use oxigraph::model::NamedOrBlankNode;
-    let mut reifier_subjects: std::collections::HashSet<NamedOrBlankNode> =
-        std::collections::HashSet::new();
-    for q in &quads {
-        if q.predicate.as_str() == RDF_REIFIES {
-            reifier_subjects.insert(q.subject.clone());
-        }
-    }
-
-    let mut base: Vec<Quad> = Vec::new();
-    let mut rdf12: Vec<Quad> = Vec::new();
-    for q in quads {
-        let is_reifies = q.predicate.as_str() == RDF_REIFIES;
-        if is_reifies || reifier_subjects.contains(&q.subject) {
-            rdf12.push(q);
-        } else {
-            base.push(q);
-        }
-    }
-
-    builder.add_quads(&base, None, None);
-    if !rdf12.is_empty() {
-        // The reifying-style N-Quads carry no graph name on the statement layer
-        // (`to_nquads` emits reifier/annotation rows in the default graph), so
-        // `add_rdf12` with no graph name reproduces the snapshot's reifies/annot
-        // tables. Graph names on base quads are already preserved above.
-        builder
-            .add_rdf12(&rdf12, None, None)
-            .map_err(|e| format!("replaying RDF 1.2 statement layer: {e}"))?;
-    }
+    // The native parse folds the statement layer into the dataset's reifier/
+    // annotation side-tables and preserves named graphs on the base quads, so a
+    // single `add_dataset` reproduces the snapshot's base quads (with their graph
+    // names) AND its reifies/annot tables — no manual base/rdf12 split.
+    let dataset = parse_dataset(
+        sorted_nquads.as_bytes(),
+        NativeRdfFormat::NQuads.media_type(),
+        None,
+    )
+    .map_err(|e| format!("re-parsing committed snapshot N-Quads: {e}"))?;
+    builder.add_dataset(&dataset)?;
     Ok(())
 }
 
@@ -698,6 +677,16 @@ mod tests {
     use super::*;
     use ed25519_dalek::SigningKey;
 
+    /// Ingest RDF text of `media_type` into a fresh builder via the native carrier
+    /// path (`parse_dataset` → `add_dataset`) — the single-exit ingestion these
+    /// tests author committed-snapshot fixtures with.
+    fn builder_from(text: &str, media_type: &str) -> SnapshotBuilder {
+        let dataset = parse_dataset(text.as_bytes(), media_type, None).expect("parse fixture");
+        let mut b = SnapshotBuilder::new();
+        b.add_dataset(&dataset).expect("add_dataset");
+        b
+    }
+
     /// Deterministic Ed25519 key from a seed (mirrors validate/signature.rs).
     fn deterministic_signing_key(seed: u8) -> SigningKey {
         let mut bytes = [0u8; 32];
@@ -764,9 +753,7 @@ mod tests {
     fn tiny_snapshot() -> Vec<u8> {
         let nq = "<https://e/s> <https://e/p> <https://e/o> .\n\
                   <https://e/s> <https://e/q> \"hello\" .\n";
-        let quads = parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NTriples).expect("parse");
-        let mut b = SnapshotBuilder::new();
-        b.add_quads(&quads, None, None);
+        let b = builder_from(nq, NativeRdfFormat::NTriples.media_type());
         emit_gts(
             &b,
             "dist",
@@ -875,9 +862,10 @@ mod tests {
     /// would be correctness no gate validates.
     #[test]
     fn minted_attestations_satisfy_the_assertional_contract() {
-        use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
         use gmeow_rdf::parse_dataset;
-        use gmeow_validate::lint::{default_annotation_predicates, structural_lint, LintConfig};
+        use gmeow_validate::lint::{
+            default_annotation_predicates, structural_lint_dataset, LintConfig,
+        };
 
         let mut sorted: Vec<(String, EvidenceInput)> = evidence_inputs()
             .into_iter()
@@ -896,8 +884,11 @@ mod tests {
         let doc = format!(
             "{nq}<{GMEOW_NS}boxABox> <{RDF_TYPE}> <{GMEOW_NS}GraphBoxRole> <{GRAPH_ATTESTATIONS}> .\n"
         );
+        // The doc is N-Quads with the attestations in a named graph. The native
+        // `structural_lint_dataset` reads across all graphs (GraphMatch::Any), so the
+        // dataset is linted exactly as the old `store_from_dataset(.., FlattenToDefaultGraph)`
+        // flattened store was — no oxigraph round-trip.
         let dataset = parse_dataset(doc.as_bytes(), "application/n-quads", None).unwrap();
-        let store = store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap();
 
         let cfg = LintConfig {
             namespace: GMEOW_NS.to_string(),
@@ -906,7 +897,7 @@ mod tests {
             core_slice_iris: Default::default(),
             annotation_predicates: default_annotation_predicates().into_iter().collect(),
         };
-        let report = structural_lint(&store, &cfg);
+        let report = structural_lint_dataset(&dataset, &cfg);
         let attestation_errors: Vec<&String> = report
             .errors
             .iter()
@@ -1052,9 +1043,7 @@ mod tests {
     /// stand-in for e.g. the in-snapshot SHACL SARIF), under `rep`.
     fn snapshot_with_report_blob(data: &[u8], rep: &str) -> Vec<u8> {
         let nq = "<https://e/s> <https://e/p> <https://e/o> .\n";
-        let quads = parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NTriples).expect("parse");
-        let mut b = SnapshotBuilder::new();
-        b.add_quads(&quads, None, None);
+        let b = builder_from(nq, NativeRdfFormat::NTriples.media_type());
         emit_gts(
             &b,
             "dist",
@@ -1158,10 +1147,7 @@ mod tests {
     /// Emit a `dist` snapshot from raw N-Quads text (the committed-snapshot
     /// stand-in for the determinism fixtures).
     fn snapshot_from_nquads(nq: &str) -> Vec<u8> {
-        let quads =
-            parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NQuads).expect("parse fixture");
-        let mut b = SnapshotBuilder::new();
-        b.add_quads(&quads, None, None);
+        let b = builder_from(nq, NativeRdfFormat::NQuads.media_type());
         emit_gts(
             &b,
             "dist",
@@ -1240,36 +1226,13 @@ mod tests {
     /// cross-process tie-break: it isolates the ingestion order that the canonical
     /// re-id falls back on when blank-node sort keys collide.
     fn replay_nquads_str(nq: &str) -> SnapshotBuilder {
-        // Mirror replay_graph's line-sort precisely.
+        // Mirror replay_graph precisely: line-sort, then a single native
+        // `add_dataset` (the parse folds the statement layer + preserves named
+        // graphs, so there is no manual base/rdf12 split).
         let mut lines: Vec<&str> = nq.lines().collect();
         lines.sort_unstable();
         let sorted = lines.join("\n");
-        let quads = parse_quads_lenient(sorted.as_bytes(), NativeRdfFormat::NQuads).expect("parse");
-
-        use oxigraph::model::NamedOrBlankNode;
-        let mut reifier_subjects: std::collections::HashSet<NamedOrBlankNode> =
-            std::collections::HashSet::new();
-        for q in &quads {
-            if q.predicate.as_str() == RDF_REIFIES {
-                reifier_subjects.insert(q.subject.clone());
-            }
-        }
-        let mut base: Vec<Quad> = Vec::new();
-        let mut rdf12: Vec<Quad> = Vec::new();
-        for q in quads {
-            let is_reifies = q.predicate.as_str() == RDF_REIFIES;
-            if is_reifies || reifier_subjects.contains(&q.subject) {
-                rdf12.push(q);
-            } else {
-                base.push(q);
-            }
-        }
-        let mut b = SnapshotBuilder::new();
-        b.add_quads(&base, None, None);
-        if !rdf12.is_empty() {
-            b.add_rdf12(&rdf12, None, None).expect("rdf12");
-        }
-        b
+        builder_from(&sorted, NativeRdfFormat::NQuads.media_type())
     }
 
     /// The replayed snapshot's content id must be a pure function of the quad SET,
@@ -1350,9 +1313,7 @@ mod tests {
         // A snapshot with a named graph must round-trip the graph name.
         let nq = "<https://e/s> <https://e/p> <https://e/o> \
                   <https://blackcatinformatics.ca/gmeow/graph/metadata> .\n";
-        let quads = parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NQuads).expect("parse");
-        let mut b = SnapshotBuilder::new();
-        b.add_quads(&quads, None, None);
+        let b = builder_from(nq, NativeRdfFormat::NQuads.media_type());
         let snapshot = emit_gts(
             &b,
             "dist",

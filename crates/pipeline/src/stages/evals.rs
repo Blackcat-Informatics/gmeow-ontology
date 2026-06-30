@@ -28,12 +28,11 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use oxigraph::model::Term;
+use gmeow_slice::rdf_query::{Dataset, Object, Subject};
 use serde_json::Value;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::source_load::turtle_bytes_to_store;
 
 /// Logical path of the generated leaderboard.
 pub const LEADERBOARD_PATH: &str = "generated/evals/leaderboard.md";
@@ -264,37 +263,46 @@ struct CorpusDoc {
     declared_digests: Vec<String>,
 }
 
+/// Render an object term the way oxigraph's `Term::to_string()` did for a
+/// non-literal location object (`<iri>` / `_:label`) — literals surface their
+/// lexical value directly. Faithfully reproduces the prior `other.to_string()`.
+fn object_location(object: &Object) -> String {
+    match object {
+        Object::Literal { value } => value.clone(),
+        Object::Named(iri) => format!("<{iri}>"),
+        Object::Blank(label) => format!("_:{label}"),
+        Object::Triple => String::new(),
+    }
+}
+
 fn parse_corpus(path: &Path) -> Result<BTreeMap<String, (String, Vec<String>)>, PipelineError> {
     let bytes = std::fs::read(path)?;
-    let store = turtle_bytes_to_store(&bytes, "corpus")?;
-    let source_location =
-        oxigraph::model::NamedNode::new(format!("{GM}sourceLocation")).expect("sourceLocation IRI");
-    let content_digest =
-        oxigraph::model::NamedNode::new(format!("{GM}contentDigest")).expect("contentDigest IRI");
+    let dataset =
+        Dataset::parse_turtle(&bytes, "corpus").map_err(|e| PipelineError::Parse(e.to_string()))?;
+    let source_location = format!("{GM}sourceLocation");
+    let content_digest = format!("{GM}contentDigest");
 
-    // subjects with a sourceLocation → location string
+    // subjects with a sourceLocation → location string. Collect the (subject, object)
+    // pairs first (any subject kind, named or blank) — the native query surfaces them
+    // through `for_each_quad`, the dataset-order scan oxigraph's pattern scan provided.
+    let mut rows: Vec<(Subject, Object)> = Vec::new();
+    dataset.for_each_quad(|subject, predicate, object, _graph| {
+        if predicate == source_location {
+            rows.push((subject, object));
+        }
+    });
+
     let mut out: BTreeMap<String, (String, Vec<String>)> = BTreeMap::new();
-    for q in store
-        .quads_for_pattern(None, Some(source_location.as_ref()), None, None)
-        .flatten()
-    {
-        let location = match &q.object {
-            Term::Literal(l) => l.value().to_string(),
-            other => other.to_string(),
-        };
-        // All declared digests for this subject.
+    for (subject, object) in rows {
+        let location = object_location(&object);
+        // All declared digests for this subject (literal objects only).
         let mut digests: Vec<String> = Vec::new();
-        for dq in store
-            .quads_for_pattern(
-                Some((&q.subject).into()),
-                Some(content_digest.as_ref()),
-                None,
-                None,
-            )
-            .flatten()
+        for dq in dataset
+            .objects_of_subject(&subject, &content_digest)
+            .map_err(|e| PipelineError::Parse(e.to_string()))?
         {
-            if let Term::Literal(l) = &dq.object {
-                digests.push(l.value().to_string());
+            if let Object::Literal { value } = dq {
+                digests.push(value);
             }
         }
         out.insert(location, (String::new(), digests));
@@ -1004,8 +1012,6 @@ impl Stage for EvalsStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::turtle_bytes_into_store;
-    use oxigraph::store::Store;
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -1060,15 +1066,20 @@ mod tests {
         let built_bytes = arts.get(SCORES_PATH).expect("scores.ttl produced");
 
         let parse = |bytes: &[u8]| -> BTreeMap<String, ()> {
-            let store = Store::new().unwrap();
-            turtle_bytes_into_store(&store, bytes, "scores.ttl").expect("parse turtle");
-            store
-                .quads_for_pattern(None, None, None, None)
-                .map(|q| {
-                    let q = q.unwrap();
-                    (format!("{} {} {} .", q.subject, q.predicate, q.object), ())
-                })
-                .collect()
+            // scores.ttl is blank-node-free, so isomorphism reduces to triple-set
+            // equality. Render each quad's subject/predicate/object as an oxigraph-free
+            // canonical token (`<iri>` / `_:label` / lexical literal) and collect the set.
+            let ds = Dataset::parse_turtle(bytes, "scores.ttl").expect("parse turtle");
+            let mut set: BTreeMap<String, ()> = BTreeMap::new();
+            ds.for_each_quad(|subject, predicate, object, _graph| {
+                let s = match subject {
+                    Subject::Named(iri) => format!("<{iri}>"),
+                    Subject::Blank(label) => format!("_:{label}"),
+                };
+                let o = object_location(&object);
+                set.insert(format!("{s} <{predicate}> {o} ."), ());
+            });
+            set
         };
         let committed = std::fs::read(root.join(SCORES_PATH)).unwrap();
         assert_eq!(

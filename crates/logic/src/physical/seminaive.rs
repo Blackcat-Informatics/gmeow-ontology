@@ -593,8 +593,8 @@ pub(crate) fn evaluate(
     // semi-naive seed order is deterministic (mirrors `world_edb_facts`).
     let mut edb_facts: Vec<Fact> = Vec::new();
     for pred in edb.predicates() {
-        let predicate = oxigraph::model::NamedNode::new(pred)
-            .map_err(|e| format!("physical::evaluate: invalid EDB predicate IRI {pred:?}: {e}"))?;
+        // `pred` is a predicate IRI surface already validated by the seam; carry it directly.
+        let predicate = pred.to_owned();
         for (subject, object) in edb.select(pred, Bound::Any) {
             edb_facts.push(Fact {
                 subject,
@@ -639,18 +639,19 @@ pub(crate) fn evaluate(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::provenance::term_display;
     use crate::rule_ir::{least_model_of_reduct, parse_eval_rules};
     use crate::store::WorldStore;
-    use oxigraph::model::{NamedNode, Term};
+    use gmeow_rdf::TermValue;
 
     const NS: &str = "https://example.org/p3/";
 
-    fn nn(local: &str) -> NamedNode {
-        NamedNode::new(format!("{NS}{local}")).expect("valid IRI")
+    fn nn(local: &str) -> String {
+        format!("{NS}{local}")
     }
 
-    fn term(local: &str) -> Term {
-        Term::NamedNode(nn(local))
+    fn term(local: &str) -> TermValue {
+        TermValue::iri(nn(local))
     }
 
     fn fact(s: &str, p: &str, o: &str) -> Fact {
@@ -718,9 +719,9 @@ mod tests {
     /// A canonical comparison tuple for a derived row's full provenance.
     fn row_key(r: &DerivedRow) -> (String, String, String, String, Vec<String>, String) {
         (
-            r.subject.to_string(),
+            term_display(&r.subject),
             r.predicate.as_str().to_owned(),
-            r.object.to_string(),
+            term_display(&r.object),
             r.rule_iri.clone(),
             r.source_quad_ids.clone(),
             r.derivation_id.clone(),
@@ -749,9 +750,9 @@ mod tests {
             .iter()
             .map(|r| {
                 (
-                    r.subject.to_string(),
+                    term_display(&r.subject),
                     r.predicate.as_str().to_owned(),
-                    r.object.to_string(),
+                    term_display(&r.object),
                     r.rule_iri.clone(),
                     r.source_quad_ids.clone(),
                     r.derivation_id.clone(),
@@ -794,7 +795,7 @@ mod tests {
         let mut pairs: BTreeSet<(String, String)> = BTreeSet::new();
         for r in derived_only(&rows) {
             if r.predicate.as_str() == path_pred {
-                pairs.insert((r.subject.to_string(), r.object.to_string()));
+                pairs.insert((term_display(&r.subject), term_display(&r.object)));
             }
         }
         // Reachable closure of a→b→c→d: ab ac ad bc bd cd.
@@ -874,9 +875,9 @@ mod tests {
         let mut unreach_has_provenance = false;
         for r in derived_only(&rows) {
             if r.predicate.as_str() == reach_pred {
-                reachable.insert(r.subject.to_string());
+                reachable.insert(term_display(&r.subject));
             } else if r.predicate.as_str() == unreach_pred {
-                unreachable.insert(r.subject.to_string());
+                unreachable.insert(term_display(&r.subject));
                 if !r.source_quad_ids.is_empty() && !r.derivation_id.is_empty() {
                     unreach_has_provenance = true;
                 }

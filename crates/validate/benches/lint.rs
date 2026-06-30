@@ -12,8 +12,8 @@
 use std::collections::{BTreeSet, HashSet};
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use gmeow_validate::lint::{collect_typed_terms, structural_lint, LintConfig};
-use gmeow_validate::store::build_store_from_nt;
+use gmeow_validate::lint::{collect_typed_terms_dataset, structural_lint_dataset, LintConfig};
+use gmeow_validate::store::dataset_from_nt;
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow#";
 const ONT: &str = "https://blackcatinformatics.ca/gmeow";
@@ -58,15 +58,15 @@ fn synthetic_nt(n: usize) -> String {
 
 fn bench_lint(c: &mut Criterion) {
     let nt = synthetic_nt(2000);
-    let store = build_store_from_nt(&nt).expect("build store from synthetic NT");
+    let dataset = dataset_from_nt(&nt).expect("build dataset from synthetic NT");
     let config = cfg();
 
     let mut group = c.benchmark_group("validate_lint");
     group.bench_function("structural_lint_2k", |b| {
-        b.iter(|| std::hint::black_box(structural_lint(&store, &config)));
+        b.iter(|| std::hint::black_box(structural_lint_dataset(&dataset, &config)));
     });
     group.bench_function("collect_typed_terms_2k", |b| {
-        b.iter(|| std::hint::black_box(collect_typed_terms(&store, &config)));
+        b.iter(|| std::hint::black_box(collect_typed_terms_dataset(&dataset, &config)));
     });
     group.finish();
 }

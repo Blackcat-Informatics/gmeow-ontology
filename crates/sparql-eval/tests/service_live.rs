@@ -68,6 +68,7 @@ fn service_clause_federates_to_wikidata() {
             SparqlRequest {
                 query,
                 base_iri: None,
+                substitutions: &[],
             },
             &source,
         )

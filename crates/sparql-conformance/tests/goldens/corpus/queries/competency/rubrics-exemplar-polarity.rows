@@ -1,0 +1,4 @@
+polarity
+[Some(Iri("https://blackcatinformatics.ca/gmeow/polarityCautionary"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/polarityNegative"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/polarityPositive"))]

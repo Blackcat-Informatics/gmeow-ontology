@@ -1,0 +1,4 @@
+<https://blackcatinformatics.ca/gmeow/self#social-preview-png> <http://www.w3.org/2003/12/exif/ns#height> "640"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-png> <http://www.w3.org/2003/12/exif/ns#width> "1280"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-svg> <http://www.w3.org/2003/12/exif/ns#height> "640"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/gmeow/self#social-preview-svg> <http://www.w3.org/2003/12/exif/ns#width> "1280"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .

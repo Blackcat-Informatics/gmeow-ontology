@@ -16,12 +16,12 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet, VecDeque};
 use std::path::Path;
 
-use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
+use gmeow_rdf::RdfTerm;
 
 use crate::error::SliceError;
 use crate::mapping_support::{collect_ontology_store, registry_iri, PREFIX_REGISTRY};
 use crate::projection_lint::ProjectionDiagnostic;
+use crate::rdf_query::{Dataset, DatasetAccumulator, Object, Subject};
 
 // ── Predicate / class constants (ported from the retired Python linter) ────────
 
@@ -441,8 +441,8 @@ pub(crate) fn lint_alignment_directions(
 /// it has already judged (so the domain/range check does not double-report them).
 fn check_inverse_direction(
     gmeow_props: &BTreeMap<String, Vec<Mapping>>,
-    onto: &Store,
-    target_graphs: &BTreeMap<String, Store>,
+    onto: &Dataset,
+    target_graphs: &BTreeMap<String, Dataset>,
     bridge: &BTreeMap<String, BTreeSet<String>>,
 ) -> Result<(Vec<ProjectionDiagnostic>, JudgedSet), SliceError> {
     let mut findings: Vec<ProjectionDiagnostic> = Vec::new();
@@ -586,8 +586,8 @@ fn check_inverse_direction(
 /// Flag mappings whose GMEOW domain/range is incompatible with the target's.
 fn check_domain_range(
     gmeow_props: &BTreeMap<String, Vec<Mapping>>,
-    onto: &Store,
-    target_graphs: &BTreeMap<String, Store>,
+    onto: &Dataset,
+    target_graphs: &BTreeMap<String, Dataset>,
     bridge: &BTreeMap<String, BTreeSet<String>>,
     judged: &JudgedSet,
 ) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
@@ -671,8 +671,8 @@ fn check_domain_range(
 /// Flag strong-equivalent property mappings with mismatched property character.
 fn check_property_character(
     gmeow_props: &BTreeMap<String, Vec<Mapping>>,
-    onto: &Store,
-    target_graphs: &BTreeMap<String, Store>,
+    onto: &Dataset,
+    target_graphs: &BTreeMap<String, Dataset>,
 ) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let mut findings: Vec<ProjectionDiagnostic> = Vec::new();
     let owl_prop_types: BTreeSet<&str> = OWL_PROPERTY_TYPES.iter().copied().collect();
@@ -784,8 +784,8 @@ fn character_finding(
 /// Principle 5 (#284): no equivalence chain may connect disjoint terms.
 fn check_equivalence_collapse(
     mappings: &[Mapping],
-    onto: &Store,
-    target_graphs: &BTreeMap<String, Store>,
+    onto: &Dataset,
+    target_graphs: &BTreeMap<String, Dataset>,
 ) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let adjacency = equivalence_adjacency(mappings, onto, target_graphs)?;
     let component = equivalence_components(&adjacency);
@@ -823,8 +823,8 @@ fn check_equivalence_collapse(
 /// Symmetric adjacency over every asserted equivalence-grade link.
 fn equivalence_adjacency(
     mappings: &[Mapping],
-    onto: &Store,
-    target_graphs: &BTreeMap<String, Store>,
+    onto: &Dataset,
+    target_graphs: &BTreeMap<String, Dataset>,
 ) -> Result<BTreeMap<String, BTreeSet<String>>, SliceError> {
     let mut adjacency: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
 
@@ -846,7 +846,7 @@ fn equivalence_adjacency(
         link(subj, obj);
     }
 
-    let mut graphs: Vec<&Store> = vec![onto];
+    let mut graphs: Vec<&Dataset> = vec![onto];
     graphs.extend(target_graphs.values());
     for graph in graphs {
         for pred in [
@@ -924,7 +924,7 @@ fn equivalence_path(
 }
 
 /// Every pair GMEOW declares disjoint, with the axiom that says so.
-fn disjoint_pairs(onto: &Store) -> Result<Vec<(String, String, String)>, SliceError> {
+fn disjoint_pairs(onto: &Dataset) -> Result<Vec<(String, String, String)>, SliceError> {
     let mut pairs: BTreeSet<(String, String, String)> = BTreeSet::new();
 
     let mut add = |a: &str, b: &str, axiom: &str| {
@@ -972,8 +972,8 @@ fn disjoint_pairs(onto: &Store) -> Result<Vec<(String, String, String)>, SliceEr
 /// * the same axioms inside each target snapshot.
 fn build_class_bridge(
     mappings: &[Mapping],
-    onto: &Store,
-    target_graphs: &BTreeMap<String, Store>,
+    onto: &Dataset,
+    target_graphs: &BTreeMap<String, Dataset>,
 ) -> BTreeMap<String, BTreeSet<String>> {
     let mut adjacency: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
 
@@ -997,7 +997,7 @@ fn build_class_bridge(
     }
 
     // Internal taxonomy of GMEOW and of every loaded target snapshot.
-    let mut graphs: Vec<&Store> = vec![onto];
+    let mut graphs: Vec<&Dataset> = vec![onto];
     graphs.extend(target_graphs.values());
     for graph in graphs {
         for (sub, sup) in subject_objects_iri(graph, RDFS_SUB_CLASS_OF).unwrap_or_default() {
@@ -1061,7 +1061,7 @@ fn overlaps(
 
 /// Return a term's declared domains, normalizing `rdfs:domain` and
 /// `schema:domainIncludes`.
-fn target_domain(graph: &Store, term: &str) -> Result<Vec<String>, SliceError> {
+fn target_domain(graph: &Dataset, term: &str) -> Result<Vec<String>, SliceError> {
     let mut out = objects_iri(graph, term, RDFS_DOMAIN)?;
     out.extend(objects_iri(graph, term, SCHEMA_DOMAIN_INCLUDES)?);
     Ok(out)
@@ -1069,19 +1069,18 @@ fn target_domain(graph: &Store, term: &str) -> Result<Vec<String>, SliceError> {
 
 /// Return a term's declared ranges, normalizing `rdfs:range` and
 /// `schema:rangeIncludes`.
-fn target_range(graph: &Store, term: &str) -> Result<Vec<String>, SliceError> {
+fn target_range(graph: &Dataset, term: &str) -> Result<Vec<String>, SliceError> {
     let mut out = objects_iri(graph, term, RDFS_RANGE)?;
     out.extend(objects_iri(graph, term, SCHEMA_RANGE_INCLUDES)?);
     Ok(out)
 }
 
 /// Return a term's inverses, reading `owl:inverseOf`/`schema:inverseOf` both ways.
-fn target_inverses(graph: &Store, term: &str) -> Result<Vec<String>, SliceError> {
-    let node = named_node(term)?;
+fn target_inverses(graph: &Dataset, term: &str) -> Result<Vec<String>, SliceError> {
     let mut out = objects_iri(graph, term, OWL_INVERSE_OF)?;
     out.extend(objects_iri(graph, term, SCHEMA_INVERSE_OF)?);
-    out.extend(subjects_iri(graph, OWL_INVERSE_OF, &node)?);
-    out.extend(subjects_iri(graph, SCHEMA_INVERSE_OF, &node)?);
+    out.extend(subjects_iri(graph, OWL_INVERSE_OF, term)?);
+    out.extend(subjects_iri(graph, SCHEMA_INVERSE_OF, term)?);
     out.sort();
     out.dedup();
     Ok(out)
@@ -1096,23 +1095,23 @@ fn target_inverses(graph: &Store, term: &str) -> Result<Vec<String>, SliceError>
 fn load_target_axiom_stores(
     root: &Path,
     prefixes: &BTreeSet<String>,
-) -> Result<BTreeMap<String, Store>, SliceError> {
-    let mut out: BTreeMap<String, Store> = BTreeMap::new();
+) -> Result<BTreeMap<String, Dataset>, SliceError> {
+    let mut out: BTreeMap<String, Dataset> = BTreeMap::new();
     for prefix in prefixes {
-        let mut store = new_store()?;
+        let mut acc = DatasetAccumulator::new();
         let mut has_axioms = false;
 
         if let Some(snapshot) = load_target_snapshot(root, prefix)? {
-            merge_store(&mut store, &snapshot)?;
+            acc.add_dataset(&snapshot);
             has_axioms = true;
         }
         if let Some(fixture) = load_fixture(root, prefix)? {
-            merge_store(&mut store, &fixture)?;
+            acc.add_dataset(&fixture);
             has_axioms = true;
         }
 
         if has_axioms {
-            out.insert(prefix.clone(), store);
+            out.insert(prefix.clone(), acc.freeze()?);
         }
     }
     Ok(out)
@@ -1122,7 +1121,7 @@ fn load_target_axiom_stores(
 /// structural axiom subset (domain/range/inverse + property types).
 ///
 /// Mirrors the retired Python `target_axioms.fetch_target_axioms`.
-fn fetch_target_axioms(prefix: &str) -> Result<Store, SliceError> {
+fn fetch_target_axioms(prefix: &str) -> Result<Dataset, SliceError> {
     let source = TARGET_SOURCES
         .iter()
         .find(|s| s.prefix == prefix)
@@ -1159,31 +1158,25 @@ fn fetch_target_axioms(prefix: &str) -> Result<Store, SliceError> {
         .into_with_config()
         .read_to_vec()
         .map_err(|e| SliceError::Io(std::io::Error::other(format!("read body {prefix}: {e}"))))?;
-    // Parse via the native codecs into a temporary store, then keep only the
+    // Parse via the native codecs into a dataset, then keep only the
     // axiom/property-type quads in the target namespace (the historical filter).
-    let parsed = crate::rdf_text::rdf_bytes_to_store(
-        &bytes,
-        source.media_type,
-        &format!("fetching {prefix}"),
-    )?;
-    let store = new_store()?;
-    for quad in parsed.iter() {
-        let quad =
-            quad.map_err(|e| SliceError::Parse(format!("parse error fetching {prefix}: {e}")))?;
-        if let NamedOrBlankNode::NamedNode(subj) = &quad.subject {
-            let subj_iri = subj.as_str();
-            if subj_iri.starts_with(namespace) && is_axiom_or_property_type_quad(&quad) {
-                store
-                    .insert(&quad)
-                    .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
+    let parsed = Dataset::parse(&bytes, source.media_type, &format!("fetching {prefix}"))?;
+    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    for quad in parsed.inner().owned_quads() {
+        if let RdfTerm::Iri(subj) = &quad.subject {
+            if subj.starts_with(namespace) && is_axiom_or_property_type_quad(&quad) {
+                builder.push_owned_quad(&quad);
             }
         }
     }
-    Ok(store)
+    let frozen = builder
+        .freeze()
+        .map_err(|e| SliceError::Parse(format!("target axioms freeze {prefix}: {e}")))?;
+    Ok(Dataset::from_frozen(frozen))
 }
 
 /// Whether a quad is a structural axiom or an `rdf:type` naming a property kind.
-fn is_axiom_or_property_type_quad(quad: &oxigraph::model::Quad) -> bool {
+fn is_axiom_or_property_type_quad(quad: &gmeow_rdf::RdfQuad) -> bool {
     let pred = quad.predicate.as_str();
     if pred == RDFS_DOMAIN
         || pred == RDFS_RANGE
@@ -1199,7 +1192,7 @@ fn is_axiom_or_property_type_quad(quad: &oxigraph::model::Quad) -> bool {
         return true;
     }
     if pred == RDF_TYPE {
-        if let oxigraph::model::Term::NamedNode(obj) = &quad.object {
+        if let RdfTerm::Iri(obj) = &quad.object {
             return OWL_PROPERTY_TYPES.contains(&obj.as_str());
         }
     }
@@ -1208,7 +1201,7 @@ fn is_axiom_or_property_type_quad(quad: &oxigraph::model::Quad) -> bool {
 
 /// Load a vendored target axiom snapshot from `imports/targets/<prefix>.ttl`, if
 /// it exists.
-fn load_target_snapshot(root: &Path, prefix: &str) -> Result<Option<Store>, SliceError> {
+fn load_target_snapshot(root: &Path, prefix: &str) -> Result<Option<Dataset>, SliceError> {
     let path = root
         .join("imports")
         .join("targets")
@@ -1221,7 +1214,7 @@ fn load_target_snapshot(root: &Path, prefix: &str) -> Result<Option<Store>, Slic
 
 /// Load a hand-authored target fixture from `tests/fixtures/target_axioms/<prefix>.ttl`,
 /// if it exists.
-fn load_fixture(root: &Path, prefix: &str) -> Result<Option<Store>, SliceError> {
+fn load_fixture(root: &Path, prefix: &str) -> Result<Option<Dataset>, SliceError> {
     let path = root
         .join("tests")
         .join("fixtures")
@@ -1526,61 +1519,26 @@ fn info_not_checkable(m: &Mapping, reason: &str) -> ProjectionDiagnostic {
 // ── Disjointness / RDF-list helpers ─────────────────────────────────────────────
 
 /// Every named-node subject of `?s a <type_iri>`.
-fn subjects_of_type(store: &Store, type_iri: &str) -> Result<Vec<String>, SliceError> {
-    let rdf_type = named_node(RDF_TYPE)?;
-    let class = named_node(type_iri)?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        None,
-        Some(rdf_type.as_ref()),
-        Some(class.as_ref().into()),
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        if let NamedOrBlankNode::NamedNode(nn) = quad.subject {
-            out.push(nn.as_str().to_owned());
-        }
-    }
-    Ok(out)
+fn subjects_of_type(store: &Dataset, type_iri: &str) -> Result<Vec<String>, SliceError> {
+    store.subjects_of_type(type_iri)
 }
 
 /// All object terms of `<subject_iri> <pred> ?o` (named nodes and blank nodes).
-fn object_terms(store: &Store, subject_iri: &str, pred: &str) -> Result<Vec<Term>, SliceError> {
-    let subject = named_node(subject_iri)?;
-    let predicate = named_node(pred)?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some(subject.as_ref().into()),
-        Some(predicate.as_ref()),
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        out.push(quad.map_err(|e| SliceError::Parse(e.to_string()))?.object);
-    }
-    Ok(out)
+fn object_terms(store: &Dataset, subject_iri: &str, pred: &str) -> Result<Vec<Object>, SliceError> {
+    store.objects(subject_iri, pred)
 }
 
 /// Object terms of one RDF list node for a given predicate.
 fn rdf_list_term_objects(
-    store: &Store,
-    subject: &NamedOrBlankNode,
+    store: &Dataset,
+    subject: &Subject,
     pred: &str,
-) -> Result<Vec<Term>, SliceError> {
-    let predicate = named_node(pred)?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some(subject.as_ref()),
-        Some(predicate.as_ref()),
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        out.push(quad.map_err(|e| SliceError::Parse(e.to_string()))?.object);
-    }
-    Ok(out)
+) -> Result<Vec<Object>, SliceError> {
+    store.objects_of_subject(subject, pred)
 }
 
 /// Members of an RDF list starting at `head` (only named-node members kept).
-fn rdf_list_members(store: &Store, head: &Term) -> Result<Vec<String>, SliceError> {
+fn rdf_list_members(store: &Dataset, head: &Object) -> Result<Vec<String>, SliceError> {
     let mut out = Vec::new();
     let mut current = head.clone();
     let mut seen = HashSet::new();
@@ -1589,14 +1547,14 @@ fn rdf_list_members(store: &Store, head: &Term) -> Result<Vec<String>, SliceErro
             break;
         }
         let subj = match &current {
-            Term::NamedNode(nn) if nn.as_str() == RDF_NIL => break,
-            Term::NamedNode(nn) => NamedOrBlankNode::NamedNode(nn.clone()),
-            Term::BlankNode(bn) => NamedOrBlankNode::BlankNode(bn.clone()),
+            Object::Named(iri) if iri == RDF_NIL => break,
+            Object::Named(iri) => Subject::Named(iri.clone()),
+            Object::Blank(label) => Subject::Blank(label.clone()),
             _ => break,
         };
         for first in rdf_list_term_objects(store, &subj, RDF_FIRST)? {
-            if let Term::NamedNode(nn) = first {
-                out.push(nn.as_str().to_owned());
+            if let Object::Named(iri) = first {
+                out.push(iri);
             }
         }
         match rdf_list_term_objects(store, &subj, RDF_REST)?
@@ -1610,117 +1568,43 @@ fn rdf_list_members(store: &Store, head: &Term) -> Result<Vec<String>, SliceErro
     Ok(out)
 }
 
-// ── oxigraph store helpers ─────────────────────────────────────────────────────
+// ── Native dataset helpers ─────────────────────────────────────────────────────
 
-fn new_store() -> Result<Store, SliceError> {
-    Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))
-}
-
-/// Parse a Turtle file into a fresh oxigraph store (lenient, so GMEOW's
+/// Parse a Turtle file into a fresh native dataset (lenient, so GMEOW's
 /// `@x-gmeow-*` language tags parse).
-fn parse_ttl(path: &Path) -> Result<Store, SliceError> {
+fn parse_ttl(path: &Path) -> Result<Dataset, SliceError> {
     let bytes = std::fs::read(path).map_err(SliceError::Io)?;
-    crate::rdf_text::turtle_bytes_to_store(&bytes, &path.display().to_string())
+    Dataset::parse_turtle(&bytes, &path.display().to_string())
 }
 
-/// Parse Turtle text into a fresh store (test helper).
+/// Parse Turtle text into a fresh dataset (test helper).
 #[cfg(test)]
-fn parse_ttl_text(text: &str) -> Result<Store, SliceError> {
-    crate::rdf_text::turtle_bytes_to_store(text.as_bytes(), "test fixture")
-}
-
-/// Merge every quad from `source` into `target`.
-fn merge_store(target: &mut Store, source: &Store) -> Result<(), SliceError> {
-    for quad in source.iter() {
-        let quad = quad.map_err(|e| SliceError::Parse(format!("store iteration failed: {e}")))?;
-        target
-            .insert(&quad)
-            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
-    }
-    Ok(())
-}
-
-fn named_node(iri: &str) -> Result<NamedNode, SliceError> {
-    NamedNode::new(iri).map_err(|e| SliceError::Parse(format!("invalid IRI {iri}: {e}")))
+fn parse_ttl_text(text: &str) -> Result<Dataset, SliceError> {
+    Dataset::parse_turtle(text.as_bytes(), "test fixture")
 }
 
 /// Every IRI object of `<subject> <pred> ?o`.
-fn objects_iri(store: &Store, subject: &str, pred: &str) -> Result<Vec<String>, SliceError> {
-    let subject = named_node(subject)?;
-    let predicate = named_node(pred)?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some(subject.as_ref().into()),
-        Some(predicate.as_ref()),
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        if let Term::NamedNode(nn) = quad.object {
-            out.push(nn.as_str().to_owned());
-        }
-    }
-    Ok(out)
+fn objects_iri(store: &Dataset, subject: &str, pred: &str) -> Result<Vec<String>, SliceError> {
+    store.object_iris(subject, pred)
 }
 
 /// Every IRI subject of `?s <pred> <object>`.
-fn subjects_iri(store: &Store, pred: &str, object: &NamedNode) -> Result<Vec<String>, SliceError> {
-    let predicate = named_node(pred)?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        None,
-        Some(predicate.as_ref()),
-        Some(object.as_ref().into()),
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        if let NamedOrBlankNode::NamedNode(nn) = quad.subject {
-            out.push(nn.as_str().to_owned());
-        }
-    }
-    Ok(out)
+fn subjects_iri(store: &Dataset, pred: &str, object: &str) -> Result<Vec<String>, SliceError> {
+    store.subjects_with_object(pred, object)
 }
 
 /// Every `(subject, object)` pair of `?s <pred> ?o` where both are named nodes.
-fn subject_objects_iri(store: &Store, pred: &str) -> Result<Vec<(String, String)>, SliceError> {
-    let predicate = named_node(pred)?;
-    let mut out = Vec::new();
-    for quad in store.quads_for_pattern(
-        None,
-        Some(predicate.as_ref()),
-        None,
-        Some(GraphNameRef::DefaultGraph),
-    ) {
-        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
-        if let (NamedOrBlankNode::NamedNode(subj), Term::NamedNode(obj)) =
-            (&quad.subject, &quad.object)
-        {
-            out.push((subj.as_str().to_owned(), obj.as_str().to_owned()));
-        }
-    }
-    Ok(out)
+fn subject_objects_iri(store: &Dataset, pred: &str) -> Result<Vec<(String, String)>, SliceError> {
+    store.subject_object_iri_pairs(pred)
 }
 
 /// Whether `term` has `term a type_iri` in `store`.
-fn has_type(store: &Store, term: &str, type_iri: &str) -> Result<bool, SliceError> {
-    let subject = named_node(term)?;
-    let predicate = named_node(RDF_TYPE)?;
-    let object = named_node(type_iri)?;
-    let mut iter = store.quads_for_pattern(
-        Some(subject.as_ref().into()),
-        Some(predicate.as_ref()),
-        Some(object.as_ref().into()),
-        Some(GraphNameRef::DefaultGraph),
-    );
-    Ok(iter
-        .next()
-        .transpose()
-        .map_err(|e| SliceError::Parse(e.to_string()))?
-        .is_some())
+fn has_type(store: &Dataset, term: &str, type_iri: &str) -> Result<bool, SliceError> {
+    store.has_type(term, type_iri)
 }
 
 /// Whether the expanded IRI is declared as an OWL ObjectProperty or DatatypeProperty.
-fn is_property(store: &Store, iri: &str) -> Result<bool, SliceError> {
+fn is_property(store: &Dataset, iri: &str) -> Result<bool, SliceError> {
     Ok(has_type(store, iri, OWL_OBJECT_PROPERTY)? || has_type(store, iri, OWL_DATATYPE_PROPERTY)?)
 }
 
@@ -1797,7 +1681,7 @@ mod tests {
         let store = load_target_snapshot(root, "org")
             .expect("loading org snapshot should not fail")
             .expect("org snapshot should exist");
-        let len = store.len().expect("store length should be readable");
+        let len = store.quad_count();
         assert!(len > 0, "org snapshot should contain triples");
     }
 
