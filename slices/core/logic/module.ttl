@@ -962,6 +962,13 @@ logic:McpActionSchema
     skos:definition "A logic:ActionSchema that grounds an MCP (Model Context Protocol) tool action — the opt-in marker subtype that brings an action schema under the stricter MCP-action governance profile (logic:McpActionPolicyShape). Beyond the facets every action schema carries it must always declare a logic:compensation (rollback) because an MCP tool that mutates external state must be recoverable: the dogfood case where the canonical process model governs the agent's own tool calls. A plain logic:ActionSchema is NOT required to carry compensation; typing it logic:McpActionSchema is the explicit declaration that the governance profile applies."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:MeasurementFrameMissing
+    a owl:NamedIndividual ,
+        logic:QualityConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Measurement Frame Missing"@x-gmeow-english ;
+    skos:definition "The frame-completeness axiom as a quality constraint: a measured value must not be asserted without the reference frame it is expressed in — a logic:measuredValue with no logic:referenceFrame is ill-formed. A bare magnitude is frame-independent (a logic:trueQuantity), but the moment a value is given it is expressed in a unit and frame; a value asserted without its frame is meaningless, not merely under-specified (Principle 11: separate the frame-independent structure from the frame-relative value, and never assert the value without the frame). A measured value lacking a frame is the logic:violation, entailed by the foundation lowering rather than asserted by hand."@x-gmeow-english .
+
 logic:MereologyConstraint
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -1274,8 +1281,21 @@ logic:Quality
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Quality"@x-gmeow-english ;
-    skos:definition "An aspect whose value is a point or region in a quality space — a mass, a temperature, a colour hue — an intrinsic, directly measurable moment. The counterpart of gufo:Quality; a logic:Aspect that takes a logic:QualityValue in a logic:QualitySpace (stated in prose, not as a subclass edge). Contrast logic:Mode, which is not directly measurable."@x-gmeow-english ;
+    skos:definition "An aspect whose value is a point or region in a quality space — a mass, a temperature, a colour hue — an intrinsic, directly measurable moment. The counterpart of gufo:Quality; a logic:Aspect that takes a logic:QualityValue in a logic:QualitySpace (stated in prose, not as a subclass edge). Contrast logic:Mode, which is not directly measurable. A logic:Quality is persistent: it inheres in a bearer and endures while its measured values change, so dated observations attach to one enduring quality (by reference) rather than minting a fresh value each time. It instantiates a frame-independent generic quality via logic:genericQuality and may play an anti-rigid quality-role in a bearer-context via logic:qualityRole over logic:Role — the generic-quality/quality-role ladder (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:QualityConstraint
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Quality Constraint"@x-gmeow-english ;
+    skos:definition "A named quality/quantity well-formedness axiom a quality or measured value can violate — the family of constraints governing the generic-quality/quality-role ladder and the true-quantity/measured-value seam. Distinct from logic:OccurrentConstraint (the four-dimensional perdurant axioms) and logic:MereologyConstraint (profiled-mereology axioms): quality constraints govern the stratification of a quality into a frame-independent generic quality, the anti-rigid role it plays in a bearer-context, and a frame-relative measured value. Its named individuals are the labels a logic:violation fact may point at; the set is closed so a misspelt label names no declared constraint and is rejected rather than silently accepted."@x-gmeow-english .
+
+logic:QualityRoleWithoutGeneric
+    a owl:NamedIndividual ,
+        logic:QualityConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Quality Role Without Generic"@x-gmeow-english ;
+    skos:definition "The ladder-completeness axiom as a quality constraint: a quality that plays a quality-role must also instantiate the generic quality that role contextualizes — a logic:Quality with a logic:qualityRole but no logic:genericQuality is ill-formed. The generic quality (length, pressure) is the frame-independent structure; the quality-role (height, systolic pressure) is that structure playing an anti-rigid logic:Role in a bearer-context, and the role presupposes the generic it specializes (Principle 11 in role terms: the frame-relative value cannot stand without the frame-independent structure it refines). A quality bearing a role with no generic is the logic:violation, entailed by the foundation lowering rather than asserted by hand."@x-gmeow-english .
 
 logic:QualitySpace
     a owl:Class ;
@@ -2517,6 +2537,13 @@ logic:formulaFragment
     rdfs:label "formula fragment"@x-gmeow-english ;
     skos:definition "Relates a logic:ReasoningContract to the logic:FormulaFragment it selects — the syntactic class of admitted formulae. Single-valued on the contract. Domain logic:ReasoningContract, range logic:FormulaFragment (stated in prose, matching the module's convention)."@x-gmeow-english .
 
+logic:genericQuality
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "generic quality"@x-gmeow-english ;
+    skos:definition "Relates a logic:Quality to the basic generic quality it instantiates — length, mass, pressure, temperature: the frame-independent kind of quality, prior to any bearer-context or role. The frame-independent leg of the generic-quality/quality-role ladder (Principle 11: the structure invariant across frames), paired with logic:qualityRole (the anti-rigid logic:Role that generic quality plays in a bearer-context — height being length in a body-context). A quality that plays a logic:qualityRole must instantiate its logic:genericQuality, or it is the logic:QualityRoleWithoutGeneric violation. Domain logic:Quality (stated in prose, matching the module's convention)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:hasHolonicPosition
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -2615,6 +2642,13 @@ logic:loadBearing
     rdfs:label "load bearing"@x-gmeow-english ;
     rdfs:range xsd:boolean ;
     skos:definition "Types an annotation as load-bearing (true) or droppable (false, the default). A droppable annotation — a display hint or scope note — must never carry correctness: dropping it only pessimizes a result, so a lowering may drop it silently. A load-bearing annotation — an in-band complement or a quantitative axis — is needed by the inverse leg for put after get to equal the identity, so a lowering must either preserve it or record its loss in the ledger. Without this bit a section / retraction (perfect-subsumption) claim cannot be verified, which is why it is part of the node from the start."@x-gmeow-english .
+
+logic:measuredValue
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "measured value"@x-gmeow-english ;
+    skos:definition "The frame-relative magnitude of a measurement: the numeric value a measured quantity takes once expressed in a unit and reference frame — the 37 of 37 °C, the 120 of 120 mmHg. The frame-relative leg of the true-quantity/measured-value seam (Principle 11), paired with logic:referenceFrame: the value is meaningful only together with the frame it is expressed in, so a logic:measuredValue asserted without a logic:referenceFrame is the logic:MeasurementFrameMissing violation. Contrast logic:trueQuantity, the frame-independent magnitude the value measures. The foundation-level seam predicate the domain property gmeow:value grounds onto by sub-property, so a domain measurement lifts into the constraint's scope. The range is intentionally left open (no rdfs:range), matching the module's quantitative-axis convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:mediates
     a owl:ObjectProperty ;
@@ -2841,12 +2875,26 @@ logic:properPartOf
     skos:definition "STRICT parthood: relates an entity to a whole it is part of but NOT identical to. Transitive, asymmetric, and irreflexive — a genuine strict partial order (proper-part-of, ancestor). This exact combination is illegal in OWL 2 DL, which globally forbids a property being both transitive and asymmetric (criticism 7, LOGIC-FOUNDATION.md §OWL 2 criticisms); logic: imposes no such global restriction and reasons over it completely, recovering decidability by projection rather than by crippling the canon. The deliberate OWL-2-criticism demonstrator."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:qualityRole
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "quality role"@x-gmeow-english ;
+    skos:definition "Relates a logic:Quality to the anti-rigid logic:Role its generic quality plays in a bearer-context — height being length playing a role in a human-body context, systolic pressure being pressure playing a role in the arterial-blood-pressure context. The frame-relative leg of the generic-quality/quality-role ladder (Principle 11 stated in role terms), paired with logic:genericQuality: the role contextualizes the frame-independent generic quality, and reuses the existing anti-rigid logic:Role machinery rather than minting a parallel one. A quality bearing a logic:qualityRole with no logic:genericQuality is the logic:QualityRoleWithoutGeneric violation. Domain logic:Quality, range logic:Role (stated in prose, matching the module's convention)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:reductionBasis
     a owl:ObjectProperty ;
     rdfs:domain logic:ReductionTheory ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "reduction basis"@x-gmeow-english ;
     skos:definition "Relates a logic:ReductionTheory to a property-value it treats as part-reducible: the theory holds that a whole bearing this property has it in virtue of its proper parts bearing it, so under that theory the property is an logic:Aggregate rather than an emergent one. The carrier that makes emergence theory-relative — a property in one theory's reduction basis and absent from another's receives opposite verdicts with no contradiction. Without a matching basis entry, a borne whole property is assessed logic:Emergent under the theory (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:referenceFrame
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reference frame"@x-gmeow-english ;
+    skos:definition "Relates a measurement to the reference frame its logic:measuredValue is expressed in — the coordinate system, datum, unit system, or platform space that fixes what the value means. The frame leg of the true-quantity/measured-value seam (Principle 11: a value asserted without its frame is ill-formed); a logic:measuredValue with no logic:referenceFrame is the logic:MeasurementFrameMissing violation. The foundation-level seam predicate the domain property gmeow:referenceFrame grounds onto by sub-property, so a domain measurement lifts into the constraint's scope. Domain a measurement, range a reference frame (stated in prose, matching the module's convention)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:resourcePolicy
@@ -2900,6 +2948,13 @@ logic:transitiveProperty
     rdfs:label "transitive property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for transitivity: a property P such that P(a,b) ∧ P(b,c) entails P(a,c). The logic: analogue of owl:TransitiveProperty, minted standalone so logic: can combine it with logic:asymmetricProperty — a combination OWL 2 DL forbids globally (criticism 7) but logic: reasons over fully."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:trueQuantity
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "true quantity"@x-gmeow-english ;
+    skos:definition "Relates a measurement to its frame-independent magnitude: the quantity that exists independent of any unit or frame — the pressure itself, prior to its expression in mmHg or kPa. The frame-independent leg of the true-quantity/measured-value seam (Principle 11): logic:trueQuantity carries the unit-independent magnitude while logic:measuredValue and logic:referenceFrame carry the frame-relative value, so the same true quantity round-trips across unit systems without re-identifying the magnitude. The domain property gmeow:trueQuantity grounds onto this, pointing at a gmeow:Magnitude. Stated in prose, matching the module's domain/range convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:truthAlgebra
     a owl:ObjectProperty ;
