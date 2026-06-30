@@ -333,3 +333,58 @@ fn lowering_is_stable_across_repeated_calls() {
         b.preservation.unsupported_constructs
     );
 }
+
+/// Verify that `lower_formulas` deduplicates by content key (first-wins, stable order).
+///
+/// `horn_rule_formula()` included twice in `program_with` reaches `lower_formulas_to_rc`
+/// as two equal `RcRule`s (with_formulas sorts but does NOT dedup identical formulas).
+/// The dedup gate must drop the second occurrence and yield exactly one `EvalRule`, with
+/// exact preservation (the duplicate is not residue — it is a redundant identical clause).
+#[test]
+fn duplicate_formulas_produce_one_rule_not_two() {
+    let f = horn_rule_formula();
+    // with_formulas does NOT dedup, so both copies reach lower_formulas_to_rc as two
+    // identical RcRules. Verify this pre-condition first.
+    use gmeow_logic_compile::relational_core::lower_formulas_to_rc;
+    let prog = program_with(vec![f.clone(), f.clone()]);
+    let (rc_rules, rc_residue) = lower_formulas_to_rc(&prog);
+    assert_eq!(
+        rc_rules.len(),
+        2,
+        "pre-condition: lower_formulas_to_rc must yield two identical RcRules before dedup"
+    );
+    assert!(
+        rc_residue.is_empty(),
+        "pre-condition: no residue from Horn formulas"
+    );
+    assert_eq!(
+        rc_rules[0].key(),
+        rc_rules[1].key(),
+        "pre-condition: both RcRules must have equal content keys"
+    );
+
+    // Now verify the dedup gate in lower_formulas collapses them to one EvalRule.
+    let out = lower_formulas(&prog);
+    assert_eq!(
+        out.rules.len(),
+        1,
+        "lower_formulas must dedup identical clauses: duplicate dropped, one rule survives"
+    );
+    assert_eq!(
+        out.rules[0].body.len(),
+        1,
+        "the surviving rule has one body atom"
+    );
+    // Exact preservation: a duplicate is not residue.
+    use gmeow_logic_compile::ir::PreservationKind;
+    assert!(
+        out.preservation.unsupported_constructs.is_empty(),
+        "a duplicate identical clause is not residue"
+    );
+    assert!(
+        out.preservation
+            .polarities
+            .contains(&PreservationKind::Exact),
+        "dedup of identical clauses must not degrade preservation to sound-under"
+    );
+}

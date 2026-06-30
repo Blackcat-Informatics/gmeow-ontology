@@ -54,7 +54,13 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
 
     let mut rules: Vec<EvalRule> = Vec::new();
     let mut residue: BTreeSet<String> = lane_residue.into_iter().collect();
+    let mut seen: BTreeSet<String> = BTreeSet::new();
     for rc in &rc_rules {
+        if !seen.insert(rc.key()) {
+            // Already lowered an identical clause (same content key); skip the duplicate.
+            // First-wins preserves canonical formula-source order without sorting by Ord.
+            continue;
+        }
         match rc_rule_to_eval(rc) {
             Ok(rule) => rules.push(rule),
             Err(reason) => {
