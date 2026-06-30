@@ -17,7 +17,7 @@ use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
-use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences;
+use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
 use gmeow_logic_compile::projections::{edoal, fno, sparql, sssom, ProjectionResult};
 use gmeow_rdf::dataset_view::{DatasetView, GraphMatch};
 use gmeow_rdf::{
@@ -49,9 +49,12 @@ pub struct CorrespondenceArtifacts {
     /// cells the four dialects lower (#1092 F5): one node per `gmeow:TermEquivalence`
     /// cell and one per `gmeow:ProjectionMapping` per-profile binding. This is the carried
     /// program the mappings stage threads onto the bundle so `LogicProgram.correspondences`
-    /// is no longer reconstructed ad hoc downstream. The four rendered artifacts above are
-    /// unaffected by this materialization (their relations are still derived inline — that
-    /// re-seating is F5 Task 2).
+    /// is no longer reconstructed ad hoc downstream. As of F5 Task 2 the four dialect
+    /// lowerings CONSUME this materialized set's typed `(relation, morphism class, morphism
+    /// kind)` for their overclaim gate / ledger path (via the by-natural-key lookup the
+    /// transpiler builds alongside the program) instead of re-deriving the relation inline —
+    /// the materialized set is the single source of truth. The four rendered artifacts'
+    /// bytes are unchanged (the renderers emit the authored predicate/relation token).
     pub correspondences: CorrespondenceProgram,
 }
 
@@ -72,16 +75,19 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
     let onto_view = DslView::new(&onto);
     let (version, release_date) = read_self_metadata(root)?;
 
-    let sssom =
-        sssom::lower_sssom(&dsl_view, &version, &release_date).map_err(SliceError::Parse)?;
-    let fno = fno::lower_fno(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
-    let edoal = edoal::lower_edoal(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
-    let sparql = sparql::lower_sparql(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
+    // Materialize the typed logic:Correspondence set + its by-natural-key lookup from the
+    // DSL cells (F5 Task 1) FIRST: the lookup is the single source of truth the four
+    // dialect lowerings CONSUME for their overclaim gate / ledger path (F5 Task 2), so it
+    // must exist before they run. The four RENDERED artifacts are unchanged (they still
+    // emit the authored predicate/relation token verbatim).
+    let (correspondences, lookup) =
+        transpile_correspondences_indexed(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
 
-    // Materialize the typed logic:Correspondence set from the same DSL cells (F5 Task 1).
-    // This ONLY adds the carried program; the four rendered artifacts above are unchanged.
-    let correspondences =
-        transpile_correspondences(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
+    let sssom = sssom::lower_sssom(&dsl_view, &version, &release_date, &lookup)
+        .map_err(SliceError::Parse)?;
+    let fno = fno::lower_fno(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
+    let edoal = edoal::lower_edoal(&dsl_view, &onto_view, &lookup).map_err(SliceError::Parse)?;
+    let sparql = sparql::lower_sparql(&dsl_view, &onto_view, &lookup).map_err(SliceError::Parse)?;
 
     // Aggregate the per-correspondence ledger across all four dialects. Each dialect
     // already attributes its residue to the dropping (get) leg.

@@ -20,7 +20,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
 use crate::ingest::DslView;
-use crate::ir::{CorrespondenceRelation, MorphismClass, MorphismKind};
+use crate::ir::{CorrespondenceRelation, MorphismClass};
+use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::{correspondence_result, ProjectionResult};
 
@@ -132,9 +133,10 @@ pub fn lower_sssom(
     view: &DslView,
     version: &str,
     release_date: &str,
+    lookup: &CorrespondenceLookup,
 ) -> Result<SssomLowering, String> {
     let sources = collect_sources(view);
-    let ledger = build_ledger(&sources)?;
+    let ledger = build_ledger(&sources, lookup)?;
     let sets = render_sets(&sources, version, release_date)?;
     Ok(SssomLowering { sets, ledger })
 }
@@ -184,19 +186,24 @@ pub(crate) fn sssom_band(predicate: &str) -> (CorrespondenceRelation, MorphismCl
 }
 
 /// Build one preservation row per `gmeow:TermEquivalence` correspondence, running the
-/// overclaim gate over each emitted predicate.
-fn build_ledger(sources: &SssomSources) -> Result<Vec<ProjectionResult>, String> {
+/// overclaim gate over each emitted predicate. The typed `(relation, morphism class,
+/// morphism kind)` is CONSUMED from the materialized correspondence set (`lookup`) — the
+/// single source of truth — not re-derived inline here (F5 Task 2).
+fn build_ledger(
+    sources: &SssomSources,
+    lookup: &CorrespondenceLookup,
+) -> Result<Vec<ProjectionResult>, String> {
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     for cell in &sources.equivalences {
-        // The SSSOM 1:1 band is a satisfaction-preserving lens, never a bridge; the
-        // morphism class is the strongest rung the relation can lawfully claim. Both the
-        // relation and the class come from the shared band derivation the frontend reuses.
-        let (relation, mclass) = sssom_band(&cell.predicate);
+        // Consume the typed relation/class/kind from the materialized correspondence keyed
+        // by this cell's natural identity (subject, predicate, object). A miss is a HARD
+        // FAIL — every authored cell is transpiled (no-optionality).
+        let typed = lookup.equivalence(&cell.subject, &cell.predicate, &cell.obj)?;
         assert_relation_no_overclaim(
             "sssom",
-            relation,
-            mclass,
-            MorphismKind::InstitutionMorphism,
+            typed.relation,
+            typed.morphism_class,
+            typed.morphism_kind,
             &cell.predicate,
         )
         .map_err(|e| e.0)?;
@@ -747,7 +754,16 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
         let ds = b.freeze().expect("freeze");
         let view = DslView::new(&ds);
 
-        let out = lower_sssom(&view, "0.1.0", "2026-06-03").expect("lower sssom");
+        // Build the materialized correspondence lookup from the same view, exactly as the
+        // pipeline stage does, so the ledger gate consumes the materialized typed relation.
+        let empty = gmeow_rdf::parse_dataset(b"", "application/n-triples", None).expect("empty");
+        let (_program, lookup) =
+            crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+                &view,
+                &DslView::new(&empty),
+            )
+            .expect("transpile lookup");
+        let out = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup).expect("lower sssom");
         let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
         assert!(
             tsv.contains("# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/demo")

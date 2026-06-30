@@ -265,6 +265,154 @@ fn correspondence_iris_are_content_stable() {
     assert_eq!(a.content_key(), b.content_key());
 }
 
+/// A `dsl/mappings/` fixture with ONE `gmeow:ProjectionMapping` whose single per-profile
+/// binding declares itself a commitment-shifting `logic:BridgeView` (`gmeow:morphismClass`)
+/// while its EDOAL relation token is the equivalence symbol `=`. This is the authored
+/// shape of a bridge view trying to surface an equivalence predicate — the negative case
+/// the overclaim gate must refuse (Constitution Principle 5). When `bridge` is false the
+/// SAME cell is a plain (non-bridge) equivalence binding — the control that must pass.
+fn projection_bridge_dsl(bridge: bool) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+    use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral};
+
+    const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+    let mut b = RdfDatasetBuilder::new();
+    let triple =
+        |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
+            let s = b.intern_iri(s.to_owned());
+            let p = b.intern_iri(p.to_owned());
+            let o = match (o_iri, o_lit) {
+                (Some(o), _) => b.intern_iri(o.to_owned()),
+                (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
+                _ => unreachable!(),
+            };
+            b.push_quad(s, p, o, None);
+        };
+
+    let pm = format!("{GMEOW}pmBridge");
+    let pat = format!("{GMEOW}pmBridge/pattern");
+    let bind = format!("{GMEOW}pmBridge/binding/schema-org");
+    triple(
+        &mut b,
+        &pm,
+        RDF_TYPE,
+        Some(&format!("{GMEOW}ProjectionMapping")),
+        None,
+    );
+    triple(
+        &mut b,
+        &pm,
+        &format!("{GMEOW}hasMappingPattern"),
+        Some(&pat),
+        None,
+    );
+    triple(&mut b, &pat, &format!("{GMEOW}anchor"), None, Some("s"));
+    // An edoalSource so the EDOAL lowering emits a real cell carrying the `=` relation.
+    triple(
+        &mut b,
+        &pat,
+        &format!("{GMEOW}edoalSource"),
+        Some(&format!("{GMEOW}Foo")),
+        None,
+    );
+    triple(
+        &mut b,
+        &pat,
+        &format!("{GMEOW}edoalSourceKind"),
+        None,
+        Some("class"),
+    );
+    triple(
+        &mut b,
+        &pm,
+        &format!("{GMEOW}hasBinding"),
+        Some(&bind),
+        None,
+    );
+    triple(
+        &mut b,
+        &bind,
+        &format!("{GMEOW}profile"),
+        None,
+        Some("schema-org"),
+    );
+    // The EDOAL relation token is the equivalence symbol `=` …
+    triple(&mut b, &bind, &format!("{GMEOW}relation"), None, Some("="));
+    triple(
+        &mut b,
+        &bind,
+        &format!("{GMEOW}toClass"),
+        Some("https://schema.org/Thing"),
+        None,
+    );
+    if bridge {
+        // … but the correspondence is authored as a by-reference BridgeView, which the
+        // overclaim gate then refuses (it may never assert equivalence).
+        triple(
+            &mut b,
+            &bind,
+            &format!("{GMEOW}morphismClass"),
+            Some(&format!("{LOGIC}BridgeView")),
+            None,
+        );
+    }
+    b.freeze().expect("freeze bridge dsl")
+}
+
+/// PART B — the negative conformance case proving the re-seated gate is strictly stronger
+/// than the old predicate-only lint: an authored `gmeow:ProjectionMapping` cell whose
+/// binding is a commitment-shifting `logic:BridgeView` surfacing the equivalence token `=`
+/// flows CELL → transpile (materialized typed correspondence) → lowering (which CONSUMES
+/// the materialized typed relation for its gate) and HARD-FAILS the whole build — through
+/// BOTH the EDOAL and the SPARQL lowerings, end-to-end (not just the bare gate helper).
+///
+/// The control (`bridge=false`) is the SAME cell minus the BridgeView class: it passes.
+/// So the failure is attributable SOLELY to the gate consuming the materialized
+/// `morphismClass=BridgeView` — remove the `assert_relation_no_overclaim` call from the
+/// lowering and this case goes green, which is exactly what makes it a RED witness.
+#[test]
+fn bridge_cell_surfacing_equivalence_fails_end_to_end() {
+    use crate::projections::{edoal::lower_edoal, sparql::lower_sparql};
+
+    let empty = parse_nt("");
+    let onto_view = DslView::new(&empty);
+
+    // ── The RED case: the authored bridge cell flows through transpile + both lowerings. ─
+    let dsl = projection_bridge_dsl(true);
+    let dsl_view = DslView::new(&dsl);
+    let (_program, lookup) = transpile_correspondences_indexed(&dsl_view, &onto_view)
+        .expect("the bridge cell transpiles to a typed correspondence (BridgeView)");
+
+    // `*Lowering` Ok types are not `Debug`, so match the `Result` rather than `expect_err`.
+    let edoal_err = match lower_edoal(&dsl_view, &onto_view, &lookup) {
+        Err(e) => e,
+        Ok(_) => panic!("a BridgeView surfacing `=` must hard-fail the EDOAL lowering"),
+    };
+    assert!(edoal_err.contains("bridge"), "{edoal_err}");
+    assert!(edoal_err.contains("Principle 5"), "{edoal_err}");
+
+    let sparql_err = match lower_sparql(&dsl_view, &onto_view, &lookup) {
+        Err(e) => e,
+        Ok(_) => panic!("a BridgeView surfacing `=` must hard-fail the SPARQL lowering"),
+    };
+    assert!(sparql_err.contains("bridge"), "{sparql_err}");
+    assert!(sparql_err.contains("Principle 5"), "{sparql_err}");
+
+    // ── The control: the SAME cell as a plain (non-bridge) equivalence binding passes the
+    // gate. We assert through the EDOAL lowering — it emits an alignment for every profile
+    // regardless of which carry a binding, so the gate is the only thing that could reject
+    // this cell. (The SPARQL lowering additionally requires EVERY profile to carry a
+    // binding, an orthogonal whole-corpus constraint a one-binding fixture cannot satisfy;
+    // the RED SPARQL assertion above still bites because `schema-org` — bound, and first in
+    // PROFILES — hits the gate before any unbound profile.) The control passing shows the
+    // RED case fails SOLELY because the gate consumes the authored BridgeView class.
+    let ctrl_dsl = projection_bridge_dsl(false);
+    let ctrl_view = DslView::new(&ctrl_dsl);
+    let (_ctrl_program, ctrl_lookup) = transpile_correspondences_indexed(&ctrl_view, &onto_view)
+        .expect("the control equivalence cell transpiles");
+    lower_edoal(&ctrl_view, &onto_view, &ctrl_lookup)
+        .expect("a genuine equivalence binding passes the EDOAL gate");
+}
+
 /// The justification → evidence-strength band is honest: a manually-curated cell carries
 /// a modest non-zero warrant, an un-justified cell leaves the axis unset (never a
 /// fabricated number).
