@@ -101,6 +101,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_narrow_waist(root, &mut report);
     check_lane_purity(root, &mut report);
     check_no_rdflib_in_runtime(root, &mut report);
+    check_projection_compute_purity(root, &mut report);
     report
 }
 
@@ -238,6 +239,100 @@ fn check_no_rdflib_in_runtime(root: &Path, report: &mut RepoStaticReport) {
         report.error(format!(
             "rdflib keeper allow-list is stale: expected {{{expected}}}, found {{{found}}}"
         ));
+    }
+}
+
+/// The SHACL-AF / RDFQuery **computational** (derivation) constructs. Computation is
+/// authored in the `logic:` canon and PROJECTED to these surfaces under `generated/`
+/// (Principle 17, `design/LOGIC-SHACL-AF.md`); a hand-authored occurrence in the authored
+/// sources is a forbidden second source of truth unless it carries a `logic:formalizes`
+/// back-reference to its `logic:` origin (the Hybrid-placement convention). Note this is
+/// the *derivation* vocabulary only — the SHACL *constraint* vocabulary
+/// (`sh:sparql` / `sh:SPARQLTarget` / `sh:SPARQLConstraint`) is validation, not
+/// computation, and is deliberately NOT listed here.
+const PROJECTION_COMPUTE_TOKENS: &[&str] = &[
+    "sh:rule",
+    "sh:SPARQLRule",
+    "sh:TripleRule",
+    "sh:JSRule",
+    "sh:js",
+    "sh:values",
+];
+
+/// The Hybrid-placement back-reference that legalizes a hand-authored projection-surface
+/// construct: it names the `logic:` source the construct is the projection of.
+const PROJECTION_FORMALIZES_BACKREF: &str = "logic:formalizes";
+
+/// Computation-surfaces-are-projections purity gate (Principles 17/4/12,
+/// `design/LOGIC-SHACL-AF.md` / `design/LOGIC-RDFQUERY.md`): scan the authored RDF sources
+/// (`slices/` + `dsl/`, `.ttl` only — NOT `generated/`, NOT prose `.md` docs) for
+/// computational SHACL-AF / RDFQuery vocabulary. Any file carrying such a construct must
+/// also carry a `logic:formalizes` back-reference to its `logic:` source; otherwise it is a
+/// hand-authored computational projection — a forbidden second source of truth — and the
+/// gate fails.
+fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
+    let mut ttl_files = Vec::new();
+    for sub in ["slices", "dsl"] {
+        let dir = root.join(sub);
+        if dir.is_dir() {
+            collect_ttl_files(&dir, report, &mut ttl_files);
+        }
+    }
+    ttl_files.sort();
+    for path in ttl_files {
+        let text = match fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        let hits: Vec<&str> = PROJECTION_COMPUTE_TOKENS
+            .iter()
+            .copied()
+            .filter(|tok| text.contains(*tok))
+            .collect();
+        if hits.is_empty() {
+            continue;
+        }
+        if !text.contains(PROJECTION_FORMALIZES_BACKREF) {
+            let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+            report.error(format!(
+                "{rel} hand-authors computational SHACL-AF/RDFQuery vocabulary ({}) without a \
+                 `{PROJECTION_FORMALIZES_BACKREF}` back-reference: computation is authored in the \
+                 logic: canon and PROJECTED to these surfaces under generated/ (Principle 17), \
+                 never hand-authored as a second source of truth (design/LOGIC-SHACL-AF.md)",
+                hits.join(", ")
+            ));
+        }
+    }
+}
+
+fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(err) => {
+            report.error(format!("{}: cannot read directory: {err}", dir.display()));
+            return;
+        }
+    };
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(err) => {
+                report.error(format!(
+                    "{}: cannot read directory entry: {err}",
+                    dir.display()
+                ));
+                continue;
+            }
+        };
+        let path = entry.path();
+        if path.is_dir() {
+            collect_ttl_files(&path, report, out);
+        } else if path.extension().is_some_and(|ext| ext == "ttl") {
+            out.push(path);
+        }
     }
 }
 
@@ -767,6 +862,54 @@ mod tests {
     fn python_assignment_scanner_keeps_annotated_assignment() {
         let names = python_assigned_names("gts_app: typer.Typer = typer.Typer()\n");
         assert!(names.contains(GTS_APP));
+    }
+
+    #[test]
+    fn projection_compute_purity_flags_unbacked_construct_and_passes_a_backed_one() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let module = root.join("slices/core/demo/module.ttl");
+
+        // A hand-authored SHACL-AF derivation rule with NO logic:formalizes back-reference
+        // is a forbidden second source of truth → the gate must fail.
+        write(
+            &module,
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:S a sh:NodeShape ;\n    \
+                 sh:rule [ a sh:SPARQLRule ; \
+                 sh:construct \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_projection_compute_purity(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("computational SHACL-AF") && e.contains("module.ttl")),
+            "a hand-authored sh:SPARQLRule without logic:formalizes must be flagged; got {:?}",
+            report.errors
+        );
+
+        // The SAME construct WITH a logic:formalizes back-reference is the legal Hybrid
+        // placement (it names its logic: source) → the gate must pass.
+        write(
+            &module,
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             ex:S a sh:NodeShape ;\n    \
+                 logic:formalizes ex:someLogicRule ;\n    \
+                 sh:rule [ a sh:SPARQLRule ; \
+                 sh:construct \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
+        );
+        let mut backed = RepoStaticReport::default();
+        check_projection_compute_purity(root, &mut backed);
+        assert!(
+            backed.errors.is_empty(),
+            "a logic:formalizes-backed construct must pass the purity gate; got {:?}",
+            backed.errors
+        );
     }
 
     #[test]
