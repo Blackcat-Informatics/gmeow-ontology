@@ -601,7 +601,7 @@ impl McpServer {
                 },
             )
             .map_err(|e| e.to_string())?;
-        // Record the T6 audit context on the recorded call so the committed turn is cold-auditable.
+        // Record the trajectory-audit context on the recorded call so the committed turn is cold-auditable.
         let at_time = call
             .created
             .as_deref()
@@ -1084,12 +1084,12 @@ fn optional_bool_checked(args: &Value, key: &str) -> Result<Option<bool>, String
     }
 }
 
-// ── T7: Transaction-Logic execution of the memory write triad ────────────────────
+// ── Transaction-Logic execution of the memory write triad ────────────────────
 //
 // The two memory WRITE tools run as Transaction-Logic transactions: the canonical action theory
 // is the single authority, the engine's executional entailment over the real start state is the
 // commit gate, `dry_run` selects the hypothetical (sandbox) operator, and every committed turn is
-// recorded with the audit context the T6 trajectory audit reads.
+// recorded with the audit context the trajectory audit reads.
 
 /// The canonical memory-triad action theory — the SINGLE authority for how store_claim and
 /// revise_belief behave as transactions (their `logic:precondition` / `logic:effect` /
@@ -1241,12 +1241,12 @@ fn push_gts_term(terms: &mut Vec<GtsTerm>, term: GtsTerm) -> usize {
     terms.len() - 1
 }
 
-/// Append the T6 audit-context segment for a just-recorded `gmeow:ToolCall` to the SAME
+/// Append the trajectory-audit context segment for a just-recorded `gmeow:ToolCall` to the SAME
 /// `memory.gts`, keyed to `call_id`: the call's `logic:instantiatesSchema`, its single
 /// `logic:properPartOf` turn anchor (one call = one anchor — the stateless server mints no shared
 /// turn state), its `gmeow:atTime` and the single canonical `gmeow:eventTemporalFrame`
 /// (UTC-Gregorian, P11), the anchor's `logic:transitionFromState` start state, and the start's
-/// obtaining situations. This is exactly the shape `emit_trajectory_audits` reads, so a cold T6
+/// obtaining situations. This is exactly the shape `emit_trajectory_audits` reads, so a cold trajectory
 /// audit of `memory.gts` (unioned with the canonical action theory) verifies the executed turn.
 fn write_audit_segment(
     memory_path: &Path,
@@ -1600,7 +1600,7 @@ mod tests {
         assert_eq!(stored["transaction"]["succeeded"], true);
 
         // The committed turn is cold-auditable: the persisted memory.gts carries exactly the
-        // predicates emit_trajectory_audits (T6) requires on the recorded ToolCall and its anchor.
+        // predicates emit_trajectory_audits requires on the recorded ToolCall and its anchor.
         let raw = fs::read(&memory_path).unwrap();
         let bundle = gmeow_rdf::import_gts_events(&raw).expect("import memory.gts");
         let predicates: BTreeSet<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&bundle.dataset)
@@ -1617,7 +1617,7 @@ mod tests {
         ] {
             assert!(
                 predicates.contains(predicate),
-                "memory.gts must carry {predicate} for the T6 trajectory audit"
+                "memory.gts must carry {predicate} for the trajectory audit"
             );
         }
         // The single canonical temporal frame is recorded (P11 — one frame per trajectory).
