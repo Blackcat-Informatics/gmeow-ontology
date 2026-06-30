@@ -67,5 +67,16 @@
       "transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path"
     ],
     "preservation": "SoundUnderApproximation"
+  },
+  "shacl-af": {
+    "complexity": "terminating/PTIME-data",
+    "lossy_drops": [
+      "ground class/property subsumption axioms are projected as cax-sco / prp-spo1 sh:SPARQLRule shapes; every other ground axiom (type / metamodel assertions, asserted relations, domain/range, modal or scoped axioms, literal-valued assertions) is not a derivation rule, has no SHACL-AF form, and is carried in the canonical RDF-1.2 layer (recorded as a drop)",
+      "modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop",
+      "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)",
+      "the stratified Horn-with-stratified-negation-and-aggregation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER, and a reduce rule → an aggregating sh:SPARQLRule with a GROUP-BY sub-SELECT): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)",
+      "actual: ground axiom <https://example.org/teleology/resource-exhaustion-gates-action/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+    ],
+    "preservation": "SoundUnderApproximation"
   }
 }
