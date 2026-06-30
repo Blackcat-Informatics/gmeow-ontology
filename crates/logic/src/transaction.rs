@@ -861,16 +861,43 @@ pub(crate) fn emit_transaction_outcome(
     world: &str,
     root: &str,
 ) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
-    use crate::provenance::mint_derivation_id;
-    use crate::teleology::{n3, triple_reifier, TeleologyQuad};
-
     let (start, sits) = root_start(facts, root)?;
     let program = parse_program(facts, root, 0)?;
     // The execution-commitment mode is read from the program's governing contract; the
     // verdict (plan_path) is computed identically under both modes — only emission differs.
     let mode = root_execution_mode(facts, root)?;
+    emit_program_outcome(facts, world, root, &program, mode, &start, &sits)
+}
+
+/// Emit the outcome substrate for an ALREADY-PARSED program from a resolved start state —
+/// the single committed / hypothetical / concurrent emission path.
+///
+/// Factored out of [`emit_transaction_outcome`] so a SYNTHESIZED program (a recorded
+/// `gmeow:ToolCall` trajectory mapped to a serial conjunction by
+/// [`trajectory::emit_trajectory_audits`]) runs through the SAME emission as an authored
+/// program — one path, no duplicated branches. `root` is the program-identity IRI that salts
+/// every minted state/step and the content-addressed outcome node.
+///
+/// Pure over `facts` (no store mutation); every quad is stamped with [`TRANSACTION_RULE_IRI`].
+///
+/// # Errors
+///
+/// Propagates any STRUCTURAL fault from [`plan_path`] (a primitive schema with no effect, or a
+/// non-terminating program) as a hard error.
+pub(crate) fn emit_program_outcome(
+    facts: &WorldFacts,
+    world: &str,
+    root: &str,
+    program: &TransactionProgram,
+    mode: ExecutionMode,
+    start: &str,
+    sits: &BTreeSet<String>,
+) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+    use crate::provenance::mint_derivation_id;
+    use crate::teleology::{n3, triple_reifier, TeleologyQuad};
+
     let mut counter = StepCounter::new();
-    let outcome = plan_path(facts, &program, &start, &sits, root, &mut counter)?;
+    let outcome = plan_path(facts, program, start, sits, root, &mut counter)?;
 
     // Content-addressed outcome node, salted by (root, start, world).
     let outcome_iri = format!(
@@ -878,7 +905,7 @@ pub(crate) fn emit_transaction_outcome(
         sha1_hex(&format!("{root}\n{start}\n{world}"))
     );
     // Grounding provenance: the program's type assertion is the link the outcome rests on.
-    let source = triple_reifier(root, RDF_TYPE, &program_type_iri(&program))?;
+    let source = triple_reifier(root, RDF_TYPE, &program_type_iri(program))?;
     let deriv = mint_derivation_id(TRANSACTION_RULE_IRI, &[source.as_str()]);
 
     let mut out: Vec<TeleologyQuad> = Vec::new();
@@ -901,7 +928,7 @@ pub(crate) fn emit_transaction_outcome(
         n3(&logic(TRANSACTION_OUTCOME)),
     );
     emit(&outcome_iri, logic(OUTCOME_OF_PROGRAM), n3(root));
-    emit(&outcome_iri, logic(TRANSACTION_START), n3(&start));
+    emit(&outcome_iri, logic(TRANSACTION_START), n3(start));
     emit(
         &outcome_iri,
         logic(TRANSACTION_SUCCEEDS),
@@ -924,7 +951,7 @@ pub(crate) fn emit_transaction_outcome(
                         .collect::<Vec<_>>()
                         .join("\n"),
                 ),
-                program_hash: blake3_32(&canonical_program(&program)),
+                program_hash: blake3_32(&canonical_program(program)),
                 world: world.to_owned(),
                 solver_version: crate::counterfactual::SOLVER_VERSION.to_owned(),
             });
@@ -938,7 +965,7 @@ pub(crate) fn emit_transaction_outcome(
     if outcome.succeeded() && mode == ExecutionMode::Committed {
         // `emit` (the verdict closure) is no longer used past here, so its borrow of `out`
         // has ended (NLL) and the helpers below may extend `out`.
-        if let TransactionProgram::Concurrent { left, right, .. } = &program {
+        if let TransactionProgram::Concurrent { left, right, .. } = program {
             // A concurrent root materializes EACH leg's path faithfully (no merged linear
             // chain) plus the DERIVED concurrent history + serialization classification.
             out.extend(emit_concurrent_history(
@@ -946,8 +973,8 @@ pub(crate) fn emit_transaction_outcome(
                 world,
                 &outcome_iri,
                 root,
-                &start,
-                &sits,
+                start,
+                sits,
                 left,
                 right,
                 &source,
@@ -1313,6 +1340,11 @@ fn program_type_iri(program: &TransactionProgram) -> String {
         TransactionProgram::Primitive { .. } => logic(INSTANTIATES_SCHEMA),
     }
 }
+
+// T6 — read-only audit of recorded `gmeow:ToolCall` trajectories (issue #716).  A child
+// module so it reaches the engine's private emission helpers through ONE shared path
+// (`emit_program_outcome`); it mints no RDF vocabulary of its own.
+pub(crate) mod trajectory;
 
 #[cfg(test)]
 mod tests;
