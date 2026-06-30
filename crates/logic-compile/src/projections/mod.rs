@@ -4,13 +4,15 @@
 //! Projection back-ends: [`LogicProgram`] → each target format.
 //!
 //! The projection phase of the GMEOW Logic compiler; the Python duplicate
-//! (`logic_projections.py`) has been retired.  Seven targets:
+//! (`logic_projections.py`) has been retired.  Eight targets:
 //!
 //! * [`text::project_datalog`], [`text::project_n3`], [`text::project_nemo`] —
 //!   **byte-identical** text targets (the conformance goldens compare bytes).
 //! * [`rdf::project_owl_dl`], [`rdf::project_owl_el`], [`rdf::project_gufo`],
 //!   [`rdf::project_canonical_rdf12`] — **RDF-isomorphic** targets (serialized via
 //!   oxigraph; the goldens compare by graph isomorphism).
+//! * [`crate::clif::project_clif`] — the bidirectional **CLIF** s-expression FOL
+//!   dialect (#721), `PreservationKind::Exact` in both directions.
 //!
 //! Each projection declares its [`PreservationKind`] + complexity class; the
 //! overclaim gate ([`assert_no_overclaim`]) turns the build red when a target
@@ -70,6 +72,8 @@ pub struct CompiledArtifacts {
     pub canonical_rdf12: String,
     /// `generated/logic/gmeow.rls`.
     pub nemo: String,
+    /// `generated/cl/gmeow.clif`.
+    pub clif: String,
     /// `generated/logic/projection-report.ttl`.
     pub report: String,
     /// The `% === Rules ===` section of [`nemo`](Self::nemo) — the rule text the
@@ -85,7 +89,7 @@ pub struct CompiledArtifacts {
     /// depth-bounded Datalog rule scheme, and the `"property-path"` ledger row.
     /// Empty when the program declares no path shapes — never absent.
     pub path_projections: Vec<PathProjection>,
-    /// The whole-program + path-shape projection rows (the seven standard targets plus
+    /// The whole-program + path-shape projection rows (the eight standard targets plus
     /// the per-shape `property-path:<iri>` rows) that fed [`report`](Self::report).
     /// Surfaced so a downstream assembler (the pipeline) can union them with the
     /// correspondence-calculus loss ledger and serialize the FINAL projection report
@@ -134,6 +138,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let gufo = rdf::project_gufo(program).map_err(|e| e.to_string())?;
     let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| e.to_string())?;
     let nemo = text::project_nemo(program)?;
+    let clif = crate::clif::project_clif(program);
 
     let results = [
         &owl_dl,
@@ -143,6 +148,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         &gufo,
         &canonical_rdf12,
         &nemo,
+        &clif,
     ];
     let mut owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
 
@@ -156,7 +162,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let path_projections = paths::project_path_shapes(program);
 
     // One ProjectionResult per path shape, keyed `property-path:<iri>`, fed into the
-    // report alongside the seven whole-program projections so the report carries the
+    // report alongside the eight whole-program projections so the report carries the
     // path targets too.  The kind is the declared `property-path` preservation; a
     // path projection records no `actual_drops` (the overclaim gate is a no-op for
     // its SoundUnder kind).
@@ -259,6 +265,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         gufo: gufo.content,
         canonical_rdf12: canonical_rdf12.content,
         nemo: nemo.content,
+        clif: clif.content,
         report,
         nemo_rules,
         preservation_ledger,
@@ -481,6 +488,15 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             vec![],
         ),
         "nemo" => (PreservationKind::Exact, "PTIME/datalog", vec![]),
+        // CLIF (#721): a bidirectional s-expression FOL dialect. ExactPreservation —
+        // the idiomatic FOL channel (rules + formulas) round-trips verbatim and the
+        // RDF/predication channel rides the lossless canonical-RDF-1.2 leg, so nothing
+        // is dropped (the production round-trip test pins this).
+        "clif" => (
+            PreservationKind::Exact,
+            "full first-order (semi-decidable)",
+            vec![],
+        ),
         "property-path" => (
             PreservationKind::SoundUnder,
             "terminating/PTIME-data (bounded); regular (unbounded)",
@@ -538,7 +554,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 12] = [
+const LEDGER_TARGETS: [&str; 13] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -546,6 +562,7 @@ const LEDGER_TARGETS: [&str; 12] = [
     "gufo",
     "canonical-rdf12",
     "nemo",
+    "clif",
     "property-path",
     // The correspondence-calculus alignment lowerings: each carries its own
     // preservation judgment in the same loss ledger as OWL/Datalog/gUFO.
