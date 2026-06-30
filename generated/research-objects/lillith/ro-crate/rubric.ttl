@@ -1,6 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow/evals/crit-abstention>
     a gmeow:Criterion ;
@@ -111,5 +110,5 @@
 <https://blackcatinformatics.ca/gmeow/evals/scale-unit>
     a gmeow:ScoreScale ;
     rdfs:label "unit interval"@en ;
-    gmeow:scaleMax "1"^^xsd:decimal ;
-    gmeow:scaleMin "0"^^xsd:decimal .
+    gmeow:scaleMax 1.0 ;
+    gmeow:scaleMin 0.0 .
