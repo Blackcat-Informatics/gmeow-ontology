@@ -12,7 +12,7 @@
 //!   [`rdf::project_canonical_rdf12`] — **RDF-isomorphic** targets (serialized via
 //!   oxigraph; the goldens compare by graph isomorphism).
 //! * [`crate::clif::project_clif`] — the bidirectional **CLIF** s-expression FOL
-//!   dialect (#721), `PreservationKind::Exact` in both directions.
+//!   dialect, `PreservationKind::Exact` in both directions.
 //! * [`shacl_af::project_shacl_af`] — the SHACL-AF `sh:SPARQLRule` **computation**
 //!   surface (a byte-stable text target; the canon's derivation rules projected to a
 //!   SHACL rule dialect, never bolted onto SHACL — `design/LOGIC-SHACL-AF.md`).
@@ -500,7 +500,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             vec![],
         ),
         "nemo" => (PreservationKind::Exact, "PTIME/datalog", vec![]),
-        // CLIF (#721): a bidirectional s-expression FOL dialect. ExactPreservation —
+        // CLIF: a bidirectional s-expression FOL dialect. ExactPreservation —
         // the idiomatic FOL channel (rules + formulas) round-trips verbatim and the
         // RDF/predication channel rides the lossless canonical-RDF-1.2 leg, so nothing
         // is dropped (the production round-trip test pins this).

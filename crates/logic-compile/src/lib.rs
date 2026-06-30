@@ -38,7 +38,7 @@
 #![forbid(unsafe_code)]
 
 pub mod adapter;
-// The CLIF (Common Logic Interchange Format) text dialect (#721): a bidirectional,
+// The CLIF (Common Logic Interchange Format) text dialect: a bidirectional,
 // PreservationKind::Exact s-expression FOL surface (writer + reader).
 pub mod clif;
 pub mod compat;

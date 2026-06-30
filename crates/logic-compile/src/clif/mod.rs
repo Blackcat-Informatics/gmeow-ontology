@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The CLIF (Common Logic Interchange Format) text dialect (#721).
+//! The CLIF (Common Logic Interchange Format) text dialect.
 //!
 //! CLIF is the ISO/IEC 24707 s-expression (Lisp-like) syntax for full first-order
 //! Common Logic. This module is a **bidirectional, `PreservationKind::Exact`** dialect:
