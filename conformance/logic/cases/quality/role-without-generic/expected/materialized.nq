@@ -1,0 +1,2 @@
+<https://example.org/quality/role-without-generic/Q> <https://blackcatinformatics.ca/logic/qualityRole> <https://example.org/quality/role-without-generic/systolicRole> <https://example.org/quality/role-without-generic/schema> .
+<https://example.org/quality/role-without-generic/Q> <https://blackcatinformatics.ca/logic/violation> <https://blackcatinformatics.ca/logic/QualityRoleWithoutGeneric> <https://example.org/quality/role-without-generic/schema> .

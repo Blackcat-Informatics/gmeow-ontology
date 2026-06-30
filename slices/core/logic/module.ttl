@@ -967,7 +967,7 @@ logic:MeasurementFrameMissing
         logic:QualityConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Measurement Frame Missing"@x-gmeow-english ;
-    skos:definition "The frame-completeness axiom as a quality constraint: a measured value must not be asserted without the reference frame it is expressed in — a logic:measuredValue with no logic:referenceFrame is ill-formed. A bare magnitude is frame-independent (a logic:trueQuantity), but the moment a value is given it is expressed in a unit and frame; a value asserted without its frame is meaningless, not merely under-specified (Principle 11: separate the frame-independent structure from the frame-relative value, and never assert the value without the frame). A measured value lacking a frame is the logic:violation, entailed by the foundation lowering rather than asserted by hand."@x-gmeow-english .
+    skos:definition "The frame-completeness axiom as a quality constraint: a value expressed in a unit must not be asserted without the reference frame it is read in — a measurement bearing a logic:unit but no logic:referenceFrame is ill-formed. A bare magnitude is frame-independent (a logic:trueQuantity), but the moment a value is given it is expressed in a unit and frame; a value asserted without its frame is meaningless, not merely under-specified (Principle 11: separate the frame-independent structure from the frame-relative value, and never assert the value without the frame). Because the foundation chase is all-IRI, the rule keys on logic:unit — the IRI-valued witness that a framed value exists — rather than on the literal logic:measuredValue it qualifies. A unit-bearing measurement lacking a frame is the logic:violation, entailed by the foundation lowering rather than asserted by hand."@x-gmeow-english .
 
 logic:MereologyConstraint
     a owl:Class ;
@@ -2974,6 +2974,13 @@ logic:underMereologyProfile
     rdfs:label "under mereology profile"@x-gmeow-english ;
     rdfs:range logic:MereologyProfile ;
     skos:definition "Relates a whole to the logic:MereologyProfile it is declared under — the scope within which the strong mereological axioms (weak supplementation) hold for it. A whole carries no logic:WeakSupplementation obligation unless declared under a profile via this relation; parthood is profiled, not universal (design/LOGIC-FOUNDATION.md, the typed-and-contextual-mereology-and-holons section)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:unit
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "unit"@x-gmeow-english ;
+    skos:definition "Relates a measurement to the unit its logic:measuredValue is expressed in — a QUDT unit by reference (Principle 5), held on the measurement rather than on the frame-independent magnitude. The unit leg of the true-quantity/measured-value seam (Principle 11): the unit belongs to the measurement, not the quantity, so the same logic:trueQuantity round-trips across unit systems. Because the foundation chase is all-IRI, logic:unit is the IRI-valued witness that a framed value exists, and is the predicate the logic:MeasurementFrameMissing constraint keys on — a value expressed in a unit but lacking its logic:referenceFrame is the violation. The domain property gmeow:unit grounds onto this by sub-property. Domain a measurement, range a unit (stated in prose, matching the module's convention)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:violation

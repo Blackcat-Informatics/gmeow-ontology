@@ -1,0 +1,6 @@
+{
+  "https://example.org/quality/ladder-wellformed/schema": {
+    "quads": 5,
+    "status": "consistent"
+  }
+}

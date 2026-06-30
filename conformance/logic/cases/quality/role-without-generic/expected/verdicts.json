@@ -1,0 +1,6 @@
+{
+  "https://example.org/quality/role-without-generic/schema": {
+    "quads": 2,
+    "status": "consistent"
+  }
+}
