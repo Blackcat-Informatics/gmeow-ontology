@@ -23,7 +23,9 @@
 //! upstream product; there is no Python subprocess and no disk-read dependency.
 
 use std::collections::BTreeMap;
+use std::io::ErrorKind;
 use std::path::Path;
+use std::time::Instant;
 
 use gmeow_diagnostics::{Finding, Severity};
 use gmeow_logic::dag_profile::certify_acyclic;
@@ -65,12 +67,18 @@ pub struct RunReport {
     pub mode: RunMode,
     /// Total committed-artifact paths the run produced.
     pub produced: usize,
-    /// Paths that reproduced byte-for-byte (check) / were written (regenerate).
+    /// Paths that reproduced byte-for-byte (check) / reconciled cleanly (regenerate).
     pub reproduced: usize,
+    /// Artifacts rewritten in regenerate mode because bytes changed or the file was missing.
+    pub written: usize,
+    /// Artifacts left untouched in regenerate mode because committed bytes already matched.
+    pub skipped_writes: usize,
     /// Drift / write findings (empty ⇒ full parity).
     pub findings: Vec<Finding>,
     /// The drifted logical paths (check mode), sorted.
     pub drifted: Vec<String>,
+    /// Per-phase timing records for profiling the gate without parsing stderr.
+    pub timings: Vec<TimingRecord>,
     /// The build plan's DAG-workflow certification, lowered to the typed
     /// [`ReasoningResult`] a consumer reads — the Rust-struct counterpart of the
     /// RDF `logic:ReasoningResult` `teleology::emit_dag_certification` emits, both
@@ -86,6 +94,17 @@ impl RunReport {
     pub fn is_clean(&self) -> bool {
         self.findings.is_empty() && self.drifted.is_empty()
     }
+}
+
+/// One wall-clock timing row emitted by the pipeline runner.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TimingRecord {
+    /// Phase label, e.g. `stage:stage-reason`, `pipeline-reconcile`, or `superset`.
+    pub phase: String,
+    /// Elapsed wall-clock in milliseconds.
+    pub elapsed_ms: u128,
+    /// Optional stable metadata string for deterministic JSON output.
+    pub metadata: Option<String>,
 }
 
 /// Build the authoritative full `PipelineSpec` — the executable twin of the
@@ -192,6 +211,7 @@ pub fn full_spec() -> PipelineSpec {
         &[
             "stage-compile-logic",
             "stage-export-json-schema",
+            "stage-mappings",
             "stage-reason",
             "stage-snapshot",
             "stage-statements",
@@ -271,6 +291,7 @@ fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// deterministic); the `gmeow.gts` bundle is compared by the FOLD (see
 /// `tests/full_parity.rs`) because CBOR has encoding skew.
 pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, PipelineError> {
+    let total_started = Instant::now();
     let spec = full_spec();
 
     // Single-pass (#1132 Stage C): the schemas leaf is now a normal carrier-reading
@@ -290,15 +311,47 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     // it can never serve a stale or corrupt product. A clean checkout (CI) has no cache
     // dir and builds cold; subsequent local runs are warm.
     let mut ctx = RunContext::open(root, jobs)?;
+    let scheduler_started = Instant::now();
     let result = run(&graph, &bound, &mut ctx)?;
+    let scheduler_elapsed = scheduler_started.elapsed().as_millis();
+    let mut timings: Vec<TimingRecord> = Vec::new();
+    timings.push(TimingRecord {
+        phase: "pipeline-scheduler".to_string(),
+        elapsed_ms: scheduler_elapsed,
+        metadata: Some(format!(
+            "jobs={jobs};stages={};levels={}",
+            result.stage_timings.len(),
+            result.level_timings.len()
+        )),
+    });
+    for timing in &result.stage_timings {
+        timings.push(TimingRecord {
+            phase: format!("stage:{}", timing.stage_id),
+            elapsed_ms: timing.elapsed_ms,
+            metadata: Some(format!("level={};cached={}", timing.level, timing.cached)),
+        });
+    }
+    for timing in &result.level_timings {
+        timings.push(TimingRecord {
+            phase: "pipeline-level".to_string(),
+            elapsed_ms: timing.elapsed_ms,
+            metadata: Some(format!(
+                "level={};critical={}",
+                timing.level, timing.critical_stage
+            )),
+        });
+    }
     let products: BTreeMap<String, StageProduct> = result.products;
 
     let mut findings: Vec<Finding> = Vec::new();
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
     let mut reproduced = 0usize;
+    let mut written = 0usize;
+    let mut skipped_writes = 0usize;
 
     // ── Reconcile every produced artifact against committed / write it. ──
+    let reconcile_started = Instant::now();
     for product in products.values() {
         for (path, bytes) in &product.artifacts() {
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
@@ -318,14 +371,24 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             // `tests/full_parity.rs`.
             if path == GTS_PATH {
                 if mode == RunMode::Regenerate {
-                    write_artifact(root, path, bytes)?;
+                    if write_artifact(root, path, bytes)? {
+                        written += 1;
+                    } else {
+                        skipped_writes += 1;
+                    }
                 } else {
                     // Superset gate (PIPELINE_SPINE §7): every committed path under
                     // `generated/` must be byte-reconstructible from the emitted
                     // bundle — RDF as a named-graph fold, opaque as an inline blob.
                     // Reconstruct from THESE bytes (re-imported), so the gate proves
                     // the shipped bundle is a superset, not the in-memory carrier.
+                    let superset_started = Instant::now();
                     let report = crate::stages::superset::check_superset(root, bytes)?;
+                    timings.push(TimingRecord {
+                        phase: "superset".to_string(),
+                        elapsed_ms: superset_started.elapsed().as_millis(),
+                        metadata: Some("path=generated/dist/gmeow.gts".to_string()),
+                    });
                     for path in report.missing {
                         drifted.push(path.clone());
                         findings.push(
@@ -371,15 +434,23 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             // determinism check in `tests/full_parity.rs`).
             if path.starts_with("dist/") {
                 if mode == RunMode::Regenerate {
-                    write_artifact(root, path, bytes)?;
+                    if write_artifact(root, path, bytes)? {
+                        written += 1;
+                    } else {
+                        skipped_writes += 1;
+                    }
                 }
                 reproduced += 1;
                 continue;
             }
 
             if mode == RunMode::Regenerate {
-                // Phase-1 products were written above; (re)write every artifact.
-                write_artifact(root, path, bytes)?;
+                // Phase-1 products were handled above; write only changed artifacts.
+                if write_artifact(root, path, bytes)? {
+                    written += 1;
+                } else {
+                    skipped_writes += 1;
+                }
                 reproduced += 1;
                 continue;
             }
@@ -428,6 +499,11 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             );
         }
     }
+    timings.push(TimingRecord {
+        phase: "pipeline-reconcile".to_string(),
+        elapsed_ms: reconcile_started.elapsed().as_millis(),
+        metadata: Some(format!("produced={produced};reproduced={reproduced}")),
+    });
 
     drifted.sort();
     drifted.dedup();
@@ -437,12 +513,27 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     // ReasoningResult a consumer reads. Hard-fails if the plan is not certified.
     let certification = certify_build_plan(&spec)?;
 
+    timings.push(TimingRecord {
+        phase: "pipeline-total".to_string(),
+        elapsed_ms: total_started.elapsed().as_millis(),
+        metadata: Some(format!(
+            "mode={}",
+            match mode {
+                RunMode::Check => "check",
+                RunMode::Regenerate => "regenerate",
+            }
+        )),
+    });
+
     Ok(RunReport {
         mode,
         produced,
         reproduced,
+        written,
+        skipped_writes,
         findings,
         drifted,
+        timings,
         certification,
     })
 }
@@ -535,19 +626,41 @@ fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, PipelineEr
     Ok(cert.into_reasoning_result(BUILD_DAG_CONTRACT, BUILD_DAG_WORLD))
 }
 
-/// Write `bytes` to `root.join(path)`, creating parent directories.
-fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<(), PipelineError> {
+/// Write `bytes` to `root.join(path)` when content changed, creating parent directories.
+///
+/// Returns `true` when the file was rewritten and `false` when the existing bytes
+/// already matched.
+fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bool, PipelineError> {
     let target = root.join(path);
+    match std::fs::read(&target) {
+        Ok(existing) if existing == bytes => return Ok(false),
+        Ok(_) => {}
+        Err(e) if e.kind() == ErrorKind::NotFound => {}
+        Err(e) => return Err(e.into()),
+    }
     if let Some(parent) = target.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    std::fs::write(&target, bytes)?;
-    Ok(())
+    let file_name = target
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("artifact");
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let tmp = target.with_file_name(format!(".{file_name}.{}.{}.tmp", std::process::id(), nonce));
+    std::fs::write(&tmp, bytes)?;
+    if let Err(e) = std::fs::rename(&tmp, &target) {
+        let _ = std::fs::remove_file(&tmp);
+        return Err(e.into());
+    }
+    Ok(true)
 }
 
 #[cfg(test)]
 mod dag_profile_tests {
-    use super::{certify_build_plan, full_spec};
+    use super::{certify_build_plan, full_spec, write_artifact};
     use gmeow_logic::dag_profile::{certify_acyclic, DagCertification};
     use gmeow_logic::result::{
         CompletenessStatus, EvaluationStatus, InformationState, PreservationClaim,
@@ -616,5 +729,33 @@ mod dag_profile_tests {
         assert_eq!(cert.preservation, PreservationClaim::exact());
         assert!(cert.preservation.unsupported_constructs.is_empty());
         assert!(cert.validate().is_ok());
+    }
+
+    #[test]
+    fn write_artifact_skips_unchanged_bytes_and_rewrites_drift() {
+        let dir = tempfile::tempdir().expect("tempdir");
+
+        assert!(
+            write_artifact(dir.path(), "generated/sample.txt", b"v1").expect("initial write"),
+            "missing file should be written"
+        );
+        assert_eq!(
+            std::fs::read(dir.path().join("generated/sample.txt")).expect("read initial"),
+            b"v1"
+        );
+
+        assert!(
+            !write_artifact(dir.path(), "generated/sample.txt", b"v1").expect("same bytes"),
+            "identical bytes should be left untouched"
+        );
+
+        assert!(
+            write_artifact(dir.path(), "generated/sample.txt", b"v2").expect("changed bytes"),
+            "changed bytes should be rewritten"
+        );
+        assert_eq!(
+            std::fs::read(dir.path().join("generated/sample.txt")).expect("read changed"),
+            b"v2"
+        );
     }
 }

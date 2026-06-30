@@ -160,6 +160,22 @@ impl RcTerm {
             Self::Literal(l) => format!("L\u{1f}{l}"),
         }
     }
+
+    fn key_with_blanks(&self, blanks: &BTreeMap<String, String>) -> String {
+        match self {
+            Self::Blank(b) => {
+                let canonical = blanks.get(b).map_or(b.as_str(), String::as_str);
+                format!("B\u{1f}{canonical}")
+            }
+            _ => self.key(),
+        }
+    }
+
+    fn collect_blanks(&self, blanks: &mut BTreeSet<String>) {
+        if let Self::Blank(b) = self {
+            blanks.insert(b.clone());
+        }
+    }
 }
 
 /// Whether `value` is an absolute IRI (carries a `scheme:` prefix). A bare token (a
@@ -203,6 +219,21 @@ impl RcAtom {
             self.negated,
         )
     }
+
+    fn key_with_blanks(&self, blanks: &BTreeMap<String, String>) -> String {
+        format!(
+            "{}\u{1e}{}\u{1e}{}\u{1e}{}",
+            self.subject.key_with_blanks(blanks),
+            self.predicate,
+            self.object.key_with_blanks(blanks),
+            self.negated,
+        )
+    }
+
+    fn collect_blanks(&self, blanks: &mut BTreeSet<String>) {
+        self.subject.collect_blanks(blanks);
+        self.object.collect_blanks(blanks);
+    }
 }
 
 /// A relational-core Horn rule: a single head atom derived from a conjunctive body of
@@ -232,6 +263,32 @@ impl RcRule {
             .collect::<Vec<_>>()
             .join("\u{1d}");
         format!("{}\u{1c}{body}\u{1c}{distinct}", self.head.key())
+    }
+
+    fn key_with_blanks(&self, blanks: &BTreeMap<String, String>) -> String {
+        let body = self
+            .body
+            .iter()
+            .map(|atom| atom.key_with_blanks(blanks))
+            .collect::<Vec<_>>()
+            .join("\u{1d}");
+        let distinct = self
+            .distinct_pairs
+            .iter()
+            .map(|(a, b)| format!("{a}\u{1f}{b}"))
+            .collect::<Vec<_>>()
+            .join("\u{1d}");
+        format!(
+            "{}\u{1c}{body}\u{1c}{distinct}",
+            self.head.key_with_blanks(blanks)
+        )
+    }
+
+    fn collect_blanks(&self, blanks: &mut BTreeSet<String>) {
+        self.head.collect_blanks(blanks);
+        for atom in &self.body {
+            atom.collect_blanks(blanks);
+        }
     }
 }
 
@@ -283,13 +340,14 @@ impl RelationalCoreProgram {
     /// program — the content identity the typed handle and the named-graph projection
     /// share.
     pub fn content_key(&self) -> String {
-        let facts = {
-            let mut keys: Vec<String> = self.facts.iter().map(RcAtom::key).collect();
-            keys.sort();
-            keys.join("\n")
-        };
+        let blanks = self.canonical_rule_blank_labels();
+        let facts = canonical_fact_key(&self.facts);
         let rules = {
-            let mut keys: Vec<String> = self.rules.iter().map(RcRule::key).collect();
+            let mut keys: Vec<String> = self
+                .rules
+                .iter()
+                .map(|rule| rule.key_with_blanks(&blanks))
+                .collect();
             keys.sort();
             keys.join("\n")
         };
@@ -303,6 +361,48 @@ impl RelationalCoreProgram {
             self.preservation().as_str(),
             self.source_iri.as_deref().unwrap_or(""),
         )
+    }
+
+    fn canonical_rule_blank_labels(&self) -> BTreeMap<String, String> {
+        let mut labels = BTreeSet::new();
+        for rule in &self.rules {
+            rule.collect_blanks(&mut labels);
+        }
+        labels
+            .into_iter()
+            .enumerate()
+            .map(|(index, label)| (label, format!("b{index}")))
+            .collect()
+    }
+}
+
+fn canonical_fact_key(facts: &[RcAtom]) -> String {
+    let mut lines = facts
+        .iter()
+        .map(|fact| {
+            format!(
+                "{} <{}> {} .",
+                term_nt(&fact.subject),
+                fact.predicate,
+                term_nt(&fact.object)
+            )
+        })
+        .collect::<Vec<_>>();
+    lines.sort();
+    lines.dedup();
+    let mut nt = lines.join("\n");
+    nt.push('\n');
+
+    match gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| e.to_string())
+        .and_then(|dataset| gmeow_rdf::canonical_flat_nquads(dataset.as_ref()))
+    {
+        Ok(canonical) => canonical,
+        Err(_) => {
+            let mut keys: Vec<String> = facts.iter().map(RcAtom::key).collect();
+            keys.sort();
+            keys.join("\n")
+        }
     }
 }
 
