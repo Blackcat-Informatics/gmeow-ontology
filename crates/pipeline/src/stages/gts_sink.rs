@@ -45,6 +45,7 @@ impl GtsSinkStage {
                 "stage-export-json-schema".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-reason".to_string(),
+                "stage-statements".to_string(),
                 "stage-validate".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],

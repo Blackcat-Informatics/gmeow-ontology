@@ -194,6 +194,7 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-json-schema",
             "stage-reason",
             "stage-snapshot",
+            "stage-statements",
             "stage-validate",
         ],
     ));
