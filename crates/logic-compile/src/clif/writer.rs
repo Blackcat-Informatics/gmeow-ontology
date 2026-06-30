@@ -22,6 +22,8 @@ const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 /// `rdf:langString` — the datatype of a language-tagged literal; emitted as
 /// `(lit "x" @lang)`, the datatype itself suppressed (it is implied by the tag).
 const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+/// `xsd:integer` — the datatype emitted for a path shape's integer min/max depths.
+const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
 /// Project a [`LogicProgram`] to CLIF text.
 ///
@@ -311,11 +313,22 @@ fn meta_predications(program: &LogicProgram) -> Result<Vec<String>, String> {
     //     `xsd:decimal`), breaking idempotence. They are owned by the correspondence channel,
     //     so the axiom channel here EXCLUDES any axiom whose subject is a correspondence node
     //     (or one of its child / program nodes).
+    //     Path shapes are likewise owned by their own channel (0): the frontend re-extracts a
+    //     shape's defining `logic:pathMinDepth` / `pathMaxDepth` / `pathStepPredicate` triples
+    //     as flat axioms too, so emitting them through canonical-rdf12 AS WELL would duplicate
+    //     them — and with a different lexical form (the path channel emits typed `xsd:integer`
+    //     depths, the axiom channel a plain literal), defeating dedup and breaking idempotence.
+    //     Exclude any axiom whose subject is a path-shape node.
     let corr_subjects = correspondence_subjects(program);
+    let path_subjects: std::collections::HashSet<&str> =
+        program.path_shapes.iter().map(|p| p.iri.as_str()).collect();
     let axioms: Vec<_> = program
         .axioms
         .iter()
-        .filter(|a| !is_correspondence_owned(&a.subject, &corr_subjects))
+        .filter(|a| {
+            !is_correspondence_owned(&a.subject, &corr_subjects)
+                && !path_subjects.contains(a.subject.as_str())
+        })
         .cloned()
         .collect();
     let canon_meta = LogicProgram::new(
@@ -501,13 +514,20 @@ fn path_shape_predications(shape: &crate::ir::PathShapeIr) -> Vec<String> {
             out.push(format!("({} {s} (lit \"true\"))", logic("pathWildcard")));
         }
     }
+    // Depths are integers in the IR (`u32`); emit them as typed `xsd:integer` literals so the
+    // generated CL is type-faithful (a consumer reads an integer, not a bare string). The
+    // frontend's `parse_positive_int` reads the lexical regardless, so this round-trips.
+    let xsd_int = name_term(XSD_INTEGER);
     out.push(format!(
-        "({} {s} (lit \"{}\"))",
+        "({} {s} (lit \"{}\" {xsd_int}))",
         logic("pathMinDepth"),
         shape.min_depth
     ));
     if let Some(max) = shape.max_depth {
-        out.push(format!("({} {s} (lit \"{max}\"))", logic("pathMaxDepth")));
+        out.push(format!(
+            "({} {s} (lit \"{max}\" {xsd_int}))",
+            logic("pathMaxDepth")
+        ));
     }
     if let Some(ns) = &shape.namespace_scope {
         out.push(format!(
