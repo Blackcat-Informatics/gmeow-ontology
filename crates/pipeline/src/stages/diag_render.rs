@@ -63,9 +63,16 @@ pub fn render_diagnostics_artifacts(
         paths.html.to_owned(),
         text_artifact(gmeow_diagnostics::render::to_html(report)),
     );
+    // The `.nq` diagnostics graph rides as an RDF-fanout named graph: emit the RDFC-1.0
+    // canonical N-Quads (keeping the `graph/diagnostics` 4th-column label) so the
+    // superset gate reconstructs it byte-for-byte.
+    let nq = gmeow_diagnostics::render::to_gmeow_rdf(report);
+    let nq_ds = gmeow_rdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| stage_err("RDF", format!("parse N-Quads: {e}")))?;
     artifacts.insert(
         paths.rdf.to_owned(),
-        text_artifact(gmeow_diagnostics::render::to_gmeow_rdf(report)),
+        crate::stages::superset::canonical_ntriples(&nq_ds)
+            .map_err(|e| stage_err("RDF", format!("canonicalize N-Quads: {e}")))?,
     );
     Ok(artifacts)
 }

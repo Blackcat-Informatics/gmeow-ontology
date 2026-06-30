@@ -708,7 +708,12 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
         curie_or_iri.to_string()
     };
 
-    let store = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
+    // Accumulate quads natively — NOT through oxigraph's SPARQL `Store`, whose typed
+    // encoder canonicalizes the numeric value-space on insert (`"0.90"^^xsd:decimal` →
+    // `"0.9"`, `xsd:nonNegativeInteger` → `xsd:integer`). A plain quad set preserves the
+    // exact lexical form + datatype the JSON-LD-star document carries, so the round-trip
+    // isomorphism sees the same literals it serialized (the dist output stays lossless).
+    let quads: std::cell::RefCell<Vec<Quad>> = std::cell::RefCell::new(Vec::new());
 
     let emit_node = |node: &Value, graph_iri: Option<&str>| -> Result<(), PipelineError> {
         let id = node
@@ -743,14 +748,12 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
                 let obj: oxigraph::model::Term = NamedNode::new(expand(t_id))
                     .map_err(|e| PipelineError::Decode(e.to_string()))?
                     .into();
-                store
-                    .insert(&Quad::new(
-                        subject.clone(),
-                        rdf_type.clone(),
-                        obj,
-                        graph_name.clone(),
-                    ))
-                    .map_err(|e| PipelineError::Parse(e.to_string()))?;
+                quads.borrow_mut().push(Quad::new(
+                    subject.clone(),
+                    rdf_type.clone(),
+                    obj,
+                    graph_name.clone(),
+                ));
             }
         }
 
@@ -767,7 +770,7 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
             };
             for v in values {
                 emit_value_quad(
-                    &store,
+                    &quads,
                     subject.clone(),
                     predicate.clone(),
                     graph_name.clone(),
@@ -804,10 +807,14 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
         }
     }
 
-    store
+    // Collect the owned quads into an oxrdf `Dataset` (a plain term set — preserves
+    // literal lexical form + datatype, unlike the SPARQL `Store`); the set semantics
+    // deduplicate repeated quads exactly as the prior `Store` did.
+    Ok(quads
+        .into_inner()
         .iter()
-        .collect::<Result<Dataset, _>>()
-        .map_err(|e| PipelineError::Parse(e.to_string()))
+        .map(|q| q.as_ref())
+        .collect::<Dataset>())
 }
 
 type EmitNodeFn<'a> = dyn Fn(&Value, Option<&str>) -> Result<(), PipelineError> + 'a;
@@ -832,7 +839,7 @@ fn emit_graph_entry(entry: &Value, emit_node: &EmitNodeFn<'_>) -> Result<(), Pip
 }
 
 fn emit_value_quad(
-    store: &Store,
+    quads: &std::cell::RefCell<Vec<Quad>>,
     subject: NamedOrBlankNode,
     predicate: NamedNode,
     graph_name: oxigraph::model::GraphName,
@@ -840,14 +847,12 @@ fn emit_value_quad(
     expand: &dyn Fn(&str) -> String,
 ) -> Result<(), PipelineError> {
     let (object, annotation) = parse_value_object(value, expand)?;
-    store
-        .insert(&Quad::new(
-            subject.clone(),
-            predicate.clone(),
-            object.clone(),
-            graph_name.clone(),
-        ))
-        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    quads.borrow_mut().push(Quad::new(
+        subject.clone(),
+        predicate.clone(),
+        object.clone(),
+        graph_name.clone(),
+    ));
 
     if let Some(ann) = annotation {
         // The emitter may attach one annotation object or an array when several
@@ -877,14 +882,12 @@ fn emit_value_quad(
                 predicate.clone(),
                 object.clone(),
             )));
-            store
-                .insert(&Quad::new(
-                    reifier.clone(),
-                    reifies,
-                    quoted,
-                    oxigraph::model::GraphName::DefaultGraph,
-                ))
-                .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            quads.borrow_mut().push(Quad::new(
+                reifier.clone(),
+                reifies,
+                quoted,
+                oxigraph::model::GraphName::DefaultGraph,
+            ));
 
             for (key, val) in ann_node.as_object().unwrap() {
                 if key == "@id" {
@@ -899,14 +902,12 @@ fn emit_value_quad(
                 };
                 for v in vals {
                     let (ann_object, _) = parse_value_object(&v, expand)?;
-                    store
-                        .insert(&Quad::new(
-                            reifier.clone(),
-                            ann_predicate.clone(),
-                            ann_object,
-                            oxigraph::model::GraphName::DefaultGraph,
-                        ))
-                        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+                    quads.borrow_mut().push(Quad::new(
+                        reifier.clone(),
+                        ann_predicate.clone(),
+                        ann_object,
+                        oxigraph::model::GraphName::DefaultGraph,
+                    ));
                 }
             }
         }
@@ -1107,6 +1108,80 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
     String::from_utf8(buf).map_err(|e| PipelineError::Decode(format!("N-Quads are not UTF-8: {e}")))
 }
 
+/// Returns true if `text` uses a YAML anchor (`&name`) or alias (`*name`) at a
+/// node position — extended YAML that is out of scope (#699 non-goal).
+///
+/// This is STRUCTURAL, not a raw token scan: an anchor/alias is only the first
+/// character of a node value — the text after a `: ` mapping separator or a `- `
+/// sequence indicator — never a `&`/`*` buried inside scalar prose (e.g. the
+/// definition text "the *what* facet of disclosure" or "Humdrum **kern"). Block
+/// scalar content (after a `|`/`>` header) is skipped entirely, since its
+/// indented lines are opaque text, not YAML nodes.
+pub(crate) fn yaml_uses_anchor_or_alias(text: &str) -> bool {
+    let mut block_scalar_indent: Option<usize> = None;
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        let indent = line.len() - trimmed.len();
+        // Inside a block scalar: its content is indented deeper than the header.
+        if let Some(header_indent) = block_scalar_indent {
+            if trimmed.is_empty() || indent > header_indent {
+                continue;
+            }
+            block_scalar_indent = None;
+        }
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        // Strip leading block-sequence indicators (possibly nested: "- - x").
+        let mut rest = trimmed;
+        while let Some(r) = rest.strip_prefix("- ") {
+            rest = r.trim_start();
+        }
+        if rest == "-" {
+            continue;
+        }
+        // The node value is the text after the mapping separator (`: `), or the
+        // whole remainder when this line is a bare sequence/scalar node.
+        let value = block_mapping_value(rest).unwrap_or(rest).trim_start();
+        // A block-scalar header (`|`, `>`, `|-`, `>+2`, …) opens here; skip its body.
+        if value.starts_with('|') || value.starts_with('>') {
+            block_scalar_indent = Some(indent);
+            continue;
+        }
+        if value.starts_with('&') || value.starts_with('*') {
+            return true;
+        }
+    }
+    false
+}
+
+/// The value text after a block-mapping `key: ` separator (a colon followed by a
+/// space or end-of-line), or `None` when the line carries no inline mapping value.
+/// A quoted key is skipped first so a `:` inside it is not mistaken for the
+/// separator, and IRIs/curies (`https://…`, `gmeow:foo`) keep their `:`-without-space.
+fn block_mapping_value(s: &str) -> Option<&str> {
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    if let Some(&q @ (b'\'' | b'"')) = bytes.first() {
+        i = 1;
+        while i < bytes.len() && bytes[i] != q {
+            i += 1;
+        }
+        i = (i + 1).min(bytes.len());
+    }
+    while i < bytes.len() {
+        if bytes[i] == b':' && (i + 1 == bytes.len() || bytes[i + 1] == b' ') {
+            return Some(if i + 2 <= bytes.len() {
+                &s[i + 1..]
+            } else {
+                ""
+            });
+        }
+        i += 1;
+    }
+    None
+}
+
 /// Convert YAML-LD-star bytes to JSON-LD-star JSON, hard-failing on YAML
 /// anchors/aliases (extended YAML is out of scope, #699 non-goal).
 ///
@@ -1116,13 +1191,10 @@ pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
 pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> {
     let text = std::str::from_utf8(yaml_bytes)
         .map_err(|e| PipelineError::Decode(format!("YAML-LD-star bytes are not UTF-8: {e}")))?;
-    // Reject anchors/aliases BEFORE deserializing, using the repo's trusted
-    // heuristic: a whitespace-delimited token starting with `&` (anchor) or `*`
-    // (alias) signals extended YAML, which is out of scope for #699.
-    if text
-        .split_whitespace()
-        .any(|t| t.starts_with('&') || t.starts_with('*'))
-    {
+    // Reject anchors/aliases BEFORE deserializing — extended YAML is out of scope
+    // (#699). Detection is structural (node-position only), so `&`/`*` inside scalar
+    // definition prose does not false-positive.
+    if yaml_uses_anchor_or_alias(text) {
         return Err(PipelineError::Decode(
             "YAML-LD-star must not use anchors or aliases".into(),
         ));
@@ -1301,8 +1373,8 @@ mod tests {
         graph.terms.push(literal_term("meta"));
 
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
         graph
     }
 
@@ -1390,10 +1462,10 @@ mod tests {
         graph.terms.push(literal_term("0.7"));
 
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.reifiers.push((4, (0, 1, 2)));
-        graph.annotations.push((3, 5, 6));
-        graph.annotations.push((4, 7, 8));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.reifiers.push((4, (0, 1, 2), None));
+        graph.annotations.push((3, 5, 6, None));
+        graph.annotations.push((4, 7, 8, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
@@ -1509,7 +1581,7 @@ mod tests {
         for (key, (term_id, quad_key)) in reifier_inputs {
             let q = graph.quads[quad_idx[quad_key]];
             let id = graph.reifiers.len();
-            graph.reifiers.push((term_id, (q.0, q.1, q.2)));
+            graph.reifiers.push((term_id, (q.0, q.1, q.2), None));
             reifier_idx.insert(key, id);
         }
 
@@ -1519,7 +1591,7 @@ mod tests {
         annotation_inputs.insert("a1", (term_idx["r1"], term_idx["ap"], term_idx["av1"]));
         annotation_inputs.insert("a2", (term_idx["r2"], term_idx["ap"], term_idx["av2"]));
         for (_, ann) in annotation_inputs {
-            graph.annotations.push(ann);
+            graph.annotations.push((ann.0, ann.1, ann.2, None));
         }
 
         graph
@@ -1590,11 +1662,9 @@ mod tests {
             yaml.contains("@graph"),
             "YAML-LD must carry an explicit @graph: {yaml}"
         );
-        // Anchor/alias tokens appear as whitespace-delimited `&id` or `*id`.
+        // Anchors/aliases appear only at a node-value start (not inside scalar prose).
         assert!(
-            !yaml
-                .split_whitespace()
-                .any(|t| t.starts_with('&') || t.starts_with('*')),
+            !yaml_uses_anchor_or_alias(&yaml),
             "YAML-LD must not use anchors or aliases: {yaml}"
         );
         assert!(
@@ -1625,6 +1695,35 @@ mod tests {
     }
 
     #[test]
+    fn anchor_alias_detector_distinguishes_nodes_from_scalar_prose() {
+        // Real anchors/aliases at node-value start are flagged.
+        assert!(yaml_uses_anchor_or_alias("key: &anchor value\n"));
+        assert!(yaml_uses_anchor_or_alias("key: *alias\n"));
+        assert!(yaml_uses_anchor_or_alias("- *alias\n"));
+        assert!(yaml_uses_anchor_or_alias("- &a hello\n"));
+        // `&`/`*` inside scalar prose (the false-positives that broke `make build`)
+        // are NOT flagged.
+        assert!(!yaml_uses_anchor_or_alias(
+            "    '@value': The *what* facet of disclosure control\n"
+        ));
+        assert!(!yaml_uses_anchor_or_alias("    '@value': Humdrum **kern\n"));
+        assert!(!yaml_uses_anchor_or_alias(
+            "    '@value': asserted *according to whom*. DISTINCT from X\n"
+        ));
+        // A quoted scalar that merely contains a colon is not a separator boundary.
+        assert!(!yaml_uses_anchor_or_alias(
+            "    '@value': 'foo: *bar baz'\n"
+        ));
+        // Block-scalar content lines are skipped even if they start with `*`.
+        assert!(!yaml_uses_anchor_or_alias(
+            "    '@value': |\n      *stars at the start of block-scalar prose\n"
+        ));
+        // An IRI key with a real alias value is still caught.
+        assert!(yaml_uses_anchor_or_alias("  https://ex/p: *ref\n"));
+        assert!(!yaml_uses_anchor_or_alias("  https://ex/p: plain value\n"));
+    }
+
+    #[test]
     fn annotation_reifier_explicit_id_on_node_object() {
         let mut graph = Graph::default();
         graph.terms.push(iri_term("http://example.org/s"));
@@ -1634,8 +1733,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1665,8 +1764,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1696,8 +1795,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
@@ -1746,8 +1845,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1820,8 +1919,8 @@ mod tests {
         graph.terms.push(iri_term("http://example.org/confidence"));
         graph.terms.push(literal_term("0.95"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1861,8 +1960,8 @@ mod tests {
             .push(iri_term("https://blackcatinformatics.ca/gmeow/confidence"));
         graph.terms.push(literal_term("0.9"));
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 5));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 5, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
@@ -1950,8 +2049,8 @@ mod tests {
             reifier: None,
         });
         graph.quads.push((0, 1, 2, None));
-        graph.reifiers.push((3, (0, 1, 2)));
-        graph.annotations.push((3, 4, 6));
+        graph.reifiers.push((3, (0, 1, 2), None));
+        graph.annotations.push((3, 4, 6, None));
 
         let json = serialize_graph(gts_graph_to_dataset(&graph).as_ref()).expect("serialize");
         let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())

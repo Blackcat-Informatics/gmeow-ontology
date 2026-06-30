@@ -157,6 +157,17 @@ fn stage_err(message: impl Into<String>) -> PipelineError {
     }
 }
 
+/// Re-serialize an N-Triples projection as the RDFC-1.0 canonical N-Triples document
+/// (blank labels canonicalized, lines bytewise-sorted) so the committed file IS the
+/// fold the superset gate reconstructs. RDFC is idempotent, so the round-trip is
+/// byte-stable even for the blank-node-bearing relational-core program.
+pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, PipelineError> {
+    let ds = parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| stage_err(format!("parse N-Triples projection: {e}")))?;
+    crate::stages::superset::canonical_ntriples(&ds)
+        .map_err(|e| stage_err(format!("canonicalize N-Triples projection: {e}")))
+}
+
 /// The `stage-compile-logic` pipeline stage.
 pub struct CompileLogicStage;
 
@@ -223,7 +234,20 @@ impl Stage for CompileLogicStage {
         artifacts.insert(OWL_EL_PATH.to_string(), arts.owl_el.into_bytes());
         artifacts.insert(DATALOG_PATH.to_string(), arts.datalog.into_bytes());
         artifacts.insert(N3_PATH.to_string(), arts.n3.into_bytes());
-        artifacts.insert(GUFO_PATH.to_string(), arts.gufo.into_bytes());
+        // gUFO rides as an RDF-fanout named graph: emit EXACTLY the canonical fold
+        // (shared prefix authority, no banner) so the superset gate reconstructs it.
+        artifacts.insert(
+            GUFO_PATH.to_string(),
+            gmeow_rdf::turtle_normalize::canonical_turtle(
+                arts.gufo.as_bytes(),
+                &crate::stages::superset::rdf_prefixes(),
+            )
+            .map(String::into_bytes)
+            .map_err(|e| PipelineError::Stage {
+                stage: "stage-compile-logic".to_string(),
+                message: format!("canonicalize gufo.ttl: {e}"),
+            })?,
+        );
         // Keep the canonical RDF-1.2 projection: it is BOTH a committed artifact AND
         // the backing graph the typed Logic handle (#1132 C6) pins to.
         let canonical_rdf12 = arts.canonical_rdf12;
@@ -258,7 +282,7 @@ impl Stage for CompileLogicStage {
         let relational_core_nt = project_relational_core(&relational_core);
         artifacts.insert(
             RELATIONAL_CORE_PATH.to_string(),
-            relational_core_nt.clone().into_bytes(),
+            canon_fanout_nt(&relational_core_nt)?,
         );
 
         // The correspondence carrier lane (#1132 C10): the §14 affine-triangle worked
@@ -273,7 +297,7 @@ impl Stage for CompileLogicStage {
         let correspondence_nt = project_correspondence(&correspondence);
         artifacts.insert(
             CORRESPONDENCE_PATH.to_string(),
-            correspondence_nt.clone().into_bytes(),
+            canon_fanout_nt(&correspondence_nt)?,
         );
 
         // The compile diagnostics: the front-end parse findings (already coded

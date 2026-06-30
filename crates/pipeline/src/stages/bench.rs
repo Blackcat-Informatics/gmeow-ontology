@@ -304,7 +304,9 @@ runner jitter is expected and never gates a PR."
 /// no `f64`→string formatting — so it survives the `check-generated` byte gate
 /// without ever running a benchmark. Hard-fails if `bench/baseline.json` is
 /// missing or malformed (no degraded fallback).
-fn render_bench_leaderboard(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+pub(crate) fn render_bench_leaderboard(
+    root: &Path,
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let bytes = std::fs::read(root.join(BASELINE_PATH))?;
     let baseline: BTreeMap<String, Estimate> = serde_json::from_slice(&bytes)
         .map_err(|e| PipelineError::Parse(format!("baseline parse: {e}")))?;

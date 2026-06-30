@@ -801,11 +801,23 @@ impl Stage for LpgStage {
         // Consume THIS run's snapshot carrier dataset DIRECTLY off the product bundle —
         // no re-parse of the gmeow.gts bytes (GTS is exit-only).
         let dataset = crate::stages::carrier::snapshot_dataset(input.upstream)?;
-        let (nodes, edges) = build_lpg(dataset.as_ref())?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_all(&nodes, &edges)),
+            product: StageProduct::from_artifacts(
+                self.id(),
+                render_from_dataset(dataset.as_ref())?,
+            ),
         })
     }
+}
+
+/// Project the LPG (neo4j CSV tree + generic CSV + Cypher + GraphML) from the
+/// carrier `dataset`. The snapshot gatherer calls this to attach the opaque LPG
+/// fanout as a blob (superset law); the export leaf calls it for the disk fanout.
+pub(crate) fn render_from_dataset(
+    dataset: &RdfDataset,
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+    let (nodes, edges) = build_lpg(dataset)?;
+    Ok(render_all(&nodes, &edges))
 }
 
 #[cfg(test)]
