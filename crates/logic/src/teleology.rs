@@ -2364,9 +2364,9 @@ pub fn materialize_teleology(
         // ── Family 9b: recorded ToolCall-trajectory audit (T6, read-only) ─────────
         // A recorded gmeow:ToolCall sequence is mapped to a transaction program and run
         // through the SAME executional-entailment engine as family 9 — the read-only
-        // Principle-15 verification consumer over already-recorded agentic provenance
-        // (issue #716). Emits nothing when a world carries no bound trajectory, so the
-        // existing transaction goldens stay byte-stable.
+        // Principle-15 verification consumer over already-recorded agentic provenance.
+        // Emits nothing when a world carries no bound trajectory, so the existing
+        // transaction goldens stay byte-stable.
         out.extend(crate::transaction::trajectory::emit_trajectory_audits(
             facts, world,
         )?);

@@ -1347,7 +1347,7 @@ fn program_type_iri(program: &TransactionProgram) -> String {
     }
 }
 
-// T6 — read-only audit of recorded `gmeow:ToolCall` trajectories (issue #716).  A child
+// T6 — read-only audit of recorded `gmeow:ToolCall` trajectories.  A child
 // module so it reaches the engine's private emission helpers through ONE shared path
 // (`emit_program_outcome`); it mints no RDF vocabulary of its own.
 pub(crate) mod trajectory;
