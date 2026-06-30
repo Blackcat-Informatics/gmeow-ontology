@@ -48,19 +48,23 @@ const WHITE: &str = "#ffffff";
 const INK: &str = "#1b2436";
 
 // ── Family base colors (the single authority) ────────────────────────────────
-const C_COMPLETE_LOW: &str = "#e5534b"; // red  — 0–2 of 6 dimensions
+// The saturated fills below all pair with WHITE text and so must clear the
+// WCAG-AA 4.5:1 contrast floor at the 11px-bold rendered size; the red, green,
+// teal, and grey are chosen on that floor. The amber pairs with INK (dark) text
+// and is light by design.
+const C_COMPLETE_LOW: &str = "#cf222e"; // red  — 0–2 of 6 dimensions
 const C_COMPLETE_MID: &str = "#d9a514"; // amber — 3–4 of 6
-const C_COMPLETE_HIGH: &str = "#2da44e"; // green — 5–6 of 6
-const C_STABILITY_STABLE: &str = "#2da44e"; // green
+const C_COMPLETE_HIGH: &str = "#1a7f37"; // green — 5–6 of 6
+const C_STABILITY_STABLE: &str = "#1a7f37"; // green
 const C_STABILITY_EXPERIMENTAL: &str = "#d9a514"; // amber
-const C_STABILITY_DEPRECATED: &str = "#e5534b"; // red
+const C_STABILITY_DEPRECATED: &str = "#cf222e"; // red
 const C_CATEGORY: &str = "#5b6b8c"; // slate
-const C_BOX: &str = "#2a9d8f"; // teal
+const C_BOX: &str = "#1b7369"; // teal
 const C_STEREOTYPE: &str = "#8250df"; // purple
 const C_FRAMEWORK: &str = "#4b56b8"; // indigo
-const C_REASON_SAT: &str = "#2da44e"; // green — satisfiable
-const C_REASON_UNSAT: &str = "#e5534b"; // red — unsatisfiable
-const C_REASON_NA: &str = "#8a93a6"; // grey — not evaluated
+const C_REASON_SAT: &str = "#1a7f37"; // green — satisfiable
+const C_REASON_UNSAT: &str = "#cf222e"; // red — unsatisfiable
+const C_REASON_NA: &str = "#6b7280"; // grey — not evaluated
 
 /// One badge family for the health-page legend: its label, swatch fill, and a
 /// one-line description of what the family encodes.
