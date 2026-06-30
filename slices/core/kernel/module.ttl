@@ -621,6 +621,7 @@ gmeow:hasDeterminacy
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "has determinacy"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ParaconsistentFramework ;
     rdfs:range gmeow:Determinacy ;
     skos:definition "Relates a value, entity, or claim to its ontic determinacy model — the explicit facet recording whether the value is crisp, vague, fuzzy, probabilistic, or disputed. Domain-free (universal, like hasGranularity). NOT functional: in a multi-source merge sources may state different determinacy models, and those claims coexist rather than force the reasoner to collapse distinct models. Distinct from gmeow:confidence (epistemic certainty) and from gmeow:determinacyModel (the frame-level default for a ReferenceFrame)."@x-gmeow-english ;
     skos:example "ex:coastlineBoundary gmeow:hasDeterminacy gmeow:determinacyVague ."@x-gmeow-english ;
@@ -664,6 +665,7 @@ gmeow:hasPart
         owl:TransitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "has part"@x-gmeow-english ;
+    logic:instantiatesFramework logic:MereologicalFramework ;
     owl:inverseOf gmeow:partOf ;
     skos:definition "Universal whole-to-part inverse of gmeow:partOf. Transitive and intentionally broad; specialized component and containment properties remain the authoritative source for domain-specific meaning."@x-gmeow-english ;
     skos:example "ex:car gmeow:hasPart ex:engine ."@x-gmeow-english ;
@@ -734,6 +736,7 @@ gmeow:partOf
         owl:TransitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "part of"@x-gmeow-english ;
+    logic:instantiatesFramework logic:MereologicalFramework ;
     owl:inverseOf gmeow:hasPart ;
     skos:definition "Universal part-to-whole relation: relates any GMEOW thing to a larger whole it is part of. Transitive and intentionally broad; use specialized subproperties such as gmeow:containedInLocation, gmeow:subOrganizationOf, gmeow:subEventOf, gmeow:partOfThread or module-specific component properties when the kind of parthood matters. No domain/range is asserted so event, location, information-object and endurant parthood all remain possible in OWL 2 DL."@x-gmeow-english ;
     skos:example "ex:engine gmeow:partOf ex:car ."@x-gmeow-english ;

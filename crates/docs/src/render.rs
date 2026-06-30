@@ -826,7 +826,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     // detailed, linkable surfaces follow in their own sections below.
     {
         let aligned = crate::coverage::alignment_subjects(model);
-        let badges = crate::badge::term_badges(term, &aligned);
+        let badges = crate::badge::term_badges(term, &aligned, model.reasoning.as_ref());
         let row = badges
             .iter()
             .map(|b| {
@@ -1124,6 +1124,26 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         &format!("- **Status:** {}", term.stability.label()),
     );
     blank(&mut out);
+
+    // ── Reasoning status (present only when the native reasoner verdict is attached)
+    // The textual, accessible counterpart of the reasoning badge: a class is
+    // satisfiable unless the native DL reasoner proved it unsatisfiable; a
+    // non-class term is not-evaluated (satisfiability is a class notion). Never
+    // rendered for a source-only model, so no satisfiability claim is fabricated.
+    if let Some(verdict) = &model.reasoning {
+        heading(&mut out, 2, "Reasoning status");
+        let status = if term.category == DocTermCategory::Class {
+            if verdict.unsatisfiable.contains(&term.iri) {
+                "**Unsatisfiable** — the native DL reasoner proved this class necessarily empty (`rdfs:subClassOf owl:Nothing`)."
+            } else {
+                "**Satisfiable** — the native DL reasoner found this class consistent."
+            }
+        } else {
+            "**Not evaluated** — satisfiability is a class notion; the reasoner decides none for this term."
+        };
+        push_line(&mut out, &format!("- {status}"));
+        blank(&mut out);
+    }
 
     // ── Documentation coverage (always present) ──────────────────────────────────
     // The six richness dimensions this term carries, read from the shared coverage
@@ -3636,6 +3656,7 @@ mod tests {
             available_languages: vec!["english".to_string(), "fr".to_string()],
             translations,
             ui_catalog: crate::i18n::UiCatalog::default(),
+            reasoning: None,
         }
     }
 

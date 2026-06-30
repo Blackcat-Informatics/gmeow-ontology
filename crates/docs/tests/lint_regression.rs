@@ -102,6 +102,7 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
         available_languages: vec!["english".to_string()],
         translations: Default::default(),
         ui_catalog: Default::default(),
+        reasoning: None,
     }
 }
 

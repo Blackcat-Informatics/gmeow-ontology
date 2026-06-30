@@ -61,6 +61,7 @@ gmeow:Observation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Observation"@x-gmeow-english ;
+    logic:instantiatesFramework logic:EpistemicFramework ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
