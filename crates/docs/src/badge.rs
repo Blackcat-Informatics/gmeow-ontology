@@ -24,7 +24,7 @@
 use std::collections::{BTreeMap, HashSet};
 
 use crate::coverage::{term_coverage, TermCoverage};
-use crate::model::{DocTerm, DocTermCategory, DocTermStability, DocsModel};
+use crate::model::{DocTerm, DocTermCategory, DocTermStability, DocsModel, ReasoningVerdict};
 
 /// A resolved badge: its display label, the colors, and the stable family/value
 /// slugs from which its shared asset path is derived.
@@ -58,6 +58,9 @@ const C_CATEGORY: &str = "#5b6b8c"; // slate
 const C_BOX: &str = "#2a9d8f"; // teal
 const C_STEREOTYPE: &str = "#8250df"; // purple
 const C_FRAMEWORK: &str = "#4b56b8"; // indigo
+const C_REASON_SAT: &str = "#2da44e"; // green — satisfiable
+const C_REASON_UNSAT: &str = "#e5534b"; // red — unsatisfiable
+const C_REASON_NA: &str = "#8a93a6"; // grey — not evaluated
 
 /// One badge family for the health-page legend: its label, swatch fill, and a
 /// one-line description of what the family encodes.
@@ -73,11 +76,16 @@ pub struct BadgeFamily {
 
 /// The badge families in stable display order — the source the health-page
 /// legend renders from, so the documented colors are exactly the emitted ones.
-pub const FAMILIES: [BadgeFamily; 6] = [
+pub const FAMILIES: [BadgeFamily; 7] = [
     BadgeFamily {
         label: "Completeness",
         swatch: C_COMPLETE_HIGH,
         description: "How many of the six documentation dimensions the term carries (red 0–2, amber 3–4, green 5–6).",
+    },
+    BadgeFamily {
+        label: "Reasoning",
+        swatch: C_REASON_SAT,
+        description: "The native reasoner's per-class verdict: green satisfiable, red unsatisfiable, grey not-evaluated (non-class terms).",
     },
     BadgeFamily {
         label: "Stability",
@@ -153,6 +161,34 @@ fn stability_badge(stability: DocTermStability) -> Badge {
     }
 }
 
+/// The native-reasoner status badge — a three-state verdict that never collapses
+/// not-evaluated into satisfiable.
+///
+/// Satisfiability is a CLASS notion, so a documented class is *evaluated*:
+/// unsatisfiable when its IRI is in the verdict's unsat set (the reasoner entailed
+/// `rdfs:subClassOf owl:Nothing`), satisfiable otherwise. A property, individual,
+/// or datatype is *not-evaluated* — the reasoner decides no satisfiability for it,
+/// and the badge says so rather than implying it is fine.
+fn reasoning_badge(term: &DocTerm, verdict: &ReasoningVerdict) -> Badge {
+    let (value, label, fill) = match term.category {
+        DocTermCategory::Class => {
+            if verdict.unsatisfiable.contains(&term.iri) {
+                ("unsatisfiable", "unsatisfiable", C_REASON_UNSAT)
+            } else {
+                ("satisfiable", "satisfiable", C_REASON_SAT)
+            }
+        }
+        _ => ("not-evaluated", "not reasoned", C_REASON_NA),
+    };
+    Badge {
+        family: "reasoning",
+        value: value.to_string(),
+        label: label.to_string(),
+        fill,
+        text: WHITE,
+    }
+}
+
 /// The vocabulary-category badge.
 fn category_badge(category: DocTermCategory) -> Badge {
     let (value, label) = match category {
@@ -208,17 +244,27 @@ fn framework_label(framework: &str) -> String {
         .unwrap_or_else(|| local_name(framework).to_string())
 }
 
-/// Every badge a term carries, in stable display order: completeness, stability,
-/// category, then each box role, logic stereotype, and framework. The single
-/// source both the page embed and the [`site_badge_assets`] emission read, so the
-/// referenced and emitted asset sets are identical.
-pub fn term_badges(term: &DocTerm, aligned: &HashSet<&str>) -> Vec<Badge> {
+/// Every badge a term carries, in stable display order: completeness, the
+/// reasoning verdict (when one is attached), stability, category, then each box
+/// role, logic stereotype, and framework. The single source both the page embed
+/// and the [`site_badge_assets`] emission read, so the referenced and emitted
+/// asset sets are identical.
+///
+/// `reasoning` is the model's attached [`ReasoningVerdict`] (`None` in source-only
+/// contexts): the reasoning badge renders ONLY when a verdict is present, so an
+/// unevaluated model never fabricates a satisfiability claim.
+pub fn term_badges(
+    term: &DocTerm,
+    aligned: &HashSet<&str>,
+    reasoning: Option<&ReasoningVerdict>,
+) -> Vec<Badge> {
     let cov: TermCoverage = term_coverage(term, aligned);
-    let mut badges = vec![
-        completeness_badge(cov.present_count(), TermCoverage::TOTAL),
-        stability_badge(term.stability),
-        category_badge(term.category),
-    ];
+    let mut badges = vec![completeness_badge(cov.present_count(), TermCoverage::TOTAL)];
+    if let Some(verdict) = reasoning {
+        badges.push(reasoning_badge(term, verdict));
+    }
+    badges.push(stability_badge(term.stability));
+    badges.push(category_badge(term.category));
     for role in &term.box_roles {
         badges.push(Badge {
             family: "box",
@@ -298,7 +344,7 @@ pub fn site_badge_assets(model: &DocsModel) -> BTreeMap<String, String> {
     let aligned = crate::coverage::alignment_subjects(model);
     let mut assets = BTreeMap::new();
     for term in &model.terms {
-        for badge in term_badges(term, &aligned) {
+        for badge in term_badges(term, &aligned, model.reasoning.as_ref()) {
             assets
                 .entry(badge_path(&badge))
                 .or_insert_with(|| badge_svg(&badge));
@@ -354,12 +400,54 @@ mod tests {
         };
         term.frameworks = vec!["logic:HolonicFramework".to_string()];
         let aligned = HashSet::new();
-        let badges = term_badges(&term, &aligned);
+        let badges = term_badges(&term, &aligned, None);
         assert_eq!(badges[0].family, "completeness");
+        // No reasoning verdict attached → no reasoning badge (never fabricated).
+        assert!(!badges.iter().any(|b| b.family == "reasoning"));
         assert_eq!(badges[1].family, "stability");
         assert_eq!(badges[2].family, "category");
         assert!(badges
             .iter()
             .any(|b| b.family == "framework" && b.label == "Holonic"));
+    }
+
+    #[test]
+    fn reasoning_badge_is_three_state_and_never_collapses() {
+        let class = DocTerm {
+            iri: "https://x/Klass".to_string(),
+            category: DocTermCategory::Class,
+            ..Default::default()
+        };
+        let property = DocTerm {
+            iri: "https://x/prop".to_string(),
+            category: DocTermCategory::Property,
+            ..Default::default()
+        };
+        let mut unsat = std::collections::BTreeSet::new();
+        unsat.insert("https://x/Klass".to_string());
+        let bad = ReasoningVerdict {
+            is_consistent: false,
+            unsatisfiable: unsat,
+        };
+        let good = ReasoningVerdict::default();
+
+        // An evaluated class flips satisfiable → unsatisfiable on the unsat set.
+        assert_eq!(reasoning_badge(&class, &good).value, "satisfiable");
+        assert_eq!(reasoning_badge(&class, &bad).value, "unsatisfiable");
+        // A non-class is not-evaluated — never silently "satisfiable".
+        assert_eq!(reasoning_badge(&property, &good).value, "not-evaluated");
+
+        // The badge only appears when a verdict is attached.
+        let aligned = HashSet::new();
+        assert!(term_badges(&class, &aligned, None)
+            .iter()
+            .all(|b| b.family != "reasoning"));
+        assert_eq!(
+            term_badges(&class, &aligned, Some(&good))
+                .iter()
+                .filter(|b| b.family == "reasoning")
+                .count(),
+            1
+        );
     }
 }

@@ -644,6 +644,46 @@ pub struct DocsModel {
     /// serialization.
     #[serde(skip)]
     pub ui_catalog: UiCatalog,
+    /// The native reasoner's per-ontology consistency verdict, attached AFTER
+    /// source discovery by the production build (the carrier render path and the
+    /// docs-graph stage both consume `stage-reason`). `None` in source-only
+    /// contexts (unit tests, a bare `discover`): the per-term reasoning badge and
+    /// the reasoning-status RDF projection render ONLY when a verdict is present,
+    /// so an unevaluated model never fabricates a "satisfiable" claim. The
+    /// production path attaches it (or hard-fails), never silently skips it.
+    /// `#[serde(skip)]` so the source-model JSON golden is unaffected.
+    #[serde(skip)]
+    pub reasoning: Option<ReasoningVerdict>,
+}
+
+/// The native reasoner's consistency verdict, attached to a [`DocsModel`] by the
+/// production build so the docs can surface a per-term reasoning-status badge.
+///
+/// Carries the global consistency flag and the set of class IRIs the native DL
+/// reasoner proved unsatisfiable (each entailed `rdfs:subClassOf owl:Nothing` in
+/// the inferred closure). A term's three-state status is derived honestly:
+/// satisfiability is a CLASS notion, so a documented class is *evaluated* —
+/// satisfiable unless its IRI is in [`unsatisfiable`](Self::unsatisfiable) — while
+/// a property, individual, or datatype is *not-evaluated* (the reasoner decides no
+/// satisfiability for it). The not-evaluated state never collapses into
+/// satisfiable.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct ReasoningVerdict {
+    /// The global native-reasoner consistency flag (`ReasoningResult::is_consistent`).
+    pub is_consistent: bool,
+    /// The class IRIs proven unsatisfiable (entailed `rdfs:subClassOf owl:Nothing`).
+    /// Empty for a healthy ontology; a non-empty set lights the affected class
+    /// pages red.
+    pub unsatisfiable: std::collections::BTreeSet<String>,
+}
+
+impl DocsModel {
+    /// Attach the native reasoner's consistency verdict to this model (the
+    /// production build's post-discovery step). Idempotent: overwrites any prior
+    /// verdict.
+    pub fn attach_reasoning(&mut self, verdict: ReasoningVerdict) {
+        self.reasoning = Some(verdict);
+    }
 }
 
 impl DocsModel {
@@ -919,6 +959,7 @@ impl DocsModel {
             available_languages,
             translations,
             ui_catalog: UiCatalog::default(),
+            reasoning: None,
         }
     }
 

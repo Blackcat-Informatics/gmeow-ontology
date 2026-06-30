@@ -297,6 +297,7 @@ mod tests {
             translations: crate::i18n::Translations::default(),
 
             ui_catalog: crate::i18n::UiCatalog::default(),
+            reasoning: None,
         }
     }
 
