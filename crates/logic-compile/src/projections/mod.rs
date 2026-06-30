@@ -497,11 +497,12 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             PreservationKind::SoundUnder,
             "terminating/PTIME-data",
             vec![
-                "only the stratified Horn-with-stratified-negation rule fragment is projected \
-                 (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, \
-                 inequality guards → FILTER): full first-order formula bodies, existential \
-                 (value-inventing) rule heads, and ground-subject rules have no faithful \
-                 SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer \
+                "the stratified Horn-with-stratified-negation-and-aggregation rule fragment is \
+                 projected (positive body → graph patterns, negation-as-failure → \
+                 FILTER NOT EXISTS, inequality guards → FILTER, and a reduce rule → an \
+                 aggregating sh:SPARQLRule with a GROUP-BY sub-SELECT): full first-order formula \
+                 bodies, existential (value-inventing) rule heads, and ground-subject rules have \
+                 no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer \
                  (carried by canonical-rdf12)",
                 "modal / world / standpoint context of a contextualized rule has no SHACL-AF \
                  form; a context-scoped rule is not projected (it would be unsound over the \
@@ -774,6 +775,25 @@ pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) ->
     // silent). A formula-free program adds nothing, so its ledger is byte-unchanged.
     notes.extend(formula_residue_notes(program, target_label));
     notes
+}
+
+/// One drop note per stratified-aggregation (reduce) rule, for a target that cannot represent
+/// aggregation (Datalog / N3 / Nemo). Carried-and-flagged, never silent; an aggregation-free
+/// program adds nothing, so its ledger is byte-unchanged.
+pub(crate) fn aggregation_drop_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+    program
+        .rules
+        .iter()
+        .filter(|r| r.aggregation.is_some())
+        .map(|r| {
+            format!(
+                "rule deriving <{}> uses stratified aggregation (reduce/GROUP BY), which \
+                 {target_label} does not represent; it is carried in the canonical logic: layer \
+                 and projected to the SHACL-AF reduce surface",
+                r.head.predicate
+            )
+        })
+        .collect()
 }
 
 /// The standard GENERATED header for a target.

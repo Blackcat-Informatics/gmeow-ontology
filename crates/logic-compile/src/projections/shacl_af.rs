@@ -271,6 +271,55 @@ pub fn project_shacl_af(program: &LogicProgram) -> ProjectionResult {
             continue;
         }
 
+        // Reduce (aggregation) rule: the "reduce" half of the computation surface. It projects to
+        // an aggregating sh:SPARQLRule whose CONSTRUCT carries a GROUP-BY sub-SELECT, when the
+        // shape is a single-group-key focus reduce: the head subject is the (sole) group key and
+        // the focus node, the head object is the aggregate result variable, and the aggregated
+        // variable is positively bound by the body. Anything else is carried as a ledgered drop.
+        if let Some(agg) = &rule.aggregation {
+            let head = &rule.head;
+            let pos_bound = positive_body_vars(rule);
+            let projectable = head.subject.starts_with('?')
+                && agg.group_keys == [head.subject.clone()]
+                && head.obj == agg.result_var
+                && pos_bound.contains(&agg.aggregate_var);
+            if !projectable {
+                actual_drops.push(format!(
+                    "rule deriving <{}> is an aggregation (reduce) rule whose shape is not a \
+                     single-group-key focus reduce (group key = head subject, head object = the \
+                     aggregate result, aggregated variable positively bound); it is carried in the \
+                     canon, not emitted",
+                    head.predicate
+                ));
+                continue;
+            }
+            let local = rule_shape_local(rule, i);
+            let focus_var = Some(head.subject.as_str());
+            let head_pred = sparql_predicate(&head.predicate);
+            let body = render_where(rule, focus_var, "$this");
+            let func = agg.function.to_ascii_uppercase();
+            // CONSTRUCT { $this <pred> ?result } WHERE { SELECT $this (FUNC(?x) AS ?result)
+            //   WHERE { body($this) } GROUP BY $this }
+            let construct_where = format!(
+                "SELECT $this ({func}({var}) AS {result}) WHERE {{ {body} }} GROUP BY $this",
+                var = agg.aggregate_var,
+                result = agg.result_var,
+            );
+            let label = format!(
+                "SHACL-AF reduce projection of the logic: rule deriving <{}> ({} aggregation, generated)",
+                head.predicate, func
+            );
+            blocks.push(emit_rule_shape(
+                &local,
+                &label,
+                &head_pred,
+                &agg.result_var,
+                &render_where(rule, focus_var, "?this"),
+                &construct_where,
+            ));
+            continue;
+        }
+
         // The focus is the head subject when it is a variable. A ground-subject head (no focus
         // variable) cannot be expressed as a focus-node SHACL-AF rule soundly; record it and skip.
         if !rule.head.subject.starts_with('?') {
@@ -420,7 +469,9 @@ pub fn project_shacl_af(program: &LogicProgram) -> ProjectionResult {
 
 #[cfg(test)]
 mod tests {
-    use super::super::super::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
+    use super::super::super::ir::{
+        AggregateSpec, ContextualScope, LogicAxiom, LogicProgram, LogicRule,
+    };
     use super::*;
 
     fn var_axiom(s: &str, p: &str, o: &str, o_lit: bool) -> LogicAxiom {
@@ -704,6 +755,44 @@ mod tests {
             ttl.matches("\"\"\"").count(),
             4,
             "literal special chars broke the Turtle long-string boundary:\n{ttl}"
+        );
+    }
+
+    #[test]
+    fn reduce_rule_projects_to_an_aggregating_sparql_rule_with_group_by() {
+        // ?g gmeow:total ?sum :- ?g gmeow:hasItem ?x  [ SUM(?x) AS ?sum GROUP BY ?g ]
+        let head = var_axiom(
+            "?g",
+            "https://blackcatinformatics.ca/gmeow/total",
+            "?sum",
+            false,
+        );
+        let body = vec![var_axiom(
+            "?g",
+            "https://blackcatinformatics.ca/gmeow/hasItem",
+            "?x",
+            false,
+        )];
+        let rule = LogicRule::new(head, body, vec![], ContextualScope::default()).with_aggregation(
+            AggregateSpec::new("SUM", "?x", "?sum", vec!["?g".to_owned()]),
+        );
+        let program = LogicProgram::new(vec![], vec![rule], vec![], None);
+        let ttl = project_shacl_af(&program).content;
+        assert!(
+            ttl.contains("a sh:SPARQLRule"),
+            "the reduce rule must project to a SPARQLRule:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("SUM(?x) AS ?sum"),
+            "the aggregate function must lower to a SPARQL aggregate:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("GROUP BY $this"),
+            "the reduce must carry a GROUP BY over the focus group key:\n{ttl}"
+        );
+        assert!(
+            ttl.contains("CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/total> ?sum }"),
+            "the head must derive the aggregate result per group:\n{ttl}"
         );
     }
 
