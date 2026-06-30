@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from gmeow_tools.config import (
     CATALOG_FILE,
@@ -379,44 +379,11 @@ def build_full(*, merged: Path = MERGED_FILE, output: Path = FULL_FILE) -> Path:
 # --------------------------------------------------------------------------- #
 
 
-def reason_native(
-    *,
-    gts: Path = GTS_SNAPSHOT_FILE,
-    merge: bool = False,
-    output_dir: Path = DIST_DIR,
-    run_box_roles: bool = True,
+def _reason_report_from_native_result(
+    result: dict[str, Any], *, run_box_roles: bool
 ) -> DiagnosticsReport:
-    """Run the native EL/DL reasoning lane and emit its diagnostics + closure.
-
-    The Java/Docker-free authority lane (Principles 17 and 18): the Rust engine reasons
-    the bundle, this builds the diagnostics report (consistency verdict,
-    native DL coverage defects, any inconsistency/unsatisfiability), folds in
-    the four-box role audit, writes the inferred-closure RDF 1.2 artifact, and
-    writes the JSON / SARIF / HTML diagnostics artifacts. It never raises on an
-    inconsistent ontology — the caller inspects ``report.ok``.
-
-    Args:
-        gts: The committed GTS bundle to reason over.
-        merge: When true, the closure artifact is the union of the asserted and
-            derived graphs; otherwise it carries only the derived axioms.
-        output_dir: Destination directory for all artifacts.
-        run_box_roles: When true, fold the four-box graph-role audit findings in.
-
-    Returns:
-        The diagnostics report (its ``ok`` reflects reasoning consistency).
-    """
-    import gmeow_logic
-
     from gmeow_tools import diagnostics
     from gmeow_tools.box_roles import audit_box_roles
-
-    gts_bytes = gts.read_bytes()
-    if hasattr(gmeow_logic, "reason_native_with_artifacts"):
-        result = gmeow_logic.reason_native_with_artifacts(gts_bytes, merge)
-        artifacts = result["artifacts"]
-    else:  # pragma: no cover - compatibility for older native wheels
-        result = gmeow_logic.reason_native(gts_bytes)
-        artifacts = gmeow_logic.reason_native_artifacts(gts_bytes, merge)
 
     derived = [a for a in result.get("inferred", []) if not a.get("is_edb")]
     gaps = result.get("gaps", [])
@@ -527,6 +494,17 @@ def reason_native(
                 )
             )
 
+    return report
+
+
+def _write_native_reason_outputs(
+    report: DiagnosticsReport,
+    artifacts: dict[str, str],
+    *,
+    output_dir: Path,
+) -> None:
+    from gmeow_tools import diagnostics
+
     output_dir.mkdir(parents=True, exist_ok=True)
     # The RDF 1.2 closure Turtle is emitted natively (Rust + gmeow-rdf) from
     # the same native reasoning pass that produced the diagnostics above.
@@ -539,7 +517,110 @@ def reason_native(
     diagnostics.write_report_artifacts(
         report, output_dir=output_dir, stem=NATIVE_REASON_STEM
     )
+
+
+def _verify_query_pairs(queries: Path) -> list[tuple[str, str]]:
+    query_files = sorted(queries.glob("*.rq"))
+    if queries == VERIFY_DIR:
+        # Slices carry their own verify queries (slices/*/*/queries/verify/).
+        query_files += iter_slice_query_files("verify")
+    if not query_files:
+        raise FileNotFoundError(f"no verify queries found in {queries}")
+
+    # Pass (repo-relative path, query text): the path anchors each finding's
+    # SARIF physicalLocation; the text is what the native engine evaluates.
+    return [
+        (str(qf.relative_to(PROJECT_ROOT)), qf.read_text(encoding="utf-8"))
+        for qf in query_files
+    ]
+
+
+def reason_native(
+    *,
+    gts: Path = GTS_SNAPSHOT_FILE,
+    merge: bool = False,
+    output_dir: Path = DIST_DIR,
+    run_box_roles: bool = True,
+) -> DiagnosticsReport:
+    """Run the native EL/DL reasoning lane and emit its diagnostics + closure.
+
+    The Java/Docker-free authority lane (Principles 17 and 18): the Rust engine reasons
+    the bundle, this builds the diagnostics report (consistency verdict,
+    native DL coverage defects, any inconsistency/unsatisfiability), folds in
+    the four-box role audit, writes the inferred-closure RDF 1.2 artifact, and
+    writes the JSON / SARIF / HTML diagnostics artifacts. It never raises on an
+    inconsistent ontology — the caller inspects ``report.ok``.
+
+    Args:
+        gts: The committed GTS bundle to reason over.
+        merge: When true, the closure artifact is the union of the asserted and
+            derived graphs; otherwise it carries only the derived axioms.
+        output_dir: Destination directory for all artifacts.
+        run_box_roles: When true, fold the four-box graph-role audit findings in.
+
+    Returns:
+        The diagnostics report (its ``ok`` reflects reasoning consistency).
+    """
+    import gmeow_logic
+
+    gts_bytes = gts.read_bytes()
+    if hasattr(gmeow_logic, "reason_native_with_artifacts"):
+        result = gmeow_logic.reason_native_with_artifacts(gts_bytes, merge)
+        artifacts = result["artifacts"]
+    else:  # pragma: no cover - compatibility for older native wheels
+        result = gmeow_logic.reason_native(gts_bytes)
+        artifacts = gmeow_logic.reason_native_artifacts(gts_bytes, merge)
+
+    report = _reason_report_from_native_result(result, run_box_roles=run_box_roles)
+    _write_native_reason_outputs(report, artifacts, output_dir=output_dir)
     return report
+
+
+def reason_and_verify_native(
+    *,
+    gts: Path = GTS_SNAPSHOT_FILE,
+    queries: Path = VERIFY_DIR,
+    merge: bool = False,
+    output_dir: Path = DIST_DIR,
+    run_box_roles: bool = True,
+) -> tuple[DiagnosticsReport, DiagnosticsReport]:
+    """Run native reason and verify from one GTS import and one Nemo chase.
+
+    This is the Makefile/check surface for callers that need both reports. The
+    standalone :func:`reason_native` and :func:`verify_native` commands remain
+    available, but this fused path avoids redoing the full native closure when
+    both gates run back-to-back.
+    """
+    import gmeow_logic
+
+    from gmeow_tools import diagnostics
+
+    pairs = _verify_query_pairs(queries)
+    if not hasattr(gmeow_logic, "reason_and_verify_native"):
+        reason_report = reason_native(
+            gts=gts,
+            merge=merge,
+            output_dir=output_dir,
+            run_box_roles=run_box_roles,
+        )
+        verify_report = verify_native(gts=gts, queries=queries, output_dir=output_dir)
+        return reason_report, verify_report
+
+    result = gmeow_logic.reason_and_verify_native(gts.read_bytes(), pairs, merge)
+    reason_result = result["reason"]
+    reason_report = _reason_report_from_native_result(
+        reason_result, run_box_roles=run_box_roles
+    )
+    verify_report = result["verify"]
+
+    _write_native_reason_outputs(
+        reason_report, reason_result["artifacts"], output_dir=output_dir
+    )
+    output_dir.mkdir(parents=True, exist_ok=True)
+    diagnostics.write_report_artifacts(
+        verify_report, output_dir=output_dir, stem=NATIVE_VERIFY_STEM
+    )
+    return reason_report, verify_report
 
 
 def verify_native(
@@ -574,19 +655,7 @@ def verify_native(
 
     from gmeow_tools import diagnostics
 
-    query_files = sorted(queries.glob("*.rq"))
-    if queries == VERIFY_DIR:
-        # Slices carry their own verify queries (slices/*/*/queries/verify/).
-        query_files += iter_slice_query_files("verify")
-    if not query_files:
-        raise FileNotFoundError(f"no verify queries found in {queries}")
-
-    # Pass (repo-relative path, query text): the path anchors each finding's
-    # SARIF physicalLocation; the text is what the native engine evaluates.
-    pairs = [
-        (str(qf.relative_to(PROJECT_ROOT)), qf.read_text(encoding="utf-8"))
-        for qf in query_files
-    ]
+    pairs = _verify_query_pairs(queries)
     # verify_native hands back a live diagnostics Report pyclass directly — no
     # JSON round-trip (#630).
     report = gmeow_logic.verify_native(gts.read_bytes(), pairs)

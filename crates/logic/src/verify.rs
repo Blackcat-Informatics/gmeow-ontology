@@ -26,6 +26,7 @@ use gmeow_sparql_eval::NativeSparqlEngine;
 
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::reason_all;
+use crate::result::ReasoningResult;
 
 /// Strip a single pair of angle brackets from an IRI term, if present.
 ///
@@ -53,11 +54,11 @@ fn query_stem(name: &str) -> &str {
         .unwrap_or_else(|| name.rsplit('/').next().unwrap_or(name))
 }
 
-/// Run the reasoned-graph negative tests natively over `edb`.
+/// Run the reasoned-graph negative tests natively over `edb` and an already-built closure.
 ///
 /// Materializes a flat oxigraph store = the asserted graph (flattened to the
 /// default graph, literals and `owl:members` RDF lists preserved) unioned with
-/// the native non-EDB derived edges from a single EL/DL chase, then evaluates
+/// the native non-EDB derived edges from `result`, then evaluates
 /// each `(name, sparql)` SELECT query against it. A query returning any rows is
 /// a violation → an `error` finding (offending bindings in `detail`, the query
 /// path as the finding location). A trailing `note` summarizes the run.
@@ -67,9 +68,13 @@ fn query_stem(name: &str) -> &str {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if reasoning fails, if a query fails to parse/evaluate,
-/// if a query is not a SELECT, or if a derived edge cannot be built as a quad.
-pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, String> {
+/// Returns `Err(String)` if a query fails to parse/evaluate, if a query is not a
+/// SELECT, or if a derived edge cannot be built as a quad.
+pub fn verify_with_reasoning_result(
+    edb: &RdfDataset,
+    result: &ReasoningResult,
+    queries: &[(String, String)],
+) -> Result<Report, String> {
     // 1. Flat asserted graph (default graph; literals + owl:members lists kept).
     //    A no-GRAPH verify query then matches it, exactly like ROBOT's single
     //    merged reasoned graph. The native flatten re-materializes the RDF 1.2
@@ -85,7 +90,6 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
     //    the default graph. The native closure only materializes subsumption /
     //    type / equivalent-class edges, which is what the inferred-edge verify
     //    queries (class-in-two-disjoint-axes, class-without-stereotype) rely on.
-    let result = reason_all(edb)?;
     // The DL coverage gaps are reconstructed from the shared model's
     // unsupported-construct set via the one recipe `verdict_from_inferred` uses,
     // so the verify findings stay byte-identical (#768). The committed bundle is
@@ -268,6 +272,15 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
     );
 
     Ok(report)
+}
+
+/// Run native reasoned-graph verify, computing the EL/DL closure internally.
+///
+/// Call [`verify_with_reasoning_result`] when the caller has already run
+/// [`reason_all`] and needs to avoid a second Nemo chase.
+pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, String> {
+    let result = reason_all(edb)?;
+    verify_with_reasoning_result(edb, &result, queries)
 }
 
 #[cfg(test)]
