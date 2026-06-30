@@ -8,10 +8,10 @@
 //! individuals in `slices/core/pipeline/` — and read back here, so the build is
 //! a first-class ontological citizen (MAXIMAL DOGFOODING). [`PipelineSpec`] is
 //! the parsed-but-unbound shape; [`PipelineSpec::validate`] proves the structure
-//! (acyclic, complete, exactly one sink, engine-lock derived); [`bind`] resolves
-//! each `gmeow:stageImpl` against the [`StageRegistry`] and proves the Rust impl
-//! agrees with the RDF declaration (kind + consumes). Every check HARD-fails
-//! before any stage runs.
+//! (acyclic, complete, exactly one sink); [`bind`] resolves each `gmeow:stageImpl`
+//! against the [`StageRegistry`] and proves the Rust impl agrees with the RDF
+//! declaration (capabilities + consumes + resources + typed dataflow). Every check
+//! HARD-fails before any stage runs.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
@@ -21,25 +21,42 @@ use oxigraph::store::Store;
 
 use crate::error::PipelineError;
 use crate::graph::StageGraph;
-use crate::node::{Stage, StageKind, GMEOW};
+use crate::node::{Stage, GMEOW, SINK_CAPABILITY};
 use crate::registry::StageRegistry;
 use crate::stages::source_load::turtle_bytes_into_store;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// A stage's typed dataflow: for each upstream producer it narrows to specific
+/// named-graph entities, a `(producer-local-name, sorted entity IRIs)` pair; the
+/// whole list sorted by producer. Empty = every consumed producer is a whole-product
+/// dependency.
+pub type DataFlowEntities = Vec<(String, Vec<String>)>;
 
 /// One `gmeow:PipelineStage` individual, parsed but not yet bound to its impl.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StageSpec {
     /// The stage id — the `gmeow:PipelineStage` individual's local name.
     pub id: String,
-    /// `gmeow:stageKind` resolved to a [`StageKind`].
-    pub kind: StageKind,
+    /// `gmeow:hasCapability` — the capability IRIs this stage holds (e.g.
+    /// [`crate::node::SINK_CAPABILITY`], [`crate::node::SOURCE_ORIGIN`]), sorted and
+    /// deduplicated. Validated against the Rust impl's `capabilities()` at bind time
+    /// (Rust/RDF agreement); the executor reads these in place of a kind enum.
+    pub capabilities: Vec<String>,
     /// `gmeow:stageImpl` — the registry key binding this to a Rust [`Stage`].
     pub impl_key: String,
     /// `gmeow:dataflowConsumes` — upstream stage ids, sorted, deduplicated.
     pub consumes: Vec<String>,
-    /// `gmeow:carriesEngineLock` — validated to equal `kind.carries_engine_lock()`.
-    pub engine_lock: bool,
+    /// `gmeow:requiresResource` — the IRIs of shared resources the stage holds
+    /// exclusively while running, sorted, deduplicated. Validated against the Rust
+    /// impl's `resources()` at bind time (Rust/RDF agreement).
+    pub resources: Vec<String>,
+    /// Reified `gmeow:BuildDataFlow` typed dataflow: for each upstream producer this
+    /// stage reads only SPECIFIC named-graph entities from, the `(producer-local-name,
+    /// sorted entity IRIs)`, the list sorted by producer. Empty = every consumed
+    /// producer is a whole-product dependency (the sound default). Validated against the
+    /// Rust impl's `consumed_entities()` at bind time (Rust/RDF agreement).
+    pub dataflow_entities: DataFlowEntities,
     /// `gmeow:producesFormat` — output format tags, sorted (export leaves).
     pub formats: Vec<String>,
 }
@@ -62,26 +79,39 @@ impl PipelineSpec {
     /// Validate the DAG structure and return the levelled execution plan.
     ///
     /// HARD-fails on: a dangling `dataflowConsumes`, a cycle, no `Sink`, more
-    /// than one `Sink`, or any stage whose `carriesEngineLock` disagrees with
-    /// the kind-derived value (single source of truth, #861).
+    /// than one `Sink`, or a typed-dataflow narrowing whose producer the consumer
+    /// does not actually `dataflowConsumes`. (Rust/RDF resource agreement is proven
+    /// at `bind` time, once the executable twin is resolved.)
     pub fn validate(&self) -> Result<StageGraph, PipelineError> {
-        // ── Engine-lock single source of truth. ──
+        // ── Typed-dataflow endpoints: every gmeow:BuildDataFlow producer a consumer
+        //    narrows to must be a declared stage AND one the consumer actually
+        //    gmeow:dataflowConsumes. Otherwise the cache would narrow on a graph the
+        //    scheduler never feeds the stage (its upstream map is built from
+        //    `consumes`), silently serving a stale product — a no-optionality hazard. ──
+        let node_ids: BTreeSet<&str> = self.stages.iter().map(|s| s.id.as_str()).collect();
         for s in &self.stages {
-            let derived = s.kind.carries_engine_lock();
-            if s.engine_lock != derived {
-                return Err(PipelineError::EngineLockMismatch {
-                    stage: s.id.clone(),
-                    rdf: s.engine_lock,
-                    derived,
-                });
+            for (producer, _entities) in &s.dataflow_entities {
+                if !node_ids.contains(producer.as_str()) {
+                    return Err(PipelineError::InvalidDag(format!(
+                        "stage {} declares typed dataflow from unknown producer {producer}",
+                        s.id
+                    )));
+                }
+                if !s.consumes.iter().any(|c| c == producer) {
+                    return Err(PipelineError::InvalidDag(format!(
+                        "stage {} declares typed dataflow from {producer} but does not gmeow:dataflowConsumes it",
+                        s.id
+                    )));
+                }
             }
         }
 
-        // ── Exactly one Sink (the gts narrow waist). ──
+        // ── Exactly one Sink (the gts narrow waist): the stage holding
+        //    gmeow:sinkCapability. ──
         let sinks: Vec<&str> = self
             .stages
             .iter()
-            .filter(|s| s.kind == StageKind::Sink)
+            .filter(|s| s.capabilities.iter().any(|c| c == SINK_CAPABILITY))
             .map(|s| s.id.as_str())
             .collect();
         match sinks.len() {
@@ -142,6 +172,25 @@ impl PipelineSpec {
         }
         stages.sort_by(|a, b| a.id.cmp(&b.id));
 
+        // Attach the reified gmeow:DataFlow typed-dataflow edges to their consumer
+        // stages (the artifact-level dependency declarations).
+        let mut by_consumer = parse_dataflow_edges(store)?;
+        for s in &mut stages {
+            if let Some(entities) = by_consumer.remove(&s.id) {
+                s.dataflow_entities = entities;
+            }
+        }
+        // A gmeow:BuildDataFlow whose gmeow:buildFlowTo is not a hasStage member of
+        // this pipeline would be silently dropped; hard-fail instead (no-optionality).
+        if !by_consumer.is_empty() {
+            let mut unknown: Vec<String> = by_consumer.into_keys().collect();
+            unknown.sort();
+            return Err(PipelineError::InvalidDag(format!(
+                "gmeow:BuildDataFlow targets unknown consumer stage(s): {}",
+                unknown.join(", ")
+            )));
+        }
+
         Ok(PipelineSpec {
             id: local_name(&pipeline_iri),
             stages,
@@ -153,17 +202,17 @@ impl PipelineSpec {
 fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineError> {
     let id = local_name(stage_iri);
 
-    // gmeow:stageKind (exactly one).
-    let kind_iri = objects(store, stage_iri, &iri(GMEOW, "stageKind"))?
+    // gmeow:hasCapability (zero or more capability IRIs, kept whole — capabilities are
+    // not stages, so they are not reduced to local names).
+    let mut capabilities: Vec<String> = objects(store, stage_iri, &iri(GMEOW, "hasCapability"))?
         .into_iter()
-        .find_map(|t| match t {
+        .filter_map(|t| match t {
             Term::NamedNode(nn) => Some(nn.as_str().to_string()),
             _ => None,
         })
-        .ok_or_else(|| PipelineError::Parse(format!("stage {id} has no gmeow:stageKind")))?;
-    let kind = StageKind::from_iri(&kind_iri).ok_or_else(|| {
-        PipelineError::Parse(format!("stage {id} has unknown stageKind {kind_iri}"))
-    })?;
+        .collect();
+    capabilities.sort();
+    capabilities.dedup();
 
     // gmeow:stageImpl (exactly one string).
     let impl_key = objects(store, stage_iri, &iri(GMEOW, "stageImpl"))?
@@ -171,13 +220,17 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
         .find_map(literal_string)
         .ok_or_else(|| PipelineError::Parse(format!("stage {id} has no gmeow:stageImpl")))?;
 
-    // gmeow:carriesEngineLock (exactly one boolean).
-    let engine_lock = objects(store, stage_iri, &iri(GMEOW, "carriesEngineLock"))?
+    // gmeow:requiresResource (zero or more resource IRIs, kept whole — resources
+    // are not stages, so they are not reduced to local names).
+    let mut resources: Vec<String> = objects(store, stage_iri, &iri(GMEOW, "requiresResource"))?
         .into_iter()
-        .find_map(literal_bool)
-        .ok_or_else(|| {
-            PipelineError::Parse(format!("stage {id} has no gmeow:carriesEngineLock"))
-        })?;
+        .filter_map(|t| match t {
+            Term::NamedNode(nn) => Some(nn.as_str().to_string()),
+            _ => None,
+        })
+        .collect();
+    resources.sort();
+    resources.dedup();
 
     // gmeow:dataflowConsumes (zero or more stage IRIs → local names).
     let mut consumes: Vec<String> = objects(store, stage_iri, &iri(GMEOW, "dataflowConsumes"))?
@@ -200,17 +253,107 @@ fn parse_stage(store: &Store, stage_iri: &str) -> Result<StageSpec, PipelineErro
 
     Ok(StageSpec {
         id,
-        kind,
+        capabilities,
         impl_key,
         consumes,
-        engine_lock,
+        resources,
+        // Filled in by from_store from the reified gmeow:DataFlow edges.
+        dataflow_entities: Vec::new(),
         formats,
     })
 }
 
+/// Parse the reified `gmeow:BuildDataFlow` typed-dataflow edges into a
+/// `consumer-local-name → sorted [(producer-local-name, sorted entity IRIs)]` map.
+///
+/// Each `gmeow:BuildDataFlow` individual (a specialization of the canonical
+/// `logic:DataFlowEdge`) carries `gmeow:buildFlowFrom` (the producer stage, a
+/// `logic:flowFrom` leg), `gmeow:buildFlowTo` (the consumer stage, a `logic:flowTo`
+/// leg), and one or more `gmeow:flowEntity` (the named-graph IRIs that flow on this
+/// edge — kept whole, they are graphs not stages). Edges sharing a (consumer,
+/// producer) pair are merged.
+fn parse_dataflow_edges(
+    store: &Store,
+) -> Result<BTreeMap<String, DataFlowEntities>, PipelineError> {
+    // consumer -> producer -> entity set
+    let mut acc: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
+    let dataflow_class = iri(GMEOW, "BuildDataFlow");
+    let rdf_type = oxigraph::model::NamedNode::new(RDF_TYPE)
+        .map_err(|e| PipelineError::Parse(format!("invalid rdf:type IRI: {e}")))?;
+    let class = oxigraph::model::NamedNode::new(&dataflow_class)
+        .map_err(|e| PipelineError::Parse(format!("invalid BuildDataFlow class IRI: {e}")))?;
+    let mut edges: BTreeSet<String> = BTreeSet::new();
+    for quad in store.quads_for_pattern(
+        None,
+        Some(rdf_type.as_ref()),
+        Some(class.as_ref().into()),
+        None,
+    ) {
+        let quad = quad.map_err(|e| PipelineError::Parse(e.to_string()))?;
+        if let oxigraph::model::NamedOrBlankNode::NamedNode(nn) = &quad.subject {
+            edges.insert(nn.as_str().to_string());
+        }
+    }
+    for edge in &edges {
+        let producer = objects(store, edge, &iri(GMEOW, "buildFlowFrom"))?
+            .into_iter()
+            .find_map(|t| match t {
+                Term::NamedNode(nn) => Some(local_name(nn.as_str())),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                PipelineError::Parse(format!(
+                    "gmeow:BuildDataFlow {edge} has no gmeow:buildFlowFrom"
+                ))
+            })?;
+        let consumer = objects(store, edge, &iri(GMEOW, "buildFlowTo"))?
+            .into_iter()
+            .find_map(|t| match t {
+                Term::NamedNode(nn) => Some(local_name(nn.as_str())),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                PipelineError::Parse(format!(
+                    "gmeow:BuildDataFlow {edge} has no gmeow:buildFlowTo"
+                ))
+            })?;
+        let entity_terms = objects(store, edge, &iri(GMEOW, "flowEntity"))?;
+        let entities: BTreeSet<String> = entity_terms
+            .into_iter()
+            .filter_map(|t| match t {
+                Term::NamedNode(nn) => Some(nn.as_str().to_string()),
+                _ => None,
+            })
+            .collect();
+        if entities.is_empty() {
+            return Err(PipelineError::Parse(format!(
+                "gmeow:BuildDataFlow {edge} declares no gmeow:flowEntity (a typed dataflow edge must name at least one entity graph)"
+            )));
+        }
+        acc.entry(consumer)
+            .or_default()
+            .entry(producer)
+            .or_default()
+            .extend(entities);
+    }
+    // Materialize to sorted Vecs (by producer; entities sorted).
+    let out = acc
+        .into_iter()
+        .map(|(consumer, producers)| {
+            let mut rows: Vec<(String, Vec<String>)> = producers
+                .into_iter()
+                .map(|(p, ents)| (p, ents.into_iter().collect()))
+                .collect();
+            rows.sort();
+            (consumer, rows)
+        })
+        .collect();
+    Ok(out)
+}
+
 /// Resolve every stage's `gmeow:stageImpl` against the registry and prove the
-/// Rust impl agrees with the RDF declaration (kind + consumes). Returns the
-/// bound stages in the validated topological order.
+/// Rust impl agrees with the RDF declaration (capabilities + consumes + resources +
+/// typed dataflow). Returns the bound stages in the validated topological order.
 pub fn bind(
     spec: &PipelineSpec,
     graph: &StageGraph,
@@ -226,12 +369,17 @@ pub fn bind(
                 impl_key: s.impl_key.clone(),
             })?;
 
-        // Kind agreement.
-        if stage.kind() != s.kind {
-            return Err(PipelineError::KindMismatch {
+        // Capability agreement (both sides sorted+deduped): the executable twin must
+        // declare exactly the capabilities the RDF does, or the executor would read a
+        // sink/source role the authored model never declared (single source of truth).
+        let mut rust_caps: Vec<String> = stage.capabilities().to_vec();
+        rust_caps.sort();
+        rust_caps.dedup();
+        if rust_caps != s.capabilities {
+            return Err(PipelineError::CapabilityMismatch {
                 stage: s.id.clone(),
-                rdf: s.kind.tag().to_string(),
-                rust: stage.kind().tag().to_string(),
+                rdf: s.capabilities.clone(),
+                rust: rust_caps,
             });
         }
 
@@ -244,6 +392,43 @@ pub fn bind(
                 stage: s.id.clone(),
                 rdf: s.consumes.clone(),
                 rust,
+            });
+        }
+
+        // Resource agreement (both sides sorted+deduped): the executable twin must
+        // declare exactly the shared resources the RDF does, or the scheduler's
+        // serialization would diverge from the authored model.
+        let mut rust_res: Vec<String> = stage.resources().to_vec();
+        rust_res.sort();
+        rust_res.dedup();
+        if rust_res != s.resources {
+            return Err(PipelineError::ResourceMismatch {
+                stage: s.id.clone(),
+                rdf: s.resources.clone(),
+                rust: rust_res,
+            });
+        }
+
+        // Typed-dataflow (artifact-level) agreement: the executable twin must declare
+        // exactly the entity narrowing the RDF gmeow:DataFlow edges declare, or the
+        // cache could narrow on a different entity set than the stage reads (stale
+        // hazard). Normalize both sides (sorted by producer, entities sorted+deduped).
+        let mut rust_entities: Vec<(String, Vec<String>)> = stage
+            .consumed_entities()
+            .iter()
+            .map(|(producer, ents)| {
+                let mut e = ents.clone();
+                e.sort();
+                e.dedup();
+                (producer.clone(), e)
+            })
+            .collect();
+        rust_entities.sort();
+        if rust_entities != s.dataflow_entities {
+            return Err(PipelineError::DataFlowMismatch {
+                stage: s.id.clone(),
+                rdf: s.dataflow_entities.clone(),
+                rust: rust_entities,
             });
         }
 
@@ -307,17 +492,6 @@ fn single_subject_of_type(store: &Store, class_iri: &str) -> Result<Option<Strin
 fn literal_string(term: Term) -> Option<String> {
     match term {
         Term::Literal(l) => Some(l.value().to_string()),
-        _ => None,
-    }
-}
-
-fn literal_bool(term: Term) -> Option<bool> {
-    match term {
-        Term::Literal(l) => match l.value() {
-            "true" | "1" => Some(true),
-            "false" | "0" => Some(false),
-            _ => None,
-        },
         _ => None,
     }
 }

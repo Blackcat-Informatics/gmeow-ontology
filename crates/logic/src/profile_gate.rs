@@ -199,6 +199,47 @@ pub fn lewis_mode(profile: &str) -> Option<LewisMode> {
     }
 }
 
+// ── Evolution-facet recognition (logic:EvolutionMode) ────────────────────────
+
+/// The canonical full IRIs for the three `logic:EvolutionMode` facet values.
+pub const STATIC_EVOLUTION: &str = "https://blackcatinformatics.ca/logic/StaticEvolution";
+/// State-transition counterpart of [`STATIC_EVOLUTION`].
+pub const STATE_TRANSITION_EVOLUTION: &str =
+    "https://blackcatinformatics.ca/logic/StateTransitionEvolution";
+/// Transaction-path counterpart of [`STATIC_EVOLUTION`].
+pub const TRANSACTION_PATH_EVOLUTION: &str =
+    "https://blackcatinformatics.ca/logic/TransactionPathEvolution";
+
+const STATIC_EVOLUTION_SHORT: &str = "StaticEvolution";
+const STATE_TRANSITION_EVOLUTION_SHORT: &str = "StateTransitionEvolution";
+const TRANSACTION_PATH_EVOLUTION_SHORT: &str = "TransactionPathEvolution";
+
+/// Normalize a `logic:EvolutionMode` reference (full IRI,
+/// `prefix:Local`, or a bare local name) to its bare local name.
+///
+/// Recognition mirrors [`is_procedural_profile`]: a reference is normalized by its
+/// trailing local name ([`profile_local_name`]), so `StaticEvolution`,
+/// `logic:StaticEvolution`, and the full IRI all collapse to the same local name.
+///
+/// Transaction Logic is the `transaction-path` value of this orthogonal Evolution
+/// facet, NOT a parallel profile: a contract selects an evolution mode the same way
+/// it selects any other single-valued facet.
+///
+/// # Returns
+///
+/// `Some("StaticEvolution" | "StateTransitionEvolution" | "TransactionPathEvolution")`
+/// for a recognized value; `None` for an empty string or any non-empty value that
+/// denotes none of the three modes — the caller turns that `None` into a hard fail
+/// (there is no silent fallback).
+pub fn evolution_mode_local(evolution: &str) -> Option<&'static str> {
+    match profile_local_name(evolution) {
+        STATIC_EVOLUTION_SHORT => Some(STATIC_EVOLUTION_SHORT),
+        STATE_TRANSITION_EVOLUTION_SHORT => Some(STATE_TRANSITION_EVOLUTION_SHORT),
+        TRANSACTION_PATH_EVOLUTION_SHORT => Some(TRANSACTION_PATH_EVOLUTION_SHORT),
+        _ => None,
+    }
+}
+
 // ── Unit tests ─────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -336,6 +377,47 @@ mod tests {
         assert_eq!(lewis_mode(HORN_PROFILE), None);
         assert_eq!(lewis_mode("PositiveHornProfile"), None);
         assert_eq!(lewis_mode(""), None);
+    }
+
+    // ── Evolution-facet recognition (logic:EvolutionMode) ─────────────────────
+
+    #[test]
+    fn evolution_mode_recognizes_full_iri_short_and_prefixed() {
+        assert_eq!(
+            evolution_mode_local(STATIC_EVOLUTION),
+            Some("StaticEvolution")
+        );
+        assert_eq!(
+            evolution_mode_local("StaticEvolution"),
+            Some("StaticEvolution")
+        );
+        assert_eq!(
+            evolution_mode_local("logic:StaticEvolution"),
+            Some("StaticEvolution")
+        );
+        assert_eq!(
+            evolution_mode_local(STATE_TRANSITION_EVOLUTION),
+            Some("StateTransitionEvolution")
+        );
+        assert_eq!(
+            evolution_mode_local("logic:StateTransitionEvolution"),
+            Some("StateTransitionEvolution")
+        );
+        assert_eq!(
+            evolution_mode_local(TRANSACTION_PATH_EVOLUTION),
+            Some("TransactionPathEvolution")
+        );
+        assert_eq!(
+            evolution_mode_local("TransactionPathEvolution"),
+            Some("TransactionPathEvolution")
+        );
+    }
+
+    #[test]
+    fn evolution_mode_unknown_and_empty_are_none() {
+        assert_eq!(evolution_mode_local(""), None);
+        assert_eq!(evolution_mode_local("NotAnEvolutionMode"), None);
+        assert_eq!(evolution_mode_local("logic:PositiveHornProfile"), None);
     }
 
     // ── No-write firewall ──────────────────────────────────────────────────────
