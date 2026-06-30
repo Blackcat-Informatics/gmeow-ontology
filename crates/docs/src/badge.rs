@@ -119,6 +119,21 @@ pub fn badge_path(badge: &Badge) -> String {
     format!("badges/{}/{}.svg", badge.family, badge.value)
 }
 
+/// The fill for a coverage fraction `num/den` on the shared red/amber/green scale
+/// — the SINGLE authority the health-page coverage heatmap and the completeness
+/// badge both read, so a heatmap cell and a badge of the same coverage agree.
+/// `< 50%` red, `< 80%` amber, else green; an empty denominator is red.
+pub fn coverage_fraction_color(num: usize, den: usize) -> &'static str {
+    if den == 0 {
+        return C_COMPLETE_LOW;
+    }
+    match num * 100 / den {
+        p if p < 50 => C_COMPLETE_LOW,
+        p if p < 80 => C_COMPLETE_MID,
+        _ => C_COMPLETE_HIGH,
+    }
+}
+
 /// The completeness badge for a coverage score (0..=6).
 fn completeness_badge(present: usize, total: usize) -> Badge {
     let fill = if present <= 2 {
