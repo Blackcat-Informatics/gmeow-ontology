@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: quality/ladder-wellformed
+# AC: YAMATO quality stratification — the well-formed ladder yields zero violations.
+#
+# ex:Q instantiates a generic quality AND plays a quality-role (so
+# QualityRoleWithoutGeneric does NOT fire); ex:M bears a true quantity and a unit
+# AND declares a reference frame (so MeasurementFrameMissing does NOT fire) — a
+# fully-formed persistent-quality + generic-role ladder + framed measurement. The
+# chase seeds only from input.nq world facts; this program is the mirror axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/quality/ladder-wellformed/> .
+
+ex:Q logic:genericQuality ex:pressure .
+ex:Q logic:qualityRole    ex:systolicRole .
+ex:M logic:trueQuantity   ex:mag .
+ex:M logic:unit           ex:mmHg .
+ex:M logic:referenceFrame ex:clinicalFrame .

@@ -1,0 +1,5 @@
+<https://example.org/quality/ladder-wellformed/M> <https://blackcatinformatics.ca/logic/referenceFrame> <https://example.org/quality/ladder-wellformed/clinicalFrame> <https://example.org/quality/ladder-wellformed/schema> .
+<https://example.org/quality/ladder-wellformed/M> <https://blackcatinformatics.ca/logic/trueQuantity> <https://example.org/quality/ladder-wellformed/mag> <https://example.org/quality/ladder-wellformed/schema> .
+<https://example.org/quality/ladder-wellformed/M> <https://blackcatinformatics.ca/logic/unit> <https://example.org/quality/ladder-wellformed/mmHg> <https://example.org/quality/ladder-wellformed/schema> .
+<https://example.org/quality/ladder-wellformed/Q> <https://blackcatinformatics.ca/logic/genericQuality> <https://example.org/quality/ladder-wellformed/pressure> <https://example.org/quality/ladder-wellformed/schema> .
+<https://example.org/quality/ladder-wellformed/Q> <https://blackcatinformatics.ca/logic/qualityRole> <https://example.org/quality/ladder-wellformed/systolicRole> <https://example.org/quality/ladder-wellformed/schema> .

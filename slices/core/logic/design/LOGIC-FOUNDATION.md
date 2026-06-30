@@ -675,13 +675,16 @@ their lowerings certify under `logic:StratifiedNAFProfile`. Two are minted, each
 rule with a negation-as-failure complement. `logic:QualityRoleWithoutGeneric` fires for a quality
 carrying a `logic:qualityRole` but no `logic:genericQuality` — a frame-relative value standing
 without the frame-independent structure it refines (Principle 11 in role terms), the NAF complement
-ranging over `logic:genericQuality`. `logic:MeasurementFrameMissing` fires for a `logic:measuredValue`
-asserted with no `logic:referenceFrame` — a value without its frame, ill-formed rather than merely
-under-specified (Principle 11), the NAF complement ranging over `logic:referenceFrame`. The domain
-measurement predicates `gmeow:value` and `gmeow:referenceFrame` are sub-properties of
-`logic:measuredValue` and `logic:referenceFrame`, so a domain measurement lifts into the constraint's
-scope without the rule mentioning any `gmeow:` term — the same domain-grounding lift the occurrent
-refinements use. Both rules are inert on inputs carrying no quality stratification, so existing cases
+ranging over `logic:genericQuality`. `logic:MeasurementFrameMissing` fires for a measurement bearing a
+`logic:unit` but no `logic:referenceFrame` — a value expressed in a unit without its frame, ill-formed
+rather than merely under-specified (Principle 11), the NAF complement ranging over
+`logic:referenceFrame`. Because the foundation chase is all-IRI (it carries no literal facts), the rule
+keys on the IRI-valued `logic:unit` witness rather than the literal `logic:measuredValue` it qualifies —
+the same move the holon coherence rule makes in keying on `logic:hasHolonicPosition` rather than the
+literal `logic:holonicLevel`. The domain measurement predicates `gmeow:unit` and `gmeow:referenceFrame`
+are sub-properties of `logic:unit` and `logic:referenceFrame`, so a domain measurement lifts into the
+constraint's scope without the rule mentioning any `gmeow:` term — the same domain-grounding lift the
+occurrent refinements use. Both rules are inert on inputs carrying no quality stratification, so existing cases
 are unaffected.
 
 Cross-world rigidity — the world-spanning universal quantifier that no ordinary in-world Datalog rule

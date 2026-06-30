@@ -1265,6 +1265,54 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
+    // ── YAMATO quality constraints ──────────────────────────────────────────────
+    // Inert unless the input carries logic:qualityRole / logic:unit facts.
+    //
+    // violation(?Q, QualityRoleWithoutGeneric) :-
+    //     qualityRole(?Q, ?R), NOT genericQuality(?Q, ?G)
+    // A quality playing a quality-role must instantiate the generic quality the role
+    // contextualizes (Principle 11 in role terms).
+    Rule {
+        head: pos(
+            var("?Q"),
+            TermPat::Const(logic_iri!("violation")),
+            TermPat::Const(logic_iri!("QualityRoleWithoutGeneric")),
+        ),
+        body: &[
+            pos(
+                var("?Q"),
+                TermPat::Const(logic_iri!("qualityRole")),
+                var("?R"),
+            ),
+            neg(
+                var("?Q"),
+                TermPat::Const(logic_iri!("genericQuality")),
+                var("?G"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // violation(?M, MeasurementFrameMissing) :-
+    //     unit(?M, ?U), NOT referenceFrame(?M, ?F)
+    // A value expressed in a unit must declare the reference frame it is read in
+    // (Principle 11).  The foundation chase is all-IRI, so the rule keys on the
+    // IRI-valued logic:unit witness, not the literal logic:measuredValue it qualifies.
+    Rule {
+        head: pos(
+            var("?M"),
+            TermPat::Const(logic_iri!("violation")),
+            TermPat::Const(logic_iri!("MeasurementFrameMissing")),
+        ),
+        body: &[
+            pos(var("?M"), TermPat::Const(logic_iri!("unit")), var("?U")),
+            neg(
+                var("?M"),
+                TermPat::Const(logic_iri!("referenceFrame")),
+                var("?F"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
     // violation(?C, FreeRole) :- antiRigidSortalClass(?C, ?C), NOT hasRigidAncestor(?C, ?C)
     Rule {
         head: pos(
