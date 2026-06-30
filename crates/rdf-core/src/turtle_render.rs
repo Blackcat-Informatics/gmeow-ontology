@@ -853,7 +853,7 @@ mod tests {
         // The reifier renders FLAT — the quoted triple inline, the annotation alongside
         // — never nested into an intermediate `[ rdf:reifies … ]` blank (#1155).
         assert!(
-            out.contains("rdf:reifies << <https://ex/s> <https://ex/p> <https://ex/o> >>"),
+            out.contains("rdf:reifies <<( <https://ex/s> <https://ex/p> <https://ex/o> )>>"),
             "reifier must render the quoted triple flat, got:\n{out}"
         );
         assert!(
