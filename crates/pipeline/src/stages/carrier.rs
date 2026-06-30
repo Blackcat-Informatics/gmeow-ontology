@@ -824,8 +824,6 @@ fn build_fanout_opaque_blob(
         ("stage-reason", crate::stages::reason::EXPLANATIONS_PATH),
         ("stage-reason", crate::stages::reason::LEDGER_PATH),
         ("stage-reason", crate::stages::reason::PERF_LEDGER_PATH),
-        ("stage-statements", crate::stages::statements::OWL_PATH),
-        ("stage-statements", crate::stages::statements::RDF12_PATH),
     ] {
         let bytes = upstream
             .get(stage)
@@ -838,6 +836,22 @@ fn build_fanout_opaque_blob(
             })?;
         members.insert(path.to_string(), bytes);
     }
+
+    // The statement-layer OWL + RDF-1.2 byte projections are byte-decorated (generated
+    // banners) and this fanout runs in the gts-sink, which does NOT consume
+    // stage-statements — so recompute them from source via `compile_statements(root)`
+    // (deterministic; byte-identical to the committed files and to the stage-statements
+    // output) rather than pulling them from an upstream the sink lacks. Carrying these
+    // as REP_GENERATED blob members is what lets the superset gate reconstruct them.
+    let (statements_owl, statements_rdf12) = crate::stages::statements::compile_statements(root)?;
+    members.insert(
+        crate::stages::statements::OWL_PATH.to_string(),
+        statements_owl.into_bytes(),
+    );
+    members.insert(
+        crate::stages::statements::RDF12_PATH.to_string(),
+        statements_rdf12.into_bytes(),
+    );
     members.extend(crate::stages::metadata::render_metadata_from_dataset(
         root, carrier,
     )?);
@@ -868,6 +882,21 @@ fn build_fanout_opaque_blob(
         .map(<[u8]>::to_vec)
         .ok_or_else(|| stage_err("missing generated/n3/gmeow.n3 in stage-compile-logic"))?;
     members.insert(crate::stages::compile_logic::N3_PATH.to_string(), n3);
+
+    // The SHACL-AF rule (computation) surface rides in from the same sink-consumed
+    // compile-logic product (byte-decorated Turtle with a GENERATED banner — not a plain
+    // canonical fold), as a committed byte projection.
+    let shacl_af = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::SHACL_AF_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| {
+            stage_err("missing generated/shacl-af/gmeow.shacl-af.ttl in stage-compile-logic")
+        })?;
+    members.insert(
+        crate::stages::compile_logic::SHACL_AF_PATH.to_string(),
+        shacl_af,
+    );
 
     // context.jsonld + dsl-stats: recomputed from source (the producing stage is not
     // sink-consumed; these are deterministic source projections, byte-identical to

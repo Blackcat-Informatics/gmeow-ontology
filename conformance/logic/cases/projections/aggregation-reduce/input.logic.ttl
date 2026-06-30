@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: aggregation-reduce
+# Exercises the "reduce" half of the computation surface: a logic: rule that
+# aggregates (SUM) a body variable over a group key. It projects to an aggregating
+# SHACL-AF sh:SPARQLRule with a GROUP-BY sub-SELECT, and is carried-and-flagged (never
+# silently dropped) on the Datalog / N3 / Nemo targets that have no aggregation form.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/aggregation-reduce/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Reduce rule: ex:total(?g, ?sum) :- ex:hasItem(?g, ?x)  [ SUM(?x) AS ?sum GROUP BY ?g ]
+ex:totalRule
+    a logic:Rule ;
+    logic:head [ rdf:subject "?g" ; rdf:predicate ex:total ; rdf:object "?sum" ] ;
+    logic:body [ rdf:subject "?g" ; rdf:predicate ex:hasItem ; rdf:object "?x" ] ;
+    logic:aggregateFunction "SUM" ;
+    logic:aggregateVariable "?x" ;
+    logic:aggregateResult "?sum" ;
+    logic:groupKey "?g" .

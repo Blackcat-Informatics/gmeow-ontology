@@ -78,7 +78,7 @@ ex:dating1 a gmeow:TemporalMeasurement ;
     gmeow:observedFeature ex:tablet1 ;
     gmeow:measurementMethod gmeow:datingMethodStratigraphicCorrelation ;
     gmeow:measuredAge "3200"^^xsd:decimal ;
-    gmeow:hasUnit <http://qudt.org/vocab/unit/YR> ;
+    gmeow:unit <http://qudt.org/vocab/unit/YR> ;
     gmeow:measurementUncertainty "100"^^xsd:decimal .
 
 ex:findContext1 a gmeow:ArchaeologicalFindContext ;
