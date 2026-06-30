@@ -8,18 +8,20 @@
 //! middle, and the JSON-LD / YAML-LD surfaces no longer call gmeow-gts codecs. The ONLY
 //! legitimate remaining `gmeow_gts::` use is gmeow.gts CONTAINER I/O — the file/structural
 //! seam (reader / writer / model / verify / policy / codec::CodecError / ulid / …). This
-//! gate is a STRUCTURAL source scan, mirroring the carrier-purity gate's shape (production
-//! region + line-comment stripping + an allow-list + negative-arm self-tests so the
-//! detector can never silently pass), that LOCKS that boundary in three rules:
+//! gate is a STRUCTURAL source scan, mirroring the carrier-purity gate's shape (line-comment
+//! stripping + an allow-list + negative-arm self-tests so the detector can never silently
+//! pass), that LOCKS that boundary in three rules:
 //!
 //!   RULE 1 — the codec seam is TOTALLY clean: no `gmeow_gts` token AND no oxigraph-family
 //!            token anywhere (production OR test) under `crates/rdf/src/native_codecs/`.
 //!
-//!   RULE 2 — RDF-codec ENTRYPOINTS are banned in PRODUCTION across all `crates/*/src`:
-//!            the `gmeow_gts::` codec call surfaces (nquads / trig / yamlld / rdf_xml /
-//!            rdf_codecs / rdf:: dataset model). gmeow.gts CONTAINER symbols (reader,
-//!            writer, model, verify, policy, wire, db, ulid, codec::, openpgp, examples)
-//!            are EXPLICITLY allowed and must not be flagged.
+//!   RULE 2 — RDF-codec ENTRYPOINTS are banned in PRODUCTION AND TEST across all
+//!            `crates/*/src`: the `gmeow_gts::` codec call surfaces (nquads / trig / yamlld /
+//!            rdf_xml / rdf_codecs / rdf:: dataset model). gmeow-gts is the gmeow.gts container
+//!            layer ONLY, so even test oracles must re-render through the native `gmeow_rdf`
+//!            codecs. gmeow.gts CONTAINER symbols (reader, writer, model, verify, policy, wire,
+//!            db, ulid, codec::, openpgp, examples) are EXPLICITLY allowed and must not be
+//!            flagged.
 //!
 //!   RULE 3 — oxigraph-family tokens are banned in PRODUCTION across all `crates/*/src`
 //!            (oxigraph is removed from the workspace; this keeps it out at the SOURCE
@@ -252,12 +254,14 @@ fn scan_native_codecs_violations(label: &str, source: &str) -> Vec<(String, Stri
 // RULE 2 — gmeow_gts RDF-codec entrypoints banned in PRODUCTION (container symbols allowed).
 // ---------------------------------------------------------------------------------------
 
-/// Scan a module's PRODUCTION region for a banned `gmeow_gts::` codec entrypoint. Container
-/// symbols never match (the forbidden list is the codec paths only); the allow-list is
-/// asserted not-flagged by the negative-arm self-test.
+/// Scan a module's WHOLE source (production AND test) for a banned `gmeow_gts::` codec
+/// entrypoint. gmeow-gts is the gmeow.gts container layer ONLY — using it for general RDF
+/// codec work is banned everywhere, not merely in production, so test oracles must re-render
+/// through the native `gmeow_rdf` codecs too. Container symbols never match (the forbidden
+/// list is the codec paths only); the allow-list is asserted not-flagged by the negative-arm
+/// self-test.
 fn scan_gts_codec_entrypoints(label: &str, source: &str) -> Vec<(String, String)> {
-    let prod = production_region(source);
-    let code = strip_line_comments(prod);
+    let code = strip_line_comments(source);
     let mut violations = Vec::new();
     for (lineno, line) in code.lines().enumerate() {
         for token in FORBIDDEN_GTS_CODEC_PATHS {
@@ -326,7 +330,7 @@ fn native_codecs_seam_is_totally_clean() {
 }
 
 #[test]
-fn no_gts_rdf_codec_entrypoint_in_production() {
+fn no_gts_rdf_codec_entrypoint_anywhere() {
     let root = workspace_root();
     let mut all: Vec<(String, String)> = Vec::new();
     for (label, path) in crate_src_rust_files(&root) {
@@ -334,10 +338,10 @@ fn no_gts_rdf_codec_entrypoint_in_production() {
     }
     assert!(
         all.is_empty(),
-        "RULE 2 FAILED: a gmeow_gts RDF-codec entrypoint appears in PRODUCTION source. The RDF \
-         codec seam is native (crates/rdf/src/native_codecs/); gmeow_gts is for gmeow.gts \
+        "RULE 2 FAILED: a gmeow_gts RDF-codec entrypoint appears in source (production OR test). \
+         The RDF codec seam is native (crates/rdf/src/native_codecs/); gmeow_gts is for gmeow.gts \
          CONTAINER I/O ONLY (reader/writer/model/verify/policy/codec::/ulid/…). Route RDF \
-         text/dataset I/O through gmeow_rdf instead. Violations:\n{}",
+         text/dataset I/O through gmeow_rdf instead — including in test oracles. Violations:\n{}",
         render(&all)
     );
 }
@@ -449,10 +453,10 @@ fn serialize(g: &SerGraph) -> String { native_nquads(g) }
     }
 
     #[test]
-    fn rule2_excludes_the_cfg_test_region() {
-        // A codec call in a #[cfg(test)] oracle is PRODUCTION-exempt under RULE 2 (the test
-        // surfaces legitimately re-render to assert byte-isomorphism). Only production code
-        // is scanned by RULE 2.
+    fn rule2_flags_codec_call_in_cfg_test_region() {
+        // gmeow-gts is the gmeow.gts container layer ONLY: a codec call in a #[cfg(test)]
+        // oracle is JUST AS BANNED as in production. Test oracles must re-render through the
+        // native gmeow_rdf codecs, so RULE 2 scans the test region too.
         let with_test_codec = r#"
 fn f() { native(); }
 
@@ -464,8 +468,8 @@ mod tests {
 "#;
         let v = scan_gts_codec_entrypoints("crates/x/src/y.rs", with_test_codec);
         assert!(
-            v.is_empty(),
-            "RULE 2 must exclude the #[cfg(test)] region, got {v:?}"
+            v.iter().any(|(t, _)| t == "gmeow_gts::nquads::"),
+            "RULE 2 must flag a codec entrypoint inside the #[cfg(test)] region, got {v:?}"
         );
     }
 

@@ -599,6 +599,21 @@ mod tests {
         ingest(nq, "application/n-quads")
     }
 
+    /// Re-render a read-back GTS container [`Graph`] to N-Quads through the native
+    /// codec (`dataset_from_gts_graph` → `serialize_dataset`), never the gmeow-gts
+    /// codec — gmeow-gts is the gmeow.gts container layer only.
+    fn graph_nquads(graph: &gmeow_gts::model::Graph) -> String {
+        let dataset =
+            crate::gts::dataset_from_gts_graph(graph).expect("fold the GTS graph into a dataset");
+        let bytes = crate::serialize_dataset(
+            &dataset,
+            crate::NativeRdfFormat::NQuads.media_type(),
+            crate::SerializeGraph::Dataset,
+        )
+        .expect("serialize the dataset to N-Quads");
+        String::from_utf8(bytes).expect("native N-Quads is valid UTF-8")
+    }
+
     #[test]
     fn add_dataset_interns_expected_plain_graph_rows() {
         // Native carrier ingestion (the single-exit path) of a plain multi-graph dataset
@@ -786,7 +801,7 @@ mod tests {
         )
         .expect("emit");
         let graph = gmeow_gts::reader::read(&bytes, true, None);
-        let nquads = gmeow_gts::nquads::to_nquads(&graph);
+        let nquads = graph_nquads(&graph);
         assert!(nquads.contains("<https://e/default> <https://e/p> <https://e/o> ."));
         assert!(nquads.contains("<https://e/named> <https://e/p> \"v\"@en <https://e/g> ."));
     }
@@ -828,10 +843,7 @@ mod tests {
         .expect("emit blobs");
         let base_graph = gmeow_gts::reader::read(&base, true, None);
         let blob_graph = gmeow_gts::reader::read(&with_blobs, true, None);
-        assert_eq!(
-            gmeow_gts::nquads::to_nquads(&base_graph),
-            gmeow_gts::nquads::to_nquads(&blob_graph)
-        );
+        assert_eq!(graph_nquads(&base_graph), graph_nquads(&blob_graph));
         let reps: std::collections::BTreeSet<String> = blob_graph
             .blob_meta
             .iter()
