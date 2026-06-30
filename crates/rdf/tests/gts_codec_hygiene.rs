@@ -27,9 +27,14 @@
 //!            (oxigraph is removed from the workspace; this keeps it out at the SOURCE
 //!            level, complementing the crate-dependency `rdf-core-hygiene` gate).
 //!
+//!   RULE 4 — gmeow-gts CODEC feature edges (`rdf-codecs` / `yaml-ld`) are banned in every
+//!            `crates/*/Cargo.toml`. A dead-but-enabled codec feature LINKS the gmeow-gts
+//!            codec surface even when no source token (RULE 2) calls it, so this manifest
+//!            scan fails closed where the source scan is blind.
+//!
 //! A violation of any rule turns this test red. The `tests` module proves the detector is
-//! not vacuous: synthetic sources carrying a forbidden token must be flagged, and an
-//! allowed container token must NOT be.
+//! not vacuous: synthetic sources/manifests carrying a forbidden token must be flagged, and
+//! an allowed container token must NOT be.
 
 use std::path::{Path, PathBuf};
 
@@ -85,6 +90,14 @@ const ALLOWED_GTS_CONTAINER_PREFIXES: [&str; 12] = [
     "gmeow_gts::Error", // CodecError et al. re-exported at the crate root are container errors
 ];
 
+/// gmeow-gts CODEC feature names. Enabling any of these in a manifest LINKS the gmeow-gts RDF
+/// codec surface (text + RDF/XML + JSON-LD-star), which is banned: gmeow-gts is the gmeow.gts
+/// CONTAINER layer only, and all RDF codec work is native (`crates/rdf/src/native_codecs/`).
+/// The container features (e.g. `duckdb`) and the value model are fine; only these are
+/// forbidden. RULE 4 fails closed if a manifest re-introduces one (the source-token RULE 2 is
+/// blind to a dead-but-linked Cargo feature).
+const FORBIDDEN_GTS_CODEC_FEATURES: [&str; 2] = ["rdf-codecs", "yaml-ld"];
+
 /// The workspace root: walk up from this crate's manifest dir until a `crates/` directory
 /// is found alongside a `Cargo.toml`. The test's CWD/`CARGO_MANIFEST_DIR` is the crate dir
 /// (`crates/rdf`), so we ascend to the directory that CONTAINS `crates/`.
@@ -115,6 +128,31 @@ fn crate_src_rust_files(root: &Path) -> Vec<(String, PathBuf)> {
         let src = entry.path().join("src");
         if src.is_dir() {
             collect_rust_files(&src, root, &mut out);
+        }
+    }
+    out.sort();
+    out
+}
+
+/// Every `crates/*/Cargo.toml` manifest, as `(workspace-relative label, path)`.
+fn crate_manifests(root: &Path) -> Vec<(String, PathBuf)> {
+    let crates_dir = root.join("crates");
+    let mut out = Vec::new();
+    for entry in std::fs::read_dir(&crates_dir).unwrap_or_else(|e| {
+        panic!(
+            "gts-codec-hygiene: cannot read {}: {e}",
+            crates_dir.display()
+        )
+    }) {
+        let entry = entry.expect("dir entry");
+        let manifest = entry.path().join("Cargo.toml");
+        if manifest.is_file() {
+            let label = manifest
+                .strip_prefix(root)
+                .unwrap_or(&manifest)
+                .to_string_lossy()
+                .into_owned();
+            out.push((label, manifest));
         }
     }
     out.sort();
@@ -297,6 +335,48 @@ fn scan_oxigraph_production(label: &str, source: &str) -> Vec<(String, String)> 
     violations
 }
 
+// ---------------------------------------------------------------------------------------
+// RULE 4 — gmeow-gts CODEC feature edges banned in every crates/*/Cargo.toml manifest.
+// ---------------------------------------------------------------------------------------
+
+/// Strip TOML line comments (`# …`) so a comment NAMING a forbidden feature is not a false
+/// positive. Feature/dependency lines never legitimately carry a `#`, so naive splitting is
+/// safe here (the same simplification the source-line stripper relies on).
+fn strip_toml_comments(source: &str) -> String {
+    source
+        .lines()
+        .map(|line| match line.find('#') {
+            Some(idx) => &line[..idx],
+            None => line,
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Scan a `Cargo.toml` for a forbidden gmeow-gts codec feature edge — either form leaves the
+/// gmeow-gts codec surface linked even when no source token (RULE 2) calls it:
+///   * the cross-crate `gmeow-gts/<codec-feature>` enable in any feature array, or
+///   * a `gmeow-gts = { … features = […, "<codec-feature>", …] }` dependency.
+fn scan_gts_codec_feature_edges(label: &str, source: &str) -> Vec<(String, String)> {
+    let code = strip_toml_comments(source);
+    let mut violations = Vec::new();
+    for (lineno, line) in code.lines().enumerate() {
+        let is_gts_dep_with_features =
+            line.trim_start().starts_with("gmeow-gts") && line.contains("features");
+        for feat in FORBIDDEN_GTS_CODEC_FEATURES {
+            let cross_crate = line.contains(&format!("gmeow-gts/{feat}"));
+            let dep_feature = is_gts_dep_with_features && line.contains(&format!("\"{feat}\""));
+            if cross_crate || dep_feature {
+                violations.push((
+                    feat.to_string(),
+                    format!("{label}:{} | {}", lineno + 1, line.trim()),
+                ));
+            }
+        }
+    }
+    violations
+}
+
 fn read(path: &Path) -> String {
     std::fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("gts-codec-hygiene: cannot read {}: {e}", path.display()))
@@ -358,6 +438,24 @@ fn no_oxigraph_in_production_source() {
         "RULE 3 FAILED: an oxigraph-family token appears in PRODUCTION source. Oxigraph is \
          removed from the workspace; RDF semantics are native (gmeow_rdf / gmeow_rdf_core). \
          Violations:\n{}",
+        render(&all)
+    );
+}
+
+#[test]
+fn no_gts_codec_feature_edge_in_manifests() {
+    let root = workspace_root();
+    let mut all: Vec<(String, String)> = Vec::new();
+    for (label, path) in crate_manifests(&root) {
+        all.extend(scan_gts_codec_feature_edges(&label, &read(&path)));
+    }
+    assert!(
+        all.is_empty(),
+        "RULE 4 FAILED: a crates/*/Cargo.toml enables a gmeow-gts RDF codec feature \
+         (rdf-codecs / yaml-ld). That LINKS the gmeow-gts codec surface even though no source \
+         calls it (RULE 2 cannot see a dead Cargo feature). gmeow-gts is gmeow.gts CONTAINER \
+         I/O ONLY — drop the codec feature; RDF codec work is native (crates/rdf/src/\
+         native_codecs/). Violations:\n{}",
         render(&all)
     );
 }
@@ -534,6 +632,53 @@ mod tests {
         assert!(
             v.is_empty(),
             "RULE 3 (production-only) must exclude the #[cfg(test)] region, got {v:?}"
+        );
+    }
+
+    // --- RULE 4 manifest-feature arms --------------------------------------------------
+
+    #[test]
+    fn rule4_flags_the_cross_crate_codec_feature_edge() {
+        for feat in FORBIDDEN_GTS_CODEC_FEATURES {
+            let manifest = format!("[features]\ngts = [\"dep:gmeow-gts\", \"gmeow-gts/{feat}\"]\n");
+            let v = scan_gts_codec_feature_edges("crates/x/Cargo.toml", &manifest);
+            assert!(
+                v.iter().any(|(t, _)| t == feat),
+                "RULE 4 must flag the cross-crate `gmeow-gts/{feat}` feature edge, got {v:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn rule4_flags_the_dependency_feature_edge() {
+        for feat in FORBIDDEN_GTS_CODEC_FEATURES {
+            let manifest = format!(
+                "[dependencies]\ngmeow-gts = {{ version = \"0.9.11\", features = [\"{feat}\"] }}\n"
+            );
+            let v = scan_gts_codec_feature_edges("crates/x/Cargo.toml", &manifest);
+            assert!(
+                v.iter().any(|(t, _)| t == feat),
+                "RULE 4 must flag the `gmeow-gts {{ features = [\"{feat}\"] }}` dependency edge, got {v:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn rule4_allows_container_only_gts_dependencies() {
+        // The plain container dependency and the `duckdb` container feature are fine — only the
+        // RDF codec features are forbidden. A comment naming a codec feature is not an edge.
+        let manifest = r#"
+[dependencies]
+gmeow-gts = { version = "0.9.11", features = ["duckdb"] }
+# historically this enabled gmeow-gts/rdf-codecs; the codec is native now.
+
+[features]
+gts = ["dep:gmeow-gts", "dep:roxmltree"]
+"#;
+        let v = scan_gts_codec_feature_edges("crates/x/Cargo.toml", manifest);
+        assert!(
+            v.is_empty(),
+            "RULE 4 must NOT flag a container-only gmeow-gts dependency nor a comment, got {v:?}"
         );
     }
 

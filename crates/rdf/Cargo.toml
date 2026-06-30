@@ -20,30 +20,25 @@ path = "src/lib.rs"
 
 [features]
 default = ["gts"]
-# `gts` is now DECOUPLED from oxigraph (#885 / purrdf P2b): it enables the GTS
-# adapter surface (re-exported from the ring-fenced `gmeow-rdf-core` kernel via
-# `gmeow-rdf-core/gts`) plus the Ed25519 signer, but no longer pulls oxigraph.
-# The native RDF text codecs (#909, EPIC #906 S3) ride `gts` so they are always-on
-# for every Rust consumer (`.goals` no-optionality). `rdf-codecs` pulls only the
-# WASM-clean oxttl/oxrdfxml/oxrdf/oxsdatatypes subset — no oxigraph Store — so the
-# `--no-default-features --features gts` build parses/serializes RDF text with no
-# Store dependency.
-gts = ["dep:ciborium", "dep:gmeow-gts", "gmeow-gts/rdf-codecs", "dep:gmeow-rdf-events", "dep:ed25519-dalek", "dep:gmeow-sparql-eval", "dep:gmeow-sparql-algebra", "dep:roxmltree", "gmeow-rdf-core/gts"]
+# `gts` is DECOUPLED from oxigraph: it enables the GTS adapter surface (re-exported
+# from the ring-fenced `gmeow-rdf-core` kernel via `gmeow-rdf-core/gts`) plus the
+# Ed25519 signer, but no longer pulls oxigraph. The native RDF text/XML codecs ride
+# `gts` so they are always-on for every Rust consumer (`.goals` no-optionality):
+# `roxmltree` is the native RDF/XML parser. gmeow-gts contributes the gmeow.gts
+# CONTAINER surface ONLY (reader/writer/model/verify/…) — NO gmeow-gts RDF codec
+# feature is enabled; all RDF codec work is native (crates/rdf/src/native_codecs/).
+gts = ["dep:ciborium", "dep:gmeow-gts", "dep:gmeow-rdf-events", "dep:ed25519-dalek", "dep:gmeow-sparql-eval", "dep:gmeow-sparql-algebra", "dep:roxmltree", "gmeow-rdf-core/gts"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
 # (gmeow-logic / gmeow-shacl / gmeow-validate); only maturin enables it. This is
 # the standard extension-module switch, not a degraded fallback — the Rust
-# functionality is identical with or without it (#648, #667).
+# functionality is identical with or without it.
 # `python` builds the GTS producer + statement-codec surface, so it pulls in the
-# `gts` feature (gmeow-gts + the Ed25519 signer the snapshot signing path uses —
-# now owned by `gts` since the pyo3-free compose core links it, #861 P6).
-# The PyO3 surface adds the JSON-LD-star (`yaml-ld`) + RDF/XML (`rdf-codecs`)
-# gmeow-gts codecs the compat `Graph.serialize/parse` route through (#834); these
-# stay OFF for the non-python Rust consumers (logic/shacl/validate) to keep them lean.
-# `rdf-codecs` now rides the always-on `gts` feature (#909), so `python` no longer
-# names it here; it keeps only the JSON-LD-star (`yaml-ld`) codec the compat
-# `Graph.serialize/parse` route uses.
-python = ["dep:pyo3", "gts", "gmeow-gts/yaml-ld"]
+# `gts` feature (gmeow-gts CONTAINER I/O + the Ed25519 signer the snapshot signing
+# path uses). The PyO3 `Graph.serialize/parse` compat surface routes through the
+# native JSON-LD-star + RDF/XML codecs (crates/rdf/src/native_codecs/), so NO
+# gmeow-gts RDF codec feature is enabled here.
+python = ["dep:pyo3", "gts"]
 
 [dependencies]
 # The ring-fenced, oxigraph-free kernel (#885 / purrdf P2b): owns the IR, value

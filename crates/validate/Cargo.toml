@@ -68,10 +68,11 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # the workspace, so this edge is link-only marginal cost; no cycle (logic does not
 # depend on validate) and layering-legal (the gate only constrains the rdf kernel).
 gmeow-logic = { path = "../logic" }
-# GTS format engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
-# and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
-# lives in gmeow-rdf (#683).
-gmeow-gts = { version = "0.9.11", features = ["yaml-ld"] }
+# GTS CONTAINER engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
+# the toolchain salt mixes `gmeow_gts::wire::VERSION`, and signature verification uses
+# `gmeow_gts::verify`/`policy`. All CONTAINER symbols (no codec feature) — gmeow-gts is the
+# gmeow.gts file layer only; RDF codec work lives in gmeow-rdf's native codecs.
+gmeow-gts = { version = "0.9.11" }
 # CBOR reader for the bundle blob metadata: `gmeow_gts::model::Graph::blob_meta`
 # values are `ciborium::value::Value`, read to resolve a blob by its `rep` label.
 ciborium = "0.2"
