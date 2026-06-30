@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! T6 — read-only audit of recorded agentic `gmeow:ToolCall` trajectories (issue #716).
+//! T6 — read-only audit of recorded agentic `gmeow:ToolCall` trajectories.
 //!
 //! A recorded tool-call sequence is treated AS a Transaction-Logic transaction and verified
 //! against the existing TR Evolution-facet engine ([`super`]): pre/postconditions (per-step

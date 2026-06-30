@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Conformance case: transaction/trajectory-audit (T6, issue #716).
+# Conformance case: transaction/trajectory-audit (T6).
 #
 # The READ-ONLY trajectory audit at the corpus level. The world facts (input.nq) record a
 # gmeow:ToolCall SEQUENCE — the memory MCP triad's store_claim then revise_belief — NOT an

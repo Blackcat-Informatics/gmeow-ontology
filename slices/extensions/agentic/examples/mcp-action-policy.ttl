@@ -94,7 +94,7 @@ ex:storeClaim a logic:McpActionSchema ;
 
 # store_claim's transaction-layer effect: the claim is now in memory AND exists as a
 # target a later revise_belief can suppress (P10 — suppression, never deletion). The
-# ins/del footprint is what the T6 trajectory audit (issue #716) reads when it treats a
+# ins/del footprint is what the T6 trajectory audit reads when it treats a
 # recorded store→revise ToolCall sequence as a transaction.
 ex:storeClaimEffect
     rdfs:label "effect of store_claim"@x-gmeow-english ;

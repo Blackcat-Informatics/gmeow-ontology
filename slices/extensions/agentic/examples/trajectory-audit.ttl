@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example: the T6 read-only TRAJECTORY AUDIT (issue #716).
+# Worked example: the T6 read-only TRAJECTORY AUDIT.
 #
 # A recorded gmeow:ToolCall sequence — here the memory MCP triad's store_claim then
 # revise_belief — is treated AS a Transaction-Logic transaction and verified (pre/post,

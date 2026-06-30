@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Unit tests for the read-only ToolCall-trajectory audit (T6, issue #716).
+//! Unit tests for the read-only ToolCall-trajectory audit (T6).
 //!
 //! Each test builds a small N-Quads world recording a `gmeow:ToolCall` trajectory (anchored by
 //! `logic:properPartOf` to a node bearing `logic:transitionFromState`), runs the audit, and
