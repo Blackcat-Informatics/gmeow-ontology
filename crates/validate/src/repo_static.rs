@@ -14,8 +14,11 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use gmeow_diagnostics::{Finding, Report, Severity};
+use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 use serde_yaml::Value as Yaml;
+
+use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
@@ -242,34 +245,66 @@ fn check_no_rdflib_in_runtime(root: &Path, report: &mut RepoStaticReport) {
     }
 }
 
-/// The SHACL-AF / RDFQuery **computational** (derivation) constructs. Computation is
-/// authored in the `logic:` canon and PROJECTED to these surfaces under `generated/`
-/// (Principle 17, `design/LOGIC-SHACL-AF.md`); a hand-authored occurrence in the authored
-/// sources is a forbidden second source of truth unless it carries a `logic:formalizes`
-/// back-reference to its `logic:` origin (the Hybrid-placement convention). Note this is
-/// the *derivation* vocabulary only — the SHACL *constraint* vocabulary
-/// (`sh:sparql` / `sh:SPARQLTarget` / `sh:SPARQLConstraint`) is validation, not
-/// computation, and is deliberately NOT listed here.
-const PROJECTION_COMPUTE_TOKENS: &[&str] = &[
-    "sh:rule",
-    "sh:SPARQLRule",
-    "sh:TripleRule",
-    "sh:JSRule",
-    "sh:js",
-    "sh:values",
-];
+/// The SHACL namespace — the SHACL-AF computational vocabulary all lives under it, so the
+/// `shacl#` substring appears (in a `@prefix` binding or a full IRI) in every file that uses it
+/// regardless of the prefix chosen. Used as a cheap pre-filter before parsing.
+const SHACL_NS: &str = "http://www.w3.org/ns/shacl#";
 
-/// The Hybrid-placement back-reference that legalizes a hand-authored projection-surface
-/// construct: it names the `logic:` source the construct is the projection of.
-const PROJECTION_FORMALIZES_BACKREF: &str = "logic:formalizes";
+/// The SHACL **computational** (derivation) *property* IRIs whose subject node declares a
+/// computational construct. Resolved as IRIs (not source tokens), so an alternate prefix or a
+/// full IRI cannot bypass the gate. The SHACL *constraint* vocabulary (`sh:sparql` /
+/// `sh:SPARQLTarget` / `sh:SPARQLConstraint`) is validation, not computation, and is excluded.
+const COMPUTE_PROPERTY_LOCALS: &[&str] = &["rule", "js", "values"];
+
+/// The SHACL **computational** *class* IRIs: a subject typed with one of these (via `rdf:type`)
+/// declares a computational construct (the rule node itself).
+const COMPUTE_CLASS_LOCALS: &[&str] = &["SPARQLRule", "TripleRule", "JSRule"];
+
+/// The Hybrid-placement back-reference IRI (`logic:formalizes`) that legalizes a hand-authored
+/// projection-surface construct: it names the `logic:` source the construct is the projection of.
+const PROJECTION_FORMALIZES_IRI: &str = "https://blackcatinformatics.ca/logic/formalizes";
+
+/// Whether `node` is back-referenced: it carries `logic:formalizes` directly, or it is reachable
+/// upward — through the computational-property edges that link a shape to its rule node — from a
+/// node that does. This binds the back-reference to the *specific* construct node (or its owning
+/// shape), so an unrelated `logic:formalizes` triple elsewhere in the file cannot legalize it.
+fn formalizes_backed(
+    node: TermId,
+    directly_backed: &BTreeSet<TermId>,
+    parents: &BTreeMap<TermId, BTreeSet<TermId>>,
+) -> bool {
+    let mut stack = vec![node];
+    let mut seen = BTreeSet::new();
+    while let Some(n) = stack.pop() {
+        if !seen.insert(n) {
+            continue;
+        }
+        if directly_backed.contains(&n) {
+            return true;
+        }
+        if let Some(ps) = parents.get(&n) {
+            stack.extend(ps.iter().copied());
+        }
+    }
+    false
+}
+
+/// A short display label for a subject node in a diagnostic.
+fn node_label(ds: &RdfDataset, id: TermId) -> String {
+    match ds.resolve(id) {
+        TermRef::Iri(iri) => format!("<{iri}>"),
+        _ => "[blank node]".to_owned(),
+    }
+}
 
 /// Computation-surfaces-are-projections purity gate (Principles 17/4/12,
 /// `design/LOGIC-SHACL-AF.md` / `design/LOGIC-RDFQUERY.md`): scan the authored RDF sources
-/// (`slices/` + `dsl/`, `.ttl` only — NOT `generated/`, NOT prose `.md` docs) for
-/// computational SHACL-AF / RDFQuery vocabulary. Any file carrying such a construct must
-/// also carry a `logic:formalizes` back-reference to its `logic:` source; otherwise it is a
-/// hand-authored computational projection — a forbidden second source of truth — and the
-/// gate fails.
+/// (`slices/` + `dsl/`, `.ttl` only — NOT `generated/`, NOT prose `.md` docs) for computational
+/// SHACL-AF vocabulary. The check is **Turtle-aware**: it parses each file and resolves the
+/// computational predicates/classes as IRIs (so an alternate prefix or a full IRI cannot bypass
+/// it), and it requires the `logic:formalizes` back-reference **on the construct node itself or
+/// its owning shape** (so an unrelated back-reference elsewhere in the file cannot legalize it).
+/// A construct without such a back-reference is a hand-authored second source of truth and fails.
 fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
     for sub in ["slices", "dsl"] {
@@ -287,25 +322,82 @@ fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
                 continue;
             }
         };
-        let hits: Vec<&str> = PROJECTION_COMPUTE_TOKENS
-            .iter()
-            .copied()
-            .filter(|tok| text.contains(*tok))
-            .collect();
-        if hits.is_empty() {
+        // Cheap pre-filter: the SHACL namespace IRI is present (as a prefix binding or full IRI)
+        // in any file that uses SHACL vocabulary, whatever prefix it binds.
+        if !text.contains(SHACL_NS) {
             continue;
         }
-        if !text.contains(PROJECTION_FORMALIZES_BACKREF) {
-            let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        let ds = match gmeow_rdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+            Ok(ds) => ds,
+            Err(err) => {
+                report.error(format!("{rel}: does not parse as Turtle: {err}"));
+                continue;
+            }
+        };
+
+        // Construct-bearing subjects, with the marker that flagged them, and the shape→rule-node
+        // parent links the back-reference may sit on.
+        let mut construct_subjects: BTreeMap<TermId, BTreeSet<String>> = BTreeMap::new();
+        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
+
+        for local in COMPUTE_PROPERTY_LOCALS {
+            let Some(pid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
+                continue;
+            };
+            for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+                construct_subjects
+                    .entry(q.s)
+                    .or_default()
+                    .insert(format!("sh:{local}"));
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        if let Some(type_id) = iri_id_static(&ds, rdf::TYPE) {
+            for local in COMPUTE_CLASS_LOCALS {
+                let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
+                    continue;
+                };
+                for q in ds.quads_for_pattern(None, Some(type_id), Some(cid), GraphMatch::Any) {
+                    construct_subjects
+                        .entry(q.s)
+                        .or_default()
+                        .insert(format!("sh:{local}"));
+                }
+            }
+        }
+        if construct_subjects.is_empty() {
+            continue;
+        }
+
+        let mut directly_backed: BTreeSet<TermId> = BTreeSet::new();
+        if let Some(fid) = iri_id_static(&ds, PROJECTION_FORMALIZES_IRI) {
+            for q in ds.quads_for_pattern(None, Some(fid), None, GraphMatch::Any) {
+                directly_backed.insert(q.s);
+            }
+        }
+
+        for (subj, markers) in &construct_subjects {
+            if formalizes_backed(*subj, &directly_backed, &parents) {
+                continue;
+            }
+            let constructs: Vec<&str> = markers.iter().map(String::as_str).collect();
             report.error(format!(
-                "{rel} hand-authors computational SHACL-AF/RDFQuery vocabulary ({}) without a \
-                 `{PROJECTION_FORMALIZES_BACKREF}` back-reference: computation is authored in the \
-                 logic: canon and PROJECTED to these surfaces under generated/ (Principle 17), \
-                 never hand-authored as a second source of truth (design/LOGIC-SHACL-AF.md)",
-                hits.join(", ")
+                "{rel}: {} hand-authors computational SHACL-AF vocabulary ({}) without a \
+                 `logic:formalizes` back-reference on it or its owning shape: computation is \
+                 authored in the logic: canon and PROJECTED to these surfaces under generated/ \
+                 (Principle 17), never hand-authored as a second source of truth \
+                 (design/LOGIC-SHACL-AF.md)",
+                node_label(&ds, *subj),
+                constructs.join(", ")
             ));
         }
     }
+}
+
+/// Resolve an IRI to its interned [`TermId`] in `ds`, if present.
+fn iri_id_static(ds: &RdfDataset, iri: &str) -> Option<TermId> {
+    ds.term_id_by_value(&TermValue::iri(iri))
 }
 
 fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
@@ -328,9 +420,11 @@ fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<Pa
             }
         };
         let path = entry.path();
-        if path.is_dir() {
+        // Recurse into real subdirectories only — a symlinked directory could form a cycle and
+        // recurse forever (is_dir follows symlinks, so the !is_symlink guard is required).
+        if path.is_dir() && !path.is_symlink() {
             collect_ttl_files(&path, report, out);
-        } else if path.extension().is_some_and(|ext| ext == "ttl") {
+        } else if !path.is_symlink() && path.extension().is_some_and(|ext| ext == "ttl") {
             out.push(path);
         }
     }
@@ -909,6 +1003,118 @@ mod tests {
             backed.errors.is_empty(),
             "a logic:formalizes-backed construct must pass the purity gate; got {:?}",
             backed.errors
+        );
+    }
+
+    #[test]
+    fn purity_gate_catches_alternate_prefix_and_full_iri_bypass() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+
+        // Alternate prefix bound to the SHACL namespace — a substring scan for "sh:rule" misses it.
+        write(
+            &root.join("slices/core/altprefix/module.ttl"),
+            "@prefix af: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:S a af:NodeShape ;\n    \
+                 af:rule [ a af:SPARQLRule ; \
+                 af:construct \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
+        );
+        // Full-IRI form — no SHACL prefix at all.
+        write(
+            &root.join("slices/core/fulliri/module.ttl"),
+            "@prefix ex: <https://example.org/> .\n\
+             ex:T a <http://www.w3.org/ns/shacl#NodeShape> ;\n    \
+                 <http://www.w3.org/ns/shacl#rule> [ a <http://www.w3.org/ns/shacl#SPARQLRule> ; \
+                 <http://www.w3.org/ns/shacl#construct> \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_projection_compute_purity(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("altprefix/module.ttl")),
+            "an alternate-prefix computational construct must be flagged; got {:?}",
+            report.errors
+        );
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("fulliri/module.ttl")),
+            "a full-IRI computational construct must be flagged; got {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn purity_gate_rejects_backref_on_unrelated_node_or_in_a_comment() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+
+        // logic:formalizes is present but on an UNRELATED node, not on the construct's shape — a
+        // file-scoped substring check would wrongly pass this.
+        write(
+            &root.join("slices/core/unrelated/module.ttl"),
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             ex:Unrelated logic:formalizes ex:somewhere .\n\
+             ex:S a sh:NodeShape ;\n    \
+                 sh:rule [ a sh:SPARQLRule ; \
+                 sh:construct \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
+        );
+        // logic:formalizes appears ONLY in a comment → no triple → must still be flagged.
+        write(
+            &root.join("slices/core/comment/module.ttl"),
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             # ex:S logic:formalizes ex:source -- a comment is not a triple\n\
+             ex:S a sh:NodeShape ;\n    \
+                 sh:rule [ a sh:SPARQLRule ; \
+                 sh:construct \"\"\"CONSTRUCT { ?x ex:p ?y } WHERE { ?x ex:q ?y }\"\"\" ] .\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_projection_compute_purity(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("unrelated/module.ttl")),
+            "a back-reference on an unrelated node must NOT legalize the construct; got {:?}",
+            report.errors
+        );
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("comment/module.ttl")),
+            "a back-reference present only in a comment must NOT legalize the construct; got {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn collect_ttl_files_skips_symlinked_dirs_without_looping() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let dir = root.join("slices/core/loop");
+        fs::create_dir_all(&dir).unwrap();
+        write(
+            &dir.join("real.ttl"),
+            "@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n",
+        );
+        // A symlink back to an ancestor would make a naive recursion loop forever.
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(root.join("slices"), dir.join("cycle")).unwrap();
+        let mut report = RepoStaticReport::default();
+        let mut out = Vec::new();
+        // Must terminate (no stack overflow / infinite loop) and still find the real file.
+        collect_ttl_files(&root.join("slices"), &mut report, &mut out);
+        assert!(
+            out.iter().any(|p| p.ends_with("real.ttl")),
+            "the real .ttl must be collected; got {out:?}"
         );
     }
 
