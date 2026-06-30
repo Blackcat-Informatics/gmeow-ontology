@@ -425,9 +425,11 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	@# as a DIRECT dependency. The oxigraph umbrella is fully removed; the residual
 	@# ox*-family sub-crates (oxrdf/oxttl/oxiri/spargebra/oxsdatatypes/…) survive ONLY
 	@# transitively through two EXTERNAL crates — nemo (the Datalog chase engine) and
-	@# gmeow-gts — which are outside this workspace and on their own retirement track,
-	@# so a whole-workspace `cargo tree` ban is not achievable here; this grep guards
-	@# against a first-party regression that re-introduces a direct edge.
+	@# gmeow-gts — which are outside this workspace and on their own retirement track.
+	@# This grep guards against a first-party regression that re-introduces a DIRECT
+	@# edge; the cargo-tree allowlist PROOF immediately below extends the guard to
+	@# TRANSITIVE first-party introductions (every ox* path must root only in the
+	@# sanctioned external carriers), which a Cargo.toml grep alone cannot see.
 	@hits=$$(grep -rnE '^\s*(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld)\s*=|"oxigraph"|dep:oxigraph' crates/*/Cargo.toml 2>/dev/null || true); \
 	if [ -n "$$hits" ]; then \
 		echo "FAIL: a first-party crate names an oxigraph-family crate as a direct dependency:"; \
@@ -435,6 +437,41 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	else \
 		echo "OK: no first-party crate has a direct oxigraph-family dependency (umbrella removed; residual ox* is external nemo/gmeow-gts only)"; \
 	fi
+	@# [EPIC #906 / S14 #919] Whole-workspace cargo-tree PROOF (the `cargo tree proof
+	@# in CI` #919 asks for). Every oxigraph-family crate that survives in the NORMAL
+	@# dependency tree must be INTRODUCED ONLY by a sanctioned external carrier — nemo
+	@# (+ its nemo-physical sub-crate) or gmeow-gts — or by another ox*-family sibling
+	@# (the ox* crates depend on each other: oxrdfio→oxrdf, oxttl→oxrdfio, …). NO
+	@# first-party gmeow-* crate may be a DIRECT depender. This is strictly stronger
+	@# than the grep above: it catches a TRANSITIVE first-party regression (a gmeow-*
+	@# crate that newly pulls an ox* crate through some third path) that no Cargo.toml
+	@# grep can see, and it AUTO-TIGHTENS when nemo is retired (the allowlist shrinks,
+	@# so a remaining first-party path becomes a hard fail). Note: `nemo`/`gmeow-gts`
+	@# are the ONLY two `gmeow-`/external names allowed here — every other gmeow-* is
+	@# rejected, so the gate cannot be widened by accident. `--charset utf8` is MANDATORY
+	@# (not cosmetic): `cargo tree` auto-selects ASCII (`|--`/`\--`) under a non-UTF-8
+	@# locale (LANG=C, minimal Docker/CI), which would make the `[├└]` parse below match
+	@# nothing and SILENTLY PASS the gate — the exact degraded-fallback this repo forbids.
+	@# `--workspace` makes every member a reverse-dep root so the proof is truly
+	@# whole-workspace, not just the default members.
+	@ALLOW='nemo|nemo-physical|gmeow-gts|oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld'; \
+	fail=0; \
+	for C in oxigraph oxrdf oxsdatatypes oxiri spargebra spareval sparopt sparesults oxttl oxrdfio oxrdfxml oxjsonld; do \
+		inv=$$(cargo tree --workspace -e normal --charset utf8 -i "$$C" 2>/dev/null) || continue; \
+		[ -n "$$inv" ] || continue; \
+		parents=$$(echo "$$inv" | sed -n '2,$$p' | grep -E '^[├└]── ' | sed -E 's/^[├└]── ([^ ]+).*/\1/'); \
+		bad=$$(echo "$$parents" | grep -vE "^($$ALLOW)$$" | grep -vE '^$$' || true); \
+		if [ -n "$$bad" ]; then \
+			echo "FAIL: oxigraph-family crate '$$C' is introduced by a NON-sanctioned direct depender (a first-party transitive regression):"; \
+			echo "$$bad" | sed 's/^/  - /'; \
+			fail=1; \
+		fi; \
+	done; \
+	if [ "$$fail" = 1 ]; then \
+		echo "The ONLY sanctioned transitive carriers for oxigraph-family crates are the external 'nemo' chase engine and 'gmeow-gts' (EPIC #906 / S14 #919)."; \
+		exit 1; \
+	fi; \
+	echo "OK: every residual oxigraph-family crate roots only in the sanctioned external nemo/gmeow-gts (no first-party transitive introduction)"
 
 CAPI_HEADER := crates/rdf-capi/include/purrdf.h
 
