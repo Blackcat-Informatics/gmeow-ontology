@@ -26,7 +26,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::stages::yaml_ld::{parse_jsonld_star, yaml_ld_star_to_json};
 use gmeow_pipeline::transcode::{realized_loss_json, transcode, Codec};
-use oxigraph::io::{RdfFormat, RdfParser};
+use gmeow_rdf::NativeRdfFormat;
 
 // ── Minimum corpus size guard ──────────────────────────────────────────────────
 
@@ -45,14 +45,15 @@ struct Profile {
 
 // ── RDF canonicalization (mirrors crates/conformance/src/compare.rs) ──────────
 
-fn canonical_quads(bytes: &[u8], fmt: RdfFormat) -> Result<Vec<String>, String> {
-    let mut quads = Vec::new();
-    for q in RdfParser::from_format(fmt).lenient().for_slice(bytes) {
-        quads.push(q.map_err(|e| format!("RDF parse error: {e}"))?);
-    }
-    let canonical = gmeow_rdf::canonicalize_quads(quads)
+fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, String> {
+    // Native text ingress (#909) + native full RDFC-1.0 (#910): parse into the IR and
+    // canonicalize via the flattened path (`canonical_flat_nquads`), byte-identical to
+    // the prior oxigraph parse + `canonicalize_quads`.
+    let dataset = gmeow_rdf::parse_dataset(bytes, fmt.media_type(), None)
+        .map_err(|e| format!("RDF parse error: {e}"))?;
+    let canonical = gmeow_rdf::canonical_flat_nquads(&dataset)
         .map_err(|e| format!("RDF canonicalization error: {e}"))?;
-    let mut strings: Vec<String> = canonical.iter().map(ToString::to_string).collect();
+    let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
     strings.sort();
     Ok(strings)
 }
@@ -74,25 +75,27 @@ fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> Result<Vec<String>, Str
         }
         other => return Err(format!("canonical_quads_star: unknown codec {other:?}")),
     };
+    // `parse_jsonld_star` returns the frozen native carrier (RDF 1.2 statement layer
+    // already folded). `canonical_flat_nquads` un-folds it back to flat `rdf:reifies`
+    // / annotation rows before RDFC-1.0 canonicalizing — byte-identical to the prior
+    // oxigraph-quad canonicalize path.
     let dataset = parse_jsonld_star(&json_bytes).map_err(|e| format!("parse jsonld-star: {e}"))?;
-    let quads: Vec<_> = dataset.iter().map(|q| q.into_owned()).collect();
-    let canonical = gmeow_rdf::canonicalize_quads(quads)
+    let canonical = gmeow_rdf::canonical_flat_nquads(&dataset)
         .map_err(|e| format!("RDF canonicalization error: {e}"))?;
-    let mut strings: Vec<String> = canonical.iter().map(|q| q.to_string()).collect();
+    let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
     strings.sort();
     Ok(strings)
 }
 
-fn rdf_format_for_codec(codec: &str) -> Option<RdfFormat> {
+fn rdf_format_for_codec(codec: &str) -> Option<NativeRdfFormat> {
     match codec {
-        "turtle" | "ttl" | "owl-rdf12" => Some(RdfFormat::Turtle),
-        "ntriples" | "nt" => Some(RdfFormat::NTriples),
-        "nquads" | "nq" => Some(RdfFormat::NQuads),
-        "trig" => Some(RdfFormat::TriG),
-        "jsonld" | "json-ld" => Some(RdfFormat::JsonLd {
-            profile: Default::default(),
-        }),
-        "rdfxml" | "rdf-xml" | "xml" => Some(RdfFormat::RdfXml),
+        "turtle" | "ttl" | "owl-rdf12" => Some(NativeRdfFormat::Turtle),
+        "ntriples" | "nt" => Some(NativeRdfFormat::NTriples),
+        "nquads" | "nq" => Some(NativeRdfFormat::NQuads),
+        "trig" => Some(NativeRdfFormat::TriG),
+        "rdfxml" | "rdf-xml" | "xml" => Some(NativeRdfFormat::RdfXml),
+        // JSON-LD/YAML-LD are compared via the `star` path (`canonical_quads_star`),
+        // never the flat `rdf` path, so they have no native flat-format mapping here.
         _ => None,
     }
 }

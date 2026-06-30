@@ -26,6 +26,7 @@ pub mod llms;
 pub mod model;
 pub mod rdf;
 pub mod render;
+mod store;
 pub mod svg;
 
 // PyO3 bindings — the only module that imports pyo3.

@@ -48,7 +48,7 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use oxigraph::model::{NamedNode, Term};
+use gmeow_rdf::TermValue;
 use rayon::prelude::*;
 
 use crate::provenance::{mint_derivation_id, mint_reifier};
@@ -1744,14 +1744,9 @@ fn n3(iri: &str) -> String {
 
 /// Reifier IRI for an all-IRI fact, via the golden-pinned recipe.
 fn fact_reifier(fact: &Fact) -> Result<String, String> {
-    let s = Term::NamedNode(
-        NamedNode::new(&fact.subject).map_err(|e| format!("invalid subject IRI: {e}"))?,
-    );
-    let p = NamedNode::new(&fact.predicate).map_err(|e| format!("invalid predicate IRI: {e}"))?;
-    let o = Term::NamedNode(
-        NamedNode::new(&fact.object).map_err(|e| format!("invalid object IRI: {e}"))?,
-    );
-    mint_reifier(&s, &p, &o)
+    let s = TermValue::iri(fact.subject.clone());
+    let o = TermValue::iri(fact.object.clone());
+    mint_reifier(&s, &fact.predicate, &o)
 }
 
 /// The content-addressed reifier IRI of a materialized [`FoundationQuad`].
@@ -1776,10 +1771,9 @@ pub fn quad_reifier(quad: &FoundationQuad) -> Result<String, String> {
 
 /// Reifier IRI for an explicit `(s, p, o)` IRI triple — used by the cross-world passes.
 fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
-    let sn = Term::NamedNode(NamedNode::new(s).map_err(|e| format!("invalid subject IRI: {e}"))?);
-    let pn = NamedNode::new(p).map_err(|e| format!("invalid predicate IRI: {e}"))?;
-    let on = Term::NamedNode(NamedNode::new(o).map_err(|e| format!("invalid object IRI: {e}"))?);
-    mint_reifier(&sn, &pn, &on)
+    let sn = TermValue::iri(s);
+    let on = TermValue::iri(o);
+    mint_reifier(&sn, p, &on)
 }
 
 // ── Per-world fact store (insertion-ordered, first-wins) ────────────────────────

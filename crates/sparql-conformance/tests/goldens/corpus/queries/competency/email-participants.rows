@@ -1,0 +1,9 @@
+role
+[Some(Iri("https://blackcatinformatics.ca/gmeow/bcc"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/cc"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/dispositionNotificationTo"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/from"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/listOwner"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/replyTo"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/sender"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/to"))]

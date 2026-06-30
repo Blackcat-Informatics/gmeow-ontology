@@ -23,11 +23,10 @@
 
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::stages::source_load::turtle_bytes_into_store;
-use oxigraph::model::{NamedNode, Term};
-use oxigraph::store::Store;
+use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -37,52 +36,54 @@ fn repo_root() -> PathBuf {
         .unwrap()
 }
 
-fn iri(local: &str) -> NamedNode {
-    NamedNode::new(format!("{LOGIC}{local}")).unwrap()
+fn iri(local: &str) -> String {
+    format!("{LOGIC}{local}")
 }
 
 fn local_name(iri: &str) -> String {
     iri.rsplit(['/', '#']).next().unwrap_or(iri).to_string()
 }
 
+/// Every named-node object of `(subject, predicate, _)` in the default graph.
+fn named_objects(ds: &RdfDataset, subject: &str, predicate: &str) -> Vec<String> {
+    let (Some(s), Some(p)) = (
+        ds.term_id_by_value(&TermValue::iri(subject)),
+        ds.term_id_by_value(&TermValue::iri(predicate)),
+    ) else {
+        return Vec::new();
+    };
+    ds.quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
+        .filter_map(|q| match ds.resolve(q.o) {
+            TermRef::Iri(iri) => Some(iri.to_owned()),
+            _ => None,
+        })
+        .collect()
+}
+
 /// The single named-node object of `(subject, predicate, _)`, hard-failing if the
 /// edge is missing or multi-valued (every combinator link in the plan is
 /// single-valued by construction).
-fn one_object(store: &Store, subject: &NamedNode, predicate: &NamedNode) -> NamedNode {
-    let mut found: Vec<NamedNode> = Vec::new();
-    for quad in store.quads_for_pattern(
-        Some(subject.as_ref().into()),
-        Some(predicate.as_ref()),
-        None,
-        None,
-    ) {
-        let quad = quad.expect("read quad");
-        if let Term::NamedNode(nn) = quad.object {
-            found.push(nn);
-        }
-    }
+fn one_object(ds: &RdfDataset, subject: &str, predicate: &str) -> String {
+    let found = named_objects(ds, subject, predicate);
     assert_eq!(
         found.len(),
         1,
-        "expected exactly one <{}> <{}> ? edge, found {}",
-        subject.as_str(),
-        predicate.as_str(),
+        "expected exactly one <{subject}> <{predicate}> ? edge, found {}",
         found.len()
     );
     found.into_iter().next().unwrap()
 }
 
 /// True iff `node` is `a class`.
-fn is_a(store: &Store, node: &NamedNode, class: &NamedNode) -> bool {
-    let rdf_type = NamedNode::new("http://www.w3.org/1999/02/22-rdf-syntax-ns#type").unwrap();
-    store
-        .quads_for_pattern(
-            Some(node.as_ref().into()),
-            Some(rdf_type.as_ref()),
-            Some(class.as_ref().into()),
-            None,
-        )
-        .filter_map(Result::ok)
+fn is_a(ds: &RdfDataset, node: &str, class: &str) -> bool {
+    let (Some(s), Some(p), Some(o)) = (
+        ds.term_id_by_value(&TermValue::iri(node)),
+        ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
+        ds.term_id_by_value(&TermValue::iri(class)),
+    ) else {
+        return false;
+    };
+    ds.quads_for_pattern(Some(s), Some(p), Some(o), GraphMatch::Default)
         .next()
         .is_some()
 }
@@ -98,36 +99,28 @@ fn is_a(store: &Store, node: &NamedNode, class: &NamedNode) -> bool {
 /// When an `ActionSchema` is reached through a `logic:Iteration`'s
 /// `logic:iterationBody`, its local name is also recorded in `iterated` so the
 /// caller can prove which phase is the looped one.
-fn collect_phases(
-    store: &Store,
-    node: &NamedNode,
-    out: &mut Vec<String>,
-    iterated: &mut Vec<String>,
-) {
-    if is_a(store, node, &iri("ActionSchema")) {
-        out.push(local_name(node.as_str()));
+fn collect_phases(ds: &RdfDataset, node: &str, out: &mut Vec<String>, iterated: &mut Vec<String>) {
+    if is_a(ds, node, &iri("ActionSchema")) {
+        out.push(local_name(node));
         return;
     }
-    if is_a(store, node, &iri("SerialConjunction")) {
-        let left = one_object(store, node, &iri("leftOperand"));
-        let right = one_object(store, node, &iri("rightOperand"));
-        collect_phases(store, &left, out, iterated);
-        collect_phases(store, &right, out, iterated);
+    if is_a(ds, node, &iri("SerialConjunction")) {
+        let left = one_object(ds, node, &iri("leftOperand"));
+        let right = one_object(ds, node, &iri("rightOperand"));
+        collect_phases(ds, &left, out, iterated);
+        collect_phases(ds, &right, out, iterated);
         return;
     }
-    if is_a(store, node, &iri("Iteration")) {
-        let body = one_object(store, node, &iri("iterationBody"));
+    if is_a(ds, node, &iri("Iteration")) {
+        let body = one_object(ds, node, &iri("iterationBody"));
         // The body of a loop is, in execution order, the iterated phase.
-        if is_a(store, &body, &iri("ActionSchema")) {
-            iterated.push(local_name(body.as_str()));
+        if is_a(ds, &body, &iri("ActionSchema")) {
+            iterated.push(local_name(&body));
         }
-        collect_phases(store, &body, out, iterated);
+        collect_phases(ds, &body, out, iterated);
         return;
     }
-    panic!(
-        "node <{}> is not a recognised transaction-program combinator or ActionSchema",
-        node.as_str()
-    );
+    panic!("node <{node}> is not a recognised transaction-program combinator or ActionSchema");
 }
 
 #[test]
@@ -136,22 +129,21 @@ fn authored_phase_plan_matches_runtime_phase_order() {
     let ttl = std::fs::read_to_string(root.join("slices/core/logic/module.ttl"))
         .expect("read logic slice");
 
-    let store = Store::new().expect("create store");
-    turtle_bytes_into_store(&store, ttl.as_bytes(), "wellfounded-plan-parity")
+    let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None)
         .expect("parse the dogfooded logic slice");
 
     // The authored plan and its program-tree root.
     let plan = iri("wellFoundedMaterializerPlan");
     assert!(
-        is_a(&store, &plan, &iri("Plan")),
+        is_a(&ds, &plan, &iri("Plan")),
         "logic:wellFoundedMaterializerPlan must be `a logic:Plan`"
     );
-    let body_root = one_object(&store, &plan, &iri("planBody"));
+    let body_root = one_object(&ds, &plan, &iri("planBody"));
 
     // Walk the combinator tree left-first and collect the phase order.
     let mut phases: Vec<String> = Vec::new();
     let mut iterated: Vec<String> = Vec::new();
-    collect_phases(&store, &body_root, &mut phases, &mut iterated);
+    collect_phases(&ds, &body_root, &mut phases, &mut iterated);
 
     // The authored phase order EQUALS the Rust runtime descriptor — the plan is
     // the faithful twin of `materialize()`, never reparsed at runtime (P12).

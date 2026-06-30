@@ -154,7 +154,7 @@ mod tests {
     use crate::provenance::{mint_derivation_id, mint_reifier};
     use crate::rule_ir::parse_eval_rules;
     use crate::store::WorldStore;
-    use oxigraph::model::{NamedNode, Term};
+    use gmeow_rdf::TermValue;
 
     const WF: &str = "https://example.org/profiles/well-founded/";
 
@@ -196,22 +196,16 @@ mod tests {
 
         // win(p1, p1) in world-game.
         assert_eq!(row.graph, world);
-        assert_eq!(
-            row.subject,
-            Term::NamedNode(NamedNode::new(format!("{WF}p1")).unwrap())
-        );
+        assert_eq!(row.subject, TermValue::iri(format!("{WF}p1")));
         assert_eq!(row.predicate.as_str(), format!("{WF}win"));
-        assert_eq!(
-            row.object,
-            Term::NamedNode(NamedNode::new(format!("{WF}p1")).unwrap())
-        );
+        assert_eq!(row.object, TermValue::iri(format!("{WF}p1")));
 
         // Provenance: rule_iri = …/ruleWin, source = reifier(move(p1,p2)).
         assert_eq!(row.rule_iri, format!("{WF}ruleWin"));
         let move_reifier = mint_reifier(
-            &Term::NamedNode(NamedNode::new(format!("{WF}p1")).unwrap()),
-            &NamedNode::new(format!("{WF}move")).unwrap(),
-            &Term::NamedNode(NamedNode::new(format!("{WF}p2")).unwrap()),
+            &TermValue::iri(format!("{WF}p1")),
+            &format!("{WF}move"),
+            &TermValue::iri(format!("{WF}p2")),
         )
         .unwrap();
         assert_eq!(row.source_quad_ids, vec![move_reifier.clone()]);

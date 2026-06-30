@@ -41,7 +41,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oxigraph::model::{NamedNode, Term};
+use gmeow_rdf::TermValue;
 
 use crate::provenance::term_n3;
 use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QGoal, QProgram, QTerm};
@@ -70,7 +70,7 @@ use crate::seam::{BudgetStatus, ScryerForeign};
 /// - `term_n3` fails on an RDF-star triple-term (out of scope).
 pub fn resolve(
     foreign: &dyn ScryerForeign,
-    world: &NamedNode,
+    world: &str,
     program: &QProgram,
     budget: &Budget,
 ) -> Result<AnswerSet, String> {
@@ -108,7 +108,7 @@ pub fn resolve(
 
 struct ResolveState<'a> {
     foreign: &'a dyn ScryerForeign,
-    world: &'a NamedNode,
+    world: &'a str,
     program: &'a QProgram,
     idb: BTreeSet<String>,
     budget: &'a Budget,
@@ -304,17 +304,16 @@ impl<'a> ResolveState<'a> {
             }
         }
 
-        // Build NamedNode for the predicate IRI.
-        let pred_nn = NamedNode::new(&atom.pred)
-            .map_err(|e| format!("EDB predicate is not a valid IRI {:?}: {e}", atom.pred))?;
+        // The predicate IRI string is used verbatim as the pattern filter.
+        let pred = atom.pred.as_str();
 
-        // Convert bound args to oxigraph Terms for the pattern filter.
-        let subj_term: Option<Term> = match &atom.args[0] {
+        // Convert bound args to native terms for the pattern filter.
+        let subj_term: Option<TermValue> = match &atom.args[0] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
             // A bare number is never an EDB subject in oracle-resolved programs.
             QTerm::Var(_) | QTerm::Num(_) => None,
         };
-        let obj_term: Option<Term> = match &atom.args[1] {
+        let obj_term: Option<TermValue> = match &atom.args[1] {
             QTerm::Const(c) => Some(canonical_to_term(c)?),
             QTerm::Var(_) | QTerm::Num(_) => None,
         };
@@ -325,7 +324,7 @@ impl<'a> ResolveState<'a> {
             .in_world(
                 self.world,
                 subj_term.as_ref(),
-                Some(&pred_nn),
+                Some(pred),
                 obj_term.as_ref(),
             )
             .map(|dq| (dq.subject.clone(), dq.object.clone()))
@@ -545,13 +544,11 @@ fn term_canonical_or_wildcard(t: &QTerm) -> String {
     }
 }
 
-/// Convert a canonical constant string (`<iri>` or `"lit"...`) to an oxigraph `Term`.
-fn canonical_to_term(canonical: &str) -> Result<Term, String> {
+/// Convert a canonical constant string (`<iri>` or `"lit"...`) to a native `TermValue`.
+fn canonical_to_term(canonical: &str) -> Result<TermValue, String> {
     if canonical.starts_with('<') && canonical.ends_with('>') {
         let iri = &canonical[1..canonical.len() - 1];
-        let nn = NamedNode::new(iri)
-            .map_err(|e| format!("canonical_to_term: invalid IRI {iri:?}: {e}"))?;
-        Ok(Term::NamedNode(nn))
+        Ok(TermValue::iri(iri))
     } else {
         Err(format!(
             "canonical_to_term: unsupported canonical form {canonical:?} \
@@ -589,13 +586,12 @@ mod tests {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, NamedNode) {
+    fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, String) {
         let store = WorldStore::new();
         for (s, p, o) in triples {
             store.insert_quad(W, s, p, o);
         }
-        let world_nn = NamedNode::new(W).unwrap();
-        (store, world_nn)
+        (store, W.to_owned())
     }
 
     // ── Test 1: Non-recursive EDB lookup + single IDB rule ───────────────────

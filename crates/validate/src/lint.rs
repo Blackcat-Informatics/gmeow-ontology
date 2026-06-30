@@ -15,9 +15,9 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
-use oxigraph::model::{Literal, NamedOrBlankNode, Term};
-use oxigraph::store::Store;
 use regex::Regex;
+
+use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 
 use crate::model::{owl, rdf, rdfs, skos};
 
@@ -96,514 +96,22 @@ fn is_gmeow_term(iri: &str, cfg: &LintConfig) -> bool {
 /// Return the primary structural kind of a GMEOW term from its `rdf:type` set
 /// (mirrors `_term_kind`).
 fn term_kind(types: &HashSet<String>) -> &'static str {
-    if types.contains(owl::ONTOLOGY.as_str()) {
+    if types.contains(owl::ONTOLOGY) {
         return "ontology";
     }
-    if types.contains(owl::CLASS.as_str()) {
+    if types.contains(owl::CLASS) {
         return "class";
     }
-    if types.contains(owl::ANNOTATION_PROPERTY.as_str()) {
+    if types.contains(owl::ANNOTATION_PROPERTY) {
         return "annotation property";
     }
-    if types.contains(owl::OBJECT_PROPERTY.as_str())
-        || types.contains(owl::DATATYPE_PROPERTY.as_str())
-    {
+    if types.contains(owl::OBJECT_PROPERTY) || types.contains(owl::DATATYPE_PROPERTY) {
         return "property";
     }
-    if types.contains(rdfs::DATATYPE.as_str()) {
+    if types.contains(rdfs::DATATYPE) {
         return "datatype";
     }
     "individual"
-}
-
-/// All `rdf:type` object IRIs of `subject`, as a set (blank/literal types are
-/// impossible for `rdf:type` objects we care about, but non-IRI objects are
-/// simply skipped — matching `set(graph.objects(term, RDF.type))` where the
-/// kind probe only ever compares against named OWL/RDFS classes).
-fn rdf_types(store: &Store, subject: &NamedOrBlankNode) -> HashSet<String> {
-    let mut out = HashSet::new();
-    for quad in store
-        .quads_for_pattern(Some(subject.as_ref()), Some(rdf::TYPE), None, None)
-        .flatten()
-    {
-        if let Term::NamedNode(n) = quad.object {
-            out.insert(n.into_string());
-        }
-    }
-    out
-}
-
-/// Map every GMEOW-namespaced term with an `rdf:type` to its primary kind
-/// (mirrors `_collect_typed_terms`). The returned map is keyed by term IRI.
-pub fn collect_typed_terms(store: &Store, cfg: &LintConfig) -> BTreeMap<String, String> {
-    let mut terms: BTreeMap<String, String> = BTreeMap::new();
-    let typed_queries = [
-        owl::ONTOLOGY,
-        owl::CLASS,
-        owl::OBJECT_PROPERTY,
-        owl::DATATYPE_PROPERTY,
-        owl::ANNOTATION_PROPERTY,
-        rdfs::DATATYPE,
-    ];
-    for rdf_type in typed_queries {
-        for quad in store
-            .quads_for_pattern(None, Some(rdf::TYPE), Some(rdf_type.into()), None)
-            .flatten()
-        {
-            let subject = match &quad.subject {
-                NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-                NamedOrBlankNode::BlankNode(_) => continue,
-            };
-            if !is_gmeow_term(&subject, cfg) {
-                continue;
-            }
-            let kind = term_kind(&rdf_types(store, &quad.subject));
-            match terms.get(&subject) {
-                Some(current) if kind_rank(kind) >= kind_rank(current) => {}
-                _ => {
-                    terms.insert(subject, kind.to_owned());
-                }
-            }
-        }
-    }
-    // Any remaining GMEOW subjects with an explicit rdf:type → individual.
-    for quad in store
-        .quads_for_pattern(None, Some(rdf::TYPE), None, None)
-        .flatten()
-    {
-        if let NamedOrBlankNode::NamedNode(n) = &quad.subject {
-            let iri = n.as_str();
-            if is_gmeow_term(iri, cfg) && !terms.contains_key(iri) {
-                terms.insert(iri.to_owned(), "individual".to_owned());
-            }
-        }
-    }
-    terms
-}
-
-/// Whether `(subject, predicate, *)` has at least one triple.
-fn has_predicate(
-    store: &Store,
-    subject_iri: &str,
-    predicate: oxigraph::model::NamedNodeRef,
-) -> bool {
-    let subject = oxigraph::model::NamedNode::new_unchecked(subject_iri);
-    store
-        .quads_for_pattern(Some((&subject).into()), Some(predicate), None, None)
-        .next()
-        .is_some()
-}
-
-/// Object IRIs of `(subject_iri, predicate, ?)` (named-node objects only).
-fn object_iris(
-    store: &Store,
-    subject_iri: &str,
-    predicate: oxigraph::model::NamedNodeRef,
-) -> HashSet<String> {
-    let subject = oxigraph::model::NamedNode::new_unchecked(subject_iri);
-    let mut out = HashSet::new();
-    for quad in store
-        .quads_for_pattern(Some((&subject).into()), Some(predicate), None, None)
-        .flatten()
-    {
-        if let Term::NamedNode(n) = quad.object {
-            out.insert(n.into_string());
-        }
-    }
-    out
-}
-
-/// Whether `(subject_iri, rdf:type, type_iri)` exists.
-fn has_type(
-    store: &Store,
-    subject_iri: oxigraph::model::NamedNodeRef,
-    type_iri: oxigraph::model::NamedNodeRef,
-) -> bool {
-    store
-        .quads_for_pattern(
-            Some(subject_iri.into()),
-            Some(rdf::TYPE),
-            Some(type_iri.into()),
-            None,
-        )
-        .any(|r| r.is_ok())
-}
-
-/// The structural lint over the merged store (mirrors `structural_lint`).
-pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
-    let mut report = LintReport::default();
-    let typed = collect_typed_terms(store, cfg);
-    let graph_box_role = ns_node(cfg, "graphBoxRole");
-    let graph_box_role_class = ns_node(cfg, "GraphBoxRole");
-
-    // The `self` self-description ontology (`<namespace>self`) holds the project's
-    // own A-Box metadata — its contributions, citations, manifestations, license,
-    // and version IRI. Those individuals are instance data, not vocabulary
-    // surface, so the per-term annotation/graphBoxRole contract does not apply to
-    // them (the triad governs the vocabulary surface only). This matters when
-    // validating the committed GTS bundle, which folds in `metadata/gmeow-self.ttl`
-    // that the Turtle source set excludes (#644). A term is exempt when it is the
-    // `self` ontology header itself or is `rdfs:isDefinedBy <namespace>self`.
-    let self_ontology = format!("{}self", cfg.namespace);
-    let self_node = oxigraph::model::NamedNode::new_unchecked(&self_ontology);
-    // Precompute the self-description A-Box once: one store scan instead of a
-    // per-term query, and no `new_unchecked` on arbitrary subject strings.
-    let mut self_defined: std::collections::HashSet<oxigraph::model::NamedNode> =
-        std::collections::HashSet::new();
-    for quad in store
-        .quads_for_pattern(
-            None,
-            Some(rdfs::IS_DEFINED_BY),
-            Some((&self_node).into()),
-            None,
-        )
-        .flatten()
-    {
-        if let NamedOrBlankNode::NamedNode(subject) = quad.subject {
-            self_defined.insert(subject);
-        }
-    }
-
-    // The obligation contract has two tiers, decided by the subject's own
-    // provenance and self-declared graph-box role — never by excluding a
-    // namespace. Vocabulary surface (classes, properties, datatypes, and the
-    // value-vocabulary individuals authored in a slice) carries the full
-    // annotation quartet. Generated A-Box payload — documentation projections,
-    // diagnostics findings, verify/release attestations folded into the GTS
-    // bundle — is assertional instance data, not vocabulary surface: it must be
-    // typed, labelled, provenance-anchored to its named graph, and box-role
-    // tagged, but `skos:definition` is not vocabulary-surface for it.
-    //
-    // An `"individual"`-bucketed subject takes the assertional tier only when it
-    // EARNS the relaxation: it self-declares `gmeow:graphBoxRole gmeow:boxABox`
-    // AND anchors `rdfs:isDefinedBy` to a recognized `<namespace>graph/…` named
-    // graph. "Defined by a slice" wins first (so a slice individual that also
-    // carries `boxABox` stays on the full quartet), and "merely not a slice"
-    // never qualifies — a missing/bogus provenance target keeps the full quartet
-    // and still hard-fails. Precompute both provenance sets in one scan each,
-    // mirroring the `self_defined` precompute above (no per-term `new_unchecked`
-    // on arbitrary strings, no O(terms × scans) regression on the ~1300-subject
-    // bundle).
-    let slice_prefix = format!("{}slices/", cfg.namespace);
-    let graph_prefix = format!("{}graph/", cfg.namespace);
-    let mut slice_defined: std::collections::HashSet<oxigraph::model::NamedNode> =
-        std::collections::HashSet::new();
-    let mut graph_defined: std::collections::HashSet<oxigraph::model::NamedNode> =
-        std::collections::HashSet::new();
-    for quad in store
-        .quads_for_pattern(None, Some(rdfs::IS_DEFINED_BY), None, None)
-        .flatten()
-    {
-        let Term::NamedNode(object) = &quad.object else {
-            continue;
-        };
-        let NamedOrBlankNode::NamedNode(subject) = quad.subject else {
-            continue;
-        };
-        if object.as_str().starts_with(slice_prefix.as_str()) {
-            slice_defined.insert(subject);
-        } else if object.as_str().starts_with(graph_prefix.as_str()) {
-            graph_defined.insert(subject);
-        }
-    }
-    // Subjects that self-declare the assertional role `gmeow:graphBoxRole
-    // gmeow:boxABox`. Declaration (not validity) gates the tier; the role-typing
-    // check below still fires if `boxABox` is somehow not a `gmeow:GraphBoxRole`.
-    let abox_role = ns_node(cfg, "boxABox");
-    let mut abox_declared: std::collections::HashSet<oxigraph::model::NamedNode> =
-        std::collections::HashSet::new();
-    for quad in store
-        .quads_for_pattern(
-            None,
-            Some(graph_box_role.as_ref()),
-            Some((&abox_role).into()),
-            None,
-        )
-        .flatten()
-    {
-        if let NamedOrBlankNode::NamedNode(subject) = quad.subject {
-            abox_declared.insert(subject);
-        }
-    }
-
-    // 1. Per-term required annotations (sorted by IRI — BTreeMap iterates sorted).
-    for (term, kind) in &typed {
-        let subject = oxigraph::model::NamedNode::new_unchecked(term);
-        if subject == self_node || self_defined.contains(&subject) {
-            continue;
-        }
-        // Assertional tier: an `"individual"` not slice-defined (slice wins
-        // first), anchored to a `<namespace>graph/…` provenance graph, that
-        // self-declares `gmeow:boxABox`. Such generated instance data is exempt
-        // from the `skos:definition` requirement only — it must still carry the
-        // type, label, provenance link, and a valid box role.
-        let assertional = kind == "individual"
-            && !slice_defined.contains(&subject)
-            && graph_defined.contains(&subject)
-            && abox_declared.contains(&subject);
-        if !has_predicate(store, term, rdfs::LABEL) {
-            report
-                .errors
-                .push(format!("{kind} {term} is missing rdfs:label"));
-        }
-        if !assertional && !has_predicate(store, term, skos::DEFINITION) {
-            report
-                .errors
-                .push(format!("{kind} {term} is missing skos:definition"));
-        }
-        if !has_predicate(store, term, rdfs::IS_DEFINED_BY) {
-            report
-                .errors
-                .push(format!("{kind} {term} is missing rdfs:isDefinedBy"));
-        }
-        let mut has_role = false;
-        for quad in store
-            .quads_for_pattern(
-                Some((&subject).into()),
-                Some(graph_box_role.as_ref()),
-                None,
-                None,
-            )
-            .flatten()
-        {
-            has_role = true;
-            let role = match &quad.object {
-                Term::NamedNode(role) => role,
-                other => {
-                    report.errors.push(format!(
-                        "{kind} {term} has non-IRI gmeow:graphBoxRole value {other}"
-                    ));
-                    continue;
-                }
-            };
-            if !has_type(store, role.as_ref(), graph_box_role_class.as_ref()) {
-                report.errors.push(format!(
-                    "{kind} {term} has gmeow:graphBoxRole value {} that is not a gmeow:GraphBoxRole",
-                    role.as_str()
-                ));
-            }
-        }
-        if !has_role {
-            report
-                .errors
-                .push(format!("{kind} {term} is missing gmeow:graphBoxRole"));
-        }
-    }
-
-    let declared: HashSet<&String> = typed.keys().collect();
-
-    // 2. Tier-1 depth warnings.
-    let use_when = ns_node(cfg, "useWhen");
-    let how_to_use = ns_node(cfg, "howToUse");
-    for (term, kind) in &typed {
-        if kind != "class" && kind != "property" {
-            continue;
-        }
-        let defined_by = object_iris(store, term, rdfs::IS_DEFINED_BY);
-        if !defined_by.iter().any(|d| cfg.core_slice_iris.contains(d)) {
-            continue;
-        }
-        if !has_predicate(store, term, use_when.as_ref()) {
-            report.warnings.push(format!(
-                "{kind} {term} is missing gmeow:useWhen (Tier-1 depth, #471)"
-            ));
-        }
-        let has_how_to_use = has_predicate(store, term, how_to_use.as_ref());
-        if !has_how_to_use {
-            report.warnings.push(format!(
-                "{kind} {term} is missing gmeow:howToUse (Tier-1 depth, #471)"
-            ));
-        } else if !has_predicate(store, term, skos::EXAMPLE) {
-            report.warnings.push(format!(
-                "{kind} {term} has gmeow:howToUse but no skos:example (Tier-1 depth, #471)"
-            ));
-        }
-    }
-
-    // 3. use/avoidForConsumer must point at a gmeow:ProjectionContext.
-    let projection_context = ns_node(cfg, "ProjectionContext");
-    for local in ["useForConsumer", "avoidForConsumer"] {
-        let predicate = ns_node(cfg, local);
-        for quad in store
-            .quads_for_pattern(None, Some(predicate.as_ref()), None, None)
-            .flatten()
-        {
-            let subject = subject_display(&quad.subject);
-            let consumer = match &quad.object {
-                Term::NamedNode(n) => Some(n.as_str().to_owned()),
-                _ => None,
-            };
-            let is_projection_context = match &consumer {
-                Some(c) => {
-                    let cn = oxigraph::model::NamedNode::new_unchecked(c);
-                    store
-                        .quads_for_pattern(
-                            Some((&cn).into()),
-                            Some(rdf::TYPE),
-                            Some(projection_context.as_ref().into()),
-                            None,
-                        )
-                        .next()
-                        .is_some()
-                }
-                None => false,
-            };
-            if !is_projection_context {
-                let consumer_text = match &quad.object {
-                    Term::NamedNode(n) => n.as_str().to_owned(),
-                    Term::BlankNode(b) => format!("_:{}", b.as_str()),
-                    Term::Literal(l) => l.value().to_owned(),
-                    #[allow(unreachable_patterns)]
-                    other => format!("{other}"),
-                };
-                report.errors.push(format!(
-                    "{predicate_iri} on {subject} points to non-ProjectionContext value {consumer_text}",
-                    predicate_iri = predicate.as_str(),
-                ));
-            }
-        }
-    }
-
-    // 4. Dangling GMEOW subclass/subproperty targets.
-    for predicate in [rdfs::SUB_CLASS_OF, rdfs::SUB_PROPERTY_OF] {
-        for quad in store
-            .quads_for_pattern(None, Some(predicate), None, None)
-            .flatten()
-        {
-            if let Term::NamedNode(target) = &quad.object {
-                let t = target.as_str();
-                if is_gmeow_term(t, cfg) && !declared.contains(&t.to_owned()) {
-                    report.errors.push(format!(
-                        "dangling {pred} target (undeclared GMEOW term): {t}",
-                        pred = predicate.as_str(),
-                    ));
-                }
-            }
-        }
-    }
-
-    // 5. Comprehensiveness heuristic.
-    let mut parent_to_children: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    for quad in store
-        .quads_for_pattern(None, Some(rdfs::SUB_CLASS_OF), None, None)
-        .flatten()
-    {
-        let child = match &quad.subject {
-            NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-            NamedOrBlankNode::BlankNode(_) => continue,
-        };
-        let parent = match &quad.object {
-            Term::NamedNode(n) => n.as_str().to_owned(),
-            _ => continue,
-        };
-        if is_gmeow_term(&child, cfg) && is_gmeow_term(&parent, cfg) {
-            parent_to_children.entry(parent).or_default().push(child);
-        }
-    }
-    for (parent, children) in &parent_to_children {
-        if children.len() < 3 {
-            continue;
-        }
-        let missing = children
-            .iter()
-            .filter(|c| !has_predicate(store, c, skos::DEFINITION))
-            .count();
-        if missing >= 3 {
-            report.warnings.push(format!(
-                "class {parent} has {missing} of {total} direct subclasses missing \
-                 skos:definition (systematic documentation gap)",
-                total = children.len(),
-            ));
-        }
-    }
-
-    // 6. Language-tag discipline over ALL triples.
-    let x_gmeow = Regex::new(r"(?i)^x-gmeow-[a-z0-9\-]+$").expect("static regex");
-    for quad in store.iter().flatten() {
-        let predicate_iri = quad.predicate.as_str();
-        let literal = match &quad.object {
-            Term::Literal(l) => Some(l),
-            _ => None,
-        };
-
-        // Check 1: literal on a GMEOW-namespace predicate.
-        if let Some(lit) = literal {
-            if predicate_iri.starts_with(&cfg.namespace) {
-                if let Some(lang) = lit.language() {
-                    if !x_gmeow.is_match(lang) {
-                        let subject = subject_display(&quad.subject);
-                        report.errors.push(format!(
-                            "literal {lit_repr} (on subject {subject}, predicate {predicate_iri}) \
-                             carries external or invalid language tag '{lang}'; GMEOW internal \
-                             data must use the private-use 'x-gmeow-' prefix.",
-                            lit_repr = literal_repr(lit),
-                        ));
-                    }
-                }
-            }
-        }
-
-        // Check 2: standard annotation predicate on a GMEOW-authored subject.
-        if let (NamedOrBlankNode::NamedNode(subj), Some(lit)) = (&quad.subject, literal) {
-            if is_gmeow_term(subj.as_str(), cfg) {
-                if let Some(msg) =
-                    check_annotation_literal(subj.as_str(), predicate_iri, lit, cfg, &x_gmeow)
-                {
-                    report.errors.push(msg);
-                }
-            }
-        }
-    }
-
-    report
-}
-
-/// Port of `language_tags.check_annotation_literal`. Returns the external-tag
-/// error only when the literal has a language, is not an internal `x-gmeow-*`
-/// tag, the predicate is NOT in the GMEOW namespace, and the predicate IS one of
-/// the standard annotation predicates.
-///
-/// `internal_re` is the pre-compiled `x-gmeow-*` regex passed in by the caller
-/// so it is not recompiled on every invocation (R11 / R12 hoist).
-fn check_annotation_literal(
-    subject: &str,
-    predicate: &str,
-    obj: &Literal,
-    cfg: &LintConfig,
-    internal_re: &Regex,
-) -> Option<String> {
-    let lang = obj.language()?;
-    if internal_re.is_match(lang) {
-        return None;
-    }
-    if predicate.starts_with(&cfg.namespace) {
-        return None;
-    }
-    if !cfg.annotation_predicates.contains(predicate) {
-        return None;
-    }
-    Some(format!(
-        "literal {lit_repr} (on subject {subject}, predicate {predicate}) carries external \
-         language tag '{lang}'; GMEOW-authored terms must use the private-use 'x-gmeow-' prefix \
-         on standard annotation predicates.",
-        lit_repr = literal_repr(obj),
-    ))
-}
-
-/// Render an oxigraph [`Literal`] the way rdflib's `repr(Literal)` renders it
-/// for a language-tagged literal: `rdflib.term.Literal('value', lang='xx')`.
-///
-/// Both language-tag checks only fire on language-tagged literals, so the
-/// `datatype=` repr branch is unreachable here — every literal reaching this
-/// function has a language tag. The lexical value is rendered with
-/// [`py_str_repr`] (CPython `str.__repr__`), matching rdflib byte-for-byte.
-fn literal_repr(lit: &Literal) -> String {
-    let lang = lit.language().unwrap_or("");
-    format!(
-        "rdflib.term.Literal({value}, lang={lang})",
-        value = py_str_repr(lit.value()),
-        lang = py_str_repr(lang),
-    )
 }
 
 /// Mirror CPython's `str.__repr__` (`repr()` of a `str`).
@@ -670,20 +178,6 @@ fn is_py_printable(c: char) -> bool {
     true
 }
 
-/// Render a triple subject like the Python `_ox_term_display`/`str(subject)`:
-/// NamedNode → its IRI; BlankNode → `_:b`.
-fn subject_display(subject: &NamedOrBlankNode) -> String {
-    match subject {
-        NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-        NamedOrBlankNode::BlankNode(b) => format!("_:{}", b.as_str()),
-    }
-}
-
-/// Build a GMEOW-namespaced [`NamedNode`](oxigraph::model::NamedNode).
-fn ns_node(cfg: &LintConfig, local: &str) -> oxigraph::model::NamedNode {
-    oxigraph::model::NamedNode::new_unchecked(format!("{}{}", cfg.namespace, local))
-}
-
 /// CamelCase token splitter — a hand-rolled port of `_CAMEL_SPLIT`
 /// (`[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])`), since the `regex` crate has no
 /// look-ahead. Mirrors CPython `re.findall` leftmost, alternative-ordered
@@ -741,12 +235,470 @@ fn camel_tokens(local: &str) -> Vec<String> {
     tokens
 }
 
-/// The term-naming lint (mirrors `term_naming_lint`): a selector-privileging
-/// local name with no `gmeow:namingNote` justification is an error.
-pub fn term_naming_lint(store: &Store, cfg: &LintConfig) -> LintReport {
+// ─────────────────────────────────────────────────────────────────────────────
+// The structural / naming lints over a native (`gmeow_rdf::RdfDataset`) graph (#906).
+//
+// Every check, error/warning TEXT, severity, and emission ORDER is byte-identical to
+// the legacy oxigraph `Store` implementation it replaced.
+//
+// Graph handling: the legacy pipeline built its store with
+// `store_from_dataset(.., FlattenToDefaultGraph)`, so EVERY quad — including those
+// authored in a named graph (e.g. the release attestation N-Quads) — was visible in
+// the single default graph. These functions match with [`GraphMatch::Any`] so they
+// read across all graphs, exactly as the flattened store did. For a plain-Turtle
+// input (single default graph) `Any` and `Default` coincide.
+
+/// Resolve an IRI value to its dataset-local [`gmeow_rdf::TermId`], if interned.
+fn ds_iri_id(ds: &RdfDataset, iri: &str) -> Option<gmeow_rdf::TermId> {
+    ds.term_id_by_value(&gmeow_rdf::TermValue::iri(iri))
+}
+
+/// All `rdf:type` object IRIs of `subject_iri`, as a set (native twin of [`rdf_types`]).
+fn ds_rdf_types(ds: &RdfDataset, subject_iri: &str) -> HashSet<String> {
+    let mut out = HashSet::new();
+    let (Some(s_id), Some(type_id)) = (ds_iri_id(ds, subject_iri), ds_iri_id(ds, rdf::TYPE)) else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(Some(s_id), Some(type_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(iri) = ds.resolve(q.o) {
+            out.insert(iri.to_owned());
+        }
+    }
+    out
+}
+
+/// Map every GMEOW-namespaced typed term to its primary kind (native twin of
+/// [`collect_typed_terms`]). Keyed by term IRI; `BTreeMap` iterates sorted.
+#[must_use]
+pub fn collect_typed_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> BTreeMap<String, String> {
+    let mut terms: BTreeMap<String, String> = BTreeMap::new();
+    let Some(type_id) = ds_iri_id(ds, rdf::TYPE) else {
+        return terms;
+    };
+    let typed_queries = [
+        owl::ONTOLOGY,
+        owl::CLASS,
+        owl::OBJECT_PROPERTY,
+        owl::DATATYPE_PROPERTY,
+        owl::ANNOTATION_PROPERTY,
+        rdfs::DATATYPE,
+    ];
+    for rdf_type in typed_queries {
+        let Some(t_id) = ds_iri_id(ds, rdf_type) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(type_id), Some(t_id), GraphMatch::Any) {
+            let TermRef::Iri(subject) = ds.resolve(q.s) else {
+                continue;
+            };
+            if !is_gmeow_term(subject, cfg) {
+                continue;
+            }
+            let kind = term_kind(&ds_rdf_types(ds, subject));
+            let subject = subject.to_owned();
+            match terms.get(&subject) {
+                Some(current) if kind_rank(kind) >= kind_rank(current) => {}
+                _ => {
+                    terms.insert(subject, kind.to_owned());
+                }
+            }
+        }
+    }
+    // Any remaining GMEOW subjects with an explicit rdf:type → individual.
+    for q in ds.quads_for_pattern(None, Some(type_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(iri) = ds.resolve(q.s) {
+            if is_gmeow_term(iri, cfg) && !terms.contains_key(iri) {
+                terms.insert(iri.to_owned(), "individual".to_owned());
+            }
+        }
+    }
+    terms
+}
+
+/// Whether `(subject_iri, predicate_iri, *)` has at least one triple (native twin of
+/// [`has_predicate`]).
+fn ds_has_predicate(ds: &RdfDataset, subject_iri: &str, predicate_iri: &str) -> bool {
+    let (Some(s_id), Some(p_id)) = (ds_iri_id(ds, subject_iri), ds_iri_id(ds, predicate_iri))
+    else {
+        return false;
+    };
+    ds.quads_for_pattern(Some(s_id), Some(p_id), None, GraphMatch::Any)
+        .next()
+        .is_some()
+}
+
+/// Object IRIs of `(subject_iri, predicate_iri, ?)` (named-node objects only).
+fn ds_object_iris(ds: &RdfDataset, subject_iri: &str, predicate_iri: &str) -> HashSet<String> {
+    let mut out = HashSet::new();
+    let (Some(s_id), Some(p_id)) = (ds_iri_id(ds, subject_iri), ds_iri_id(ds, predicate_iri))
+    else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(Some(s_id), Some(p_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(iri) = ds.resolve(q.o) {
+            out.insert(iri.to_owned());
+        }
+    }
+    out
+}
+
+/// Whether `(subject_iri, rdf:type, type_iri)` exists (native twin of [`has_type`]).
+fn ds_has_type(ds: &RdfDataset, subject_iri: &str, type_iri: &str) -> bool {
+    let (Some(s_id), Some(type_id), Some(t_id)) = (
+        ds_iri_id(ds, subject_iri),
+        ds_iri_id(ds, rdf::TYPE),
+        ds_iri_id(ds, type_iri),
+    ) else {
+        return false;
+    };
+    ds.quads_for_pattern(Some(s_id), Some(type_id), Some(t_id), GraphMatch::Any)
+        .next()
+        .is_some()
+}
+
+/// Native twin of [`structural_lint`] over a frozen [`RdfDataset`] (EPIC #906).
+///
+/// Byte-identical errors/warnings to the `Store` version; reads across all graphs
+/// ([`GraphMatch::Any`]) so a named-graph input is linted exactly as the old
+/// flattened store was.
+pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport {
     let mut report = LintReport::default();
-    let naming_note = ns_node(cfg, "namingNote");
-    let typed = collect_typed_terms(store, cfg);
+    let typed = collect_typed_terms_dataset(ds, cfg);
+    let graph_box_role = format!("{}graphBoxRole", cfg.namespace);
+    let graph_box_role_class = format!("{}GraphBoxRole", cfg.namespace);
+
+    // Precompute the self-description A-Box: subjects `rdfs:isDefinedBy <ns>self`.
+    let self_ontology = format!("{}self", cfg.namespace);
+    let mut self_defined: HashSet<String> = HashSet::new();
+    if let (Some(p_id), Some(self_id)) = (
+        ds_iri_id(ds, rdfs::IS_DEFINED_BY),
+        ds_iri_id(ds, &self_ontology),
+    ) {
+        for q in ds.quads_for_pattern(None, Some(p_id), Some(self_id), GraphMatch::Any) {
+            if let TermRef::Iri(subject) = ds.resolve(q.s) {
+                self_defined.insert(subject.to_owned());
+            }
+        }
+    }
+
+    // Precompute slice/graph provenance sets in one scan of `rdfs:isDefinedBy`.
+    let slice_prefix = format!("{}slices/", cfg.namespace);
+    let graph_prefix = format!("{}graph/", cfg.namespace);
+    let mut slice_defined: HashSet<String> = HashSet::new();
+    let mut graph_defined: HashSet<String> = HashSet::new();
+    if let Some(p_id) = ds_iri_id(ds, rdfs::IS_DEFINED_BY) {
+        for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
+            let TermRef::Iri(object) = ds.resolve(q.o) else {
+                continue;
+            };
+            let TermRef::Iri(subject) = ds.resolve(q.s) else {
+                continue;
+            };
+            if object.starts_with(slice_prefix.as_str()) {
+                slice_defined.insert(subject.to_owned());
+            } else if object.starts_with(graph_prefix.as_str()) {
+                graph_defined.insert(subject.to_owned());
+            }
+        }
+    }
+
+    // Subjects self-declaring `gmeow:graphBoxRole gmeow:boxABox`.
+    let abox_role = format!("{}boxABox", cfg.namespace);
+    let mut abox_declared: HashSet<String> = HashSet::new();
+    if let (Some(p_id), Some(role_id)) = (ds_iri_id(ds, &graph_box_role), ds_iri_id(ds, &abox_role))
+    {
+        for q in ds.quads_for_pattern(None, Some(p_id), Some(role_id), GraphMatch::Any) {
+            if let TermRef::Iri(subject) = ds.resolve(q.s) {
+                abox_declared.insert(subject.to_owned());
+            }
+        }
+    }
+
+    // 1. Per-term required annotations (BTreeMap iterates sorted by IRI).
+    for (term, kind) in &typed {
+        if term == &self_ontology || self_defined.contains(term) {
+            continue;
+        }
+        let assertional = kind == "individual"
+            && !slice_defined.contains(term)
+            && graph_defined.contains(term)
+            && abox_declared.contains(term);
+        if !ds_has_predicate(ds, term, rdfs::LABEL) {
+            report
+                .errors
+                .push(format!("{kind} {term} is missing rdfs:label"));
+        }
+        if !assertional && !ds_has_predicate(ds, term, skos::DEFINITION) {
+            report
+                .errors
+                .push(format!("{kind} {term} is missing skos:definition"));
+        }
+        if !ds_has_predicate(ds, term, rdfs::IS_DEFINED_BY) {
+            report
+                .errors
+                .push(format!("{kind} {term} is missing rdfs:isDefinedBy"));
+        }
+        let mut has_role = false;
+        if let (Some(s_id), Some(p_id)) = (ds_iri_id(ds, term), ds_iri_id(ds, &graph_box_role)) {
+            for q in ds.quads_for_pattern(Some(s_id), Some(p_id), None, GraphMatch::Any) {
+                has_role = true;
+                let role = match ds.resolve(q.o) {
+                    TermRef::Iri(role) => role.to_owned(),
+                    other => {
+                        report.errors.push(format!(
+                            "{kind} {term} has non-IRI gmeow:graphBoxRole value {disp}",
+                            disp = ds_object_display(other),
+                        ));
+                        continue;
+                    }
+                };
+                if !ds_has_type(ds, &role, &graph_box_role_class) {
+                    report.errors.push(format!(
+                        "{kind} {term} has gmeow:graphBoxRole value {role} that is not a gmeow:GraphBoxRole",
+                    ));
+                }
+            }
+        }
+        if !has_role {
+            report
+                .errors
+                .push(format!("{kind} {term} is missing gmeow:graphBoxRole"));
+        }
+    }
+
+    let declared: HashSet<&String> = typed.keys().collect();
+
+    // 2. Tier-1 depth warnings.
+    let use_when = format!("{}useWhen", cfg.namespace);
+    let how_to_use = format!("{}howToUse", cfg.namespace);
+    for (term, kind) in &typed {
+        if kind != "class" && kind != "property" {
+            continue;
+        }
+        let defined_by = ds_object_iris(ds, term, rdfs::IS_DEFINED_BY);
+        if !defined_by.iter().any(|d| cfg.core_slice_iris.contains(d)) {
+            continue;
+        }
+        if !ds_has_predicate(ds, term, &use_when) {
+            report.warnings.push(format!(
+                "{kind} {term} is missing gmeow:useWhen (Tier-1 depth, #471)"
+            ));
+        }
+        let has_how_to_use = ds_has_predicate(ds, term, &how_to_use);
+        if !has_how_to_use {
+            report.warnings.push(format!(
+                "{kind} {term} is missing gmeow:howToUse (Tier-1 depth, #471)"
+            ));
+        } else if !ds_has_predicate(ds, term, skos::EXAMPLE) {
+            report.warnings.push(format!(
+                "{kind} {term} has gmeow:howToUse but no skos:example (Tier-1 depth, #471)"
+            ));
+        }
+    }
+
+    // 3. use/avoidForConsumer must point at a gmeow:ProjectionContext.
+    let projection_context = format!("{}ProjectionContext", cfg.namespace);
+    for local in ["useForConsumer", "avoidForConsumer"] {
+        let predicate = format!("{}{local}", cfg.namespace);
+        let Some(p_id) = ds_iri_id(ds, &predicate) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
+            let subject = ds_subject_display(ds.resolve(q.s));
+            let object = ds.resolve(q.o);
+            let is_projection_context = match object {
+                TermRef::Iri(c) => ds_has_type(ds, c, &projection_context),
+                _ => false,
+            };
+            if !is_projection_context {
+                let consumer_text = match object {
+                    TermRef::Iri(n) => n.to_owned(),
+                    TermRef::Blank { label, .. } => format!("_:{label}"),
+                    TermRef::Literal { lexical, .. } => lexical.to_owned(),
+                    TermRef::Triple { .. } => ds_object_display(object),
+                };
+                report.errors.push(format!(
+                    "{predicate} on {subject} points to non-ProjectionContext value {consumer_text}",
+                ));
+            }
+        }
+    }
+
+    // 4. Dangling GMEOW subclass/subproperty targets.
+    for predicate in [rdfs::SUB_CLASS_OF, rdfs::SUB_PROPERTY_OF] {
+        let Some(p_id) = ds_iri_id(ds, predicate) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
+            if let TermRef::Iri(target) = ds.resolve(q.o) {
+                if is_gmeow_term(target, cfg) && !declared.contains(&target.to_owned()) {
+                    report.errors.push(format!(
+                        "dangling {pred} target (undeclared GMEOW term): {target}",
+                        pred = predicate,
+                    ));
+                }
+            }
+        }
+    }
+
+    // 5. Comprehensiveness heuristic.
+    let mut parent_to_children: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    if let Some(p_id) = ds_iri_id(ds, rdfs::SUB_CLASS_OF) {
+        for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
+            let TermRef::Iri(child) = ds.resolve(q.s) else {
+                continue;
+            };
+            let TermRef::Iri(parent) = ds.resolve(q.o) else {
+                continue;
+            };
+            if is_gmeow_term(child, cfg) && is_gmeow_term(parent, cfg) {
+                parent_to_children
+                    .entry(parent.to_owned())
+                    .or_default()
+                    .push(child.to_owned());
+            }
+        }
+    }
+    for (parent, children) in &parent_to_children {
+        if children.len() < 3 {
+            continue;
+        }
+        let missing = children
+            .iter()
+            .filter(|c| !ds_has_predicate(ds, c, skos::DEFINITION))
+            .count();
+        if missing >= 3 {
+            report.warnings.push(format!(
+                "class {parent} has {missing} of {total} direct subclasses missing \
+                 skos:definition (systematic documentation gap)",
+                total = children.len(),
+            ));
+        }
+    }
+
+    // 6. Language-tag discipline over ALL triples.
+    let x_gmeow = Regex::new(r"(?i)^x-gmeow-[a-z0-9\-]+$").expect("static regex");
+    for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        let TermRef::Iri(predicate_iri) = ds.resolve(q.p) else {
+            continue;
+        };
+        let object = ds.resolve(q.o);
+        let TermRef::Literal {
+            lexical, language, ..
+        } = object
+        else {
+            continue;
+        };
+
+        // Check 1: literal on a GMEOW-namespace predicate.
+        if predicate_iri.starts_with(&cfg.namespace) {
+            if let Some(lang) = language {
+                if !x_gmeow.is_match(lang) {
+                    let subject = ds_subject_display(ds.resolve(q.s));
+                    report.errors.push(format!(
+                        "literal {lit_repr} (on subject {subject}, predicate {predicate_iri}) \
+                         carries external or invalid language tag '{lang}'; GMEOW internal \
+                         data must use the private-use 'x-gmeow-' prefix.",
+                        lit_repr = lang_literal_repr(lexical, lang),
+                    ));
+                }
+            }
+        }
+
+        // Check 2: standard annotation predicate on a GMEOW-authored subject.
+        if let TermRef::Iri(subj) = ds.resolve(q.s) {
+            if is_gmeow_term(subj, cfg) {
+                if let Some(msg) = ds_check_annotation_literal(
+                    subj,
+                    predicate_iri,
+                    lexical,
+                    language,
+                    cfg,
+                    &x_gmeow,
+                ) {
+                    report.errors.push(msg);
+                }
+            }
+        }
+    }
+
+    report
+}
+
+/// Native twin of [`check_annotation_literal`].
+fn ds_check_annotation_literal(
+    subject: &str,
+    predicate: &str,
+    lexical: &str,
+    language: Option<&str>,
+    cfg: &LintConfig,
+    internal_re: &Regex,
+) -> Option<String> {
+    let lang = language?;
+    if internal_re.is_match(lang) {
+        return None;
+    }
+    if predicate.starts_with(&cfg.namespace) {
+        return None;
+    }
+    if !cfg.annotation_predicates.contains(predicate) {
+        return None;
+    }
+    Some(format!(
+        "literal {lit_repr} (on subject {subject}, predicate {predicate}) carries external \
+         language tag '{lang}'; GMEOW-authored terms must use the private-use 'x-gmeow-' prefix \
+         on standard annotation predicates.",
+        lit_repr = lang_literal_repr(lexical, lang),
+    ))
+}
+
+/// Render a language-tagged literal the way [`literal_repr`] does:
+/// `rdflib.term.Literal('value', lang='xx')`.
+fn lang_literal_repr(lexical: &str, lang: &str) -> String {
+    format!(
+        "rdflib.term.Literal({value}, lang={lang})",
+        value = py_str_repr(lexical),
+        lang = py_str_repr(lang),
+    )
+}
+
+/// Render a triple subject like [`subject_display`]: IRI → its IRI; blank → `_:b`.
+fn ds_subject_display(subject: TermRef<'_>) -> String {
+    match subject {
+        TermRef::Iri(iri) => iri.to_owned(),
+        TermRef::Blank { label, .. } => format!("_:{label}"),
+        // A triple-term subject (RDF 1.2) is not a normal lint subject; stringify.
+        other => ds_object_display(other),
+    }
+}
+
+/// A `Display`-style rendering of a non-IRI/non-blank object term, matching
+/// oxigraph `Term`'s `Display` (N-Triples form) for the rare defensive non-IRI-value
+/// diagnostic branches (`{other}` in the `Store` version). These paths never fire in
+/// production — `gmeow:graphBoxRole`/consumer values are always IRIs — so this only
+/// keeps the defensive arm faithful, never gates committed diagnostics.
+fn ds_object_display(term: TermRef<'_>) -> String {
+    match term {
+        TermRef::Iri(iri) => format!("<{iri}>"),
+        TermRef::Blank { label, .. } => format!("_:{label}"),
+        TermRef::Literal {
+            lexical, language, ..
+        } => match language {
+            Some(lang) => format!("\"{lexical}\"@{lang}"),
+            None => format!("\"{lexical}\""),
+        },
+        TermRef::Triple { .. } => "<<triple>>".to_owned(),
+    }
+}
+
+/// The term-naming lint over a native [`RdfDataset`] (mirrors `term_naming_lint`):
+/// a selector-privileging local name with no `gmeow:namingNote` justification is an
+/// error. Error TEXT and emission order are byte-identical to the legacy `Store`
+/// version.
+pub fn term_naming_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport {
+    let mut report = LintReport::default();
+    let naming_note = format!("{}namingNote", cfg.namespace);
+    let typed = collect_typed_terms_dataset(ds, cfg);
     for (term, kind) in &typed {
         let local = term.strip_prefix(&cfg.namespace).unwrap_or(term);
         let tokens: HashSet<String> = camel_tokens(local).into_iter().collect();
@@ -758,7 +710,7 @@ pub fn term_naming_lint(store: &Store, cfg: &LintConfig) -> LintReport {
         if offending.is_empty() {
             continue;
         }
-        if has_predicate(store, term, naming_note.as_ref()) {
+        if ds_has_predicate(ds, term, &naming_note) {
             continue;
         }
         offending.sort();
@@ -772,18 +724,18 @@ pub fn term_naming_lint(store: &Store, cfg: &LintConfig) -> LintReport {
     report
 }
 
-/// The declared-term IRI set (`set(_collect_typed_terms(graph))`) — exposed for
-/// `guide_anchor_lint`'s anchor resolution (which keeps its markdown logic in
-/// Python).
-pub fn declared_terms(store: &Store, cfg: &LintConfig) -> Vec<String> {
-    collect_typed_terms(store, cfg).into_keys().collect()
+/// The declared-term IRI set over a native [`RdfDataset`]
+/// (`set(_collect_typed_terms(graph))`) — exposed for `guide_anchor_lint`'s anchor
+/// resolution (which keeps its markdown logic in Python).
+pub fn declared_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> Vec<String> {
+    collect_typed_terms_dataset(ds, cfg).into_keys().collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
     use gmeow_rdf::parse_dataset;
+    use std::sync::Arc;
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
     const ONT: &str = "https://blackcatinformatics.ca/gmeow";
@@ -810,9 +762,8 @@ mod tests {
         }
     }
 
-    fn store_from(ttl: &str) -> Store {
-        let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
-        store_from_dataset(&dataset, GraphPolicy::FlattenToDefaultGraph).unwrap()
+    fn store_from(ttl: &str) -> Arc<RdfDataset> {
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -832,7 +783,7 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> ;\n\
                rdfs:subClassOf owl:Thing .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(report.errors.iter().any(|e| e.contains("skos:definition")));
     }
 
@@ -846,7 +797,7 @@ mod tests {
                gmeow:graphBoxRole ex:boxTBox ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
     }
 
@@ -859,7 +810,7 @@ mod tests {
                skos:definition \"A well-formed term.\" ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(report
             .errors
             .iter()
@@ -877,7 +828,7 @@ mod tests {
              gmeow:self#contribution-bii a gmeow:Contribution ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(
             !report.errors.iter().any(|e| e.contains("contribution-bii")),
             "self-description A-Box must be exempt: {:?}",
@@ -894,7 +845,7 @@ mod tests {
              gmeow:roleAuthor a owl:NamedIndividual ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
                 .errors
@@ -927,7 +878,7 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;\n\
                gmeow:graphBoxRole gmeow:boxABox .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(
             !report.errors.iter().any(|e| e.contains("finding/abc-0")),
             "well-formed assertional instance must be clean: {:?}",
@@ -945,7 +896,7 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;\n\
                gmeow:graphBoxRole gmeow:boxABox .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
                 .errors
@@ -967,7 +918,7 @@ mod tests {
                rdfs:label \"SH002: example finding\" ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
                 .errors
@@ -991,7 +942,7 @@ mod tests {
                rdfs:isDefinedBy <https://example.org/somewhere> ;\n\
                gmeow:graphBoxRole gmeow:boxABox .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
                 .errors
@@ -1014,7 +965,7 @@ mod tests {
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;\n\
                gmeow:graphBoxRole gmeow:boxABox .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(
             report
                 .errors
@@ -1035,7 +986,7 @@ mod tests {
                gmeow:graphBoxRole ex:notARole ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(report
             .errors
             .iter()
@@ -1048,7 +999,7 @@ mod tests {
             "{PREFIXES}\
              <https://example.org/name> gmeow:fullName \"Japanese\"@x-GMEOW-Japanese .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
     }
 
@@ -1058,7 +1009,7 @@ mod tests {
             "{PREFIXES}\
              <https://example.org/name> gmeow:fullName \"Japanese\"@ja .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(report
             .errors
             .iter()
@@ -1080,7 +1031,7 @@ mod tests {
                gmeow:graphBoxRole ex:boxTBox ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(report
             .errors
             .iter()
@@ -1097,14 +1048,14 @@ mod tests {
                gmeow:graphBoxRole ex:boxTBox ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
-        let report = structural_lint(&store, &cfg());
+        let report = structural_lint_dataset(&store, &cfg());
         assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
     }
 
     #[test]
     fn naming_lint_flags_primary_without_note() {
         let store = store_from(&format!("{PREFIXES}gmeow:PrimaryThing a owl:Class .\n"));
-        let report = term_naming_lint(&store, &cfg());
+        let report = term_naming_lint_dataset(&store, &cfg());
         assert!(report
             .errors
             .iter()
@@ -1117,7 +1068,7 @@ mod tests {
             "{PREFIXES}gmeow:scriptRolePrimary a owl:Class ;\n\
                gmeow:namingNote \"value vocabulary\" .\n"
         ));
-        let report = term_naming_lint(&store, &cfg());
+        let report = term_naming_lint_dataset(&store, &cfg());
         assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
     }
 
@@ -1127,7 +1078,7 @@ mod tests {
         let store = store_from(&format!(
             "{PREFIXES}gmeow:Thing a owl:Class , gmeow:SomeIndividualType .\n"
         ));
-        let terms = collect_typed_terms(&store, &cfg());
+        let terms = collect_typed_terms_dataset(&store, &cfg());
         assert_eq!(
             terms.get("https://blackcatinformatics.ca/gmeow/Thing"),
             Some(&"class".to_owned())
@@ -1155,6 +1106,72 @@ mod tests {
             let got = camel_tokens(input);
             let want: Vec<String> = expected.iter().map(|s| s.to_string()).collect();
             assert_eq!(&got, &want, "input {input}");
+        }
+    }
+
+    /// Parse a Turtle fixture into a frozen native dataset (no oxigraph round-trip).
+    fn dataset_from(ttl: &str) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
+    }
+
+    /// The native `structural_lint_dataset` twin must produce byte-identical
+    /// errors/warnings to the `Store` version across a battery of fixtures (#906).
+    #[test]
+    fn native_structural_lint_parity_with_store() {
+        let fixtures = [
+            // missing definition
+            format!(
+                "{PREFIXES}\
+                 gmeow:Undocumented a owl:Class ;\n\
+                   rdfs:label \"x\" ;\n\
+                   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> ;\n\
+                   rdfs:subClassOf owl:Thing .\n"
+            ),
+            // well-formed (clean)
+            format!(
+                "{PREFIXES}{ROLE}\
+                 gmeow:Documented a owl:Class ;\n\
+                   rdfs:label \"Documented\" ;\n\
+                   skos:definition \"A well-formed term.\" ;\n\
+                   gmeow:graphBoxRole ex:boxTBox ;\n\
+                   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
+            ),
+            // external tag on gmeow predicate + en on label
+            format!(
+                "{PREFIXES}{ROLE}\
+                 gmeow:TestTerm a owl:Class ;\n\
+                   rdfs:label \"Name\"@en ;\n\
+                   skos:definition \"A test term.\" ;\n\
+                   gmeow:graphBoxRole ex:boxTBox ;\n\
+                   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n\
+                 <https://example.org/name> gmeow:fullName \"Japanese\"@ja .\n"
+            ),
+            // untyped graphBoxRole
+            format!(
+                "{PREFIXES}\
+                 gmeow:Documented a owl:Class ;\n\
+                   rdfs:label \"Documented\" ;\n\
+                   skos:definition \"A well-formed term.\" ;\n\
+                   gmeow:graphBoxRole ex:notARole ;\n\
+                   rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
+            ),
+        ];
+        for ttl in &fixtures {
+            let store = structural_lint_dataset(&store_from(ttl), &cfg());
+            let native = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            // Compare as sorted sets: the per-check emission order differs between
+            // oxigraph's `store.iter()` and the native freeze-sorted scan (Check 6,
+            // the whole-graph language-tag pass), but the SET of diagnostics must be
+            // identical. Downstream the report is normalized via `Finding::sort_key`
+            // (`Report::normalize`), so committed bytes never depend on this order.
+            let (mut se, mut ne) = (store.errors.clone(), native.errors.clone());
+            se.sort();
+            ne.sort();
+            assert_eq!(se, ne, "errors diverged for: {ttl}");
+            let (mut sw, mut nw) = (store.warnings.clone(), native.warnings.clone());
+            sw.sort();
+            nw.sort();
+            assert_eq!(sw, nw, "warnings diverged for: {ttl}");
         }
     }
 

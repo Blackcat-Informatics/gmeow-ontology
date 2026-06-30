@@ -27,7 +27,7 @@
 //! (the same phased-development posture as [`crate::rule_ir`]).
 #![allow(dead_code)]
 
-use oxigraph::model::{Literal, NamedNode, Term};
+use gmeow_rdf::TermValue;
 
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 use gmeow_logic_compile::ir::{LogicAxiom, LogicProgram, LogicRule, LOGIC_NAMESPACE};
@@ -38,8 +38,7 @@ use gmeow_logic_compile::ir::{LogicAxiom, LogicProgram, LogicRule, LOGIC_NAMESPA
 /// `xsd:string` `ConstLit` (matching `project_nemo`'s `"value"` encoding and the
 /// reparse), every other term an IRI constant.
 fn lower_atom(atom: &LogicAxiom, negated: bool) -> Result<EvalAtom, String> {
-    let predicate = NamedNode::new(&atom.predicate)
-        .map_err(|e| format!("invalid predicate IRI {:?}: {e}", atom.predicate))?;
+    let predicate = atom.predicate.clone();
     let subject = lower_term(&atom.subject, false, "subject")?;
     let object = lower_term(&atom.obj, atom.obj_is_literal, "object")?;
     Ok(EvalAtom {
@@ -61,12 +60,9 @@ fn lower_term(value: &str, is_literal: bool, slot: &str) -> Result<EvalTerm, Str
                  literal"
             ));
         }
-        return Ok(EvalTerm::ConstLit(Term::Literal(
-            Literal::new_simple_literal(value),
-        )));
+        return Ok(EvalTerm::ConstLit(TermValue::simple_literal(value)));
     }
-    let nn = NamedNode::new(value).map_err(|e| format!("invalid {slot} IRI {value:?}: {e}"))?;
-    Ok(EvalTerm::ConstNamed(nn))
+    Ok(EvalTerm::ConstNamed(value.to_owned()))
 }
 
 /// Lower a single canonical [`LogicRule`] to an [`EvalRule`], with the same body

@@ -27,6 +27,9 @@ use crate::error::{ParseError, Result};
 use crate::lexer::{tokenize, Spanned, Token};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 const XSD_DOUBLE: &str = "http://www.w3.org/2001/XMLSchema#double";
@@ -1027,19 +1030,23 @@ impl Parser {
         let mut triples: Vec<TriplePattern> = Vec::new();
         let mut paths: Vec<GraphPattern> = Vec::new();
         loop {
-            // The subject may be a blank-node property list `[ p o ; … ]`, which
-            // emits its own triples and yields a fresh blank node.
-            let (subject, from_bnpl) = if self.at(&Token::LBracket) {
+            // The subject may be a blank-node property list `[ p o ; … ]` or an RDF
+            // collection `( … )`, each of which emits its own triples and yields a
+            // fresh node (the BNPL blank, or the collection's head).
+            let (subject, standalone_capable) = if self.at(&Token::LBracket) {
                 (
                     self.parse_blank_node_property_list(&mut triples, &mut paths)?,
                     true,
                 )
+            } else if self.at(&Token::LParen) {
+                (self.parse_collection(&mut triples, &mut paths)?, false)
             } else {
                 (self.parse_term_pattern()?, false)
             };
             // A standalone `[ … ] .` needs no following predicate-object list (its
-            // triples are already emitted); any other subject requires one.
-            let standalone = from_bnpl
+            // triples are already emitted); any other subject requires one. A
+            // collection always heads a predicate-object list (it is never standalone).
+            let standalone = standalone_capable
                 && (self.at(&Token::Dot) || self.at(&Token::RBrace) || self.block_boundary());
             if !standalone {
                 self.parse_predicate_object_list(&subject, &mut triples, &mut paths)?;
@@ -1080,6 +1087,77 @@ impl Parser {
         Ok(node)
     }
 
+    /// Parse an RDF collection `( n1 n2 … )` (RDF 1.1 §4.3, SPARQL §19.5
+    /// `Collection`). Desugars to the standard `rdf:first`/`rdf:rest` blank-node
+    /// chain terminated by `rdf:nil`, emitting those triples into the current
+    /// block's `triples` and returning the HEAD node as a term for use in subject
+    /// or object position. An empty list `()` is `rdf:nil` itself.
+    ///
+    /// Each element is a `GraphNode` — a plain term, a nested blank-node property
+    /// list `[ … ]`, or a nested collection `( … )` — so the recursion mirrors the
+    /// `parse_blank_node_property_list` object idiom.
+    fn parse_collection(
+        &mut self,
+        triples: &mut Vec<TriplePattern>,
+        paths: &mut Vec<GraphPattern>,
+    ) -> Result<TermPattern> {
+        self.expect(&Token::LParen)?;
+        // The SPARQL grammar requires at least one node inside the parentheses, but
+        // RDF's empty collection `()` is `rdf:nil`; accept it for robustness.
+        if self.eat(&Token::RParen) {
+            return Ok(TermPattern::NamedNode(NamedNode::new_unchecked(RDF_NIL)));
+        }
+        let first_pred = NamedNodePattern::NamedNode(NamedNode::new_unchecked(RDF_FIRST));
+        let rest_pred = NamedNodePattern::NamedNode(NamedNode::new_unchecked(RDF_REST));
+        let nil = TermPattern::NamedNode(NamedNode::new_unchecked(RDF_NIL));
+
+        let head = TermPattern::BlankNode(self.fresh_anon());
+        let mut node = head.clone();
+        loop {
+            let element = self.parse_graph_node(triples, paths)?;
+            triples.push(TriplePattern {
+                subject: node.clone(),
+                predicate: first_pred.clone(),
+                object: element,
+            });
+            if self.at(&Token::RParen) {
+                // Last element: terminate the chain with rdf:nil.
+                triples.push(TriplePattern {
+                    subject: node,
+                    predicate: rest_pred.clone(),
+                    object: nil.clone(),
+                });
+                break;
+            }
+            // Another element follows: link to a fresh tail node.
+            let next = TermPattern::BlankNode(self.fresh_anon());
+            triples.push(TriplePattern {
+                subject: node,
+                predicate: rest_pred.clone(),
+                object: next.clone(),
+            });
+            node = next;
+        }
+        self.expect(&Token::RParen)?;
+        Ok(head)
+    }
+
+    /// Parse one `GraphNode` (collection element / object): a nested blank-node
+    /// property list, a nested collection, or a plain term.
+    fn parse_graph_node(
+        &mut self,
+        triples: &mut Vec<TriplePattern>,
+        paths: &mut Vec<GraphPattern>,
+    ) -> Result<TermPattern> {
+        if self.at(&Token::LBracket) {
+            self.parse_blank_node_property_list(triples, paths)
+        } else if self.at(&Token::LParen) {
+            self.parse_collection(triples, paths)
+        } else {
+            self.parse_term_pattern()
+        }
+    }
+
     /// True when the next token starts a non-triples element of a group.
     fn block_boundary(&self) -> bool {
         self.at(&Token::LBrace)
@@ -1112,12 +1190,9 @@ impl Parser {
             };
             // object list
             loop {
-                // An object may itself be a blank-node property list `[ … ]`.
-                let object = if self.at(&Token::LBracket) {
-                    self.parse_blank_node_property_list(triples, paths)?
-                } else {
-                    self.parse_term_pattern()?
-                };
+                // An object may itself be a blank-node property list `[ … ]` or an
+                // RDF collection `( … )` (both emit their own triples here).
+                let object = self.parse_graph_node(triples, paths)?;
                 match &verb {
                     Verb::Simple(pred) => triples.push(TriplePattern {
                         subject: subject.clone(),
@@ -2566,6 +2641,47 @@ mod tests {
                 }
             ),
             "got {where_pat:?}"
+        );
+    }
+
+    #[test]
+    fn rdf_collection_in_object_desugars_to_first_rest_chain() {
+        // `?s gmeow:members ( gmeow:a gmeow:b gmeow:c )` desugars to the standard
+        // rdf:first/rdf:rest blank-node chain (SPARQL §19.5 Collection). The members
+        // predicate binds to the HEAD blank; three rdf:first edges carry the elements;
+        // three rdf:rest edges link the chain and terminate it with rdf:nil.
+        let q = format!("{GM}SELECT ?s WHERE {{ ?s gmeow:members ( gmeow:a gmeow:b gmeow:c ) }}");
+        let GraphPattern::Bgp { patterns } = unproject(select_pattern(&q)) else {
+            panic!("expected BGP");
+        };
+        // 1 members edge + 3 rdf:first + 3 rdf:rest = 7 triples. The desugaring emits
+        // the REAL rdf: IRIs (not the test's mock `rdf:` prefix binding).
+        assert_eq!(patterns.len(), 7, "got {patterns:?}");
+        let first = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        let rest = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        let nil = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let pred = |p: &TriplePattern| match &p.predicate {
+            NamedNodePattern::NamedNode(n) => n.as_str().to_owned(),
+            other => panic!("unexpected predicate {other:?}"),
+        };
+        assert_eq!(patterns.iter().filter(|p| pred(p) == first).count(), 3);
+        assert_eq!(patterns.iter().filter(|p| pred(p) == rest).count(), 3);
+        assert_eq!(
+            patterns
+                .iter()
+                .filter(|p| matches!(&p.object, TermPattern::NamedNode(n) if n.as_str() == nil))
+                .count(),
+            1,
+            "exactly one rdf:nil terminator"
+        );
+        // The members triple's object is the chain head (a blank node).
+        let members = patterns
+            .iter()
+            .find(|p| pred(p).ends_with("members"))
+            .expect("members edge present");
+        assert!(
+            matches!(members.object, TermPattern::BlankNode(_)),
+            "members object is the collection head blank"
         );
     }
 

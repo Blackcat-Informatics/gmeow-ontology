@@ -1,0 +1,3 @@
+<https://blackcatinformatics.ca/gmeow/examples/rights/cc-by-4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://creativecommons.org/ns#License> .
+<https://blackcatinformatics.ca/gmeow/examples/rights/photo> <http://creativecommons.org/ns#license> <https://blackcatinformatics.ca/gmeow/examples/rights/cc-by-4> .
+<https://blackcatinformatics.ca/gmeow/self#license-agpl-3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://creativecommons.org/ns#License> .
