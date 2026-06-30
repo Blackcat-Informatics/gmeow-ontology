@@ -3,6 +3,6 @@
     "SoundUnderApproximation"
   ],
   "unsupported_constructs": [
-    "non-relational-core formula (not a Horn clause of binary atoms) [167cd0227c6b]"
+    "disjunctive head: clause is not Horn (>1 positive literal) [Disjunctive+Nested+Quantified] [faa6cea5f9fc]"
   ]
 }
