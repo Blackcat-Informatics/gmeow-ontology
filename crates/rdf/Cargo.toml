@@ -62,7 +62,7 @@ gmeow-gts = { version = "0.9.11", optional = true, features = ["duckdb"] }
 gmeow-rdf-events = { path = "../rdf-events", optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the
 # sibling extension crates (validate/shacl/logic/diagnostics).
-pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], optional = true }
+pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 # The snapshot signing path constructs a SigningKey from the 32 raw Ed25519 bytes
 # the Python `gts.Signer` carries; same major as gmeow-gts links. python-only.
 ed25519-dalek = { version = "2", optional = true }

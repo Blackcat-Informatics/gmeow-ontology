@@ -15,10 +15,12 @@ use std::sync::Arc;
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::fno::lower_fno;
 use gmeow_rdf::{
-    parse_dataset, serialize_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder,
+    dataset_diff, parse_dataset, serialize_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder,
     SerializeGraph,
 };
 use gmeow_slice::{ArtifactRole, SliceCatalog};
+
+const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -110,6 +112,26 @@ fn ntriples_multiset(bytes: &[u8], media_type: &str) -> Vec<String> {
     normalize_expects_index(&text)
 }
 
+/// Drop the only admitted non-semantic divergence from the parity comparison:
+/// `rdfs:seeAlso` points at one implementation query for a function. The native lowering
+/// chooses deterministically; the historical committed emitter chose the first cell from
+/// store hash order. Everything else must compare as an RDF graph, blank nodes included.
+fn without_see_also(ds: &RdfDataset) -> Arc<RdfDataset> {
+    let mut b = RdfDatasetBuilder::new();
+    for quad in ds.owned_quads() {
+        if quad.predicate != RDFS_SEE_ALSO {
+            b.push_owned_quad(&quad);
+        }
+    }
+    for reifier in ds.owned_reifiers() {
+        b.push_owned_reifier(&reifier);
+    }
+    for annotation in ds.owned_annotations() {
+        b.push_owned_annotation(&annotation);
+    }
+    b.freeze().expect("filtered FnO dataset freezes")
+}
+
 /// Collapse the positional index of an `fno:expects` rdf:List blank label so that a
 /// deterministic list reordering compares equal: `…_expects_0` / `…_expects_1` → a
 /// single `…_expects_X`. The two catalogs hold the same parameter SET, just listed in
@@ -172,25 +194,24 @@ fn fno_lowering_matches_committed_modulo_expects_and_seealso() {
     let committed_bytes =
         std::fs::read(&committed_path).expect("committed functions.fno.ttl present");
 
+    let lowered_ds = parse_dataset(
+        lowered_nt.as_bytes(),
+        NativeRdfFormat::NTriples.media_type(),
+        None,
+    )
+    .expect("lowered FnO parses as N-Triples");
+    let committed_ds = parse_dataset(&committed_bytes, NativeRdfFormat::Turtle.media_type(), None)
+        .expect("committed FnO parses as Turtle");
+    let lowered_without_see = without_see_also(&lowered_ds);
+    let committed_without_see = without_see_also(&committed_ds);
+    let diff = dataset_diff(&lowered_without_see, &committed_without_see);
+    assert!(
+        diff.isomorphic,
+        "FnO lowering diverged from the committed catalog beyond the deterministic seeAlso choice: {diff:?}",
+    );
+
     let lo = normalize_expects_index(&lowered_nt);
     let co = ntriples_multiset(&committed_bytes, NativeRdfFormat::Turtle.media_type());
-
-    // Partition each side into seeAlso vs everything else. The non-seeAlso multisets
-    // must be IDENTICAL — every parameter triple (modulo expects-list order), label,
-    // type, output, implementation and mapping triple must match exactly.
-    let non_see = |lines: &[String]| -> Vec<String> {
-        lines
-            .iter()
-            .filter(|l| !l.contains("#seeAlso>"))
-            .cloned()
-            .collect()
-    };
-    let lo_non_see = non_see(&lo);
-    let co_non_see = non_see(&co);
-    assert_eq!(
-        lo_non_see, co_non_see,
-        "FnO lowering diverged from the committed catalog beyond the deterministic seeAlso choice",
-    );
 
     // Each diverging seeAlso must be over the SAME subject in both (deterministic vs
     // hash first-profile picks a different `.rq`), with the SAME count per subject —
