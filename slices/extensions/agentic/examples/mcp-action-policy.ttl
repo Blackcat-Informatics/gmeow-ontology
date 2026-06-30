@@ -70,6 +70,16 @@ ex:memoryReadable
     rdfs:label "memory is readable"@x-gmeow-english ;
     rdfs:comment "recall's precondition: the memory store is available to read."@x-gmeow-english .
 
+# Effect-side situations (logic:ins / logic:del targets) — the state store_claim and
+# revise_belief move through. Untyped like the precondition individuals above.
+ex:claimInMemory
+    rdfs:label "the claim is in memory"@x-gmeow-english ;
+    rdfs:comment "store_claim's effect: the reified claim has been written to memory."@x-gmeow-english .
+
+ex:claimSuppressed
+    rdfs:label "the claim is suppressed"@x-gmeow-english ;
+    rdfs:comment "revise_belief's effect: the claim is suppressed (P10 — superseded, never erased)."@x-gmeow-english .
+
 # --------------------------------------------------------------------------- #
 # store_claim — a GOVERNED WRITE action (logic:McpActionSchema).
 # Compensation is revise_belief: suppression undoes the store (P10).
@@ -79,7 +89,18 @@ ex:storeClaim a logic:McpActionSchema ;
     rdfs:label "store_claim — write a reified claim to memory"@x-gmeow-english ;
     logic:capability   ex:memoryWriteCapability ;
     logic:precondition ex:wellFormedClaim ;
+    logic:effect       ex:storeClaimEffect ;
     logic:compensation ex:reviseBelief .
+
+# store_claim's transaction-layer effect: the claim is now in memory AND exists as a
+# target a later revise_belief can suppress (P10 — suppression, never deletion). The
+# ins/del footprint is what the T6 trajectory audit (issue #716) reads when it treats a
+# recorded store→revise ToolCall sequence as a transaction.
+ex:storeClaimEffect
+    rdfs:label "effect of store_claim"@x-gmeow-english ;
+    rdfs:comment "Inserts claim-in-memory and target-claim-exists; deletes nothing — a store only adds."@x-gmeow-english ;
+    logic:ins ex:claimInMemory ;
+    logic:ins ex:targetClaimExists .
 
 # --------------------------------------------------------------------------- #
 # revise_belief — a GOVERNED WRITE action (logic:McpActionSchema). Suppresses a
@@ -91,7 +112,19 @@ ex:reviseBelief a logic:McpActionSchema ;
     rdfs:label "revise_belief — suppress a claim (P10, never delete)"@x-gmeow-english ;
     logic:capability   ex:memoryWriteCapability ;
     logic:precondition ex:targetClaimExists ;
+    logic:effect       ex:reviseBeliefEffect ;
     logic:compensation ex:storeClaim .
+
+# revise_belief's transaction-layer effect: the active claim is SUPPRESSED — the stored
+# claim and its "exists" gate are retired (logic:del) and a suppressed-claim situation is
+# asserted (logic:ins). This is supersession, never erasure (P10): re-storing (the
+# compensation) re-asserts the claim.
+ex:reviseBeliefEffect
+    rdfs:label "effect of revise_belief"@x-gmeow-english ;
+    rdfs:comment "Inserts claim-suppressed; deletes claim-in-memory and target-claim-exists (supersession, never erasure — P10)."@x-gmeow-english ;
+    logic:ins ex:claimSuppressed ;
+    logic:del ex:claimInMemory ;
+    logic:del ex:targetClaimExists .
 
 # --------------------------------------------------------------------------- #
 # recall — a PLAIN read action (logic:ActionSchema, NOT McpActionSchema). It has a
