@@ -917,21 +917,16 @@ fn emit_virtual_candidates(
                     o: obj,
                     g: None,
                 })
-                .filter(|q| {
-                    s.is_none_or(|id| q.s == id)
-                        && p.is_none_or(|id| q.p == id)
-                        && o.is_none_or(|id| q.o == id)
-                })
+                .filter(|q| p.is_none_or(|id| q.p == id) && o.is_none_or(|id| q.o == id))
             {
                 emit(quad);
             }
         }
         None => {
-            for quad in dataset.annotation_quads().filter(|q| {
-                s.is_none_or(|id| q.s == id)
-                    && p.is_none_or(|id| q.p == id)
-                    && o.is_none_or(|id| q.o == id)
-            }) {
+            for quad in dataset
+                .annotation_quads()
+                .filter(|q| p.is_none_or(|id| q.p == id) && o.is_none_or(|id| q.o == id))
+            {
                 emit(quad);
             }
         }

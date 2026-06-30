@@ -1334,7 +1334,7 @@ fn affected_focus_terms(example_projected: &RdfDataset) -> HashSet<gmeow_shacl::
     for quad in example_projected.owned_quads() {
         affected.insert(rdf_term_to_shacl_term(&quad.subject));
         affected.insert(gmeow_shacl::term::Term::NamedNode(
-            gmeow_shacl::term::NamedNode::new_unchecked(quad.predicate.clone()),
+            gmeow_shacl::term::NamedNode::new_unchecked(quad.predicate),
         ));
         affected.insert(rdf_term_to_shacl_term(&quad.object));
     }

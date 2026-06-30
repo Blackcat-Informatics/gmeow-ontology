@@ -702,10 +702,10 @@ fn distinct_individuals(facts: &BTreeSet<Fact>, world: &str, a: &str, b: &str) -
 /// stance (UNA + `owl:sameAs` merges + explicit `owl:differentFrom`), i.e. they
 /// genuinely witness `>n` distinct property values without needing an explicit
 /// `owl:differentFrom` between every pair.
-fn pairwise_distinct(facts: &BTreeSet<Fact>, world: &str, fillers: &[String]) -> bool {
+fn pairwise_distinct(facts: &BTreeSet<Fact>, world: &str, fillers: &[&String]) -> bool {
     for i in 0..fillers.len() {
         for j in (i + 1)..fillers.len() {
-            if !distinct_individuals(facts, world, &fillers[i], &fillers[j]) {
+            if !distinct_individuals(facts, world, fillers[i].as_str(), fillers[j].as_str()) {
                 return false;
             }
         }
@@ -1351,9 +1351,8 @@ pub(crate) fn augment_inferred_with_dl(
                     let Some(property) = restriction.on_property.as_deref() else {
                         continue;
                     };
-                    let fillers: Vec<String> = objects_for(&index, world, subject, property)
-                        .cloned()
-                        .collect();
+                    let fillers: Vec<&String> =
+                        objects_for(&index, world, subject, property).collect();
 
                     // ── max-cardinality / exact clash under the identity stance ──
                     // A clash needs `> max` fillers that must be *distinct* given
@@ -1363,11 +1362,13 @@ pub(crate) fn augment_inferred_with_dl(
                     // `owl:differentFrom` is required (Gap B). `max == 0` clashes
                     // on a single filler regardless.
                     for (max, on_class) in cardinality_maxima(restriction) {
-                        let counted: Vec<String> = match on_class {
+                        let counted: Vec<&String> = match on_class {
                             Some(class) => fillers
                                 .iter()
-                                .filter(|filler| has_fact(&facts, world, filler, RDF_TYPE, class))
-                                .cloned()
+                                .copied()
+                                .filter(|filler| {
+                                    has_fact(&facts, world, filler.as_str(), RDF_TYPE, class)
+                                })
                                 .collect(),
                             None => fillers.clone(),
                         };
@@ -1401,11 +1402,13 @@ pub(crate) fn augment_inferred_with_dl(
                     for (needed, on_class) in existential_obligations(restriction) {
                         let filler_class = on_class.unwrap_or(OWL_NOTHING);
                         // Count the distinct qualifying fillers x already has.
-                        let qualifying: Vec<String> = match on_class {
+                        let qualifying: Vec<&String> = match on_class {
                             Some(class) => fillers
                                 .iter()
-                                .filter(|filler| has_fact(&facts, world, filler, RDF_TYPE, class))
-                                .cloned()
+                                .copied()
+                                .filter(|filler| {
+                                    has_fact(&facts, world, filler.as_str(), RDF_TYPE, class)
+                                })
                                 .collect(),
                             // Unqualified `≥n p.⊤`: any filler counts.
                             None => fillers.clone(),
