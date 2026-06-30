@@ -154,7 +154,9 @@ impl RcTerm {
         }
     }
 
-    fn key(&self) -> String {
+    /// A deterministic, type-tagged content key for this term — the single authority shared
+    /// by the projection, the parse inverse, and the engine adapter's rule-IRI minting.
+    pub fn key(&self) -> String {
         match self {
             Self::Var(v) => format!("V\u{1f}{v}"),
             Self::Iri(i) => format!("I\u{1f}{i}"),
@@ -196,7 +198,9 @@ pub struct RcAtom {
 }
 
 impl RcAtom {
-    fn key(&self) -> String {
+    /// A deterministic content key for this atom (subject · predicate · object · negated),
+    /// used by the projection, the parse inverse, and the engine adapter's rule-IRI minting.
+    pub fn key(&self) -> String {
         format!(
             "{}\u{1e}{}\u{1e}{}\u{1e}{}",
             self.subject.key(),
@@ -220,7 +224,9 @@ pub struct RcRule {
 }
 
 impl RcRule {
-    fn key(&self) -> String {
+    /// A deterministic content key for this rule (head · body atoms · distinct guards),
+    /// used by the projection, the parse inverse, and the engine adapter's rule-IRI minting.
+    pub fn key(&self) -> String {
         let body = self
             .body
             .iter()

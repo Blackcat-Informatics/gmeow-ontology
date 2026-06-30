@@ -96,10 +96,7 @@ pub fn formula_eval_rls(program: &LogicProgram) -> (String, PreservationClaim) {
 fn rc_rule_to_eval(rc: &RcRule) -> Result<EvalRule, String> {
     let head = rc_atom_to_eval(&rc.head)?;
     let body: Result<Vec<EvalAtom>, String> = rc.body.iter().map(rc_atom_to_eval).collect();
-    let rule_iri = format!(
-        "{LOGIC_NAMESPACE}formula-rule/{}",
-        sha1_hex(&rc_rule_key(rc))
-    );
+    let rule_iri = format!("{LOGIC_NAMESPACE}formula-rule/{}", sha1_hex(&rc.key()));
     Ok(EvalRule {
         head,
         body: body?,
@@ -141,44 +138,6 @@ fn rc_term_to_eval(term: &RcTerm, is_object: bool) -> Result<EvalTerm, String> {
             "relational-core blank node {label:?} in a formula-derived rule — the clausifier \
              mints Skolem constants, never blanks (no-optionality)"
         )),
-    }
-}
-
-/// A deterministic content key for an [`RcRule`], used to mint its stable `rule_iri`.
-fn rc_rule_key(rc: &RcRule) -> String {
-    let body = rc
-        .body
-        .iter()
-        .map(rc_atom_surface)
-        .collect::<Vec<_>>()
-        .join("\u{1d}");
-    let distinct = rc
-        .distinct_pairs
-        .iter()
-        .map(|(a, b)| format!("{a}\u{1f}{b}"))
-        .collect::<Vec<_>>()
-        .join("\u{1d}");
-    format!("{}\u{1c}{body}\u{1c}{distinct}", rc_atom_surface(&rc.head))
-}
-
-/// A stable surface for one [`RcAtom`] (subject ▸ predicate ▸ object ▸ negated).
-fn rc_atom_surface(a: &RcAtom) -> String {
-    format!(
-        "{}\u{1e}{}\u{1e}{}\u{1e}{}",
-        rc_term_surface(&a.subject),
-        a.predicate,
-        rc_term_surface(&a.object),
-        a.negated,
-    )
-}
-
-/// A stable, type-tagged surface for one [`RcTerm`].
-fn rc_term_surface(t: &RcTerm) -> String {
-    match t {
-        RcTerm::Var(v) => format!("V\u{1f}{v}"),
-        RcTerm::Iri(i) => format!("I\u{1f}{i}"),
-        RcTerm::Blank(b) => format!("B\u{1f}{b}"),
-        RcTerm::Literal(l) => format!("L\u{1f}{l}"),
     }
 }
 
