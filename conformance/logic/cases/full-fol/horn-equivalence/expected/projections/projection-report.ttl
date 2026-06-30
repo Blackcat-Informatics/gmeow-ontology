@@ -55,8 +55,9 @@
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" .
 <https://blackcatinformatics.ca/logic/target/nemo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/nemo> <http://www.w3.org/2000/01/rdf-schema#label> "nemo" .
-<https://blackcatinformatics.ca/logic/target/nemo> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/logic/target/nemo> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
 <https://blackcatinformatics.ca/logic/target/nemo> <https://blackcatinformatics.ca/logic/complexityClass> "PTIME/datalog" .
+<https://blackcatinformatics.ca/logic/target/nemo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/2000/01/rdf-schema#label> "owl-dl" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
