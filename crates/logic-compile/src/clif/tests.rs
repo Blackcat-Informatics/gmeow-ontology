@@ -8,8 +8,9 @@ use crate::adapter::assert_ir_isomorphic;
 use crate::clif::{parse_clif_str, project_clif};
 use crate::frontend::parse_logic_str;
 use crate::ir::{
-    ContextualScope, Correspondence, CorrespondenceRelation, Formula, LogicAxiom, LogicProgram,
-    LogicRule, MorphismClass, MorphismKind, ReasoningContract, SemanticProfileId, Term,
+    ContextualScope, Correspondence, CorrespondenceRelation, Formula, LegPath, LogicAxiom,
+    LogicProgram, LogicRule, MorphismClass, MorphismKind, ReasoningContract, SemanticProfileId,
+    Term, TransactionProgramIr,
 };
 
 // The real `logic:` namespace (see `crate::ir::LOGIC_NAMESPACE`); a meta-channel triple
@@ -303,5 +304,122 @@ fn production_module_round_trip_is_isomorphic() {
         fixpoint == reparsed,
         "production CLIF round-trip differs from the canonical fixpoint beyond the \
          isomorphism gate's surfaced collections (scope / correspondences / path shapes)"
+    );
+}
+
+#[test]
+fn transaction_program_round_trips() {
+    // A correspondence carrying `logic:getLeg` / `logic:putLeg` IRIs, plus the realized
+    // leg-body `logic:TransactionProgram`s those IRIs name. The CLIF writer must serialize the
+    // leg bodies as `gm:` path-node triples (the faithful inverse of the frontend's
+    // `parse_leg_path`), and the frontend must reconstruct them via `extract_leg_programs`
+    // (which keys off the correspondence's leg IRIs). The Exact claim demands they survive.
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    let leg_get = format!("{GMEOW}example/getLeg");
+    let leg_put = format!("{GMEOW}example/putLeg");
+    let p1 = iri("propAlpha");
+    let p2 = iri("propBeta");
+
+    // get = α / ^β  (a Seq with a nested Inverse — exercises Seq, Step, and Inverse).
+    let get_body = LegPath::Seq(vec![
+        LegPath::Step(p1.clone()),
+        LegPath::Inverse(Box::new(LegPath::Step(p2.clone()))),
+    ]);
+    // put = the lawful structural inverse: ^(α / ^β) = β / ^α.
+    let put_body = get_body.invert();
+
+    let correspondence = Correspondence::new(
+        iri("corr/legtest"),
+        CorrespondenceRelation::Equiv,
+        MorphismClass::Isomorphism,
+        MorphismKind::InstitutionMorphism,
+        true,
+        None,
+        Some(leg_get.clone()),
+        Some(leg_put.clone()),
+        Vec::new(),
+        Some(0.9),
+        None,
+        None,
+        None,
+        None,
+    )
+    .unwrap();
+
+    let orig = LogicProgram::new(
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Some("urn:test:legprograms".to_owned()),
+    )
+    .with_correspondences(vec![correspondence])
+    .with_transaction_programs(vec![
+        TransactionProgramIr {
+            iri: leg_get,
+            body: get_body,
+        },
+        TransactionProgramIr {
+            iri: leg_put,
+            body: put_body,
+        },
+    ]);
+
+    // As in `comprehensive_round_trip`, a programmatically-built program is not yet at the
+    // frontend's canonical fixpoint (the frontend re-classifies a correspondence's `logic:`
+    // predicates as flat axioms too). The Exact property is that CLIF is an IDEMPOTENT lossless
+    // codec AT that fixpoint: one round-trip reaches it, every further round-trip is identity.
+    let src = Some("urn:test:legprograms".to_owned());
+    let clif1 = project_clif(&orig).content;
+    let (fp, diags1) = parse_clif_str(&clif1, src.clone()).expect("parse_clif_str #1");
+    assert!(
+        diags1.iter().all(|d| d.code != "CLIF_MALFORMED_SENTENCE"),
+        "malformed-sentence diagnostics on a well-formed leg-program round-trip: {diags1:?}\n\
+         --- CLIF ---\n{clif1}"
+    );
+
+    // The leg bodies survive the FIRST round-trip (reconstructed via `extract_leg_programs`
+    // keying off the correspondence's leg IRIs) — the whole point of the fix.
+    assert_eq!(
+        fp.transaction_programs.len(),
+        orig.transaction_programs.len(),
+        "leg programs lost in the round-trip: {:?}",
+        fp.transaction_programs
+    );
+    // And they reconstruct to the SAME leg bodies (content keys, not just count).
+    let orig_keys: Vec<String> = orig
+        .transaction_programs
+        .iter()
+        .map(crate::ir::TransactionProgramIr::content_key)
+        .collect();
+    let fp_keys: Vec<String> = fp
+        .transaction_programs
+        .iter()
+        .map(crate::ir::TransactionProgramIr::content_key)
+        .collect();
+    assert_eq!(
+        orig_keys, fp_keys,
+        "leg bodies changed across the round-trip"
+    );
+
+    // Idempotence at the fixpoint: the second round-trip is the exact identity, leg bodies
+    // included. This is the Exact bar — proving the leg-body channel is a lossless codec.
+    let clif2 = project_clif(&fp).content;
+    assert_eq!(
+        clif1, clif2,
+        "CLIF emission is not idempotent at the leg-program fixpoint (byte drift):\n\
+         --- 1 ---\n{clif1}\n--- 2 ---\n{clif2}"
+    );
+    let (fp2, _diags2) = parse_clif_str(&clif2, src).expect("parse_clif_str #2");
+    assert_ir_isomorphic(&fp, &fp2).unwrap_or_else(|e| {
+        panic!("transaction-program round-trip not idempotent: {e}\n--- CLIF ---\n{clif2}")
+    });
+    assert!(
+        fp == fp2,
+        "leg-program fixpoint round-trip differs (transaction programs / correspondences)"
+    );
+    assert_eq!(
+        fp2.transaction_programs.len(),
+        orig.transaction_programs.len(),
+        "leg programs lost across the idempotent re-round-trip"
     );
 }
