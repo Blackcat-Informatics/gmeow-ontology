@@ -48,18 +48,6 @@ pub(crate) fn gts_to_ser(g: &gmeow_gts::model::Graph) -> SerGraph {
     }
 }
 
-/// Walk a real `gmeow_gts::model::Graph` (from a bundle read) into a frozen
-/// [`RdfDataset`](crate::RdfDataset) through the first-party statement-layer fold,
-/// bridging via [`gts_to_ser`]. Used by the RDF/XML codec's test helper to assert
-/// over a parsed graph (the production RDF/XML arm bridges inline in `parse_dataset`).
-#[cfg(test)]
-pub(crate) fn dataset_from_gts_graph(
-    g: &gmeow_gts::model::Graph,
-) -> Result<std::sync::Arc<crate::RdfDataset>, RdfDiagnostic> {
-    let ser = gts_to_ser(g);
-    crate::native_codecs::parse::dataset_from_ser_graph(&ser)
-}
-
 /// Load a GTS bundle into a frozen [`RdfDataset`](crate::RdfDataset) with **every**
 /// named graph folded into the default graph. This is the load path the native SPARQL
 /// conformance gate (`crates/sparql-conformance`) replays against the frozen goldens,

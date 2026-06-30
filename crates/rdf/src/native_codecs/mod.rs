@@ -21,7 +21,7 @@ mod media_type;
 // First-party serialization model + the Turtle / TriG / N-Triples / N-Quads text
 // serializers that walk it, replacing the external gmeow-gts text serializers.
 // `pub(crate)` so the container bridge (`crate::gts::gts_to_ser`) can construct a
-// `SerGraph` from a real `gmeow_gts::model::Graph` read out of a bundle.
+// `SerGraph` from a real gmeow-gts model graph read out of a bundle.
 pub(crate) mod ser_model;
 // `pub(crate)` so the legacy `dataset_io` oxigraph path can reuse the SHARED
 // `fold_statement_layer` (one fold, no drift) — #909 Task 1.
@@ -32,16 +32,14 @@ mod serialize;
 // gmeow-gts text codecs for the line/Turtle family.
 mod text_parse;
 // First-party RDF/XML codec (EPIC #906): implements the W3C RDF/XML grammar in-repo on
-// a pure-Rust XML DOM (`roxmltree`), lowering to / rising from the `gmeow_gts::rdf`
-// dataset model — replacing the external `gmeow_gts::rdf_codecs::{from_rdf_xml,
-// to_rdf_xml}` codec entry points (the first-party mandate).
+// a pure-Rust XML DOM (`roxmltree`), parsing straight into the frozen IR through the
+// shared statement-layer fold and serializing from the first-party `SerGraph` —
+// replacing the external gmeow-gts `rdf_codecs::{from_rdf_xml, to_rdf_xml}` codec
+// entry points (the first-party mandate). It is fully gmeow-gts free.
 mod rdfxml;
 
 pub use media_type::{classify, NativeRdfFormat};
 pub use parse::parse_dataset;
-// First-party RDF/XML codec entry points (EPIC #906), used by the PyO3 compat surface
-// (`py_gts`) for `to_rdf_xml`/`from_rdf_xml`.
-pub use rdfxml::{parse_rdfxml_to_gts_graph, serialize_gts_graph_to_rdfxml};
 pub use serialize::{
     serialize_dataset, serialize_dataset_base_only, serialize_dataset_to_format, SerializeOutcome,
 };

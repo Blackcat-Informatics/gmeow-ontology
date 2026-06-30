@@ -73,14 +73,14 @@ const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 /// A rendered ULID is 26 Crockford Base32 digits.
 const ULID_LEN: usize = 26;
 
-/// A deterministic blank-node label, byte-identical to the prior gmeow-gts
-/// `deterministic_label("gts_", counter)`: the `gts_` prefix plus the 26-digit
+/// A deterministic blank-node label with the given `prefix`, byte-identical to the
+/// prior gmeow-gts `deterministic_label(prefix, counter)`: `prefix` plus the 26-digit
 /// Crockford Base32 rendering of a zero-timestamp ULID built from `counter`.
 ///
 /// With a zero timestamp the rendered ULID value equals `counter` for any
 /// `counter < 2^80`, so this renders the 128-bit big-endian value `counter as u128`
 /// as 26 Crockford Base32 digits, digit `i` being `(value >> (125 - i*5)) & 0x1f`.
-pub(crate) fn deterministic_blank_label(counter: usize) -> String {
+pub(crate) fn deterministic_blank_label_with_prefix(prefix: &str, counter: usize) -> String {
     let value = counter as u128;
     let mut buffer = [0u8; ULID_LEN];
     for (index, byte) in buffer.iter_mut().enumerate() {
@@ -91,7 +91,14 @@ pub(crate) fn deterministic_blank_label(counter: usize) -> String {
     // The buffer is ASCII (every byte comes from the Crockford alphabet), so the
     // UTF-8 conversion never fails.
     let rendered = std::str::from_utf8(&buffer).expect("Crockford digits are ASCII");
-    format!("gts_{rendered}")
+    format!("{prefix}{rendered}")
+}
+
+/// A deterministic blank-node label, byte-identical to the prior gmeow-gts
+/// `deterministic_label("gts_", counter)`. See
+/// [`deterministic_blank_label_with_prefix`].
+pub(crate) fn deterministic_blank_label(counter: usize) -> String {
+    deterministic_blank_label_with_prefix("gts_", counter)
 }
 
 const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
