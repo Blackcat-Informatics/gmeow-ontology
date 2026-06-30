@@ -441,7 +441,7 @@ mod tests {
             direction: None,
             reifier: None,
         });
-        graph.reifiers.push((0, (0, 1, 2)));
+        graph.reifiers.push((0, (0, 1, 2), None));
 
         let err = term_from_id(&graph, 0, RdfLocation::logical("test"))
             .expect_err("cyclic triple term should hit nesting limit");

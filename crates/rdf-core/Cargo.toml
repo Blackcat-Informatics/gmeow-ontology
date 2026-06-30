@@ -42,7 +42,7 @@ hashbrown = "0.14.2"
 # flexible column counts, and by-name column access. The SSSOM `#`-prefixed YAML
 # header is parsed bespoke (GMEOW owns the format); `csv` only parses the body.
 csv = "1"
-gmeow-gts = { version = "0.9.10", optional = true }
+gmeow-gts = { version = "0.9.11", optional = true }
 # Content-addressed blob digest for the content store (#820). Same version as the
 # sibling kernel crates (logic/validate/slice).
 sha2 = "0.10"
@@ -55,7 +55,7 @@ ed25519-dalek = { version = "2", optional = true }
 # `use pretty_assertions::assert_eq;` per test file; identical on pass.
 pretty_assertions = "1"
 ciborium = "0.2"
-gmeow-gts = "0.9.10"
+gmeow-gts = "0.9.11"
 proptest = "1"
 # Acceleration-program baselines (#630/#819 C1 Task 7); light feature set matching
 # the sibling crates (logic/shacl/validate): criterion's plotters/rayon defaults are

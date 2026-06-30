@@ -545,6 +545,61 @@ impl RdfDataset {
         .unwrap_or_else(|arc| arc.owned_snapshot())
     }
 
+    /// Like [`Self::project_named_graph`], but carries a reifier/annotation when its
+    /// reifier term **or its reified statement's subject** appears as a subject in the
+    /// projected graph. The strict projection keys reifiers on the reifier term only,
+    /// which drops an RDF 1.2 anonymous reifier whose sole appearances are the
+    /// side-tables (`[] rdf:reifies << s p o >>` + annotations); the reified statement's
+    /// subject, in contrast, lives in the graph as a base quad, so keying on it recovers
+    /// the full reified statement and a per-file RDF-star fold round-trips
+    /// byte-for-byte. Used by the superset gate's fold; the strict projection backs the
+    /// digest/pin path (unchanged, so per-graph digests are stable).
+    #[must_use]
+    pub fn project_named_graph_full(&self, graph: &str) -> RdfDataset {
+        use std::collections::HashSet;
+
+        let mut builder = super::builder::RdfDatasetBuilder::new();
+        let mut graph_subjects: HashSet<crate::RdfTerm> = HashSet::new();
+
+        for quad in self.owned_quads() {
+            let in_graph = matches!(
+                &quad.graph_name,
+                Some(crate::RdfTerm::Iri(iri)) if iri == graph
+            );
+            if !in_graph {
+                continue;
+            }
+            graph_subjects.insert(quad.subject.clone());
+            let mut projected = quad;
+            projected.graph_name = None;
+            builder.push_owned_quad(&projected);
+        }
+
+        let mut kept_reifiers: HashSet<crate::RdfTerm> = HashSet::new();
+        for reifier in self.owned_reifiers() {
+            if graph_subjects.contains(&reifier.reifier)
+                || graph_subjects.contains(&reifier.statement.subject)
+            {
+                kept_reifiers.insert(reifier.reifier.clone());
+                builder.push_owned_reifier(&reifier);
+            }
+        }
+        for annotation in self.owned_annotations() {
+            if graph_subjects.contains(&annotation.reifier)
+                || kept_reifiers.contains(&annotation.reifier)
+            {
+                builder.push_owned_annotation(&annotation);
+            }
+        }
+
+        Arc::try_unwrap(
+            builder
+                .freeze()
+                .expect("a named-graph projection of a valid dataset is valid"),
+        )
+        .unwrap_or_else(|arc| arc.owned_snapshot())
+    }
+
     /// Borrow (building on first access) the ordinal-indirection array for a
     /// non-identity permutation (#891 P4b): `arr[i]` is the ordinal into `self.quads`
     /// of the `i`-th quad in `perm`'s order. Sorted by [`perm_key`]; `OnceLock` makes

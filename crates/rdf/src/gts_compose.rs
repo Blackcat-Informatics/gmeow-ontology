@@ -30,7 +30,7 @@ pub const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifie
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 /// Payloads larger than this select `zstd-rsyncable` over `zstd` (#513).
 pub const DEFAULT_RSYNCABLE_THRESHOLD: usize = 65536;
-/// zstd compression level for the committed `dist` bundle's frames (gmeow-gts 0.9.10
+/// zstd compression level for the committed `dist` bundle's frames (gmeow-gts 0.9.11
 /// per-frame level). The writer's `Fastest` default left the rsyncable bundle at
 /// 27 MB; level 12 is the measured knee.
 ///
@@ -402,12 +402,16 @@ impl SnapshotBuilder {
             ),
         ];
         if !reifies.is_empty() {
+            // gmeow-gts 0.9.11 wire: `reifies` is a row-array `[[rid, s, p, o, g?], …]`
+            // (was a reifier-id map). gmeow reification is standpoint-scoped, never
+            // graph-scoped, so no row carries the optional trailing graph term-id —
+            // matching the gts writer's `add_reifies` / snapshot payload byte-for-byte.
             entries.push((
                 "reifies".into(),
-                Value::Map(
+                Value::Array(
                     reifies
                         .iter()
-                        .map(|&(rid, (s, p, o))| (iv(rid), Value::Array(vec![iv(s), iv(p), iv(o)])))
+                        .map(|&(rid, (s, p, o))| Value::Array(vec![iv(rid), iv(s), iv(p), iv(o)]))
                         .collect(),
                 ),
             ));
@@ -495,7 +499,7 @@ pub fn emit_gts(
 
     let base_chain = transform.unwrap_or_else(|| vec!["zstd".to_string()]);
 
-    // Per-frame zstd level (gmeow-gts 0.9.10). The writer default is `Fastest` (~level
+    // Per-frame zstd level (gmeow-gts 0.9.11). The writer default is `Fastest` (~level
     // 1) — which is why switching the `dist` bundle to `zstd-rsyncable` bloated it
     // (16.7 MB gzip → 27 MB Fastest-zstd). The committed `dist` bundle is regenerated
     // often and lives in git, so a higher level pays off (smaller blob + smaller

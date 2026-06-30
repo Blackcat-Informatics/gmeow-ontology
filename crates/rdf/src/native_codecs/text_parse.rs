@@ -728,6 +728,23 @@ impl<'a> DocParser<'a> {
         Ok(Node::Triple(Box::new(s), Box::new(p), Box::new(o)))
     }
 
+    /// A triple TERM in `rdf:reifies` object position: `<<( s p o )>>` (canonical) or
+    /// the legacy non-parenthesized `<< s p o >>` (gmeow pre-0.9.11 triple-term
+    /// serialization). Always a [`Node::Triple`] — never a minted reifier — because the
+    /// object of `rdf:reifies` denotes the reified triple itself.
+    fn reifies_object_triple_term(&mut self, graph: Option<&Node>) -> Result<Node, RdfDiagnostic> {
+        self.expect(&Token::TripleOpen)?;
+        let parenthesized = self.eat(&Token::LParen);
+        let s = self.quoted_component(graph)?;
+        let p = self.predicate()?;
+        let o = self.quoted_component(graph)?;
+        if parenthesized {
+            self.expect(&Token::RParen)?;
+        }
+        self.expect(&Token::TripleClose)?;
+        Ok(Node::Triple(Box::new(s), Box::new(p), Box::new(o)))
+    }
+
     /// RDF 1.2 reifying triple `<< s p o ~r? >>` in subject/object position: emits
     /// `r rdf:reifies <<( s p o )>>` and returns the reifier `r`. With an explicit
     /// `~ id`, `r` is that id; otherwise (`~` alone, or no reifier at all) a fresh
@@ -899,7 +916,18 @@ impl<'a> DocParser<'a> {
         loop {
             let predicate = self.predicate()?;
             loop {
-                let object = self.term(graph)?;
+                // The object of `rdf:reifies` is a triple TERM. Parse `<<` here as a
+                // triple term whether or not it carries parens, tolerating gmeow's
+                // legacy non-parenthesized `<< s p o >>` triple-term serialization in
+                // addition to the canonical `<<( s p o )>>` — in EVERY other position a
+                // bare `<< … >>` keeps its W3C reifying-triple meaning (`reifying_triple`).
+                let object = if matches!(&predicate, Node::Iri(p) if p == RDF_REIFIES)
+                    && self.at(&Token::TripleOpen)
+                {
+                    self.reifies_object_triple_term(graph)?
+                } else {
+                    self.term(graph)?
+                };
                 self.emit(subject, &predicate, &object, graph);
                 self.maybe_reify_and_annotate(subject, &predicate, &object, graph)?;
                 if self.eat(&Token::Comma) {
@@ -1362,7 +1390,15 @@ fn build_gts_graph(statements: &[Statement]) -> Result<GtsGraph, RdfDiagnostic> 
     Ok(GtsGraph {
         terms: interner.terms,
         quads,
-        reifiers,
+        // gmeow-gts 0.9.11 carries an optional graph slot per reifier row; this
+        // first-party text parser binds reifiers only in the DEFAULT graph (the
+        // `rdf:reifies` shorthand is gated on `None` graph above), so the slot is
+        // always `None`. Annotations are left in `quads` here and reclassified by
+        // `fold_statement_layer`'s pass 2 (the codec's `annotations` table stays empty).
+        reifiers: reifiers
+            .into_iter()
+            .map(|(rid, spo)| (rid, spo, None))
+            .collect(),
         ..Default::default()
     })
 }

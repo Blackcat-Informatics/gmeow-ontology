@@ -236,11 +236,18 @@ fn build_gts_graph(
     }
 
     graph.terms = std::mem::take(&mut interner.terms);
-    graph.reifiers = std::mem::take(&mut interner.reifiers);
+    // Widen the narrow interner rows to the gmeow-gts 0.9.11 row-array at the gts
+    // boundary: gmeow reification is standpoint-scoped, so the graph slot is `None`.
+    graph.reifiers = std::mem::take(&mut interner.reifiers)
+        .into_iter()
+        .map(|(rid, spo)| (rid, spo, None))
+        .collect();
     // Annotations populated alongside the statement rows above.
-    graph
-        .annotations
-        .extend(std::mem::take(&mut interner.annotations));
+    graph.annotations.extend(
+        std::mem::take(&mut interner.annotations)
+            .into_iter()
+            .map(|(r, p, o)| (r, p, o, None)),
+    );
     Ok(graph)
 }
 

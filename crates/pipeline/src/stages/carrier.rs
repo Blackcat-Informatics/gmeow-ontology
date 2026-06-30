@@ -113,6 +113,9 @@ pub(crate) fn serialize_carrier_snapshot(
     blobs.extend(build_guide_blobs(root)?);
     blobs.push(build_docs_archive(root)?);
     blobs.push(build_reasoning_blob(upstream)?);
+    // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
+    // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
+    blobs.push(build_fanout_opaque_blob(root, carrier, upstream)?);
 
     let shacl_json = upstream
         .get("stage-validate")
@@ -270,8 +273,109 @@ fn assemble_carrier(
             GRAPH_CONFORMANCE,
         )?);
     }
+    // graph/projections/<name>.edoal ← each committed EDOAL projection, one named
+    // graph per file. EDOAL renders through the canonical-Turtle serializer, so the
+    // fold of its named graph reproduces the committed bytes exactly (superset law).
+    let mappings = upstream
+        .get("stage-mappings")
+        .ok_or_else(|| stage_err("missing stage-mappings product for projection graphs"))?;
+    for (path, bytes) in mappings.artifacts() {
+        if let Some(iri) = crate::stages::superset::edoal_projection_graph_iri(&path) {
+            datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
+        } else if crate::stages::superset::is_rdf_fanout_class(&path) {
+            // The non-EDOAL RDF projections (core-prefixes / functions.fno /
+            // list-functions), now emitted canonically by the mappings stage.
+            if let Some(iri) = crate::stages::superset::rdf_fanout_graph_iri(&path) {
+                datasets.push(parse_into_graph(&bytes, "text/turtle", &iri)?);
+            }
+        }
+    }
+    // graph/fanout/<path> ← every other RDF generated/ file, one named graph per file,
+    // recomputed from THIS run's source. Each producing stage emits the committed file
+    // as the canonical fold of these triples, so the superset gate reconstructs them
+    // byte-for-byte (PIPELINE_SPINE §5; RDF travels as RDF, never a blob).
+    for (path, bytes) in rdf_fanout_members(root, upstream)? {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(&path)
+            .ok_or_else(|| stage_err(&format!("non-RDF path in rdf_fanout_members: {path}")))?;
+        let media_type = if path.ends_with(".nt") {
+            "application/n-triples"
+        } else if path.ends_with(".nq") {
+            "application/n-quads"
+        } else {
+            "text/turtle"
+        };
+        datasets.push(parse_into_graph(&bytes, media_type, &iri)?);
+    }
     let refs: Vec<&gmeow_rdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
+}
+
+/// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
+/// RDF-fanout named graph, recomputed from THIS run's source. Each is the canonical
+/// fold the producing stage also emits as its committed file. Grows class-by-class.
+fn rdf_fanout_members(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    // profiles — `owl:Ontology` import closures, emitted as canonical Turtle.
+    for (name, ttl) in crate::stages::profiles::render_profiles(root)? {
+        out.insert(format!("generated/profiles/{name}"), ttl.into_bytes());
+    }
+    // research-objects — the RO-crate `.ttl` re-serializations + the `lillith.dcat.ttl`
+    // CONSTRUCT (opaque JSON/HTML/XML members ride the opaque fanout blob).
+    for (path, bytes) in crate::stages::research_objects::render_research_objects(root)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
+    // evals scores.ttl — the meta-claim Assessments (opaque MD/JSON ride the blob).
+    for (path, bytes) in crate::stages::evals::render_evals(root)? {
+        if is_rdf_member(&path) {
+            out.insert(path, bytes);
+        }
+    }
+    // gufo.ttl — the gUFO bridge projection, from the sink-consumed compile-logic
+    // product (already emitted canonically).
+    let gufo = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::GUFO_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing generated/foundation/gufo.ttl in stage-compile-logic"))?;
+    out.insert(crate::stages::compile_logic::GUFO_PATH.to_string(), gufo);
+
+    // projection-report loss ledger (mappings) + the relational-core / correspondence
+    // N-Triples programs (compile-logic), each emitted canonically by its stage.
+    for (stage, path) in [
+        (
+            "stage-mappings",
+            crate::stages::compile_logic::PROJECTION_REPORT_PATH,
+        ),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::RELATIONAL_CORE_PATH,
+        ),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::CORRESPONDENCE_PATH,
+        ),
+        // diagnostics `.nq` — one named graph per file (validate SHACL ∪ compile-logic),
+        // each re-rooted into its own fanout container; the gate restamps back to the
+        // shared `graph/diagnostics` label on fold.
+        ("stage-validate", crate::stages::validate::SHACL_RDF_PATH),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::DIAG_RDF_PATH,
+        ),
+    ] {
+        let bytes = upstream
+            .get(stage)
+            .and_then(|p| p.artifact(path))
+            .map(<[u8]>::to_vec)
+            .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for RDF fanout")))?;
+        out.insert(path.to_string(), bytes);
+    }
+    Ok(out)
 }
 
 /// Assemble the OBJECT-LEVEL reasoned EDB: the authored default graph plus the
@@ -426,6 +530,13 @@ pub(crate) fn snapshot_dataset(
 // fold-stable. Member-name conventions MIRROR the reader: mappings/queries use the
 // bare filename; cells/tests preserve the repo-relative path (so
 // `bundled_cells_under(prefix)` can route by directory).
+
+/// tar of the OPAQUE (non-RDF) fanout files under `generated/` that no dedicated
+/// rep already carries — the byte-exact members are recomputed from THIS run's
+/// carrier (carrier-reading leaves) or source (source-reading leaves) inside the
+/// snapshot and keyed repo-relative. RDF outputs (`.ttl`/`.nt`/`.nq`) are NEVER
+/// here: they ride as named graphs so the superset law reconstructs them as folds.
+const REP_GENERATED: &str = "generated-opaque-archive";
 
 const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
@@ -584,6 +695,163 @@ fn build_archive_blobs(
         archive_blob(REP_SHAPES, &shapes)?,
         archive_blob(REP_AXIOMS, &axioms)?,
     ])
+}
+
+/// Fold the opaque (non-RDF, not-already-carried) members of one leaf's output into
+/// the fanout member map.
+fn take_opaque(members: &mut BTreeMap<String, Vec<u8>>, arts: BTreeMap<String, Vec<u8>>) {
+    for (path, bytes) in arts {
+        if !is_rdf_member(&path) && !opaque_already_carried(&path) {
+            members.insert(path, bytes);
+        }
+    }
+}
+
+/// Whether an archive blob `rep` can contain committed `generated/` reconstruction
+/// targets, so the superset gate decodes it. Excludes the source archives
+/// (cells/tests carry `dsl/`+`slices/`), the `reason/` reports, the per-slice
+/// guides, and the large `ontology-docs`/`okf`/`yaml-ld` payloads — none back a
+/// `generated/` file, and the docs/okf archives are large enough to trip the zstd
+/// decode safety bound. One authority, consulted by the gate.
+pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
+    matches!(
+        rep,
+        REP_MAPPINGS | REP_QUERIES | REP_SCHEMAS | REP_AXIOMS | REP_SHAPES | REP_GENERATED
+    )
+}
+
+/// Whether `path` is an RDF text artifact (carried as a NAMED GRAPH, never a blob).
+fn is_rdf_member(path: &str) -> bool {
+    path.ends_with(".ttl") || path.ends_with(".nt") || path.ends_with(".nq")
+}
+
+/// Whether an opaque `generated/` file is already carried by another rep, so the
+/// fanout archive must not double-carry it (keeps the superset reverse sweep clean).
+fn opaque_already_carried(path: &str) -> bool {
+    path.ends_with(".sssom.tsv")                        // REP_MAPPINGS
+        || path.ends_with(".rq")                        // REP_QUERIES
+        || path == "generated/schemas/gmeow.schema.json"  // REP_SCHEMAS
+        || path == "generated/schemas/gmeow.openapi.json" // REP_SCHEMAS
+        || path == "generated/datalog/gmeow.dl"           // REP_AXIOMS
+        || path == "generated/logic/gmeow.rls" // REP_AXIOMS
+}
+
+/// Build the opaque-fanout archive [`REP_GENERATED`]: recompute each opaque
+/// `generated/` fanout output from THIS run's carrier (carrier-reading leaves) or
+/// source (source-reading leaves) and fold the non-RDF bytes into one deterministic
+/// archive, keyed repo-relative. The post-snapshot export leaves still write the
+/// disk files (additive — the writer retirement is a separate concern); the bytes
+/// here are byte-identical to the committed files, which the superset gate proves.
+fn build_fanout_opaque_blob(
+    root: &Path,
+    carrier: &gmeow_rdf::RdfDataset,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<BlobRow, PipelineError> {
+    let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+
+    // carrier-reading leaves (project from THIS run's carrier dataset).
+    take_opaque(
+        &mut members,
+        crate::stages::lpg::render_from_dataset(carrier)?,
+    );
+    take_opaque(
+        &mut members,
+        crate::stages::schemas::render_schemas_from_dataset(carrier)?,
+    );
+
+    // source-reading leaves (read slices/metadata; no snapshot dependency).
+    take_opaque(
+        &mut members,
+        crate::stages::references::render_references(root)?,
+    );
+    take_opaque(
+        &mut members,
+        crate::stages::bench::render_bench_leaderboard(root)?,
+    );
+    members.insert(
+        crate::stages::apache::APACHE_PATH.to_string(),
+        crate::stages::apache::render_apache(root)?.into_bytes(),
+    );
+    members.insert(
+        crate::stages::matrix::MATRIX_PATH.to_string(),
+        crate::stages::matrix::render_matrix(root)?.into_bytes(),
+    );
+
+    // evals + research-objects: the OPAQUE members only (their `.ttl`/`.dcat.ttl` ride
+    // as named graphs). Recomputed from source — byte-identical to the committed files.
+    take_opaque(&mut members, crate::stages::evals::render_evals(root)?);
+    take_opaque(
+        &mut members,
+        crate::stages::research_objects::render_research_objects(root)?,
+    );
+
+    // diagnostics sidecars (`.json`/`.sarif`/`.html`) ride in from the sink-consumed
+    // validate + compile-logic products; the `.nq` graphs ride as named graphs.
+    for (stage, path) in [
+        ("stage-validate", crate::stages::validate::SHACL_JSON_PATH),
+        ("stage-validate", crate::stages::validate::SHACL_SARIF_PATH),
+        ("stage-validate", crate::stages::validate::SHACL_HTML_PATH),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::DIAG_JSON_PATH,
+        ),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::DIAG_SARIF_PATH,
+        ),
+        (
+            "stage-compile-logic",
+            crate::stages::compile_logic::DIAG_HTML_PATH,
+        ),
+    ] {
+        let bytes = upstream
+            .get(stage)
+            .and_then(|p| p.artifact(path))
+            .map(<[u8]>::to_vec)
+            .ok_or_else(|| stage_err(&format!("missing {path} in {stage} for fanout archive")))?;
+        members.insert(path.to_string(), bytes);
+    }
+
+    // loss matrices: deterministic, code-derived (verified by tests, not stage-built),
+    // recomputed verbatim — the committed files equal the function output exactly.
+    members.insert(
+        "generated/rdf-loss-matrix.json".to_string(),
+        gmeow_rdf::loss_matrix_json().into_bytes(),
+    );
+    members.insert(
+        "generated/transcode-loss-matrix.json".to_string(),
+        gmeow_rdf::transcode_loss_matrix_json().into_bytes(),
+    );
+    members.insert(
+        "generated/transcode-matrix.json".to_string(),
+        crate::transcode::transcode_matrix_json().into_bytes(),
+    );
+
+    // n3 rides in from the sink-consumed stage-compile-logic product (no recompute).
+    let n3 = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::N3_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing generated/n3/gmeow.n3 in stage-compile-logic"))?;
+    members.insert(crate::stages::compile_logic::N3_PATH.to_string(), n3);
+
+    // context.jsonld + dsl-stats: recomputed from source (the producing stage is not
+    // sink-consumed; these are deterministic source projections, byte-identical to
+    // the committed files).
+    members.insert(
+        crate::stages::mappings::JSONLD_CONTEXT_PATH.to_string(),
+        gmeow_slice::emit_jsonld_context().into_bytes(),
+    );
+    members.insert(
+        crate::stages::mappings::DSL_STATS_PATH.to_string(),
+        gmeow_slice::emit_dsl_stats(root)
+            .map_err(|e| stage_err(&format!("recompute dsl-stats: {e}")))?
+            .into_bytes(),
+    );
+
+    let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    archive_blob(REP_GENERATED, &members)
 }
 
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
@@ -1118,7 +1386,7 @@ fn build_provenance_projection(root: &Path) -> Result<String, PipelineError> {
 /// [`RdfDataset::project_named_graph`](gmeow_rdf::RdfDataset::project_named_graph) —
 /// which strips the graph name to the default graph — folds back into ITS named graph,
 /// never the authored default graph.
-fn rooted_in_graph(
+pub(crate) fn rooted_in_graph(
     src: &gmeow_rdf::RdfDataset,
     graph_iri: &str,
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
