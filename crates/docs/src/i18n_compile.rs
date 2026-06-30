@@ -12,8 +12,6 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use gmeow_slice::{ArtifactRole, SliceCatalog};
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::model::{NamedOrBlankNode, Term};
 use regex::Regex;
 use sha1::{Digest, Sha1};
 
@@ -94,34 +92,47 @@ struct RdfLiteralRow {
     language: Option<String>,
 }
 
-fn parse_format(format: &str) -> Result<RdfFormat, String> {
+/// Map a format token (name OR media type) to the native RDF media type the
+/// gmeow-gts codecs accept. Mirrors the historical `parse_format` discrimination.
+fn media_type_for_format(format: &str) -> Result<&'static str, String> {
     match format.to_ascii_lowercase().as_str() {
-        "turtle" | "ttl" | "text/turtle" => Ok(RdfFormat::Turtle),
-        "ntriples" | "n-triples" | "nt" | "application/n-triples" => Ok(RdfFormat::NTriples),
-        "nquads" | "n-quads" | "nq" | "application/n-quads" => Ok(RdfFormat::NQuads),
-        "trig" | "application/trig" => Ok(RdfFormat::TriG),
+        "turtle" | "ttl" | "text/turtle" => Ok("text/turtle"),
+        "ntriples" | "n-triples" | "nt" | "application/n-triples" => Ok("application/n-triples"),
+        "nquads" | "n-quads" | "nq" | "application/n-quads" => Ok("application/n-quads"),
+        "trig" | "application/trig" => Ok("application/trig"),
         other => Err(format!("unsupported RDF format: {other}")),
     }
 }
 
+/// Parse RDF `bytes` of `format` natively and surface every `(named subject,
+/// predicate, literal lexical, language)` row — the oxigraph-free twin of the old
+/// `parse_rdf_literals`. Only literal objects on named subjects are surfaced (the
+/// i18n family keys translations on those exactly).
 fn parse_rdf_literals(bytes: &[u8], format: &str) -> Result<Vec<RdfLiteralRow>, String> {
-    let parser = RdfParser::from_format(parse_format(format)?)
-        .lenient()
-        .for_reader(bytes);
+    use gmeow_rdf::{DatasetView, GraphMatch, TermRef};
+
+    let media_type = media_type_for_format(format)?;
+    let dataset = gmeow_rdf::parse_dataset(bytes, media_type, None)
+        .map_err(|e| format!("RDF parse error: {e}"))?;
     let mut rows = Vec::new();
-    for quad in parser {
-        let quad = quad.map_err(|e| format!("RDF parse error: {e}"))?;
-        let NamedOrBlankNode::NamedNode(subject) = quad.subject else {
+    for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        let TermRef::Iri(subject) = dataset.resolve(quad.s) else {
             continue;
         };
-        let Term::Literal(literal) = quad.object else {
+        let TermRef::Iri(predicate) = dataset.resolve(quad.p) else {
+            continue;
+        };
+        let TermRef::Literal {
+            lexical, language, ..
+        } = dataset.resolve(quad.o)
+        else {
             continue;
         };
         rows.push(RdfLiteralRow {
-            subject: subject.as_str().to_owned(),
-            predicate: quad.predicate.as_str().to_owned(),
-            lexical: literal.value().to_owned(),
-            language: literal.language().map(str::to_owned),
+            subject: subject.to_owned(),
+            predicate: predicate.to_owned(),
+            lexical: lexical.to_owned(),
+            language: language.map(str::to_owned),
         });
     }
     Ok(rows)

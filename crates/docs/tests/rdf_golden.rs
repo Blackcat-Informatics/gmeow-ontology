@@ -168,38 +168,48 @@ fn gmeow_rdf_types_the_definition_flag_as_xsd_boolean() {
     );
 }
 
-/// INTENTIONAL oxigraph cross-check ORACLE (#909) — NOT a production codec path.
+/// N-Quads validity cross-check for the hand-built `to_gmeow_rdf` projection.
 ///
-/// This test deliberately re-parses the `to_gmeow_rdf` projection through the
-/// *independent* oxigraph N-Quads reader to prove the projection emits valid,
-/// round-trippable N-Quads. Cross-checking the native projection against a second,
-/// independent implementation is the whole point — so the `oxigraph::io` use here is
-/// an explicit, documented carve-out from the #909 grep gate, never a production
-/// parse/serialize. Do NOT migrate it to the native codec (that would test the codec
-/// against itself).
+/// `to_gmeow_rdf` assembles its N-Quads document by hand (`format!`/`push_str`),
+/// NOT through any gmeow-rdf serializer — so re-parsing it through the
+/// *independent* native N-Quads reader ([`gmeow_rdf::parse_dataset`]) proves the
+/// projection emits valid, round-trippable N-Quads without testing the codec
+/// against itself. (EPIC #906: docs is oxigraph-free; this carve-out moved from
+/// the oxigraph reader to the native reader, exactly the slice-crate migration.)
 #[test]
-fn gmeow_rdf_reparses_through_oxigraph() {
-    use oxigraph::io::RdfFormat;
-    use oxigraph::model::{GraphNameRef, NamedNodeRef};
-    use oxigraph::store::Store;
+fn gmeow_rdf_reparses_through_native_codec() {
+    use gmeow_rdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
     let nq = to_gmeow_rdf(&small_model());
-    let store = Store::new().unwrap();
-    store
-        .load_from_reader(RdfFormat::NQuads, nq.as_bytes())
+    let dataset = gmeow_rdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .expect("to_gmeow_rdf must emit valid, round-trippable N-Quads");
 
     let non_empty = nq.lines().filter(|l| !l.trim().is_empty()).count();
-    assert_eq!(store.len().unwrap(), non_empty, "every quad must parse");
+    assert_eq!(dataset.quad_count(), non_empty, "every quad must parse");
 
-    // Every loaded quad is in the documentation named graph.
-    let graph = NamedNodeRef::new(DOCUMENTATION_GRAPH).unwrap();
-    let in_graph = store
-        .quads_for_pattern(None, None, None, Some(GraphNameRef::NamedNode(graph)))
+    // Every parsed quad is in the documentation named graph.
+    let graph_id = dataset
+        .term_id_by_value(&TermValue::iri(DOCUMENTATION_GRAPH))
+        .expect("documentation graph IRI interned");
+    let in_graph = dataset
+        .quads_for_pattern(None, None, None, GraphMatch::Named(graph_id))
         .count();
     assert_eq!(
         in_graph,
-        store.len().unwrap(),
+        dataset.quad_count(),
         "all quads must be in the documentation graph"
     );
+    // No quad escaped into the default graph.
+    assert_eq!(
+        dataset
+            .quads_for_pattern(None, None, None, GraphMatch::Default)
+            .count(),
+        0,
+        "no quad should land in the default graph"
+    );
+    // Sanity: the documentation graph IRI resolves back to the same IRI.
+    assert!(matches!(
+        dataset.resolve(graph_id),
+        TermRef::Iri(iri) if iri == DOCUMENTATION_GRAPH
+    ));
 }

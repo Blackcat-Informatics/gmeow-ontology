@@ -1,0 +1,9 @@
+role
+[Some(Iri("https://blackcatinformatics.ca/gmeow/scriptRoleDecorative"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/scriptRoleHistorical"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/scriptRoleLiturgical"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/scriptRoleLoanword"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/scriptRoleLogographicContent"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/scriptRolePrimary"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/scriptRoleSyllabicGrammar"))]
+[Some(Iri("https://blackcatinformatics.ca/gmeow/scriptRoleTransliteration"))]

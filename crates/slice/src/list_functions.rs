@@ -249,10 +249,8 @@ pub fn emit_list_functions() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oxigraph::io::{RdfFormat, RdfParser};
-    use oxigraph::store::Store;
+    use crate::rdf_query::{Dataset, Object};
 
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
     const FNO_FUNCTION: &str = "https://w3id.org/function/ontology#Function";
     const FNO_OUTPUT: &str = "https://w3id.org/function/ontology#Output";
@@ -262,30 +260,23 @@ mod tests {
     const GMEOW_PROJECTION_FUNCTION: &str =
         "https://blackcatinformatics.ca/gmeow/ProjectionFunction";
 
-    /// Parse the emitted N-Triples into a store (the new committed-artifact form).
-    fn emitted_store() -> Store {
-        let store = Store::new().unwrap();
+    /// Parse the emitted N-Triples into a dataset (the new committed-artifact form).
+    fn emitted_store() -> Dataset {
         let text = emit_list_functions();
-        for quad in RdfParser::from_format(RdfFormat::NTriples)
-            .lenient()
-            .for_reader(text.as_bytes())
-        {
-            store.insert(&quad.unwrap()).unwrap();
-        }
-        store
+        Dataset::parse(
+            text.as_bytes(),
+            "application/n-triples",
+            "emitted list-functions",
+        )
+        .unwrap()
     }
 
     /// Every named-node subject of `?s a <type_iri>`.
-    fn subjects_of_type(store: &Store, type_iri: &str) -> std::collections::BTreeSet<String> {
-        use oxigraph::model::{NamedNode, NamedOrBlankNode, Term};
-        let rdf_type = NamedNode::new(RDF_TYPE).unwrap();
-        let class: Term = NamedNode::new(type_iri).unwrap().into();
+    fn subjects_of_type(store: &Dataset, type_iri: &str) -> std::collections::BTreeSet<String> {
         store
-            .quads_for_pattern(None, Some(rdf_type.as_ref()), Some(class.as_ref()), None)
-            .filter_map(|q| match q.unwrap().subject {
-                NamedOrBlankNode::NamedNode(nn) => Some(nn.as_str().to_owned()),
-                NamedOrBlankNode::BlankNode(_) => None,
-            })
+            .subjects_of_type(type_iri)
+            .unwrap()
+            .into_iter()
             .collect()
     }
 
@@ -327,47 +318,41 @@ mod tests {
 
     #[test]
     fn each_output_carries_its_specified_fno_type() {
-        use oxigraph::model::{NamedNode, Term};
         let store = emitted_store();
-        let fno_type = NamedNode::new(FNO_TYPE).unwrap();
         for f in FUNCTIONS {
-            let out = NamedNode::new(format!("{GMEOW_NS}{}", f.output)).unwrap();
-            let want: Term = NamedNode::new(f.output_type).unwrap().into();
+            let out = format!("{GMEOW_NS}{}", f.output);
             let found = store
-                .quads_for_pattern(Some((&out).into()), Some(fno_type.as_ref()), None, None)
-                .any(|q| q.unwrap().object == want);
+                .objects(&out, FNO_TYPE)
+                .unwrap()
+                .iter()
+                .any(|o| matches!(o, Object::Named(iri) if iri == f.output_type));
             assert!(found, "{}: output fno:type != {}", f.name, f.output_type);
         }
     }
 
     #[test]
     fn every_param_and_output_carries_an_rdfs_label() {
-        use oxigraph::model::NamedNode;
         let store = emitted_store();
-        let rdfs_label = NamedNode::new(RDFS_LABEL).unwrap();
         let mut targets: Vec<String> = PARAMS
             .iter()
             .map(|p| format!("{GMEOW_NS}{}", p.local))
             .collect();
         targets.extend(FUNCTIONS.iter().map(|f| format!("{GMEOW_NS}{}", f.output)));
         for iri in targets {
-            let node = NamedNode::new(&iri).unwrap();
-            let has_label = store
-                .quads_for_pattern(Some((&node).into()), Some(rdfs_label.as_ref()), None, None)
-                .next()
-                .is_some();
+            let has_label = !store.objects(&iri, RDFS_LABEL).unwrap().is_empty();
             assert!(has_label, "{iri} missing rdfs:label");
         }
     }
 
     #[test]
     fn no_fno_predicate_triples_exist_primitive_check() {
-        use oxigraph::model::NamedNode;
         let store = emitted_store();
-        let fno_predicate = NamedNode::new(FNO_PREDICATE).unwrap();
-        let count = store
-            .quads_for_pattern(None, Some(fno_predicate.as_ref()), None, None)
-            .count();
+        let mut count = 0usize;
+        store.for_each_quad(|_, p, _, _| {
+            if p == FNO_PREDICATE {
+                count += 1;
+            }
+        });
         assert_eq!(count, 0, "primitives must bind no fno:predicate");
     }
 

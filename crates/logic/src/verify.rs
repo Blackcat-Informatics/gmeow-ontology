@@ -15,12 +15,14 @@
 //! discovers the query files (repo/slice layout), calls in, and writes the
 //! diagnostics artifacts.
 
-use oxigraph::model::{GraphName, NamedNode, Quad};
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
+use std::sync::Arc;
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
-use gmeow_rdf::RdfDataset;
+use gmeow_rdf::{
+    DatasetMut, MutableDataset, QuadValues, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult,
+    TermValue,
+};
+use gmeow_sparql_eval::NativeSparqlEngine;
 
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::reason_all;
@@ -36,6 +38,8 @@ fn bare_iri(value: &str) -> &str {
         .and_then(|inner| inner.strip_suffix('>'))
         .unwrap_or(value)
 }
+
+use crate::provenance::term_display;
 
 /// Derive a stable, short check name from a repo-relative `.rq` path.
 ///
@@ -68,9 +72,14 @@ fn query_stem(name: &str) -> &str {
 pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, String> {
     // 1. Flat asserted graph (default graph; literals + owl:members lists kept).
     //    A no-GRAPH verify query then matches it, exactly like ROBOT's single
-    //    merged reasoned graph.
-    let store = store_from_dataset(edb, GraphPolicy::FlattenToDefaultGraph)
-        .map_err(|e| format!("flatten asserted store failed: {e}"))?;
+    //    merged reasoned graph. The native flatten re-materializes the RDF 1.2
+    //    statement layer (rdf:reifies reifiers + annotations) into the default
+    //    graph, byte-for-byte the same set the oxigraph FlattenToDefaultGraph path
+    //    produced.
+    let mut store = MutableDataset::new(Arc::new(RdfDataset::union(&[])));
+    for quad in edb.flat_default_graph_quads() {
+        store.insert(quad);
+    }
 
     // 2. Native EL/DL closure; layer the derived (non-EDB) edges on top, also in
     //    the default graph. The native closure only materializes subsumption /
@@ -142,33 +151,45 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
         if ax.is_edb {
             continue;
         }
-        let subject = NamedNode::new(bare_iri(&ax.subject))
-            .map_err(|e| format!("derived subject IRI {:?}: {e}", ax.subject))?;
-        let predicate = NamedNode::new(bare_iri(&ax.predicate))
-            .map_err(|e| format!("derived predicate IRI {:?}: {e}", ax.predicate))?;
-        let object = NamedNode::new(bare_iri(&ax.object))
-            .map_err(|e| format!("derived object IRI {:?}: {e}", ax.object))?;
-        derived_predicates.insert(predicate.as_str().to_owned());
-        let quad = Quad::new(subject, predicate, object, GraphName::DefaultGraph);
-        store
-            .insert(&quad)
-            .map_err(|e| format!("derived-edge insert failed: {e}"))?;
+        let subject = bare_iri(&ax.subject);
+        let predicate = bare_iri(&ax.predicate);
+        let object = bare_iri(&ax.object);
+        derived_predicates.insert(predicate.to_owned());
+        store.insert(QuadValues {
+            s: TermValue::iri(subject),
+            p: TermValue::iri(predicate),
+            o: TermValue::iri(object),
+            g: None,
+        });
     }
+
+    // Freeze the reasoned graph once; every verify query + the obligation checks
+    // evaluate against this shared frozen dataset via the native engine.
+    let reasoned = store
+        .freeze()
+        .map_err(|e| format!("freeze reasoned graph failed: {e}"))?;
+    let engine = NativeSparqlEngine::new();
 
     // 3. Evaluate each verify query; any solution row is a violation.
     let mut violations = 0usize;
     for (name, sparql) in queries {
         let stem = query_stem(name);
-        let results = SparqlEvaluator::new()
-            .parse_query(sparql)
-            .map_err(|e| format!("verify query {name} parse error: {e}"))?
-            .on_store(&store)
-            .execute()
+        let result = engine
+            .query(
+                &reasoned,
+                SparqlRequest {
+                    query: sparql,
+                    base_iri: None,
+                    substitutions: &[],
+                },
+            )
             .map_err(|e| format!("verify query {name} evaluation error: {e}"))?;
 
-        let solutions = match results {
-            QueryResults::Solutions(solutions) => solutions,
-            QueryResults::Boolean(_) | QueryResults::Graph(_) => {
+        let (variables, result_rows) = match result {
+            SparqlResult::Solutions {
+                variables, rows, ..
+            } => (variables, rows),
+            SparqlResult::Boolean(_) | SparqlResult::Graph(_) => {
                 return Err(format!(
                     "verify query {name} must be a SPARQL SELECT (got ASK or CONSTRUCT/DESCRIBE)"
                 ));
@@ -176,11 +197,14 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
         };
 
         let mut rows: Vec<String> = Vec::new();
-        for sol in solutions {
-            let sol = sol.map_err(|e| format!("verify query {name} solution error: {e}"))?;
+        for sol in &result_rows {
             let mut binding: Vec<String> = Vec::new();
-            for (var, term) in sol.iter() {
-                binding.push(format!("{}={term}", var.as_str()));
+            for (var, cell) in variables.iter().zip(sol.iter()) {
+                // Unbound variables are omitted, mirroring the prior oxigraph
+                // `QuerySolution::iter()` which only yields bound (var, term) pairs.
+                if let Some(term) = cell {
+                    binding.push(format!("{}={}", var, term_display(term)));
+                }
             }
             // Sort the per-row bindings so the joined detail is independent of the
             // query engine's variable-projection / iteration order — keeping the
@@ -222,11 +246,11 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
     //    read the reasoned `store` directly — Rust authority, surfaced through the
     //    already-wired `make verify` gate.
     for finding in
-        crate::obligations::check_non_entailment_obligations(&store, &derived_predicates)?
+        crate::obligations::check_non_entailment_obligations(&reasoned, &derived_predicates)?
     {
         report.add_finding(finding);
     }
-    for finding in crate::obligations::formalization_coverage(&store)? {
+    for finding in crate::obligations::formalization_coverage(&reasoned)? {
         report.add_finding(finding);
     }
 

@@ -16,15 +16,19 @@
 //! discovers every `tests/*.ttl` spec and executes its cells — fast, in
 //! parallel, and entirely off rdflib. The three cell types map to three modules:
 //!
-//! * [`dsl`] — load a spec file into an oxigraph store and SPARQL-introspect its
-//!   cells into typed Rust structs.
+//! * [`dsl`] — load a spec file into a native [`RdfDataset`](gmeow_rdf_core::RdfDataset)
+//!   and SPARQL-introspect its cells into typed Rust structs.
 //! * [`stores`] — the merged ontology graph competency questions run over: the
 //!   asserted graph (default) and its RDFS closure (opt-in via
 //!   `gmeow:cqReasoning`). See `docs/TESTING.md` for the design.
 //! * [`exec`] — the three cell executors and their per-file aggregators.
+//! * [`native_query`] — the oxigraph-free native SPARQL substrate (EPIC #906): the
+//!   dataset builder, the `NativeSparqlEngine` wrapper, and the canonical term
+//!   renderer the other modules share.
 //! * [`paths`] — `CARGO_MANIFEST_DIR`-anchored path resolution.
 
 pub mod dsl;
 pub mod exec;
+pub mod native_query;
 pub mod paths;
 pub mod stores;

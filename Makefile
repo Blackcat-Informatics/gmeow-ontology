@@ -58,14 +58,14 @@ NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason verify mappings \
-	lint-alignment doc-lint
+	lint-alignment doc-lint sparql-conformance
 
 .PHONY: help \
 	install fmt lint \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify test test-fast rust-build rust-test rust-docs check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity wasm wasm-pkg wasm-pkg-test \
+	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity sparql-conformance wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -76,7 +76,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-test-network-rust maint-pull-images maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
-	maint-external-corpora
+	maint-external-corpora maint-capture-sparql-goldens
 
 ##@ Core Workflows
 
@@ -301,6 +301,22 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc
 
+sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate (EPIC #906 Task 4).
+	@# Replays every captured query through NativeSparqlEngine over the merged ontology,
+	@# loaded oxigraph-free + flattened identically to the capture, and asserts equality
+	@# vs the frozen oxigraph goldens. Default nextest profile excludes the off-gate-heavy
+	@# sweep (run on `make maint-rust-heavy`). MUST NOT require the oxigraph feature.
+	@# Hygiene: the conformance crate must carry NO oxigraph normal dependency, so it
+	@# survives oxigraph removal in Task 8.
+	@tree=$$(cargo tree -p gmeow-sparql-conformance --edges normal -f "{p}") || { echo "FAIL: cargo tree errored"; exit 1; }; \
+	if echo "$$tree" | grep -q 'oxigraph v'; then \
+		echo "FAIL: oxigraph is a NORMAL dependency of gmeow-sparql-conformance"; \
+		echo "$$tree" | grep 'oxigraph v'; exit 1; \
+	else \
+		echo "OK: gmeow-sparql-conformance has no oxigraph normal dependency"; \
+	fi
+	cargo nextest run -p gmeow-sparql-conformance
+
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
 
@@ -383,6 +399,20 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — the wasm-first criterion (#906) cannot be verified; CI must install it"; exit 1; \
 	else \
 		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the wasm-clean check"; \
+	fi
+	@# [EPIC #906] No FIRST-PARTY crate may name oxigraph or any oxigraph-family crate
+	@# as a DIRECT dependency. The oxigraph umbrella is fully removed; the residual
+	@# ox*-family sub-crates (oxrdf/oxttl/oxiri/spargebra/oxsdatatypes/…) survive ONLY
+	@# transitively through two EXTERNAL crates — nemo (the Datalog chase engine) and
+	@# gmeow-gts — which are outside this workspace and on their own retirement track,
+	@# so a whole-workspace `cargo tree` ban is not achievable here; this grep guards
+	@# against a first-party regression that re-introduces a direct edge.
+	@hits=$$(grep -rnE '^\s*(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld)\s*=|"oxigraph"|dep:oxigraph' crates/*/Cargo.toml 2>/dev/null || true); \
+	if [ -n "$$hits" ]; then \
+		echo "FAIL: a first-party crate names an oxigraph-family crate as a direct dependency:"; \
+		echo "$$hits"; exit 1; \
+	else \
+		echo "OK: no first-party crate has a direct oxigraph-family dependency (umbrella removed; residual ox* is external nemo/gmeow-gts only)"; \
 	fi
 
 CAPI_HEADER := crates/rdf-capi/include/purrdf.h
@@ -580,6 +610,10 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	$(MAKE) bench
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
+
+maint-capture-sparql-goldens: ## (maintainer) Freeze the native SPARQL engine as committed goldens (EPIC #906 Task 2/8; native-vs-native regression gate).
+	cargo run -q -p gmeow-rdf --features gts --bin capture_sparql_goldens
+	@echo "wrote goldens under crates/sparql-conformance/tests/goldens/ — verify byte-stable (re-run = no diff), then commit"
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
 # ontologies. Grading all of them is intractable for a maint lane, so we cap to

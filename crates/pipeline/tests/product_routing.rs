@@ -121,14 +121,17 @@ fn loss_ledger_and_diagnostics_reach_the_shipped_bundle() {
     // fast. This is the literal "the product reaches the bundle" assertion.
     let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("read gmeow.gts");
     let bundle = gmeow_rdf::import_gts_events(&gts).expect("import_gts_events");
-    let quads = gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset(bundle.dataset.as_ref())
-        .expect("flat quads");
+    let quads = gmeow_rdf::flat_rdf_quads_from_dataset(bundle.dataset.as_ref());
 
     let in_graph = |graph: &str| -> Vec<String> {
         quads
             .iter()
-            .filter(|q| q.graph_name.to_string().contains(graph))
-            .map(|q| format!("{} {} {}", q.subject, q.predicate, q.object))
+            .filter(|q| {
+                q.graph_name
+                    .as_ref()
+                    .is_some_and(|g| g.to_string().contains(graph))
+            })
+            .map(|q| format!("{} <{}> {}", q.subject, q.predicate, q.object))
             .collect()
     };
 

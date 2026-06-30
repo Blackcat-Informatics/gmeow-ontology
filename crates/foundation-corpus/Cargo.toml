@@ -25,8 +25,8 @@ path = "src/lib.rs"
 python = ["dep:pyo3"]
 
 [dependencies]
-# Native RDF 1.2 graph building over the IR (no rdflib, no direct oxigraph).
-gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
+# Native RDF 1.2 graph building over the IR (no rdflib, no oxigraph).
+gmeow-rdf = { path = "../rdf" }
 serde = { version = "1", features = ["derive"] }
 # Keep serde_json's workspace-wide default map semantics. Ordered JSON-LD
 # projection keys are emitted by a crate-local writer in projections.rs.
@@ -39,7 +39,11 @@ pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], option
 
 [dev-dependencies]
 tempfile = "3"
-# Acceptance-spine parity test (#944): whole-ontology native SHACL + SPARQL over
-# the imported foundation.ttl. oxigraph version/features match crates/shacl.
+# Acceptance-spine parity test (#944): whole-ontology native SHACL + native SPARQL
+# over the imported foundation.ttl — OXIGRAPH-FREE (EPIC #906). The fixture parses
+# through the canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen
+# `RdfDataset` (`gmeow-rdf-core`), validated IR-natively via `validate_dataset_graphs`
+# and queried through the native `NativeSparqlEngine` (`gmeow-sparql-eval`).
 gmeow-shacl = { path = "../shacl" }
-oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+gmeow-rdf-core = { path = "../rdf-core" }
+gmeow-sparql-eval = { path = "../sparql-eval" }

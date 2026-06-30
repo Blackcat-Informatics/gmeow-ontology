@@ -27,7 +27,7 @@
 //! In all cases the invariant holds: **no Prolog answer is silently promoted to an asserted base
 //! fact**, and an explanation must be able to cite every step, virtual or materialized.
 
-use oxigraph::model::{NamedNode, Term};
+use gmeow_rdf::TermValue;
 
 // ── Newtype wrappers ────────────────────────────────────────────────────────────────────────────
 
@@ -115,25 +115,25 @@ impl std::fmt::Display for BudgetStatus {
 #[derive(Debug, Clone, PartialEq)]
 pub struct DerivedQuad {
     /// The world (named-graph) IRI this quad belongs to. Identical to the `G` component.
-    pub graph: NamedNode,
+    pub graph: String,
 
     /// Subject of the derived triple.
     ///
-    /// RDF 1.2 subjects may be IRIs, blank nodes, or triple terms (in the object position in
-    /// RDF 1.2 — but gmeow-logic uses [`Term`] here for forward-compatibility with RDF 1.2
-    /// triple terms across the whole quad).
-    pub subject: Term,
+    /// RDF 1.2 subjects may be IRIs, blank nodes, or triple terms; gmeow-logic carries
+    /// them as a native [`TermValue`] for forward-compatibility with RDF 1.2 triple terms
+    /// across the whole quad.
+    pub subject: TermValue,
 
-    /// Predicate of the derived triple. Always a [`NamedNode`] (IRI).
-    pub predicate: NamedNode,
+    /// Predicate of the derived triple. Always an IRI string.
+    pub predicate: String,
 
-    /// Object of the derived triple. May be a named node, blank node, literal, or (in RDF 1.2)
+    /// Object of the derived triple. May be an IRI, blank node, literal, or (in RDF 1.2)
     /// a triple term.
-    pub object: Term,
+    pub object: TermValue,
 
     /// Graph component of the quad. Must equal [`Self::graph`]; carried separately so the
     /// quad is self-contained when projected to a `(S, P, O, G)` tuple.
-    pub graph_component: NamedNode,
+    pub graph_component: String,
 
     /// Stable IRI identifying this derivation step. Used as a provenance anchor in
     /// explanations and virtual derivation traces.
@@ -183,10 +183,10 @@ pub trait ScryerForeign {
     /// with the (possibly partial) `(subject, predicate, object)` pattern.
     fn in_world<'a>(
         &'a self,
-        world: &NamedNode,
-        subject: Option<&Term>,
-        predicate: Option<&NamedNode>,
-        object: Option<&Term>,
+        world: &str,
+        subject: Option<&TermValue>,
+        predicate: Option<&str>,
+        object: Option<&TermValue>,
     ) -> Box<dyn Iterator<Item = &'a DerivedQuad> + 'a>;
 
     /// `derived_by(?QuadId, ?Rule, ?Sources)` — provenance leg for explanations.
@@ -212,10 +212,7 @@ pub trait ScryerForeign {
     ///
     /// Contradictions are never bare failures; a witness graph is always emitted (see
     /// LOGIC-RUNTIME.md §"Contradiction witnesses").
-    fn contradiction_witness<'a>(
-        &'a self,
-        world: &NamedNode,
-    ) -> Box<dyn Iterator<Item = NamedNode> + 'a>;
+    fn contradiction_witness<'a>(&'a self, world: &str) -> Box<dyn Iterator<Item = String> + 'a>;
 }
 
 // ── WorldStoreForeign ──────────────────────────────────────────────────────────────────────────
@@ -262,20 +259,15 @@ impl WorldStoreForeign {
     ) -> Result<Self, String> {
         let raw_quads = store.quads_for_pattern_in_world(world, None, None, None);
 
-        let world_nn = NamedNode::new(world)
-            .map_err(|e| format!("WorldStoreForeign: invalid world IRI {world:?}: {e}"))?;
-
         let mut derived: Vec<DerivedQuad> = Vec::with_capacity(raw_quads.len());
 
         for quad in raw_quads {
-            // quad.predicate is NamedNode (RDF invariant); quad.subject is NamedOrBlankNode.
-            let predicate = quad.predicate.clone();
-
-            let subject: Term = match &quad.subject {
-                oxigraph::model::NamedOrBlankNode::NamedNode(nn) => Term::NamedNode(nn.clone()),
-                oxigraph::model::NamedOrBlankNode::BlankNode(bn) => Term::BlankNode(bn.clone()),
+            // quad.p is always an IRI (RDF invariant); a non-IRI predicate is skipped.
+            let Some(predicate) = quad.p.as_iri().map(str::to_owned) else {
+                continue;
             };
-            let object: Term = quad.object.clone();
+            let subject = quad.s.clone();
+            let object = quad.o.clone();
 
             let reifier = crate::provenance::mint_reifier(&subject, &predicate, &object)
                 .map_err(|e| format!("WorldStoreForeign: mint_reifier failed: {e}"))?;
@@ -286,11 +278,11 @@ impl WorldStoreForeign {
             ));
 
             derived.push(DerivedQuad {
-                graph: world_nn.clone(),
+                graph: world.to_owned(),
                 subject,
                 predicate,
                 object,
-                graph_component: world_nn.clone(),
+                graph_component: world.to_owned(),
                 derivation_id,
                 rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
                 source_quad_ids: vec![reifier],
@@ -309,14 +301,14 @@ impl ScryerForeign for WorldStoreForeign {
     /// Filters `self.quads` by world equality and each provided optional term filter.
     fn in_world<'a>(
         &'a self,
-        world: &NamedNode,
-        subject: Option<&Term>,
-        predicate: Option<&NamedNode>,
-        object: Option<&Term>,
+        world: &str,
+        subject: Option<&TermValue>,
+        predicate: Option<&str>,
+        object: Option<&TermValue>,
     ) -> Box<dyn Iterator<Item = &'a DerivedQuad> + 'a> {
-        let world = world.clone();
+        let world = world.to_owned();
         let subject = subject.cloned();
-        let predicate = predicate.cloned();
+        let predicate = predicate.map(str::to_owned);
         let object = object.cloned();
 
         Box::new(self.quads.iter().filter(move |dq| {
@@ -385,10 +377,7 @@ impl ScryerForeign for WorldStoreForeign {
     /// Monotonic-vacuous in v4: the monotonic fragment has no within-world contradictions;
     /// real paraconsistent witnesses arrive with #503. This empty result is vacuously-correct,
     /// NOT a silent stub.
-    fn contradiction_witness<'a>(
-        &'a self,
-        _world: &NamedNode,
-    ) -> Box<dyn Iterator<Item = NamedNode> + 'a> {
+    fn contradiction_witness<'a>(&'a self, _world: &str) -> Box<dyn Iterator<Item = String> + 'a> {
         Box::new(std::iter::empty())
     }
 }
@@ -423,16 +412,12 @@ mod tests {
     // ── DerivedQuad construction and field access ─────────────────────────────────────────────
 
     fn make_derived_quad() -> DerivedQuad {
-        let world = NamedNode::new("http://logic.gmeow.example/world/alpha").expect("valid IRI");
+        let world = "http://logic.gmeow.example/world/alpha".to_owned();
         DerivedQuad {
             graph: world.clone(),
-            subject: Term::NamedNode(
-                NamedNode::new("http://example.org/subject/1").expect("valid IRI"),
-            ),
-            predicate: NamedNode::new("http://example.org/predicate/type").expect("valid IRI"),
-            object: Term::NamedNode(
-                NamedNode::new("http://example.org/object/Thing").expect("valid IRI"),
-            ),
+            subject: TermValue::iri("http://example.org/subject/1"),
+            predicate: "http://example.org/predicate/type".to_owned(),
+            object: TermValue::iri("http://example.org/object/Thing"),
             graph_component: world.clone(),
             derivation_id: DerivationId("http://logic.gmeow.example/derivation/d001".to_owned()),
             rule_iri: "http://logic.gmeow.example/rule/r001".to_owned(),
@@ -448,7 +433,7 @@ mod tests {
     #[test]
     fn derived_quad_graph_field_accessible() {
         let dq = make_derived_quad();
-        assert_eq!(dq.graph.as_str(), "http://logic.gmeow.example/world/alpha");
+        assert_eq!(dq.graph, "http://logic.gmeow.example/world/alpha");
     }
 
     #[test]
@@ -551,30 +536,24 @@ mod tests {
     #[test]
     fn foreign_in_world_all_none_returns_all_asserted_quads() {
         let foreign = small_foreign();
-        let world_nn = NamedNode::new(TEST_WORLD).unwrap();
-        let quads: Vec<_> = foreign.in_world(&world_nn, None, None, None).collect();
+        let quads: Vec<_> = foreign.in_world(TEST_WORLD, None, None, None).collect();
         assert_eq!(quads.len(), 2, "should return both asserted quads");
     }
 
     #[test]
     fn foreign_in_world_predicate_filter() {
         let foreign = small_foreign();
-        let world_nn = NamedNode::new(TEST_WORLD).unwrap();
-        let pred_nn = NamedNode::new(P1).unwrap();
-        let quads: Vec<_> = foreign
-            .in_world(&world_nn, None, Some(&pred_nn), None)
-            .collect();
+        let quads: Vec<_> = foreign.in_world(TEST_WORLD, None, Some(P1), None).collect();
         assert_eq!(quads.len(), 1, "P1 filter should return exactly 1 quad");
-        assert_eq!(quads[0].predicate.as_str(), P1);
+        assert_eq!(quads[0].predicate, P1);
     }
 
     #[test]
     fn foreign_in_world_subject_filter() {
         let foreign = small_foreign();
-        let world_nn = NamedNode::new(TEST_WORLD).unwrap();
-        let subj_term = Term::NamedNode(NamedNode::new(S2).unwrap());
+        let subj_term = TermValue::iri(S2);
         let quads: Vec<_> = foreign
-            .in_world(&world_nn, Some(&subj_term), None, None)
+            .in_world(TEST_WORLD, Some(&subj_term), None, None)
             .collect();
         assert_eq!(quads.len(), 1, "S2 filter should return exactly 1 quad");
         assert_eq!(quads[0].subject, subj_term);
@@ -583,8 +562,9 @@ mod tests {
     #[test]
     fn foreign_in_world_wrong_world_returns_empty() {
         let foreign = small_foreign();
-        let other_world = NamedNode::new("http://world/Other").unwrap();
-        let quads: Vec<_> = foreign.in_world(&other_world, None, None, None).collect();
+        let quads: Vec<_> = foreign
+            .in_world("http://world/Other", None, None, None)
+            .collect();
         assert!(quads.is_empty(), "wrong world must return no quads");
     }
 
@@ -635,8 +615,7 @@ mod tests {
     #[test]
     fn foreign_contradiction_witness_is_empty() {
         let foreign = small_foreign();
-        let world_nn = NamedNode::new(TEST_WORLD).unwrap();
-        let witnesses: Vec<_> = foreign.contradiction_witness(&world_nn).collect();
+        let witnesses: Vec<_> = foreign.contradiction_witness(TEST_WORLD).collect();
         assert!(
             witnesses.is_empty(),
             "monotonic fragment: contradiction_witness must always be empty"
@@ -652,8 +631,6 @@ mod tests {
                 id.starts_with("https://blackcatinformatics.ca/gmeow/derivation/"),
                 "derivation_id must use derivation prefix: {id:?}"
             );
-            // Verify it's a valid IRI.
-            NamedNode::new(id).unwrap_or_else(|e| panic!("derivation_id not a valid IRI: {e}"));
         }
     }
 }

@@ -61,6 +61,7 @@ pub mod error;
 pub mod lexer;
 pub mod parser;
 pub mod serialize;
+pub mod substitute;
 
 pub use algebra::{
     AggregateExpression, AggregateFunction, Expression, Function, GmeowFn, GraphPattern,

@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Oxigraph term ⇄ Nemo fact-string encode/decode helpers.
+//! Native term ⇄ Nemo fact-string encode/decode helpers.
 //!
-//! This module owns the byte-exact contract between oxigraph's RDF model and
-//! Nemo's ground-fact string representation. Functions here have precise byte
+//! This module owns the byte-exact contract between the native RDF model
+//! ([`TermValue`]) and Nemo's ground-fact string representation. Functions here
+//! have precise byte
 //! parity with the Python oracle; do not change their logic without updating
 //! both sides and the conformance corpus.
 //!
@@ -24,7 +25,7 @@
 //! `"world_iri"`.  Nemo's display form for a string datavalue is `"value"`, so
 //! the decode strips the outer double quotes.
 
-use oxigraph::model::{Literal, NamedNode, NamedOrBlankNode, Term};
+use gmeow_rdf::TermValue;
 use sha1::{Digest, Sha1};
 
 // ── Skolem prefix ─────────────────────────────────────────────────────────────
@@ -51,27 +52,34 @@ pub(crate) fn skolem_iri(bnode_id: &str) -> String {
 
 // ── Encode: oxigraph quad → Nemo ground-fact line ────────────────────────────
 
-/// Encode an oxigraph `Term` as a Nemo argument string.
+/// Encode a native [`TermValue`] as a Nemo argument string.
 ///
-/// - `NamedNode(iri)` → `<iri>`
-/// - `BlankNode(id)` → Skolemized `<https://...skolem/{sha1}>` (same as NamedNode)
+/// - `Iri(iri)` → `<iri>`
+/// - `Blank(label)` → Skolemized `<https://...skolem/{sha1}>` (same as an IRI)
 /// - `Literal(value)` → depends on datatype / language (see below)
 /// - `Triple` → unsupported; empty string (gmeow-logic only uses IRI/BNode/Literal)
-pub(crate) fn encode_term(term: &Term) -> String {
+pub(crate) fn encode_term(term: &TermValue) -> String {
     match term {
-        Term::NamedNode(nn) => format!("<{}>", nn.as_str()),
-        Term::BlankNode(bn) => format!("<{}>", skolem_iri(bn.as_str())),
-        Term::Literal(lit) => encode_literal(lit),
-        Term::Triple(_) => String::new(), // RDF-star triple terms: unsupported in Nemo
+        TermValue::Iri(iri) => format!("<{}>", iri),
+        TermValue::Blank { label, scope } => {
+            format!("<{}>", skolem_iri(&scope.qualify_label(label)))
+        }
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            ..
+        } => encode_literal(lexical_form, datatype, language.as_deref()),
+        TermValue::Triple { .. } => String::new(), // RDF-star triple terms: unsupported in Nemo
     }
 }
 
-/// Encode a subject term (NamedNode or BlankNode) as a Nemo argument.
-pub(crate) fn encode_subject(subject: &NamedOrBlankNode) -> String {
-    match subject {
-        NamedOrBlankNode::NamedNode(nn) => format!("<{}>", nn.as_str()),
-        NamedOrBlankNode::BlankNode(bn) => format!("<{}>", skolem_iri(bn.as_str())),
-    }
+/// Encode a subject term (IRI or blank node) as a Nemo argument.
+///
+/// A literal subject is invalid RDF; it is encoded the same as its literal form
+/// (callers only ever pass IRI/blank subjects).
+pub(crate) fn encode_subject(subject: &TermValue) -> String {
+    encode_term(subject)
 }
 
 /// Escape `\` and `"` in a single pass, producing the same output as
@@ -117,40 +125,37 @@ fn escape_backslash_and_quote(s: &str) -> std::borrow::Cow<'_, str> {
 /// and [`decode_string_constant`] is then responsible for reversing the
 /// `quote_string` display escapes (including `\n` → newline and `\r` → CR)
 /// so that the round-trip is exact.
-pub(crate) fn encode_literal(lit: &Literal) -> String {
+pub(crate) fn encode_literal(lexical_form: &str, datatype: &str, language: Option<&str>) -> String {
     // Escape in the same order as Nemo's quote_string to ensure the .rls
     // source is valid and the round-trip through encode→Nemo→decode is exact:
     //   1. Backslash first (must come before adding new backslashes)
     //   2. Double-quote (Nemo string delimiter)
     // Control characters (\n, \r, \t) are accepted raw by Nemo's lexer and
     // are decoded symmetrically by the decode path.
-    let escaped = escape_backslash_and_quote(lit.value());
+    let escaped = escape_backslash_and_quote(lexical_form);
 
-    if let Some(lang) = lit.language() {
+    if let Some(lang) = language {
         // Language-tagged literal
         format!("\"{}\"@{}", escaped, lang)
+    } else if datatype == "http://www.w3.org/2001/XMLSchema#string" {
+        // Plain string — no datatype annotation needed in Nemo
+        format!("\"{}\"", escaped)
     } else {
-        let dt = lit.datatype().as_str();
-        if dt == "http://www.w3.org/2001/XMLSchema#string" {
-            // Plain string — no datatype annotation needed in Nemo
-            format!("\"{}\"", escaped)
-        } else {
-            // Typed literal
-            format!("\"{}\"^^<{}>", escaped, dt)
-        }
+        // Typed literal
+        format!("\"{}\"^^<{}>", escaped, datatype)
     }
 }
 
-/// Encode one oxigraph quad as a single Nemo ground-fact line (with trailing `.`).
+/// Encode one native quad as a single Nemo ground-fact line (with trailing `.`).
 ///
 /// Format: `<predicate_iri>(<subject_term>, <object_term>, "world_iri").`
 pub(crate) fn encode_quad_to_nemo_fact(
-    subject: &NamedOrBlankNode,
-    predicate: &NamedNode,
-    object: &Term,
+    subject: &TermValue,
+    predicate: &str,
+    object: &TermValue,
     world_iri: &str,
 ) -> String {
-    let pred = format!("<{}>", predicate.as_str());
+    let pred = format!("<{}>", predicate);
     let subj = encode_subject(subject);
     let obj = encode_term(object);
     // World IRI is encoded as a Nemo string constant (double-quoted).
@@ -254,20 +259,28 @@ pub(crate) fn decode_string_constant(s: &str) -> Result<String, String> {
     }
 }
 
-/// Decode a Nemo display-form term to an oxigraph `Term`.
+/// Decode a Nemo display-form term to a native [`TermValue`].
 ///
 /// Handles:
-/// - `<iri>` → `Term::NamedNode`
-/// - `"value"` → plain `xsd:string` `Term::Literal`
-/// - `"value"^^<datatype>` → typed `Term::Literal`
-/// - `"value"@lang` → language-tagged `Term::Literal`
-pub(crate) fn decode_nemo_term(s: &str) -> Result<Term, String> {
+/// - `<iri>` → `TermValue::Iri`
+/// - `"value"` → plain `xsd:string` literal
+/// - `"value"^^<datatype>` → typed literal
+/// - `"value"@lang` → language-tagged literal
+///
+/// The language tag is preserved verbatim (case-sensitive) — the prior oxigraph
+/// path stored the tag as decoded; the rdflib-lowercasing happens only at N3
+/// serialization time ([`crate::provenance::term_n3`]), not here.
+pub(crate) fn decode_nemo_term(s: &str) -> Result<TermValue, String> {
+    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+    const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
+
     if s.starts_with('<') && s.ends_with('>') {
         // IRI term
         let iri = &s[1..s.len() - 1];
-        let nn = NamedNode::new(iri)
-            .map_err(|e| decode_err("invalid IRI in <iri> term", &format!("{e}: {iri}")))?;
-        return Ok(Term::NamedNode(nn));
+        if iri.is_empty() {
+            return Err(decode_err("invalid IRI in <iri> term", "empty IRI"));
+        }
+        return Ok(TermValue::Iri(iri.to_owned()));
     }
 
     if let Some(content) = s.strip_prefix('"') {
@@ -281,19 +294,35 @@ pub(crate) fn decode_nemo_term(s: &str) -> Result<Term, String> {
 
         if suffix.is_empty() {
             // Plain xsd:string
-            return Ok(Term::Literal(Literal::new_simple_literal(value)));
+            return Ok(TermValue::Literal {
+                lexical_form: value,
+                datatype: XSD_STRING.to_owned(),
+                language: None,
+                direction: None,
+            });
         }
         if let Some(lang) = suffix.strip_prefix('@') {
-            return Ok(Term::Literal(
-                Literal::new_language_tagged_literal(value, lang)
-                    .map_err(|e| decode_err("invalid language tag", &format!("{e}")))?,
-            ));
+            if lang.is_empty() {
+                return Err(decode_err("invalid language tag", "empty"));
+            }
+            return Ok(TermValue::Literal {
+                lexical_form: value,
+                datatype: RDF_LANG_STRING.to_owned(),
+                language: Some(lang.to_owned()),
+                direction: None,
+            });
         }
         if let Some(dt_part) = suffix.strip_prefix("^^<") {
             if let Some(dt_iri) = dt_part.strip_suffix('>') {
-                let dt = NamedNode::new(dt_iri)
-                    .map_err(|e| decode_err("invalid datatype IRI", &format!("{e}")))?;
-                return Ok(Term::Literal(Literal::new_typed_literal(value, dt)));
+                if dt_iri.is_empty() {
+                    return Err(decode_err("invalid datatype IRI", "empty"));
+                }
+                return Ok(TermValue::Literal {
+                    lexical_form: value,
+                    datatype: dt_iri.to_owned(),
+                    language: None,
+                    direction: None,
+                });
             }
         }
         return Err(decode_err("unrecognized literal suffix", suffix));
@@ -346,30 +375,34 @@ mod tests {
 
     // ── encode_literal ────────────────────────────────────────────────────────
 
+    /// Test helper: encode a literal `TermValue` to its Nemo argument form.
+    fn enc_lit(term: &TermValue) -> String {
+        encode_term(term)
+    }
+
     #[test]
     fn encode_plain_literal() {
-        let lit = Literal::new_simple_literal("hello world");
-        assert_eq!(encode_literal(&lit), r#""hello world""#);
+        let lit = TermValue::simple_literal("hello world");
+        assert_eq!(enc_lit(&lit), r#""hello world""#);
     }
 
     #[test]
     fn encode_literal_with_quotes() {
-        let lit = Literal::new_simple_literal(r#"say "hi""#);
-        assert_eq!(encode_literal(&lit), r#""say \"hi\"""#);
+        let lit = TermValue::simple_literal(r#"say "hi""#);
+        assert_eq!(enc_lit(&lit), r#""say \"hi\"""#);
     }
 
     #[test]
     fn encode_language_literal() {
-        let lit = Literal::new_language_tagged_literal("Bonjour", "fr").unwrap();
-        assert_eq!(encode_literal(&lit), r#""Bonjour"@fr"#);
+        let lit = TermValue::lang_literal("Bonjour", "fr");
+        assert_eq!(enc_lit(&lit), r#""Bonjour"@fr"#);
     }
 
     #[test]
     fn encode_typed_literal() {
-        let dt = NamedNode::new("http://www.w3.org/2001/XMLSchema#integer").unwrap();
-        let lit = Literal::new_typed_literal("42", dt);
+        let lit = TermValue::typed_literal("42", "http://www.w3.org/2001/XMLSchema#integer");
         assert_eq!(
-            encode_literal(&lit),
+            enc_lit(&lit),
             r#""42"^^<http://www.w3.org/2001/XMLSchema#integer>"#
         );
     }
@@ -381,8 +414,8 @@ mod tests {
         let encoded = "<http://example.org/Dog>";
         let term = decode_nemo_term(encoded).unwrap();
         match term {
-            Term::NamedNode(nn) => assert_eq!(nn.as_str(), "http://example.org/Dog"),
-            other => panic!("expected NamedNode, got {other:?}"),
+            TermValue::Iri(iri) => assert_eq!(iri, "http://example.org/Dog"),
+            other => panic!("expected Iri, got {other:?}"),
         }
     }
 
@@ -391,13 +424,15 @@ mod tests {
         let encoded = r#""hello""#;
         let term = decode_nemo_term(encoded).unwrap();
         match term {
-            Term::Literal(lit) => {
-                assert_eq!(lit.value(), "hello");
-                assert_eq!(
-                    lit.datatype().as_str(),
-                    "http://www.w3.org/2001/XMLSchema#string"
-                );
-                assert!(lit.language().is_none());
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language,
+                ..
+            } => {
+                assert_eq!(lexical_form, "hello");
+                assert_eq!(datatype, "http://www.w3.org/2001/XMLSchema#string");
+                assert!(language.is_none());
             }
             other => panic!("expected Literal, got {other:?}"),
         }
@@ -408,9 +443,13 @@ mod tests {
         let encoded = r#""Hola"@es"#;
         let term = decode_nemo_term(encoded).unwrap();
         match term {
-            Term::Literal(lit) => {
-                assert_eq!(lit.value(), "Hola");
-                assert_eq!(lit.language(), Some("es"));
+            TermValue::Literal {
+                lexical_form,
+                language,
+                ..
+            } => {
+                assert_eq!(lexical_form, "Hola");
+                assert_eq!(language.as_deref(), Some("es"));
             }
             other => panic!("expected language Literal, got {other:?}"),
         }
@@ -421,12 +460,13 @@ mod tests {
         let encoded = r#""42"^^<http://www.w3.org/2001/XMLSchema#integer>"#;
         let term = decode_nemo_term(encoded).unwrap();
         match term {
-            Term::Literal(lit) => {
-                assert_eq!(lit.value(), "42");
-                assert_eq!(
-                    lit.datatype().as_str(),
-                    "http://www.w3.org/2001/XMLSchema#integer"
-                );
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                ..
+            } => {
+                assert_eq!(lexical_form, "42");
+                assert_eq!(datatype, "http://www.w3.org/2001/XMLSchema#integer");
             }
             other => panic!("expected typed Literal, got {other:?}"),
         }
@@ -452,12 +492,12 @@ mod tests {
 
     #[test]
     fn encode_decode_iri_roundtrip() {
-        let subject = NamedOrBlankNode::NamedNode(NamedNode::new("http://example.org/s").unwrap());
-        let predicate = NamedNode::new("http://example.org/p").unwrap();
-        let object = Term::NamedNode(NamedNode::new("http://example.org/o").unwrap());
+        let subject = TermValue::iri("http://example.org/s");
+        let predicate = "http://example.org/p";
+        let object = TermValue::iri("http://example.org/o");
         let world = "http://world/Test";
 
-        let line = encode_quad_to_nemo_fact(&subject, &predicate, &object, world);
+        let line = encode_quad_to_nemo_fact(&subject, predicate, &object, world);
         // line = <http://example.org/p>(<http://example.org/s>, <http://example.org/o>, "http://world/Test").
 
         // Verify it parses correctly
@@ -470,12 +510,11 @@ mod tests {
 
     #[test]
     fn encode_decode_literal_roundtrip() {
-        let dt = NamedNode::new("http://www.w3.org/2001/XMLSchema#decimal").unwrap();
-        let lit = Literal::new_typed_literal("3.14", dt);
-        let encoded = encode_literal(&lit);
+        let lit = TermValue::typed_literal("3.14", "http://www.w3.org/2001/XMLSchema#decimal");
+        let encoded = encode_term(&lit);
         let decoded = decode_nemo_term(&encoded).unwrap();
         match decoded {
-            Term::Literal(l) => assert_eq!(l.value(), "3.14"),
+            TermValue::Literal { lexical_form, .. } => assert_eq!(lexical_form, "3.14"),
             other => panic!("expected Literal, got {other:?}"),
         }
     }
@@ -498,10 +537,10 @@ mod tests {
     fn encode_decode_literal_with_newline_and_tab() {
         // Literal value: "line1\nline2\ttabbed"
         let raw = "line1\nline2\ttabbed";
-        let lit = Literal::new_simple_literal(raw);
+        let lit = TermValue::simple_literal(raw);
 
         // Step 1: encode produces the literal token for the .rls source.
-        let encoded = encode_literal(&lit);
+        let encoded = encode_term(&lit);
 
         // The encoded form must be a valid Nemo string literal (double-quoted).
         assert!(
@@ -528,19 +567,17 @@ mod tests {
             format!("\"{inner}\"")
         };
 
-        // Step 3: decode the Nemo display form back to an oxigraph Term.
+        // Step 3: decode the Nemo display form back to a native TermValue.
         let decoded_term = decode_nemo_term(&simulated_nemo_display)
             .expect("decode must succeed for a valid Nemo plain string display form");
 
         // Step 4: the decoded value must equal the original literal value exactly.
         match decoded_term {
-            Term::Literal(decoded_lit) => {
+            TermValue::Literal { lexical_form, .. } => {
                 assert_eq!(
-                    decoded_lit.value(),
-                    raw,
+                    lexical_form, raw,
                     "round-trip must preserve newline+tab exactly: \
-                     expected {raw:?}, got {:?}",
-                    decoded_lit.value()
+                     expected {raw:?}, got {lexical_form:?}"
                 );
             }
             other => panic!("expected Literal, got {other:?}"),

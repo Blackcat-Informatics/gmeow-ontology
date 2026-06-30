@@ -29,14 +29,14 @@
 //!   reported per category (never one global %). A candidate with no closed-set
 //!   category is a hard error (fail-fast), never a silently dropped row.
 //!
-//! Both run native over the reasoned `oxigraph::store::Store` the verify pass already
+//! Both run native over the reasoned `Arc<RdfDataset>` the verify pass already
 //! builds — Rust authority, surfaced through the already-wired `make verify` gate.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
 
-use oxigraph::model::Term;
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
-use oxigraph::store::Store;
+use gmeow_rdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
+use gmeow_sparql_eval::NativeSparqlEngine;
 
 use gmeow_diagnostics::{Finding, Severity};
 
@@ -71,45 +71,58 @@ fn logic_local(iri: &str) -> &str {
 
 /// Run a SELECT query and return each solution as a name→term map (variable names
 /// without the leading `?`). Determinism: callers sort whatever they derive.
-fn select(store: &Store, sparql: &str) -> Result<Vec<BTreeMap<String, Term>>, String> {
-    let results = SparqlEvaluator::new()
-        .parse_query(sparql)
-        .map_err(|e| format!("governance query parse error: {e}"))?
-        .on_store(store)
-        .execute()
+fn select(
+    store: &Arc<RdfDataset>,
+    sparql: &str,
+) -> Result<Vec<BTreeMap<String, TermValue>>, String> {
+    let engine = NativeSparqlEngine::new();
+    let result = engine
+        .query(
+            store,
+            SparqlRequest {
+                query: sparql,
+                base_iri: None,
+                substitutions: &[],
+            },
+        )
         .map_err(|e| format!("governance query evaluation error: {e}"))?;
-    let solutions = match results {
-        QueryResults::Solutions(solutions) => solutions,
-        QueryResults::Boolean(_) | QueryResults::Graph(_) => {
+    let (variables, result_rows) = match result {
+        SparqlResult::Solutions {
+            variables, rows, ..
+        } => (variables, rows),
+        SparqlResult::Boolean(_) | SparqlResult::Graph(_) => {
             return Err("governance query must be a SPARQL SELECT".to_owned());
         }
     };
     let mut rows = Vec::new();
-    for sol in solutions {
-        let sol = sol.map_err(|e| format!("governance query solution error: {e}"))?;
+    for sol in &result_rows {
         let mut row = BTreeMap::new();
-        for (var, term) in sol.iter() {
-            row.insert(var.as_str().to_owned(), term.clone());
+        for (var, cell) in variables.iter().zip(sol.iter()) {
+            // Only bound variables enter the row, mirroring the prior oxigraph
+            // `QuerySolution::iter()` (it yields only bound (var, term) pairs).
+            if let Some(term) = cell {
+                row.insert(var.clone(), term.clone());
+            }
         }
         rows.push(row);
     }
     Ok(rows)
 }
 
-/// The string value of a term: the IRI for a named node, the lexical value for a
-/// literal, or the blank-node id. Used to read forbidden-predicate literals and IRIs
-/// uniformly.
-fn term_value(term: &Term) -> String {
+/// The string value of a term: the IRI for an IRI term, the lexical value for a
+/// literal, or the (scope-qualified) blank-node label. Used to read
+/// forbidden-predicate literals and IRIs uniformly.
+fn term_value(term: &TermValue) -> String {
     match term {
-        Term::NamedNode(n) => n.as_str().to_owned(),
-        Term::Literal(l) => l.value().to_owned(),
-        Term::BlankNode(b) => b.as_str().to_owned(),
-        Term::Triple(_) => String::new(),
+        TermValue::Iri(iri) => iri.clone(),
+        TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+        TermValue::Blank { label, scope } => scope.qualify_label(label).into_owned(),
+        TermValue::Triple { .. } => String::new(),
     }
 }
 
 /// Lift every `logic:NonEntailmentObligation` from the store.
-fn parse_obligations(store: &Store) -> Result<Vec<Obligation>, String> {
+fn parse_obligations(store: &Arc<RdfDataset>) -> Result<Vec<Obligation>, String> {
     let rows = select(
         store,
         "PREFIX logic: <https://blackcatinformatics.ca/logic/>
@@ -247,7 +260,7 @@ fn check_discharge_conditions(obligation: &Obligation) -> Vec<Finding> {
 ///
 /// Returns `Err` if a governance query fails to parse or evaluate.
 pub fn check_non_entailment_obligations(
-    store: &Store,
+    store: &Arc<RdfDataset>,
     derived_predicates: &BTreeSet<String>,
 ) -> Result<Vec<Finding>, String> {
     let obligations = parse_obligations(store)?;
@@ -302,7 +315,7 @@ const LIFECYCLE_STATES: &[&str] = &[
 /// # Errors
 ///
 /// Returns `Err` if a governance query fails to parse or evaluate.
-pub fn formalization_coverage(store: &Store) -> Result<Vec<Finding>, String> {
+pub fn formalization_coverage(store: &Arc<RdfDataset>) -> Result<Vec<Finding>, String> {
     let valid_categories: BTreeSet<&str> = CATEGORIES.iter().copied().collect();
     let rows = select(
         store,
@@ -538,14 +551,10 @@ mod tests {
         assert!(findings[0].code.contains("no-discharge"));
     }
 
-    /// Build a minimal in-memory Store with N-Triples and return it for query tests.
-    fn store_from_ntriples(ntriples: &str) -> Store {
-        use oxigraph::io::RdfFormat;
-        let store = Store::new().expect("in-memory store");
-        store
-            .load_from_slice(RdfFormat::NTriples, ntriples)
-            .expect("load N-Triples");
-        store
+    /// Build a minimal in-memory dataset from N-Triples for query tests.
+    fn store_from_ntriples(ntriples: &str) -> Arc<RdfDataset> {
+        gmeow_rdf::parse_dataset(ntriples.as_bytes(), "application/n-triples", None)
+            .expect("load N-Triples")
     }
 
     #[test]

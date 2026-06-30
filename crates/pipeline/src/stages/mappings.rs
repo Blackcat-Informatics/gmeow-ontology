@@ -572,7 +572,7 @@ fn mappings_rdf_dataset(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::rdf_bytes_to_store;
+    use crate::stages::source_load::rdf_bytes_to_dataset;
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -583,12 +583,15 @@ mod tests {
     }
 
     fn triple_set(bytes: &[u8], media_type: &str) -> std::collections::BTreeSet<String> {
-        let store = rdf_bytes_to_store(bytes, media_type, "triple_set").unwrap();
-        store
+        let dataset = rdf_bytes_to_dataset(bytes, media_type, "triple_set").unwrap();
+        gmeow_rdf::flat_rdf_quads_from_dataset(&dataset)
             .iter()
             .map(|q| {
-                let q = q.unwrap();
-                format!("{} {} {} .", q.subject, q.predicate, q.object)
+                // The predicate is a bare IRI string; wrap it as an IRI term so its
+                // Display renders `<iri>` — matching the old oxigraph `NamedNode` form
+                // the substring assertions key on.
+                let predicate = gmeow_rdf::RdfTerm::iri(q.predicate.clone());
+                format!("{} {} {} .", q.subject, predicate, q.object)
             })
             .collect()
     }

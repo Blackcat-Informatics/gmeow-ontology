@@ -17,7 +17,7 @@ use std::cell::RefCell;
 use std::sync::Arc;
 
 use gmeow_rdf_core::{
-    MutableDataset, RdfDataset, RdfDiagnostic, SparqlEngine, SparqlRequest, SparqlResult,
+    MutableDataset, RdfDataset, RdfDiagnostic, SparqlEngine, SparqlRequest, SparqlResult, TermValue,
 };
 use gmeow_sparql_algebra::{Query, SparqlParser};
 
@@ -127,10 +127,30 @@ impl NativeSparqlEngine {
             .borrow_mut()
             .prepare(request.query, request.base_iri)?;
         let mut ctx = EvalCtx::new(dataset).with_remote(source);
-        let outcome = evaluate_query(&prepared.query, &mut ctx)
-            .map_err(|e| RdfDiagnostic::error("native-sparql-query-eval", e.to_string()))?;
+        let outcome = evaluate_with_substitutions(&prepared, request.substitutions, &mut ctx)?;
         Ok(materialize(outcome, &ctx))
     }
+}
+
+/// Evaluate `prepared`, applying any pre-binding `substitutions` first (#906 GAP-A).
+///
+/// When there are no substitutions the cached parse is evaluated directly (the hot
+/// path). Otherwise the cached parse is **cloned** and rewritten — the substitution
+/// must never poison the shared, un-substituted plan-cache entry.
+fn evaluate_with_substitutions(
+    prepared: &PreparedQuery,
+    substitutions: &[(String, TermValue)],
+    ctx: &mut EvalCtx<'_>,
+) -> Result<crate::eval::Outcome, RdfDiagnostic> {
+    let eval_err = |e: crate::error::EvalError| {
+        RdfDiagnostic::error("native-sparql-query-eval", e.to_string())
+    };
+    if substitutions.is_empty() {
+        return evaluate_query(&prepared.query, ctx).map_err(eval_err);
+    }
+    let substituted =
+        crate::substitute::apply_substitutions(prepared.query.clone(), substitutions)?;
+    evaluate_query(&substituted, ctx).map_err(eval_err)
 }
 
 impl SparqlEngine for NativeSparqlEngine {
@@ -146,8 +166,7 @@ impl SparqlEngine for NativeSparqlEngine {
             .borrow_mut()
             .prepare(request.query, request.base_iri)?;
         let mut ctx = EvalCtx::new(dataset);
-        let outcome = evaluate_query(&prepared.query, &mut ctx)
-            .map_err(|e| RdfDiagnostic::error("native-sparql-query-eval", e.to_string()))?;
+        let outcome = evaluate_with_substitutions(&prepared, request.substitutions, &mut ctx)?;
         Ok(materialize(outcome, &ctx))
     }
 
@@ -198,7 +217,53 @@ fn materialize(outcome: Outcome, ctx: &EvalCtx<'_>) -> SparqlResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf_core::{RdfDatasetBuilder, RdfLiteral, TermValue};
+    use gmeow_rdf_core::{BlankScope, RdfDatasetBuilder, RdfLiteral, TermValue};
+
+    /// Regression: `=` is RDFterm-equality, so `?a != ?b` over two *distinct IRIs*
+    /// must be `true` (the row survives), NOT a type error. Routing `=` through the
+    /// ordering comparator made every distinct-IRI `!=` evaluate to an error and drop
+    /// the row, so this triangle+FILTER query (the LOGIC `non-entailment-counterpart`
+    /// verify) wrongly returned 0 rows. See `expr::equal`.
+    #[test]
+    fn neq_on_distinct_iris_is_true_not_error() {
+        // A→B→C plus the forbidden transitive A→C, all gmeow:counterpartOf.
+        let mut b = RdfDatasetBuilder::new();
+        let cp = b.intern_iri("http://ex/cp".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let bn = b.intern_iri("http://ex/b".to_owned());
+        let c = b.intern_iri("http://ex/c".to_owned());
+        b.push_quad(a, cp, bn, None);
+        b.push_quad(bn, cp, c, None);
+        b.push_quad(a, cp, c, None);
+        let ds = b.freeze().expect("freeze");
+        let q = "PREFIX ex: <http://ex/>\n\
+                 SELECT ?a ?b ?c WHERE {\n\
+                   ?a ex:cp ?b . ?b ex:cp ?c . ?a ex:cp ?c .\n\
+                   FILTER(?a != ?b && ?b != ?c && ?a != ?c)\n\
+                 } ORDER BY ?a ?b ?c";
+        match run_on(&ds, q) {
+            SparqlResult::Solutions { rows, .. } => {
+                // The forbidden transitive triangle (a,b,c) is the one violating row.
+                assert_eq!(rows.len(), 1, "expected exactly the A,B,C row: {rows:?}");
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+        // Direct check: `!=` on two distinct IRIs is TRUE, not an error → the row survives.
+        match run_on(
+            &ds,
+            "PREFIX ex: <http://ex/>\n\
+             SELECT ?a ?b WHERE { ?a ex:cp ?b . FILTER(?a != ?b) }",
+        ) {
+            SparqlResult::Solutions { rows, .. } => {
+                assert_eq!(
+                    rows.len(),
+                    3,
+                    "all three distinct-IRI edges survive `!=`: {rows:?}"
+                );
+            }
+            other => panic!("expected solutions, got {other:?}"),
+        }
+    }
 
     fn social() -> Arc<RdfDataset> {
         // :a :knows :b ; :a :name "Ann" .
@@ -222,9 +287,169 @@ mod tests {
                 SparqlRequest {
                     query,
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("query")
+    }
+
+    // ── substitution / pre-binding (#906 GAP-A) ────────────────────────────────
+
+    /// A dataset for substitution tests:
+    ///   :a   :p  :x    (IRI subject)
+    ///   :b   :p  :y
+    ///   _:bn :p  :z    (blank-node subject — a SHACL blank focus)
+    fn subst_ds() -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let p = b.intern_iri("http://ex/p".to_owned());
+        let a = b.intern_iri("http://ex/a".to_owned());
+        let bb = b.intern_iri("http://ex/b".to_owned());
+        let x = b.intern_iri("http://ex/x".to_owned());
+        let y = b.intern_iri("http://ex/y".to_owned());
+        let z = b.intern_iri("http://ex/z".to_owned());
+        let bn = b.intern_blank("bn".to_owned(), BlankScope::DEFAULT);
+        b.push_quad(a, p, x, None);
+        b.push_quad(bb, p, y, None);
+        b.push_quad(bn, p, z, None);
+        b.freeze().expect("freeze")
+    }
+
+    /// Run `query` with `substitutions` and return the sorted first-column debug
+    /// strings of the SELECT result.
+    fn run_subst(query: &str, substitutions: &[(String, TermValue)]) -> Vec<String> {
+        let ds = subst_ds();
+        let engine = NativeSparqlEngine::new();
+        let result = engine
+            .query(
+                &ds,
+                SparqlRequest {
+                    query,
+                    base_iri: None,
+                    substitutions,
+                },
+            )
+            .expect("query");
+        col0(result)
+    }
+
+    #[test]
+    fn substitute_iri_focus_constrains_the_subject() {
+        // `$this :p ?o` with $this := :a must bind ?o to ONLY :x (not :y/:z).
+        let got = run_subst(
+            "SELECT ?o WHERE { ?this <http://ex/p> ?o }",
+            &[("this".to_owned(), TermValue::Iri("http://ex/a".to_owned()))],
+        );
+        assert_eq!(got.len(), 1, "exactly one row for the :a focus: {got:?}");
+        assert!(got[0].contains("http://ex/x"), "?o = :x : {got:?}");
+    }
+
+    #[test]
+    fn substitute_keeps_the_focus_var_projectable() {
+        // `SELECT ?this ?o`: the substituted var must still appear in the result
+        // (the seed join is below the projection, not a drop of ?this).
+        let ds = subst_ds();
+        let engine = NativeSparqlEngine::new();
+        let result = engine
+            .query(
+                &ds,
+                SparqlRequest {
+                    query: "SELECT ?this ?o WHERE { ?this <http://ex/p> ?o }",
+                    base_iri: None,
+                    substitutions: &[("this".to_owned(), TermValue::Iri("http://ex/a".to_owned()))],
+                },
+            )
+            .expect("query");
+        let SparqlResult::Solutions {
+            variables, rows, ..
+        } = result
+        else {
+            panic!("expected solutions");
+        };
+        assert_eq!(variables, vec!["this".to_owned(), "o".to_owned()]);
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0][0], Some(TermValue::Iri("http://ex/a".to_owned())));
+        assert_eq!(rows[0][1], Some(TermValue::Iri("http://ex/x".to_owned())));
+    }
+
+    #[test]
+    fn substitute_blank_focus_constrains_the_subject() {
+        // A blank-node focus (`_:bn`) must pre-bind through the injection-only blank
+        // VALUES seed and select ONLY its object (:z).
+        let got = run_subst(
+            "SELECT ?o WHERE { ?this <http://ex/p> ?o }",
+            &[(
+                "this".to_owned(),
+                TermValue::Blank {
+                    label: "bn".to_owned(),
+                    scope: BlankScope::DEFAULT,
+                },
+            )],
+        );
+        assert_eq!(got.len(), 1, "exactly one row for the blank focus: {got:?}");
+        assert!(got[0].contains("http://ex/z"), "?o = :z : {got:?}");
+    }
+
+    #[test]
+    fn substitute_ask_is_pre_binding() {
+        // ASK over the blank focus: true (it has a :p edge); a focus absent from the
+        // data is false. Proves pre-binding flows into the boolean form too.
+        let ds = subst_ds();
+        let engine = NativeSparqlEngine::new();
+        let ask = |focus: TermValue| -> bool {
+            let r = engine
+                .query(
+                    &ds,
+                    SparqlRequest {
+                        query: "ASK { ?this <http://ex/p> ?o }",
+                        base_iri: None,
+                        substitutions: &[("this".to_owned(), focus)],
+                    },
+                )
+                .expect("ask");
+            matches!(r, SparqlResult::Boolean(true))
+        };
+        assert!(ask(TermValue::Blank {
+            label: "bn".to_owned(),
+            scope: BlankScope::DEFAULT,
+        }));
+        assert!(!ask(TermValue::Iri("http://ex/absent".to_owned())));
+    }
+
+    #[test]
+    fn substitution_does_not_poison_the_plan_cache() {
+        // Two queries with the SAME text but different focus nodes must each return
+        // their own focus's row — proving the cached parse is cloned per call and the
+        // substitution is not baked into the shared cache entry.
+        let ds = subst_ds();
+        let engine = NativeSparqlEngine::new();
+        let q = "SELECT ?o WHERE { ?this <http://ex/p> ?o }";
+        let run = |focus: &str| {
+            let r = engine
+                .query(
+                    &ds,
+                    SparqlRequest {
+                        query: q,
+                        base_iri: None,
+                        substitutions: &[("this".to_owned(), TermValue::Iri(focus.to_owned()))],
+                    },
+                )
+                .expect("query");
+            col0(r)
+        };
+        assert!(run("http://ex/a")[0].contains("http://ex/x"));
+        assert!(run("http://ex/b")[0].contains("http://ex/y"));
+        // And an un-substituted run still sees all three rows.
+        let all = engine
+            .query(
+                &ds,
+                SparqlRequest {
+                    query: q,
+                    base_iri: None,
+                    substitutions: &[],
+                },
+            )
+            .expect("query");
+        assert_eq!(col0(all).len(), 3, "the cached parse is unmodified");
     }
 
     #[test]
@@ -301,6 +526,7 @@ mod tests {
                 SparqlRequest {
                     query,
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("query")
@@ -420,6 +646,7 @@ mod tests {
                 SparqlRequest {
                     query: "this is not sparql",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .unwrap_err();
@@ -460,6 +687,7 @@ mod tests {
                 SparqlRequest {
                     query,
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .expect("update applies");
@@ -561,6 +789,7 @@ mod tests {
                 SparqlRequest {
                     query: "LOAD <http://ex/doc>",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .unwrap_err();
@@ -593,6 +822,7 @@ mod tests {
                     query: "INSERT DATA { <http://ex/x> <http://ex/y> <http://ex/z> } ; \
                             LOAD <http://ex/doc>",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .unwrap_err();
@@ -622,6 +852,7 @@ mod tests {
                             DELETE { ?s <http://ex/p> ?o } \
                             WHERE { SERVICE <http://ex/svc> { ?s <http://ex/p> ?o } }",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .unwrap_err();
@@ -643,6 +874,7 @@ mod tests {
                 SparqlRequest {
                     query: "this is not an update",
                     base_iri: None,
+                    substitutions: &[],
                 },
             )
             .unwrap_err();

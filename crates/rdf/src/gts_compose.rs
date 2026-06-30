@@ -24,10 +24,6 @@ use ciborium::value::Value;
 use gmeow_gts::model::{Term, TermKind};
 use gmeow_gts::wire::{blake3_256, canonical, hex};
 use gmeow_gts::writer::{term_to_wire, Writer};
-use oxigraph::model::{GraphName, NamedOrBlankNode, Quad, Term as OxTerm};
-
-use crate::oxigraph::flat_oxigraph_quads_from_dataset;
-use crate::{parse_dataset, NativeRdfFormat};
 
 /// The `rdf:reifies` predicate IRI (RDF 1.2 statement layer).
 pub const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
@@ -171,73 +167,8 @@ impl SnapshotBuilder {
         id
     }
 
-    /// Intern an oxigraph term in subject/object/graph position. Triple terms are
-    /// not interned here (the RDF 1.2 statement layer is ingested as reifies/annot
-    /// rows, never as quoted-triple base terms — matching `_Builder._rdflib`).
-    fn intern_ox_term(&mut self, term: &OxTerm, scope: Option<&str>) -> Option<usize> {
-        match term {
-            OxTerm::NamedNode(n) => Some(self.intern_iri(n.as_str())),
-            OxTerm::BlankNode(b) => Some(self.intern_bnode(b.as_str(), scope)),
-            OxTerm::Literal(l) => {
-                // Mirror `_ox`: a language-tagged literal carries no datatype; a
-                // plain `xsd:string` is stored WITHOUT a datatype (it is implied).
-                if let Some(lang) = l.language() {
-                    Some(self.intern_literal(l.value(), None, Some(lang)))
-                } else {
-                    let dt = l.datatype();
-                    let dt = if dt.as_str() == XSD_STRING {
-                        None
-                    } else {
-                        Some(dt.as_str())
-                    };
-                    Some(self.intern_literal(l.value(), dt, None))
-                }
-            }
-            OxTerm::Triple(_) => None,
-        }
-    }
-
-    fn intern_ox_subject(&mut self, subject: &NamedOrBlankNode, scope: Option<&str>) -> usize {
-        match subject {
-            NamedOrBlankNode::NamedNode(n) => self.intern_iri(n.as_str()),
-            NamedOrBlankNode::BlankNode(b) => self.intern_bnode(b.as_str(), scope),
-        }
-    }
-
-    fn intern_ox_graph(&mut self, graph: &GraphName, scope: Option<&str>) -> Option<usize> {
-        match graph {
-            GraphName::DefaultGraph => None,
-            GraphName::NamedNode(n) => Some(self.intern_iri(n.as_str())),
-            GraphName::BlankNode(b) => Some(self.intern_bnode(b.as_str(), scope)),
-        }
-    }
-
-    /// Ingest a flat oxigraph quad list as a base graph (RDF 1.1), mirroring
-    /// `_Builder.add_graph`. `default_graph_name` assigns rows that carry no name
-    /// of their own to a named graph (the snapshot's source-partitioning hook).
-    pub fn add_quads(
-        &mut self,
-        quads: &[Quad],
-        default_graph_name: Option<&str>,
-        scope: Option<&str>,
-    ) {
-        let default_gid = default_graph_name.map(|name| self.intern_iri(name));
-        for quad in quads {
-            let sid = self.intern_ox_subject(&quad.subject, scope);
-            let pid = self.intern_iri(quad.predicate.as_str());
-            let Some(oid) = self.intern_ox_term(&quad.object, scope) else {
-                continue;
-            };
-            let gid = match &quad.graph_name {
-                GraphName::DefaultGraph => default_gid,
-                other => self.intern_ox_graph(other, scope),
-            };
-            self.quads.push((sid, pid, oid, gid));
-        }
-    }
-
     /// Bind a reifier first-wins, erroring on a conflicting rebind (the producer's
-    /// strict contract — `_Builder.add_rdf12` pass 1).
+    /// strict contract — the native statement-layer ingestion in [`Self::add_dataset`]).
     fn bind_reifier(&mut self, rid: usize, spo: (usize, usize, usize)) -> Result<(), String> {
         if let Some((_, existing)) = self.reifies.iter().find(|(r, _)| *r == rid) {
             if *existing != spo {
@@ -246,50 +177,6 @@ impl SnapshotBuilder {
             return Ok(());
         }
         self.reifies.push((rid, spo));
-        Ok(())
-    }
-
-    /// Ingest the RDF 1.2 statement layer from a parsed quad list (the
-    /// `rdf:reifies` triple-terms + annotations), mirroring `_Builder.add_rdf12`.
-    pub fn add_rdf12(
-        &mut self,
-        quads: &[Quad],
-        graph_name: Option<&str>,
-        scope: Option<&str>,
-    ) -> Result<(), String> {
-        let default_gid = graph_name.map(|name| self.intern_iri(name));
-        let mut reifier_ids: std::collections::HashSet<usize> = std::collections::HashSet::new();
-        let mut pending: Vec<(usize, usize, usize)> = Vec::new();
-
-        // Pass 1: reifies bindings establish which subjects are reifiers.
-        for quad in quads {
-            let is_reifies = quad.predicate.as_str() == RDF_REIFIES;
-            if let (true, OxTerm::Triple(triple)) = (is_reifies, &quad.object) {
-                let rid = self.intern_ox_subject(&quad.subject, scope);
-                let qs = self.intern_ox_subject(&triple.subject, scope);
-                let qp = self.intern_iri(triple.predicate.as_str());
-                let Some(qo) = self.intern_ox_term(&triple.object, scope) else {
-                    continue;
-                };
-                reifier_ids.insert(rid);
-                self.bind_reifier(rid, (qs, qp, qo))?;
-            } else {
-                let sid = self.intern_ox_subject(&quad.subject, scope);
-                let pid = self.intern_iri(quad.predicate.as_str());
-                let Some(oid) = self.intern_ox_term(&quad.object, scope) else {
-                    continue;
-                };
-                pending.push((sid, pid, oid));
-            }
-        }
-        // Pass 2: a reifier's other triples are annotations; the rest are base quads.
-        for (sid, pid, oid) in pending {
-            if reifier_ids.contains(&sid) {
-                self.annot.push((sid, pid, oid));
-            } else {
-                self.quads.push((sid, pid, oid, default_gid));
-            }
-        }
         Ok(())
     }
 
@@ -304,6 +191,26 @@ impl SnapshotBuilder {
     /// # Errors
     /// A conflicting reifier rebind (one reifier id bound to two different statements).
     pub fn add_dataset(&mut self, dataset: &crate::RdfDataset) -> Result<(), String> {
+        self.add_dataset_scoped(dataset, None, None)
+    }
+
+    /// Ingest a native [`RdfDataset`](crate::RdfDataset) with the same source-partitioning
+    /// hooks the legacy oxigraph ingestion exposed: `default_graph_name` assigns base
+    /// quads carrying no graph of their own to a named graph, and `scope` prefixes
+    /// blank-node labels (`"{scope}-{label}"`) so two equal labels in different ingest
+    /// scopes stay distinct terms. With both `None` this is the plain carrier ingestion
+    /// ([`Self::add_dataset`]). The blank scope applies to EVERY blank position (quads,
+    /// reifiers, annotations) exactly as the old `add_quads`/`add_rdf12` did.
+    ///
+    /// # Errors
+    /// A conflicting reifier rebind (one reifier id bound to two different statements).
+    pub fn add_dataset_scoped(
+        &mut self,
+        dataset: &crate::RdfDataset,
+        default_graph_name: Option<&str>,
+        scope: Option<&str>,
+    ) -> Result<(), String> {
+        let default_gid = default_graph_name.map(|name| self.intern_iri(name));
         for quad in dataset.owned_quads() {
             // FAIL CLOSED (no-optionality): a carrier quad whose subject/object/graph is
             // not directly representable in the snapshot frame (a quoted-triple term, or
@@ -311,28 +218,38 @@ impl SnapshotBuilder {
             // emitted `gmeow.gts` diverge from the canonical carrier. Quoted triples are
             // representable ONLY via the reifier/annotation tables (handled below), so a
             // Triple term in plain-quad position is genuine loss and aborts the emit.
-            let sid = self.intern_required_native_term(&quad.subject, "quad subject")?;
+            let sid = self.intern_required_native_term(&quad.subject, scope, "quad subject")?;
             let pid = self.intern_iri(&quad.predicate);
-            let oid = self.intern_required_native_term(&quad.object, "quad object")?;
+            let oid = self.intern_required_native_term(&quad.object, scope, "quad object")?;
             let gid = match &quad.graph_name {
-                None => None,
-                Some(graph) => Some(self.intern_required_native_term(graph, "quad graph name")?),
+                None => default_gid,
+                Some(graph) => {
+                    Some(self.intern_required_native_term(graph, scope, "quad graph name")?)
+                }
             };
             self.quads.push((sid, pid, oid, gid));
         }
         for reifier in dataset.owned_reifiers() {
-            let rid = self.intern_required_native_term(&reifier.reifier, "reifier term")?;
-            let qs =
-                self.intern_required_native_term(&reifier.statement.subject, "reified subject")?;
+            let rid = self.intern_required_native_term(&reifier.reifier, scope, "reifier term")?;
+            let qs = self.intern_required_native_term(
+                &reifier.statement.subject,
+                scope,
+                "reified subject",
+            )?;
             let qp = self.intern_iri(&reifier.statement.predicate);
-            let qo =
-                self.intern_required_native_term(&reifier.statement.object, "reified object")?;
+            let qo = self.intern_required_native_term(
+                &reifier.statement.object,
+                scope,
+                "reified object",
+            )?;
             self.bind_reifier(rid, (qs, qp, qo))?;
         }
         for annot in dataset.owned_annotations() {
-            let rid = self.intern_required_native_term(&annot.reifier, "annotation reifier")?;
+            let rid =
+                self.intern_required_native_term(&annot.reifier, scope, "annotation reifier")?;
             let pid = self.intern_iri(&annot.predicate);
-            let oid = self.intern_required_native_term(&annot.object, "annotation object")?;
+            let oid =
+                self.intern_required_native_term(&annot.object, scope, "annotation object")?;
             self.annot.push((rid, pid, oid));
         }
         Ok(())
@@ -344,9 +261,10 @@ impl SnapshotBuilder {
     fn intern_required_native_term(
         &mut self,
         term: &crate::RdfTerm,
+        scope: Option<&str>,
         position: &str,
     ) -> Result<usize, String> {
-        self.intern_native_term(term).ok_or_else(|| {
+        self.intern_native_term(term, scope).ok_or_else(|| {
             format!(
                 "carrier {position} is not directly representable in the gts snapshot frame \
                  (quoted-triple terms must ride the reifier/annotation tables): {term:?}"
@@ -355,15 +273,16 @@ impl SnapshotBuilder {
     }
 
     /// Intern a native term in subject/object/graph position (triple-terms are NOT
-    /// interned — the RDF-1.2 layer rides the reifies/annot tables). Mirrors
-    /// [`Self::intern_ox_term`]'s literal normalization (a language tag implies no
-    /// datatype; `xsd:string` is implied and stored without a datatype) so native and
-    /// oxigraph ingestion intern byte-identical term rows. Blank nodes carry no ingest
-    /// scope: a frozen carrier dataset has already standardized them apart.
-    fn intern_native_term(&mut self, term: &crate::RdfTerm) -> Option<usize> {
+    /// interned — the RDF-1.2 layer rides the reifies/annot tables). Mirrors the legacy
+    /// oxigraph ingestion's literal normalization (a language tag implies no datatype;
+    /// `xsd:string` is implied and stored without a datatype) so the term rows are
+    /// byte-identical. `scope` prefixes blank labels (`None` keeps the raw label) — a
+    /// frozen carrier dataset has already standardized its blanks apart, so the carrier
+    /// exit passes `None`; the Python multi-source producer passes per-source scopes.
+    fn intern_native_term(&mut self, term: &crate::RdfTerm, scope: Option<&str>) -> Option<usize> {
         match term {
             crate::RdfTerm::Iri(iri) => Some(self.intern_iri(iri)),
-            crate::RdfTerm::BlankNode(label) => Some(self.intern_bnode(label, None)),
+            crate::RdfTerm::BlankNode(label) => Some(self.intern_bnode(label, scope)),
             crate::RdfTerm::Literal(literal) => {
                 if let Some(lang) = &literal.language {
                     Some(self.intern_literal(&literal.lexical_form, None, Some(lang)))
@@ -662,34 +581,29 @@ pub fn emit_gts(
     Ok(writer.to_bytes())
 }
 
-/// Parse RDF bytes into the flat oxigraph quad stream via the native codec (#909).
-///
-/// Routes through the native [`parse_dataset`] → IR → flat
-/// quad un-fold so the `SnapshotBuilder` ingests the same set of quads it did when it
-/// re-parsed N-Quads/Turtle text (base quads plus the `rdf:reifies` / annotation rows
-/// re-materialized from the folded statement layer). Private-use language tags such
-/// as `@x-gmeow-*` are valid BCP-47 `x-…` privateuse tags and survive the native
-/// parse. The pyo3-free twin of `py_store::parse_quads`.
-pub fn parse_quads_lenient(data: &[u8], format: NativeRdfFormat) -> Result<Vec<Quad>, String> {
-    let dataset = parse_dataset(data, format.media_type(), None).map_err(|e| e.to_string())?;
-    flat_oxigraph_quads_from_dataset(&dataset).map_err(|e| e.to_string())
-}
-
 #[cfg(test)]
 mod tests {
     //! Pure-Rust coverage of the `SnapshotBuilder` core (no Python interpreter):
     //! interning order, content sort, the snapshot payload, and the content-id.
     use super::*;
+    use crate::parse_dataset;
 
-    fn ingest(nq: &str) -> SnapshotBuilder {
-        let quads = parse_quads_lenient(nq.as_bytes(), NativeRdfFormat::NQuads).expect("parse");
+    fn ingest(text: &str, media_type: &str) -> SnapshotBuilder {
+        let ds = parse_dataset(text.as_bytes(), media_type, None).expect("parse dataset");
         let mut b = SnapshotBuilder::default();
-        b.add_quads(&quads, None, None);
+        b.add_dataset(&ds).expect("add_dataset");
         b
     }
 
+    fn ingest_nq(nq: &str) -> SnapshotBuilder {
+        ingest(nq, "application/n-quads")
+    }
+
     #[test]
-    fn add_dataset_matches_oxigraph_ingestion_for_plain_graphs() {
+    fn add_dataset_interns_expected_plain_graph_rows() {
+        // Native carrier ingestion (the single-exit path) of a plain multi-graph dataset
+        // exercising every term shape: IRI object, bare literal, lang-tagged literal,
+        // explicit `xsd:string` (folds with the bare literal), and a named-graph quad.
         let nq = concat!(
             "<https://e/s> <https://e/p> <https://e/o> .\n",
             "<https://e/s> <https://e/p2> \"lit\" .\n",
@@ -698,25 +612,44 @@ mod tests {
             "\"x\"^^<http://www.w3.org/2001/XMLSchema#string> .\n",
             "<https://e/s> <https://e/p> <https://e/o2> <https://e/g> .\n",
         );
-        // Native carrier ingestion (the single-exit path).
         let ds = parse_dataset(nq.as_bytes(), "application/n-quads", None).expect("parse dataset");
         let mut native = SnapshotBuilder::default();
         native.add_dataset(&ds).expect("add_dataset");
-        // The existing oxigraph ingestion.
-        let oxi = ingest(nq);
-        // No blank nodes ⇒ the canonical snapshot payload is byte-identical both ways,
-        // so the native carrier serializes to the same snapshot frame.
+        let (terms, quads, reifies, annot) = native.canonical_tables();
+        assert!(reifies.is_empty(), "no statement layer");
+        assert!(annot.is_empty(), "no annotations");
+        // Five base quads (the explicit xsd:string literal stays its own quad row).
+        assert_eq!(quads.len(), 5, "five base quad rows");
+        // One named-graph quad: exactly one row carries a graph id.
         assert_eq!(
-            canonical(&native.snapshot_payload()),
-            canonical(&oxi.snapshot_payload()),
-            "native carrier ingestion canonicalizes identically to oxigraph ingestion"
+            quads.iter().filter(|(_, _, _, g)| g.is_some()).count(),
+            1,
+            "exactly one named-graph row"
+        );
+        // Literals: the bare "lit", the explicit `xsd:string` "x" (stored WITHOUT a
+        // datatype — xsd:string is implicit), and the lang-tagged "tagged"@en. Three
+        // distinct lexical values ⇒ three literal term rows. Every other term is an IRI.
+        let literals = terms.iter().filter(|t| t.kind == TermKind::Literal).count();
+        assert_eq!(literals, 3, "three distinct literal values");
+        assert!(
+            terms
+                .iter()
+                .filter(|t| t.kind == TermKind::Literal)
+                .all(|t| t.datatype.is_none()),
+            "xsd:string is implicit; no literal carries an explicit datatype id"
+        );
+        assert!(
+            terms.iter().filter(|t| t.kind == TermKind::Iri).count() >= 6,
+            "subject/predicate/object/graph IRIs all interned"
         );
     }
 
     #[test]
-    fn add_dataset_statement_layer_matches_add_rdf12() {
+    fn add_dataset_folds_statement_layer_into_side_tables() {
         // A reifier with the canonical `rdf:reifies <<( s p o )>>` shape plus annotation
-        // properties on the reifier subject — the exact statement-layer pattern.
+        // properties on the reifier subject — the exact statement-layer pattern. The
+        // native `parse_dataset` folds it into the dataset's reifier/annotation side
+        // tables, which `add_dataset` maps straight onto `reifies`/`annot`.
         let ttl = concat!(
             "<https://e/claim> ",
             "<http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
@@ -725,24 +658,24 @@ mod tests {
             "  <https://e/confidence> \"0.9\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n",
             "<https://e/s> <https://e/p> <https://e/o> .\n",
         );
-        // Native carrier ingestion (the statement layer folded into side-tables by parse).
         let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse dataset");
         let mut native = SnapshotBuilder::default();
         native.add_dataset(&ds).expect("add_dataset");
-        // The existing add_rdf12 path (oxigraph quads + annotation inference).
-        let quads = parse_quads_lenient(ttl.as_bytes(), NativeRdfFormat::Turtle).expect("parse");
-        let mut rdf12 = SnapshotBuilder::default();
-        rdf12.add_rdf12(&quads, None, None).expect("add_rdf12");
+        let (_terms, quads, reifies, annot) = native.canonical_tables();
+        assert_eq!(reifies.len(), 1, "one reifies binding");
+        assert_eq!(annot.len(), 2, "accordingTo + confidence annotations");
+        // The single base quad `<s> <p> <o>` survives as a plain quad row; the reifier
+        // subject's other triples ride the annotation table, not the base quads.
         assert_eq!(
-            canonical(&native.snapshot_payload()),
-            canonical(&rdf12.snapshot_payload()),
-            "native statement-layer ingestion must match add_rdf12 (reifier + annotations)"
+            quads.len(),
+            1,
+            "one base quad; reifier triples are annotations"
         );
     }
 
     #[test]
     fn content_sort_is_iris_first_then_value() {
-        let b = ingest(
+        let b = ingest_nq(
             "<https://e/s> <https://e/p> \"z\" .\n<https://e/s> <https://e/p> <https://e/a> .\n",
         );
         let (terms, _quads, _r, _a) = b.canonical_tables();
@@ -753,7 +686,7 @@ mod tests {
 
     #[test]
     fn xsd_string_datatype_is_implicit() {
-        let b = ingest(concat!(
+        let b = ingest_nq(concat!(
             "<https://e/s> <https://e/p> \"x\" .\n",
             "<https://e/s2> <https://e/p> ",
             "\"x\"^^<http://www.w3.org/2001/XMLSchema#string> .\n",
@@ -768,10 +701,10 @@ mod tests {
 
     #[test]
     fn snapshot_content_id_is_order_independent() {
-        let a = ingest(
+        let a = ingest_nq(
             "<https://e/a> <https://e/p> <https://e/b> .\n<https://e/c> <https://e/p> <https://e/d> .\n",
         );
-        let b = ingest(
+        let b = ingest_nq(
             "<https://e/c> <https://e/p> <https://e/d> .\n<https://e/a> <https://e/p> <https://e/b> .\n",
         );
         assert_eq!(a.snapshot_content_id(), b.snapshot_content_id());
@@ -780,7 +713,7 @@ mod tests {
 
     #[test]
     fn rdf12_reifier_classifies_annotations() {
-        let quads = parse_quads_lenient(
+        let ds = parse_dataset(
             concat!(
                 "<https://e/r> ",
                 "<http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
@@ -788,11 +721,12 @@ mod tests {
                 "<https://e/r> <https://e/confidence> \"0.9\" .\n",
             )
             .as_bytes(),
-            NativeRdfFormat::NTriples,
+            "application/n-triples",
+            None,
         )
         .expect("parse rdf12");
         let mut b = SnapshotBuilder::default();
-        b.add_rdf12(&quads, None, None).expect("ingest");
+        b.add_dataset(&ds).expect("ingest");
         let (_terms, quads, reifies, annot) = b.canonical_tables();
         assert_eq!(reifies.len(), 1, "one reifies binding");
         assert_eq!(annot.len(), 1, "one annotation row");
@@ -802,15 +736,12 @@ mod tests {
     #[test]
     fn conflicting_reifier_rebind_is_rejected() {
         // FINDING (#909): two DIFFERENT `rdf:reifies` triple terms for one reifier
-        // subject is still HARD-rejected (CONSTITUTION P7, never silently
-        // last-write-win), but the rejection now fires EARLIER — the native
-        // `parse_dataset` folds the statement layer during parse and detects the
-        // conflicting rebind there ("conflicting rdf:reifies binding"), before the
-        // bytes ever reach `SnapshotBuilder::add_rdf12`. Previously the flat lenient
-        // oxigraph parse passed both rows through and `add_rdf12`'s `bind_reifier`
-        // caught the conflict ("conflicting reifier rebind"). Either way the conflict
-        // is surfaced, not dropped.
-        let err = parse_quads_lenient(
+        // subject is HARD-rejected (CONSTITUTION P7, never silently last-write-win).
+        // The native `parse_dataset` folds the statement layer during parse and detects
+        // the conflicting rebind there ("conflicting rdf:reifies binding"), before the
+        // bytes ever reach `SnapshotBuilder::add_dataset`. The conflict is surfaced, not
+        // dropped.
+        let err = parse_dataset(
             concat!(
                 "<https://e/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
                 "<<( <https://e/s> <https://e/p> <https://e/o1> )>> .\n",
@@ -818,25 +749,30 @@ mod tests {
                 "<<( <https://e/s> <https://e/p> <https://e/o2> )>> .\n",
             )
             .as_bytes(),
-            NativeRdfFormat::NTriples,
+            "application/n-triples",
+            None,
         )
         .expect_err("conflicting rdf:reifies must hard-fail at parse");
-        assert!(err.contains("conflicting rdf:reifies binding"), "{err}");
+        assert!(
+            err.to_string().contains("conflicting rdf:reifies binding"),
+            "{err}"
+        );
     }
 
     #[test]
     fn default_and_named_graphs_round_trip() {
-        let quads = parse_quads_lenient(
+        let ds = parse_dataset(
             concat!(
                 "<https://e/default> <https://e/p> <https://e/o> .\n",
                 "<https://e/named> <https://e/p> \"v\"@en <https://e/g> .\n",
             )
             .as_bytes(),
-            NativeRdfFormat::NQuads,
+            "application/n-quads",
+            None,
         )
         .expect("parse");
         let mut builder = SnapshotBuilder::default();
-        builder.add_quads(&quads, None, None);
+        builder.add_dataset(&ds).expect("add_dataset");
         let bytes = emit_gts(
             &builder,
             "dist",
@@ -857,7 +793,7 @@ mod tests {
 
     #[test]
     fn blobs_are_additive_and_do_not_change_the_graph() {
-        let builder = ingest("<https://e/s> <https://e/p> <https://e/o> .\n");
+        let builder = ingest_nq("<https://e/s> <https://e/p> <https://e/o> .\n");
         let base = emit_gts(
             &builder,
             "dist",
@@ -937,7 +873,7 @@ mod tests {
 
     #[test]
     fn partial_signing_configuration_is_rejected() {
-        let builder = ingest("<https://e/s> <https://e/p> <https://e/o> .\n");
+        let builder = ingest_nq("<https://e/s> <https://e/p> <https://e/o> .\n");
         let err = emit_gts(
             &builder,
             "dist",
