@@ -6,7 +6,7 @@
 use super::*;
 use crate::lower::lower_rule;
 use gmeow_logic_compile::ir::{
-    ContextualScope, LogicAxiom, LogicProgram, LogicRule, PreservationKind,
+    ContextualScope, Formula, LogicAxiom, LogicProgram, LogicRule, PreservationKind, Term,
 };
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
