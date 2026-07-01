@@ -724,6 +724,27 @@ pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
     )
 }
 
+/// The committed repo-relative path an archive member reconstructs — the inverse of
+/// this stage's member-naming conventions, so the superset gate and the fanout
+/// projection resolve a blob member to its `generated/` path without guessing. The
+/// basename-keyed reps (`REP_MAPPINGS`/`REP_QUERIES`/`REP_SCHEMAS`, keyed by bare
+/// filename in their single directory via `members_basename`) get their directory
+/// prefix restored here; the repo-relative reps (`REP_AXIOMS`/`REP_SHAPES`/
+/// `REP_GENERATED`, keyed by `members_relpath`) pass through unchanged. One authority:
+/// carrier.rs owns both the forward member naming and this inverse. Returns `None`
+/// for a rep that carries no committed `generated/` file (mirrors
+/// [`archive_rep_carries_generated`]).
+pub(crate) fn committed_path_for_archive_member(rep: &str, member: &str) -> Option<String> {
+    match rep {
+        REP_MAPPINGS => Some(format!("generated/mappings/{member}")),
+        REP_QUERIES => Some(format!("generated/queries/{member}")),
+        REP_SCHEMAS => Some(format!("generated/schemas/{member}")),
+        // Already repo-relative (`generated/...` or source `shapes/`/`slices/`).
+        REP_AXIOMS | REP_SHAPES | REP_GENERATED => Some(member.to_string()),
+        _ => None,
+    }
+}
+
 /// Whether `path` is an RDF text artifact (carried as a NAMED GRAPH, never a blob).
 fn is_rdf_member(path: &str) -> bool {
     path.ends_with(".ttl") || path.ends_with(".nt") || path.ends_with(".nq")
