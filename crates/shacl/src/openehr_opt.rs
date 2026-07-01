@@ -1,20 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Reads openEHR Operational Template (OPT) XML directly and lowers a
-//! `C_DV_QUANTITY` magnitude interval constraint to SHACL Turtle.
+//! Reads openEHR Operational Template (OPT) XML directly into the pure, crate-agnostic
+//! carrier the `logic:` constraint axis lowers from.
 //!
 //! An OPT is the flattened, fully-expressed form of an ADL archetype: every
 //! `ELEMENT` node carries a `node_id` (an at-code, e.g. `at0004`) and, when its
 //! value is constrained to a `DV_QUANTITY`, a `magnitude` interval with four
 //! boundary fields (`lower`, `upper`, `lower_included`, `upper_included`) plus
 //! a sibling `units` string. [`read_magnitude_interval`] walks the OPT DOM to
-//! find that interval for a given `node_id`, and [`lower_magnitude_to_shacl_ttl`]
-//! turns the parsed interval into a SHACL property shape, choosing
-//! `sh:minInclusive`/`sh:minExclusive` and `sh:maxInclusive`/`sh:maxExclusive`
-//! according to the interval's own inclusivity flags rather than a hardcoded
-//! assumption. The two responsibilities are kept separate: parsing never
-//! decides SHACL vocabulary, and lowering never touches XML.
+//! find that interval for a given `node_id`, and [`read_opt_quantity_constraint`]
+//! packages it as an [`gmeow_logic_compile::opt_lift::OptConstraintIr`] — the XML-free value
+//! the `logic:` lift and the SHACL Core / ShEx projections consume. This crate does the XML
+//! parsing ONLY; the SHACL/ShEx surfaces are projected in `gmeow-logic-compile` from the
+//! canonical `logic:ValidationShape` (Principle 4 — the canon is the authoring ground; there
+//! is no direct OPT→SHACL emit).
 //!
 //! OPT files reuse `lower_included`/`upper_included` field names inside many
 //! unrelated interval blocks (`occurrences`, `existence`, `precision`, and
@@ -185,59 +185,6 @@ pub fn read_magnitude_interval(
     )))
 }
 
-/// Formats a bound as an integer literal when it is a whole number, else as
-/// a plain decimal — matching how SHACL numeric literals are conventionally
-/// written in the ontology's Turtle sources.
-fn format_bound(value: f64) -> String {
-    if value.fract() == 0.0 && value.is_finite() {
-        format!("{}", value as i64)
-    } else {
-        format!("{value}")
-    }
-}
-
-/// Lowers a parsed [`MagnitudeInterval`] to a SHACL `sh:NodeShape` in Turtle,
-/// targeting `target_class` and constraining `path_predicate` under the
-/// property shape identified by `shape_iri`.
-///
-/// Inclusivity maps directly onto the corresponding SHACL constraint
-/// component: `lower_included` selects `sh:minInclusive` (true) or
-/// `sh:minExclusive` (false); `upper_included` selects `sh:maxInclusive`
-/// (true) or `sh:maxExclusive` (false).
-pub fn lower_magnitude_to_shacl_ttl(
-    interval: &MagnitudeInterval,
-    target_class: &str,
-    path_predicate: &str,
-    shape_iri: &str,
-) -> String {
-    let min_predicate = if interval.lower_included {
-        "sh:minInclusive"
-    } else {
-        "sh:minExclusive"
-    };
-    let max_predicate = if interval.upper_included {
-        "sh:maxInclusive"
-    } else {
-        "sh:maxExclusive"
-    };
-
-    format!(
-        "@prefix sh:    <http://www.w3.org/ns/shacl#> .\n\
-         @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-         @prefix ex:    <https://gmeow.example/openehr/bp/> .\n\
-         \n\
-         {shape_iri} a sh:NodeShape ;\n\
-         \x20   sh:targetClass {target_class} ;\n\
-         \x20   sh:property [\n\
-         \x20       sh:path {path_predicate} ;\n\
-         \x20       {min_predicate} {lower} ;\n\
-         \x20       {max_predicate} {upper} ;\n\
-         \x20   ] .\n",
-        lower = format_bound(interval.lower),
-        upper = format_bound(interval.upper),
-    )
-}
-
 /// Reads a `C_DV_QUANTITY` constraint for `node_id` and packages it as the pure,
 /// crate-agnostic [`OptConstraintIr`] the `logic:` lift consumes. Reuses the hard-fail
 /// fixed-path descent of [`read_magnitude_interval`]; `magnitude_path`/`units_path` are the
@@ -271,64 +218,6 @@ pub fn read_opt_quantity_constraint(
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn interval(lower_included: bool, upper_included: bool) -> MagnitudeInterval {
-        MagnitudeInterval {
-            lower: 0.0,
-            upper: 1000.0,
-            lower_included,
-            upper_included,
-            units: "mm[Hg]".to_string(),
-        }
-    }
-
-    #[test]
-    fn lower_included_true_emits_min_inclusive() {
-        let ttl = lower_magnitude_to_shacl_ttl(
-            &interval(true, false),
-            "gmeow:SystolicMeasurement",
-            "gmeow:quantityValue",
-            "ex:SystolicMeasurementShape",
-        );
-        assert!(ttl.contains("sh:minInclusive 0"));
-        assert!(!ttl.contains("sh:minExclusive"));
-    }
-
-    #[test]
-    fn lower_included_false_emits_min_exclusive() {
-        let ttl = lower_magnitude_to_shacl_ttl(
-            &interval(false, false),
-            "gmeow:SystolicMeasurement",
-            "gmeow:quantityValue",
-            "ex:SystolicMeasurementShape",
-        );
-        assert!(ttl.contains("sh:minExclusive 0"));
-        assert!(!ttl.contains("sh:minInclusive"));
-    }
-
-    #[test]
-    fn upper_included_true_emits_max_inclusive() {
-        let ttl = lower_magnitude_to_shacl_ttl(
-            &interval(true, true),
-            "gmeow:SystolicMeasurement",
-            "gmeow:quantityValue",
-            "ex:SystolicMeasurementShape",
-        );
-        assert!(ttl.contains("sh:maxInclusive 1000"));
-        assert!(!ttl.contains("sh:maxExclusive"));
-    }
-
-    #[test]
-    fn upper_included_false_emits_max_exclusive() {
-        let ttl = lower_magnitude_to_shacl_ttl(
-            &interval(true, false),
-            "gmeow:SystolicMeasurement",
-            "gmeow:quantityValue",
-            "ex:SystolicMeasurementShape",
-        );
-        assert!(ttl.contains("sh:maxExclusive 1000"));
-        assert!(!ttl.contains("sh:maxInclusive"));
-    }
 
     #[test]
     fn missing_node_id_hard_fails() {

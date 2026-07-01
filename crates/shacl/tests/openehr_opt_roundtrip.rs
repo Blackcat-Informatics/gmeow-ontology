@@ -12,9 +12,7 @@ use gmeow_logic_compile::opt_lift::{
     lift_opt_to_validation_shape, recover_opt_from_shape, OptConstraintKind,
 };
 use gmeow_logic_compile::projections::shapes::project_validation_shape_shacl;
-use gmeow_shacl::openehr_opt::{
-    lower_magnitude_to_shacl_ttl, read_magnitude_interval, read_opt_quantity_constraint,
-};
+use gmeow_shacl::openehr_opt::{read_magnitude_interval, read_opt_quantity_constraint};
 
 /// Reads the vendored Blutdruck OPT from disk (`crates/shacl` → repo `validations/`).
 fn blutdruck_opt() -> String {
@@ -71,28 +69,5 @@ fn real_opt_round_trips_u_after_d_is_identity() {
             assert_eq!(units, raw.units);
         }
         other => panic!("expected a Quantity constraint from a quantity node, got {other:?}"),
-    }
-}
-
-#[test]
-fn derived_shacl_matches_the_direct_emit_oracle_on_the_interval() {
-    // The derived path (OPT → logic: → SHACL) must agree with the narrow direct-emit
-    // reader it subsumes on the interval facets — equivalence before the direct path is
-    // retired. Both are read from the SAME real OPT node.
-    let opt = blutdruck_opt();
-    let raw = read_magnitude_interval(&opt, SYSTOLIC_NODE).unwrap();
-    let oracle = lower_magnitude_to_shacl_ttl(&raw, CLASS, MAG, SHAPE);
-
-    let constraint =
-        read_opt_quantity_constraint(&opt, SYSTOLIC_NODE, SHAPE, CLASS, MAG, UNITS).unwrap();
-    let derived =
-        project_validation_shape_shacl(&lift_opt_to_validation_shape(&constraint).unwrap());
-
-    for facet in ["sh:minInclusive 0", "sh:maxExclusive 1000"] {
-        assert!(oracle.contains(facet), "oracle missing {facet}: {oracle}");
-        assert!(
-            derived.contains(facet),
-            "derived missing {facet}: {derived}"
-        );
     }
 }
