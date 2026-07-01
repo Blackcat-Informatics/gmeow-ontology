@@ -18,7 +18,7 @@
 </head>
 <body>
   <h1>logic-compile diagnostics</h1>
-  <p class="summary">0 error(s), 0 warning(s), 1074 total finding(s)</p>
+  <p class="summary">0 error(s), 0 warning(s), 1080 total finding(s)</p>
   <table>
     <thead><tr><th>Severity</th><th>Code</th><th>Message</th><th>Location</th></tr></thead>
     <tbody>
@@ -1096,6 +1096,12 @@
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shacl-af drops: modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop</td><td>slices/core/logic/module.ttl</td></tr>
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shacl-af drops: the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)</td><td>slices/core/logic/module.ttl</td></tr>
 <tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shacl-af drops: the stratified Horn-with-stratified-negation-and-aggregation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER, and a reduce rule → an aggregating sh:SPARQLRule with a GROUP-BY sub-SELECT): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)</td><td>slices/core/logic/module.ttl</td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shacl-core drops: a shape surface validates but does not entail (ValidationOnly)</td><td>slices/core/logic/module.ttl</td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shacl-core drops: full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer</td><td>slices/core/logic/module.ttl</td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shacl-core drops: sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape</td><td>slices/core/logic/module.ttl</td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shex drops: ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no datetime-range facet; those conditions are carried in the canonical logic: layer</td><td>slices/core/logic/module.ttl</td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shex drops: a shape surface validates but does not entail (ValidationOnly)</td><td>slices/core/logic/module.ttl</td></tr>
+<tr><td><span class="sev sev-note">note</span></td><td>logic-compile.lossy-drop</td><td>projection shex drops: everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)</td><td>slices/core/logic/module.ttl</td></tr>
     </tbody>
   </table>
 </body>

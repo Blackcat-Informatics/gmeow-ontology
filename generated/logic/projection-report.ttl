@@ -7714,6 +7714,24 @@
     logic:complexityClass "terminating/PTIME-data" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/shacl-core>
+    a logic:ProjectionTarget ;
+    rdfs:label "shacl-core" ;
+    gmeow:lossyDrop "a shape surface validates but does not entail (ValidationOnly)" ,
+        "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer" ,
+        "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape" ;
+    logic:complexityClass "closed-world shape validation (SHACL Core)" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/shex>
+    a logic:ProjectionTarget ;
+    rdfs:label "shex" ;
+    gmeow:lossyDrop "ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no datetime-range facet; those conditions are carried in the canonical logic: layer" ,
+        "a shape surface validates but does not entail (ValidationOnly)" ,
+        "everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)" ;
+    logic:complexityClass "closed-world shape validation (ShEx, strictly narrower than SHACL Core)" ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/sparql:011d28b7ee1ca288>
     a logic:ProjectionTarget ;
     rdfs:label "sparql:011d28b7ee1ca288" ;
@@ -33643,6 +33661,8 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/owl-dl> ,
         <https://blackcatinformatics.ca/logic/target/owl-el> ,
         <https://blackcatinformatics.ca/logic/target/shacl-af> ,
+        <https://blackcatinformatics.ca/logic/target/shacl-core> ,
+        <https://blackcatinformatics.ca/logic/target/shex> ,
         <https://blackcatinformatics.ca/logic/target/sparql:011d28b7ee1ca288> ,
         <https://blackcatinformatics.ca/logic/target/sparql:01ef4cd9bbaa3c97> ,
         <https://blackcatinformatics.ca/logic/target/sparql:02ade478d7ee3bf9> ,
