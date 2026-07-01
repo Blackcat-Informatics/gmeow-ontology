@@ -13,9 +13,10 @@
 //! executable surfaces — a genuine layering seam, not a degraded fallback.
 
 use std::collections::BTreeMap;
-use std::sync::Arc;
 
-use gmeow_rdf::RdfDataset;
+/// One serialized form of a subgraph export: `(short extension, bytes)`, e.g.
+/// `("ttl", <turtle bytes>)`. The docs export surface links these directly.
+pub type ExportFormat = (String, Vec<u8>);
 
 /// The asserted-vs-inferred view of one worked example, computed at build time by
 /// running the native reasoner over `(ontology TBox ∪ example ABoxes)` and slicing the
@@ -50,9 +51,11 @@ pub struct ExecutableDocsData {
     /// The RDF asset the offline SPARQL playground queries: the documentation graph
     /// plus the reasoned ontology closure, serialized to TriG. Empty ⇒ no playground.
     pub playground_trig: Vec<u8>,
-    /// The reasoned ontology dataset, for on-demand per-term / per-slice multi-format
-    /// export (`gmeow_rdf::describe`). `None` ⇒ no export surface.
-    pub ontology: Option<Arc<RdfDataset>>,
+    /// Per-slice multi-format export, keyed by slice IRI: the slice's Symmetric-CBD
+    /// serialized to each RDF format. Precomputed once (language-independent) by the
+    /// pipeline. Empty ⇒ no export surface. (Per-term export flows through the
+    /// playground's `DESCRIBE`, so it needs no static data here.)
+    pub slice_export: BTreeMap<String, Vec<ExportFormat>>,
 }
 
 impl ExecutableDocsData {
@@ -62,10 +65,16 @@ impl ExecutableDocsData {
         !self.playground_trig.is_empty()
     }
 
-    /// Whether the per-term / per-slice export surface can be rendered.
+    /// Whether the per-slice export surface can be rendered.
     #[must_use]
     pub fn has_export(&self) -> bool {
-        self.ontology.is_some()
+        !self.slice_export.is_empty()
+    }
+
+    /// The precomputed export formats for one slice IRI, if any.
+    #[must_use]
+    pub fn export_for(&self, slice_iri: &str) -> Option<&[ExportFormat]> {
+        self.slice_export.get(slice_iri).map(Vec::as_slice)
     }
 
     /// The inference diff for one example, if any was computed.
