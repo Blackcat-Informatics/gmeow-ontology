@@ -1684,7 +1684,15 @@ fn normalize_label(text: &str) -> String {
         .to_lowercase()
 }
 
-fn decimal_confidence(conf: &str) -> Option<f64> {
+/// Parse a `gmeow:confidence` lexeme as a well-formed probability.
+///
+/// Returns the value only when `conf` is a finite `xsd:decimal` in `[0.0, 1.0]`
+/// — empty, exponent-bearing (that is `xsd:double`, not `xsd:decimal`),
+/// unparsable, non-finite, or out-of-range lexemes yield `None`. The single
+/// crate-wide confidence validator: the saturation cell path (`transform`) and
+/// the up-projection ranking share it so a malformed confidence fails the same
+/// way everywhere.
+pub(crate) fn decimal_confidence(conf: &str) -> Option<f64> {
     if conf.is_empty() || conf.contains('e') || conf.contains('E') {
         return None;
     }

@@ -285,7 +285,7 @@ pub fn saturate_nt(
 ) -> Result<Vec<DerivedRowNative>, String> {
     let abox = parse_graph(abox_nt.as_bytes())?;
     let onto = parse_graph(ontology_nt.as_bytes())?;
-    let cells = convert_cells(cells);
+    let cells = convert_cells(cells)?;
     let denied = denied.iter().cloned().collect();
     let vocab = suppression_vocab(&onto)?;
     let derived = saturate_graph(&abox, &onto, &cells, &denied, &vocab)?;
@@ -302,7 +302,7 @@ pub fn transform_nt(
 ) -> Result<TransformReportNative, String> {
     let mut abox = skolemized_graph(raw_nt)?;
     let onto = parse_graph(ontology_nt.as_bytes())?;
-    let cells = convert_cells(cells);
+    let cells = convert_cells(cells)?;
     let denied = denied.iter().cloned().collect();
     let vocab = suppression_vocab(&onto)?;
     let suppressed = suppressed_nodes(&abox, &vocab)?;
@@ -332,15 +332,29 @@ pub fn transform_nt(
     })
 }
 
-fn convert_cells(inputs: &[CellInput]) -> Vec<Cell> {
+fn convert_cells(inputs: &[CellInput]) -> Result<Vec<Cell>, String> {
     inputs
         .iter()
-        .map(|cell| Cell {
-            iri: cell.iri.clone(),
-            subject: cell.subject.clone(),
-            predicate_curie: cell.predicate_curie.clone(),
-            object: cell.object.clone(),
-            confidence: cell.confidence.clone(),
+        .map(|cell| {
+            // A cell either records no confidence (legal — no annotation) or a
+            // well-formed probability. A malformed value is a HARD FAIL: an
+            // authored `gmeow:confidence` must be an `xsd:decimal` in [0.0, 1.0]
+            // — never emitted verbatim into the derived triple's provenance.
+            if !cell.confidence.is_empty()
+                && crate::up_projection::decimal_confidence(&cell.confidence).is_none()
+            {
+                return Err(format!(
+                    "cell {} carries a malformed gmeow:confidence {:?}: expected a decimal in [0.0, 1.0]",
+                    cell.iri, cell.confidence
+                ));
+            }
+            Ok(Cell {
+                iri: cell.iri.clone(),
+                subject: cell.subject.clone(),
+                predicate_curie: cell.predicate_curie.clone(),
+                object: cell.object.clone(),
+                confidence: cell.confidence.clone(),
+            })
         })
         .collect()
 }
@@ -1100,6 +1114,417 @@ mod tests {
         assert_eq!(
             curie("http://id.loc.gov/ontologies/bibframe/Work"),
             "bf:Work"
+        );
+    }
+
+    // ── Equivalence saturation E(G): strong-only, lint-gated, suppression-safe ──
+    //
+    // These reproduce the saturation-engine scenarios over hermetic, minimal
+    // N-Triples inputs — no repo ontology, DSL, or fixture files. `saturate_nt`
+    // is the engine under test; the fixtures below exercise every branch of
+    // `build_strong_edges` / `saturate_graph` / `emit_derived` / `cell_annotations`.
+
+    const GM_PERSON: &str = "https://blackcatinformatics.ca/gmeow/Person";
+    const GM_CORPUS: &str = "https://blackcatinformatics.ca/gmeow/Corpus";
+    const SCHEMA_PERSON: &str = "https://schema.org/Person";
+    const SCHEMA_DATASET: &str = "https://schema.org/Dataset";
+    const FOAF_PERSON: &str = "http://xmlns.com/foaf/0.1/Person";
+    const WD_Q42: &str = "http://www.wikidata.org/entity/Q42";
+    const EX_ME: &str = "https://example.org/sat/me";
+    const EX_CORPUS: &str = "https://example.org/sat/corpus";
+    const EX_SUPPRESSED: &str = "https://example.org/sat/suppressed";
+    const EX_CONTROL: &str = "https://example.org/sat/control";
+    const PERSON_SCHEMA_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/person-schema";
+    const PERSON_FOAF_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/person-foaf";
+    const GM_KNOWS: &str = "https://blackcatinformatics.ca/gmeow/knows";
+    const FOAF_KNOWS: &str = "http://xmlns.com/foaf/0.1/knows";
+    const KNOWS_FOAF_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/knows-foaf";
+    const EX_A: &str = "https://example.org/sat/a";
+    const EX_B: &str = "https://example.org/sat/b";
+    const EX_C: &str = "https://example.org/sat/c";
+    const EX_D: &str = "https://example.org/sat/d";
+
+    fn cell(
+        iri: &str,
+        subject: &str,
+        predicate_curie: &str,
+        object: &str,
+        confidence: &str,
+    ) -> CellInput {
+        CellInput {
+            iri: iri.to_owned(),
+            subject: subject.to_owned(),
+            predicate_curie: predicate_curie.to_owned(),
+            object: object.to_owned(),
+            confidence: confidence.to_owned(),
+        }
+    }
+
+    /// One N-Triples statement with an IRI object.
+    fn nt(subject: &str, predicate: &str, object: &str) -> String {
+        format!("<{subject}> <{predicate}> <{object}> .\n")
+    }
+
+    /// The minimal ontology every class-edge scenario needs: `gmeow:Person a owl:Class`.
+    fn person_onto() -> String {
+        nt(GM_PERSON, RDF_TYPE, OWL_CLASS)
+    }
+
+    /// A single `gmeow:Person` instance.
+    fn person_abox() -> String {
+        nt(EX_ME, RDF_TYPE, GM_PERSON)
+    }
+
+    /// Two strong class edges for `gmeow:Person`: one via `owl:equivalentClass`
+    /// (confidence 0.9), one via `skos:exactMatch` (confidence 0.8).
+    fn person_cells() -> Vec<CellInput> {
+        vec![
+            cell(
+                PERSON_SCHEMA_CELL,
+                GM_PERSON,
+                "owl:equivalentClass",
+                SCHEMA_PERSON,
+                "0.9",
+            ),
+            cell(
+                PERSON_FOAF_CELL,
+                GM_PERSON,
+                "skos:exactMatch",
+                FOAF_PERSON,
+                "0.8",
+            ),
+        ]
+    }
+
+    /// The minimal ontology a property-edge scenario needs: `gmeow:knows a owl:ObjectProperty`.
+    fn knows_onto() -> String {
+        nt(GM_KNOWS, RDF_TYPE, OWL_OBJECT_PROPERTY)
+    }
+
+    /// One strong property edge: `gmeow:knows owl:equivalentProperty foaf:knows`.
+    fn knows_cells() -> Vec<CellInput> {
+        vec![cell(
+            KNOWS_FOAF_CELL,
+            GM_KNOWS,
+            "owl:equivalentProperty",
+            FOAF_KNOWS,
+            "0.9",
+        )]
+    }
+
+    fn iri_token(iri: &str) -> String {
+        format!("<{iri}>")
+    }
+
+    fn type_objects(rows: &[DerivedRowNative]) -> BTreeSet<String> {
+        rows.iter()
+            .filter(|r| r.predicate == RDF_TYPE)
+            .map(|r| r.object.clone())
+            .collect()
+    }
+
+    #[test]
+    fn saturate_materializes_all_strong_class_edges() {
+        // gmeow:Person saturates to every strong external equivalent at once.
+        let rows = saturate_nt(&person_abox(), &person_onto(), &person_cells(), &[]).unwrap();
+        assert_eq!(
+            type_objects(&rows),
+            BTreeSet::from([iri_token(SCHEMA_PERSON), iri_token(FOAF_PERSON)]),
+        );
+    }
+
+    #[test]
+    fn saturate_ignores_close_match_hints() {
+        // gmeow:Corpus has ONLY a closeMatch cell — a hint must not become a fact.
+        let onto = nt(GM_CORPUS, RDF_TYPE, OWL_CLASS);
+        let corpus_cell = "https://blackcatinformatics.ca/gmeow/te/corpus-dataset";
+        let cells = vec![cell(
+            corpus_cell,
+            GM_CORPUS,
+            "skos:closeMatch",
+            SCHEMA_DATASET,
+            "0.5",
+        )];
+        let abox = nt(EX_CORPUS, RDF_TYPE, GM_CORPUS);
+        let rows = saturate_nt(&abox, &onto, &cells, &[]).unwrap();
+        assert!(
+            rows.is_empty(),
+            "closeMatch must never materialize: {rows:?}"
+        );
+
+        // Positive control (non-vacuous): the SAME fixture with a STRONG
+        // predicate DOES materialize — proving the empty result above is
+        // closeMatch filtering, not a broken/inert fixture.
+        let strong = vec![cell(
+            corpus_cell,
+            GM_CORPUS,
+            "owl:equivalentClass",
+            SCHEMA_DATASET,
+            "0.5",
+        )];
+        let control = saturate_nt(&abox, &onto, &strong, &[]).unwrap();
+        assert_eq!(
+            type_objects(&control),
+            BTreeSet::from([iri_token(SCHEMA_DATASET)]),
+            "strong predicate over the same fixture must materialize"
+        );
+    }
+
+    #[test]
+    fn saturate_refuses_denied_cell_keeps_siblings() {
+        // A lint-ERROR row (the denial key is the CURIE triple) emits nothing;
+        // the sibling strong edge is untouched.
+        let denied = vec![(
+            "gmeow:Person".to_owned(),
+            "owl:equivalentClass".to_owned(),
+            "schema:Person".to_owned(),
+        )];
+        let rows = saturate_nt(&person_abox(), &person_onto(), &person_cells(), &denied).unwrap();
+        let types = type_objects(&rows);
+        assert!(
+            !types.contains(&iri_token(SCHEMA_PERSON)),
+            "denied edge leaked"
+        );
+        assert!(types.contains(&iri_token(FOAF_PERSON)), "sibling edge lost");
+    }
+
+    #[test]
+    fn saturate_drops_suppressed_nodes_keeps_control() {
+        // A displayable-false node never saturates; its control twin does (non-vacuous).
+        let cells = vec![cell(
+            PERSON_SCHEMA_CELL,
+            GM_PERSON,
+            "owl:equivalentClass",
+            SCHEMA_PERSON,
+            "0.9",
+        )];
+        let mut abox = String::new();
+        abox.push_str(&nt(EX_SUPPRESSED, RDF_TYPE, GM_PERSON));
+        abox.push_str(&format!(
+            "<{EX_SUPPRESSED}> <{GM_DISPLAYABLE}> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n"
+        ));
+        abox.push_str(&nt(EX_CONTROL, RDF_TYPE, GM_PERSON));
+        let rows = saturate_nt(&abox, &person_onto(), &cells, &[]).unwrap();
+        let subjects: BTreeSet<String> = rows.iter().map(|r| r.subject.clone()).collect();
+        assert!(
+            !subjects.contains(&iri_token(EX_SUPPRESSED)),
+            "suppressed node saturated"
+        );
+        assert!(
+            subjects.contains(&iri_token(EX_CONTROL)),
+            "control twin missing"
+        );
+    }
+
+    #[test]
+    fn saturate_mirrors_same_as_to_schema() {
+        // owl:sameAs external links mirror to schema:sameAs, rule-attributed.
+        let abox = nt(EX_ME, OWL_SAME_AS, WD_Q42);
+        let rows = saturate_nt(&abox, &person_onto(), &[], &[]).unwrap();
+        let mirrors: Vec<&DerivedRowNative> = rows
+            .iter()
+            .filter(|r| r.predicate == SCHEMA_SAME_AS)
+            .collect();
+        assert_eq!(mirrors.len(), 1);
+        assert_eq!(mirrors[0].subject, iri_token(EX_ME));
+        assert_eq!(mirrors[0].object, iri_token(WD_Q42));
+        assert!(mirrors[0]
+            .annotations
+            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(SAME_AS_MIRROR_RULE))));
+    }
+
+    #[test]
+    fn saturate_mirrors_strong_property_edge() {
+        // A strong equivalentProperty cell mirrors <a> gmeow:knows <b> to
+        // <a> foaf:knows <b>, carrying the object through, cell-attributed.
+        let abox = nt(EX_A, GM_KNOWS, EX_B);
+        let rows = saturate_nt(&abox, &knows_onto(), &knows_cells(), &[]).unwrap();
+        assert_eq!(rows.len(), 1, "exactly the one mirrored edge: {rows:?}");
+        let mirror = &rows[0];
+        assert_eq!(mirror.predicate, FOAF_KNOWS);
+        assert_eq!(mirror.subject, iri_token(EX_A));
+        assert_eq!(mirror.object, iri_token(EX_B));
+        assert!(mirror
+            .annotations
+            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(KNOWS_FOAF_CELL))));
+    }
+
+    #[test]
+    fn saturate_drops_property_edge_with_suppressed_object() {
+        // The property branch skips an edge whose OBJECT is suppressed (the
+        // class-edge test only covers subject suppression); a control edge to a
+        // visible object still mirrors — non-vacuous.
+        let mut abox = String::new();
+        abox.push_str(&nt(EX_A, GM_KNOWS, EX_SUPPRESSED));
+        abox.push_str(&format!(
+            "<{EX_SUPPRESSED}> <{GM_DISPLAYABLE}> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n"
+        ));
+        abox.push_str(&nt(EX_C, GM_KNOWS, EX_B));
+        let rows = saturate_nt(&abox, &knows_onto(), &knows_cells(), &[]).unwrap();
+        let edges: BTreeSet<(String, String)> = rows
+            .iter()
+            .filter(|r| r.predicate == FOAF_KNOWS)
+            .map(|r| (r.subject.clone(), r.object.clone()))
+            .collect();
+        assert!(
+            !edges.contains(&(iri_token(EX_A), iri_token(EX_SUPPRESSED))),
+            "suppressed-object edge leaked"
+        );
+        assert!(
+            edges.contains(&(iri_token(EX_C), iri_token(EX_B))),
+            "control edge lost"
+        );
+    }
+
+    #[test]
+    fn saturate_coarsen_guard_skips_edge_when_coarsen_to_present() {
+        // A coarsen-guarded property whose subject carries gmeow:coarsenTo is
+        // skipped; an unguarded subject still mirrors (positive control).
+        let mut onto = knows_onto();
+        onto.push_str(&format!(
+            "<{GM_KNOWS}> <{GM_COARSEN_GUARDED}> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n"
+        ));
+        let mut abox = String::new();
+        abox.push_str(&nt(EX_A, GM_KNOWS, EX_B));
+        abox.push_str(&nt(EX_A, GM_COARSEN_TO, EX_D)); // guard trips for EX_A
+        abox.push_str(&nt(EX_C, GM_KNOWS, EX_B)); // no coarsenTo → control mirrors
+        let rows = saturate_nt(&abox, &onto, &knows_cells(), &[]).unwrap();
+        let subjects: BTreeSet<String> = rows
+            .iter()
+            .filter(|r| r.predicate == FOAF_KNOWS)
+            .map(|r| r.subject.clone())
+            .collect();
+        assert!(
+            !subjects.contains(&iri_token(EX_A)),
+            "coarsen-guarded edge leaked"
+        );
+        assert!(
+            subjects.contains(&iri_token(EX_C)),
+            "unguarded control edge lost"
+        );
+    }
+
+    #[test]
+    fn saturate_annotates_cell_iri_and_confidence() {
+        // Every derived triple is mappedFrom-attributed to its authored cell and
+        // carries the cell's confidence as a typed decimal literal.
+        let rows = saturate_nt(&person_abox(), &person_onto(), &person_cells(), &[]).unwrap();
+        let schema_row = rows
+            .iter()
+            .find(|r| r.object == iri_token(SCHEMA_PERSON))
+            .expect("schema:Person row");
+        assert!(schema_row
+            .annotations
+            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL))));
+        assert!(schema_row.annotations.contains(&(
+            GM_CONFIDENCE.to_owned(),
+            format!("\"0.9\"^^<{XSD_DECIMAL}>")
+        )));
+    }
+
+    #[test]
+    fn saturate_allows_absent_confidence() {
+        // A cell may record no confidence — it still materializes, the
+        // gmeow:confidence annotation is simply omitted (not a default).
+        let cells = vec![cell(
+            PERSON_SCHEMA_CELL,
+            GM_PERSON,
+            "owl:equivalentClass",
+            SCHEMA_PERSON,
+            "",
+        )];
+        let rows = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap();
+        let schema_row = rows
+            .iter()
+            .find(|r| r.object == iri_token(SCHEMA_PERSON))
+            .expect("schema:Person row");
+        assert!(
+            schema_row
+                .annotations
+                .iter()
+                .all(|(k, _)| k != GM_CONFIDENCE),
+            "absent confidence must not be annotated: {:?}",
+            schema_row.annotations
+        );
+        assert!(schema_row
+            .annotations
+            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL))));
+    }
+
+    #[test]
+    fn saturate_rejects_out_of_range_confidence() {
+        // A confidence outside [0.0, 1.0] is malformed — hard fail, never
+        // emitted verbatim as a bogus xsd:decimal into the provenance layer.
+        let cells = vec![cell(
+            PERSON_SCHEMA_CELL,
+            GM_PERSON,
+            "owl:equivalentClass",
+            SCHEMA_PERSON,
+            "1.5",
+        )];
+        let err = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap_err();
+        assert!(err.contains("malformed gmeow:confidence"), "{err}");
+    }
+
+    #[test]
+    fn saturate_rejects_non_numeric_confidence() {
+        // A non-numeric confidence is malformed — hard fail.
+        let cells = vec![cell(
+            PERSON_SCHEMA_CELL,
+            GM_PERSON,
+            "owl:equivalentClass",
+            SCHEMA_PERSON,
+            "abc",
+        )];
+        let err = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap_err();
+        assert!(err.contains("malformed gmeow:confidence"), "{err}");
+    }
+
+    #[test]
+    fn saturate_skips_already_asserted_triple() {
+        // G is canonical — a triple already in the A-Box gets no derived row / reifier.
+        let cells = vec![cell(
+            PERSON_SCHEMA_CELL,
+            GM_PERSON,
+            "owl:equivalentClass",
+            SCHEMA_PERSON,
+            "0.9",
+        )];
+        let mut abox = person_abox();
+        abox.push_str(&nt(EX_ME, RDF_TYPE, SCHEMA_PERSON));
+        let rows = saturate_nt(&abox, &person_onto(), &cells, &[]).unwrap();
+        assert!(
+            rows.is_empty(),
+            "already-asserted triple was re-derived: {rows:?}"
+        );
+    }
+
+    #[test]
+    fn saturate_is_deterministic() {
+        // Two runs over a RICH A-Box — multiple subjects, class + property +
+        // sameAs edges, and a literal-bearing triple — derive byte-identical
+        // rows, including the content-addressed reifiers. Ordering/reifier
+        // nondeterminism only surfaces with many mixed rows, not the 2-row
+        // single-subject case.
+        let mut onto = person_onto();
+        onto.push_str(&knows_onto());
+        let mut cells = person_cells();
+        cells.extend(knows_cells());
+        let mut abox = String::new();
+        abox.push_str(&nt(EX_ME, RDF_TYPE, GM_PERSON));
+        abox.push_str(&nt(EX_CONTROL, RDF_TYPE, GM_PERSON));
+        abox.push_str(&nt(EX_A, GM_KNOWS, EX_B));
+        abox.push_str(&nt(EX_C, GM_KNOWS, EX_D));
+        abox.push_str(&nt(EX_ME, OWL_SAME_AS, WD_Q42));
+        abox.push_str(&format!("<{EX_ME}> <{GM}fullName> \"Ada\" .\n"));
+
+        let run_a = saturate_nt(&abox, &onto, &cells, &[]).unwrap();
+        let run_b = saturate_nt(&abox, &onto, &cells, &[]).unwrap();
+        assert_eq!(run_a, run_b);
+        assert_eq!(
+            run_a.len(),
+            7,
+            "2 Person subjects × 2 class edges + 2 property mirrors + 1 sameAs mirror: {run_a:?}"
         );
     }
 }
