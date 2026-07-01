@@ -131,7 +131,7 @@ combinator* below).
 
 ### Guard → structured-program combinator
 
-W2 minted the **flow-GRAPH** layer (`gmeow:ControlFlow` ⊑ `logic:ControlFlowEdge` —
+The DAG profile minted the **flow-GRAPH** layer (`gmeow:ControlFlow` ⊑ `logic:ControlFlowEdge` —
 the binary-edge form the DAG-workflow certifier runs Tarjan SCC over). The
 **combinator TREE** layer below is its complement: a control-flow edge's guard
 `gmeow:BranchConditionType` value maps onto the canonical structured-program

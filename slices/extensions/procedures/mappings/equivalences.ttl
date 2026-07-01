@@ -409,7 +409,8 @@ gmeow:eqProc036 a gmeow:TermEquivalence ;
 # --------------------------------------------------------------------------- #
 # Guard → structured-program combinator (the combinator TREE).                #
 #                                                                              #
-# W2 minted the flow-GRAPH layer: gmeow:ControlFlow ⊑ logic:ControlFlowEdge,  #
+# The DAG profile minted the flow-GRAPH layer:                                #
+# gmeow:ControlFlow ⊑ logic:ControlFlowEdge,                                  #
 # the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC  #
 # over. This block adds the COMPLEMENTARY layer the flow-graph alignment did   #
 # NOT carry: the correspondence from a control-flow edge's guard VALUE        #

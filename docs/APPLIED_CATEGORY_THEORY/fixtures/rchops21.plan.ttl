@@ -8,9 +8,9 @@
 # author Thomas Beale, openEHR Foundation). The openEHR DLM/TP-VML text is NOT vendored
 # (specifications-PROC license: "Other"/NOASSERTION); only short excerpts are cited for
 # grounding, and the structure is re-expressed in logic: terms. It exercises exactly the
-# constructs the canonical process model (W1) says a pure DAG cannot hold: a loop, guarded
+# constructs the canonical `logic:Plan` process model says a pure DAG cannot hold: a loop, guarded
 # branches on real conditions, nondeterministic outcomes, and per-branch compensation — proving
-# the W2 DAG must be a *profile* of this superset, not the core.
+# the acyclic DAG profile must be a *profile* of this superset, not the core.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -40,7 +40,7 @@
 <urn:gmeow:action:premedicate> a logic:ActionSchema ;
     skos:prefLabel "pre-medication (paracetamol 1g, chlorphenamine 10mg)"@en ;
     logic:effect       [ logic:ins gmeow:premedicated ] ;
-    logic:resource     gmeow:infusion-nurse ;            # competes-for-resource ⇒ serialized (W3)
+    logic:resource     gmeow:infusion-nurse ;            # competes-for-resource ⇒ serialized (build-pipeline executor's resource capture)
     logic:capability   gmeow:administer-IV ;
     logic:observation  gmeow:premed-given .
 

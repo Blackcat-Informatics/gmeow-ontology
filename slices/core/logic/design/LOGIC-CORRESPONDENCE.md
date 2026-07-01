@@ -279,7 +279,7 @@ openEHR is the worked instance. It is a six-layer standard, and GMEOW subsumes e
 projection doctrine — the **data axis** (`DV_QUANTITY` ↔ frame-relative quantity, reaching
 section/retraction via an in-band complement) and the **process axis** (openEHR PROC / Task-Planning ↔
 `logic:Plan`, a lossy lens for execution). The process axis joins this calculus to the canonical
-process model (work-streams W1/W2/W3): openEHR Task Planning is one more by-reference projection
+process model: openEHR Task Planning is one more by-reference projection
 target of `logic:Plan`, and the correspondence calculus is its projection mechanism. The YAMATO
 refinements that ground both axes (persistent `Quality`; action/event open-closed; causal-vs-temporal
 parts) are adopted by-reference (Principle 5; see
