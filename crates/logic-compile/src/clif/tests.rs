@@ -491,6 +491,20 @@ fn hilog_relation_as_individual_round_trips() {
 }
 
 #[test]
+fn fol_only_clif_without_meta_carrier_fails_closed() {
+    // A CLIF document with idiomatic FOL sentences but NO RDF-meta carrier block cannot be
+    // reconstructed (the FOL view is validated-only, never the round-trip authority). The
+    // reader must FAIL CLOSED, not silently return an empty program (never silently drop).
+    let clif = "(forall (?x) ('https://blackcatinformatics.ca/logic/mortal' ?x))\n";
+    let err = parse_clif_str(clif, Some("urn:test:folonly".to_owned())).unwrap_err();
+    assert!(
+        err.0.contains("no `;; @@gmeow-rdf-meta@@` carrier"),
+        "expected a fail-closed error for FOL-only input, got: {}",
+        err.0
+    );
+}
+
+#[test]
 fn production_module_round_trip_is_isomorphic() {
     // The hard Exact proof: the real logic: slice module must round-trip through CLIF with
     // ZERO loss against the Exact `canonical-rdf12` reference.

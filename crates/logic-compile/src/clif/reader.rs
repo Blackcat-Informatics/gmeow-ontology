@@ -55,6 +55,17 @@ pub fn parse_clif_str(
     // The idiomatic sentences are cross-checked for well-formedness (so corruption surfaces
     // as a diagnostic), but the IR above is the authority — the FOL parse never feeds it.
     let forms = parse_sexprs(&fol_src).map_err(LogicParseError)?;
+    // The RDF/predication channel is the reconstruction authority; the FOL channel is a
+    // validated-only view. A document carrying FOL sentences but NO meta carrier block cannot
+    // be reconstructed (idiomatic CL alone is lossy for the byte-exact IR), so fail CLOSED
+    // rather than silently returning an empty program — a construct is never silently dropped.
+    if meta_src.trim().is_empty() && !forms.is_empty() {
+        return Err(LogicParseError(
+            "CLIF has idiomatic FOL sentences but no `;; @@gmeow-rdf-meta@@` carrier block; \
+             reconstruction from the FOL view alone is lossy and unsupported."
+                .to_owned(),
+        ));
+    }
     for form in &forms {
         if let Err(msg) = validate_fol_form(form) {
             diagnostics.push(Diagnostic {
@@ -167,6 +178,14 @@ fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
     if head != Some("lit") {
         return Err(LogicParseError(format!(
             "expected a (lit …) form, found head {head:?}"
+        )));
+    }
+    // A `(lit …)` form is `(lit "x")` or `(lit "x" 'dt')` / `(lit "x" @lang)` — never more.
+    // Reject trailing operands rather than silently discarding them.
+    if items.len() > 3 {
+        return Err(LogicParseError(format!(
+            "(lit …) form has {} operands; expected 2 or 3 (lexical + optional datatype/lang)",
+            items.len()
         )));
     }
     let lexical = match items.get(1) {
@@ -380,6 +399,14 @@ fn parse_lit_simple(items: &[SExpr]) -> Result<String, String> {
     if symbol_of(items.first().ok_or("empty list")?) != Some("lit") {
         return Err("expected a (lit …) form".to_owned());
     }
+    // The Horn fragment's plain literal is exactly `(lit "x")`; a datatype/lang operand here
+    // is meaningless (the RDF channel carries that detail), so reject it rather than ignore it.
+    if items.len() != 2 {
+        return Err(format!(
+            "Horn (lit …) operand must be exactly `(lit \"x\")`; found {} operands",
+            items.len()
+        ));
+    }
     match items.get(1) {
         Some(SExpr::Atom(Atom::Str(s))) => Ok(s.clone()),
         other => Err(format!(
@@ -455,7 +482,11 @@ fn parse_formula_list(items: &[SExpr]) -> Result<Vec<Formula>, String> {
 
 /// Parse an atomic predication `(<relation> <arg>…)` into a [`Formula::Atom`].
 fn parse_atom_formula(items: &[SExpr]) -> Result<Formula, String> {
-    let relation = Term::iri(name_string(&items[0])?)?;
+    // Guard the empty predication `()` (a diagnostic, never a panic). The relation is a reified
+    // `logic:Type` IRI (the HiLog reflection keeps the object level first-order — no
+    // predicate-variable term; see design/LOGIC-IR.md), so it must be a quoted CL name.
+    let head = items.first().ok_or("atomic predication cannot be empty")?;
+    let relation = Term::iri(name_string(head)?)?;
     let mut args = Vec::new();
     for a in &items[1..] {
         args.push(parse_formula_term(a)?);

@@ -98,7 +98,7 @@ pub struct CompiledArtifacts {
     /// depth-bounded Datalog rule scheme, and the `"property-path"` ledger row.
     /// Empty when the program declares no path shapes — never absent.
     pub path_projections: Vec<PathProjection>,
-    /// The whole-program + path-shape projection rows (the eight standard targets plus
+    /// The whole-program + path-shape projection rows (the nine standard targets plus
     /// the per-shape `property-path:<iri>` rows) that fed [`report`](Self::report).
     /// Surfaced so a downstream assembler (the pipeline) can union them with the
     /// correspondence-calculus loss ledger and serialize the FINAL projection report
@@ -173,7 +173,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let path_projections = paths::project_path_shapes(program);
 
     // One ProjectionResult per path shape, keyed `property-path:<iri>`, fed into the
-    // report alongside the eight whole-program projections so the report carries the
+    // report alongside the nine whole-program projections so the report carries the
     // path targets too.  The kind is the declared `property-path` preservation; a
     // path projection records no `actual_drops` (the overclaim gate is a no-op for
     // its SoundUnder kind).
