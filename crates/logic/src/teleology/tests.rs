@@ -2010,6 +2010,29 @@ fn parse_xsd_duration_seconds_rejects_nominal_and_malformed() {
 }
 
 #[test]
+fn parse_xsd_duration_seconds_reports_designator_with_no_number() {
+    // A designator with no digits preceding it must report the specific
+    // "designator with no number" error, not the generic "malformed number"
+    // one (num.parse() on an empty string would otherwise fire first).
+    let err = parse_xsd_duration_seconds("PD").unwrap_err();
+    assert!(
+        err.contains("designator with no number"),
+        "unexpected error message: {err}"
+    );
+    let err = parse_xsd_duration_seconds("PTS").unwrap_err();
+    assert!(
+        err.contains("designator with no number"),
+        "unexpected error message: {err}"
+    );
+    // A genuinely malformed number must still report the malformed-number error.
+    let err = parse_xsd_duration_seconds("P1.2.3D").unwrap_err();
+    assert!(
+        err.contains("malformed number"),
+        "unexpected error message: {err}"
+    );
+}
+
+#[test]
 fn literal_lex_extracts_typed_literal_value() {
     assert_eq!(
         literal_lex(&format!("\"2026-06-18T00:00:00Z\"^^{XSD_DT}")).as_deref(),

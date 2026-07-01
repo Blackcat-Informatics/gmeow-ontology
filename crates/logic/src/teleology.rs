@@ -2107,14 +2107,14 @@ fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
                 num.push(c);
                 continue;
             }
-            let value: f64 = num
-                .parse()
-                .map_err(|_| format!("xsd:duration {lex:?} has a malformed number {num:?}"))?;
             if num.is_empty() {
                 return Err(format!(
                     "xsd:duration {lex:?} has a designator with no number"
                 ));
             }
+            let value: f64 = num
+                .parse()
+                .map_err(|_| format!("xsd:duration {lex:?} has a malformed number {num:?}"))?;
             let secs = match c {
                 'W' if !in_time => value * 604_800.0,
                 'D' if !in_time => value * 86_400.0,
