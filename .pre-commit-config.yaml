@@ -39,8 +39,10 @@ repos:
         args: ["--maxkb=1024"]
         # Frozen SPARQL-oracle goldens (committed CONSTRUCT N-Quads) are
         # large by nature and must stay byte-faithful; excluded alongside
-        # the other generated/golden data trees.
-        exclude: '^(generated/schemas/.*|ontology-docs/.*|crates/sparql-conformance/tests/goldens/.*)$'
+        # the other generated/golden data trees. The vendored purrdf wasm
+        # engine (the offline docs SPARQL playground) is a pinned binary
+        # asset refreshed by `make maint-refresh-purrdf-asset`.
+        exclude: '^(generated/schemas/.*|ontology-docs/.*|crates/sparql-conformance/tests/goldens/.*|crates/docs/assets/purrdf/.*)$'
       - id: mixed-line-ending
         args: ["--fix=lf"]
         exclude: *keep-verbatim
