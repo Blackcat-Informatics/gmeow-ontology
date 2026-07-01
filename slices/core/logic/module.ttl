@@ -1799,6 +1799,34 @@ logic:WorldContextAxis
     rdfs:label "World Context Axis"@x-gmeow-english ;
     skos:definition "The world index axis of the multi-dimensional context facet: a truth is relative to a logic:World (a Kripke-style possible world in the materialized contextual index). One of several context axes that coexist on a single result — world, standpoint, time, and path index the same result simultaneously rather than being alternative values of one slot."@x-gmeow-english .
 
+logic:Module
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Module"@x-gmeow-english ;
+    skos:definition "A named Common Logic module — a body of sentences grouped as a reusable theory, with its own local vocabulary and importation. The theory-structuring context of a statement, ORTHOGONAL to the epistemic logic:World / gmeow:Standpoint dimension: a module says WHERE a sentence lives (which theory), never UNDER WHOSE perspective it holds, so a module must never be conflated with a world or a standpoint — that conflation is exactly the category error the context algebra forbids. Per-statement membership is carried by logic:inModule and module-to-module importation by logic:imports; the top-level (unnamed) module is the absence of any logic:inModule. It is the construct the ingested and emitted Common Logic dialects (CLIF, CGIF, XCL) map their (module …) and (cl-imports …) forms onto."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ModuleContextAxis
+    a owl:NamedIndividual ,
+        logic:ContextAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Module Context Axis"@x-gmeow-english ;
+    skos:definition "The module index axis of the multi-dimensional context facet: a statement is relative to the logic:Module (Common Logic theory) it is asserted in. A theory-structuring axis that coexists with the world, standpoint, time, and path axes and indexes the same result simultaneously — orthogonal to them, never an alternative value of the world or standpoint slot. Its per-statement carrier is logic:inModule; module-to-module importation is logic:imports."@x-gmeow-english .
+
+logic:inModule
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "in module"@x-gmeow-english ;
+    skos:definition "Relates a statement (an axiom or rule, carried on its reifier) to the logic:Module it is asserted in — the per-statement carrier of the module context axis, parallel to how logic:standpoint carries the world axis. A statement with no logic:inModule belongs to the top-level module. It never licenses cross-module entailment on its own: importation (logic:imports) governs which modules' sentences a module sees, and the bare membership edge is index and provenance, not an inference-bearing relation. It asserts no OWL characteristic; its logical character is documented in prose, matching the kernel convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:imports
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "imports"@x-gmeow-english ;
+    skos:definition "Common Logic importation between logic:Modules: the importing module has, as part of its own theory, every sentence of the imported module. The module-to-module edge onto which the Common Logic (cl-imports …) directive maps. Importation composes transitively in the Common Logic reading, but this is documented in prose rather than asserted as owl:TransitiveProperty, matching the kernel convention that logic: relations carry no OWL characteristics and state their logical character in prose; the engine, not an OWL entailment, closes the import graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:accessibleFrom
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

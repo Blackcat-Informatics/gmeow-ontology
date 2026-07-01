@@ -531,7 +531,8 @@ fn contextual_scope_defaults_are_none() {
 #[test]
 fn contextual_scope_confidence_valid_bounds() {
     for c in [0.0, 0.5, 1.0] {
-        let scope = ContextualScope::new(None, None, Some(c), LogicModality::None, None).unwrap();
+        let scope =
+            ContextualScope::new(None, None, Some(c), LogicModality::None, None, None).unwrap();
         assert_eq!(scope.confidence, Some(c));
     }
 }
@@ -539,7 +540,7 @@ fn contextual_scope_confidence_valid_bounds() {
 #[test]
 fn contextual_scope_confidence_out_of_range() {
     for bad in [-0.1, 1.01, 2.0, -1.0] {
-        let r = ContextualScope::new(None, None, Some(bad), LogicModality::None, None);
+        let r = ContextualScope::new(None, None, Some(bad), LogicModality::None, None, None);
         assert!(r.is_err());
         assert!(r.unwrap_err().contains("confidence"));
     }
@@ -694,6 +695,7 @@ fn logic_program_canonical_round_trips_scope() {
         Some(0.8),
         LogicModality::Epistemic,
         Some("https://example.org/agent".to_owned()),
+        Some("https://example.org/moduleA".to_owned()),
     )
     .unwrap();
     let ax = LogicAxiom::new(
@@ -734,9 +736,10 @@ fn logic_program_canonical_treats_signed_zero_confidence_equally() {
     // keys for two logically-identical programs.  The fix normalises to `0.0`
     // before `to_string()` in both `content_key` (ir.rs) and
     // `content_dedup_key` (frontend.rs).
-    let scope_pos = ContextualScope::new(None, None, Some(0.0), LogicModality::None, None).unwrap();
+    let scope_pos =
+        ContextualScope::new(None, None, Some(0.0), LogicModality::None, None, None).unwrap();
     let scope_neg =
-        ContextualScope::new(None, None, Some(-0.0), LogicModality::None, None).unwrap();
+        ContextualScope::new(None, None, Some(-0.0), LogicModality::None, None, None).unwrap();
     let ax_pos =
         LogicAxiom::new("ex:s", format!("{LOGIC}p"), "ex:o", false, false, scope_pos).unwrap();
     let ax_neg =

@@ -22,6 +22,7 @@
 //! without any Python dependency.
 
 pub mod advisory;
+pub mod box_roles;
 pub mod cache;
 pub mod constitution;
 pub mod coverage;
@@ -40,6 +41,7 @@ pub mod slice_ownership;
 pub mod statement;
 pub mod store;
 pub mod validate_all;
+pub mod wikidata_audit;
 
 pub mod crossref;
 pub mod data_validate;
