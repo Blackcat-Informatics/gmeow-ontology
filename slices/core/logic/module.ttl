@@ -4031,6 +4031,45 @@ logic:RiskAdvisory
     rdfs:label "Advisory"@x-gmeow-english ;
     skos:definition "The semantic-risk class for a candidate with no entailment consequence at all — advisory content, the lightest review. Wire value `advisory`."@x-gmeow-english .
 
+# ── Closed value class: the prose-field harvest source ───────────────────────────
+
+logic:ProseField
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Prose Field"@x-gmeow-english ;
+    skos:definition "The closed three-member value class of the logic:candidateSourceField facet: which annotation field of a term's prose a logic:FormalizationCandidate harvested its axiom from. Its individuals are logic:ProseFieldDefinition, logic:ProseFieldUseWhen and logic:ProseFieldAvoidWhen, each naming the annotation property it stands for via logic:proseFieldProperty (skos:definition, gmeow:useWhen and gmeow:avoidWhen respectively). The set is closed and atomic (Principle 9), so a misspelt field names no declared value and is rejected rather than silently accepted. Read with logic:candidateFormalizes (which term) it makes harvest coverage queryable in both directions — from a harvested axiom to the exact prose field it formalizes, and from a prose field to the axioms that formalize it (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:proseFieldProperty
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "prose field property"@x-gmeow-english ;
+    skos:definition "Names the annotation property a logic:ProseField value stands for — the exact term-level field (skos:definition, gmeow:useWhen or gmeow:avoidWhen) whose prose a harvested candidate formalizes. An annotation property, so the closed logic:ProseField set links to the real field IRI without punning it into the reasoned core."@x-gmeow-english .
+
+logic:ProseFieldDefinition
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Definition"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's skos:definition — the definitional or descriptive prose a candidate formalized. Wire value `definition`."@x-gmeow-english ;
+    logic:proseFieldProperty skos:definition .
+
+logic:ProseFieldUseWhen
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Use When"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's gmeow:useWhen — the applicability guidance a candidate formalized. Wire value `use-when`."@x-gmeow-english ;
+    logic:proseFieldProperty gmeow:useWhen .
+
+logic:ProseFieldAvoidWhen
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Avoid When"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's gmeow:avoidWhen — the anti-pattern or non-applicability guidance a candidate formalized. Wire value `avoid-when`."@x-gmeow-english ;
+    logic:proseFieldProperty gmeow:avoidWhen .
+
 # ── Candidate carrier properties (RBox) ──────────────────────────────────────────
 
 logic:candidateSourceHash
@@ -4136,6 +4175,23 @@ logic:candidateSemanticRisk
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidate semantic risk"@x-gmeow-english ;
     skos:definition "Relates a logic:FormalizationCandidate to its logic:SemanticRiskClass — how far a wrong formalization would propagate, which sets how strict the reviewer gate must be. Single-valued. Domain logic:FormalizationCandidate, range logic:SemanticRiskClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateFormalizes
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate formalizes"@x-gmeow-english ;
+    skos:definition "The harvest back-link: relates a logic:FormalizationCandidate to the prose-bearing term (a gmeow: or logic: term, stated in prose) whose constraint its axiom formalizes, read together with logic:candidateSourceField (which of that term's annotation fields — skos:definition, gmeow:useWhen or gmeow:avoidWhen). Where logic:candidateSourceHash anchors the candidate to its source text by hash and logic:candidateExtractionProvenance records what produced it, this names the exact ontology term the harvested axiom keeps coherent, so harvest coverage is queryable in both directions. Present exactly when the source IS a term's annotation field (a doc-section source stays recorded in provenance alone, never a fabricated term-link); single-valued. Distinct from logic:formalizes, which bridges a logic: term to a gmeow: concept and is never a reasoned axiom. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateSourceField
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate source field"@x-gmeow-english ;
+    skos:definition "Names which annotation field of the logic:candidateFormalizes term a candidate harvested — a logic:ProseField from the closed set (logic:ProseFieldDefinition, logic:ProseFieldUseWhen, logic:ProseFieldAvoidWhen). Together with logic:candidateFormalizes it pins the harvested axiom to the exact source triple. Co-present with logic:candidateFormalizes: a candidate carrying one of the pair without the other is a hard governance error (verify.harvest-link-paired), never a half-link. Single-valued. Domain logic:FormalizationCandidate, range logic:ProseField."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Obligation carrier properties (RBox) ─────────────────────────────────────────

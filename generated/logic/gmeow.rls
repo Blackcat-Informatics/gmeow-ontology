@@ -35,6 +35,9 @@
 <https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/PreferredArgumentation>, <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/ProbabilisticMeasure>, <https://blackcatinformatics.ca/logic/ProbabilisticFramework>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/ProbabilityModel>, <https://blackcatinformatics.ca/logic/ProbabilisticFramework>, "default").
+<https://blackcatinformatics.ca/logic/proseFieldProperty>(<https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen>, <https://blackcatinformatics.ca/gmeow/avoidWhen>, "default").
+<https://blackcatinformatics.ca/logic/proseFieldProperty>(<https://blackcatinformatics.ca/logic/ProseFieldDefinition>, <http://www.w3.org/2004/02/skos/core#definition>, "default").
+<https://blackcatinformatics.ca/logic/proseFieldProperty>(<https://blackcatinformatics.ca/logic/ProseFieldUseWhen>, <https://blackcatinformatics.ca/gmeow/useWhen>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/TransactionStep>, <https://blackcatinformatics.ca/logic/TemporalFramework>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/TruthAlgebra>, <https://blackcatinformatics.ca/logic/ParaconsistentFramework>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/World>, <https://blackcatinformatics.ca/logic/ModalFramework>, "default").

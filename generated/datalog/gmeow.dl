@@ -35,6 +35,9 @@ instantiatesFramework("https://blackcatinformatics.ca/logic/PossibleWorld", "htt
 formalizes("https://blackcatinformatics.ca/logic/PreferredArgumentation", "https://blackcatinformatics.ca/gmeow/ArgumentEvaluation", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/ProbabilisticMeasure", "https://blackcatinformatics.ca/logic/ProbabilisticFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/ProbabilityModel", "https://blackcatinformatics.ca/logic/ProbabilisticFramework", "default").
+proseFieldProperty("https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen", "https://blackcatinformatics.ca/gmeow/avoidWhen", "default").
+proseFieldProperty("https://blackcatinformatics.ca/logic/ProseFieldDefinition", "http://www.w3.org/2004/02/skos/core#definition", "default").
+proseFieldProperty("https://blackcatinformatics.ca/logic/ProseFieldUseWhen", "https://blackcatinformatics.ca/gmeow/useWhen", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/TransactionStep", "https://blackcatinformatics.ca/logic/TemporalFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/TruthAlgebra", "https://blackcatinformatics.ca/logic/ParaconsistentFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/World", "https://blackcatinformatics.ca/logic/ModalFramework", "default").

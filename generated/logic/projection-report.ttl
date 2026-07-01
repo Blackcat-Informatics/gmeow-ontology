@@ -6858,6 +6858,9 @@
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no gUFO bridge equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no gUFO bridge equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no gUFO bridge equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no gUFO bridge equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no gUFO bridge equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no gUFO bridge equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent" ,
@@ -6995,6 +6998,9 @@
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no OWL DL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no OWL DL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no OWL DL equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no OWL DL equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no OWL DL equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no OWL DL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no OWL DL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no OWL DL equivalent" ,
@@ -7106,6 +7112,9 @@
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no EL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no EL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no EL equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no EL equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no EL equivalent" ,
+        "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no EL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent" ,
@@ -7174,6 +7183,9 @@
         "actual: ground axiom <https://blackcatinformatics.ca/logic/PreferredArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ProbabilisticMeasure> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ProbabilisticFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ProbabilityModel> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ProbabilisticFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> <https://blackcatinformatics.ca/logic/proseFieldProperty> <https://blackcatinformatics.ca/gmeow/avoidWhen> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ProseFieldDefinition> <https://blackcatinformatics.ca/logic/proseFieldProperty> <http://www.w3.org/2004/02/skos/core#definition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> <https://blackcatinformatics.ca/logic/proseFieldProperty> <https://blackcatinformatics.ca/gmeow/useWhen> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/TransactionStep> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TemporalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/TruthAlgebra> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ParaconsistentFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/World> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
@@ -32584,7 +32596,7 @@
 
 logic:projection-report
     a logic:ProjectionReport ;
-    logic:axiomCount 143 ;
+    logic:axiomCount 146 ;
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:hasProjection <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
