@@ -229,6 +229,57 @@ def _regenerate_native(
         )
 
 
+def _run_fanout(jobs: int | None = None) -> dict[str, Any]:
+    """Project the flat ``generated/`` tree back out of ``gmeow.gts`` (SPINE §6).
+
+    Calls ``gmeow_native.pipeline.fanout(root, jobs)`` — the standalone post-pipeline
+    fanout phase. Pure projection: it reads the shipped bundle and writes every
+    committed ``generated/`` file from it ALONE (no build, no reasoning). The bundle
+    must already exist (produced by ``regenerate``); a missing bundle is a hard failure.
+
+    Raises a clear ``typer.Exit`` if the native extension is not importable.
+    """
+    from gmeow_tools.config import PROJECT_ROOT
+
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+        ) from exc
+
+    cpu = jobs if jobs is not None else (os.cpu_count() or 1)
+    report = _pipeline.fanout(str(PROJECT_ROOT), int(cpu))
+    return cast("dict[str, Any]", report)
+
+
+def _fanout_native(
+    jobs: int | None = None,
+    timings_json: Path | None = None,
+) -> None:
+    """Reproduce every committed ``generated/`` file from the bundle via fanout."""
+    report = _run_fanout(jobs=jobs)
+    if timings_json is not None:
+        _write_timings_json(
+            timings_json,
+            {
+                "command": "fanout",
+                "produced": report.get("produced"),
+                "written": report.get("written"),
+                "skipped": report.get("skipped"),
+            },
+        )
+
+    console.print(
+        f"[green]✓ pipeline fanout: produced {report['produced']}, "
+        f"written {report.get('written', 0)}, "
+        f"unchanged {report.get('skipped', 0)}[/green]"
+    )
+
+
 def _lang_option() -> Any:
     """Shared --lang / -l option for language-emitting commands."""
     return typer.Option(
@@ -370,6 +421,31 @@ def regenerate(
     produced artifact against the committed bytes and exits non-zero on drift.
     """
     _regenerate_native(jobs=jobs, check=check, timings_json=timings_json)
+
+
+@app.command()
+def fanout(
+    jobs: int | None = typer.Option(
+        None,
+        "-j",
+        "--jobs",
+        help="Parallel per-file write budget (default: capped CPU count).",
+    ),
+    timings_json: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--timings-json",
+        help="Write structured fanout timings to this JSON file.",
+    ),
+) -> None:
+    """Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
+
+    The post-pipeline fanout phase, run standalone. Pure projection: it reads the
+    already-built ``generated/dist/gmeow.gts`` and reconstructs every committed
+    ``generated/`` file from that bundle ALONE — no computation, reasoning, or assembly.
+    Each file is written independently, so the writes run in parallel. Requires a bundle
+    produced by a prior ``regenerate``; a missing bundle is a hard failure.
+    """
+    _fanout_native(jobs=jobs, timings_json=timings_json)
 
 
 def _parse_evidence_spec(spec: str) -> tuple[bytes, str, str, str, str]:
