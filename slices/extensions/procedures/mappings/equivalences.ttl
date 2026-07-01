@@ -25,7 +25,7 @@ gmeow:mapsetProcedures a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-procedures.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/procedures" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Plan ⟂ execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, OBI, BPMN, RO-Crate, the workflow engines Airflow / CWL / WDL / Temporal / Nextflow, and openEHR Task Planning (PROC). gmeow:Procedure is a logic:Plan; every engine surface is a lossy by-reference lowering of that canonical process model (Principle 5). openEHR Task Planning is the higher-fidelity target — it carries loops and guarded branching — and its distinctive DLM constructs are subsumed natively (currency → logic:FreshnessGuard, manual-notification → logic:NotificationWaitSchema, ISM linkage → logic:instantiatesPlan)." .
+    gmeow:setComment "Plan ⟂ execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, OBI, BPMN, RO-Crate, the workflow engines Airflow / CWL / WDL / Temporal / Nextflow, and openEHR Task Planning (PROC). gmeow:Procedure is a logic:Plan; every engine surface is a lossy by-reference lowering of that canonical process model (Principle 5). openEHR Task Planning is the higher-fidelity target — it carries loops and guarded branching — and its distinctive DLM constructs are subsumed natively (currency → logic:FreshnessGuard's logic:freshnessHorizon age axis AND time_window → its logic:freshnessWindow explicit valid-time-interval axis — both orthogonal axes of one guard, manual-notification → logic:NotificationWaitSchema, ISM linkage → logic:instantiatesPlan)." .
 
 # --------------------------------------------------------------------------- #
 # P-Plan — the closest peer model for plan / step / input / output / precedence
@@ -494,8 +494,10 @@ gmeow:eqProc040 a gmeow:TermEquivalence ;
 # where the DAG engines must unroll or reject. It under-approximates only where #
 # TP-VML lacks logic:'s explicit concurrency-serializability guarantee and its  #
 # per-outcome logic:compensation. GMEOW moreover SUBSUMES the distinctive DLM   #
-# constructs natively rather than merely bridging them: DLM `currency` /        #
-# time-window staleness is logic:FreshnessGuard; manual-notification /          #
+# constructs natively rather than merely bridging them: DLM `currency`          #
+# (max datum age) is logic:FreshnessGuard's logic:freshnessHorizon axis and DLM #
+# `time_window` (an explicit named valid-time interval) is its orthogonal       #
+# logic:freshnessWindow axis; manual-notification /                             #
 # callback-driven completion is logic:NotificationWaitSchema; the Instruction-  #
 # State-Machine plan→execution linkage is the logic:instantiatesSchema +        #
 # logic:instantiatesPlan in-band witness. Each residual drop is a STRUCTURED    #
@@ -530,6 +532,6 @@ gmeow:eqProc043 a gmeow:TermEquivalence ;
     gmeow:alignObject <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK> ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "openEHR Task Planning TASK / TASK_ACTION (by reference): a procedure step is an openEHR task. A DLM-gated task maps to a guarded logic:Choice step (preserved, not unrolled); a manual-notification task maps to logic:NotificationWaitSchema (subsumed natively); a DLM currency-guarded task input maps to logic:FreshnessGuard (subsumed natively)." ;
+    gmeow:comment "openEHR Task Planning TASK / TASK_ACTION (by reference): a procedure step is an openEHR task. A DLM-gated task maps to a guarded logic:Choice step (preserved, not unrolled); a manual-notification task maps to logic:NotificationWaitSchema (subsumed natively); a DLM currency-guarded task input maps to logic:FreshnessGuard (subsumed natively) — BOTH its axes: `currency` (max age) to logic:freshnessHorizon and `time_window` (an explicit valid-time interval) to logic:freshnessWindow / logic:freshnessWindowStart / logic:freshnessWindowEnd." ;
     gmeow:lossyDrop "TP-VML task scheduling annotations (planned time / wait windows) are not carried by the flat gmeow:ProcedureStep; scheduling is a solver-layer concern (Principle 12)" ;
     gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
