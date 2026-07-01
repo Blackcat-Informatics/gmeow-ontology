@@ -74,7 +74,11 @@ FOUNDATION_CLIF="$REPO_ROOT/generated/cl/gmeow.clif"
 [ -f "$FOUNDATION_CLIF" ] || fail_boundary "check-a-missing-input: $FOUNDATION_CLIF not found (run \`make regenerate\` in the main worktree first)"
 
 FOUNDATION_TPTP="$WORKDIR/foundation.p"
-if ! foundation_stderr=$("$CLIF2TPTP_BIN" "$FOUNDATION_CLIF" > "$FOUNDATION_TPTP" 2>&1); then
+# stdout carries the TPTP (→ the .p file); stderr carries any translator
+# BOUNDARY line, captured via a separate sink so it survives the redirection.
+FOUNDATION_ERR="$WORKDIR/foundation.err"
+if ! "$CLIF2TPTP_BIN" "$FOUNDATION_CLIF" > "$FOUNDATION_TPTP" 2> "$FOUNDATION_ERR"; then
+  foundation_stderr=$(cat "$FOUNDATION_ERR")
   boundary_line=$(printf '%s\n' "$foundation_stderr" | grep '^BOUNDARY' || true)
   if [ -n "$boundary_line" ]; then
     fail_boundary "check-a-translate: $boundary_line"
@@ -111,8 +115,12 @@ NS="https://example.org/cl-ingest/genealogy"
 [ -f "$KB_EDB" ] || fail_boundary "check-b-missing-input: $KB_EDB not found"
 
 GOAL_TPTP="$WORKDIR/goal.p"
-if ! goal_stderr=$("$CLIF2TPTP_BIN" "$KB_CLIF" --edb "$KB_EDB" \
-    --conjecture "$NS/ancestor" "$NS/alice" "$NS/carol" > "$GOAL_TPTP" 2>&1); then
+# stdout carries the TPTP (→ the .p file); stderr (any translator BOUNDARY line)
+# goes to a separate sink so it survives the redirection and can be inspected.
+GOAL_ERR="$WORKDIR/goal.err"
+if ! "$CLIF2TPTP_BIN" "$KB_CLIF" --edb "$KB_EDB" \
+    --conjecture "$NS/ancestor" "$NS/alice" "$NS/carol" > "$GOAL_TPTP" 2> "$GOAL_ERR"; then
+  goal_stderr=$(cat "$GOAL_ERR")
   boundary_line=$(printf '%s\n' "$goal_stderr" | grep '^BOUNDARY' || true)
   if [ -n "$boundary_line" ]; then
     fail_boundary "check-b-translate: $boundary_line"
