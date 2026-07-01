@@ -94,6 +94,16 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 /// values under it are surfaced as the term's logic stereotypes.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+
+// ── Constraint catalog (gmeow:ValidationRule individuals, #751) ─────────────────
+/// The class every catalog subject is typed as in
+/// `generated/catalog/constraint-catalog.nq`.
+const GMEOW_VALIDATION_RULE: &str = "https://blackcatinformatics.ca/gmeow/ValidationRule";
+const GMEOW_RULE_CODE: &str = "https://blackcatinformatics.ca/gmeow/ruleCode";
+const GMEOW_RULE_CATEGORY: &str = "https://blackcatinformatics.ca/gmeow/ruleCategory";
+const GMEOW_RULE_SEVERITY: &str = "https://blackcatinformatics.ca/gmeow/ruleSeverity";
+const GMEOW_RULE_HELP_URI: &str = "https://blackcatinformatics.ca/gmeow/ruleHelpUri";
+const GMEOW_APPLIES_TO_TERM: &str = "https://blackcatinformatics.ca/gmeow/appliesToTerm";
 /// `logic:instantiatesFramework` — the per-term reasoning-discipline selector;
 /// its objects (closed `logic:LogicalFramework` individuals) surface as the
 /// term's frameworks.
@@ -618,6 +628,12 @@ pub struct DocsModel {
     pub recipes: Vec<DocRecipe>,
     /// All curated learning paths parsed from the guides slice (sorted by slug).
     pub learning_paths: Vec<DocLearningPath>,
+    /// The constraint catalog — every `gmeow:ValidationRule` individual read from
+    /// `generated/catalog/constraint-catalog.nq` in `discover()` (sorted by code).
+    /// Empty in `from_catalog` and when the generated artifact is absent (a bare
+    /// unit-test model). Drives the "What GMEOW enforces" page, whose per-rule
+    /// anchor is the same slug the validator mints for a finding's `helpUri`.
+    pub constraint_rules: Vec<ConstraintRule>,
     /// The curated "four boxes" doctrine prose, read at build time from
     /// `<root>/docs/four-boxes.md` if present (`None` when absent).
     pub four_boxes: Option<String>,
@@ -683,6 +699,37 @@ pub struct ReasoningVerdict {
     /// Empty for a healthy ontology; a non-empty set lights the affected class
     /// pages red.
     pub unsatisfiable: std::collections::BTreeSet<String>,
+}
+
+/// One `gmeow:ValidationRule` individual from the constraint catalog (#751): the
+/// human-readable record of a constraint the validator enforces. Read from
+/// `generated/catalog/constraint-catalog.nq` (a committed fixed-point projection
+/// of `gmeow.gts`) and rendered on the "What GMEOW enforces" page, where each
+/// rule is anchored by [`slug`](ConstraintRule::slug) — the identical slug the
+/// validator mints for a finding's `helpUri`, so a finding's help link resolves
+/// straight to its rule entry.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ConstraintRule {
+    /// The stable rule code (`gmeow:ruleCode`, e.g. `box-roles.invalid`).
+    pub code: String,
+    /// The in-page anchor slug: `gmeow_validate::rule_catalog::slugify(code)`,
+    /// matching the `#fragment` of the rule's `helpUri`.
+    pub slug: String,
+    /// The `logic:FindingCategory` IRI this rule reports under (`gmeow:ruleCategory`).
+    pub category: String,
+    /// The severity token (`gmeow:ruleSeverity`): `binding` or `advisory`.
+    pub severity: String,
+    /// The absolute `helpUri` (`gmeow:ruleHelpUri`) — the deep link a finding
+    /// carries; its fragment is `#{slug}`.
+    pub help_uri: String,
+    /// The human label (`rdfs:label`), if present.
+    pub label: Option<String>,
+    /// The prose definition (`skos:definition`), if present.
+    pub definition: Option<String>,
+    /// The GMEOW term IRIs this rule applies to (`gmeow:appliesToTerm`), sorted.
+    pub applies_to_terms: Vec<String>,
+    /// The `logic:` axiom IRI this rule formalizes (`logic:formalizes`), if present.
+    pub formalizes: Option<String>,
 }
 
 impl DocsModel {
@@ -972,6 +1019,7 @@ impl DocsModel {
             external_terms,
             recipes,
             learning_paths,
+            constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             available_languages,
@@ -999,8 +1047,67 @@ impl DocsModel {
         merge_root_shapes(&mut model, &root.join("shapes"));
         // Optional UI-chrome overrides: `<root>/i18n/ontology-docs-templates.<lang>.po`.
         model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
+        // The constraint catalog (`gmeow:ValidationRule` individuals), read from the
+        // committed N-Quads fanout artifact. Absent file → empty Vec.
+        model.constraint_rules = read_constraint_catalog(root);
         Ok(model)
     }
+}
+
+/// Read the constraint catalog from `<root>/generated/catalog/constraint-catalog.nq`
+/// — every `gmeow:ValidationRule` individual, sorted by rule code. The file is a
+/// committed fixed-point projection of `gmeow.gts` (N-Quads: every triple in the
+/// catalog fanout named graph), so the reader queries graph-agnostically. Returns
+/// an empty Vec if the file is absent (a bare `discover` without a regenerated
+/// tree) or unparsable — the "What GMEOW enforces" page then renders its
+/// empty-state line rather than hard-failing an otherwise-valid model build.
+fn read_constraint_catalog(root: &Path) -> Vec<ConstraintRule> {
+    let path = root.join("generated/catalog/constraint-catalog.nq");
+    let Ok(bytes) = std::fs::read(&path) else {
+        return Vec::new();
+    };
+    let Ok(store) = Store::parse_nquads(&bytes) else {
+        return Vec::new();
+    };
+    let mut rules: Vec<ConstraintRule> = Vec::new();
+    for iri in store.subjects_of_type_any(GMEOW_VALIDATION_RULE) {
+        // The rule code is the identity; skip a malformed subject that carries none.
+        let Some(code) = store.first_literal_any(&iri, GMEOW_RULE_CODE) else {
+            continue;
+        };
+        let slug = gmeow_validate::rule_catalog::slugify(&code);
+        let category = store
+            .named_objects_any(&iri, GMEOW_RULE_CATEGORY)
+            .into_iter()
+            .min()
+            .unwrap_or_default();
+        let severity = store
+            .first_literal_any(&iri, GMEOW_RULE_SEVERITY)
+            .unwrap_or_default();
+        let help_uri = store
+            .first_literal_any(&iri, GMEOW_RULE_HELP_URI)
+            .unwrap_or_default();
+        let label = store.first_literal_any(&iri, RDFS_LABEL);
+        let definition = store.first_literal_any(&iri, SKOS_DEFINITION);
+        let applies_to_terms = store.named_objects_any(&iri, GMEOW_APPLIES_TO_TERM);
+        let formalizes = store
+            .named_objects_any(&iri, LOGIC_FORMALIZES)
+            .into_iter()
+            .min();
+        rules.push(ConstraintRule {
+            code,
+            slug,
+            category,
+            severity,
+            help_uri,
+            label,
+            definition,
+            applies_to_terms,
+            formalizes,
+        });
+    }
+    rules.sort_by(|a, b| a.code.cmp(&b.code));
+    rules
 }
 
 /// Read the ontology's concept DOI from `<root>/metadata/gmeow-self.ttl`: the
