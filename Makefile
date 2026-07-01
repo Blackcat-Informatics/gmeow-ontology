@@ -559,7 +559,10 @@ maint-refresh-purrdf-asset: wasm-pkg ## Refresh the vendored purrdf wasm engine 
 	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm \
 	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm.d.ts \
 	   crates/docs/assets/purrdf/
-	@echo "OK: vendored purrdf wasm engine refreshed (crates/docs/assets/purrdf/)"
+	@# Rewrite the BLAKE3 content-digest manifest so the anti-rot gate pins the exact
+	@# bytes just vendored (the bless path recomputes and writes DIGESTS.blake3).
+	GMEOW_PURRDF_BLESS=1 cargo nextest run -E 'binary(purrdf_asset)'
+	@echo "OK: vendored purrdf wasm engine refreshed + digest manifest rewritten (crates/docs/assets/purrdf/)"
 	@echo "    run 'make check' + 'make wasm-pkg-test' to re-verify the anti-rot gates"
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (#1045 maint-heavy profile).
