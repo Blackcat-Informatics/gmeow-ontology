@@ -1068,7 +1068,7 @@ logic:awaitingSignal
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "awaiting signal"@x-gmeow-english ;
-    skos:definition "Relates a logic:GateUndetermined logic:GateProbe over a logic:NotificationWaitSchema to the logic:ExternalSignal it is still waiting on — the witness that the wait is pending (the engine has not been told), the reason the gate is undetermined rather than admitted. Domain logic:GateProbe, range the awaited logic:ExternalSignal (stated in prose). Distinguishes a pending wait from a plain denial: the wait can still complete once the signal arrives."@x-gmeow-english ;
+    skos:definition "Relates a node still blocked on a logic:ExternalSignal to the exact signal it is waiting on — the witness that a notification-wait is pending (the engine has not been told), never silently completed. It appears in two places, both marking the same withheld judgment. (1) On a logic:GateUndetermined logic:GateProbe over a logic:NotificationWaitSchema: the reason the gate is undetermined rather than admitted. (2) On a logic:TransactionOutcome whose executed transaction path HALTED at an un-signalled wait step: the load-bearing distinction between a PENDING (undetermined) outcome and a definite failure — both read logic:transactionSucceeds false, but only the pending one names, through this witness, the signal it still awaits, so a plan blocked on an external notification is never conflated with a genuine precondition failure. Range the awaited logic:ExternalSignal (stated in prose). In every case: the wait can still complete once the signal arrives."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:MeasurementFrameMissing
