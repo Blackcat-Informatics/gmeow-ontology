@@ -121,8 +121,10 @@ export class Dataset {
     /**
      * `serialize(format)` → the dataset rendered in `format` (a UTF-8 string).
      *
-     * Note: a quoted-triple term appearing as a quad object currently round-trips
-     * only through N-Quads (a gmeow-gts serializer limitation for the other formats).
+     * Formats: `turtle` / `ntriples` / `nquads` / `trig` / `rdfxml` (their media types
+     * too) plus `jsonld` (JSON-LD-star). Note: a quoted-triple term appearing as a quad
+     * object currently round-trips only through N-Quads (a serializer limitation for
+     * the other text formats).
      */
     serialize(format: string): string;
     /**

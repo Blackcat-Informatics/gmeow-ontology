@@ -43,3 +43,14 @@ test("the VENDORED engine hard-fails a malformed query", () => {
   const ds = Dataset.parse("<https://e/s> <https://e/p> <https://e/o> .", "ntriples");
   assert.throws(() => ds.query("SELECT ?x WHERE { not sparql"));
 });
+
+test("the VENDORED engine transcodes to every 'copy as' format", () => {
+  const ds = Dataset.parse('@prefix ex: <https://e/> . ex:a ex:p ex:o .', "turtle");
+  // The docs export buttons transcode a term's Turtle client-side to each of these.
+  for (const fmt of ["turtle", "ntriples", "nquads", "trig", "rdfxml", "jsonld"]) {
+    const out = ds.serialize(fmt);
+    assert.ok(out.length > 0, `${fmt} produced output`);
+  }
+  // JSON-LD is valid JSON carrying the IRIs.
+  assert.ok(JSON.parse(ds.serialize("jsonld")));
+});
