@@ -1,6 +1,6 @@
 {
   "https://example.org/transaction/protocol-level-adequate-mvcc-snapshot/world": {
-    "quads": 50,
+    "quads": 52,
     "status": "consistent"
   }
 }
