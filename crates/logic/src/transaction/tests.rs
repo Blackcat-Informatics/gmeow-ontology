@@ -1566,3 +1566,75 @@ fn opacity_is_inadequate_on_a_cycle() {
     );
     assert_eq!(isolation_adequate(&outcome_quads(&nq, "cc")), Some(false));
 }
+
+/// The boolean logic:protocolLevelAdequacy verdict on the history, if present.
+fn protocol_level_adequate(quads: &[crate::teleology::TeleologyQuad]) -> Option<bool> {
+    quads
+        .iter()
+        .find(|q| q.predicate.ends_with("protocolLevelAdequacy"))
+        .map(|q| q.object.starts_with("\"true\""))
+}
+
+#[test]
+fn protocol_level_adequacy_absent_without_both_declarations() {
+    // Only a protocol (multiversion needs no events) and no declared level → no pairing to judge,
+    // so no protocolLevelAdequacy verdict — the ABSENCE of a cross-claim, not a degraded fallback.
+    let nq = protocol_world(&declares_protocol("MultiversionConcurrencyControl"));
+    assert_eq!(protocol_level_adequate(&outcome_quads(&nq, "cc")), None);
+}
+
+#[test]
+fn multiversion_protocol_is_enforced_structurally_without_events() {
+    // The engine realizes snapshot isolation by construction, so multiversion concurrency control
+    // needs no lock/timestamp events and its schedule respects the protocol structurally.
+    let nq = protocol_world(&declares_protocol("MultiversionConcurrencyControl"));
+    assert_eq!(protocol_enforced(&outcome_quads(&nq, "cc")), Some(true));
+}
+
+#[test]
+fn multiversion_under_snapshot_is_adequate() {
+    // Multiversion concurrency control's guaranteed ceiling IS snapshot isolation → adequate.
+    let nq = protocol_world(&format!(
+        "{}{}",
+        declares_protocol("MultiversionConcurrencyControl"),
+        declares_isolation("SnapshotIsolation"),
+    ));
+    assert_eq!(
+        protocol_level_adequate(&outcome_quads(&nq, "cc")),
+        Some(true)
+    );
+}
+
+#[test]
+fn multiversion_under_serializable_is_inadequate_with_reason() {
+    // Multiversion tops out at snapshot (write skew remains), so it cannot guarantee serializable.
+    let nq = protocol_world(&format!(
+        "{}{}",
+        declares_protocol("MultiversionConcurrencyControl"),
+        declares_isolation("SerializableIsolation"),
+    ));
+    let quads = outcome_quads(&nq, "cc");
+    assert_eq!(protocol_level_adequate(&quads), Some(false));
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("protocolLevelInadequacyReason")),
+        "an inadequate protocol/level pairing carries its reason"
+    );
+}
+
+#[test]
+fn serializability_strength_protocol_reaches_serializable() {
+    // A serializability-strength protocol (optimistic validation needs no lock/timestamp events)
+    // has a serializable ceiling, so declaring serializable is adequate — INDEPENDENTLY of whether
+    // the witnessed schedule happens to pass that protocol's own enforcement check.
+    let nq = protocol_world(&format!(
+        "{}{}",
+        declares_protocol("OptimisticValidation"),
+        declares_isolation("SerializableIsolation"),
+    ));
+    assert_eq!(
+        protocol_level_adequate(&outcome_quads(&nq, "cc")),
+        Some(true)
+    );
+}
