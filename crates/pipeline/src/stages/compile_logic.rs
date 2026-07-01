@@ -243,7 +243,7 @@ impl Stage for CompileLogicStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "compile-logic.v1"
+        "compile-logic.v2"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The compiler parses one canonical Turtle document; its content is the only

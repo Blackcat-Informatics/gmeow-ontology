@@ -1140,6 +1140,31 @@ fn build_fanout_opaque_blob(
         shacl_af,
     );
 
+    // The validation-shape surfaces (SHACL Core + ShEx) — the OPT/ADL constraint axis lifted
+    // to logic:ValidationShape and projected — ride in from the same compile-logic product.
+    let validation_shacl = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| {
+            stage_err("missing generated/shapes/validation-shapes.ttl in stage-compile-logic")
+        })?;
+    members.insert(
+        crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string(),
+        validation_shacl,
+    );
+    let validation_shex = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| {
+            stage_err("missing generated/shapes/validation-shapes.shex in stage-compile-logic")
+        })?;
+    members.insert(
+        crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH.to_string(),
+        validation_shex,
+    );
+
     // context.jsonld + dsl-stats ride in from the sink-consumed stage-mappings product
     // (rendered once by that stage), never recomputed here.
     members.insert(
