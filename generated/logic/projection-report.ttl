@@ -32698,6 +32698,12 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/xcl>
+    a logic:ProjectionTarget ;
+    rdfs:label "xcl" ;
+    logic:complexityClass "full first-order (semi-decidable)" ;
+    logic:preservationKind logic:ExactPreservation .
+
 logic:projection-report
     a logic:ProjectionReport ;
     logic:axiomCount 172 ;
@@ -35568,7 +35574,8 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:fed24a7bdbe68b19> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff575d94cb419b45> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ff8e660cb599cd82> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:fffc3b18a883cc6c> ;
+        <https://blackcatinformatics.ca/logic/target/sssom:fffc3b18a883cc6c> ,
+        <https://blackcatinformatics.ca/logic/target/xcl> ;
     logic:lawfulUpliftCount 0 ;
     logic:profileCount 7 ;
     logic:ruleCount 4 .

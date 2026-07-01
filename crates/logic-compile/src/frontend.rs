@@ -54,6 +54,10 @@ pub use crate::cgif::parse_cgif_str;
 /// entry points (`gmeow_logic_compile::frontend::parse_clif_str` resolves, as does the
 /// canonical `gmeow_logic_compile::clif::parse_clif_str`).
 pub use crate::clif::parse_clif_str;
+/// Re-export the XCL reader so the XML-dialect inverse sits alongside CLIF/CGIF
+/// (`gmeow_logic_compile::frontend::parse_xcl_str` resolves, as does the canonical
+/// `gmeow_logic_compile::xcl::parse_xcl_str`).
+pub use crate::xcl::parse_xcl_str;
 
 fn logic_iri(local: &str) -> String {
     format!("{LOGIC_NAMESPACE}{local}")

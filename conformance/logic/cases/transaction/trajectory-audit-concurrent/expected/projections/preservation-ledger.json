@@ -94,5 +94,10 @@
       "actual: reasoning contract (an anonymous faceted contract) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
     ],
     "preservation": "SoundUnderApproximation"
+  },
+  "xcl": {
+    "complexity": "full first-order (semi-decidable)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
   }
 }
