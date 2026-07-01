@@ -30,9 +30,9 @@
 //!   (`* + ? / | ^ !()` and the GMEOW `{n,m}` / `<any>` extensions) — see the
 //!   `path` module.
 //! - **Hard-fail, no degraded fallback.** A well-formed but out-of-scope algebra
-//!   node (`SERVICE`, `LATERAL`, `DESCRIBE`, SPARQL `UPDATE`) or an unimplemented
-//!   builtin is a typed [`EvalError::Unsupported`] — never a partial or wrong
-//!   answer (the project `no-optionality` doctrine).
+//!   node (`SERVICE`, `LATERAL`, SPARQL `UPDATE`) or an unimplemented builtin is a
+//!   typed [`EvalError::Unsupported`] — never a partial or wrong answer (the project
+//!   `no-optionality` doctrine).
 //!
 //! The crate carries **zero oxigraph-family dependencies** and builds for
 //! `wasm32-unknown-unknown` (the wasm query path of EPIC #906); both invariants are
@@ -46,6 +46,7 @@ mod binop;
 mod construct;
 mod convert;
 mod dataset_spec;
+mod describe_query;
 pub mod engine;
 pub mod error;
 pub mod eval;
