@@ -820,6 +820,12 @@ const CONCURRENT_COMPOSED_FROM: &str = "concurrentComposedFrom";
 /// The default history criterion when a `logic:ConcurrentHistory` declares none — the
 /// engine decides conflict-serializability (mirrors `teleology::DEFAULT_SERIALIZABILITY_CRITERION`).
 const CONFLICT_SERIALIZABILITY: &str = "ConflictSerializability";
+// View-serializability surface local names (the second serializability criterion the
+// concurrent evaluator classifies, plus the read-from / happens-before edges it rests on).
+const VIEW_SERIALIZABILITY: &str = "ViewSerializability";
+const SATISFIES_CRITERION: &str = "satisfiesCriterion";
+const READS_FROM: &str = "readsFrom";
+const HAPPENS_BEFORE: &str = "happensBefore";
 
 /// The `xsd:boolean` N3 literal form.
 fn xsd_bool(v: bool) -> String {
@@ -1184,6 +1190,186 @@ fn derive_conflict_edges(
     Ok(edges)
 }
 
+/// The read-from / happens-before edges and view-serializability verdict a
+/// [`classify_view_serializability`] pass derives from the witnessed interleaving.
+struct ViewClassification {
+    /// `(reader_step_attribution, writer_step_attribution)` — cross-leg read dependencies of
+    /// the witnessed schedule (`logic:readsFrom`).
+    reads_from: Vec<(String, String)>,
+    /// `(earlier_step_attribution, later_step_attribution)` — cross-leg conflicting pairs in
+    /// witnessed-schedule order (`logic:happensBefore`).
+    happens_before: Vec<(String, String)>,
+    /// Whether the witnessed interleaving is view-serializable (view-equivalent to one of the
+    /// two serial orders of its two legs).
+    view_serializable: bool,
+}
+
+/// A schedule position: which leg (`false` = left, `true` = right) and the step's index WITHIN
+/// that leg — an identity stable across every reordering, so read-from/final-write maps built
+/// over different schedules key on the same operations.
+type OpId = (bool, usize);
+
+/// The read-from and final-write maps of one witnessed or serial schedule over the two legs'
+/// operations. `reads_from` maps each read `(op, situation)` to the leg that last wrote that
+/// situation before the reader (`None` = the initial state, before either leg). `final_write`
+/// maps each written situation to the leg that wrote it last. Two schedules are view-equivalent
+/// iff BOTH maps are equal — the classical read-from + final-write view-equivalence.
+type ViewMaps = (
+    std::collections::BTreeMap<(OpId, String), Option<bool>>,
+    std::collections::BTreeMap<String, bool>,
+);
+
+/// Build the read-from + final-write maps of a schedule, given as an ordered list of operations
+/// and each leg's per-step (read, write) footprints.
+fn view_maps(
+    schedule: &[OpId],
+    left_fp: &[(BTreeSet<String>, BTreeSet<String>)],
+    right_fp: &[(BTreeSet<String>, BTreeSet<String>)],
+) -> ViewMaps {
+    use std::collections::BTreeMap;
+    let mut last_writer: BTreeMap<String, bool> = BTreeMap::new();
+    let mut reads_from: BTreeMap<(OpId, String), Option<bool>> = BTreeMap::new();
+    for &(side, idx) in schedule {
+        let (read, write) = if side { &right_fp[idx] } else { &left_fp[idx] };
+        for s in read {
+            reads_from.insert(((side, idx), s.clone()), last_writer.get(s).copied());
+        }
+        for s in write {
+            last_writer.insert(s.clone(), side);
+        }
+    }
+    (reads_from, last_writer)
+}
+
+/// Classify the witnessed interleaving of a concurrent composition's two legs against
+/// **view-serializability** and derive its read-from / happens-before edges.
+///
+/// View-serializability holds iff the witnessed schedule is view-equivalent — same read-from
+/// and same final-write relations — to one of the two serial orders of its legs (left-then-right
+/// or right-then-left). Because a `logic:ConcurrentComposition` is BINARY, there are exactly two
+/// serial orders to test, so this is a polynomial CLASSIFICATION of the witnessed schedule, never
+/// a search over the factorial schedule space (Principle 12). An n-ary extension must not fall
+/// back to enumerating n! orders; the two distinct legs are enforced by the caller.
+///
+/// The witnessed schedule is the same deterministic index-order interleaving
+/// [`interleave_steps`] / [`derive_conflict_edges`] use: `left[0], right[0], left[1], …`.
+///
+/// # Errors
+///
+/// Propagates a [`step_footprint`] hard-fail (a schema with no effect node).
+fn classify_view_serializability(
+    facts: &WorldFacts,
+    left: &[PlannedStep],
+    right: &[PlannedStep],
+) -> Result<ViewClassification, String> {
+    let left_fp: Vec<(BTreeSet<String>, BTreeSet<String>)> = left
+        .iter()
+        .map(|s| step_footprint(facts, s))
+        .collect::<Result<_, _>>()?;
+    let right_fp: Vec<(BTreeSet<String>, BTreeSet<String>)> = right
+        .iter()
+        .map(|s| step_footprint(facts, s))
+        .collect::<Result<_, _>>()?;
+
+    let (m, n) = (left.len(), right.len());
+
+    // The witnessed index-order interleaving: left[k] at 2k, right[k] at 2k+1 (left wins ties).
+    let mut witnessed: Vec<OpId> = Vec::with_capacity(m + n);
+    for k in 0..m.max(n) {
+        if k < m {
+            witnessed.push((false, k));
+        }
+        if k < n {
+            witnessed.push((true, k));
+        }
+    }
+    // The two serial orders of the two legs.
+    let serial_lr: Vec<OpId> = (0..m)
+        .map(|i| (false, i))
+        .chain((0..n).map(|j| (true, j)))
+        .collect();
+    let serial_rl: Vec<OpId> = (0..n)
+        .map(|j| (true, j))
+        .chain((0..m).map(|i| (false, i)))
+        .collect();
+
+    let w_maps = view_maps(&witnessed, &left_fp, &right_fp);
+    let view_serializable = w_maps == view_maps(&serial_lr, &left_fp, &right_fp)
+        || w_maps == view_maps(&serial_rl, &left_fp, &right_fp);
+
+    // Derive the cross-leg read-from and happens-before edges of the WITNESSED schedule for
+    // inspection. `pos[(side,idx)]` is the operation's witnessed-schedule position; a read/
+    // conflict is cross-leg when the two operations belong to different legs.
+    let mut pos: std::collections::BTreeMap<OpId, usize> = std::collections::BTreeMap::new();
+    for (p, op) in witnessed.iter().enumerate() {
+        pos.insert(*op, p);
+    }
+    let attribution = |op: OpId| -> &str {
+        if op.0 {
+            right[op.1].attribution.as_str()
+        } else {
+            left[op.1].attribution.as_str()
+        }
+    };
+    let footprint = |op: OpId| -> &(BTreeSet<String>, BTreeSet<String>) {
+        if op.0 {
+            &right_fp[op.1]
+        } else {
+            &left_fp[op.1]
+        }
+    };
+
+    let mut reads_from: Vec<(String, String)> = Vec::new();
+    let mut happens_before: Vec<(String, String)> = Vec::new();
+    // Iterate witnessed order; for each later operation, inspect every earlier CROSS-leg
+    // operation: record a happens-before edge when the two conflict, and a read-from edge to
+    // the closest earlier cross-leg writer of each situation the later operation reads.
+    for (later_p, &later) in witnessed.iter().enumerate() {
+        let (later_read, later_write) = footprint(later);
+        for &earlier in witnessed.iter().take(later_p) {
+            if earlier.0 == later.0 {
+                continue; // intra-leg order is fixed; carries no cross-leg information
+            }
+            let (earlier_read, earlier_write) = footprint(earlier);
+            // Conflict: a shared situation that at least one of the pair writes.
+            let conflict = earlier_write
+                .iter()
+                .any(|s| later_read.contains(s) || later_write.contains(s))
+                || later_write.iter().any(|s| earlier_read.contains(s));
+            if conflict {
+                happens_before.push((
+                    attribution(earlier).to_owned(),
+                    attribution(later).to_owned(),
+                ));
+            }
+        }
+        // read-from: the closest preceding cross-leg writer of each read situation.
+        for s in later_read {
+            if let Some(&writer) = witnessed
+                .iter()
+                .take(later_p)
+                .rev()
+                .find(|&&w| w.0 != later.0 && footprint(w).1.contains(s))
+            {
+                reads_from.push((
+                    attribution(later).to_owned(),
+                    attribution(writer).to_owned(),
+                ));
+            }
+        }
+    }
+    reads_from.sort();
+    reads_from.dedup();
+    happens_before.sort();
+    happens_before.dedup();
+
+    Ok(ViewClassification {
+        reads_from,
+        happens_before,
+        view_serializable,
+    })
+}
+
 /// Emit the DERIVED `logic:ConcurrentHistory` of a succeeded concurrent composition: each
 /// leg's committed path substrate (via [`emit_committed_run`], so neither leg is collapsed
 /// into a bogus merged chain), the history node + its `logic:derivedHistory` link from the
@@ -1230,6 +1416,18 @@ fn emit_concurrent_history(
 
     let left_tx = left.node();
     let right_tx = right.node();
+    // Serializability analysis is over exactly TWO distinct transactions (the two legs). A
+    // composition of a program with itself (a shared operand node) is malformed for this
+    // analysis — a hard error, never a silent self-conflict. This is also the binary invariant
+    // that makes view-serializability decidable by checking exactly two serial orders (P12): an
+    // n-ary extension would have to revisit it rather than enumerate n! orders.
+    if left_tx == right_tx {
+        return Err(format!(
+            "logic:ConcurrentComposition {root:?} composes a program with itself \
+             (both legs are {left_tx:?}); the two legs must be distinct transaction-program \
+             nodes for serializability analysis"
+        ));
+    }
 
     let mut out: Vec<TeleologyQuad> = Vec::new();
 
@@ -1318,9 +1516,55 @@ fn emit_concurrent_history(
         }
     }
 
-    // Classify the derived history; a cycle is surfaced as a SerializationAnomaly finding
-    // (reusing the shipped emitter), NEVER a contradiction witness and never linearized.
-    if let SerializationVerdict::Anomaly(cycle) = detect_serialization_anomaly(&edges) {
+    // Classify view-serializability over the SAME witnessed interleaving (the two legs' steps),
+    // deriving the read-from / happens-before edges it rests on. This is the second, weaker
+    // serializability criterion — a conflict-cyclic schedule may still be view-serializable.
+    let view = classify_view_serializability(facts, &l.steps, &r.steps)?;
+
+    // Classify the derived conflict graph once: acyclic ⇒ conflict-serializable.
+    let conflict_verdict = detect_serialization_anomaly(&edges);
+    let conflict_serializable = matches!(&conflict_verdict, SerializationVerdict::Serializable);
+
+    // Record the classification RESULT: which criteria the witnessed schedule SATISFIES
+    // (logic:satisfiesCriterion), plus the derived read-from / happens-before edges. Conflict-
+    // serializability is strictly stronger, so it implies view-serializability.
+    {
+        let mut push = |subject: &str, predicate: String, object: String| {
+            out.push(TeleologyQuad {
+                graph: world.to_owned(),
+                subject: subject.to_owned(),
+                predicate,
+                object,
+                rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+                source_quad_ids: vec![source.to_owned()],
+                derivation_id: deriv.to_owned(),
+            });
+        };
+        if conflict_serializable {
+            push(
+                &history_iri,
+                logic(SATISFIES_CRITERION),
+                n3(&logic(CONFLICT_SERIALIZABILITY)),
+            );
+        }
+        if view.view_serializable {
+            push(
+                &history_iri,
+                logic(SATISFIES_CRITERION),
+                n3(&logic(VIEW_SERIALIZABILITY)),
+            );
+        }
+        for (reader, writer) in &view.reads_from {
+            push(reader, logic(READS_FROM), n3(writer));
+        }
+        for (earlier, later) in &view.happens_before {
+            push(earlier, logic(HAPPENS_BEFORE), n3(later));
+        }
+    }
+
+    // A conflict cycle is surfaced as a SerializationAnomaly finding (reusing the shipped
+    // emitter), NEVER a contradiction witness and never linearized.
+    if let SerializationVerdict::Anomaly(cycle) = conflict_verdict {
         let finding_iri = mint_anomaly_finding_iri(&history_iri, &cycle);
         out.extend(emit_serialization_anomaly(
             world,
