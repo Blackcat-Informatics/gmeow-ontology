@@ -431,8 +431,8 @@ oracle cross-check becomes an independent, separately-scheduled confirmation rat
 prerequisite.
 
 This extends Principle 17 (native authority) and Principle 13 (the consumer Docker-free gate) to the
-authoritative gate; the release-as-evidence clause is realized below, and later amendments append the
-public-receipts and reusable-crate-suite clauses.
+authoritative gate; the release-as-evidence and reusable-crate-suite clauses are realized below, and a
+later amendment appends the public-receipts clause.
 
 **Extends Principle 17 and Principle 13.**
 
@@ -498,9 +498,9 @@ Principle 18's primary lane stays native and offline. Second, the release fold w
 release bundle (`dist/gmeow.gts`, the `--out` path) and **never mutates the committed, drift-gated
 `generated/dist/gmeow.gts`**: the committed snapshot remains the Docker-free narrow waist, and the
 signed evidence bundle is a packaging step layered over it. Perf and timing are folded as data, so
-the bundle attests *what was checked*, not a leaderboard verdict. This realizes META-EPIC #672's
-"signed, content-addressed, provenanced graphs" moat as a shippable artifact: the release graph
-carries its own proof of correctness.
+the bundle attests *what was checked*, not a leaderboard verdict. This realizes the reference-stack
+program's "signed, content-addressed, provenanced graphs" moat as a shippable artifact: the release
+graph carries its own proof of correctness.
 
 *Embodied in:* the Rust-native release fold + sign + verify stage
 ([`crates/pipeline/src/stages/release.rs`](./crates/pipeline/src/stages/release.rs),
@@ -514,6 +514,25 @@ release-evidence gate (`meta:gate-release-evidence`) — the Rust round-trip tes
 set, signs the bundle, and verifies the signature, trust policy, and `graph/attestations` frames, plus
 the consumer verify tests (well-formed bundle accepts; tampered bytes, non-GTS garbage, and an
 untrusted key reject) — surfaced to consumers as `make verify-release`.
+
+**Amendment — the reusable crate suite.** The stack that proves GMEOW correct is *also* a reusable
+RDF-1.2 toolkit in its own right, published as ontology-independent crates: the RDF-1.2 value model,
+the immutable IR, the logic compiler, and the SHACL and reasoning engines carry no dependency on the
+GMEOW ontology graph, so an external consumer can parse, reason over, and validate RDF-1.2 with **no
+GMEOW ontology present**. The structural guarantee is the oxigraph-free, PyO3-free kernel
+(`gmeow-rdf-core`): the reasoning and validation cores compose over its trait seams, never over a
+loaded GMEOW graph, and the pure compiler (`gmeow-logic-compile`) is wasm-able with zero
+reasoning-runtime dependencies. The same cores reach every major runtime through stable reuse
+surfaces — a semantic C-ABI (`gmeow-rdf-capi`, `libpurrdf`) and a wasm / RDF-JS build
+(`gmeow-rdf-wasm`) — not Rust alone. This makes the reasoning stack a *shared* foundation: the GMEOW
+ontology is one consumer of the crates, never a prerequisite for them.
+
+*Embodied in:* the oxigraph-free kernel ([`crates/rdf-core`](./crates/rdf-core)), the pure wasm-able
+compiler ([`crates/logic-compile`](./crates/logic-compile)), and the C-ABI / wasm reuse surfaces
+([`crates/rdf-capi`](./crates/rdf-capi), [`crates/rdf-wasm`](./crates/rdf-wasm)). *Tested by:* the
+crate-dependency ring-fence gate (`meta:gate-rdf-core-hygiene`, `make rdf-core-hygiene`) — it proves
+`gmeow-rdf-core` never regains an `oxigraph` normal dependency, keeping the kernel, and the cores that
+compose over it, reusable with no ontology loaded.
 
 ---
 
