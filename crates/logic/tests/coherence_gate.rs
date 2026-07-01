@@ -12,10 +12,14 @@
 //!   proof over a minimal dataset. It exercises the SAME engine the whole-ontology gate
 //!   uses, is trivially within the per-test budget, and therefore always runs on the
 //!   `make check` lane (never carved out by `default-filter`).
-//! - `whole_bundle_coherence_gate_catches_injected_clash` — the same clash injected on
-//!   top of the WHOLE committed `gmeow.gts`, additionally asserting the shipped ontology
-//!   is itself coherent (a regression guard on the bundle). This is the literal
-//!   whole-ontology proof and it RUNS ON-GATE, via the dedicated `make
+//! - `whole_bundle_coherence_gate_catches_injected_clash` — injects ONLY the two type
+//!   assertions (an individual typed both `gmeow:Agent` and `gmeow:SocialObject`, with NO
+//!   `owl:disjointWith` of its own) on top of the WHOLE committed `gmeow.gts`, so the
+//!   clash is forced SOLELY by the foundational-partition disjointness the bundle itself
+//!   ships — binding the PRODUCTION edge to the gate's teeth (drop the kernel assertion
+//!   and this test goes green→red). It additionally asserts the shipped ontology is itself
+//!   coherent (a regression guard on the bundle). This is the literal whole-ontology proof
+//!   and it RUNS ON-GATE, via the dedicated `make
 //!   coherence-gate-teeth` target. The full-bundle chase takes ~95 s, well over the 25 s
 //!   per-test budget, so it stays carved out of the budget-gated `ci`/`default` nextest
 //!   profile by `default-filter` — that exclusion is budget-exempt, not gate-exempt:
@@ -25,7 +29,9 @@
 //!   deterministic companion.
 
 use gmeow_logic::reason::dl_consistency;
-use gmeow_rdf::{dataset_from_bytes, import_gts_events, NativeRdfFormat, RdfDatasetBuilder};
+use gmeow_rdf::{
+    dataset_from_bytes, import_gts_events, NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm,
+};
 use std::path::{Path, PathBuf};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -57,16 +63,6 @@ fn clash_nquads() -> String {
 /// The same world with only the type assertion — no disjointness, hence coherent.
 fn benign_nquads() -> String {
     format!("<{X}> <{RDF_TYPE}> <{A}> <{W}> .\n")
-}
-
-/// The net-new top-sortal clash: individual X is typed both gmeow:Agent and
-/// gmeow:SocialObject, which this branch asserts owl:disjointWith. World-scoped.
-fn top_sortal_clash_nquads() -> String {
-    format!(
-        "<{X}> <{RDF_TYPE}> <{AGENT}> <{W}> .\n\
-         <{X}> <{RDF_TYPE}> <{SOCIAL_OBJECT}> <{W}> .\n\
-         <{AGENT}> <{OWL_DISJOINT_WITH}> <{SOCIAL_OBJECT}> <{W}> .\n"
-    )
 }
 
 /// Repo root: `crates/logic` → `../..`.
@@ -104,31 +100,6 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
 }
 
 #[test]
-fn dl_consistency_gate_catches_net_new_agent_social_object_clash() {
-    // The foundational partition's NET-NEW edge (gmeow:Agent ⊥ gmeow:SocialObject,
-    // which did not exist before this branch) must have teeth: an individual typed as
-    // both a gmeow:Agent and a gmeow:SocialObject is forced to owl:Nothing.
-    let poisoned = dataset_from_bytes(
-        top_sortal_clash_nquads().as_bytes(),
-        NativeRdfFormat::NQuads,
-    )
-    .expect("parse top-sortal clash N-Quads");
-    let v = dl_consistency(poisoned.as_ref()).expect("consistency run over top-sortal clash");
-    assert!(
-        !v.consistent,
-        "an individual typed both gmeow:Agent and gmeow:SocialObject must be inconsistent \
-         under the net-new top-sortal disjointness"
-    );
-    assert!(
-        v.inconsistencies
-            .iter()
-            .any(|w| w.individual.contains("coherence/x")),
-        "the inconsistency witness must name the injected individual: {:?}",
-        v.inconsistencies
-    );
-}
-
-#[test]
 fn whole_bundle_coherence_gate_catches_injected_clash() {
     // Load the committed bundle exactly as production `reason-verify` does.
     let gts_path = repo_root().join("generated/dist/gmeow.gts");
@@ -145,22 +116,52 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
         v0.inconsistencies
     );
 
-    // Inject the self-contained clash on top of the whole ontology → the gate must catch it.
-    let clash = dataset_from_bytes(clash_nquads().as_bytes(), NativeRdfFormat::NQuads)
-        .expect("parse clash N-Quads");
+    // Locate the SHIPPED gmeow:Agent ⊥ gmeow:SocialObject edge in the bundle and read the
+    // world (named graph) it lives in. Finding it AT ALL proves the net-new production
+    // edge is actually shipped — drop the kernel assertion and this lookup fails. We inject
+    // NO owl:disjointWith of our own (a self-injected one would mask exactly that
+    // regression). The DL disjointness rule is world-scoped, so the clashing individual
+    // must be typed in the SAME world as the shipped edge.
+    let disjoint_world = onto
+        .owned_quads()
+        .find_map(|q| {
+            let is_edge = q.predicate == OWL_DISJOINT_WITH
+                && matches!(
+                    (&q.subject, &q.object),
+                    (RdfTerm::Iri(s), RdfTerm::Iri(o))
+                        if (s == AGENT && o == SOCIAL_OBJECT) || (s == SOCIAL_OBJECT && o == AGENT)
+                );
+            is_edge.then(|| q.graph_name.clone())
+        })
+        .expect(
+            "the committed gmeow.gts must ship gmeow:Agent owl:disjointWith gmeow:SocialObject",
+        );
+
+    // Type an individual into BOTH classes in that SAME world → the world-scoped DL
+    // disjointness rule fires solely from the shipped edge, forcing X to owl:Nothing.
+    let individual = RdfTerm::Iri(X.to_owned());
+    let mut type_agent = RdfQuad::new(individual.clone(), RDF_TYPE, RdfTerm::Iri(AGENT.to_owned()));
+    let mut type_social =
+        RdfQuad::new(individual, RDF_TYPE, RdfTerm::Iri(SOCIAL_OBJECT.to_owned()));
+    if let Some(world) = &disjoint_world {
+        type_agent = type_agent.in_graph(world.clone());
+        type_social = type_social.in_graph(world.clone());
+    }
+
     let mut builder = RdfDatasetBuilder::new();
     for quad in onto.owned_quads() {
         builder.push_owned_quad(&quad);
     }
-    for quad in clash.owned_quads() {
-        builder.push_owned_quad(&quad);
-    }
+    builder.push_owned_quad(&type_agent);
+    builder.push_owned_quad(&type_social);
     let poisoned = builder.freeze().expect("freeze the poisoned bundle");
 
     let v1 = dl_consistency(poisoned.as_ref()).expect("consistency run over poisoned bundle");
     assert!(
         !v1.consistent,
-        "the whole-ontology gate must catch a disjoint-class clash injected into the bundle"
+        "typing an individual both gmeow:Agent and gmeow:SocialObject in the shipped edge's \
+         world must be caught by the SHIPPED foundational-partition disjointness (no \
+         self-injected owl:disjointWith)"
     );
     assert!(
         v1.inconsistencies
