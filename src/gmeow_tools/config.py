@@ -553,57 +553,13 @@ class LinkPolicy(StrEnum):
     REFERENCE_ONLY = "reference-only"
 
 
-#: License-id tokens (uppercased) that block axiom copying into a CC-BY work.
-#: Non-commercial, no-derivatives, conflicting share-alike, and copyleft
-#: software licenses are reference-only.
-_REFERENCE_ONLY_MARKERS: tuple[str, ...] = (
-    "NC",  # non-commercial (CC-BY-NC, CC-BY-NC-SA, CC-BY-NC-ND)
-    "ND",  # no-derivatives
-    "SA",  # share-alike (CC-BY-SA conflicts with CC-BY republication)
-    "GPL",  # GPL / LGPL / AGPL copyleft software licenses
-    "EUPL",  # European Union Public License (copyleft)
-    "PROPRIETARY",
-    "INTERNAL",
-    "ACADEMIC",
-)
-
-#: License-id tokens (uppercased) explicitly cleared for axiom copying.
-_IMPORT_OK_LICENSES: frozenset[str] = frozenset(
-    {
-        "CC0",
-        "CC0-1.0",
-        "CC-BY",
-        "CC-BY-1.0",
-        "CC-BY-3.0",
-        "CC-BY-4.0",
-        "MIT",
-        "APACHE-2.0",
-        "BSD-2-CLAUSE",
-        "BSD-3-CLAUSE",
-        "PDDL-1.0",
-        "PDDL",
-        "ODC-BY-1.0",
-        "ODC-BY",
-        "PUBLIC-DOMAIN",
-        "PUBLIC DOMAIN",
-        "W3C",
-        "W3C-DOCUMENT",
-        "OGC",
-        "NIST-PUBLIC-DOMAIN",
-        "NIST PUBLIC DOMAIN",
-        "UNLICENSE",
-    }
-)
-
-
 def policy_for_license(license_id: str) -> LinkPolicy:
     """Classify a license string into a link policy.
 
-    The classifier is conservative: a restrictive marker (NC/ND/SA/GPL/…)
-    anywhere in the token forces ``REFERENCE_ONLY``, even if a permissive
-    substring is also present (e.g. ``CC-BY-NC-SA`` contains ``CC-BY`` but is
-    still reference-only). Unknown licenses default to ``REFERENCE_ONLY`` so a
-    mistake fails safe (links allowed, copying refused).
+    Delegates to the native RUST-FIRST classifier (``gmeow-license``, the single
+    source of truth). Conservative by design: a restrictive marker (NC/ND/SA/GPL/…)
+    anywhere in the token forces ``REFERENCE_ONLY``, and an unknown license fails
+    safe to ``REFERENCE_ONLY`` (links allowed, copying refused).
 
     Args:
         license_id: A license identifier such as ``"CC-BY-4.0"`` or
@@ -612,28 +568,9 @@ def policy_for_license(license_id: str) -> LinkPolicy:
     Returns:
         The :class:`LinkPolicy` for the license.
     """
-    token = license_id.strip().upper()
-    # Restrictive markers win, regardless of any permissive substring.
-    for marker in _REFERENCE_ONLY_MARKERS:
-        # Match the marker as a hyphen/space/edge-delimited segment so that,
-        # e.g. "ND" does not spuriously match inside "PUBLIC DOMAIN".
-        if _has_marker_segment(token, marker):
-            return LinkPolicy.REFERENCE_ONLY
-    if token in _IMPORT_OK_LICENSES:
-        return LinkPolicy.IMPORT_OK
-    # Bare "CC-BY" with a version suffix not already listed.
-    if token.startswith("CC-BY-") and "SA" not in token and "NC" not in token:
-        return LinkPolicy.IMPORT_OK
-    return LinkPolicy.REFERENCE_ONLY
+    import gmeow_validate
 
-
-def _has_marker_segment(token: str, marker: str) -> bool:
-    """Return whether ``marker`` appears as a delimited segment of ``token``."""
-    segments = token.replace("_", "-").replace(" ", "-").split("-")
-    if marker in segments:
-        return True
-    # GPL family also appears as a prefix (e.g. "GPL-2.0", "LGPL", "AGPL-3.0").
-    return marker == "GPL" and any(seg.endswith("GPL") for seg in segments)
+    return LinkPolicy(gmeow_validate.license_policy_for(license_id))
 
 
 @dataclass(frozen=True, slots=True)
