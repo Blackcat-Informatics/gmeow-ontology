@@ -1963,6 +1963,7 @@ dependencies = [
  "proptest",
  "pyo3",
  "regex",
+ "roxmltree",
  "serde_json",
 ]
 
