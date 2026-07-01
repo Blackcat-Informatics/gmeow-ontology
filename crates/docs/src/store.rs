@@ -88,6 +88,19 @@ impl Store {
         Ok(Self { ds })
     }
 
+    /// Parse N-Quads `bytes` into a fresh store via the native codecs. Unlike
+    /// [`Store::parse_turtle`], the parsed quads may live in a *named* graph
+    /// (the constraint-catalog fanout artifact carries every triple in the
+    /// `gmeow:graph/fanout/catalog/…` named graph), so the catalog reader queries
+    /// through the graph-agnostic [`Store::objects_any`] /
+    /// [`Store::subjects_of_type_any`] helpers rather than the default-graph
+    /// [`Store::objects`] family. Errors on a syntax fault.
+    pub(crate) fn parse_nquads(bytes: &[u8]) -> Result<Self, SliceError> {
+        let ds = parse_dataset(bytes, "application/n-quads", None)
+            .map_err(|e| SliceError::Parse(format!("syntax error: {e}")))?;
+        Ok(Self { ds })
+    }
+
     /// Resolve an IRI to its dataset-local term id, if interned.
     fn iri_id(&self, iri: &str) -> Option<TermId> {
         self.ds.term_id_by_value(&TermValue::iri(iri))
@@ -148,6 +161,68 @@ impl Store {
             .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
             .map(|q| self.object_of(q.o))
             .collect()
+    }
+
+    /// Every object term of `<subject> <pred> ?o` across *any* graph (default or
+    /// named), where the subject is named, in dataset order. The graph-agnostic
+    /// twin of [`Store::objects`] — used by the N-Quads constraint-catalog reader,
+    /// whose quads live in a named fanout graph.
+    pub(crate) fn objects_any(&self, subject_iri: &str, pred: &str) -> Vec<Object> {
+        let (Some(s), Some(p)) = (self.iri_id(subject_iri), self.iri_id(pred)) else {
+            return Vec::new();
+        };
+        self.ds
+            .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Any)
+            .map(|q| self.object_of(q.o))
+            .collect()
+    }
+
+    /// The lowest lexical literal value of `<subject> <pred> ?o` across *any*
+    /// graph (deterministic), or `None`. Named-graph twin of
+    /// [`Store::first_literal`].
+    pub(crate) fn first_literal_any(&self, subject_iri: &str, pred: &str) -> Option<String> {
+        self.objects_any(subject_iri, pred)
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Literal(v) => Some(v),
+                _ => None,
+            })
+            .min()
+    }
+
+    /// All named-node object IRIs of `<subject> <pred> ?o` across *any* graph,
+    /// sorted + deduped. Named-graph twin of [`Store::named_objects`].
+    pub(crate) fn named_objects_any(&self, subject_iri: &str, pred: &str) -> Vec<String> {
+        let mut out: Vec<String> = self
+            .objects_any(subject_iri, pred)
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Named(iri) => Some(iri),
+                _ => None,
+            })
+            .collect();
+        out.sort();
+        out.dedup();
+        out
+    }
+
+    /// All NamedNode subjects of `?s a <type>` across *any* graph (sorted,
+    /// deduped). Named-graph twin of [`Store::subjects_of_type`].
+    pub(crate) fn subjects_of_type_any(&self, type_iri: &str) -> Vec<String> {
+        let (Some(p), Some(o)) = (self.iri_id(RDF_TYPE), self.iri_id(type_iri)) else {
+            return Vec::new();
+        };
+        let mut out: Vec<String> = self
+            .ds
+            .quads_for_pattern(None, Some(p), Some(o), GraphMatch::Any)
+            .filter_map(|q| match self.node_of(q.s) {
+                Some(Node::Named(iri)) => Some(iri),
+                _ => None,
+            })
+            .collect();
+        out.sort();
+        out.dedup();
+        out
     }
 
     /// The lowest lexical literal value of `<subject> <pred> ?o` (deterministic),

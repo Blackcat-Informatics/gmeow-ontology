@@ -127,7 +127,8 @@ pub fn finding_from_rdf(diagnostic: &RdfDiagnostic) -> Finding {
 /// rules stay stable and short.
 pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
     let code = format!(
-        "shacl.{}",
+        "{}{}",
+        crate::codes::SHACL_FAMILY,
         iri_local(result.source_constraint_component.as_str())
     );
     let message = result

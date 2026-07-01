@@ -260,10 +260,14 @@ pub fn coverage_to_diagnostics(report: &CoverageReport) -> Report {
 
     let mut out = Report::new(TOOL);
     for iri in &report.gap_classes {
-        out.add_finding(gap_finding(iri, "coverage.gap-class", "class"));
+        out.add_finding(gap_finding(iri, crate::codes::COVERAGE_GAP_CLASS, "class"));
     }
     for iri in &report.gap_predicates {
-        out.add_finding(gap_finding(iri, "coverage.gap-predicate", "predicate"));
+        out.add_finding(gap_finding(
+            iri,
+            crate::codes::COVERAGE_GAP_PREDICATE,
+            "predicate",
+        ));
     }
     out
 }
