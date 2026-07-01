@@ -23,6 +23,11 @@
 //! * [`slugify`] / [`help_uri_for`] — the *single* anchor transform shared by the
 //!   validator (finding `helpUri`) and the docs renderer, so a finding code and
 //!   its catalog page anchor can never disagree.
+//! * [`catalog_anchor_uri`] — resolves a *concrete* finding code (which may be a
+//!   dynamic family member with no catalog row of its own, e.g.
+//!   `shacl.MinCountConstraintComponent`) to the `help_uri` of the catalog entry
+//!   that actually documents it — its own row if static, otherwise the family
+//!   representative's row.
 //! * [`Enforcement`] + [`STATIC_RULES`] + the family classifiers — the minimal
 //!   `{code → default severity, enforcement kind}` seeds.
 //! * [`rule_for`] / [`populate_rules`] — populate a report's `rules` so every
@@ -376,13 +381,41 @@ pub fn is_known(code: &str) -> bool {
     classify(code).is_some()
 }
 
+/// The catalog entry `help_uri` that actually documents `code`.
+///
+/// A static code has its own catalog row and anchors to its own slug. A
+/// dynamic (family) code — e.g. `shacl.MinCountConstraintComponent` — has no
+/// row of its own: the catalog only enumerates one *representative* row per
+/// family (`shacl.`, `gts.`, `advice.`, `-dsl.nonconforming`, …), so the
+/// concrete member's help URI must resolve to that representative's anchor,
+/// not to a slug of the full concrete code (which the catalog page has no
+/// entry for — a broken deep link). Precedence mirrors [`classify`] exactly
+/// (static wins over prefix families, which win over suffix families) so
+/// classification and anchor resolution can never disagree.
+pub fn catalog_anchor_uri(code: &str) -> String {
+    if STATIC_RULES.iter().any(|(c, _, _)| *c == code) {
+        return help_uri_for(code);
+    }
+    if let Some((prefix, _, _)) = FAMILY_PREFIXES.iter().find(|(p, _, _)| code.starts_with(p)) {
+        return help_uri_for(prefix);
+    }
+    if let Some((suffix, _, _)) = FAMILY_SUFFIXES.iter().find(|(s, _, _)| code.ends_with(s)) {
+        return help_uri_for(suffix);
+    }
+    // Unknown to the registry: cannot happen for an emitted code (GAP 1 makes
+    // the code set total, checked by `every_declared_code_is_classified`).
+    // Fall back to the code's own slug rather than panicking, since
+    // `help_uri_for`/`rule_for` are infallible by design.
+    help_uri_for(code)
+}
+
 /// Build the [`Rule`] for a finding code: its id, the grade the emitted finding
 /// carries, and the shared catalog `help_uri`. The rich `title`/`description` are
 /// left `None` here — they are enriched from the generated catalog graph and,
 /// authoritatively, rendered on the catalog page the `help_uri` points at.
 pub fn rule_for(code: &str, default_severity: Severity) -> Rule {
     let mut rule = Rule::new(code, default_severity);
-    rule.help_uri = Some(help_uri_for(code));
+    rule.help_uri = Some(catalog_anchor_uri(code));
     rule
 }
 
@@ -519,6 +552,18 @@ mod tests {
             mediation.help_uri.as_deref(),
             Some("https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#discipline-relator-mediation")
         );
+        // A dynamic family member's helpUri must point at the FAMILY entry's
+        // anchor (the catalog page has no row for the full concrete code), not
+        // a slug of the concrete code itself.
+        let shacl_member = report
+            .rules
+            .iter()
+            .find(|r| r.id == "shacl.MinCountConstraintComponent")
+            .unwrap();
+        assert_eq!(
+            shacl_member.help_uri.as_deref(),
+            Some("https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-")
+        );
         // The pre-existing advisory rule's own help URI is preserved, not clobbered.
         let advice = report
             .rules
@@ -528,6 +573,40 @@ mod tests {
         assert_eq!(
             advice.help_uri.as_deref(),
             Some("https://blackcatinformatics.ca/gmeow/advice#sample")
+        );
+    }
+
+    #[test]
+    fn catalog_anchor_uri_resolves_dynamic_family_members_to_the_family_entry() {
+        assert_eq!(
+            catalog_anchor_uri("shacl.MinCountConstraintComponent"),
+            "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-"
+        );
+        assert_eq!(
+            catalog_anchor_uri("gts.something"),
+            "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#gts-"
+        );
+        assert_eq!(
+            catalog_anchor_uri("advice.foo"),
+            "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#advice-"
+        );
+        assert_eq!(
+            catalog_anchor_uri("mylabel-dsl.nonconforming"),
+            "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#-dsl-nonconforming"
+        );
+    }
+
+    #[test]
+    fn catalog_anchor_uri_resolves_static_codes_to_their_own_anchor() {
+        assert_eq!(
+            catalog_anchor_uri("discipline/relator-mediation"),
+            "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#discipline-relator-mediation"
+        );
+        // `signature.verify` matches both the static row and the `signature.`
+        // family prefix; the static row must win, same precedence as `classify`.
+        assert_eq!(
+            catalog_anchor_uri("signature.verify"),
+            "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#signature-verify"
         );
     }
 
