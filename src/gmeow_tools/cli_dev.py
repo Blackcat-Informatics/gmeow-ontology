@@ -2894,7 +2894,22 @@ def logic_compile(
     # artifact, the logic ones included, and reports any drift.
     if check and mode is None:
         report = _run_pipeline(check=True)
-        logic_drift = [d for d in report.get("drifted", []) if "/logic/" in d]
+        # The logic-compile stage emits into several generated/ subdirectories, not
+        # only generated/logic/: OWL, Datalog, N3, the gUFO foundation, SHACL-AF, and
+        # the Common Logic dialect (generated/cl/gmeow.clif). Gate drift across all of
+        # them so every committed logic artifact (CLIF included) is covered.
+        _logic_prefixes = (
+            "generated/logic/",
+            "generated/owl/",
+            "generated/datalog/",
+            "generated/n3/",
+            "generated/foundation/",
+            "generated/shacl-af/",
+            "generated/cl/",
+        )
+        logic_drift = [
+            d for d in report.get("drifted", []) if any(p in d for p in _logic_prefixes)
+        ]
         if logic_drift:
             for rel in sorted(logic_drift):
                 err_console.print(f"[red]drift[/red] {rel}")

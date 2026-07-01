@@ -278,11 +278,16 @@ fn parse_one(tokens: &[Token], pos: usize) -> Result<(SExpr, usize), String> {
 /// [`RDF_META_SENTINEL`] line to end-of-input is the RDF-meta block; everything before it is
 /// the FOL channel. The sentinel is a comment, so each half is independently lexable.
 pub(crate) fn split_on_sentinel(src: &str) -> (String, String) {
-    match src.find(RDF_META_SENTINEL) {
-        Some(idx) => {
-            let (fol, meta) = src.split_at(idx);
-            (fol.to_owned(), meta.to_owned())
+    // Match the sentinel only as a WHOLE line (the writer emits it on its own line), so a CL
+    // name or string literal that happens to contain the sentinel text never mis-splits the
+    // document into corrupted FOL/meta halves.
+    let mut offset = 0;
+    for line in src.split_inclusive('\n') {
+        let trimmed = line.trim_end_matches('\n').trim_end_matches('\r');
+        if trimmed == RDF_META_SENTINEL {
+            return (src[..offset].to_owned(), src[offset..].to_owned());
         }
-        None => (src.to_owned(), String::new()),
+        offset += line.len();
     }
+    (src.to_owned(), String::new())
 }
