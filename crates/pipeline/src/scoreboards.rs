@@ -14,6 +14,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Instant;
 
+use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
 use crate::up_projection;
@@ -483,6 +484,84 @@ pub fn claim_audit_diagnostics(report: &ClaimAuditReport) -> Report {
     out
 }
 
+/// A report-only gate comparing the heuristic draft to the lawful executor draft:
+/// how many facts/claims each lifted and how many output triples each produced. It
+/// never fails (scoreboard-only) — its purpose is to surface the parity numbers that
+/// authorize the cutover, and to make a near-zero executor lift (a population/orientation
+/// wiring bug) loudly visible rather than silently accepted as a floor drop.
+fn parity_gate(
+    heuristic: &up_projection::UpProjectionReport,
+    executor: &put_executor::LiftedReport,
+    heuristic_output: usize,
+    executor_output: usize,
+) -> GateResult {
+    let mut gate = GateResult::new(
+        "executor:parity",
+        true,
+        false,
+        format!(
+            "executor lifted {} facts + {} claims (output {} triples) vs heuristic {} lifted (output {} triples)",
+            executor.lifted, executor.claimed, executor_output, heuristic.lifted, heuristic_output
+        ),
+    );
+    gate.metrics
+        .insert("heuristic_lifted".to_owned(), heuristic.lifted as f64);
+    gate.metrics
+        .insert("executor_lifted".to_owned(), executor.lifted as f64);
+    gate.metrics
+        .insert("executor_claimed".to_owned(), executor.claimed as f64);
+    gate.metrics
+        .insert("heuristic_output".to_owned(), heuristic_output as f64);
+    gate.metrics
+        .insert("executor_output".to_owned(), executor_output as f64);
+    gate.metrics.insert(
+        "executor_gap_terms".to_owned(),
+        executor.gap_terms.len() as f64,
+    );
+    gate.detail
+        .push("Loss-ledger residue (dropped heuristic categories):".to_owned());
+    gate.detail
+        .extend(executor.residue.iter().map(|r| format!("- {r}")));
+    gate
+}
+
+/// Run one draft graph (a lifted-to-GMEOW N-Triples string) through the shared
+/// retag → `transform_nt` → five-gate chain, returning the gate results and the
+/// public output triple count. Both the authoritative heuristic draft and the
+/// report-only executor draft go through this identical pipeline so their gate
+/// verdicts are comparable.
+#[allow(clippy::too_many_arguments)]
+fn draft_gates(
+    root: &Path,
+    source_store: &Arc<RdfDataset>,
+    ontology_nt: &str,
+    tag_map: &HashMap<String, String>,
+    inverse_tag_map: &HashMap<String, String>,
+    graph_nt: &str,
+    lifted: usize,
+    gap_count: usize,
+) -> Result<(Vec<GateResult>, usize), String> {
+    let draft_nt = retag_nt_to_internal(graph_nt, inverse_tag_map)?;
+    let draft_store = dataset_from_nt(&draft_nt)?;
+    let transformed = transform::transform_nt(
+        &draft_nt,
+        ontology_nt,
+        &load_cells(root)?,
+        &denied_cells(root)?,
+        &projection_queries(root)?,
+    )?;
+    let output_nt = retag_nt_to_public(&transformed.base_plus_derived_nt, tag_map)?;
+    let output_store = dataset_from_nt(&output_nt)?;
+    let gates = vec![
+        gate_pure_gmeow(&draft_store)?,
+        gate_round_trip(source_store, &output_store, tag_map)?,
+        gate_size_invariant(source_store, &output_store)?,
+        gate_external_validator(root, &output_store, tag_map)?,
+        gate_coverage(source_store, &output_store, lifted, gap_count)?,
+    ];
+    Ok((gates, store_len(&output_store)?))
+}
+
 pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileAcceptance, String> {
     let source_store = dataset_from_files(&[source.to_path_buf()])?;
     let source_nt =
@@ -490,11 +569,14 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
     let ontology_nt = ontology_nt(root)?;
     let tag_map = gmeow_validate::language_tags::load_tag_map(ontology_nt.as_bytes(), "nt")?;
     let inverse_tag_map = invert_tag_map(&tag_map);
+    let sssom_texts = sssom_texts(root)?;
+    let projection_ttls = projection_ttls(root)?;
 
+    // Authoritative draft: the heuristic up-projection engine (retired in a later step).
     let lift = up_projection::up_project_nt(
         &source_nt,
-        &sssom_texts(root)?,
-        &projection_ttls(root)?,
+        &sssom_texts,
+        &projection_ttls,
         &ontology_nt,
         descend,
     )?;
@@ -507,30 +589,54 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
                 .unwrap_or("source")
         ));
     }
-    let draft_nt = retag_nt_to_internal(&lift.graph_nt, &inverse_tag_map)?;
-    let draft_store = dataset_from_nt(&draft_nt)?;
-    let transformed = transform::transform_nt(
-        &draft_nt,
+    let (mut gates, output_triples) = draft_gates(
+        root,
+        &source_store,
         &ontology_nt,
-        &load_cells(root)?,
-        &denied_cells(root)?,
-        &projection_queries(root)?,
+        &tag_map,
+        &inverse_tag_map,
+        &lift.graph_nt,
+        lift.lifted,
+        lift.gap_terms.len(),
     )?;
-    let output_nt = retag_nt_to_public(&transformed.base_plus_derived_nt, &tag_map)?;
-    let output_store = dataset_from_nt(&output_nt)?;
 
-    let gates = vec![
-        gate_pure_gmeow(&draft_store)?,
-        gate_round_trip(&source_store, &output_store, &tag_map)?,
-        gate_size_invariant(&source_store, &output_store)?,
-        gate_external_validator(root, &output_store, &tag_map)?,
-        gate_coverage(
+    // Report-only parity arm: the lawful native put-leg executor. Runs the identical
+    // gate chain so its hard-gate verdicts and recall are directly comparable to the
+    // heuristic, but every executor gate is scoreboard-only (hard = false) so it never
+    // changes the authoritative pass/fail while the heuristic is still the live path.
+    // The parity numbers this surfaces are the empirical measurement that authorizes
+    // the cutover (equivalence-before-deletion).
+    let executor =
+        put_executor::execute_put_legs(&source_nt, &sssom_texts, &projection_ttls, &ontology_nt)?;
+    let exec_output_triples = if executor.graph_nt.trim().is_empty() {
+        0
+    } else {
+        let (exec_gates, exec_output) = draft_gates(
+            root,
             &source_store,
-            &output_store,
-            lift.lifted,
-            lift.gap_terms.len(),
-        )?,
-    ];
+            &ontology_nt,
+            &tag_map,
+            &inverse_tag_map,
+            &executor.graph_nt,
+            executor.lifted,
+            executor.gap_terms.len(),
+        )?;
+        for g in exec_gates {
+            gates.push(GateResult {
+                name: format!("executor:{}", g.name),
+                hard: false,
+                ..g
+            });
+        }
+        exec_output
+    };
+    gates.push(parity_gate(
+        &lift,
+        &executor,
+        output_triples,
+        exec_output_triples,
+    ));
+
     Ok(FileAcceptance {
         source: source
             .file_name()
@@ -538,7 +644,7 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
             .unwrap_or("source")
             .to_owned(),
         source_triples: store_len(&source_store)?,
-        output_triples: store_len(&output_store)?,
+        output_triples,
         gates,
     })
 }
