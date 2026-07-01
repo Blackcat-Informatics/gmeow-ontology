@@ -39,7 +39,7 @@ from rdflib import (
 )
 
 from gmeow_tools.config import GTS_SNAPSHOT_FILE
-from gmeow_tools.oracles import rl_agreement
+from oracles import rl_agreement
 
 EX = Namespace("https://example.org/rl/")
 XSD = "http://www.w3.org/2001/XMLSchema#"

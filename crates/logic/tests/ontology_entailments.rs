@@ -207,7 +207,8 @@ fn smoke_property_chain_entailment_and_negative() {
     );
 }
 
-// ── Migrated from tests/test_reasoning_entailments.py ───────────────────────────────────────
+// ── Migrated from the reasoning-entailments pytest cluster (now at
+//    validations/classic-cross-check/tests/test_reasoning_entailments.py, #1087) ─────────────
 // The native twins of the `_materialize(module, *abox)` positive-entailment tests (#38). The
 // three `reasoning_cases` monkeypatch tests (two-axis / two-kind / run_all order) are NOT migrated
 // — they exercise the Python Docker-orchestration layer (the `reasoning_cases` oracle, relocated to

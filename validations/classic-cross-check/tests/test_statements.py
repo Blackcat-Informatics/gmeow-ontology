@@ -22,8 +22,8 @@ from gmeow_tools.config import (
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
-from gmeow_tools.oracles import statements_docker_check
-from gmeow_tools.rdf12 import project_owl_to_rdf12
+from oracles import statements_docker_check
+from rdf12 import project_owl_to_rdf12
 from gmeow_tools.runner import ToolUnavailableError
 
 # --------------------------------------------------------------------------- #
@@ -40,7 +40,7 @@ def test_no_preview_language_remains() -> None:
         "canonical source of truth is the owl",
     )
     targets = [
-        PROJECT_ROOT / "src/gmeow_tools/rdf12.py",
+        PROJECT_ROOT / "validations/classic-cross-check/rdf12.py",
         PROJECT_ROOT / "queries/codecs/rdf12-project.rq",
         PROJECT_ROOT / "queries/codecs/rdf12-to-owl.rq",
         PROJECT_ROOT / "README.md",
