@@ -14,8 +14,13 @@
 //! - **In-memory only.** The oxigraph `Store` (RocksDB) and `crates/logic` do not
 //!   compile to wasm and are deliberately excluded — this is the
 //!   value-interned IR + the COW [`MutableDataset`](gmeow_rdf::ir::MutableDataset),
-//!   not a persistent quad store. SPARQL query (oxigraph-backed, native-only by
-//!   charter) is out of scope.
+//!   not a persistent quad store.
+//! - **Offline SPARQL.** The native, oxigraph-free multiset evaluator
+//!   ([`gmeow_sparql_eval`]) binds to the wasm [`Dataset`] (see the `query` module),
+//!   so SELECT / ASK / CONSTRUCT / DESCRIBE run client-side with no server. Only the
+//!   evaluator's `ureq` SERVICE transport is non-portable, and it is
+//!   `cfg(not(wasm32))`-gated off — a `SERVICE` / `LOAD` clause hard-fails here
+//!   rather than silently returning a partial answer.
 //! - **Separate from the C-ABI (P8 #842).** WASM has its own ownership model,
 //!   packaging, and async I/O; it is not a C-ABI consumer and does not depend on the
 //!   `no_std` track.
@@ -47,11 +52,14 @@ use wasm_bindgen::prelude::*;
 //   * `convert` — Quad/Term ↔ engine value space (QuadValues/TermValue)
 //   * `dataset` — the mutable RDF/JS DatasetCore over `MutableDataset`/`DatasetMut`
 //                 (parse/serialize/size/add/delete/has/match/quads)
+//   * `query`   — the offline SPARQL surface (`Dataset.query`) over the native
+//                 evaluator
 //   * `stream`  — the RDF/JS Sink over the `gmeow-rdf-events` ingestion protocol
 mod codec;
 mod convert;
 mod dataset;
 mod factory;
+mod query;
 mod stream;
 mod term;
 
