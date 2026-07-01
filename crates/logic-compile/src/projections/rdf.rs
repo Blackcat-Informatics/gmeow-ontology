@@ -6,8 +6,9 @@
 //! These build a wasm-clean triple set ([`RdfDatasetBuilder`]) and serialize to
 //! Turtle through the native codec.  The conformance goldens compare these targets
 //! by **graph isomorphism** (not bytes), so the serialization need only reproduce
-//! the same triples.  The Python duplicate was retired in #727; this is the source
-//! of truth.
+//! the same triples.  This is the single source of truth for these projections.
+
+use std::collections::HashSet;
 
 use gmeow_rdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
 
@@ -897,23 +898,40 @@ fn covering_key(cov: &Covering) -> String {
     format!("{}|{}", cov.whole, cov.members.join(","))
 }
 
-/// `true` iff every unordered pair of `members` is asserted disjoint in `axioms`
-/// (either direction, `logic:disjointWith` or `owl:disjointWith`). A fully-disjoint
-/// covering lowers to `owl:disjointUnionOf` (a partition); otherwise to a plain
-/// `owl:unionOf` cover, so a deliberate overlap is never over-claimed as a partition.
-fn all_pairwise_disjoint(members: &[String], axioms: &[LogicAxiom]) -> bool {
+/// Pre-index every asserted disjointness (`logic:disjointWith` or `owl:disjointWith`,
+/// class-valued, either direction) as an unordered `(a, b)` pair with `a < b`. Built once
+/// per projection over all `axioms` so a covering's pairwise-disjoint test is O(M²) hash
+/// lookups instead of an O(M²·A) rescan of every axiom.
+fn disjoint_pair_index(axioms: &[LogicAxiom]) -> HashSet<(&str, &str)> {
     let disjoint = logic("disjointWith");
     let disjoint_owl = owl("disjointWith");
-    let pair_disjoint = |a: &str, b: &str| {
-        axioms.iter().any(|ax| {
-            (ax.predicate == disjoint || ax.predicate == disjoint_owl)
-                && !ax.obj_is_literal
-                && ((ax.subject == a && ax.obj == b) || (ax.subject == b && ax.obj == a))
+    axioms
+        .iter()
+        .filter(|ax| {
+            (ax.predicate == disjoint || ax.predicate == disjoint_owl) && !ax.obj_is_literal
         })
-    };
+        .map(|ax| {
+            if ax.subject < ax.obj {
+                (ax.subject.as_str(), ax.obj.as_str())
+            } else {
+                (ax.obj.as_str(), ax.subject.as_str())
+            }
+        })
+        .collect()
+}
+
+/// `true` iff every unordered pair of `members` is asserted disjoint, looked up in the
+/// pre-built `disjoint_pairs` index (canonicalized `a < b`). A fully-disjoint covering
+/// lowers to `owl:disjointUnionOf` (a partition); otherwise to a plain `owl:unionOf`
+/// cover, so a deliberate overlap is never over-claimed as a partition.
+fn all_pairwise_disjoint(members: &[String], disjoint_pairs: &HashSet<(&str, &str)>) -> bool {
     (0..members.len())
         .flat_map(|i| ((i + 1)..members.len()).map(move |j| (i, j)))
-        .all(|(i, j)| pair_disjoint(&members[i], &members[j]))
+        .all(|(i, j)| {
+            let (a, b) = (members[i].as_str(), members[j].as_str());
+            let key = if a < b { (a, b) } else { (b, a) };
+            disjoint_pairs.contains(&key)
+        })
 }
 
 /// Emit an `rdf:List` of member class IRIs (built tail-to-head so each cell's
@@ -921,11 +939,14 @@ fn all_pairwise_disjoint(members: &[String], axioms: &[LogicAxiom]) -> bool {
 /// a minted, content-derived IRI (never a blank node, so the deterministic-IRI codec
 /// keeps the list byte-stable). An empty member set yields `rdf:nil`.
 fn emit_class_list(g: &mut TripleSink, base: &str, members: &[String]) -> String {
+    // The rdf:first / rdf:rest predicate IRIs are loop-invariant — format them once.
+    let rdf_first = format!("{RDF_NS}first");
+    let rdf_rest = format!("{RDF_NS}rest");
     let mut rest = format!("{RDF_NS}nil");
     for (i, member) in members.iter().enumerate().rev() {
         let cell = format!("{base}/cell/{i:04}");
-        g.add_iri(&cell, &format!("{RDF_NS}first"), member);
-        g.add_iri(&cell, &format!("{RDF_NS}rest"), &rest);
+        g.add_iri(&cell, &rdf_first, member);
+        g.add_iri(&cell, &rdf_rest, &rest);
         rest = cell;
     }
     rest
@@ -955,9 +976,11 @@ fn emit_covering_owl_dl(g: &mut TripleSink, cov: &Covering, disjoint: bool) {
 /// `contract_drop_notes`), which is told coverings ARE representable here so an emitted
 /// covering is never also double-counted as a drop.
 fn project_formulas_owl_dl(g: &mut TripleSink, program: &LogicProgram) {
+    // Index the disjoint pairs once for the whole program, not once per covering.
+    let disjoint_pairs = disjoint_pair_index(&program.axioms);
     for formula in &program.formulas {
         if let Some(cov) = recognize_covering(formula) {
-            let disjoint = all_pairwise_disjoint(&cov.members, &program.axioms);
+            let disjoint = all_pairwise_disjoint(&cov.members, &disjoint_pairs);
             emit_covering_owl_dl(g, &cov, disjoint);
         }
     }
