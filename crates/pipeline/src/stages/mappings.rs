@@ -539,7 +539,29 @@ impl Stage for MappingsStage {
         // byte-lane only. Each RDF artifact is parsed and the per-input datasets are
         // unioned (standardize-apart per input), so `gts_compose` folds in this one
         // dataset instead of re-parsing each byte artifact.
-        let dataset = mappings_rdf_dataset(&artifacts)?;
+        // The default-graph union of the RDF outputs (the alignment axioms `gts_compose`
+        // folds default-graph-only) PLUS the projection-report loss ledger re-rooted into
+        // the carrier's `graph/projection-ledger` named graph, so the presenter reads the
+        // ledger as a pure keyed fold (PIPELINE_SPINE §4) instead of re-parsing the byte
+        // artifact. `gts_compose` folds only the default graph, so the named ledger graph
+        // never pollutes the composed EDB.
+        let rdf_dataset = mappings_rdf_dataset(&artifacts)?;
+        let report_ttl =
+            artifacts
+                .get(PROJECTION_REPORT_PATH)
+                .ok_or_else(|| PipelineError::Stage {
+                    stage: self.id().to_owned(),
+                    message: format!("mappings run omitted {PROJECTION_REPORT_PATH}"),
+                })?;
+        let ledger_graph = crate::stages::carrier::parse_into_graph(
+            &crate::stages::carrier::turtle_to_nquads(report_ttl)?,
+            "application/n-quads",
+            crate::stages::carrier::GRAPH_PROJECTION_LEDGER,
+        )?;
+        let dataset = std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&[
+            rdf_dataset.as_ref(),
+            ledger_graph.as_ref(),
+        ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })

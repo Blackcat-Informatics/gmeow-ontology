@@ -41,21 +41,22 @@ pub const SNAPSHOT_PATH: &str = "generated/dist/gmeow.gts";
 const GRAPH_IMPORTS: &str = "https://blackcatinformatics.ca/gmeow/graph/imports";
 const GRAPH_METADATA: &str = "https://blackcatinformatics.ca/gmeow/graph/metadata";
 const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
-const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
+pub(crate) const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
 const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
-const GRAPH_DOCUMENTATION: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
-const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+pub(crate) const GRAPH_DOCUMENTATION: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/documentation";
+pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 /// The native↔external-corpus reasoning-divergence Findings, folded as their own
 /// queryable named graph so a repo-free consumer reads every coverage divergence
 /// (native-incomplete `DlGap` / native-disagrees `CorpusOnly`) against the W3C
 /// published expected verdicts without re-grading the corpus. Sibling of
 /// `graph/diagnostics` (correctness evidence, not validation/lint findings).
-const GRAPH_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/graph/conformance";
+pub(crate) const GRAPH_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/graph/conformance";
 /// The compiler's projection-report loss ledger, folded as its own queryable named
 /// graph so a repo-free consumer reads every projection's preservation kind and
 /// structural lossy drops without re-running the compiler.
-const GRAPH_PROJECTION_LEDGER: &str =
+pub(crate) const GRAPH_PROJECTION_LEDGER: &str =
     "https://blackcatinformatics.ca/gmeow/graph/projection-ledger";
 /// The authored default graph (root ontology + slice modules + translations + guide
 /// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
@@ -275,6 +276,27 @@ fn source_load_graph(
     )
 }
 
+/// Read a first-class carrier named graph off its PRODUCER's attached dataset, re-rooted
+/// into `graph_iri` (PIPELINE_SPINE §4 — the presenter is a pure keyed fold: it projects
+/// the producer's already-parsed named graph, never re-parses the producer's byte
+/// artifact). The producer attached it via `parse_into_graph`; this is the read half —
+/// no parse. A missing producer HARD-fails (no-optionality).
+fn producer_graph(
+    upstream: &BTreeMap<String, StageProduct>,
+    stage: &str,
+    graph_iri: &str,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    let product = upstream.get(stage).ok_or_else(|| {
+        stage_err(&format!(
+            "missing {stage} product for the <{graph_iri}> graph"
+        ))
+    })?;
+    rooted_in_graph(
+        &product.bundle().dataset().project_named_graph(graph_iri),
+        graph_iri,
+    )
+}
+
 fn assemble_carrier(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
@@ -288,42 +310,32 @@ fn assemble_carrier(
     let base = std::sync::Arc::new(
         source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
     );
-    let rdf12 = upstream
-        .get("stage-statements")
-        .and_then(|p| p.artifact(RDF12_PATH))
-        .ok_or_else(|| stage_err("missing statements RDF 1.2 artifact"))?
-        .to_vec();
-    let documentation = upstream
-        .get("stage-docs-render")
-        .and_then(|p| p.artifact(crate::stages::docs_render::DOCS_GRAPH_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing docs-render documentation graph"))?;
-    // graph/diagnostics ← SHACL diagnostics ∪ logic-compile diagnostics.
-    let mut diagnostics = upstream
-        .get("stage-validate")
-        .and_then(|p| p.artifact(crate::stages::validate::SHACL_RDF_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics RDF graph"))?;
-    let compile_diagnostics = upstream
-        .get("stage-compile-logic")
-        .and_then(|p| p.artifact(crate::stages::compile_logic::DIAG_RDF_PATH))
-        .ok_or_else(|| stage_err("missing compile-logic diagnostics RDF graph"))?;
-    if !diagnostics.is_empty() && !diagnostics.ends_with(b"\n") {
-        diagnostics.push(b'\n');
-    }
-    diagnostics.extend_from_slice(compile_diagnostics);
-    let conformance = upstream
-        .get("stage-conformance")
-        .and_then(|p| p.artifact(crate::stages::conformance::CONFORMANCE_NQ_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
-    let projection_ledger = {
-        let report_ttl = upstream
-            .get("stage-mappings")
-            .and_then(|p| p.artifact(crate::stages::compile_logic::PROJECTION_REPORT_PATH))
-            .ok_or_else(|| stage_err("missing mappings projection-report loss ledger"))?;
-        turtle_to_nquads(report_ttl)?
-    };
+    // ── the first-class carrier graphs ride in from their producers' datasets ───
+    // Each is read off the PRODUCER's attached named graph (a pure keyed fold), NOT
+    // re-parsed from the producer's byte artifact (PIPELINE_SPINE §4 — the presenter
+    // parses nothing). The statement layer is the producer's dataset (the parse of the
+    // RDF-1.2 artifact, carried default-graph-only) re-rooted here — the same quads the
+    // former `parse_into_graph(&rdf12, ...)` produced, off the already-attached dataset
+    // instead of re-parsing the byte artifact. `stage-statements` carries only its default
+    // graph (`gts_compose` folds it WHOLE, so it must not carry a named-graph copy), so
+    // re-rooting the whole dataset is exactly the former per-parse named-graph fold.
+    let statements = rooted_in_graph(
+        upstream
+            .get("stage-statements")
+            .ok_or_else(|| stage_err("missing stage-statements product for the statement layer"))?
+            .bundle()
+            .dataset(),
+        GRAPH_STATEMENTS,
+    )?;
+    let documentation = producer_graph(upstream, "stage-docs-render", GRAPH_DOCUMENTATION)?;
+    // graph/diagnostics ← SHACL diagnostics (stage-validate) ∪ logic-compile diagnostics
+    // (stage-compile-logic), each read off its producer's attached graph and unioned here.
+    let diagnostics = gmeow_rdf::RdfDataset::union(&[
+        producer_graph(upstream, "stage-validate", GRAPH_DIAGNOSTICS)?.as_ref(),
+        producer_graph(upstream, "stage-compile-logic", GRAPH_DIAGNOSTICS)?.as_ref(),
+    ]);
+    let conformance = producer_graph(upstream, "stage-conformance", GRAPH_CONFORMANCE)?;
+    let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let compile = upstream
@@ -340,7 +352,7 @@ fn assemble_carrier(
     // ── route every snapshot-owned source into its named graph, then union all ──
     let mut datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
         base,
-        parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
+        statements,
         // The self-description graphs are read (not re-loaded) off stage-source-load.
         source_load_graph(upstream, GRAPH_IMPORTS)?,
         source_load_graph(upstream, GRAPH_METADATA)?,
@@ -348,13 +360,9 @@ fn assemble_carrier(
         source_load_graph(upstream, GRAPH_SLICE_ANALYSIS)?,
         source_load_graph(upstream, GRAPH_VERIFY)?,
         source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
-        parse_into_graph(&documentation, "application/n-quads", GRAPH_DOCUMENTATION)?,
-        parse_into_graph(&diagnostics, "application/n-quads", GRAPH_DIAGNOSTICS)?,
-        parse_into_graph(
-            &projection_ledger,
-            "application/n-quads",
-            GRAPH_PROJECTION_LEDGER,
-        )?,
+        documentation,
+        std::sync::Arc::new(diagnostics),
+        projection_ledger,
         rooted_in_graph(
             &compile.bundle().dataset().project_named_graph(logic_iri),
             logic_iri,
@@ -373,12 +381,8 @@ fn assemble_carrier(
         )?,
     ];
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
-    if !conformance.is_empty() {
-        datasets.push(parse_into_graph(
-            &conformance,
-            "application/n-quads",
-            GRAPH_CONFORMANCE,
-        )?);
+    if conformance.quad_count() != 0 {
+        datasets.push(conformance);
     }
     // graph/projections/<name>.edoal ← each committed EDOAL projection, one named
     // graph per file. EDOAL renders through the canonical-Turtle serializer, so the
@@ -585,7 +589,7 @@ fn serialize_snapshot(
 
 /// Parse `bytes` natively and re-root every quad into `graph_iri` (see
 /// [`rooted_in_graph`]).
-fn parse_into_graph(
+pub(crate) fn parse_into_graph(
     bytes: &[u8],
     media_type: &str,
     graph_iri: &str,
@@ -2690,7 +2694,7 @@ fn canonicalize_term_xsd(term: &mut gmeow_rdf::RdfTerm) -> Result<(), PipelineEr
 /// Parse a single Turtle source and serialize it straight to N-Quads (no `Store`).
 /// The native equivalent of the old `Store::new()+ingest_turtle+store_to_nquads`
 /// trio for single-file named-graph sources (metadata, slice-analysis).
-fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, PipelineError> {
+pub(crate) fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, PipelineError> {
     dataset_to_nquads(parse_turtle_dataset(bytes)?.as_ref())
 }
 

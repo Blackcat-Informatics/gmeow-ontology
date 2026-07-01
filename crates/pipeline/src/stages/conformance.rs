@@ -268,10 +268,19 @@ impl Stage for ConformanceStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let nq = build_conformance_divergence(input.root)?;
+        // Attach the divergence-Finding graph as the carrier's `graph/conformance` named
+        // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4), never
+        // re-parses the byte artifact. An all-agree corpus yields no quads; the presenter
+        // still guards the non-empty fold. The byte lane is kept for the byte readers.
+        let dataset = crate::stages::carrier::parse_into_graph(
+            &nq,
+            "application/n-quads",
+            crate::stages::carrier::GRAPH_CONFORMANCE,
+        )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CONFORMANCE_NQ_PATH.to_string(), nq);
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })
     }
 }
