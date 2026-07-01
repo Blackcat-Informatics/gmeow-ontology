@@ -57,7 +57,11 @@ WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
 # codegen for regenerate/reasoning throughput. CI and release workflows append the
 # portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
 
-ACCEPTANCE_MIN_RECALL ?= 60
+# The enforced corpus-aggregate recall floor lives in Rust
+# (scoreboards::ACCEPTANCE_MIN_RECALL_PCT — the single source of truth). Leave this
+# EMPTY to enforce that native floor; set it only to OVERRIDE for a dev measurement
+# (e.g. `make acceptance ACCEPTANCE_MIN_RECALL=0` to measure without a floor).
+ACCEPTANCE_MIN_RECALL ?=
 FUZZ_TARGETS = nquads gts shacl sssom statements
 FUZZ_TIME ?= 30
 MUTANTS_ARGS ?=
@@ -289,7 +293,7 @@ coverage: ## Gate vendored entity-slice class and predicate coverage.
 	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
 
 acceptance: ## Gate full transpile recall against external RDF snapshots.
-	$(GMEOW_DEV) acceptance --min-recall $(ACCEPTANCE_MIN_RECALL)
+	$(GMEOW_DEV) acceptance $(if $(strip $(ACCEPTANCE_MIN_RECALL)),--min-recall $(ACCEPTANCE_MIN_RECALL),)
 
 crossref: ## Generate the CrossRef DOI deposit XML.
 	$(GMEOW_DEV) crossref

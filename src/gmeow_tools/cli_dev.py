@@ -2340,12 +2340,6 @@ def up_project_cmd(
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Write the GMEOW lift here (default: stdout Turtle)."
     ),
-    descend: bool = typer.Option(
-        False,
-        "--descend",
-        help="Use the context-aware graph-descent resolver (resolves a term by "
-        "the subject's type) over the per-term floor.",
-    ),
 ) -> None:
     """Lift a consumer-vocabulary RDF file UP into pure GMEOW (#451).
 
@@ -2355,18 +2349,14 @@ def up_project_cmd(
     than a bare fact. Terms with no rule, or whose reverse is ambiguous (a
     many-to-one down-image), are reported and left out — never guessed.
 
-    With ``--descend``, an ambiguous or inferred term is resolved by the
-    subject's type — ``schema:about`` on a ``MediaObject`` becomes ``gmeow:depicts``
-    but on any other entity ``gmeow:isAbout`` — falling through to the per-term
-    floor when the type adds no signal. Reads from stdin and writes Turtle to
-    stdout, so ``cat src | gmeow up-project - | gmeow transform -`` streams.
+    Reads from stdin and writes Turtle to stdout, so
+    ``cat src | gmeow up-project - | gmeow transform -`` streams.
     """
     from gmeow_tools.up_projection import up_project
-    from gmeow_tools.up_projection_descend import up_project_descend
 
     src, _stem = _read_turtle(source)
     try:
-        result = up_project_descend(src) if descend else up_project(src)
+        result = up_project(src)
     except ValueError as exc:
         raise _fail(str(exc)) from exc
     if out is not None:
@@ -2382,25 +2372,12 @@ def up_project_cmd(
     err_console.print(
         f"[green]lifted[/green] {result.lifted} facts · "
         f"[cyan]claimed[/cyan] {result.claimed} inferred · "
-        + (
-            f"[magenta]context[/magenta] {result.context_resolved} by-type · "
-            if descend
-            else ""
-        )
-        + (
-            f"[blue]bridged[/blue] {result.tag_resolved} QID-tag · "
-            if result.tag_resolved
-            else ""
-        )
-        + f"[yellow]gap[/yellow] {len(result.gap_terms)} terms · "
-        f"[yellow]ambiguous[/yellow] {len(result.ambiguous_terms)} terms",
+        f"[yellow]gap[/yellow] {len(result.gap_terms)} terms",
     )
-    for term, n in sorted(result.claim_terms.items()):
-        err_console.print(f"[cyan]claimed[/cyan] {term} (x{n})")
     for term, n in sorted(result.gap_terms.items()):
         err_console.print(f"[yellow]gap[/yellow] {term} (x{n})")
-    for term, n in sorted(result.ambiguous_terms.items()):
-        err_console.print(f"[yellow]ambiguous[/yellow] {term} (x{n})")
+    for note in result.residue:
+        err_console.print(f"[dim]residue[/dim] {note}")
 
 
 @app.command()
@@ -2413,16 +2390,12 @@ def acceptance(
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Write the Markdown scoreboard here (else stdout)."
     ),
-    floor: bool = typer.Option(
-        False,
-        "--floor",
-        help="Use the per-term floor instead of the context-aware descent.",
-    ),
     min_recall: float | None = typer.Option(
         None,
         "--min-recall",
-        help="HARD aggregate floor (#579): if the corpus-aggregate round-trip "
-        "recall %% falls below this, fail with exit 1. Omit for report-only.",
+        help="Override the HARD corpus-aggregate recall floor. When omitted the "
+        "native floor (Rust ACCEPTANCE_MIN_RECALL_PCT, single source of truth) is "
+        "enforced. Pass 0 to measure without a floor.",
     ),
 ) -> None:
     """Score the full transpile against real data — the honest scoreboard (#450).
@@ -2434,11 +2407,13 @@ def acceptance(
     The corpus is the verbatim ``external/`` snapshots — numbers that cannot be
     moved by writing fixtures.
 
-    The per-file round-trip gate stays a scoreboard (red until done). Passing
-    ``--min-recall`` adds a SEPARATE *aggregate* floor (#579): the pooled
-    Σ recovered / Σ addressable recall across the whole corpus must clear it, or
-    the command hard-fails — making the transpile gate block without demanding
-    100%% per-file recall (honest-scoreboard doctrine preserved).
+    The per-file round-trip gate stays a scoreboard (red until done). The HARD
+    enforcement is the SEPARATE *aggregate* floor (GAP 3, #1145): the pooled
+    Σ recovered / Σ addressable recall across the whole corpus must clear the
+    native ``ACCEPTANCE_MIN_RECALL_PCT`` floor, or the command hard-fails — making
+    the transpile gate block without demanding 100%% per-file recall
+    (honest-scoreboard doctrine preserved). ``--min-recall`` only *overrides* that
+    native floor (e.g. 0 to measure); the default is the Rust-owned figure.
     """
     import gmeow_native.pipeline as _pipeline
 
@@ -2448,7 +2423,6 @@ def acceptance(
             _pipeline.acceptance(
                 str(PROJECT_ROOT),
                 None if source is None else str(source),
-                not floor,
             ),
         )
     except (ImportError, OSError, RuntimeError, ValueError) as exc:
@@ -2465,17 +2439,23 @@ def acceptance(
         verdict = "[green]PASS[/green]" if fa.get("passed") else "[red]FAIL[/red]"
         err_console.print(f"{verdict} {fa.get('source', 'source')}")
 
-    if min_recall is not None:
-        aggregate = float(native.get("aggregate_recall", 100.0))
-        if aggregate < min_recall:
-            raise _fail(
-                f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
-                f"the floor {min_recall:.2f}% ({len(results)} source(s))"
-            )
-        err_console.print(
-            f"[green]✓[/green] corpus-aggregate round-trip recall "
-            f"{aggregate:.2f}% ≥ floor {min_recall:.2f}%"
+    # The HARD corpus-aggregate recall floor is owned in Rust (single source of truth).
+    # Default to the native floor; `--min-recall` only overrides it. These fields are
+    # REQUIRED in the native contract — read directly so a missing field fails closed
+    # instead of silently masking an integration regression.
+    native_floor = float(native["min_recall_floor"])
+    floor = native_floor if min_recall is None else min_recall
+    aggregate = float(native["aggregate_recall"])
+    if aggregate < floor:
+        message = (
+            f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
+            f"the floor {floor:.2f}% ({len(results)} source(s))"
         )
+        raise _fail(message)
+    err_console.print(
+        f"[green]✓[/green] corpus-aggregate round-trip recall "
+        f"{aggregate:.2f}% ≥ floor {floor:.2f}%"
+    )
 
 
 @app.command()
