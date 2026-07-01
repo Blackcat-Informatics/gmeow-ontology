@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: transaction/isolation-write-skew-serializable.
+#
+# A logic:ConcurrentComposition whose two legs form a WRITE SKEW (each leg reads a
+# situation the other writes), producing a conflict-CYCLIC witnessed schedule. The
+# run declares a logic:IsolationLevel (logic:declaredIsolationLevel). The concurrent
+# evaluator realizes snapshot isolation, so it records logic:isolationLevelAdequacy:
+# a write-skew schedule is ADEQUATE for logic:SnapshotIsolation (snapshot admits write
+# skew) yet INADEQUATE for logic:SerializableIsolation (with a logic:isolationInadequacyReason).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/transaction/isolation-write-skew-serializable/> .
+
+ex:GoalExpression a logic:GoalExpression .
+
+ex:TransactionContract a logic:ReasoningContract ;
+    logic:evolution logic:TransactionPathEvolution .

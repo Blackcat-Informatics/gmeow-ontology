@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# An openEHR reference CDR (EHRbase) + its Postgres, for the validator-zoo probe. This
+# stands up a real openEHR ITS-REST server so the lane can POST the Blutdruck OPT and then
+# POST both compositions (source + augmented) and observe whether the CDR accepts them.
+# Pins are explicit (no :latest) so the probe is reproducible.
+
+services:
+  ehrdb:
+    image: ehrbase/ehrbase-v2-postgres:16.2
+    # The ehrbase-v2-postgres image bootstraps the `ehrbase` role + database itself via its
+    # baked init scripts; only the superuser credentials are passed here (setting
+    # EHRBASE_USER/PASSWORD re-runs role creation and fails with "role already exists").
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  ehrbase:
+    image: ehrbase/ehrbase:2.15.0
+    depends_on:
+      ehrdb:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://ehrdb:5432/ehrbase
+      # Disposable validation CDR: run the runtime connection as the superuser too, so the
+      # restricted-role GRANTs the split admin/runtime setup needs are not in play. This is a
+      # throwaway validator, never a production deployment.
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_USER_ADMIN: postgres
+      DB_PASS_ADMIN: postgres
+      SERVER_NODENAME: local.ehrbase.org
+      SECURITY_AUTHTYPE: BASIC
+      SECURITY_AUTHUSER: ehrbase-user
+      SECURITY_AUTHPASSWORD: SuperSecretPassword
+      SECURITY_AUTHADMINUSER: ehrbase-admin
+      SECURITY_AUTHADMINPASSWORD: EvenMoreSecretPassword
+      SYSTEM_ALLOWTEMPLATEOVERWRITE: "true"
+    ports:
+      - "8080:8080"

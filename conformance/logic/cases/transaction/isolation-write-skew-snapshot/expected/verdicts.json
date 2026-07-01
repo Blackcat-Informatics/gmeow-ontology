@@ -1,0 +1,6 @@
+{
+  "https://example.org/transaction/isolation-write-skew-snapshot/world": {
+    "quads": 82,
+    "status": "consistent"
+  }
+}
