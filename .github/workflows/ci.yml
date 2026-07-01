@@ -607,12 +607,20 @@ jobs:
           tool: wasm-bindgen-cli@0.2.125
 
       # wasm-opt (binaryen) is a REQUIRED build step: `make wasm-pkg` / `validate-wasm-pkg`
-      # hard-fail without it. Provision it explicitly so the hard dependency is reproducible
-      # rather than relying on whatever the runner image happens to preinstall.
-      - name: Install binaryen (wasm-opt)
-        uses: taiki-e/install-action@b8cecb83565409bcc297b2df6e77f030b2a468d5 # v2
-        with:
-          tool: binaryen
+      # hard-fail without it. Provision a PINNED official release explicitly so the hard
+      # dependency — and the optimized artifact bytes — are reproducible, rather than
+      # relying on whatever the runner image happens to preinstall.
+      - name: Install binaryen (wasm-opt) — pinned release
+        env:
+          BINARYEN_VER: version_119
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/binaryen.tar.gz \
+            "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN_VER}/binaryen-${BINARYEN_VER}-x86_64-linux.tar.gz"
+          mkdir -p /tmp/binaryen
+          tar xzf /tmp/binaryen.tar.gz -C /tmp/binaryen --strip-components=1
+          echo "/tmp/binaryen/bin" >> "$GITHUB_PATH"
+          /tmp/binaryen/bin/wasm-opt --version
 
       # ubuntu-latest ships a current Node; `make wasm-pkg-test` builds the purrdf +
       # validator npm packages and runs the Node round-trip suites against the real wasm
