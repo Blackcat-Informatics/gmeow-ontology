@@ -566,6 +566,8 @@ gmeow:eqCw060 a gmeow:TermEquivalence ;
 # --------------------------------------------------------------------------- #
 
 @prefix pav: <http://purl.org/pav/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
 
 # PAV specializes PROV-O for authorship, curation and digital creation.
 # GMEOW captures these as Contribution relators; the flat properties below
@@ -597,3 +599,110 @@ gmeow:eqCw055 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "linkage row declaring the foaf projection's made inverse (work-to-agent vs agent-to-work — close, deliberately not strong; the projection emits the inverse template, PROV activity alignment phase 3)";
     gmeow:sssomFile "gmeow-creative-works.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqDcTerms017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:requires ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:requires ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DCTerms requires — a related resource that is required by the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:isRequiredBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isRequiredBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DCTerms isRequiredBy — a related resource that requires the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasVersion ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:hasVersion ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms hasVersion — a related resource that is a version of the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:conformsTo ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:conformsTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms conformsTo — an established standard to which the described resource conforms" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:medium ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:medium ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms medium — the material or physical carrier of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:audience ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:audience ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms audience — the intended audience of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasManifestationFormat ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:format ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms format — the file format, physical medium, or dimensions of the resource. GMEOW hasManifestationFormat covers the physical/digital carrier aspect; extent covers the size/duration aspect." ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqProperties010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAuthor ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:author ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAuthor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject foaf:maker ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasContributor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject doap:developer ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasContributor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:contributor ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms contributor — GMEOW's flat hasContributor shortcut downcasts to dcterms:contributor by projection" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasAuthor ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:creator ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "DCTerms creator — GMEOW's flat hasAuthor (chief creator) downcasts to dcterms:creator by projection" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .

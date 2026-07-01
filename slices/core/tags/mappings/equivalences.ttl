@@ -168,3 +168,13 @@ gmeow:eqTags016 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "MOAT distinguishes tag string from meaning URI; GMEOW's Tag IRI IS the meaning, with labels for synonyms" ;
     gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqDcTerms003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:isAbout ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:subject ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .

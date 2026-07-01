@@ -11,6 +11,7 @@
 @prefix iao:    <http://purl.obolibrary.org/obo/IAO_> .
 @prefix sumo:   <https://www.ontologyportal.org/SUMO.owl#> .
 @prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix cito: <http://purl.org/spar/cito/> .
 
 # Term equivalences for the epistemics slice — GMEOW authoring source.
 # Compiled to mappings/gmeow-epistemics.sssom.tsv by `gmeow compile-mappings`.
@@ -136,3 +137,32 @@ gmeow:eqEpistemics008 a gmeow:TermEquivalence ;
     gmeow:confidence 0.5 ;
     gmeow:comment "J2_concluded_that relates an inference-making act to the belief it concludes; gmeow:basesBeliefOn (the ground a belief is actually founded on) inverts the direction of support" ;
     gmeow:sssomFile "gmeow-epistemics.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqClaims001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ClaimEvaluation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject crminf:I5_Inference_Making ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "crminf:I5_Inference_Making is the activity of concluding a new belief from existing ones; a gmeow:ClaimEvaluation assesses a target claim token and expresses its verdict — the same inference-making act, broadened to any standpoint-indexed assessment" ;
+    gmeow:sssomFile "gmeow-claims.sssom.tsv" .
+
+gmeow:eqClaims002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:supportsClaim ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject cito:supports ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "cito:supports is a work-to-work citation intent; gmeow:supportsClaim is a claim-to-claim-token argumentation edge — same support epistemics, different carrier" ;
+    gmeow:sssomFile "gmeow-claims.sssom.tsv" .
+
+gmeow:eqClaims003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:attacksClaim ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject cito:disputes ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "cito:disputes at the claim-to-claim-token level: gmeow:attacksClaim is the attack pole of the bipolar argumentation over claim tokens" ;
+    gmeow:sssomFile "gmeow-claims.sssom.tsv" .

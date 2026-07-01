@@ -5,6 +5,7 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 
 # Term equivalences for the provenance domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-provenance.sssom.tsv by `gmeow compile-mappings`.
@@ -125,3 +126,47 @@ gmeow:eqProvenance014 a gmeow:TermEquivalence ;
     gmeow:confidence 1.0 ;
     gmeow:comment "the same derivation relation; gmeow's is deliberately domain-free so events and endurants may participate (PROV activity alignment phase 2)";
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqClasses045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Activity ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject prov:Activity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqDcTerms030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:provenance ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:provenance ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms provenance — a statement of changes in ownership and custody" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqProperties034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:wasAttributedTo ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject prov:wasAttributedTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:wasGeneratedBy ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject prov:wasGeneratedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqWikidata055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Activity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1914636 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "activity" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

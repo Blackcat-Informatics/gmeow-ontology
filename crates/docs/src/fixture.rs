@@ -282,7 +282,11 @@ fn cache_key(root: &Path) -> String {
         collect_files(&root.join(dir), &mut files);
     }
     // Individual files discover() reads directly.
-    for file in ["docs/four-boxes.md", "metadata/gmeow-self.ttl"] {
+    for file in [
+        "docs/four-boxes.md",
+        "metadata/gmeow-self.ttl",
+        "dsl/mappings/mapping-sets.ttl",
+    ] {
         let p = root.join(file);
         if p.is_file() {
             files.push(p);

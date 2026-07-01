@@ -17,6 +17,9 @@
 @prefix gedcom: <http://www.w3.org/2000/10/swap/pim/gedcom#> .
 @prefix wd:     <http://www.wikidata.org/entity/> .
 @prefix wdt:    <http://www.wikidata.org/prop/direct/> .
+@prefix dcmitype: <http://purl.org/dc/dcmitype/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix org: <http://www.w3.org/ns/org#> .
 
 # Term equivalences for the universal events slice (event/temporal design) — GMEOW authoring source.
 # Compiled to mappings/gmeow-events.sssom.tsv by `gmeow compile-mappings`. All
@@ -1363,3 +1366,96 @@ gmeow:eqEvents141 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "a migration-typed event is schema's MoveAction shape; the projection types ANY endpoint-bearing event as MoveAction structurally (value-to-class convention, MoveAction projection)";
     gmeow:sssomFile "gmeow-events.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqClasses051 a gmeow:TermEquivalence ;
+    gmeow:alignSubject org:ChangeEvent ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Event ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "ORG ChangeEvent is an event (merger, split, rename, etc.)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqDcType007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Event ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:Event ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "A GMEOW Event is a DCMI Event" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:temporalCoverage ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:temporal ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "DCTerms temporal — the temporal extent or scope of a creative work" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqWikidata036 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LifeEvent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q2400985 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "life event" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata037 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeBirth ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q308229 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "childbirth" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDeath ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q4 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:objectLabel "death" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeMarriage ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q8445 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "marriage" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeDivorce ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q93183 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "divorce" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeAdoption ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q180398 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "adoption" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqWikidata042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:eventTypeGraduation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q3918 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "graduation ceremony" ;
+    gmeow:comment "Wikidata 'graduation ceremony' is narrower than GMEOW eventTypeGraduation (which covers any educational completion); directional lossy projection" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

@@ -1,0 +1,276 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix esco: <http://data.europa.eu/esco/model#> .
+@prefix org: <http://www.w3.org/ns/org#> .
+@prefix schema: <https://schema.org/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqClasses010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Role ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject org:Role ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:OrganizationRole ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Role ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Membership ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject org:Membership ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Occupation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject schema:Occupation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses048 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Post ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject org:Post ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:comment "post (seat independent of holder)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:organizationTypeCompany ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:FormalOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "company type value ≈ formal organization (lossy: not every formal org is a company)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses050 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:organizationTypeCollaboration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:OrganizationalCollaboration ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "collaboration type value ≈ organizational collaboration" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses053 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Occupation ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject esco:Occupation ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "ESCO occupation is ISCO-grounded; GMEOW Occupation is the superset" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Identifier ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:PropertyValue ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the reified external-identifier record IS schema's PropertyValue bundle (propertyID/value/url/name); closeMatch — schema's PropertyValue is broader (any keyed value), the projection narrows to identifier records (#409)" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses057 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Offering ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:Offer ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:comment "a commercial offering IS schema:Offer (#413)" ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses058 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ServiceOffering ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:Service ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ;
+    gmeow:comment "a commercial service offering IS schema:Service (#413)" ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses059 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:OpeningHoursSpecification ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:OpeningHoursSpecification ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ;
+    gmeow:comment "an opening-hours window IS schema:OpeningHoursSpecification (#413)" ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses060 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayMonday ;    gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Monday ;    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses061 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayTuesday ;   gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Tuesday ;   gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses062 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayWednesday ; gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Wednesday ; gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses063 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayThursday ;  gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Thursday ;  gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses064 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:dayFriday ;    gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Friday ;    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses065 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:daySaturday ;  gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Saturday ;  gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+gmeow:eqClasses066 a gmeow:TermEquivalence ; gmeow:alignSubject gmeow:daySunday ;    gmeow:alignPredicate skos:exactMatch ; gmeow:alignObject schema:Sunday ;    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 1.0 ; gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqProperties017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:memberOf ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:memberOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:memberOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:memberOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasMember ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:member ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:subOrganizationOf ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject org:subOrganizationOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:subOrganizationOf ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:parentOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties061 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:postIn ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject org:postIn ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties062 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:fillsPost ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:holds ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "fillsPost links Membership→Post; org:holds links Agent→Post (different domain, close not equivalent)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties063 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSite ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:hasSite ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "gmeow:hasSite has range gmeow:Location, while org:hasSite has range org:Site; no alignment of gmeow:Location to org:Site exists, so owl:equivalentProperty is too strong." ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties064 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:predecessorOrganization ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:originalOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "predecessorOrganization on Event ≈ originalOrganization on ChangeEvent" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties065 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:successorOrganization ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:resultingOrganization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "successorOrganization on Event ≈ resultingOrganization on ChangeEvent" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties066 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:organizationPurpose ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject org:purpose ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties067 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:industryClassification ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject org:classification ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "industryClassification carries open codes (NAICS/ISIC); org:classification is broader" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties075 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:membershipOrganization ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject org:organization ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "the membership relator's organization leg (#34 phase 3)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties076 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasRole ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject org:role ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the membership relator's role leg; gmeow's hasRole is broader (any role-bearing relator) — exactMatch on the shared membership use (#34 phase 3)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties078 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:identifierScheme ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:propertyID ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "the identifier's scheme code IS schema:PropertyValue's propertyID (#409)" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties083 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:makesOffer ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:makesOffer ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties084 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:itemOffered ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:itemOffered ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties085 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:offeringProvider ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:provider ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties086 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:serviceType ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:serviceType ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties087 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:areaServed ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:areaServed ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties088 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasOpeningHours ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:openingHoursSpecification ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties089 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:openingDay ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:dayOfWeek ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties090 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:opensAt ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:opens ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+gmeow:eqProperties091 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:closesAt ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject schema:closes ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "#413 offerings" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqWikidata051 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Occupation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q12737077 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "occupation" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
