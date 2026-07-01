@@ -134,8 +134,24 @@ impl Stage for ValidateStage {
                 message: format!("missing stage-source-load {BASE_GRAPH_PATH} artifact"),
             })?;
         let report = validate_source_graph(input.root, source_graph)?;
+        let artifacts = render_artifacts(&report)?;
+        // Attach the SHACL diagnostics RDF as the carrier's `graph/diagnostics` named
+        // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4) and
+        // unions it with the logic-compile diagnostics, never re-parsing the byte
+        // artifact. The four committed byte projections are kept on the byte lane.
+        let shacl_rdf = artifacts
+            .get(SHACL_RDF_PATH)
+            .ok_or_else(|| PipelineError::Stage {
+                stage: self.id().to_owned(),
+                message: format!("render_artifacts omitted {SHACL_RDF_PATH}"),
+            })?;
+        let dataset = crate::stages::carrier::parse_into_graph(
+            shacl_rdf,
+            "application/n-quads",
+            crate::stages::carrier::GRAPH_DIAGNOSTICS,
+        )?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_artifacts(&report)?),
+            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })
     }
 }

@@ -231,7 +231,7 @@ impl Stage for ReasonStage {
         // Skolem witnesses a function of the ontology alone. This pass owns the
         // committed closure AND backs the bundle's `graph/reasoning`; there is no
         // second full-fold export leaf.
-        let edb = crate::stages::carrier::assemble_object_level_edb(input.root, input.upstream)?;
+        let edb = crate::stages::carrier::assemble_object_level_edb(input.upstream)?;
         let reasoned = reason_over_dataset(edb.as_ref())?;
         // The CLOSURE is the reason stage's contribution to `gts_compose`'s union and
         // stays the dataset's DEFAULT graph. The EXPLANATIONS and LEDGER are diagnostic
