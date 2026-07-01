@@ -1237,8 +1237,9 @@ mod tests {
     fn saturate_ignores_close_match_hints() {
         // gmeow:Corpus has ONLY a closeMatch cell — a hint must not become a fact.
         let onto = nt(GM_CORPUS, RDF_TYPE, OWL_CLASS);
+        let corpus_cell = "https://blackcatinformatics.ca/gmeow/te/corpus-dataset";
         let cells = vec![cell(
-            "https://blackcatinformatics.ca/gmeow/te/corpus-dataset",
+            corpus_cell,
             GM_CORPUS,
             "skos:closeMatch",
             SCHEMA_DATASET,
@@ -1249,6 +1250,23 @@ mod tests {
         assert!(
             rows.is_empty(),
             "closeMatch must never materialize: {rows:?}"
+        );
+
+        // Positive control (non-vacuous): the SAME fixture with a STRONG
+        // predicate DOES materialize — proving the empty result above is
+        // closeMatch filtering, not a broken/inert fixture.
+        let strong = vec![cell(
+            corpus_cell,
+            GM_CORPUS,
+            "owl:equivalentClass",
+            SCHEMA_DATASET,
+            "0.5",
+        )];
+        let control = saturate_nt(&abox, &onto, &strong, &[]).unwrap();
+        assert_eq!(
+            type_objects(&control),
+            BTreeSet::from([iri_token(SCHEMA_DATASET)]),
+            "strong predicate over the same fixture must materialize"
         );
     }
 
