@@ -92,10 +92,25 @@ const GUARD_SITUATION: &str = "guardSituation";
 const ITERATION_BODY: &str = "iterationBody";
 const ITERATION_CONDITION: &str = "iterationCondition";
 const INSTANTIATES_SCHEMA: &str = "instantiatesSchema";
+/// `logic:instantiatesPlan` — the plan-level witness: an executed step (occurrence)
+/// back-references the `logic:Plan` program it was executed under, complementing the
+/// step's `logic:instantiatesSchema` (Event→Schema) with the Event→Plan link the
+/// correspondence `put`-leg needs to recover the planned skeleton from a run record.
+const INSTANTIATES_PLAN: &str = "instantiatesPlan";
 const TRANSITION_FROM_STATE: &str = "transitionFromState";
 const TRANSITION_TO_STATE: &str = "transitionToState";
 const SITUATION_OBTAINS: &str = "situationObtains";
 const PRECONDITION: &str = "precondition";
+/// `logic:awaitsSignal` — the external signal a notification-wait schema blocks on: a
+/// wait primitive does not fire until this signal obtains in the current support (the
+/// engine has been told), so a plan halts at an un-signalled wait rather than executing it.
+const AWAITS_SIGNAL: &str = "awaitsSignal";
+/// `logic:awaitingSignal` — the witness that a run is still PENDING an external signal:
+/// emitted on a `logic:TransactionOutcome` whose executed path halted at an un-signalled
+/// notification-wait. It is the load-bearing distinction between a pending (UNDETERMINED)
+/// outcome and a definite failure in the materialized RDF — mirrors the gate-probe witness
+/// the freshness/wait gate emits in [`crate::teleology`] (`AWAITING_SIGNAL` there).
+const AWAITING_SIGNAL: &str = "awaitingSignal";
 const EFFECT: &str = "effect";
 // Effect-footprint local names (the situations an elementary step writes).
 const INS: &str = "ins";
@@ -203,37 +218,86 @@ pub(crate) struct PlannedStep {
     pub support: SuccessorSupport,
 }
 
-/// The result of executing a transaction program from a start state.
+/// The result of executing a transaction program from a start state — a first-class
+/// **tri-state** verdict (Belnap-honest), never a success/failure boolean.
 ///
-/// `path` carries the executed states (start..=end); an **empty** path means **failure**
-/// (`succeeded()` is `false`). A zero-move success (e.g. an iteration whose condition is
-/// false at the start) carries the single start state. `sits_end` is the situation
-/// support obtaining at the end state (meaningful only on success).
+/// The three outcomes are kept distinct because they are genuinely distinct claims and the
+/// design forbids collapsing them ("never silently succeeds or fails"; UNDETERMINED ≠ false):
+///
+/// - [`Succeeded`](Self::Succeeded) — a path from the start exists. `path` carries the executed
+///   states (start..=end); a zero-move success (e.g. an iteration whose condition is false at
+///   the start) carries the single start state. `sits_end` is the situation support obtaining
+///   at the end state.
+/// - [`Failed`](Self::Failed) — a genuine executional-entailment failure (a precondition does
+///   not hold, or a sub-program failed): no path exists, nothing is emitted, the start is
+///   untouched.
+/// - [`Pending`](Self::Pending) — the program is **blocked awaiting an external signal**
+///   ([`logic:awaitsSignal`](AWAITS_SIGNAL)) that has not obtained: the engine has not been
+///   told the wait completed, so the path **halts at the wait** rather than fabricating an
+///   un-signalled completion. This is UNDETERMINED, NOT a failure — the signal may still
+///   arrive; `signal` names exactly which external fact the run is still waiting on.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct ExecOutcome {
-    pub path: Vec<String>,
-    pub steps: Vec<PlannedStep>,
-    pub sits_end: BTreeSet<String>,
+pub(crate) enum ExecOutcome {
+    /// A path from the start exists — the executed states, elementary steps, and end support.
+    Succeeded {
+        path: Vec<String>,
+        steps: Vec<PlannedStep>,
+        sits_end: BTreeSet<String>,
+    },
+    /// A genuine executional-entailment failure — nothing emitted, start untouched.
+    Failed,
+    /// Blocked awaiting an external signal that has not obtained (pending, not failed).
+    Pending { signal: String },
 }
 
+/// The shared empty situation set returned by [`ExecOutcome::sits_end`] for a non-`Succeeded`
+/// outcome, so the accessor can hand back a borrow without minting a fresh allocation.
+static EMPTY_SITS: std::sync::LazyLock<BTreeSet<String>> = std::sync::LazyLock::new(BTreeSet::new);
+
 impl ExecOutcome {
-    /// A failed execution: empty path, nothing emitted, start untouched.
-    fn failure() -> Self {
-        Self {
-            path: Vec::new(),
-            steps: Vec::new(),
-            sits_end: BTreeSet::new(),
+    /// Whether the program succeeded (a path from the start exists). A `Pending` outcome is
+    /// NOT a success — the wait has not completed — and a `Failed` outcome is not either.
+    pub(crate) fn succeeded(&self) -> bool {
+        matches!(self, Self::Succeeded { .. })
+    }
+
+    /// The external signal this outcome is pending on, or `None` when it is not `Pending`.
+    /// This is the load-bearing distinction between UNDETERMINED and a definite failure.
+    pub(crate) fn pending_signal(&self) -> Option<&str> {
+        match self {
+            Self::Pending { signal } => Some(signal),
+            _ => None,
         }
     }
 
-    /// Whether the program succeeded (a path from the start exists).
-    pub(crate) fn succeeded(&self) -> bool {
-        !self.path.is_empty()
+    /// The situation support obtaining at the end state — the real set on `Succeeded`, a
+    /// shared empty set otherwise (a `Pending` / `Failed` run reached no end state).
+    pub(crate) fn sits_end(&self) -> &BTreeSet<String> {
+        match self {
+            Self::Succeeded { sits_end, .. } => sits_end,
+            _ => &EMPTY_SITS,
+        }
     }
 
-    /// The end state of the executed path, if any.
-    fn end_state(&self) -> Option<&String> {
-        self.path.last()
+    /// The executed states (start..=end) — non-empty only on `Succeeded`; an empty slice for a
+    /// `Pending` / `Failed` run, which committed no path. A test-only inspector: the production
+    /// emission path destructures the `Succeeded` variant directly.
+    #[cfg(test)]
+    pub(crate) fn path(&self) -> &[String] {
+        match self {
+            Self::Succeeded { path, .. } => path,
+            _ => &[],
+        }
+    }
+
+    /// The elementary steps applied along the executed path — empty for a `Pending` / `Failed`
+    /// run, which applied no committed step. A test-only inspector (see [`Self::path`]).
+    #[cfg(test)]
+    pub(crate) fn steps(&self) -> &[PlannedStep] {
+        match self {
+            Self::Succeeded { steps, .. } => steps,
+            _ => &[],
+        }
     }
 }
 
@@ -419,10 +483,31 @@ fn preconditions_hold(facts: &WorldFacts, schema: &str, sits: &BTreeSet<String>)
         .all(|p| sits.contains(p))
 }
 
+/// The FIRST external signal a notification-wait schema `logic:awaitsSignal` that has NOT
+/// obtained in the current support set, or `None` when every awaited signal has arrived (or
+/// the schema awaits none — an ordinary action).
+///
+/// An un-received signal makes the wait NOT executable, so a plan step blocks (PENDING) at it
+/// rather than firing — the engine never fabricates an un-signalled completion (the
+/// prescriptive↔descriptive epistemic boundary). The selection is DETERMINISTIC: the awaited
+/// signals are sorted before the first missing one is picked, so the pending witness is stable
+/// regardless of the underlying fact-index insertion order.
+fn first_unmet_signal(facts: &WorldFacts, schema: &str, sits: &BTreeSet<String>) -> Option<String> {
+    let mut signals: Vec<&str> = facts.objects(schema, &logic(AWAITS_SIGNAL));
+    signals.sort_unstable();
+    signals
+        .into_iter()
+        .find(|s| !sits.contains(*s))
+        .map(ToOwned::to_owned)
+}
+
 /// Execute `program` from `state` (with support `sits`) under executional entailment.
 ///
-/// Returns an [`ExecOutcome`]; an empty `path` means the program failed from here. Pure:
-/// no store is mutated; the successor support is threaded via [`apply_effect_over`].
+/// Returns a tri-state [`ExecOutcome`] — [`Succeeded`](ExecOutcome::Succeeded) (a path from
+/// the start exists), [`Failed`](ExecOutcome::Failed) (a genuine executional-entailment
+/// failure), or [`Pending`](ExecOutcome::Pending) (blocked awaiting an external signal that
+/// has not obtained). Pending is UNDETERMINED, never conflated with failure. Pure: no store is
+/// mutated; the successor support is threaded via [`apply_effect_over`].
 ///
 /// `root` salts minted state IRIs; `counter` bounds total work for termination.
 ///
@@ -430,7 +515,8 @@ fn preconditions_hold(facts: &WorldFacts, schema: &str, sits: &BTreeSet<String>)
 ///
 /// Returns `Err` only for a STRUCTURAL fault (a primitive schema with no effect, or a
 /// non-terminating program beyond [`MAX_TRANSACTION_STEPS`]). A precondition that does
-/// not hold is a normal failure (empty path), not an error.
+/// not hold is a normal [`Failed`](ExecOutcome::Failed), and an un-signalled wait a
+/// [`Pending`](ExecOutcome::Pending) — neither is an error.
 pub(crate) fn plan_path(
     facts: &WorldFacts,
     program: &TransactionProgram,
@@ -441,9 +527,18 @@ pub(crate) fn plan_path(
 ) -> Result<ExecOutcome, String> {
     match program {
         TransactionProgram::Primitive { node, schema } => {
-            // Executability gate: every precondition must hold in the current support.
+            // Executability gate — three distinct outcomes, never collapsed:
+            //   * a precondition that does not hold is a genuine FAILURE (Fallback/Choice route
+            //     on it);
+            //   * a notification-wait schema whose awaited external signal has NOT obtained is
+            //     PENDING (UNDETERMINED), not failed — the path halts at the wait rather than
+            //     fabricating an un-signalled completion, and names the signal it waits on;
+            //   * only when both hold does the step fire.
             if !preconditions_hold(facts, schema, sits) {
-                return Ok(ExecOutcome::failure());
+                return Ok(ExecOutcome::Failed);
+            }
+            if let Some(signal) = first_unmet_signal(facts, schema, sits) {
+                return Ok(ExecOutcome::Pending { signal });
             }
             counter.tick()?;
             // Effect as ins/del supersession over the THREADED support (a malformed
@@ -451,7 +546,7 @@ pub(crate) fn plan_path(
             let support = apply_effect_over(facts, schema, sits)?;
             let succ = mint_state(root, node, state);
             let sits_end = support.asserted.clone();
-            Ok(ExecOutcome {
+            Ok(ExecOutcome::Succeeded {
                 path: vec![state.to_owned(), succ.clone()],
                 steps: vec![PlannedStep {
                     from_state: state.to_owned(),
@@ -464,41 +559,58 @@ pub(crate) fn plan_path(
             })
         }
         TransactionProgram::Serial { left, right, .. } => {
-            // φ over a prefix, then ψ over the suffix — the split point is φ's end state.
+            // φ over a prefix, then ψ over the suffix — the split point is φ's end state. A
+            // pending sub-path halts the whole conjunction pending; a failed sub-path fails it.
             let l = plan_path(facts, left, state, sits, root, counter)?;
-            if !l.succeeded() {
-                return Ok(ExecOutcome::failure());
-            }
-            let mid = l.end_state().expect("non-empty success path").clone();
-            let r = plan_path(facts, right, &mid, &l.sits_end, root, counter)?;
-            if !r.succeeded() {
-                return Ok(ExecOutcome::failure());
-            }
-            let mut path = l.path;
-            path.extend_from_slice(&r.path[1..]); // drop the duplicated mid state
-            let mut steps = l.steps;
-            steps.extend(r.steps);
-            Ok(ExecOutcome {
+            let (l_path, l_steps, l_sits) = match l {
+                ExecOutcome::Succeeded {
+                    path,
+                    steps,
+                    sits_end,
+                } => (path, steps, sits_end),
+                ExecOutcome::Pending { signal } => return Ok(ExecOutcome::Pending { signal }),
+                ExecOutcome::Failed => return Ok(ExecOutcome::Failed),
+            };
+            let mid = l_path.last().expect("non-empty success path").clone();
+            let r = plan_path(facts, right, &mid, &l_sits, root, counter)?;
+            let (r_path, r_steps, r_sits) = match r {
+                ExecOutcome::Succeeded {
+                    path,
+                    steps,
+                    sits_end,
+                } => (path, steps, sits_end),
+                ExecOutcome::Pending { signal } => return Ok(ExecOutcome::Pending { signal }),
+                ExecOutcome::Failed => return Ok(ExecOutcome::Failed),
+            };
+            let mut path = l_path;
+            path.extend_from_slice(&r_path[1..]); // drop the duplicated mid state
+            let mut steps = l_steps;
+            steps.extend(r_steps);
+            Ok(ExecOutcome::Succeeded {
                 path,
                 steps,
-                sits_end: r.sits_end,
+                sits_end: r_sits,
             })
         }
         TransactionProgram::Choice {
             guard, left, right, ..
         } => {
             // Dispatch on the guard at the CURRENT support; the chosen branch's outcome is
-            // returned as-is (a guard-false dispatch that itself fails makes Choice fail).
+            // returned AS-IS — success, failure, OR pending all forward through unchanged (a
+            // guard-false dispatch that itself fails/pends makes Choice fail/pend).
             let branch = if sits.contains(guard) { left } else { right };
             plan_path(facts, branch, state, sits, root, counter)
         }
         TransactionProgram::Fallback { left, right, .. } => {
-            // Try the primary; on failure NOTHING was emitted (pure) — execute the alternate.
-            let l = plan_path(facts, left, state, sits, root, counter)?;
-            if l.succeeded() {
-                return Ok(l);
+            // Try the primary. On SUCCESS return it. On PENDING the primary HALTS the fallback
+            // pending — it does NOT fall through to the alternate: a pending primary may still
+            // complete, so trying the alternate would fabricate a decision the engine has not
+            // earned. Only a genuine FAILURE routes to the alternate (nothing was emitted, pure).
+            match plan_path(facts, left, state, sits, root, counter)? {
+                l @ ExecOutcome::Succeeded { .. } => Ok(l),
+                p @ ExecOutcome::Pending { .. } => Ok(p),
+                ExecOutcome::Failed => plan_path(facts, right, state, sits, root, counter),
             }
-            plan_path(facts, right, state, sits, root, counter)
         }
         TransactionProgram::Iteration {
             condition, body, ..
@@ -511,18 +623,25 @@ pub(crate) fn plan_path(
                 // Tick once per pass so a no-progress loop hits the step bound rather than
                 // spinning forever (a body of zero primitives would not otherwise tick).
                 counter.tick()?;
-                let b = plan_path(facts, body, &cur, &cur_sits, root, counter)?;
-                if !b.succeeded() {
-                    // A body that cannot execute mid-loop is a hard stop, not a silent break.
-                    return Ok(ExecOutcome::failure());
+                match plan_path(facts, body, &cur, &cur_sits, root, counter)? {
+                    ExecOutcome::Succeeded {
+                        path: b_path,
+                        steps: b_steps,
+                        sits_end: b_sits,
+                    } => {
+                        path.extend_from_slice(&b_path[1..]);
+                        steps.extend(b_steps);
+                        cur = b_path.last().expect("non-empty success path").clone();
+                        cur_sits = b_sits;
+                    }
+                    // A pending body halts the loop pending (the wait may still complete); a
+                    // failed body mid-loop is a hard stop, not a silent break.
+                    ExecOutcome::Pending { signal } => return Ok(ExecOutcome::Pending { signal }),
+                    ExecOutcome::Failed => return Ok(ExecOutcome::Failed),
                 }
-                path.extend_from_slice(&b.path[1..]);
-                steps.extend(b.steps);
-                cur = b.path.last().expect("non-empty success path").clone();
-                cur_sits = b.sits_end;
             }
             // Condition false (possibly at entry → zero passes, path == [state]) — success.
-            Ok(ExecOutcome {
+            Ok(ExecOutcome::Succeeded {
                 path,
                 steps,
                 sits_end: cur_sits,
@@ -530,29 +649,48 @@ pub(crate) fn plan_path(
         }
         TransactionProgram::Concurrent { left, right, .. } => {
             // Both legs advance over the shared start; the verdict is "both legs find a
-            // path from here". The conflict graph + serialization classification are
-            // DERIVED at materialization ([`emit_concurrent_history`]), so `plan_path`
-            // stays a pure path computation and never produces a single merged linear
-            // chain that would silently linearize the schedule (forbidden by the design).
+            // path from here". A FAILED leg fails the whole composition; else a PENDING leg
+            // (a wait not yet signalled) makes the composition pending. The conflict graph +
+            // serialization classification are DERIVED at materialization
+            // ([`emit_concurrent_history`]), so `plan_path` stays a pure path computation and
+            // never produces a single merged linear chain that would silently linearize the
+            // schedule (forbidden by the design).
             let l = plan_path(facts, left, state, sits, root, counter)?;
-            if !l.succeeded() {
-                return Ok(ExecOutcome::failure());
-            }
             let r = plan_path(facts, right, state, sits, root, counter)?;
-            if !r.succeeded() {
-                return Ok(ExecOutcome::failure());
+            // Failure of either leg dominates (a genuine failure is definite); pending is the
+            // fallback verdict when neither leg failed but at least one is still waiting.
+            if matches!(l, ExecOutcome::Failed) || matches!(r, ExecOutcome::Failed) {
+                return Ok(ExecOutcome::Failed);
             }
+            let (l_path, l_steps, l_sits) = match l {
+                ExecOutcome::Succeeded {
+                    path,
+                    steps,
+                    sits_end,
+                } => (path, steps, sits_end),
+                ExecOutcome::Pending { signal } => return Ok(ExecOutcome::Pending { signal }),
+                ExecOutcome::Failed => unreachable!("failure handled above"),
+            };
+            let (r_path, r_steps, r_sits) = match r {
+                ExecOutcome::Succeeded {
+                    path,
+                    steps,
+                    sits_end,
+                } => (path, steps, sits_end),
+                ExecOutcome::Pending { signal } => return Ok(ExecOutcome::Pending { signal }),
+                ExecOutcome::Failed => unreachable!("failure handled above"),
+            };
             // A merged outcome for the verdict and for any ENCLOSING combinator only: the
             // union of both legs' end supports and an index-interleaved step list. It is
             // NOT presented as an authoritative serial path — the load-bearing concurrency
             // result is the derived `logic:ConcurrentHistory`, not this merged support.
             let mut path = vec![state.to_owned()];
-            path.extend(l.path.into_iter().skip(1));
-            path.extend(r.path.into_iter().skip(1));
-            let steps = interleave_steps(l.steps, r.steps);
-            let mut sits_end = l.sits_end;
-            sits_end.extend(r.sits_end);
-            Ok(ExecOutcome {
+            path.extend(l_path.into_iter().skip(1));
+            path.extend(r_path.into_iter().skip(1));
+            let steps = interleave_steps(l_steps, r_steps);
+            let mut sits_end = l_sits;
+            sits_end.extend(r_sits);
+            Ok(ExecOutcome::Succeeded {
                 path,
                 steps,
                 sits_end,
@@ -883,12 +1021,17 @@ fn xsd_bool(v: bool) -> String {
 ///
 /// For each root: parse, execute from the declared start state, then emit a
 /// `logic:TransactionOutcome` carrying `logic:outcomeOfProgram`, `logic:transactionStart`,
-/// and `logic:transactionSucceeds` (`true` iff the executed path is non-empty) — emitted in
-/// BOTH execution modes.  Under `logic:CommittedExecution` (the default) a successful run also
-/// emits the executed path (`logic:temporallySucceeds` edges + a minted `logic:Path` linked by
-/// the reused `logic:executedAlongPath`) and, per elementary step, the situation-level
-/// supersession substrate via [`crate::teleology::effect_quads`].  On failure ONLY the outcome
-/// node is emitted — the start state is untouched.
+/// and `logic:transactionSucceeds` (`true` iff the run SUCCEEDED — a completing path exists)
+/// — emitted in BOTH execution modes.  A run that halted PENDING at an un-signalled
+/// notification-wait additionally carries a `logic:awaitingSignal <signal>` witness on the
+/// outcome node, the load-bearing RDF distinction between an UNDETERMINED pending outcome and
+/// a definite failure (both read `transactionSucceeds false`, but only the pending one names
+/// the signal it still awaits).  Under `logic:CommittedExecution` (the default) a successful
+/// run also emits the executed path (`logic:temporallySucceeds` edges + a minted `logic:Path`
+/// linked by the reused `logic:executedAlongPath`) and, per elementary step, the situation-level
+/// supersession substrate via [`crate::teleology::effect_quads`].  On failure OR pending ONLY
+/// the outcome node (plus, for pending, its `logic:awaitingSignal` witness) is emitted — the
+/// start state is untouched.
 ///
 /// Under `logic:HypotheticalExecution` (the sandbox operator, [`root_execution_mode`]) that
 /// effect substrate is the discarded effect: it is SUPPRESSED, and only a content-addressed
@@ -1020,7 +1163,24 @@ pub(crate) fn emit_program_outcome(
         );
     }
 
+    // PENDING witness: a run whose path halted at an un-signalled notification-wait is neither
+    // a definite success nor a definite failure — it is UNDETERMINED. Its `transactionSucceeds`
+    // reads `false` (no path exists YET), so a `logic:awaitingSignal <signal>` witness on the
+    // outcome node is the load-bearing distinction from a plain failure in the materialized RDF:
+    // it names exactly which external fact the run is still waiting on, mirroring the gate-probe
+    // pending witness. No success substrate is emitted (the run did not complete).
+    if let Some(signal) = outcome.pending_signal() {
+        emit(&outcome_iri, logic(AWAITING_SIGNAL), n3(signal));
+    }
+
+    // The committed effect substrate is emitted ONLY for a genuine success under committed
+    // execution — a pending or failed outcome executed no completing path, so it emits no
+    // success substrate (the start state is untouched).
     if outcome.succeeded() && mode == ExecutionMode::Committed {
+        // Destructure the succeeded run's path/steps (moved out — `outcome` is not used again).
+        let ExecOutcome::Succeeded { path, steps, .. } = outcome else {
+            unreachable!("succeeded() is true only for ExecOutcome::Succeeded");
+        };
         // `emit` (the verdict closure) is no longer used past here, so its borrow of `out`
         // has ended (NLL) and the helpers below may extend `out`.
         if let TransactionProgram::Concurrent { left, right, .. } = program {
@@ -1048,10 +1208,11 @@ pub(crate) fn emit_program_outcome(
             out.extend(emit_committed_run(
                 facts,
                 world,
+                root,
                 &outcome_iri,
                 &path_iri,
-                &outcome.path,
-                &outcome.steps,
+                &path,
+                &steps,
                 source,
                 &deriv,
             )?);
@@ -1079,6 +1240,7 @@ pub(crate) fn emit_program_outcome(
 fn emit_committed_run(
     facts: &WorldFacts,
     world: &str,
+    root: &str,
     link_subject: &str,
     path_iri: &str,
     path: &[String],
@@ -1117,6 +1279,7 @@ fn emit_committed_run(
         for (predicate, object) in [
             (RDF_TYPE.to_owned(), n3(&logic(TRANSACTION_STEP))),
             (logic(INSTANTIATES_SCHEMA), n3(&step.schema)),
+            (logic(INSTANTIATES_PLAN), n3(root)),
             (logic(TRANSITION_FROM_STATE), n3(&step.from_state)),
             (logic(TRANSITION_TO_STATE), n3(&step.to_state)),
         ] {
@@ -1913,10 +2076,23 @@ fn emit_concurrent_history(
     let mut counter = StepCounter::new();
     let l = plan_path(facts, left, start, sits, root, &mut counter)?;
     let r = plan_path(facts, right, start, sits, root, &mut counter)?;
-    if !l.succeeded() || !r.succeeded() {
-        // Defensive: the caller only invokes this on a succeeded outcome.
+    // Defensive: the caller only invokes this on a succeeded outcome (both legs succeed). A
+    // failed OR pending leg has no committed path/steps to materialize, so bail cleanly.
+    let (
+        ExecOutcome::Succeeded {
+            path: l_path,
+            steps: l_steps,
+            ..
+        },
+        ExecOutcome::Succeeded {
+            path: r_path,
+            steps: r_steps,
+            ..
+        },
+    ) = (l, r)
+    else {
         return Ok(Vec::new());
-    }
+    };
 
     let left_tx = left.node();
     let right_tx = right.node();
@@ -1944,10 +2120,11 @@ fn emit_concurrent_history(
     out.extend(emit_committed_run(
         facts,
         world,
+        root,
         outcome_iri,
         &left_path_iri,
-        &l.path,
-        &l.steps,
+        &l_path,
+        &l_steps,
         source,
         deriv,
     )?);
@@ -1958,10 +2135,11 @@ fn emit_concurrent_history(
     out.extend(emit_committed_run(
         facts,
         world,
+        root,
         outcome_iri,
         &right_path_iri,
-        &r.path,
-        &r.steps,
+        &r_path,
+        &r_steps,
         source,
         deriv,
     )?);
@@ -2002,7 +2180,7 @@ fn emit_concurrent_history(
     // The DERIVED conflict edges (the novel content: a conflict graph from execution, not an
     // authored one) — emitted so the anomaly finding's reifiers resolve in the explanation
     // index, and so a consumer can inspect the precedence structure.
-    let edges = derive_conflict_edges(facts, left_tx, &l.steps, right_tx, &r.steps)?;
+    let edges = derive_conflict_edges(facts, left_tx, &l_steps, right_tx, &r_steps)?;
     {
         let mut push = |subject: &str, predicate: String, object: String| {
             out.push(TeleologyQuad {
@@ -2023,7 +2201,7 @@ fn emit_concurrent_history(
     // Classify view-serializability over the SAME witnessed interleaving (the two legs' steps),
     // deriving the read-from / happens-before edges it rests on. This is the second, weaker
     // serializability criterion — a conflict-cyclic schedule may still be view-serializable.
-    let view = classify_view_serializability(facts, &l.steps, &r.steps)?;
+    let view = classify_view_serializability(facts, &l_steps, &r_steps)?;
 
     // Classify the derived conflict graph once: acyclic ⇒ conflict-serializable.
     let conflict_verdict = detect_serialization_anomaly(&edges);
@@ -2075,9 +2253,9 @@ fn emit_concurrent_history(
         &history_iri,
         root,
         left_tx,
-        &l.steps,
+        &l_steps,
         right_tx,
-        &r.steps,
+        &r_steps,
         &edges,
         source,
         deriv,

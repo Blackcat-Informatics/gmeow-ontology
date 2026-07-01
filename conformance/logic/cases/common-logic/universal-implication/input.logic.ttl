@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: common-logic/universal-implication.
+#
+# ISO 24707 (Common Logic) example — a universally quantified material implication:
+#   CLIF:  (forall (x) (if (Man x) (Mortal x)))
+# "Every man is mortal." Encoded as the canonical logic: full-FOL Formula AST (a
+# Forall over an Implies of two unary atoms). This case gates the CLIF/CGIF/XCL Exact
+# projections: the IR must round-trip through each dialect with IR isomorphism, and the
+# three reconstructions must be cross-dialect equivalent (CLIF ≡ CGIF ≡ XCL).
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <https://blackcatinformatics.ca/logic/hasFormula> <https://blackcatinformatics.ca/logic/formula/_000001> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/forall> <https://blackcatinformatics.ca/logic/formula/_000001/body> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/quantifiedVariable> <https://blackcatinformatics.ca/logic/formula/_000001/var/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <https://blackcatinformatics.ca/logic/antecedent> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <https://blackcatinformatics.ca/logic/consequent> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/relation> <https://example.org/common-logic/Man> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "x" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/relation> <https://example.org/common-logic/Mortal> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "x" .
+<https://blackcatinformatics.ca/logic/formula/_000001/var/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/var/0000> <https://blackcatinformatics.ca/logic/termVariable> "x" .

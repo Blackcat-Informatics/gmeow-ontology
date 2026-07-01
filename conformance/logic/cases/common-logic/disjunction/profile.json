@@ -1,0 +1,4 @@
+{
+  "verdict_mode": "cl-roundtrip",
+  "reasoning_contract": { "preset": "PositiveHornProfile" }
+}

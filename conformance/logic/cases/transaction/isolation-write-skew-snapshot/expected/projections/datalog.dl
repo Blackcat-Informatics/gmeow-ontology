@@ -3,6 +3,5 @@
 
 % === Ground facts (axioms) ===
 type("https://example.org/transaction/isolation-write-skew-snapshot/GoalExpression", "https://blackcatinformatics.ca/logic/GoalExpression", "default").
-type("https://example.org/transaction/isolation-write-skew-snapshot/TransactionContract", "https://blackcatinformatics.ca/logic/ReasoningContract", "default").
 
 % === Rules ===

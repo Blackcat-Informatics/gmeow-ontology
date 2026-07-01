@@ -228,10 +228,10 @@ fn serial_conjunction_splits_the_path() {
     let out = run(&nq, "ser").expect("serial succeeds");
     assert!(out.succeeded());
     // Three states: start, mid (after φ), end (after ψ) — the split is at mid.
-    assert_eq!(out.path.len(), 3, "path = {:?}", out.path);
-    assert_eq!(out.steps.len(), 2);
-    assert!(out.sits_end.contains(&format!("{W}#sitX")));
-    assert!(out.sits_end.contains(&format!("{W}#sitY")));
+    assert_eq!(out.path().len(), 3, "path = {:?}", out.path());
+    assert_eq!(out.steps().len(), 2);
+    assert!(out.sits_end().contains(&format!("{W}#sitX")));
+    assert!(out.sits_end().contains(&format!("{W}#sitY")));
 }
 
 #[test]
@@ -256,7 +256,7 @@ fn serial_fails_when_second_leg_precondition_unmet() {
         !out.succeeded(),
         "serial must fail when ψ precondition is unmet"
     );
-    assert!(out.path.is_empty());
+    assert!(out.path().is_empty());
 }
 
 // ── Choice: guarded dispatch ────────────────────────────────────────────────────
@@ -288,27 +288,27 @@ fn choice_world(guard_obtains: bool) -> String {
 fn choice_guard_true_takes_left() {
     let out = run(&choice_world(true), "ch").expect("choice succeeds");
     assert!(out.succeeded());
-    assert_eq!(out.steps.len(), 1);
+    assert_eq!(out.steps().len(), 1);
     // The left branch ran: its schema was instantiated, and the step is a minted runtime
     // logic:TransactionStep (no longer the static program node).
-    assert_eq!(out.steps[0].schema, format!("{W}#primLSchema"));
-    assert!(out.steps[0]
+    assert_eq!(out.steps()[0].schema, format!("{W}#primLSchema"));
+    assert!(out.steps()[0]
         .attribution
         .starts_with("https://blackcatinformatics.ca/logic/step/"));
-    assert!(out.sits_end.contains(&format!("{W}#sit_lft")));
-    assert!(!out.sits_end.contains(&format!("{W}#sit_rgt")));
+    assert!(out.sits_end().contains(&format!("{W}#sit_lft")));
+    assert!(!out.sits_end().contains(&format!("{W}#sit_rgt")));
 }
 
 #[test]
 fn choice_guard_false_takes_right() {
     let out = run(&choice_world(false), "ch").expect("choice succeeds");
     assert!(out.succeeded());
-    assert_eq!(out.steps.len(), 1);
-    assert_eq!(out.steps[0].schema, format!("{W}#primRSchema"));
-    assert!(out.steps[0]
+    assert_eq!(out.steps().len(), 1);
+    assert_eq!(out.steps()[0].schema, format!("{W}#primRSchema"));
+    assert!(out.steps()[0]
         .attribution
         .starts_with("https://blackcatinformatics.ca/logic/step/"));
-    assert!(out.sits_end.contains(&format!("{W}#sit_rgt")));
+    assert!(out.sits_end().contains(&format!("{W}#sit_rgt")));
 }
 
 // ── Fallback: try-else on executional-entailment failure ────────────────────────
@@ -333,12 +333,12 @@ fn fallback_runs_backup_when_primary_fails() {
     let out = run(&nq, "fb").expect("fallback succeeds via backup");
     assert!(out.succeeded());
     // Only the backup emitted a step — the failed primary produced nothing (no rollback).
-    assert_eq!(out.steps.len(), 1);
-    assert_eq!(out.steps[0].schema, format!("{W}#primBackupSchema"));
-    assert!(out.steps[0]
+    assert_eq!(out.steps().len(), 1);
+    assert_eq!(out.steps()[0].schema, format!("{W}#primBackupSchema"));
+    assert!(out.steps()[0]
         .attribution
         .starts_with("https://blackcatinformatics.ca/logic/step/"));
-    assert!(out.sits_end.contains(&format!("{W}#sitOk")));
+    assert!(out.sits_end().contains(&format!("{W}#sitOk")));
 }
 
 #[test]
@@ -363,7 +363,7 @@ fn fallback_fails_when_both_branches_fail() {
         "fallback must fail when both branches fail"
     );
     assert!(
-        out.path.is_empty(),
+        out.path().is_empty(),
         "failure leaves the start untouched (empty path)"
     );
 }
@@ -385,9 +385,9 @@ fn iteration_runs_until_condition_clears() {
     );
     let out = run(&nq, "it").expect("iteration terminates");
     assert!(out.succeeded());
-    assert_eq!(out.steps.len(), 1, "exactly one body pass");
-    assert_eq!(out.path.len(), 2);
-    assert!(!out.sits_end.contains(&format!("{W}#sitLoop")));
+    assert_eq!(out.steps().len(), 1, "exactly one body pass");
+    assert_eq!(out.path().len(), 2);
+    assert!(!out.sits_end().contains(&format!("{W}#sitLoop")));
 }
 
 #[test]
@@ -404,8 +404,8 @@ fn iteration_zero_passes_when_condition_false_at_start() {
     );
     let out = run(&nq, "it").expect("zero-iteration succeeds");
     assert!(out.succeeded());
-    assert!(out.steps.is_empty(), "no body pass");
-    assert_eq!(out.path, vec![format!("{W}#s0")]);
+    assert!(out.steps().is_empty(), "no body pass");
+    assert_eq!(out.path(), vec![format!("{W}#s0")]);
 }
 
 #[test]
@@ -443,6 +443,214 @@ fn iteration_step_bound_hard_fails_on_no_progress() {
     let err = run(&nq, "it").unwrap_err();
     assert!(err.contains("step bound"), "{err}");
     assert!(err.contains("non-terminating"), "{err}");
+}
+
+// ── Notification-wait: PENDING is a first-class tri-state, distinct from failure ──
+
+/// A notification-wait primitive `node`: an ordinary primitive whose action schema also
+/// `logic:awaitsSignal` the given external-signal locals (the schema is typed a
+/// `logic:NotificationWaitSchema` for good measure — the interpreter reads `awaitsSignal`
+/// directly, but the type keeps the fixture faithful to the vocabulary).
+fn wait_primitive(node: &str, preconds: &[&str], signals: &[&str], ins: &[&str]) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let schema = format!("{node}Schema");
+    let mut s = primitive(node, preconds, ins, &[]);
+    s.push_str(&q(&e(&schema), ty, &l("NotificationWaitSchema")));
+    for sig in signals {
+        s.push_str(&q(&e(&schema), &l("awaitsSignal"), &e(sig)));
+    }
+    s
+}
+
+/// A plan world whose executable root is a guard-TRUE `logic:Choice` selecting a
+/// notification-wait step. The Choice supplies the `logic:transitionFromState` marker that
+/// makes it an executable root; its left branch is the wait. When `signal_present`, the awaited
+/// external signal `sigDone` obtains at the start so the wait fires; otherwise the wait is
+/// pending.
+fn wait_plan_world(signal_present: bool) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    // The start obtains the guard sitG (so the Choice takes the wait branch) and, when
+    // `signal_present`, the awaited external signal sigDone.
+    let obtains: &[&str] = if signal_present {
+        &["sitG", "sigDone"]
+    } else {
+        &["sitG"]
+    };
+    format!(
+        "{}{}{}{}{}{}{}",
+        start_state("s0", obtains),
+        q(&e("plan"), ty, &l("Choice")),
+        q(&e("plan"), &l("transitionFromState"), &e("s0")),
+        q(&e("plan"), &l("guardSituation"), &e("sitG")),
+        // left branch = the wait; right branch = an unconditional success (never taken here).
+        [
+            q(&e("plan"), &l("leftOperand"), &e("waitStep")),
+            q(&e("plan"), &l("rightOperand"), &e("elseStep")),
+        ]
+        .concat(),
+        wait_primitive("waitStep", &[], &["sigDone"], &["sitDone"]),
+        primitive("elseStep", &[], &["sitElse"], &[]),
+    )
+}
+
+#[test]
+fn wait_step_without_signal_is_pending_not_failed() {
+    // The awaited external signal is NOT in the world: the wait halts PENDING. This is
+    // UNDETERMINED — it must NOT read as a failure, and it names the signal it waits on.
+    let out = run(&wait_plan_world(false), "plan").expect("no hard error");
+    assert!(
+        !out.succeeded(),
+        "an un-signalled wait has not completed — not a success"
+    );
+    assert_eq!(
+        out.pending_signal(),
+        Some(format!("{W}#sigDone").as_str()),
+        "the pending outcome names the exact external signal it is waiting on"
+    );
+    assert!(
+        matches!(out, ExecOutcome::Pending { .. }),
+        "an un-signalled wait is PENDING, never ExecOutcome::Failed: {out:?}"
+    );
+    assert!(
+        !matches!(out, ExecOutcome::Failed),
+        "PENDING must be distinct from a genuine precondition failure"
+    );
+}
+
+#[test]
+fn wait_step_with_signal_present_succeeds() {
+    // The SAME plan, but the awaited signal now obtains in the world → the wait fires and the
+    // plan succeeds.
+    let out = run(&wait_plan_world(true), "plan").expect("wait succeeds once signalled");
+    assert!(out.succeeded(), "a signalled wait completes");
+    assert_eq!(out.pending_signal(), None, "a succeeded run is not pending");
+    assert!(out.sits_end().contains(&format!("{W}#sitDone")));
+}
+
+#[test]
+fn genuine_precondition_failure_is_failed_not_pending() {
+    // A primitive whose ordinary precondition is unmet is a genuine FAILURE — it must be
+    // ExecOutcome::Failed, NEVER Pending (there is no external signal to wait on).
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("plan"), ty, &l("Choice")),
+        [
+            q(&e("plan"), &l("transitionFromState"), &e("s0")),
+            q(&e("plan"), &l("guardSituation"), &e("sitG")),
+            q(&e("plan"), &l("leftOperand"), &e("a")),
+            q(&e("plan"), &l("rightOperand"), &e("b")),
+        ]
+        .concat(),
+        [
+            // Guard sitG is ABSENT → right branch `b` runs; b requires a missing precondition.
+            primitive("a", &[], &["sitA"], &[]),
+            primitive("b", &["sitMissing"], &["sitB"], &[]),
+        ]
+        .concat(),
+    );
+    let out = run(&nq, "plan").expect("no hard error");
+    assert!(
+        matches!(out, ExecOutcome::Failed),
+        "an unmet ordinary precondition is a genuine failure: {out:?}"
+    );
+    assert_eq!(
+        out.pending_signal(),
+        None,
+        "a genuine failure is not pending on any signal"
+    );
+}
+
+#[test]
+fn pending_outcome_emits_awaiting_signal_witness_and_no_success_substrate() {
+    // The transaction-path materialization of a pending run: the outcome carries a
+    // logic:awaitingSignal witness naming the awaited external signal, records
+    // transactionSucceeds false, and emits NO success substrate (no path / step / obtains).
+    let quads = outcome_quads(&wait_plan_world(false), "plan");
+
+    // The verdict is present and reads false (no completing path exists yet).
+    let succeeds = quads
+        .iter()
+        .find(|q| q.predicate.ends_with("transactionSucceeds"))
+        .expect("a pending run still records its verdict");
+    assert!(
+        succeeds.object.starts_with("\"false\""),
+        "pending reads transactionSucceeds false: {:?}",
+        succeeds.object
+    );
+
+    // The load-bearing distinction from a plain failure: the awaitingSignal witness naming
+    // the exact external signal the run is still waiting on.
+    let awaiting = quads
+        .iter()
+        .find(|q| q.predicate.ends_with("awaitingSignal"))
+        .expect("a pending outcome must carry a logic:awaitingSignal witness");
+    assert_eq!(
+        awaiting.object,
+        format!("<{W}#sigDone>"),
+        "the witness names the awaited signal"
+    );
+
+    // No success substrate: the run did not complete, so the start state is untouched.
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("temporallySucceeds")),
+        "no committed path on a pending outcome"
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("executedAlongPath")),
+        "no committed path link on a pending outcome"
+    );
+    assert!(
+        !quads
+            .iter()
+            .any(|q| q.predicate.ends_with("situationObtains")),
+        "no committed effect substrate on a pending outcome"
+    );
+    assert!(
+        !quads.iter().any(|q| q.object == l("TransactionStep")),
+        "no committed step nodes on a pending outcome"
+    );
+}
+
+#[test]
+fn fallback_with_pending_primary_halts_pending_does_not_take_alternate() {
+    // A Fallback whose PRIMARY is a wait pending its signal: the whole plan is PENDING and does
+    // NOT fall through to the (succeeding) alternate — a pending primary may still complete, so
+    // routing to the alternate would fabricate a decision the engine has not earned.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}{}",
+        start_state("s0", &[]), // sigDone ABSENT → the primary wait is pending
+        q(&e("fb"), ty, &l("Fallback")),
+        [
+            q(&e("fb"), &l("transitionFromState"), &e("s0")),
+            q(&e("fb"), &l("leftOperand"), &e("waitStep")),
+            q(&e("fb"), &l("rightOperand"), &e("altStep")),
+        ]
+        .concat(),
+        wait_primitive("waitStep", &[], &["sigDone"], &["sitDone"]),
+        // The alternate would succeed unconditionally — but must NOT be taken while pending.
+        primitive("altStep", &[], &["sitAlt"], &[]),
+    );
+    let out = run(&nq, "fb").expect("no hard error");
+    assert!(
+        matches!(out, ExecOutcome::Pending { .. }),
+        "a pending primary halts the fallback pending: {out:?}"
+    );
+    assert_eq!(
+        out.pending_signal(),
+        Some(format!("{W}#sigDone").as_str()),
+        "the fallback forwards the primary's awaited signal"
+    );
+    assert!(
+        !out.sits_end().contains(&format!("{W}#sitAlt")),
+        "the alternate must not have run"
+    );
 }
 
 // ── Root discovery ──────────────────────────────────────────────────────────────

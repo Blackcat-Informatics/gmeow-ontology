@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/currency-freshness-guard.
+#
+# An action schema carries a logic:FreshnessGuard (a valid-time currency guard) on its
+# precondition: the datum backing the precondition is relied upon only while its age —
+# from logic:datumRecordedAt to a probe's logic:decisionTime — is within the
+# logic:freshnessHorizon (here P3D). Two gate probes share the same schema, state, and
+# datum but differ in decision time: the datum is 2 days old at probeFresh (within the
+# horizon → logic:GateAdmitted) and 5 days old at probeStale (beyond the horizon →
+# logic:GateUndetermined, NOT stale-but-used and NOT denied — the evaluator declines to
+# gate on an out-of-date value). This is GMEOW's native generalization of a decision-rule
+# currency annotation.
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/currency-freshness-guard/> .
+
+ex:GoalExpression a logic:GoalExpression .
