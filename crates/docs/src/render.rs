@@ -620,6 +620,14 @@ fn append_slice_executable_sections(
             wrote_heading = true;
         }
         heading(out, 3, &example.title);
+        // Show both columns of the diff — the example's asserted ABox and, beneath it,
+        // what the reasoner derived on top of it — so the surface is genuinely
+        // asserted-vs-inferred rather than inferred-only.
+        if !diff.asserted.is_empty() {
+            line(out, "**Asserted**");
+            fenced(out, "turtle", &diff.asserted.join("\n"));
+        }
+        line(out, "**Inferred**");
         fenced(out, "turtle", &diff.inferred.join("\n"));
     }
 }
