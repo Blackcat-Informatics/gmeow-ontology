@@ -18,7 +18,7 @@ from gmeow_rdf.compat.rdflib.compare import graph_diff, isomorphic
 from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import PROJECT_ROOT, STATEMENT_RDF12_FILE
-from gmeow_tools.rdf12 import normalize_rdf12_to_owl
+from rdf12 import normalize_rdf12_to_owl
 
 
 def _native_statement_owl_graph() -> Graph:

@@ -5,9 +5,12 @@ plumbing — the *sole* Java+Docker reasoning surface (Principle 18). It is NOT 
 the primary path: ``make check`` and the required ``quality`` gate reason
 natively (``make reason`` / ``gmeow-dev reason --mode native``, Java/Docker-free),
 and every pytest that drives these functions is ``docker``/``classic_cross_check``
-marked or mocks them out. The only live callers are the classic-cross-check lane
-(``gmeow_tools.oracles.classic_cross_check``), the maintainer ``gmeow-dev``
-docker subcommands, and the divergence-ledger oracle — never normal repo use.
+marked or mocks them out. The only live callers of the ROBOT/Docker functions
+are the relocated classic-cross-check lane (``validations/classic-cross-check/``,
+#1087) and the maintainer ``gmeow-dev`` docker reasoning subcommands
+(``reason``/``verify --mode docker``, ``maint-reason-hermit``/``maint-verify-docker``)
+— never normal repo use. The native functions here (``reason_native`` /
+``verify_native``) are the mainline path and stay Docker-free.
 
 The pipeline always *merges the import closure into a single ontology first*,
 then reasons/validates that product. This is deliberate: ROBOT's
