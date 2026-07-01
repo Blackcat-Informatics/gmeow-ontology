@@ -23,6 +23,7 @@ pub mod bench;
 pub mod catalog;
 pub mod compile_logic;
 pub mod conformance;
+pub mod constraint_catalog;
 // The oxigraph-free correspondence lowerings caller (SSSOM/FnO/EDOAL/SPARQL).
 pub mod carrier;
 pub mod correspondence_lower;
@@ -81,6 +82,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("snapshot", Arc::new(carrier::SnapshotStage::new()));
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
     registry.register("catalog", Arc::new(catalog::CatalogStage));
+    registry.register(
+        "constraint_catalog",
+        Arc::new(constraint_catalog::ConstraintCatalogStage::new()),
+    );
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
     registry.register("result_shapes", Arc::new(result_shapes::ResultShapesStage));

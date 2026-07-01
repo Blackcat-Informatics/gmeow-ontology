@@ -371,6 +371,12 @@ fn rdf_fanout_members(
             "stage-compile-logic",
             crate::stages::compile_logic::DIAG_RDF_PATH,
         ),
+        // The generated constraint catalog `.nq` — its own fanout named graph,
+        // reconstructed byte-for-byte by the superset gate.
+        (
+            "stage-constraint-catalog",
+            crate::stages::constraint_catalog::CONSTRAINT_CATALOG_RDF_PATH,
+        ),
     ] {
         let bytes = upstream
             .get(stage)
@@ -1226,6 +1232,9 @@ impl SnapshotStage {
                 // verdict against the published external verdict and emits the
                 // divergences as a gmeow:Finding N-Quads product folded here.
                 "stage-conformance".to_string(),
+                // The generated constraint catalog `.nq`, folded as the
+                // graph/fanout/catalog/constraint-catalog.nq named graph.
+                "stage-constraint-catalog".to_string(),
                 "stage-docs-render".to_string(),
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
@@ -1288,7 +1297,9 @@ impl Stage for SnapshotStage {
         // generated file without re-reading disk. v15 folds the CLIF projection
         // (generated/cl/gmeow.clif) into REP_GENERATED as a committed byte projection
         // (a non-RDF text dialect with generated comments / section markers).
-        "snapshot.v15-clif-projection"
+        // v16 consumes stage-constraint-catalog and folds its generated `.nq` as the
+        // graph/fanout/catalog/constraint-catalog.nq named graph (#751).
+        "snapshot.v16-constraint-catalog"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
