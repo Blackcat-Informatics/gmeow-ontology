@@ -21,6 +21,7 @@
 | [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
 | [`LOGIC-PATHS.md`](LOGIC-PATHS.md) | traversal | named & parametric predicate paths — `logic:PathShape`, the predicate wildcard and bounded `{1,n}` depth that SPARQL §9 lacks, by-name parametric invocation, and the property-path / Datalog projections with their declared exit loss |
 | [`LOGIC-SHACL-AF.md`](LOGIC-SHACL-AF.md) | computation surface | derivation/aggregation (map/reduce) authored as canonical `logic:` rules and **projected** to a SHACL-AF `sh:SPARQLRule` surface — computation added to the canon and emitted, never bolted onto SHACL; the projectable fragment, the declared exit loss, and the placement/purity rule |
+| [`LOGIC-VALIDATION.md`](LOGIC-VALIDATION.md) | shape surface | closed-world data-shape validation authored as canonical `logic:` **validation shapes** and **projected** to a SHACL Core surface and a ShEx surface — shapes emitted from the canon, never hand-authored on the surface; the constraint peer of the SHACL-AF derivation surface, the per-target residue, and the shape half of the purity gate |
 | [`LOGIC-RDFQUERY.md`](LOGIC-RDFQUERY.md) | query surface | RDFQuery framed as a front-end that parses **into** `logic:` (which already projects out to SPARQL/SHACL/N3/OWL), not a stack bolted onto SPARQL; P15-gated, language not committed, with the named first consumer |
 | [`LOGIC-TELEOLOGY.md`](LOGIC-TELEOLOGY.md) | goal/action layer | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
 | [`LOGIC-COGNITION.md`](LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
@@ -176,10 +177,19 @@ Datalog, Prolog, SHACL, gUFO) for every consumer.
 
 The canonical statement of the doctrine, made once here and referenced elsewhere: every prior
 formalism is a *generated, lossy compatibility target* — useful, documented, reproducible, and not
-canonical. OWL DL/EL, Datalog, SHACL, SWRL, N3, Prolog, and SPARQL are projections of the logic;
+canonical. OWL DL/EL, Datalog, SHACL, ShEx, SWRL, N3, Prolog, and SPARQL are projections of the logic;
 the artifact set, drift gates, and preservation contract are specified in
 [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md#generated-artifacts-and-the-compilers-projection-role) and
 [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md).
+
+These formalisms do not all relate to `logic:` the same way, and the doctrine keeps the relations
+distinct: `logic:` **is built atop** RDF 1.2 (the substrate, never projected); it **is a superset of**
+the definitional formalisms (OWL, RDFS, SKOS, gUFO, UFO — lifted into the IR and projected back, the
+crisp fragment at `ExactPreservation`); it **down-projects lossily to** the closed-world validation
+surfaces (SHACL, ShEx); and it **derives, with the correspondence/mappings layer**, the alignment
+surfaces (SSSOM, EDOAL, FnO). The single lattice that places every formalism on these four relations —
+and the shared adapter-lift foundation they share — is in
+[LOGIC-META-SEMANTICS.md](LOGIC-META-SEMANTICS.md#the-outward-face-every-prior-formalism-placed-on-one-lattice).
 
 The foundation follows the same doctrine, with one careful distinction. **gUFO is the primary
 generated down-projection of UFO⁺** because it is the OWL realization of the same UFO lineage —
@@ -222,8 +232,11 @@ The end state is not "OWL, but faster." It is:
 - a single canonical native solver is the normal development authority, running forward and backward
   chaining; classical OWL tools (Jena, ROBOT, ELK, HermiT) operate as secondary validators for
   exported subsets;
-- OWL, Datalog, SHACL, Prolog, N3, SPARQL, gUFO, and the Common Logic dialects (CLIF, CGIF, XCL)
-  are generated lossy projections; BFO, DOLCE, SUMO, and YAMATO are generated bridge views;
+- OWL, Datalog, SHACL, ShEx, Prolog, N3, SPARQL, gUFO, and the Common Logic dialects (CLIF, CGIF,
+  XCL) are generated lossy projections — the SHACL Core and ShEx shape surfaces lowered from the
+  canonical `logic:` validation-shape node kind ([LOGIC-VALIDATION.md](LOGIC-VALIDATION.md)), the
+  SHACL-AF rule surface from its derivation rules; BFO, DOLCE, SUMO, and YAMATO are generated
+  bridge views;
 - cross-ontology alignment is the **ninth IR node kind** (`logic:Correspondence`): SSSOM, EDOAL, FnO,
   SPARQL, OWL-alignment, and the up-lift are generated lowerings, and perfect subsumption is a
   CI-checkable section/retraction law ([LOGIC-CORRESPONDENCE.md](LOGIC-CORRESPONDENCE.md));

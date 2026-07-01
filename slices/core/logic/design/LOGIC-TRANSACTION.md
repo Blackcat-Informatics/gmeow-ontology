@@ -200,13 +200,45 @@ faithfully (there is no merged single chain that would impose a false serial ord
 to its two operands by `logic:concurrentComposedFrom`, and a cycle surfaces loudly as a
 `logic:SerializationAnomaly` finding — a history-level result, never a contradiction witness.
 
-This evaluator decides **conflict-serializability only**. The other two concerns the layer keeps
-separate — whether a schedule meets a declared `logic:IsolationLevel` (a guarantee strength) and
-whether a `logic:ConcurrencyControlProtocol` enforces it (a mechanism) — remain
-declared-but-not-enforced facets, together with the view-serializability edges
-(`logic:readsFrom` / `logic:happensBefore`) that have no consumer yet. Enforcing isolation-level
-adequacy and protocol soundness, and minting those view-serializability edges with a real consumer,
-is future work.
+Alongside conflict-serializability the evaluator classifies each derived history against the
+**three separately-declared concerns** — the second serializability criterion, the isolation-level
+guarantee, and the concurrency-control mechanism — each over the *same* witnessed interleaving, and
+each a polynomial classification (Principle 12), never a schedule search.
+
+**View-serializability.** The evaluator also decides *view-serializability*: it derives the
+`logic:readsFrom` (which write each read observed) and `logic:happensBefore` (the cross-leg
+schedule order) edges of the witnessed interleaving, and tests whether that interleaving is
+view-equivalent — same read-from and same final-write relations — to one of the **two** serial
+orders of its two legs. Because a `logic:ConcurrentComposition` is binary, exactly two serial
+orders are checked, so this is a classification, not a search over the factorial schedule space.
+The result is recorded as `logic:satisfiesCriterion` (one value per criterion the history
+satisfies: `logic:ConflictSerializability` when the conflict graph is acyclic,
+`logic:ViewSerializability` when the interleaving is view-equivalent to a serial order). For **two**
+transactions view-serializability provably coincides with conflict-serializability — the strictly
+weaker gap (a conflict-cyclic yet view-serializable schedule) needs three transactions with blind
+writes — so the two criteria agree on every derived binary history; the `logic:readsFrom` /
+`logic:happensBefore` edges are the witnessed-schedule structure that classification rests on.
+
+**Isolation-level adequacy.** Because each leg runs independently from the shared start snapshot,
+the evaluator realizes **snapshot isolation**. It classifies whether the witnessed schedule meets
+the run's `logic:declaredIsolationLevel` and records `logic:isolationLevelAdequacy`: every level up
+to and including `logic:SnapshotIsolation` is met by construction, while `logic:SerializableIsolation`
+and `logic:OpacityIsolation` are met iff the schedule is conflict-serializable — a **write-skew
+cycle**, which snapshot admits, is adequate for snapshot yet inadequate for serializability (with a
+`logic:isolationInadequacyReason`). Opacity coincides with serializability here because only
+committed runs produce a history, so there are no aborted or in-flight transactions to protect.
+
+**Protocol soundness.** A run records the concurrency-control protocol's **own events** — per-leg
+`logic:transactionTimestamp`, and per-action `logic:lockAcquired` / `logic:lockReleased` — so that
+verifying whether the witnessed schedule respects the run's `logic:declaredProtocol` is a
+polynomial well-formedness classification of the schedule, not the NP-hard search for a legal
+schedule that a bare history would demand. The verdict is `logic:protocolEnforced` (with a
+`logic:protocolViolationReason` on failure): `logic:StrictTwoPhaseLocking` requires the two-phase
+order (no acquire after a release within a leg); `logic:StrongStrictTwoPhaseLocking` additionally
+holds every lock to the commit step; `logic:TimestampOrdering` requires every `logic:precedes` edge
+to run from the earlier timestamp to the later; and `logic:OptimisticValidation` requires no
+cross-leg read-write conflict. A declared protocol whose required events are absent is a hard
+error, never a silent pass.
 
 ## Where it connects, and what it is not
 

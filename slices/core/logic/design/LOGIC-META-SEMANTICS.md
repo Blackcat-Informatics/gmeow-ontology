@@ -51,6 +51,46 @@ from it, and the design-set document that specifies it.
 | reified multidimensional `CognitiveAssessment` (eight dimensions) | the four-rung `isAwareOf … hasMastered` ladder; `hasSkill→knowsAbout` as defeasible evidence | [`LOGIC-COGNITION.md`](LOGIC-COGNITION.md) |
 | semantics-aware validator — eight-way finding taxonomy incl. *permitted* epistemic conflict; scoped, signed coherence certificate | "self-consistent under its own axioms" as a single bit | [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md) |
 
+## The outward face: every prior formalism placed on one lattice
+
+The axes table above turns the projection doctrine *inward* (reasoning features →
+simplified surfaces). Its outward twin places **every prior formalism** on a single
+lattice under `logic:`. The relations are deliberately **four distinct verbs**, not one
+"projects-to": conflating them is what hides where the loss — and the second-source-of-
+truth risk — actually lives.
+
+| Relation | Members | What it means | Mechanism |
+|---|---|---|---|
+| **`isBuiltAtop`** | RDF 1.2 | the substrate `logic:` is *expressed in* — **never** projected; deriving it is a category error (`logic:` needs the graph model to exist) | the RDF 1.2 term/graph model itself |
+| **`isSupersetOf`** | OWL, RDFS, gUFO, UFO, SKOS | ontology-**definition** formalisms `logic:` subsumes as fragments: authored surface constructs are *lifted into* the canonical IR and *projected back out*; the crisp fragment round-trips at `ExactPreservation` | the adapter lift (`crates/logic-compile/src/adapter.rs`) + the OWL-DL / OWL-EL / gUFO projections |
+| **`downProjectsLossilyTo`** | SHACL, ShEx | closed-world **validation** surfaces *derived* from the same axioms under the closed-world reading — never a lifted fragment; `ValidationOnly`, sharpening to `SoundUnderApproximation`, with the residue ledgered | the validation-shape node kind → SHACL/ShEx lowerings ([`LOGIC-VALIDATION.md`](LOGIC-VALIDATION.md)) |
+| **`derivesWith(mappings)`** | SSSOM, EDOAL, FnO | **alignment** surfaces that need a *second input* beyond the axioms — the correspondence layer (relation + legs + axes; FnO also needs transform bodies) | `logic:Correspondence` → the SSSOM/EDOAL/FnO lowerings ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)) |
+
+Three properties of this lattice are load-bearing and stated, not implied:
+
+- **The substrate floor is not projectable.** `isBuiltAtop` is the one edge with no
+  inverse. Everything else canonicalizes into `logic:` and projects back; RDF 1.2 does
+  not, because it is the ground the canon stands on.
+- **`isSupersetOf` is heterogeneous — content vs. expressivity.** UFO/gUFO are
+  foundational *content* the canon subsumes (`logic: ⊇ UFO`, and gUFO is UFO's OWL
+  realization); OWL/RDFS/SKOS are vocabulary *expressivity* it subsumes. Both are genuine
+  supersets, for different reasons.
+- **Most of the superset relation is `ExactPreservation` — the win is single-source
+  coherence, not new power.** For the crisp fragment the lifted form and the surface form
+  are the same triples (the adapter maps `subClassOf → subClassOf`); authoring in the
+  canon buys no expressivity there, only that *one* authored construct projects
+  consistently to every surface at once under one loss ledger. The loss becomes real —
+  and the projection honestly lossy — **only** where `logic:` carries the contextual /
+  defeasible / modal / standpoint-indexed content OWL/RDFS/SKOS cannot hold.
+
+The shared foundation the lattice exposes: **completing the adapter's lift of the
+authored semantic surface into the IR** feeds all three lower relations at once — the
+restriction/cardinality lift the SHACL/ShEx down-projection needs, the SKOS lift that
+closes the `isSupersetOf` gap and feeds `skos:*Match` into the alignment derivation, and
+one generalized purity gate over the whole semantic-vocabulary surface. Author once atop
+RDF 1.2; lift the definitional surface; derive the validation and alignment surfaces;
+gate and ledger every edge.
+
 ## The doctrine made enforceable
 
 Each axis above is authored canonically with its surface generated, not substituted.
