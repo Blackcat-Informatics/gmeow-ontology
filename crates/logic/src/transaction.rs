@@ -826,6 +826,25 @@ const VIEW_SERIALIZABILITY: &str = "ViewSerializability";
 const SATISFIES_CRITERION: &str = "satisfiesCriterion";
 const READS_FROM: &str = "readsFrom";
 const HAPPENS_BEFORE: &str = "happensBefore";
+// Protocol-soundness surface local names: the declared control mechanism, its recorded
+// events (timestamps + lock acquire/release), and the enforcement verdict.
+const DECLARED_PROTOCOL: &str = "declaredProtocol";
+const TRANSACTION_TIMESTAMP: &str = "transactionTimestamp";
+const LOCK_ACQUIRED: &str = "lockAcquired";
+const LOCK_RELEASED: &str = "lockReleased";
+const PROTOCOL_ENFORCED: &str = "protocolEnforced";
+const PROTOCOL_VIOLATION_REASON: &str = "protocolViolationReason";
+// The closed set of concurrency-control-protocol individuals (module.ttl).
+const STRICT_TWO_PHASE_LOCKING: &str = "StrictTwoPhaseLocking";
+const STRONG_STRICT_TWO_PHASE_LOCKING: &str = "StrongStrictTwoPhaseLocking";
+const TIMESTAMP_ORDERING: &str = "TimestampOrdering";
+const OPTIMISTIC_VALIDATION: &str = "OptimisticValidation";
+const CONCURRENCY_CONTROL_PROTOCOLS: &[&str] = &[
+    STRICT_TWO_PHASE_LOCKING,
+    STRONG_STRICT_TWO_PHASE_LOCKING,
+    TIMESTAMP_ORDERING,
+    OPTIMISTIC_VALIDATION,
+];
 
 /// The `xsd:boolean` N3 literal form.
 fn xsd_bool(v: bool) -> String {
@@ -1370,6 +1389,237 @@ fn classify_view_serializability(
     })
 }
 
+/// The concurrency-control protocol a program `root` DECLARES, resolved
+/// `root --logic:executedUnderContract--> contract --logic:declaredProtocol--> protocol`.
+///
+/// Returns `None` when no protocol is declared (no governing contract, or a contract with no
+/// `logic:declaredProtocol`) — a run that makes no protocol claim, verified against nothing.
+///
+/// # Errors
+///
+/// A MALFORMED declaration is a HARD ERROR: more than one governing contract, more than one
+/// `logic:declaredProtocol`, a non-IRI value, or a protocol IRI outside the closed set
+/// [`CONCURRENCY_CONTROL_PROTOCOLS`].
+fn root_declared_protocol(facts: &WorldFacts, root: &str) -> Result<Option<String>, String> {
+    let contracts = facts.objects(root, &logic(EXECUTED_UNDER_CONTRACT));
+    let contract = match contracts.len() {
+        0 => return Ok(None),
+        1 => contracts[0],
+        n => {
+            return Err(format!(
+                "transaction-program node {root:?} has {n} logic:executedUnderContract links (at most one governing contract allowed)"
+            ))
+        }
+    };
+    let protocols = facts.objects(contract, &logic(DECLARED_PROTOCOL));
+    match protocols.len() {
+        0 => {
+            if let Some(value) = facts.object_n3(contract, &logic(DECLARED_PROTOCOL)) {
+                return Err(format!(
+                    "logic:ReasoningContract {contract:?} names a non-IRI logic:declaredProtocol value {value:?} (expected a logic:ConcurrencyControlProtocol individual)"
+                ));
+            }
+            Ok(None)
+        }
+        1 => {
+            let protocol = protocols[0];
+            match protocol.strip_prefix(LOGIC_NAMESPACE) {
+                Some(local) if CONCURRENCY_CONTROL_PROTOCOLS.contains(&local) => {
+                    Ok(Some(protocol.to_owned()))
+                }
+                _ => Err(format!(
+                    "logic:ReasoningContract {contract:?} names an unknown logic:declaredProtocol {protocol:?} (expected one of the closed concurrency-control-protocol set)"
+                )),
+            }
+        }
+        n => Err(format!(
+            "logic:ReasoningContract {contract:?} has {n} logic:declaredProtocol values (at most one required)"
+        )),
+    }
+}
+
+/// The integer value of an N3 literal like `"5"^^<…#integer>` (the text between the first
+/// pair of quotes, parsed as `i64`).
+fn parse_int_literal(n3: &str) -> Option<i64> {
+    let start = n3.find('"')? + 1;
+    let end = n3[start..].find('"')? + start;
+    n3[start..end].parse::<i64>().ok()
+}
+
+/// The unioned (read, write) situation footprint of a whole leg: the union of every step's
+/// `logic:precondition` (read) and `logic:ins ∪ logic:del` (write) situations.
+///
+/// # Errors
+///
+/// Propagates a [`step_footprint`] hard-fail (a schema with no effect node).
+fn leg_footprint(
+    facts: &WorldFacts,
+    steps: &[PlannedStep],
+) -> Result<(BTreeSet<String>, BTreeSet<String>), String> {
+    let mut read = BTreeSet::new();
+    let mut write = BTreeSet::new();
+    for step in steps {
+        let (r, w) = step_footprint(facts, step)?;
+        read.extend(r);
+        write.extend(w);
+    }
+    Ok((read, write))
+}
+
+/// Classify one leg's lock discipline over its recorded `logic:lockAcquired` / `logic:lockReleased`
+/// events (read from each step's schema in step order). Returns `(two_phase, held_to_commit,
+/// event_count)`: `two_phase` is false once any acquire follows a release; `held_to_commit` is
+/// false once any lock is released before the leg's FINAL step.
+fn leg_lock_discipline(facts: &WorldFacts, steps: &[PlannedStep]) -> (bool, bool, usize) {
+    let mut two_phase = true;
+    let mut held_to_commit = true;
+    let mut seen_release = false;
+    let mut events = 0usize;
+    let last = steps.len().saturating_sub(1);
+    for (i, step) in steps.iter().enumerate() {
+        // Within a step, acquires happen before releases.
+        for _ in facts.objects(&step.schema, &logic(LOCK_ACQUIRED)) {
+            events += 1;
+            if seen_release {
+                two_phase = false; // an acquire after a release breaks the two-phase discipline
+            }
+        }
+        for _ in facts.objects(&step.schema, &logic(LOCK_RELEASED)) {
+            events += 1;
+            seen_release = true;
+            if i != last {
+                held_to_commit = false; // a release before the commit (final) step
+            }
+        }
+    }
+    (two_phase, held_to_commit, events)
+}
+
+/// Classify whether the witnessed schedule respects the concurrency-control protocol the run
+/// DECLARES (`root_declared_protocol`), over the run's recorded protocol events, and emit the
+/// verdict (`logic:protocolEnforced` + a `logic:protocolViolationReason` when false). Returns an
+/// EMPTY vec when no protocol is declared (no protocol claim to verify).
+///
+/// P12 — a per-schedule WELL-FORMEDNESS classification over recorded events (timestamps, lock
+/// acquire/release, footprints); it never searches for a legal schedule.
+///
+/// # Errors
+///
+/// A declared protocol whose required events are ABSENT is a HARD ERROR (no-optionality): a
+/// two-phase-locking protocol with no lock events, or a timestamp-ordering protocol with a leg
+/// missing its `logic:transactionTimestamp`. Also propagates a [`leg_footprint`] fault.
+#[allow(clippy::too_many_arguments)]
+fn verify_protocol_enforcement(
+    facts: &WorldFacts,
+    world: &str,
+    history_iri: &str,
+    root: &str,
+    left_tx: &str,
+    left: &[PlannedStep],
+    right_tx: &str,
+    right: &[PlannedStep],
+    edges: &[crate::teleology::ConflictEdge],
+    source: &str,
+    deriv: &str,
+) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+    use crate::teleology::TeleologyQuad;
+
+    let Some(protocol) = root_declared_protocol(facts, root)? else {
+        return Ok(Vec::new());
+    };
+    let local = protocol
+        .strip_prefix(LOGIC_NAMESPACE)
+        .expect("declared protocol is a logic: IRI");
+
+    // Classify the witnessed schedule against the declared protocol's discipline.
+    let (enforced, reason): (bool, Option<String>) = match local {
+        STRICT_TWO_PHASE_LOCKING | STRONG_STRICT_TWO_PHASE_LOCKING => {
+            let (l_two, l_commit, l_events) = leg_lock_discipline(facts, left);
+            let (r_two, r_commit, r_events) = leg_lock_discipline(facts, right);
+            if l_events + r_events == 0 {
+                return Err(format!(
+                    "logic:ConcurrentComposition {root:?} declares {protocol:?} but the run records \
+                     no logic:lockAcquired / logic:lockReleased events to verify the lock discipline against"
+                ));
+            }
+            let two_phase = l_two && r_two;
+            let strong = local == STRONG_STRICT_TWO_PHASE_LOCKING;
+            let held = l_commit && r_commit;
+            if !two_phase {
+                (false, Some("a lock is acquired after another is released within a leg (the schedule is not two-phase)".to_owned()))
+            } else if strong && !held {
+                (false, Some("a lock is released before its leg's final (commit) step (strong-strict two-phase locking holds all locks to commit)".to_owned()))
+            } else {
+                (true, None)
+            }
+        }
+        TIMESTAMP_ORDERING => {
+            let ts = |tx: &str| -> Option<i64> {
+                facts
+                    .object_n3(tx, &logic(TRANSACTION_TIMESTAMP))
+                    .and_then(parse_int_literal)
+            };
+            let (Some(l_ts), Some(r_ts)) = (ts(left_tx), ts(right_tx)) else {
+                return Err(format!(
+                    "logic:ConcurrentComposition {root:?} declares {protocol:?} but a leg is missing its \
+                     logic:transactionTimestamp (timestamp ordering is verified against per-transaction timestamps)"
+                ));
+            };
+            let stamp = |tx: &str| if tx == left_tx { l_ts } else { r_ts };
+            // Every conflict edge must run from the earlier timestamp to the later one.
+            let violation = edges.iter().find(|e| stamp(&e.from) >= stamp(&e.to));
+            match violation {
+                Some(_) => (
+                    false,
+                    Some("a logic:precedes conflict edge runs against the transaction-timestamp order".to_owned()),
+                ),
+                None => (true, None),
+            }
+        }
+        OPTIMISTIC_VALIDATION => {
+            // Backward validation passes iff neither leg observed the other's writes: no
+            // cross-leg read-write conflict.
+            let (l_read, l_write) = leg_footprint(facts, left)?;
+            let (r_read, r_write) = leg_footprint(facts, right)?;
+            let rw_conflict = l_write.iter().any(|s| r_read.contains(s))
+                || r_write.iter().any(|s| l_read.contains(s));
+            if rw_conflict {
+                (
+                    false,
+                    Some("a cross-leg read-write conflict would fail optimistic validation (a transaction read a situation the other wrote)".to_owned()),
+                )
+            } else {
+                (true, None)
+            }
+        }
+        other => {
+            // root_declared_protocol already gates the closed set; be total.
+            return Err(format!("unhandled concurrency-control protocol {other:?}"));
+        }
+    };
+
+    let mut out = Vec::new();
+    let mut push = |predicate: String, object: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: history_iri.to_owned(),
+            predicate,
+            object,
+            rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+            source_quad_ids: vec![source.to_owned()],
+            derivation_id: deriv.to_owned(),
+        });
+    };
+    push(logic(PROTOCOL_ENFORCED), xsd_bool(enforced));
+    if let Some(reason) = reason {
+        push(
+            logic(PROTOCOL_VIOLATION_REASON),
+            format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+        );
+    }
+    Ok(out)
+}
+
 /// Emit the DERIVED `logic:ConcurrentHistory` of a succeeded concurrent composition: each
 /// leg's committed path substrate (via [`emit_committed_run`], so neither leg is collapsed
 /// into a bogus merged chain), the history node + its `logic:derivedHistory` link from the
@@ -1561,6 +1811,23 @@ fn emit_concurrent_history(
             push(earlier, logic(HAPPENS_BEFORE), n3(later));
         }
     }
+
+    // Classify whether the witnessed schedule respects the concurrency-control PROTOCOL the run
+    // declares (if any), over the run's recorded protocol events (timestamps / lock events /
+    // footprints) — a per-schedule well-formedness check, never a schedule search (P12).
+    out.extend(verify_protocol_enforcement(
+        facts,
+        world,
+        &history_iri,
+        root,
+        left_tx,
+        &l.steps,
+        right_tx,
+        &r.steps,
+        &edges,
+        source,
+        deriv,
+    )?);
 
     // A conflict cycle is surfaced as a SerializationAnomaly finding (reusing the shipped
     // emitter), NEVER a contradiction witness and never linearized.
