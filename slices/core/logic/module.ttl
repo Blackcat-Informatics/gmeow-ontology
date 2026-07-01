@@ -4273,6 +4273,38 @@ logic:candidateSocialInformationOverlap
     logic:candidateFormalizes gmeow:SocialObject ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 
+logic:cqRelatorMediationHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "relator mediation holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the relator-mediation discipline (RelComp) must satisfy: a concrete relator that mediates at least two distinct relata stays coherent — it fires no logic:violation logic:RelComp. gmeow:Commitment, which mediates gmeow:committedAgent, gmeow:commitmentBeneficiary and gmeow:intentionGoal, is well-mediated and passes."@x-gmeow-english .
+
+logic:cqRelatorMediationUnderMediatedRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "under-mediated relator rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the relator-mediation discipline must reject: a concrete relator that mediates fewer than two distinct relata is degenerate and fires logic:violation logic:RelComp — an objectified relation that connects only one entity grounds no material relation, so it is not a relator."@x-gmeow-english .
+
+logic:candidateRelatorMediation
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "every concrete relator mediates at least two distinct relata"@x-gmeow-english ;
+    skos:definition "The formalization candidate that generalizes the relator-mediation discipline (RelComp) from the hardcoded OntoUML seed relators to every subclass of the logic:Relator category, harvested from logic:Relator's own skos:definition ('A Relator must mediate at least two distinct entities'). The native foundation reasoner confers relator-hood on every class subClassOf logic:Relator and fires logic:violation logic:RelComp on any concrete (leaf) relator that mediates fewer than two distinct relata. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqRelatorMediationHolds) and a negative countermodel (logic:cqRelatorMediationUnderMediatedRejected); its harvest back-link (logic:candidateFormalizes logic:Relator, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that skos:definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b3799a43d3716eb873c0fff6c0931bf68a9bdf3b6182571a305df0cb08ba40f9"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:Relator skos:definition, which states a Relator must mediate at least two distinct entities (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "every class subClassOf logic:Relator; a concrete relator (one with no logic: subclass) must carry at least two distinct logic:mediates relata or fire logic:violation logic:RelComp"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqRelatorMediationHolds ;
+    logic:candidateNegativeCase logic:cqRelatorMediationUnderMediatedRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:Relator ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
 # ── Closed value class: the eleven formalization categories ──────────────────────
 
 logic:FormalizationCategory
