@@ -563,14 +563,11 @@ wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web b
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_rdf_wasm.wasm \
 		--out-dir crates/rdf-wasm/js/pkg --target web
-	@# Size optimization is best-effort: wasm-opt -Oz roughly halves the artifact, but
-	@# the package is correct without it. Absence is a note, not a failure.
-	@if command -v wasm-opt >/dev/null 2>&1; then \
-		wasm-opt -Oz -o crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm && \
-		echo "OK: wasm-opt -Oz applied"; \
-	else \
-		echo "note: wasm-opt not found — shipping unoptimized wasm (size-opt is a follow-up)"; \
-	fi
+	@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a
+	@# hard dependency: a missing wasm-opt is a build failure, never a note.
+	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	wasm-opt -Oz -o crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm
+	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: purrdf npm package built (crates/rdf-wasm/js/, pkg/ generated)"
 
 validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
@@ -580,14 +577,11 @@ validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release was
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_validate_wasm.wasm \
 		--out-dir crates/validate-wasm/js/pkg --target web
-	@# Size optimization is best-effort: wasm-opt -Oz roughly halves the artifact, but the
-	@# package is correct without it. Absence is a note, not a failure.
-	@if command -v wasm-opt >/dev/null 2>&1; then \
-		wasm-opt -Oz -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm && \
-		echo "OK: wasm-opt -Oz applied"; \
-	else \
-		echo "note: wasm-opt not found — shipping unoptimized validate wasm"; \
-	fi
+	@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a
+	@# hard dependency: a missing wasm-opt is a build failure, never a note.
+	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	wasm-opt -Oz -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
+	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
 
 wasm-pkg-test: wasm-pkg validate-wasm-pkg ## Build the wasm packages and run the Node real-execution round-trip lanes.
@@ -598,8 +592,8 @@ maint-refresh-purrdf-asset: wasm-pkg ## Refresh the vendored purrdf wasm engine 
 	@# The docs site's offline SPARQL playground loads a PINNED copy of the purrdf
 	@# wasm engine (crates/docs/assets/purrdf/). The regenerate pipeline never builds
 	@# wasm, so the artifact is vendored here as a build input and refreshed by hand
-	@# after any change to crates/rdf-wasm. `wasm-pkg` already applies `wasm-opt -Oz`
-	@# when available.
+	@# after any change to crates/rdf-wasm. `wasm-pkg` always applies `wasm-opt -Oz`
+	@# (a required build step).
 	cp crates/rdf-wasm/js/pkg/gmeow_rdf_wasm.js \
 	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm.d.ts \
 	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm \
