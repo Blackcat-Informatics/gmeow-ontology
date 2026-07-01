@@ -61,10 +61,6 @@ meta:gate-statements a meta:Gate ;
         "crates/validate/src/statement.rs" ;
     meta:symbol "compile_statements", "check_statement_lossless" .
 
-meta:tests-statements a meta:TestSuite ;
-    rdfs:label "RDF 1.2 round-trip tests"@x-gmeow-english ;
-    meta:artifact "tests/test_statements.py" .
-
 meta:gate-rdf12-codec a meta:Gate ;
     rdfs:label "OWL ↔ RDF 1.2 codec (generated↔generated downcast)"@x-gmeow-english ;
     meta:artifact "queries/codecs/rdf12-project.rq", "queries/codecs/rdf12-to-owl.rq" .
@@ -158,7 +154,7 @@ meta:lint-reasoning-invariants a meta:Lint ;
 
 meta:tests-reasoning a meta:TestSuite ;
     rdfs:label "entailment and reasoning-lint tests"@x-gmeow-english ;
-    meta:artifact "tests/test_reasoning_entailments.py", "crates/validate/src/gufo.rs" .
+    meta:artifact "crates/validate/src/gufo.rs" .
 
 meta:gate-products a meta:Gate ;
     rdfs:label "the product surfaces: pip client, MCP memory triad, GTS engine"@x-gmeow-english ;
@@ -288,7 +284,7 @@ meta:gate-logic-round-trip a meta:Gate ;
 
 meta:gate-foundation-conformance a meta:Gate ;
     rdfs:label "gUFO foundation downcast ≡ reasoning_lint verdicts — native Rust evaluator"@x-gmeow-english ;
-    meta:artifact "tests/test_logic_foundation_cases.py", "crates/logic/src/foundation.rs" ;
+    meta:artifact "crates/logic/src/foundation.rs" ;
     meta:symbol "evaluate" .
 
 meta:gate-logic-gufo-superset a meta:Gate ;
@@ -313,19 +309,18 @@ meta:gate-dl-el-crosscheck a meta:Gate ;
     meta:symbol "ReasonStage" ;
     meta:generator "reason" .
 
-# The ENFORCING classic-cross-check lane: the sole Java+Docker surface, a
-# single non-required CI job. Compares the native engine against the legacy
-# oracles (ELK/HermiT subsumption + consistency; owlrl OWL-2-RL closure) and
-# FAILS strictly on any NativeOnly/OracleOnly divergence or DlGap native coverage
-# defect. NEVER part of `make check` or the required `quality` gate. Emits
-# agreement + timing through the gmeow-diagnostics SARIF rail.
+# Native↔oracle agreement, enforced NATIVELY. The divergence ledger is built and
+# the agreement verdict decided in Rust (`enforce` over the ledger), Docker-free,
+# and fails strictly on any NativeOnly/OracleOnly divergence or DlGap native
+# coverage defect. The Java+Docker oracle side (ELK/HermiT subsumption +
+# consistency; owlrl OWL-2-RL closure) was relocated OUT of mainline into the
+# standalone validations/classic-cross-check/ validator-zoo suite (#1087) —
+# run on demand, never part of `make check`, the required `quality` gate, or CI.
 meta:gate-classic-cross-check a meta:Gate ;
-    rdfs:label "classic-cross-check lane — native vs ELK/HermiT/owlrl agreement, ENFORCED (non-required Docker/Java oracle lane)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/oracles/classic_cross_check.py",
-        "src/gmeow_tools/oracles/rl_agreement.py" ;
-    meta:symbol "enforce", "run" ;
-    meta:makeTarget "maint-classic-cross-check" ;
-    meta:cliCommand "classic-cross-check", "classic-cross-check-rl" .
+    rdfs:label "native↔oracle agreement — native divergence-ledger enforcement, Docker-free (the ELK/HermiT/owlrl oracle lane relocated to validations/classic-cross-check/, #1087)"@x-gmeow-english ;
+    meta:artifact "crates/logic/src/reason/ledger.rs" ;
+    meta:symbol "enforce" ;
+    meta:makeTarget "conformance" .
 
 # The anti-regression SUPERSET meta-gate (#697 criterion 3): the native-decided
 # construct set must be a SUPERSET of the oracle-decided set. Any OracleOnly row
@@ -371,13 +366,13 @@ meta:Principle1 a meta:Principle ;
 meta:Principle2 a meta:Principle ;
     meta:number 2 ;
     meta:title "RDF 1.2 / RDF\\*-first — precisely scoped" ;
-    meta:enforcedBy meta:gate-statements, meta:tests-statements ;
+    meta:enforcedBy meta:gate-statements ;
     meta:supersededInPartBy meta:Principle17 .
 
 meta:Principle3 a meta:Principle ;
     meta:number 3 ;
     meta:title "The OWL axiom-annotation form is a generated, reasoning-lossless downcast" ;
-    meta:enforcedBy meta:gate-rdf12-codec, meta:gate-statements, meta:tests-statements .
+    meta:enforcedBy meta:gate-rdf12-codec, meta:gate-statements .
 
 meta:Principle4 a meta:Principle ;
     meta:number 4 ;
