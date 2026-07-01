@@ -1,0 +1,90 @@
+{
+  "canonical-rdf12": {
+    "complexity": "N/A (identity serialization)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
+  },
+  "datalog": {
+    "complexity": "terminating/PTIME-data",
+    "lossy_drops": [
+      "OWL class expressions not representable as Datalog atoms are dropped",
+      "modal/world context flattened to predicate reification",
+      "no existential rule heads (skolemisation not emitted)",
+      "actual: reasoning contract (an anonymous faceted contract) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
+    ],
+    "preservation": "SoundUnderApproximation"
+  },
+  "gufo": {
+    "complexity": "PTIME",
+    "lossy_drops": [
+      "fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped",
+      "logic: world-modal/contextual structure has no gUFO equivalent",
+      "logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no single gUFO base class as a projection target and is dropped (gufo:Aspect is emitted; gufo:Mode does not exist)",
+      "multi-level / HiLog instantiation (logic:instanceOf, logic:orderedType — arbitrary type-of-type levels) has no gUFO punning equivalent and is dropped",
+      "native builtins (logic:Builtin and the builtin individuals) have no gUFO class and are dropped",
+      "native edge-property metadata (RDF-1.2 statement-level scope on logic edges) has no gUFO equivalent and is dropped",
+      "only gUFO-mapped sorts and structural predicates emitted",
+      "preservation kind is ValidationOnly: gUFO is an anti-pattern check, not an entailment surface",
+      "rules not representable in gUFO; only type/subtype declarations kept",
+      "scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped",
+      "strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped",
+      "the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection",
+      "actual: rdf:type logic:GoalExpression on <https://example.org/transaction/protocol-strict-2pl/GoalExpression> has no gUFO equivalent",
+      "actual: rdf:type logic:ReasoningContract on <https://example.org/transaction/protocol-strict-2pl/TransactionContract> has no gUFO equivalent",
+      "actual: reasoning contract (an anonymous faceted contract) is not representable in the gUFO bridge; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
+    ],
+    "preservation": "ValidationOnly"
+  },
+  "n3": {
+    "complexity": "semi-decidable",
+    "lossy_drops": [
+      "N3 builtins used for arithmetic/string predicates where available",
+      "modal context encoded as quoted graph arguments (may overgenerate)",
+      "negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent",
+      "actual: reasoning contract (an anonymous faceted contract) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
+    ],
+    "preservation": "CompleteOverApproximation"
+  },
+  "nemo": {
+    "complexity": "PTIME/datalog",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
+  },
+  "owl-dl": {
+    "complexity": "decidable/N2EXPTIME",
+    "lossy_drops": [
+      "contextual scope (standpoint, time, confidence) is dropped",
+      "modal/world context is erased",
+      "probabilistic profile not representable in OWL DL",
+      "rule bodies mapped to OWL axioms where OWL is expressive enough; existential rules beyond OWL DL expressivity are dropped",
+      "transaction-path evolution has no faithful OWL DL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path",
+      "actual: reasoning contract (an anonymous faceted contract) is not representable in OWL 2 DL; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
+    ],
+    "preservation": "SoundUnderApproximation"
+  },
+  "owl-el": {
+    "complexity": "PTIME",
+    "lossy_drops": [
+      "contextual scope (standpoint, time, confidence) is dropped",
+      "modal/world context is erased",
+      "only EL-safe axioms emitted (no disjointness, no inverseOf, no cardinality restrictions, no nominals)",
+      "rules beyond EL expressivity are dropped",
+      "transaction-path evolution has no faithful OWL EL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path",
+      "actual: reasoning contract (an anonymous faceted contract) is not representable in OWL 2 EL; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
+    ],
+    "preservation": "SoundUnderApproximation"
+  },
+  "shacl-af": {
+    "complexity": "terminating/PTIME-data",
+    "lossy_drops": [
+      "ground class/property subsumption axioms are projected as cax-sco / prp-spo1 sh:SPARQLRule shapes; every other ground axiom (type / metamodel assertions, asserted relations, domain/range, modal or scoped axioms, literal-valued assertions) is not a derivation rule, has no SHACL-AF form, and is carried in the canonical RDF-1.2 layer (recorded as a drop)",
+      "modal / world / standpoint context of a contextualized rule has no SHACL-AF form; a context-scoped rule is not projected (it would be unsound over the default graph) and is recorded as a drop",
+      "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)",
+      "the stratified Horn-with-stratified-negation-and-aggregation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER, and a reduce rule → an aggregating sh:SPARQLRule with a GROUP-BY sub-SELECT): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)",
+      "actual: ground axiom <https://example.org/transaction/protocol-strict-2pl/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: ground axiom <https://example.org/transaction/protocol-strict-2pl/TransactionContract> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningContract> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "actual: reasoning contract (an anonymous faceted contract) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
+    ],
+    "preservation": "SoundUnderApproximation"
+  }
+}

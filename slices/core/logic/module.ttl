@@ -5638,6 +5638,59 @@ logic:satisfiesCriterion
     skos:definition "Relates a logic:ConcurrentHistory to each logic:SerializabilityCriterion its witnessed schedule actually SATISFIES — the classification RESULT, as opposed to logic:serializabilityCriterion, which names the criterion the history is judged against. The native evaluator emits logic:ConflictSerializability when the logic:precedes conflict graph is acyclic and logic:ViewSerializability when the witnessed interleaving is view-equivalent to one of the two serial orders of its legs. Domain logic:ConcurrentHistory, range logic:SerializabilityCriterion (stated in prose); multi-valued. Because conflict-serializability is strictly stronger, a history that satisfies logic:ConflictSerializability always also satisfies logic:ViewSerializability; a conflict-CYCLIC history may satisfy logic:ViewSerializability alone. Absence of a criterion here is the honest record that the schedule does not satisfy it — the corresponding logic:SerializationAnomaly finding carries the violated criterion — never a silent linearization."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Protocol soundness: the isolation guarantee + control mechanism surface ---
+# A logic:ConcurrencyControlProtocol is enforced by the protocol's OWN events —
+# per-transaction timestamps and per-action lock acquire/release — which a run
+# records so that "does this witnessed schedule respect the declared protocol?"
+# is a polynomial WELL-FORMEDNESS classification of the schedule (Principle 12),
+# never a search for a legal schedule (which would be NP-hard). The protocol is
+# declared on the reasoning contract (logic:declaredProtocol); the verdict is
+# recorded on the derived history (logic:protocolEnforced). A declared protocol
+# whose required events are absent from the run is a HARD ERROR, never a silent
+# pass — the run must carry the events its protocol is verified against.
+
+logic:declaredProtocol
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "declared protocol"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:ConcurrencyControlProtocol its concurrent transactions are to be enforced under — the IMPLEMENTATION MECHANISM (strict / strong-strict two-phase locking, timestamp ordering, or optimistic validation) declared for the run. Domain logic:ReasoningContract, range logic:ConcurrencyControlProtocol (stated in prose); at most one per contract, from the closed protocol set (a value outside it is a hard error). It is kept DISTINCT from the guarantee strength the mechanism is meant to achieve (logic:declaredIsolationLevel) and from the history property it produces (logic:serializabilityCriterion): a protocol is HOW a guarantee is enforced, never the guarantee itself. The native evaluator classifies whether the witnessed schedule respects this protocol's discipline over the run's recorded protocol events and records the verdict as logic:protocolEnforced."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:transactionTimestamp
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "transaction timestamp"@x-gmeow-english ;
+    skos:definition "The start-order timestamp assigned to a transaction (a concurrent-composition leg) under a timestamp-ordering protocol — the recorded event a logic:TimestampOrdering verification classifies the witnessed schedule against. Domain a transaction-program node (a logic:ConcurrentComposition leg), range xsd:integer (stated in prose); single-valued. Under logic:TimestampOrdering the schedule is well-formed iff every logic:precedes conflict edge runs from the earlier timestamp to the later one; a run declaring logic:TimestampOrdering that omits a leg's timestamp is a hard error. It is a recorded protocol EVENT — an input the classifier reads — not a derived verdict, and it is distinct from logic:temporallySucceeds, which orders the STATES of an executed path rather than the transactions of a schedule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lockAcquired
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lock acquired"@x-gmeow-english ;
+    skos:definition "Records that the action a transaction step performs ACQUIRES an exclusive lock on a situation — a recorded event of a two-phase-locking protocol. Declared on the action schema (logic:ActionSchema) a step instantiates, range the locked situation (stated in prose); the native evaluator reads the acquire/release events in each leg's step order to classify the lock discipline. Under logic:StrictTwoPhaseLocking the schedule is well-formed iff each leg is two-phase (no acquire follows any release within the leg); under logic:StrongStrictTwoPhaseLocking, additionally, no lock is released before the leg's final (commit) step. It is a recorded protocol EVENT the classifier reads, kept distinct from logic:lockReleased (its releasing counterpart) and from the situation-validity vocabulary (logic:situationObtains), which is about what holds, not what is locked."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lockReleased
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lock released"@x-gmeow-english ;
+    skos:definition "Records that the action a transaction step performs RELEASES its exclusive lock on a situation — the releasing counterpart of logic:lockAcquired and a recorded event of a two-phase-locking protocol. Declared on the action schema (logic:ActionSchema) a step instantiates, range the released situation (stated in prose). The native evaluator reads releases in each leg's step order: a release before any remaining acquire breaks the two-phase discipline (logic:StrictTwoPhaseLocking), and a release before the leg's final step breaks the held-to-commit discipline (logic:StrongStrictTwoPhaseLocking). It is a recorded protocol EVENT the classifier reads, never a derived verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:protocolEnforced
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "protocol enforced"@x-gmeow-english ;
+    skos:definition "The boolean verdict of classifying a logic:ConcurrentHistory's witnessed schedule against the logic:ConcurrencyControlProtocol its run declared (logic:declaredProtocol): true iff the schedule respects that protocol's discipline over the run's recorded protocol events (timestamps for logic:TimestampOrdering; lock acquire/release events for the two-phase-locking protocols; cross-leg read-write disjointness for logic:OptimisticValidation). Domain logic:ConcurrentHistory, range xsd:boolean (stated in prose); present only when a protocol is declared. A false verdict carries a human-readable logic:protocolViolationReason. This is HOW-a-guarantee-is-enforced verification, kept distinct from logic:satisfiesCriterion (the history property the schedule satisfies) and logic:isolationLevelAdequacy (whether the schedule meets a declared guarantee strength); a declared protocol whose required events are absent is a hard error, never a false-by-default."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:protocolViolationReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "protocol violation reason"@x-gmeow-english ;
+    skos:definition "A human-readable description of WHY a logic:ConcurrentHistory's witnessed schedule fails the concurrency-control protocol its run declared — present exactly when logic:protocolEnforced is false. Domain logic:ConcurrentHistory, range xsd:string (stated in prose). It names the discipline the schedule breaks (a non-two-phase lock order, a lock released before commit, a conflict edge against timestamp order, or a cross-leg read-write conflict that optimistic validation would abort), so a protocol failure is surfaced with its cause rather than as a bare boolean. It is a description of a mechanism-level finding, never a claim of logical contradiction within a state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # ── The full first-order formula AST surface (TBox + RBox) ────────────────────
 # The reified vocabulary the typed full-FOL formula core serializes into: a
 # logic:Formula tree of quantifiers (logic:forall / logic:exists), connectives

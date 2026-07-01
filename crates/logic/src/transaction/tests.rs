@@ -1246,3 +1246,228 @@ fn concurrent_self_composition_is_hard_error() {
     let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
     assert!(err.contains("composes a program with itself"), "{err}");
 }
+
+// ── Protocol soundness: the declared control mechanism verified over recorded events ──
+
+/// An `xsd:integer` N3 literal.
+fn int_lit(n: i64) -> String {
+    format!("\"{n}\"^^<http://www.w3.org/2001/XMLSchema#integer>")
+}
+
+/// Wire the concurrent root `cc` to a logic:ReasoningContract declaring `protocol_local`.
+fn declares_protocol(protocol_local: &str) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    format!(
+        "{}{}{}",
+        q(&e("contract"), ty, &l("ReasoningContract")),
+        q(&e("cc"), &l("executedUnderContract"), &e("contract")),
+        q(&e("contract"), &l("declaredProtocol"), &l(protocol_local)),
+    )
+}
+
+/// A per-leg `logic:transactionTimestamp`.
+fn timestamp(node: &str, n: i64) -> String {
+    q(&e(node), &l("transactionTimestamp"), &int_lit(n))
+}
+
+/// Declare lock acquire/release events on a primitive's action schema (`{node}Schema`).
+fn locks(node: &str, acquired: &[&str], released: &[&str]) -> String {
+    let schema = format!("{node}Schema");
+    let mut s = String::new();
+    for a in acquired {
+        s.push_str(&q(&e(&schema), &l("lockAcquired"), &e(a)));
+    }
+    for r in released {
+        s.push_str(&q(&e(&schema), &l("lockReleased"), &e(r)));
+    }
+    s
+}
+
+/// The boolean logic:protocolEnforced verdict on the history, if present.
+fn protocol_enforced(quads: &[crate::teleology::TeleologyQuad]) -> Option<bool> {
+    quads
+        .iter()
+        .find(|q| q.predicate.ends_with("protocolEnforced"))
+        .map(|q| q.object.starts_with("\"true\""))
+}
+
+#[test]
+fn no_declared_protocol_emits_no_protocol_verdict() {
+    // The existing serializable world declares no contract → no protocol claim → no verdict.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pb")),
+        ]
+        .concat(),
+        [
+            primitive("pa", &[], &["sitA"], &[]),
+            primitive("pb", &[], &["sitB"], &[]),
+        ]
+        .concat(),
+    );
+    assert_eq!(protocol_enforced(&outcome_quads(&nq, "cc")), None);
+}
+
+/// A read-dependency concurrent world (left writes sitA, right reads sitA then writes sitB;
+/// sitA obtains at the shared start) with an optional trailer declaring a protocol + events.
+fn protocol_world(trailer: &str) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    format!(
+        "{}{}{}{}{}",
+        start_state("s0", &["sitA"]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("l0")),
+            q(&e("cc"), &l("rightOperand"), &e("r0")),
+        ]
+        .concat(),
+        [
+            primitive("l0", &[], &["sitA"], &[]),
+            primitive("r0", &["sitA"], &["sitB"], &[]),
+        ]
+        .concat(),
+        trailer,
+    )
+}
+
+#[test]
+fn timestamp_ordering_enforced_when_edge_respects_timestamps() {
+    // One conflict edge l0 → r0 (left writes what right reads); timestamps 1 < 2 respect it.
+    let nq = protocol_world(&format!(
+        "{}{}{}",
+        declares_protocol("TimestampOrdering"),
+        timestamp("l0", 1),
+        timestamp("r0", 2),
+    ));
+    assert_eq!(protocol_enforced(&outcome_quads(&nq, "cc")), Some(true));
+}
+
+#[test]
+fn timestamp_ordering_violated_by_a_conflict_cycle() {
+    // The cross-dependency world is conflict-CYCLIC: with timestamps 1,2 one of the opposing
+    // edges runs against timestamp order → not enforced, with a reason.
+    let stamps = [timestamp("leftSer", 1), timestamp("rightSer", 2)].concat();
+    let nq = format!(
+        "{}{}{}",
+        cross_dependency_world(),
+        declares_protocol("TimestampOrdering"),
+        stamps,
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert_eq!(protocol_enforced(&quads), Some(false));
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("protocolViolationReason")),
+        "a protocol failure carries its reason"
+    );
+}
+
+#[test]
+fn timestamp_ordering_missing_timestamp_is_hard_error() {
+    // Declaring timestamp ordering without a leg timestamp is a hard error, never a silent pass.
+    let nq = protocol_world(&declares_protocol("TimestampOrdering"));
+    let facts = facts_of(&nq);
+    let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
+    assert!(err.contains("logic:transactionTimestamp"), "{err}");
+}
+
+#[test]
+fn strict_two_phase_locking_enforced_and_no_lock_events_is_hard_error() {
+    // Each schema acquires then releases its lock within its step → two-phase holds → enforced.
+    let nq = protocol_world(&format!(
+        "{}{}{}",
+        declares_protocol("StrictTwoPhaseLocking"),
+        locks("l0", &["sitA"], &["sitA"]),
+        locks("r0", &["sitA"], &["sitA"]),
+    ));
+    assert_eq!(protocol_enforced(&outcome_quads(&nq, "cc")), Some(true));
+
+    // The SAME declaration with NO recorded lock events is a hard error.
+    let bare = protocol_world(&declares_protocol("StrictTwoPhaseLocking"));
+    let facts = facts_of(&bare);
+    let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
+    assert!(err.contains("no logic:lockAcquired"), "{err}");
+}
+
+#[test]
+fn strong_strict_two_phase_locking_requires_holding_locks_to_commit() {
+    // A two-step left leg that RELEASES its lock at the first (non-final) step breaks the
+    // held-to-commit discipline of strong-strict 2PL, but still satisfies plain strict 2PL.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let world = |protocol: &str| {
+        format!(
+            "{}{}{}{}{}{}{}",
+            start_state("s0", &[]),
+            q(&e("cc"), ty, &l("ConcurrentComposition")),
+            [
+                q(&e("cc"), &l("transitionFromState"), &e("s0")),
+                q(&e("cc"), &l("leftOperand"), &e("leftSer")),
+                q(&e("cc"), &l("rightOperand"), &e("pb")),
+            ]
+            .concat(),
+            serial2("leftSer", "l0", "l1"),
+            [
+                primitive("l0", &[], &["sitA"], &[]),
+                primitive("l1", &[], &["sitC"], &[]),
+                primitive("pb", &[], &["sitB"], &[]),
+            ]
+            .concat(),
+            // l0 (the FIRST, non-final step of leftSer) acquires AND releases → released before commit.
+            locks("l0", &["sitA"], &["sitA"]),
+            declares_protocol(protocol),
+        )
+    };
+    assert_eq!(
+        protocol_enforced(&outcome_quads(&world("StrongStrictTwoPhaseLocking"), "cc")),
+        Some(false),
+        "strong-strict forbids releasing a lock before the commit step"
+    );
+    assert_eq!(
+        protocol_enforced(&outcome_quads(&world("StrictTwoPhaseLocking"), "cc")),
+        Some(true),
+        "plain strict two-phase locking only requires the two-phase order"
+    );
+}
+
+#[test]
+fn optimistic_validation_enforced_iff_no_cross_leg_read_write_conflict() {
+    // Disjoint legs → no cross-leg read-write conflict → optimistic validation passes.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let disjoint = format!(
+        "{}{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pb")),
+        ]
+        .concat(),
+        [
+            primitive("pa", &[], &["sitA"], &[]),
+            primitive("pb", &[], &["sitB"], &[]),
+        ]
+        .concat(),
+        declares_protocol("OptimisticValidation"),
+    );
+    assert_eq!(
+        protocol_enforced(&outcome_quads(&disjoint, "cc")),
+        Some(true)
+    );
+
+    // The read-dependency world: right READS what left WRITES → a cross-leg read-write
+    // conflict → optimistic validation would abort → not enforced.
+    let conflicting = protocol_world(&declares_protocol("OptimisticValidation"));
+    assert_eq!(
+        protocol_enforced(&outcome_quads(&conflicting, "cc")),
+        Some(false)
+    );
+}
