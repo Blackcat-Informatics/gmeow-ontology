@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! End-to-end proof (#725, Task 4): import a sample **external** Common Logic
+//! End-to-end proof: import a sample **external** Common Logic
 //! (CLIF) knowledge base and reason over it — `parse_clif_str` → `LogicProgram`
 //! IR → native/Nemo materialization.
 //!
