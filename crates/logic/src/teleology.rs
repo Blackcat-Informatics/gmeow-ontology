@@ -2044,6 +2044,13 @@ const GUARDS_PRECONDITION: &str = "guardsPrecondition";
 const FRESHNESS_HORIZON: &str = "freshnessHorizon";
 /// `logic:datumRecordedAt` — when a guarded precondition's datum was recorded.
 const DATUM_RECORDED_AT: &str = "datumRecordedAt";
+/// `logic:freshnessWindow` — marks that a guard carries an explicit valid-time window
+/// (the openEHR DLM `time_window` axis), orthogonal to the age horizon.
+const FRESHNESS_WINDOW: &str = "freshnessWindow";
+/// `logic:freshnessWindowStart` — the inclusive lower bound of the valid-time window.
+const FRESHNESS_WINDOW_START: &str = "freshnessWindowStart";
+/// `logic:freshnessWindowEnd` — the inclusive upper bound of the valid-time window.
+const FRESHNESS_WINDOW_END: &str = "freshnessWindowEnd";
 /// `logic:awaitsSignal` — the external signal a notification-wait schema waits on.
 const AWAITS_SIGNAL: &str = "awaitsSignal";
 /// `logic:awaitingSignal` — the witness that a wait probe is still pending its signal.
@@ -2228,6 +2235,95 @@ fn freshness_verdict(
     Ok(None)
 }
 
+/// Evaluate every `logic:freshnessWindow` on `schema`'s guards against `decision_time`.
+///
+/// This is the SECOND, INDEPENDENT valid-time axis of a `logic:FreshnessGuard`, distinct
+/// from the age horizon evaluated by `freshness_verdict`: it is an EXPLICIT ABSOLUTE
+/// valid-time interval (the openEHR DLM `time_window`), not a max-age ceiling. For each
+/// guard that declares a `logic:freshnessWindow`, the probe's `logic:decisionTime` must
+/// fall inside the closed `[logic:freshnessWindowStart, logic:freshnessWindowEnd]`
+/// interval. A guard that declares NO window imposes no constraint on this axis (the
+/// horizon, if any, still applies) — absent-window semantics, mirroring the flat
+/// optional-facet convention of the module.
+///
+/// Returns `Ok(Some((guard, reason)))` for the FIRST guard whose window is declared and
+/// whose `decision_time` falls OUTSIDE `[start, end]` (the undetermined verdict), and
+/// `Ok(None)` when every declared window contains the decision time (or no guard declares
+/// one). The window and horizon axes are evaluated independently; the caller reports the
+/// first failing axis deterministically.
+///
+/// # Errors
+///
+/// A declared window with NO `logic:decisionTime` on the probe is a HARD ERROR — exactly
+/// like the horizon path, the interval test has no reference point and the evaluator
+/// refuses to guess (no silent pass). A malformed `logic:freshnessWindowStart` /
+/// `logic:freshnessWindowEnd` (or a bound missing under a declared window), or an interval
+/// whose end precedes its start, is also a hard error.
+fn window_verdict(
+    facts: &WorldFacts,
+    schema: &str,
+    decision_time: Option<&str>,
+) -> Result<Option<(String, String)>, String> {
+    use chrono::DateTime;
+    let guards: Vec<String> = facts
+        .objects(schema, &logic(FRESHNESS_GUARD))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    for guard in &guards {
+        // Absent-window semantics: a guard that declares no logic:freshnessWindow
+        // imposes NO constraint on this axis (the horizon, if any, is the only gate).
+        if facts.object_n3(guard, &logic(FRESHNESS_WINDOW)).is_none() {
+            continue;
+        }
+        // A declared window without a decision time is a hard error — no reference point.
+        let decision_lex = decision_time.ok_or_else(|| {
+            format!(
+                "logic:GateProbe gates schema {schema:?} whose logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow, but the probe declares no logic:decisionTime"
+            )
+        })?;
+        let start_lex = facts
+            .object_n3(guard, &logic(FRESHNESS_WINDOW_START))
+            .and_then(literal_lex)
+            .ok_or_else(|| {
+                format!(
+                    "logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow but no logic:freshnessWindowStart"
+                )
+            })?;
+        let end_lex = facts
+            .object_n3(guard, &logic(FRESHNESS_WINDOW_END))
+            .and_then(literal_lex)
+            .ok_or_else(|| {
+                format!(
+                    "logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow but no logic:freshnessWindowEnd"
+                )
+            })?;
+        let decision = DateTime::parse_from_rfc3339(decision_lex).map_err(|e| {
+            format!("logic:decisionTime {decision_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        let start = DateTime::parse_from_rfc3339(&start_lex).map_err(|e| {
+            format!("logic:freshnessWindowStart {start_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        let end = DateTime::parse_from_rfc3339(&end_lex).map_err(|e| {
+            format!("logic:freshnessWindowEnd {end_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        if end < start {
+            return Err(format!(
+                "logic:FreshnessGuard {guard:?} valid-time window ends {end_lex} before it starts {start_lex}"
+            ));
+        }
+        // Closed interval [start, end]: outside ⇒ undetermined on the WINDOW axis (this is
+        // a different cause than the horizon — the datum is off-episode, not merely aged).
+        if decision < start || decision > end {
+            let reason = format!(
+                "logic:FreshnessGuard {guard:?} decision time {decision_lex} is outside its valid-time window [{start_lex}, {end_lex}]"
+            );
+            return Ok(Some((guard.to_owned(), reason)));
+        }
+    }
+    Ok(None)
+}
+
 /// Whether a notification-wait schema is still awaiting an external signal at `state`.
 ///
 /// A `logic:NotificationWaitSchema` fires only once each `logic:ExternalSignal` it
@@ -2293,6 +2389,16 @@ fn emit_gate_probe(
     } else {
         None
     };
+    // The SECOND freshness axis: an explicit valid-time window (the openEHR DLM
+    // `time_window`). It is INDEPENDENT of the age horizon above — a datum can pass the
+    // horizon yet fall outside its declared window, or vice versa — and yields the same
+    // logic:GateUndetermined verdict for a DISTINCT cause (off-episode, not merely aged).
+    // Evaluated only when the base gate admits, exactly like the horizon axis.
+    let off_window = if matches!(gate, ActionGate::Admit) {
+        window_verdict(facts, &schema, decision_time.as_deref())?
+    } else {
+        None
+    };
     // A notification-wait schema whose external signal has not obtained is pending — the
     // same withheld-judgment value as a stale datum (logic:GateUndetermined), carrying a
     // distinct witness (logic:awaitingSignal). Only meaningful when the base gate admits.
@@ -2329,6 +2435,16 @@ fn emit_gate_probe(
                     format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
                 );
             } else if let Some((_, reason)) = stale {
+                // Freshness axis 1: the datum aged past its logic:freshnessHorizon.
+                push(&logic(GATE_VERDICT), n3(&logic(GATE_UNDETERMINED)));
+                push(
+                    &logic(GATE_UNDETERMINED_REASON),
+                    format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+                );
+            } else if let Some((_, reason)) = off_window {
+                // Freshness axis 2: the decision fell outside the datum's declared
+                // logic:freshnessWindow. Same withheld verdict, distinct cause; reported
+                // AFTER the horizon so the first failing axis is deterministic.
                 push(&logic(GATE_VERDICT), n3(&logic(GATE_UNDETERMINED)));
                 push(
                     &logic(GATE_UNDETERMINED_REASON),

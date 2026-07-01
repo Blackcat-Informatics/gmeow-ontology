@@ -2131,6 +2131,262 @@ fn freshness_guard_missing_datum_recorded_at_is_hard_error() {
     );
 }
 
+// ── Facet: FreshnessGuard valid-time WINDOW axis (DLM time_window → GateUndetermined) ──
+// The window axis is the SECOND, independent valid-time discipline of a freshness guard:
+// an explicit absolute [start, end] interval (openEHR DLM `time_window`), orthogonal to
+// the age horizon (`freshnessHorizon`). Same GateUndetermined verdict, distinct cause.
+
+/// A schema carrying ONE freshness guard that declares a valid-time window and, if
+/// `horizon` is `Some`, an age horizon too. `recorded` is the datum's datumRecordedAt.
+/// `window` is `Some((start, end))` to declare a window, or `None` to omit it.
+fn window_nq(recorded: &str, horizon: Option<&str>, window: Option<(&str, &str)>) -> String {
+    let mut nq = path_nq(&[&["ready"]]);
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#guard0> <{W}> .\n",
+        l("freshnessGuard")
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {} <{W}#ready> <{W}> .\n",
+        l("guardsPrecondition")
+    ));
+    if let Some(h) = horizon {
+        nq.push_str(&format!(
+            "<{W}#guard0> {} \"{h}\"^^{XSD_DUR} <{W}> .\n",
+            l("freshnessHorizon")
+        ));
+    }
+    if let Some((start, end)) = window {
+        nq.push_str(&format!(
+            "<{W}#guard0> {} \"episode-x\" <{W}> .\n",
+            l("freshnessWindow")
+        ));
+        nq.push_str(&format!(
+            "<{W}#guard0> {} \"{start}\"^^{XSD_DT} <{W}> .\n",
+            l("freshnessWindowStart")
+        ));
+        nq.push_str(&format!(
+            "<{W}#guard0> {} \"{end}\"^^{XSD_DT} <{W}> .\n",
+            l("freshnessWindowEnd")
+        ));
+    }
+    nq.push_str(&format!(
+        "<{W}#ready> {} \"{recorded}\"^^{XSD_DT} <{W}> .\n",
+        l("datumRecordedAt")
+    ));
+    nq
+}
+
+#[test]
+fn window_verdict_decision_inside_window_is_none() {
+    // Decision 2026-06-20 falls inside [2026-06-01, 2026-06-30] → in-window (no verdict).
+    let f = window_nq(
+        "2026-06-18T00:00:00Z",
+        None,
+        Some(("2026-06-01T00:00:00Z", "2026-06-30T00:00:00Z")),
+    );
+    let facts = facts_of(&f);
+    let v = window_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).unwrap();
+    assert!(
+        v.is_none(),
+        "a decision inside the window is not off-window: {v:?}"
+    );
+}
+
+#[test]
+fn window_verdict_decision_outside_window_is_undetermined() {
+    // Decision 2026-07-15 is AFTER the window end 2026-06-30 → off-window undetermined.
+    let f = window_nq(
+        "2026-06-18T00:00:00Z",
+        None,
+        Some(("2026-06-01T00:00:00Z", "2026-06-30T00:00:00Z")),
+    );
+    let facts = facts_of(&f);
+    let v = window_verdict(&facts, &format!("{W}#schema"), Some("2026-07-15T00:00:00Z")).unwrap();
+    let (guard, reason) = v.expect("a decision after the window end must be off-window");
+    assert_eq!(guard, format!("{W}#guard0"));
+    assert!(
+        reason.contains("valid-time window") && reason.contains("2026-06-30T00:00:00Z"),
+        "reason names the window bounds and the decision time: {reason:?}"
+    );
+}
+
+#[test]
+fn window_verdict_decision_before_window_start_is_undetermined() {
+    // Decision 2026-05-15 is BEFORE the window start 2026-06-01 → off-window undetermined.
+    let f = window_nq(
+        "2026-06-18T00:00:00Z",
+        None,
+        Some(("2026-06-01T00:00:00Z", "2026-06-30T00:00:00Z")),
+    );
+    let facts = facts_of(&f);
+    let v = window_verdict(&facts, &format!("{W}#schema"), Some("2026-05-15T00:00:00Z")).unwrap();
+    assert!(
+        v.is_some(),
+        "a decision before the window start must be off-window"
+    );
+}
+
+#[test]
+fn window_verdict_declared_window_missing_decision_time_is_hard_error() {
+    // A window is declared but the probe supplies no decisionTime → hard error (no pass).
+    let f = window_nq(
+        "2026-06-18T00:00:00Z",
+        None,
+        Some(("2026-06-01T00:00:00Z", "2026-06-30T00:00:00Z")),
+    );
+    let facts = facts_of(&f);
+    assert!(window_verdict(&facts, &format!("{W}#schema"), None).is_err());
+}
+
+#[test]
+fn window_verdict_absent_window_is_none_no_regression() {
+    // No window declared (horizon only) → the window axis imposes NO constraint: None,
+    // even with no decisionTime supplied (absence must never hard-error).
+    let f = window_nq("2026-06-18T00:00:00Z", Some("P3D"), None);
+    let facts = facts_of(&f);
+    let v = window_verdict(&facts, &format!("{W}#schema"), None).unwrap();
+    assert!(v.is_none(), "an absent window imposes no constraint: {v:?}");
+    // And with a decision time, still None.
+    let v2 = window_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).unwrap();
+    assert!(v2.is_none());
+}
+
+#[test]
+fn window_verdict_end_before_start_is_hard_error() {
+    // A malformed interval whose end precedes its start is a hard error.
+    let f = window_nq(
+        "2026-06-18T00:00:00Z",
+        None,
+        Some(("2026-06-30T00:00:00Z", "2026-06-01T00:00:00Z")),
+    );
+    let facts = facts_of(&f);
+    assert!(window_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).is_err());
+}
+
+#[test]
+fn window_verdict_declared_window_missing_bound_is_hard_error() {
+    // A logic:freshnessWindow is present but a bound is missing → hard error.
+    let mut nq = path_nq(&[&["ready"]]);
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#guard0> <{W}> .\n",
+        l("freshnessGuard")
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {} <{W}#ready> <{W}> .\n",
+        l("guardsPrecondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {} \"episode-x\" <{W}> .\n",
+        l("freshnessWindow")
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {} \"2026-06-01T00:00:00Z\"^^{XSD_DT} <{W}> .\n",
+        l("freshnessWindowStart")
+    ));
+    // No freshnessWindowEnd.
+    let facts = facts_of(&nq);
+    assert!(window_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).is_err());
+}
+
+/// Build a probe over `<W#schema>` at `<W#state0>` with the given decision time so the
+/// base gate ADMITS (the precondition `ready` obtains) and the freshness axes are reached.
+fn window_probe_nq(base: &str, decision: &str) -> String {
+    let mut nq = base.to_owned();
+    nq.push_str(&format!(
+        "<{W}#probe> {ty} {gp} <{W}> .\n\
+         <{W}#probe> {ps} <{W}#schema> <{W}> .\n\
+         <{W}#probe> {pst} <{W}#state0> <{W}> .\n\
+         <{W}#probe> {dt} \"{decision}\"^^{XSD_DT} <{W}> .\n",
+        ty = rdf_type_tok(),
+        gp = l("GateProbe"),
+        ps = l("probesSchema"),
+        pst = l("probesState"),
+        dt = l("decisionTime"),
+    ));
+    nq
+}
+
+#[test]
+fn gate_probe_admits_inside_window() {
+    // Decision inside both the horizon and the window → GateAdmitted (no regression).
+    let base = window_nq(
+        "2026-06-18T00:00:00Z",
+        Some("P3D"),
+        Some(("2026-06-01T00:00:00Z", "2026-06-30T00:00:00Z")),
+    );
+    let nq = window_probe_nq(&base, "2026-06-20T00:00:00Z");
+    let out = materialize_teleology(&store_from(&nq)).unwrap().0;
+    assert!(
+        out.iter().any(|q| q.subject == format!("{W}#probe")
+            && q.predicate == logic("gateVerdict")
+            && q.object == n3(&logic("GateAdmitted"))),
+        "in-window, in-horizon decision must admit"
+    );
+}
+
+#[test]
+fn gate_probe_off_window_within_horizon_is_undetermined() {
+    // Decision 2026-06-20 is within the P3D horizon of a datum recorded 2026-06-19, but
+    // OUTSIDE the window [2026-01-01, 2026-01-31] → GateUndetermined on the WINDOW axis.
+    let base = window_nq(
+        "2026-06-19T00:00:00Z",
+        Some("P3D"),
+        Some(("2026-01-01T00:00:00Z", "2026-01-31T00:00:00Z")),
+    );
+    let nq = window_probe_nq(&base, "2026-06-20T00:00:00Z");
+    let out = materialize_teleology(&store_from(&nq)).unwrap().0;
+    assert!(
+        out.iter().any(|q| q.subject == format!("{W}#probe")
+            && q.predicate == logic("gateVerdict")
+            && q.object == n3(&logic("GateUndetermined"))),
+        "a within-horizon but off-window decision must be undetermined"
+    );
+    let reason = out
+        .iter()
+        .find(|q| {
+            q.subject == format!("{W}#probe") && q.predicate == logic("gateUndeterminedReason")
+        })
+        .map(|q| q.object.clone())
+        .expect("an undetermined probe surfaces a reason");
+    assert!(
+        reason.contains("valid-time window"),
+        "the undetermined reason must name the WINDOW axis (distinct from the horizon): {reason:?}"
+    );
+}
+
+#[test]
+fn gate_probe_horizon_reported_before_window_when_both_fail() {
+    // A datum stale on BOTH axes: recorded 2026-06-01 (>P3D before decision 2026-06-20)
+    // AND the decision is outside the window [2026-01-01, 2026-01-31]. The FIRST failing
+    // axis (horizon) is reported deterministically — the reason names the horizon.
+    let base = window_nq(
+        "2026-06-01T00:00:00Z",
+        Some("P3D"),
+        Some(("2026-01-01T00:00:00Z", "2026-01-31T00:00:00Z")),
+    );
+    let nq = window_probe_nq(&base, "2026-06-20T00:00:00Z");
+    let out = materialize_teleology(&store_from(&nq)).unwrap().0;
+    let reason = out
+        .iter()
+        .find(|q| {
+            q.subject == format!("{W}#probe") && q.predicate == logic("gateUndeterminedReason")
+        })
+        .map(|q| q.object.clone())
+        .expect("an undetermined probe surfaces a reason");
+    assert!(
+        reason.contains("freshness horizon") && !reason.contains("valid-time window"),
+        "when both axes fail, the horizon is reported first: {reason:?}"
+    );
+}
+
 // ── Facet: NotificationWaitSchema (external signal → pending / received) ──────────
 
 #[test]
