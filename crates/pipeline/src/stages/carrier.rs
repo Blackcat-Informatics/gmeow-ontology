@@ -899,14 +899,14 @@ fn opaque_already_carried(path: &str) -> bool {
         || path == "generated/logic/gmeow.rls" // REP_AXIOMS
 }
 
-/// Build the generated-fanout archive [`REP_GENERATED`]: recompute each byte-exact
-/// `generated/` fanout output from THIS run's carrier (carrier-reading leaves),
-/// source (source-reading leaves), or sink-consumed stage products. Plain RDF files
-/// with canonical graph folds ride as named graphs; byte-decorated RDF reports
-/// whose committed form includes generated comments / section markers ride here as
-/// committed byte projections. The post-snapshot export leaves still write the disk
-/// files (additive — the writer retirement is a separate concern); the bytes here
-/// are byte-identical to the committed files, which the superset gate proves.
+/// Build the generated-fanout archive [`REP_GENERATED`]: the byte-exact `generated/`
+/// fanout members that ride as opaque byte projections (as opposed to named-graph
+/// folds). Each rides in from a sink-consumed stage product — either projected from
+/// THIS run's carrier dataset (lpg / schemas) or read off its producing export leaf's
+/// product (the render ran once, in the leaf; the presenter never re-renders from
+/// disk). Byte-decorated RDF reports whose committed form carries generated comments /
+/// section markers ride here rather than as canonical graph folds. The bytes are
+/// byte-identical to the committed files, which the superset gate proves.
 fn build_fanout_opaque_blob(
     carrier: &gmeow_rdf::RdfDataset,
     upstream: &BTreeMap<String, StageProduct>,
