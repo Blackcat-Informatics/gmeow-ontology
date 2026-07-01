@@ -382,8 +382,10 @@ def build_full(*, merged: Path = MERGED_FILE, output: Path = FULL_FILE) -> Path:
 def _reason_report_from_native_result(
     result: dict[str, Any], *, run_box_roles: bool
 ) -> DiagnosticsReport:
-    from gmeow_tools import diagnostics
-    from gmeow_tools.box_roles import audit_box_roles
+    import gmeow_validate
+
+    from gmeow_tools import diagnostics, graph
+    from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 
     derived = [a for a in result.get("inferred", []) if not a.get("is_edb")]
     gaps = result.get("gaps", [])
@@ -470,18 +472,22 @@ def _reason_report_from_native_result(
 
     if run_box_roles:
         try:
-            audit = audit_box_roles()
-            for role_finding in (*audit.missing, *audit.invalid):
+            audit = gmeow_validate.audit_box_roles(
+                [str(p) for p in graph.default_audit_paths()],
+                ONTOLOGY_IRI,
+                NAMESPACE,
+            )
+            for role_finding in (*audit["missing"], *audit["invalid"]):
                 report.add(
                     diagnostics.finding(
                         severity="warning",
                         code="box_roles",
                         message=(
-                            f"{role_finding.term} ({role_finding.kind}): "
-                            f"{role_finding.message}"
+                            f"{role_finding['term']} ({role_finding['kind']}): "
+                            f"{role_finding['message']}"
                         ),
                         tool="reason",
-                        path=role_finding.source,
+                        path=role_finding["source"],
                     )
                 )
         except Exception as exc:  # must never crash the authority lane

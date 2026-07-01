@@ -16,8 +16,11 @@ from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools.config import (
     IMPORTS_DIR,
+    MAPPING_DSL_DIR,
     ONTOLOGY_FILE,
     PREFIXES,
+    SLICE_VOCABULARY_FILE,
+    STATEMENT_DSL_DIR,
 )
 from gmeow_tools.slices import iter_slice_module_files
 
@@ -77,6 +80,18 @@ def iter_source_files(
     if include_imports:
         files += iter_import_files(root)
     return [f for f in files if f.exists()]
+
+
+def default_audit_paths() -> list[Path]:
+    """Authored term sources covered by the default repo-only audit."""
+    paths = list(iter_source_files())
+    if SLICE_VOCABULARY_FILE.exists():
+        paths.append(SLICE_VOCABULARY_FILE)
+    for dsl_dir in (MAPPING_DSL_DIR, STATEMENT_DSL_DIR):
+        path = dsl_dir / "vocabulary.ttl"
+        if path.exists():
+            paths.append(path)
+    return paths
 
 
 def bind_prefixes(graph: _Bindable) -> None:

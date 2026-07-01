@@ -28,6 +28,10 @@ name = "ingest-external"
 path = "src/bin/ingest_external.rs"
 
 [dependencies]
+# Dependency-free license-token policy classifier (RUST-FIRST single source of truth).
+# The vendoring gate (external/corpus.rs) shares this exact algorithm with the Python
+# LinkPolicy shim, which reaches it via the gmeow-validate PyO3 surface.
+gmeow-license = { path = "../license" }
 # The native logic engine: compile / certify / materialize / explain / foundation
 # / scryer / stable-model / probabilistic cores. The harness calls these directly
 # (the SAME functions py.rs wraps), so case outputs are identical by construction.
