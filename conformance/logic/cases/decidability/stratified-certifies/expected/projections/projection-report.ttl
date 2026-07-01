@@ -8,6 +8,7 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/ruleCount> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/profileCount> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/canonical-rdf12> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/cgif> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/clif> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/datalog> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/gufo> .
@@ -20,6 +21,10 @@
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/2000/01/rdf-schema#label> "canonical-rdf12" .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/logic/complexityClass> "N/A (identity serialization)" .
+<https://blackcatinformatics.ca/logic/target/cgif> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/cgif> <http://www.w3.org/2000/01/rdf-schema#label> "cgif" .
+<https://blackcatinformatics.ca/logic/target/cgif> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/logic/target/cgif> <https://blackcatinformatics.ca/logic/complexityClass> "full first-order (semi-decidable)" .
 <https://blackcatinformatics.ca/logic/target/clif> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/clif> <http://www.w3.org/2000/01/rdf-schema#label> "clif" .
 <https://blackcatinformatics.ca/logic/target/clif> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .

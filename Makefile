@@ -45,6 +45,14 @@ NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITI
 # wheel but wrong for normal Rust test binaries.
 RUST_TEST_WORKSPACE_ARGS := --workspace --exclude gmeow-native
 
+# The wasm32 cross-build must be hermetic w.r.t. an ambient host RUSTFLAGS. Cargo gives
+# the RUSTFLAGS env var precedence over `[target.wasm32-unknown-unknown].rustflags`, so a
+# host-set hint (e.g. a local pyo3 `-L .../lib -lpython3.13 -Ctarget-cpu=native` link flag)
+# leaks into the wasm target and breaks the link (`unable to find library -lpython3.13`,
+# `'x86-64-v3' is not a recognized processor`). Strip it for every wasm cargo invocation so
+# these targets build regardless of the caller's environment.
+WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
+
 # The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
 # codegen for regenerate/reasoning throughput. CI and release workflows append the
 # portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
@@ -410,11 +418,11 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	@# compile to wasm32. The target's absence is a SKIP locally but a hard FAIL in
 	@# CI, so the wasm-clean criterion is never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then \
-		cargo build -p gmeow-sparql-algebra --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-algebra does not build for wasm32-unknown-unknown"; exit 1; }; \
+		$(WASM_CARGO) build -p gmeow-sparql-algebra --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-algebra does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "OK: gmeow-sparql-algebra builds for wasm32-unknown-unknown (wasm-clean)"; \
-		cargo build -p gmeow-sparql-eval --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-eval does not build for wasm32-unknown-unknown"; exit 1; }; \
+		$(WASM_CARGO) build -p gmeow-sparql-eval --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-eval does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "OK: gmeow-sparql-eval builds for wasm32-unknown-unknown (wasm-clean)"; \
-		cargo build -p gmeow-sparql-results --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-results does not build for wasm32-unknown-unknown"; exit 1; }; \
+		$(WASM_CARGO) build -p gmeow-sparql-results --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-results does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "OK: gmeow-sparql-results builds for wasm32-unknown-unknown (wasm-clean)"; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — the wasm-first criterion (#906) cannot be verified; CI must install it"; exit 1; \
@@ -507,16 +515,16 @@ wasm: ## Build the purrdf wasm engine (P10, #846) for wasm32-unknown-unknown.
 	@# idiom as `rdf-core-hygiene`'s sparql-algebra wasm check).
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then \
 		echo "== engine proof: gmeow-rdf (gts, no oxigraph/python) builds for wasm32 =="; \
-		cargo build -p gmeow-rdf --no-default-features --features gts --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf does not build for wasm32-unknown-unknown"; exit 1; }; \
+		$(WASM_CARGO) build -p gmeow-rdf --no-default-features --features gts --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== binding proof: the purrdf cdylib builds for wasm32 =="; \
-		cargo build -p gmeow-rdf-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf-wasm (purrdf) does not build for wasm32-unknown-unknown"; exit 1; }; \
+		$(WASM_CARGO) build -p gmeow-rdf-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf-wasm (purrdf) does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== compiler proof: gmeow-logic-compile (pure parse->IR->project) builds for wasm32 (#664/#732) =="; \
-		cargo build -p gmeow-logic-compile --target wasm32-unknown-unknown || { echo "FAIL: gmeow-logic-compile does not build for wasm32-unknown-unknown"; exit 1; }; \
+		$(WASM_CARGO) build -p gmeow-logic-compile --target wasm32-unknown-unknown || { echo "FAIL: gmeow-logic-compile does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== purity gate: no reasoning-runtime crate may appear in the gmeow-logic-compile wasm dep tree =="; \
 		for forbidden in oxigraph oxrocksdb nemo scryer-prolog tokio pyo3; do \
-			if cargo tree -p gmeow-logic-compile -e no-dev --target wasm32-unknown-unknown -i $$forbidden >/dev/null 2>&1; then \
+			if $(WASM_CARGO) tree -p gmeow-logic-compile -e no-dev --target wasm32-unknown-unknown -i $$forbidden >/dev/null 2>&1; then \
 				echo "FAIL: gmeow-logic-compile leaked $$forbidden into its wasm dependency tree:"; \
-				cargo tree -p gmeow-logic-compile -e no-dev --target wasm32-unknown-unknown -i $$forbidden; \
+				$(WASM_CARGO) tree -p gmeow-logic-compile -e no-dev --target wasm32-unknown-unknown -i $$forbidden; \
 				exit 1; \
 			fi; \
 		done; \
@@ -531,7 +539,7 @@ wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web b
 	@# Release-build the cdylib, then run `wasm-bindgen` (pinned =0.2.125, matching the
 	@# crate) to emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
 	@# `~/.cargo/bin` carries the cli on both CI runners and local dev installs.
-	cargo build -p gmeow-rdf-wasm --target wasm32-unknown-unknown --release
+	$(WASM_CARGO) build -p gmeow-rdf-wasm --target wasm32-unknown-unknown --release
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
 		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_rdf_wasm.wasm \
 		--out-dir crates/rdf-wasm/js/pkg --target web
@@ -547,6 +555,23 @@ wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web b
 
 wasm-pkg-test: wasm-pkg ## Build the purrdf package and run the Node real-execution round-trip lane.
 	cd crates/rdf-wasm/js && node --test tests/*.test.mjs
+
+maint-refresh-purrdf-asset: wasm-pkg ## Refresh the vendored purrdf wasm engine shipped in the docs SPARQL playground.
+	@# The docs site's offline SPARQL playground loads a PINNED copy of the purrdf
+	@# wasm engine (crates/docs/assets/purrdf/). The regenerate pipeline never builds
+	@# wasm, so the artifact is vendored here as a build input and refreshed by hand
+	@# after any change to crates/rdf-wasm. `wasm-pkg` already applies `wasm-opt -Oz`
+	@# when available.
+	cp crates/rdf-wasm/js/pkg/gmeow_rdf_wasm.js \
+	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm.d.ts \
+	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm \
+	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm.d.ts \
+	   crates/docs/assets/purrdf/
+	@# Rewrite the BLAKE3 content-digest manifest so the anti-rot gate pins the exact
+	@# bytes just vendored (the bless path recomputes and writes DIGESTS.blake3).
+	GMEOW_PURRDF_BLESS=1 cargo nextest run -E 'binary(purrdf_asset)'
+	@echo "OK: vendored purrdf wasm engine refreshed + digest manifest rewritten (crates/docs/assets/purrdf/)"
+	@echo "    run 'make check' + 'make wasm-pkg-test' to re-verify the anti-rot gates"
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (#1045 maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
