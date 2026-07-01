@@ -70,9 +70,25 @@ pub(crate) const RDF_META_ELEMENT: &str = "gmeow-rdf-meta";
 // XML escaping (writer side; the reader decodes via roxmltree)
 // --------------------------------------------------------------------------- //
 
-/// Escape a string for an XML **text node**: `&`, `<`, `>`. This is total — every code point
-/// either passes through or maps to a named entity — so the N-Triples payload (which contains
-/// `<`, `>`, `&`, `"`, `\`) rides losslessly and `roxmltree` decodes it byte-for-byte on read.
+/// Whether `c` is an XML 1.0 `Char` production code point — i.e. representable at all in a
+/// well-formed XML document (raw or via a numeric character reference). XML 1.0 excludes the C0
+/// control range except tab/LF/CR (`0x00-0x08`, `0x0B-0x0C`, `0x0E-0x1F`) outright; there is no
+/// legal encoding for those code points anywhere in an XML document. DEL (`0x7F`) and the C1
+/// block (`0x80-0x9F`) ARE legal `Char` code points (merely discouraged), so they ride through a
+/// numeric character reference losslessly.
+fn is_xml_char(c: char) -> bool {
+    matches!(c, '\t' | '\n' | '\r') || !c.is_control()
+}
+
+/// Escape a string for an XML **text node**: `&`, `<`, `>`, plus every control character. This
+/// channel is the human-readable, WRITE-ONLY/validated-only idiomatic sentence view (see the
+/// module doc) — the lossless round-trip authority is the separate `<gmeow-rdf-meta>` N-Triples
+/// carrier, whose payload is already `\uXXXX`-escaped at the source (never carries a raw control
+/// character), so this function only needs to keep the *document* well-formed, not perform a
+/// reversible escape. `\t`/`\n`/`\r` pass through raw; DEL/C1 controls are legal XML `Char` code
+/// points and ride as a numeric character reference (`&#xHH;`); the handful of C0 controls XML
+/// forbids outright (even referenced) are replaced with U+FFFD REPLACEMENT CHARACTER, since no
+/// well-formed XML encoding of them exists.
 pub(crate) fn xml_escape_text(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
@@ -80,13 +96,22 @@ pub(crate) fn xml_escape_text(s: &str) -> String {
             '&' => out.push_str("&amp;"),
             '<' => out.push_str("&lt;"),
             '>' => out.push_str("&gt;"),
+            '\t' | '\n' | '\r' => out.push(c),
+            c if c.is_control() => {
+                if is_xml_char(c) {
+                    out.push_str(&format!("&#x{:X};", c as u32));
+                } else {
+                    out.push('\u{FFFD}');
+                }
+            }
             c => out.push(c),
         }
     }
     out
 }
 
-/// Escape a string for a double-quoted XML **attribute value**: the text set plus `"`.
+/// Escape a string for a double-quoted XML **attribute value**: the text set plus `"`, plus
+/// every control character (see [`xml_escape_text`] — same rationale, same view-only channel).
 pub(crate) fn xml_escape_attr(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
@@ -95,6 +120,14 @@ pub(crate) fn xml_escape_attr(s: &str) -> String {
             '<' => out.push_str("&lt;"),
             '>' => out.push_str("&gt;"),
             '"' => out.push_str("&quot;"),
+            '\t' | '\n' | '\r' => out.push(c),
+            c if c.is_control() => {
+                if is_xml_char(c) {
+                    out.push_str(&format!("&#x{:X};", c as u32));
+                } else {
+                    out.push('\u{FFFD}');
+                }
+            }
             c => out.push(c),
         }
     }

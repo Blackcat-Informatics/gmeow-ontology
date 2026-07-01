@@ -111,9 +111,10 @@ fn is_literal_direction(direction: &str) -> bool {
 }
 
 /// Escape an IRI body for an N-Triples / Turtle / TriG `<…>` `IRIREF`. The W3C grammar
-/// forbids `<`, `>`, `"`, `{`, `}`, `|`, `^`, `` ` ``, `\`, and every code point `<= 0x20`
-/// appearing raw; each rides as a `\uXXXX` `UCHAR` (the text parser decodes them back). A
-/// clean ASCII IRI (every production IRI) passes through byte-for-byte unchanged.
+/// forbids `<`, `>`, `"`, `{`, `}`, `|`, `^`, `` ` ``, `\`, the space character, and every
+/// control code point (C0 `0x00-0x1F`, DEL `0x7F`, and the C1 block `0x80-0x9F`) appearing
+/// raw; each rides as a `\uXXXX` `UCHAR` (the text parser decodes them back). A clean ASCII
+/// IRI (every production IRI) passes through byte-for-byte unchanged.
 fn escape_iri(iri: &str) -> String {
     let mut out = String::with_capacity(iri.len());
     for ch in iri.chars() {
@@ -121,7 +122,7 @@ fn escape_iri(iri: &str) -> String {
             '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
                 out.push_str(&format!("\\u{:04X}", ch as u32));
             }
-            c if (c as u32) <= 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c if c.is_control() || c == ' ' => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
     }
@@ -138,7 +139,7 @@ fn escape_literal(lex: &str) -> String {
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c if c.is_control() => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
     }

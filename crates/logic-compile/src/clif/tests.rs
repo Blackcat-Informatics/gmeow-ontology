@@ -303,6 +303,41 @@ fn forbidden_iriref_chars_survive_the_round_trip() {
 }
 
 #[test]
+fn control_chars_del_c1_c0_survive_the_round_trip() {
+    // The shared `crate::nt` codec (crates/logic-compile/src/nt.rs) must UCHAR-escape the
+    // FULL control-character range, not just `<= 0x20`: DEL (0x7F), a C1 control (0x85), and
+    // an arbitrary C0 control (0x01), injected into an IRI.
+    let weird = format!("{LOGIC}weird/a\u{7F}b\u{85}c\u{01}d");
+    let axiom = LogicAxiom::ground(weird.clone(), iri("knows"), iri("target"), false).unwrap();
+    let orig = LogicProgram::new(
+        vec![axiom],
+        Vec::new(),
+        Vec::new(),
+        Some("urn:test:iri".to_owned()),
+    );
+
+    let src = Some("urn:test:iri".to_owned());
+    let clif1 = project_clif(&orig).expect("project_clif").content;
+    let (fp, _diags) = parse_clif_str(&clif1, src.clone())
+        .expect("parse_clif_str must not hard-fail on a DEL/C1/C0 control-char subject");
+    assert!(
+        fp.axioms.iter().any(|a| a.subject == weird),
+        "the control-char IRI subject was lost or mangled by the round-trip:\n{:#?}",
+        fp.axioms
+    );
+
+    // Idempotent at the fixpoint: a second round-trip is the byte identity.
+    let clif2 = project_clif(&fp).expect("project_clif").content;
+    assert_eq!(
+        clif1, clif2,
+        "CLIF emission is not idempotent for a control-char IRI"
+    );
+    let (fp2, _) = parse_clif_str(&clif2, src).expect("parse_clif_str #2");
+    assert_ir_isomorphic(&fp, &fp2)
+        .unwrap_or_else(|e| panic!("control-char IRI round-trip not idempotent: {e}"));
+}
+
+#[test]
 fn path_shape_round_trips_with_typed_integer_depths() {
     // A logic:PathShape rides the RDF/predication channel. Its min/max depths are integers in
     // the IR (`u32`) and are emitted as typed `xsd:integer` literals; the whole shape — base
