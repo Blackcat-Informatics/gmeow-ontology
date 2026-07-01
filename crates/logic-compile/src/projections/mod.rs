@@ -53,6 +53,7 @@ pub mod report;
 // computation surface (design/LOGIC-SHACL-AF.md): computation added to the canon and
 // emitted, never bolted onto SHACL (Principle 17).
 pub mod shacl_af;
+pub mod shapes;
 // The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
 pub mod sparql;
 // The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
