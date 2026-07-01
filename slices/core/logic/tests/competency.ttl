@@ -23,6 +23,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 ex:cqNamedParametricPaths a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/logic/queries/competency/named-parametric-paths.rq" ;
@@ -160,3 +161,46 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
         [ logic:columnVariable "typed" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 .
+
+# ── Harvest coverage ──────────────────────────────────────────────────────────
+#
+# Is bidirectional prose→axiom harvest coverage actually QUERYABLE, not just
+# authored? Each accepted logic:FormalizationCandidate that carries a harvest
+# back-link (logic:candidateFormalizes + logic:candidateSourceField) ties a
+# harvested axiom to the exact prose it formalized: the term, the prose field
+# kind, and the annotation property that field stands for. Over the production
+# ontology (the merged logic module, no synthetic data file) exactly two
+# accepted candidates carry the full back-link — logic:candidateProperPartOfAsymmetric
+# (formalizing logic:properPartOf) and logic:candidateFunctionalComplexKindDisjoint
+# (formalizing logic:FunctionalComplex) — both sourced from a logic:ProseFieldDefinition,
+# whose logic:proseFieldProperty is skos:definition.
+
+ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/logic/queries/competency/harvest-coverage.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly two accepted candidates carry the full harvest back-link, each formalizing a term's skos:definition." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHarvestCoverageShape ;
+    gmeow:cqExpectRow ex:rowHarvestProperPart, ex:rowHarvestFunctionalComplex .
+
+ex:cqHarvestCoverageShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "candidate" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "field" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "fieldProperty" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHarvestProperPart a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateProperPartOfAsymmetric ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:properPartOf ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestFunctionalComplex a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFunctionalComplexKindDisjoint ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FunctionalComplex ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .

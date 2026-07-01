@@ -1,0 +1,19 @@
+# Competency: GMEOW must make prose→axiom harvest coverage queryable in BOTH
+# directions. Each row ties an accepted logic:FormalizationCandidate to the exact
+# prose it formalized: the term (logic:candidateFormalizes), the field kind
+# (logic:candidateSourceField, a closed logic:ProseField) and the annotation
+# property that field stands for (logic:proseFieldProperty). Read forward — group
+# by ?candidate — it answers "what prose did this harvested axiom formalize?"; read
+# inverse — filter or group by ?term / ?fieldProperty — it answers "which harvested
+# axioms formalize this prose field?". Only accepted candidates are canonical, so
+# coverage is measured over the axiom-bearing population.
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?candidate ?term ?field ?fieldProperty WHERE {
+    ?candidate a logic:FormalizationCandidate ;
+               logic:candidateLifecycle logic:CandidateAccepted ;
+               logic:candidateFormalizes ?term ;
+               logic:candidateSourceField ?field .
+    ?field logic:proseFieldProperty ?fieldProperty .
+}
+ORDER BY ?candidate ?term ?field

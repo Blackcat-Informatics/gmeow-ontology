@@ -208,6 +208,13 @@ logic:Collection
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Collection"@x-gmeow-english ;
     skos:definition "A plurality individuated by its members, where the members are themselves the relevant units of the whole — a deck of cards, a committee, a playlist. The counterpart of gufo:Collection; members relate to it via logic:memberOf rather than logic:properPartOf. Contrast logic:Quantity, which is individuated by constitution rather than by member count."@x-gmeow-english ;
+    # The three mereological individuation kinds are pairwise disjoint: a whole is
+    # individuated by member count, by distinct functional roles, or by constitution,
+    # and no individual is more than one at once (harvested from the kinds' prose;
+    # see logic:candidateFunctionalComplexKindDisjoint). The native DL coherence gate
+    # reads owl:disjointWith directly, so this is enforced, not documentary.
+    owl:disjointWith logic:FunctionalComplex ,
+        logic:Quantity ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:CommonLogicProjection
@@ -565,6 +572,11 @@ logic:FunctionalComplex
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Functional Complex"@x-gmeow-english ;
     skos:definition "A whole whose parts play distinct functional roles — a car (engine, wheels, chassis), an organism (organs), an organization (departments): a complex object, not a mere collection of like members. The counterpart of gufo:FunctionalComplex; its parts relate to it via logic:properPartOf (mereological parthood) rather than logic:memberOf, and each part contributes a different function. Stated in prose, not as a subclass edge. Contrast logic:Collection (uniform members) and logic:Quantity (homogeneous stuff)."@x-gmeow-english ;
+    # Pairwise-disjoint from the other two individuation kinds (the third disjointness
+    # edge, Collection↔Quantity, is asserted on logic:Collection). Harvested from this
+    # term's own Definition, which contrasts it against logic:Collection and
+    # logic:Quantity — see logic:candidateFunctionalComplexKindDisjoint.
+    owl:disjointWith logic:Quantity ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:FuzzyMeasure
@@ -3804,6 +3816,98 @@ logic:CounterpartNonTransitivityObligation
     logic:obligationDischargeCondition logic:DischargeSyntacticReachability ;
     logic:obligationDischargeVerdict logic:ObligationDischarged .
 
+# ── A worked production formalization candidate (the harvest mechanism, live) ─────
+# The prose→axiom harvest mechanism dogfooded end-to-end on a real, already-enforced
+# axiom: the strict-order asymmetry of logic:properPartOf (typed logic:asymmetricProperty
+# above), harvested from that term's own skos:definition. The candidate carries the
+# harvest back-link (logic:candidateFormalizes → the term, logic:candidateSourceField →
+# which field), so harvest coverage is queryable in both directions over the reasoned
+# graph, and logic:candidateSourceHash is the real content hash of that definition prose
+# (drift-detecting). Accepted through review with a positive/negative case pair.
+
+logic:reviewerLogicFoundation
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic foundation maintainer"@x-gmeow-english ;
+    skos:definition "The reviewer-decision provenance node the logic foundation records against an accepted logic:FormalizationCandidate: an auditable IRI (never a free literal) standing for the maintainer authority that adjudicated the prose-to-axiom promotion, so the reviewer gate is machine-checkable."@x-gmeow-english .
+
+logic:cqProperPartAsymmetryHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf asymmetry holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the properPartOf-asymmetry axiom must satisfy: given logic:properPartOf(a,b), the reasoner must not also hold logic:properPartOf(b,a) — the strict-order reading the harvested prose commits to."@x-gmeow-english .
+
+logic:cqProperPartAsymmetrySymmetricPairRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf symmetric pair is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the properPartOf-asymmetry axiom must respect: a purported model asserting both logic:properPartOf(a,b) and logic:properPartOf(b,a) is a violation, not an admissible model — the boundary the formalization must not cross."@x-gmeow-english .
+
+logic:candidateProperPartOfAsymmetric
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf is asymmetric"@x-gmeow-english ;
+    skos:definition "The worked production formalization candidate that harvests the asymmetry of logic:properPartOf from that term's skos:definition into an enforced strict-order integrity constraint: the keystone demonstration of the prose→axiom harvest mechanism. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqProperPartAsymmetryHolds) and a negative countermodel (logic:cqProperPartAsymmetrySymmetricPairRejected); its harvest back-link (logic:candidateFormalizes logic:properPartOf, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit to the prose surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:properPartOf skos:definition (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "logic:properPartOf asymmetry over the endurant strict-parthood spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqProperPartAsymmetryHolds ;
+    logic:candidateNegativeCase logic:cqProperPartAsymmetrySymmetricPairRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:properPartOf ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── A NET-NEW harvested integrity constraint (prose → enforced axiom) ─────────────
+# The harvest mechanism run on a constraint that did NOT exist as an axiom before:
+# the three mereological individuation kinds (logic:Collection, logic:FunctionalComplex,
+# logic:Quantity) are pairwise disjoint. Their skos:definitions each contrast the
+# three as distinct individuation modes (member count vs distinct functional roles
+# vs constitution) — logic:FunctionalComplex's Definition literally says "Contrast
+# logic:Collection (uniform members) and logic:Quantity (homogeneous stuff)" — yet
+# none was asserted owl:disjointWith. This candidate harvests that prose into the
+# pairwise owl:disjointWith axioms asserted above, which the native DL coherence
+# gate reads directly: an individual typed into two of the three kinds is forced to
+# owl:Nothing, so the harvested constraint is genuinely ENFORCED. Accepted through
+# review with a positive case and a negative countermodel.
+
+logic:cqFunctionalComplexKindDisjointHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "individuation-kind disjointness holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the individuation-kind disjointness axioms must satisfy: an individual typed logic:FunctionalComplex and NOT also logic:Collection or logic:Quantity stays coherent — it is not forced to owl:Nothing — because a whole is individuated in exactly one of the three modes the prose contrasts."@x-gmeow-english .
+
+logic:cqFunctionalComplexKindDisjointOverlapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "individuation-kind overlap is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the individuation-kind disjointness axioms must respect: an individual typed BOTH logic:FunctionalComplex and logic:Collection is a violation — the native DL coherence gate forces it to owl:Nothing — so a whole individuated at once by distinct functional roles and by member count is not an admissible model. The boundary the harvested constraint enforces."@x-gmeow-english .
+
+logic:candidateFunctionalComplexKindDisjoint
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "individuation kinds are pairwise disjoint"@x-gmeow-english ;
+    skos:definition "The net-new-enforcement formalization candidate that harvests the pairwise disjointness of the three mereological individuation kinds (logic:Collection, logic:FunctionalComplex, logic:Quantity) from their skos:definition prose into enforced owl:disjointWith integrity constraints: the demonstration that the harvest mechanism creates axioms that did NOT exist before, not merely a link to an already-typed one. None of the three was asserted owl:disjointWith on origin/main; the prose contrasts them as distinct individuation modes (logic:FunctionalComplex's Definition names both other kinds explicitly). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqFunctionalComplexKindDisjointHolds) and a negative countermodel (logic:cqFunctionalComplexKindDisjointOverlapRejected); its harvest back-link (logic:candidateFormalizes logic:FunctionalComplex, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit to the prose surfaces as drift. The native DL coherence gate reads the resulting owl:disjointWith directly, forcing a two-kind individual to owl:Nothing."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:ae6ffde78c8d4cd93cdb0d06ee67fd15ab46573e7aa4f1fe5f2ee2dd209cb529"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:FunctionalComplex skos:definition, which contrasts it against logic:Collection and logic:Quantity (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "pairwise owl:disjointWith over the three mereological individuation kinds logic:Collection, logic:FunctionalComplex and logic:Quantity"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFunctionalComplexKindDisjointHolds ;
+    logic:candidateNegativeCase logic:cqFunctionalComplexKindDisjointOverlapRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:FunctionalComplex ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
 # ── Closed value class: the eleven formalization categories ──────────────────────
 
 logic:FormalizationCategory
@@ -4031,6 +4135,45 @@ logic:RiskAdvisory
     rdfs:label "Advisory"@x-gmeow-english ;
     skos:definition "The semantic-risk class for a candidate with no entailment consequence at all — advisory content, the lightest review. Wire value `advisory`."@x-gmeow-english .
 
+# ── Closed value class: the prose-field harvest source ───────────────────────────
+
+logic:ProseField
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Prose Field"@x-gmeow-english ;
+    skos:definition "The closed three-member value class of the logic:candidateSourceField facet: which annotation field of a term's prose a logic:FormalizationCandidate harvested its axiom from. Its individuals are logic:ProseFieldDefinition, logic:ProseFieldUseWhen and logic:ProseFieldAvoidWhen, each naming the annotation property it stands for via logic:proseFieldProperty (skos:definition, gmeow:useWhen and gmeow:avoidWhen respectively). The set is closed and atomic (Principle 9), so a misspelt field names no declared value and is rejected rather than silently accepted. Read with logic:candidateFormalizes (which term) it makes harvest coverage queryable in both directions — from a harvested axiom to the exact prose field it formalizes, and from a prose field to the axioms that formalize it (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:proseFieldProperty
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "prose field property"@x-gmeow-english ;
+    skos:definition "Names the annotation property a logic:ProseField value stands for — the exact term-level field (skos:definition, gmeow:useWhen or gmeow:avoidWhen) whose prose a harvested candidate formalizes. An annotation property, so the closed logic:ProseField set links to the real field IRI without punning it into the reasoned core."@x-gmeow-english .
+
+logic:ProseFieldDefinition
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Definition"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's skos:definition — the definitional or descriptive prose a candidate formalized. Wire value `definition`."@x-gmeow-english ;
+    logic:proseFieldProperty skos:definition .
+
+logic:ProseFieldUseWhen
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Use When"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's gmeow:useWhen — the applicability guidance a candidate formalized. Wire value `use-when`."@x-gmeow-english ;
+    logic:proseFieldProperty gmeow:useWhen .
+
+logic:ProseFieldAvoidWhen
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Avoid When"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's gmeow:avoidWhen — the anti-pattern or non-applicability guidance a candidate formalized. Wire value `avoid-when`."@x-gmeow-english ;
+    logic:proseFieldProperty gmeow:avoidWhen .
+
 # ── Candidate carrier properties (RBox) ──────────────────────────────────────────
 
 logic:candidateSourceHash
@@ -4136,6 +4279,23 @@ logic:candidateSemanticRisk
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidate semantic risk"@x-gmeow-english ;
     skos:definition "Relates a logic:FormalizationCandidate to its logic:SemanticRiskClass — how far a wrong formalization would propagate, which sets how strict the reviewer gate must be. Single-valued. Domain logic:FormalizationCandidate, range logic:SemanticRiskClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateFormalizes
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate formalizes"@x-gmeow-english ;
+    skos:definition "The harvest back-link: relates a logic:FormalizationCandidate to the prose-bearing term (a gmeow: or logic: term, stated in prose) whose constraint its axiom formalizes, read together with logic:candidateSourceField (which of that term's annotation fields — skos:definition, gmeow:useWhen or gmeow:avoidWhen). Where logic:candidateSourceHash anchors the candidate to its source text by hash and logic:candidateExtractionProvenance records what produced it, this names the exact ontology term the harvested axiom keeps coherent, so harvest coverage is queryable in both directions. Present exactly when the source IS a term's annotation field (a doc-section source stays recorded in provenance alone, never a fabricated term-link); single-valued. Distinct from logic:formalizes, which bridges a logic: term to a gmeow: concept and is never a reasoned axiom. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateSourceField
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate source field"@x-gmeow-english ;
+    skos:definition "Names which annotation field of the logic:candidateFormalizes term a candidate harvested — a logic:ProseField from the closed set (logic:ProseFieldDefinition, logic:ProseFieldUseWhen, logic:ProseFieldAvoidWhen). Together with logic:candidateFormalizes it pins the harvested axiom to the exact source triple. Co-present with logic:candidateFormalizes: a candidate carrying one of the pair without the other is a hard governance error (verify.harvest-link-paired), never a half-link. Single-valued. Domain logic:FormalizationCandidate, range logic:ProseField."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Obligation carrier properties (RBox) ─────────────────────────────────────────

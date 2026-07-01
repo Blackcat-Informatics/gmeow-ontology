@@ -15,6 +15,8 @@
 //!   dialect, `PreservationKind::Exact` in both directions.
 //! * [`crate::cgif::project_cgif`] — the bidirectional **CGIF** conceptual-graph FOL
 //!   dialect, `PreservationKind::Exact` in both directions.
+//! * [`crate::xcl::project_xcl`] — the bidirectional **XCL** XML FOL dialect,
+//!   `PreservationKind::Exact` in both directions.
 //! * [`shacl_af::project_shacl_af`] — the SHACL-AF `sh:SPARQLRule` **computation**
 //!   surface (a byte-stable text target; the canon's derivation rules projected to a
 //!   SHACL rule dialect, never bolted onto SHACL — `design/LOGIC-SHACL-AF.md`).
@@ -85,6 +87,8 @@ pub struct CompiledArtifacts {
     pub clif: String,
     /// `generated/cl/gmeow.cgif`.
     pub cgif: String,
+    /// `generated/cl/gmeow.xcl`.
+    pub xcl: String,
     /// `generated/shacl-af/gmeow.shacl-af.ttl` — the SHACL-AF rule (computation) surface.
     pub shacl_af: String,
     /// `generated/logic/projection-report.ttl`.
@@ -153,6 +157,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let nemo = text::project_nemo(program)?;
     let clif = crate::clif::project_clif(program)?;
     let cgif = crate::cgif::project_cgif(program)?;
+    let xcl = crate::xcl::project_xcl(program)?;
     let shacl_af = shacl_af::project_shacl_af(program);
 
     let results = [
@@ -165,6 +170,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         &nemo,
         &clif,
         &cgif,
+        &xcl,
         &shacl_af,
     ];
     let mut owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
@@ -284,6 +290,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         nemo: nemo.content,
         clif: clif.content,
         cgif: cgif.content,
+        xcl: xcl.content,
         shacl_af: shacl_af.content,
         report,
         nemo_rules,
@@ -525,6 +532,16 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             "full first-order (semi-decidable)",
             vec![],
         ),
+        // XCL: a bidirectional XML (eXtended Common Logic Markup Language) FOL dialect.
+        // ExactPreservation — the idiomatic XCL2 sentence channel (rules + formulas) is a
+        // human-readable view and the RDF/predication channel rides the lossless
+        // canonical-RDF-1.2 leg carried as N-Triples in <gmeow-rdf-meta>, so nothing is
+        // dropped (the production round-trip test pins this, as for its CLIF/CGIF siblings).
+        "xcl" => (
+            PreservationKind::Exact,
+            "full first-order (semi-decidable)",
+            vec![],
+        ),
         "shacl-af" => (
             PreservationKind::SoundUnder,
             "terminating/PTIME-data",
@@ -605,7 +622,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 15] = [
+const LEDGER_TARGETS: [&str; 16] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -615,6 +632,7 @@ const LEDGER_TARGETS: [&str; 15] = [
     "nemo",
     "clif",
     "cgif",
+    "xcl",
     "shacl-af",
     "property-path",
     // The correspondence-calculus alignment lowerings: each carries its own
