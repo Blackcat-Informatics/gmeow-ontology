@@ -528,7 +528,20 @@ wasm: ## Build the purrdf wasm engine (P10, #846) for wasm32-unknown-unknown.
 				exit 1; \
 			fi; \
 		done; \
-		echo "OK: purrdf wasm engine + bindings + gmeow-logic-compile build for wasm32 (compiler dep tree is reasoning-runtime-free)"; \
+		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm build for wasm32 =="; \
+		$(WASM_CARGO) build -p gmeow-validate --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate does not build for wasm32-unknown-unknown"; exit 1; }; \
+		$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
+		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree =="; \
+		for vpkg in gmeow-validate gmeow-validate-wasm; do \
+			for forbidden in oxigraph oxrocksdb nemo scryer-prolog tokio pyo3 rayon ureq duckdb ring; do \
+				if $(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
+					echo "FAIL: $$vpkg leaked $$forbidden into its wasm dependency tree:"; \
+					$(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
+					exit 1; \
+				fi; \
+			done; \
+		done; \
+		echo "OK: purrdf + gmeow-logic-compile + the wasm Tier-1 validator build for wasm32 (dep trees are reasoning-runtime-free)"; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — the P10 wasm-first criterion (#846) cannot be verified; CI must install it"; exit 1; \
 	else \
@@ -553,8 +566,26 @@ wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web b
 	fi
 	@echo "OK: purrdf npm package built (crates/rdf-wasm/js/, pkg/ generated)"
 
-wasm-pkg-test: wasm-pkg ## Build the purrdf package and run the Node real-execution round-trip lane.
+validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+	@# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
+	@# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
+	$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_validate_wasm.wasm \
+		--out-dir crates/validate-wasm/js/pkg --target web
+	@# Size optimization is best-effort: wasm-opt -Oz roughly halves the artifact, but the
+	@# package is correct without it. Absence is a note, not a failure.
+	@if command -v wasm-opt >/dev/null 2>&1; then \
+		wasm-opt -Oz -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm && \
+		echo "OK: wasm-opt -Oz applied"; \
+	else \
+		echo "note: wasm-opt not found — shipping unoptimized validate wasm"; \
+	fi
+	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
+
+wasm-pkg-test: wasm-pkg validate-wasm-pkg ## Build the wasm packages and run the Node real-execution round-trip lanes.
 	cd crates/rdf-wasm/js && node --test tests/*.test.mjs
+	cd crates/validate-wasm/js && node --test tests/*.test.mjs
 
 maint-refresh-purrdf-asset: wasm-pkg ## Refresh the vendored purrdf wasm engine shipped in the docs SPARQL playground.
 	@# The docs site's offline SPARQL playground loads a PINNED copy of the purrdf
