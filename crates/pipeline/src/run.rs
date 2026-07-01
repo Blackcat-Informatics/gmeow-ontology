@@ -41,8 +41,8 @@ use crate::scheduler::{run, RunContext};
 const SCHEMAS_STAGE: &str = "stage-export-schemas";
 /// The sole serialization exit; its product carries the `gmeow.gts` bytes.
 const SINK_STAGE: &str = "stage-gts-sink";
-/// The committed fold path the sink writes / schemas project.
-const GTS_PATH: &str = "generated/dist/gmeow.gts";
+/// The committed fold path the sink writes / schemas project / fanout reads.
+pub(crate) const GTS_PATH: &str = "generated/dist/gmeow.gts";
 /// The DAG-workflow contract identity the build plan executes under — the
 /// `gmeow:pipeline-build` `logic:Plan` is certified under `logic:DagWorkflowResource`.
 const BUILD_DAG_CONTRACT: &str = "contract:gmeow:pipeline-build:dag-workflow";
@@ -634,7 +634,7 @@ fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, PipelineEr
 ///
 /// Returns `true` when the file was rewritten and `false` when the existing bytes
 /// already matched.
-fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bool, PipelineError> {
+pub(crate) fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bool, PipelineError> {
     let target = root.join(path);
     match std::fs::read(&target) {
         Ok(existing) if existing == bytes => return Ok(false),
