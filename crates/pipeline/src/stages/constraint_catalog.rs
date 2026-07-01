@@ -194,6 +194,9 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, PipelineError> {
             LOGIC_RELATOR,
         )
         .map_err(|e| PipelineError::Parse(e.to_string()))?;
+    // Exclude a reflexive `logic:Relator rdfs:subClassOf logic:Relator` edge: the
+    // governed terms are the proper subclasses, not the class itself.
+    relator_subclasses.retain(|s| s != LOGIC_RELATOR);
     relator_subclasses.sort();
     relator_subclasses.dedup();
     let relator_def = dataset
