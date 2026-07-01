@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tests for the native-RL ≡ owlrl-RL agreement axis of the lane (#666 Task 5).
+"""Tests for the native-RL ≡ owlrl-RL agreement axis of the lane (Task 5).
 
 Two layers:
 
@@ -23,7 +23,7 @@ import pytest
 # The native-RL ≡ owlrl-RL agreement axis is the classic_cross_check oracle lane:
 # it builds rdflib graphs and runs the upstream owlrl reasoner over them. Both stay
 # on REAL rdflib/owlrl (installed via the `.[crosscheck]` extra); skip-collect this
-# whole module when they are absent from the runtime (purrdf P0, #834).
+# whole module when they are absent from the runtime (purrdf P0).
 pytest.importorskip("rdflib")
 pytest.importorskip("owlrl")
 

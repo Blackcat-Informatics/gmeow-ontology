@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Non-required native-vs-ROBOT SLME + verify cross-check oracle (issue #695).
+"""Non-required native-vs-ROBOT SLME + verify cross-check oracle.
 
 This is a Docker-backed lane that runs ONLY in ``make maint-classic-cross-check`` /
 the ``classic-cross-check`` workflow — never on a required gate. It proves two

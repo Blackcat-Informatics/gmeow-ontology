@@ -46,10 +46,10 @@ statements-check: ## Jena/ROBOT RDF-1.2 statement artifact oracle checks.
 slme: ## SLME module-extraction cross-check.
 	$(UV) python scripts/slme_cross_check.py
 
-oracle-gold: ## (Re)freeze the #697 curated-DL oracle gold via HermiT/ELK (Docker).
+oracle-gold: ## (Re)freeze the curated-DL oracle gold via HermiT/ELK (Docker).
 	$(UV) python scripts/gen_dl_oracle_gold.py
 
-crosscheck-queries: ## rdflib↔gmeow_rdf query-answer agreement (mainline gmeow-dev; the #906 rdflib oracle).
+crosscheck-queries: ## rdflib↔gmeow_rdf query-answer agreement (mainline gmeow-dev; the rdflib oracle).
 	$(GMEOW_DEV) crosscheck-queries
 
 classic: ## Enforced native↔ELK/HermiT divergence-ledger cross-check (Principle 18).

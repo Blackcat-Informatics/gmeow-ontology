@@ -76,7 +76,7 @@ Relocated out of the mainline test tree (dossier removed with the test):
   `test_rl_agreement`, `test_classic_cross_check`, `test_reason_verify_chain`,
   `test_reason_native`, `test_logic_foundation_cases`, `test_statements`,
   `test_runner` → relocated to the standalone `validations/classic-cross-check/`
-  validator-zoo suite (#1087). These drove the ELK/HermiT/ROBOT/Jena/owlrl
+  validator-zoo suite. These drove the ELK/HermiT/ROBOT/Jena/owlrl
   oracle cross-check (the "Oracle / Docker orchestration" retention category) —
   retired *with* the classic-cross-check lane per that category's migration.
   The lane now lives outside `make check` / `maint-*` / CI, run on demand via

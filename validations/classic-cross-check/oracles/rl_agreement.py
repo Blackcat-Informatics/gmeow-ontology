@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Native-RL ≡ owlrl-RL agreement axis of the classic-cross-check lane (#666, Task 5).
+"""Native-RL ≡ owlrl-RL agreement axis of the classic-cross-check lane (Task 5).
 
 The native OWL 2 RL engine (``gmeow_logic.rl_closure_nt``) is the
 **primary** Docker-free entailment authority; the 8 converted conformance suites
@@ -52,7 +52,7 @@ if TYPE_CHECKING:
 #: Diagnostics-artifact stem for the RL-agreement axis (JSON / SARIF / HTML).
 RL_AGREEMENT_STEM = "gmeow-classic-cross-check-rl"
 
-# Gate-taxonomy rule-ids (#666 owns these; #662 consumes them).
+# Gate-taxonomy rule-ids (shared across the cross-check gate taxonomy).
 RULE_RL_DIVERGENCE = "classic-cross-check/rl-divergence"
 RULE_RL_AGREEMENT = "classic-cross-check/rl-agreement"
 RULE_RL_TIMING = "classic-cross-check/rl-timing"

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""The `gmeow-dev feedback` surface fold loop (#654).
+"""The `gmeow-dev feedback` surface fold loop.
 
 Guards that the fold table (``_surface_reports()``) stays in sync with the
 expected-surface set (``_EXPECTED_SURFACES``), that a single surface failing
@@ -26,7 +26,7 @@ from gmeow_tools.feedback_bundle import build_feedback_bundle, verify_feedback_b
 #: native slice-ownership report, and repo-static guard report.
 #: validate + native reason/verify are folded separately in `feedback` itself.
 #: The classic (ELK/HermiT/owlrl) cross-check fold was removed when that oracle
-#: lane was relocated to validations/classic-cross-check/ (#1087).
+#: lane was relocated to validations/classic-cross-check/.
 _EXPECTED_SURFACES = {
     "alignment",
     "coverage",

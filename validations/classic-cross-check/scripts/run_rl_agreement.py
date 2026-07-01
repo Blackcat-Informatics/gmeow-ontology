@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Standalone runner for the enforced native-RL ≡ owlrl-RL agreement axis.
 
-Relocated from the retired gmeow-dev ``classic-cross-check-rl`` subcommand
-(#1087). The native OWL 2 RL engine is the Docker-free entailment authority;
+Relocated from the retired gmeow-dev ``classic-cross-check-rl`` subcommand.
+The native OWL 2 RL engine is the Docker-free entailment authority;
 ``owlrl`` lives ONLY here as the agreement ORACLE. Reasons the told facts under
 BOTH RL closures, compares the canonicalized named-vocabulary closures, writes
 the agreement matrix + per-engine timing as SARIF/JSON, and exits NON-ZERO on

@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Generate FROZEN oracle gold for the #697 native-DL conformance lane.
+"""Generate FROZEN oracle gold for the native-DL conformance lane.
 
-This is a **fixture generator**, not a gate runtime (issue #697, Gap G). For each
+This is a **fixture generator**, not a gate runtime (Gap G). For each
 curated OWL/gUFO dataset under ``coverage/external/697-dl-oracle-gold/datasets/``
 it runs the pinned ROBOT/HermiT (and, where the dataset is EL-decidable, ELK)
 Docker oracle and freezes the verdict — consistency, the sorted set of
@@ -13,7 +13,7 @@ The native Docker-free reasoner is then asserted (offline, in
 ``crates/conformance``) to reproduce every frozen oracle inconsistency/unsat:
 native ⊇ oracle. The gold here is the ORACLE's verdict, produced by a real
 HermiT/ELK run — never hand-typed to match native, never edited to make a test
-pass (issue #697 honesty doctrine).
+pass (the native-DL conformance honesty doctrine).
 
 ROBOT reasoning verdict surface (verified against obolibrary/robot:v1.9.7):
 
@@ -39,7 +39,7 @@ from pathlib import Path
 from gmeow_tools.config import ROBOT_IMAGE
 from gmeow_tools.runner import run_container
 
-#: The curated-dataset + frozen-gold home (issue #697, the external-input fixture
+#: The curated-dataset + frozen-gold home (the external-input fixture
 #: convention — ``coverage/external/``).
 GOLD_DIR = (
     Path(__file__).resolve().parent.parent

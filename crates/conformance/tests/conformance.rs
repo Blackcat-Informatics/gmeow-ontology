@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The native logic-conformance harness entry point (#785).
+//! The native logic-conformance harness entry point.
 //!
 //! `datatest-stable` discovers every `profile.json` sentinel under
 //! `conformance/logic/cases/` and emits one nextest case PER FILE (i.e. per case
 //! directory), run in parallel. Because the glob is on `profile.json` and the
 //! case directory is its parent, discovery is category-agnostic: any future
-//! `cases/external/<corpus>/<case>/` group (the #753 scope) is picked up
+//! `cases/external/<corpus>/<case>/` group is picked up
 //! automatically once it adopts the same per-case anatomy.
 //!
 //! Each case runs the native engine ([`gmeow_conformance::run`]) and diffs the

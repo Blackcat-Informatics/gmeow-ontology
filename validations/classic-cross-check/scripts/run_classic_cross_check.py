@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Standalone runner for the enforced native↔ELK/HermiT divergence cross-check.
 
-Relocated from the retired gmeow-dev ``classic-cross-check`` subcommand (#1087).
+Relocated from the retired gmeow-dev ``classic-cross-check`` subcommand.
 Reasons the bundle natively (authority), runs the classic ELK + HermiT oracles,
 calls the authoritative Rust comparator, writes the agreement matrix + per-tool
 timing as SARIF/JSON, and exits NON-ZERO on any real divergence (``NativeOnly`` /

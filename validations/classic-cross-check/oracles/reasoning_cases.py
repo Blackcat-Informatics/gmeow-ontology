@@ -22,7 +22,7 @@ from gmeow_tools.runner import ToolExecutionError
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/test/")
 
-#: Music extension stress-corpus fixtures (#320): authored in the slice but
+#: Music extension stress-corpus fixtures: authored in the slice but
 #: reasoned as an extension of the core ontology.
 MUSIC_FIXTURES_DIR = PROJECT_ROOT / "slices" / "extensions" / "music" / "fixtures"
 
@@ -75,7 +75,7 @@ def assert_worked_fixtures_stay_coherent_under_disjointness() -> None:
     fixture_files = [
         p for p in FIXTURES_DIR.rglob("*.ttl") if EXTERNAL_FIXTURES_DIR not in p.parents
     ]
-    # Music extension stress corpus (#320) lives in the slice fixtures directory.
+    # Music extension stress corpus lives in the slice fixtures directory.
     if MUSIC_FIXTURES_DIR.exists():
         fixture_files += sorted(MUSIC_FIXTURES_DIR.glob("*.ttl"))
     if not fixture_files:

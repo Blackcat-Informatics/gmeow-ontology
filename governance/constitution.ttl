@@ -314,15 +314,15 @@ meta:gate-dl-el-crosscheck a meta:Gate ;
 # and fails strictly on any NativeOnly/OracleOnly divergence or DlGap native
 # coverage defect. The Java+Docker oracle side (ELK/HermiT subsumption +
 # consistency; owlrl OWL-2-RL closure) was relocated OUT of mainline into the
-# standalone validations/classic-cross-check/ validator-zoo suite (#1087) —
+# standalone validations/classic-cross-check/ validator-zoo suite —
 # run on demand, never part of `make check`, the required `quality` gate, or CI.
 meta:gate-classic-cross-check a meta:Gate ;
-    rdfs:label "native↔oracle agreement — native divergence-ledger enforcement, Docker-free (the ELK/HermiT/owlrl oracle lane relocated to validations/classic-cross-check/, #1087)"@x-gmeow-english ;
+    rdfs:label "native↔oracle agreement — native divergence-ledger enforcement, Docker-free (the ELK/HermiT/owlrl oracle lane relocated to validations/classic-cross-check/)"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/ledger.rs" ;
     meta:symbol "enforce" ;
     meta:makeTarget "conformance" .
 
-# The anti-regression SUPERSET meta-gate (#697 criterion 3): the native-decided
+# The anti-regression SUPERSET meta-gate (criterion 3): the native-decided
 # construct set must be a SUPERSET of the oracle-decided set. Any OracleOnly row
 # (the oracle decided a construct the native path did not) or any DlGap (a native
 # coverage defect) is a coverage REGRESSION and FAILS. The decision is computed in
@@ -330,14 +330,14 @@ meta:gate-classic-cross-check a meta:Gate ;
 # proven OFFLINE by the frozen oracle-gold conformance lane (native ⊇ HermiT over
 # the curated DL datasets, no Docker/Java/network).
 meta:gate-native-oracle-superset a meta:Gate ;
-    rdfs:label "native ⊇ oracle anti-regression superset gate — Rust-decided, offline frozen-oracle-gold proven (#697)"@x-gmeow-english ;
+    rdfs:label "native ⊇ oracle anti-regression superset gate — Rust-decided, offline frozen-oracle-gold proven"@x-gmeow-english ;
     meta:artifact "crates/logic/src/reason/ledger.rs",
         "crates/conformance/tests/dl_oracle_gold.rs",
         "coverage/external/697-dl-oracle-gold/README.md" ;
     meta:symbol "enforce", "native_reasoner_is_a_superset_of_the_frozen_oracle_gold" ;
     meta:makeTarget "conformance" .
 
-# The release-as-evidence gate (#673): the signed `make full-release` bundle folds
+# The release-as-evidence gate: the signed `make full-release` bundle folds
 # every check / classic-cross-check / conformance / SARIF / compliance / perf
 # result as content-addressed `gmeow:Attestation` frames into a SEPARATE signed
 # dist/gmeow.gts (never the committed Docker-free snapshot). The Rust round-trip
@@ -345,7 +345,7 @@ meta:gate-native-oracle-superset a meta:Gate ;
 # gmeow:contentDigest per evidence blob; `make verify-release` is the consumer's
 # signature + trust-policy verification path.
 meta:gate-release-evidence a meta:Gate ;
-    rdfs:label "release-as-evidence gate — signed full-release folds attestations into gmeow.gts, consumer-verifiable (#673)"@x-gmeow-english ;
+    rdfs:label "release-as-evidence gate — signed full-release folds attestations into gmeow.gts, consumer-verifiable"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/stages/release.rs" ;
     meta:symbol "fold_release_bundle",
         "verify_release_bundle",
