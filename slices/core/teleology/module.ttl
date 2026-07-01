@@ -37,6 +37,7 @@ gmeow:Goal
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Goal"@x-gmeow-english ;
+    logic:instantiatesFramework logic:TeleologicalFramework ;
     rdfs:subClassOf gmeow:SocialObject ;
     skos:definition "A described state of affairs that an agent may want, intend, or commit to bring about — the propositional content of the intentional modes, existing by social convention like every description (a gmeow:SocialObject). A goal asserts nothing and prescribes nothing by itself: it is satisfied by situations (gmeow:satisfiedBy), held by agents (gmeow:hasGoal or the reified modes), and partly defined by its named shadow (gmeow:counterGoal). Whether a given situation satisfies the goal is a vantage-indexed claim (Principle 9)."@x-gmeow-english ;
     skos:example "ex:reachOrbit a gmeow:Goal ; gmeow:counterGoal ex:scrubLaunch ; gmeow:satisfiedBy ex:firstStableOrbit ."@x-gmeow-english ;
@@ -50,6 +51,7 @@ gmeow:Intention
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intention"@x-gmeow-english ;
+    logic:instantiatesFramework logic:TeleologicalFramework ;
     rdfs:subClassOf gmeow:IntentionalMode ;
     skos:definition "An intentional mode of internal commitment — the agent has settled on pursuing the goal (UFO-C: intention), though no other agent holds them to it. Inheres in exactly one agent (gmeow:intentBearer); aims at exactly one goal (gmeow:intentionGoal); may motivate events (gmeow:motivates). The social grade — committed TOWARD someone — is gmeow:Commitment."@x-gmeow-english ;
     skos:example "ex:planToShip a gmeow:Intention ; gmeow:intentBearer ex:lillith ; gmeow:intentionGoal ex:reachOrbit ; gmeow:motivates ex:launchPrep ."@x-gmeow-english ;
