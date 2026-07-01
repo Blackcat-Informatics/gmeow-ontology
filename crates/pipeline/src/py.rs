@@ -728,6 +728,11 @@ fn acceptance(py: Python<'_>, root: String, source: Option<String>) -> PyResult<
     let markdown = scoreboards::render_acceptance_report(&results);
     let diagnostics = scoreboards::acceptance_diagnostics(&results);
     let aggregate_recall = scoreboards::corpus_recall_pct(&results);
+    // The HARD corpus-aggregate recall floor is owned in Rust (single source of truth,
+    // GAP 3 / #1145). Surface both the floor and the verdict so the Python CLI defaults
+    // its `--min-recall` to the native figure and hard-fails on the native verdict.
+    let min_recall_floor = scoreboards::ACCEPTANCE_MIN_RECALL_PCT;
+    let aggregate_gate = scoreboards::aggregate_recall_gate(&results, min_recall_floor);
 
     let out = PyDict::new(py);
     out.set_item("markdown", markdown)?;
@@ -737,6 +742,9 @@ fn acceptance(py: Python<'_>, root: String, source: Option<String>) -> PyResult<
     )?;
     out.set_item("aggregate_recall", aggregate_recall)?;
     out.set_item("recall_pct", aggregate_recall)?;
+    out.set_item("min_recall_floor", min_recall_floor)?;
+    out.set_item("aggregate_gate_passed", aggregate_gate.passed)?;
+    out.set_item("aggregate_gate_summary", &aggregate_gate.summary)?;
     out.set_item("results", file_acceptance_results_to_py(py, &results)?)?;
     out.set_item("report", Py::new(py, PyReport::from_engine(diagnostics))?)?;
     Ok(out.into_any().unbind())

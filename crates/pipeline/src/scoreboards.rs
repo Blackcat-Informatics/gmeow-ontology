@@ -671,6 +671,49 @@ pub fn default_corpus(root: &Path) -> Result<Vec<PathBuf>, String> {
     )
 }
 
+/// The HARD corpus-aggregate round-trip recall floor (GAP 3, #1145).
+///
+/// The measured derived aggregate recall (Σ recovered / Σ addressable) over the
+/// external parity corpus (`bii.ttl` + `paudley.ttl`) is **64.57 %** — established
+/// post put-leg-cutover, at exact parity with the pre-cutover baseline (no P7
+/// regression). This floor is pinned just below that measured figure so the
+/// deterministic measurement clears it without flakiness, yet it is ~4.5 points
+/// tighter than the stale, loose `60` it replaces.
+///
+/// This constant is the SINGLE SOURCE OF TRUTH for the enforced floor: the Python
+/// CLI defaults `--min-recall` to it and the Makefile no longer hardcodes a literal.
+/// It is NEVER loosened and NEVER fabricated — a corpus-aggregate recall below it is
+/// a real coverage regression to fix, not a number to accommodate.
+pub const ACCEPTANCE_MIN_RECALL_PCT: f64 = 64.5;
+
+/// The HARD corpus-aggregate recall verdict for a completed acceptance run.
+///
+/// Unlike the per-file `round-trip-superset` gate (a deliberate honest scoreboard,
+/// red until 100 % per-file recall), this is the *pooled* floor: if the aggregate
+/// Σ recovered / Σ addressable recall across the whole corpus drops below
+/// [`ACCEPTANCE_MIN_RECALL_PCT`], the run FAILS. `make acceptance` (run by
+/// `make check` and CI) turns a failing verdict into a non-zero exit.
+pub fn aggregate_recall_gate(results: &[FileAcceptance], floor: f64) -> GateResult {
+    let aggregate = corpus_recall_pct(results);
+    let passed = aggregate >= floor;
+    let mut gate = GateResult::new(
+        "aggregate-recall-floor",
+        passed,
+        true,
+        if passed {
+            format!("corpus-aggregate round-trip recall {aggregate:.2}% ≥ floor {floor:.2}%")
+        } else {
+            format!(
+                "corpus-aggregate round-trip recall {aggregate:.2}% is BELOW the floor {floor:.2}% — real coverage regression"
+            )
+        },
+    );
+    gate.metrics
+        .insert("aggregate_recall".to_owned(), aggregate);
+    gate.metrics.insert("floor".to_owned(), floor);
+    gate
+}
+
 pub fn corpus_recall_pct(results: &[FileAcceptance]) -> f64 {
     let mut total_recovered = 0.0;
     let mut total_addressable = 0.0;
@@ -730,6 +773,20 @@ pub fn render_acceptance_report(results: &[FileAcceptance]) -> String {
 
 pub fn acceptance_diagnostics(results: &[FileAcceptance]) -> Report {
     let mut out = Report::new("acceptance");
+    // The HARD corpus-aggregate recall floor (GAP 3, #1145): a pooled recall below
+    // ACCEPTANCE_MIN_RECALL_PCT is a real coverage regression, surfaced as an Error so
+    // the diagnostics fold consumed by `make check` fails on it.
+    let aggregate_gate = aggregate_recall_gate(results, ACCEPTANCE_MIN_RECALL_PCT);
+    if !aggregate_gate.passed {
+        out.add_finding(
+            Finding::new(
+                Severity::Error,
+                format!("acceptance.{}", aggregate_gate.name),
+                aggregate_gate.summary.clone(),
+            )
+            .with_tool("acceptance"),
+        );
+    }
     for file in results {
         for gate in &file.gates {
             if gate.passed {
@@ -2088,6 +2145,32 @@ mod tests {
         assert_eq!(by_code["audit.shacl-error"], Severity::Error);
         assert_eq!(by_code["audit.shacl-warning"], Severity::Warning);
         assert_eq!(diag.error_count(), 1);
+    }
+
+    #[test]
+    fn aggregate_recall_gate_is_hard_and_bites_below_the_floor() {
+        let root = root();
+        let results = run_acceptance_corpus(&root, None).expect("corpus acceptance");
+        let aggregate = corpus_recall_pct(&results);
+        // The measured corpus-aggregate recall must clear the pinned floor at the
+        // default (no P7 regression). The pin is at/just below the measured figure.
+        assert!(
+            aggregate >= ACCEPTANCE_MIN_RECALL_PCT,
+            "corpus-aggregate recall {aggregate:.2}% dropped below the pinned floor \
+             {ACCEPTANCE_MIN_RECALL_PCT:.2}% — real coverage regression"
+        );
+
+        // The gate is HARD, and at the native floor it passes.
+        let pass = aggregate_recall_gate(&results, ACCEPTANCE_MIN_RECALL_PCT);
+        assert!(pass.hard, "aggregate-recall gate must be a hard gate");
+        assert!(pass.passed, "aggregate gate must pass at the pinned floor");
+        assert_eq!(pass.name, "aggregate-recall-floor");
+
+        // Forcing the floor above the measured recall makes the hard gate FAIL, and
+        // the diagnostics fold (consumed by `make check`) surfaces it as an Error.
+        let fail = aggregate_recall_gate(&results, aggregate + 1.0);
+        assert!(!fail.passed, "gate must fail when the floor exceeds recall");
+        assert!(fail.hard);
     }
 
     #[test]
