@@ -109,6 +109,10 @@ pub struct CaseOutputs {
     /// compositions. `Some` iff the program authors `logic:Correspondence` individuals;
     /// `None` (no golden gated) for every correspondence-free case.
     pub correspondence_gates: Option<serde_json::Value>,
+    /// The Common Logic round-trip verdict (C6): `{ "<dialect>": {"round_trip":"pass"},
+    /// "cross_dialect": "pass" }`. `Some` only for a `cl-roundtrip` case (gating the
+    /// `expected/cl-dialects.json` golden); `None` for every other verdict mode.
+    pub cl_dialects: Option<serde_json::Value>,
 }
 
 /// The four RDF projection targets compared by graph-isomorphism.
@@ -145,45 +149,31 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         return run_consistency_case(&case_id, case_dir);
     }
 
+    // ── Common Logic round-trip mode (C6) ─────────────────────────────────────
+    // A `cl-roundtrip` case gates the CLIF/CGIF/XCL Exact projections (IR round-trip
+    // isomorphism + cross-dialect equivalence) and pins their canonical rendering. It
+    // does NOT materialize — branch before the compile/certify/chase, like consistency.
+    if profile.verdict_mode == VerdictMode::CommonLogic {
+        return run_cl_roundtrip_case(&case_id, case_dir);
+    }
+
     // ── Compile (frontend → IR → projections + nemo rules + ledger) ──────────
-    let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
-        .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
-    // `parse_logic_str` returns `Err` only on a hard Turtle PARSE failure; a
-    // semantic `Severity::Error` diagnostic (e.g. an UNSUPPORTED_CONTRACT forbidden
-    // facet combination) is carried INSIDE the diagnostics vec with `Ok((..))`. The
-    // harness must respect those errors rather than silently proceed to evaluate —
-    // otherwise the "unsupported is a hard stop" guarantee is unpinned (#767 Gap 2).
-    let (program, diagnostics) = parse_logic_str(&source, None)
-        .map_err(|e| prefix(format!("compile parse failed: {}", e.0)))?;
+    // The unsupported-contract firewall (#767 Gap 2) lives in `compile_case_program`,
+    // shared with the CL round-trip path so neither can evaluate an unsound program.
+    let program = match compile_case_program(&case_id, case_dir, profile.expect_unsupported)? {
+        // An `expect_unsupported` case: the program must not proceed — return empty
+        // outputs so the diff phase sees no goldens to compare (no `expected/` tree).
+        CompileOutcome::Unsupported => return Ok(empty_outputs(case_id)),
+        CompileOutcome::Program(program, _diagnostics) => *program,
+    };
 
-    // ── Unsupported-contract firewall (#767 Gap 2) ────────────────────────────
-    // An `expect_unsupported` case asserts the contract authors a forbidden facet
-    // combination: require the compile to have flagged it (UNSUPPORTED_CONTRACT
-    // Severity::Error) and short-circuit WITHOUT evaluating/certifying/materializing.
-    if profile.expect_unsupported {
-        if !has_unsupported_contract_error(&diagnostics) {
-            return Err(prefix(format!(
-                "profile.json declares \"expect_unsupported\": true but the compile produced \
-                 no UNSUPPORTED_CONTRACT Severity::Error — the engine accepted the contract. \
-                 Diagnostics: {diagnostics:?}"
-            )));
-        }
-        // The program must not proceed: return empty outputs so the diff phase sees
-        // no goldens to compare (an expect_unsupported case carries no expected/ tree).
-        return Ok(empty_outputs(case_id));
-    }
-
-    // A non-`expect_unsupported` case that nonetheless emits ANY Severity::Error
-    // diagnostic is a silent-run hole: hard-fail so it can never evaluate as if the
-    // contract were sound. (All committed supported presets compile clean.)
-    if let Some(first) = first_error(&diagnostics) {
-        return Err(prefix(format!(
-            "compile emitted a Severity::Error diagnostic but the case does not declare \
-             \"expect_unsupported\": true — refusing to evaluate an unsound program. \
-             First error [{}]: {}",
-            first.code, first.message
-        )));
-    }
+    // ── Universal CL round-trip invariant (C6) ────────────────────────────────
+    // Every materialized case's IR must round-trip through all three ISO 24707 dialects
+    // (CLIF/CGIF/XCL) with IR isomorphism AND be cross-dialect equivalent. This dogfoods
+    // the Exact projection claim over the whole corpus; a failure is a dialect bug, never
+    // a case bug — hard-fail (the overclaim gate forbids an Exact target dropping data).
+    gmeow_logic_compile::cl_roundtrip::assert_all_dialects_isomorphic(&program)
+        .map_err(|e| prefix(format!("CL dialect round-trip invariant failed: {e}")))?;
 
     let arts = compile_program(&program).map_err(|e| prefix(format!("compile failed: {e}")))?;
     // The program's Horn rules, plus the relational-core lowering of its full-FOL formulas
@@ -319,6 +309,10 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         answers,
         preservation: serialize::preservation_to_json(&mat_preservation),
         correspondence_gates,
+        // A materialization case does not gate CL dialect round-trip goldens (the
+        // universal invariant above already proved round-trip; only a `cl-roundtrip`
+        // case pins the dialect texts + verdict).
+        cl_dialects: None,
     })
 }
 
@@ -335,6 +329,133 @@ fn has_unsupported_contract_error(diags: &[Diagnostic]) -> bool {
     diags
         .iter()
         .any(|d| d.severity == Severity::Error && d.code == "UNSUPPORTED_CONTRACT")
+}
+
+/// The outcome of compiling a case's `input.logic.ttl` through the unsupported-contract
+/// firewall.
+enum CompileOutcome {
+    /// The case declared `expect_unsupported` and the compile confirmed it
+    /// (`UNSUPPORTED_CONTRACT` `Severity::Error`). The caller must short-circuit WITHOUT
+    /// evaluating — the program is unsound by design and must not proceed.
+    Unsupported,
+    /// A clean program plus its (non-error) diagnostics. The `LogicProgram` is boxed to
+    /// keep the enum small (it dwarfs the unit `Unsupported` variant otherwise).
+    Program(Box<gmeow_logic_compile::ir::LogicProgram>, Vec<Diagnostic>),
+}
+
+/// Parse a case's `input.logic.ttl` and apply the unsupported-contract firewall (#767
+/// Gap 2), shared by the materialization path and the CL round-trip path so neither can
+/// evaluate an unsound program.
+///
+/// `parse_logic_str` returns `Err` only on a hard Turtle PARSE failure; a semantic
+/// `Severity::Error` (e.g. an `UNSUPPORTED_CONTRACT` forbidden facet combination) rides
+/// INSIDE the diagnostics vec with `Ok((..))`, so the firewall inspects them explicitly:
+/// an `expect_unsupported` case REQUIRES the flag (else the engine wrongly accepted the
+/// contract), and any other `Severity::Error` on a non-`expect_unsupported` case is a
+/// hard failure (never evaluate as if the contract were sound).
+fn compile_case_program(
+    case_id: &str,
+    case_dir: &Path,
+    expect_unsupported: bool,
+) -> Result<CompileOutcome, String> {
+    let prefix = |msg: String| format!("case {case_id}: {msg}");
+    let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
+        .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
+    let (program, diagnostics) = parse_logic_str(&source, None)
+        .map_err(|e| prefix(format!("compile parse failed: {}", e.0)))?;
+
+    if expect_unsupported {
+        if !has_unsupported_contract_error(&diagnostics) {
+            return Err(prefix(format!(
+                "profile.json declares \"expect_unsupported\": true but the compile produced \
+                 no UNSUPPORTED_CONTRACT Severity::Error — the engine accepted the contract. \
+                 Diagnostics: {diagnostics:?}"
+            )));
+        }
+        return Ok(CompileOutcome::Unsupported);
+    }
+
+    if let Some(first) = first_error(&diagnostics) {
+        return Err(prefix(format!(
+            "compile emitted a Severity::Error diagnostic but the case does not declare \
+             \"expect_unsupported\": true — refusing to evaluate an unsound program. \
+             First error [{}]: {}",
+            first.code, first.message
+        )));
+    }
+
+    Ok(CompileOutcome::Program(Box::new(program), diagnostics))
+}
+
+/// Run one `verdict_mode = cl-roundtrip` case (C6).
+///
+/// Gates the three ISO 24707 dialects (CLIF/CGIF/XCL) as `PreservationKind::Exact`
+/// bidirectional projections: the case's IR must round-trip through each dialect with IR
+/// isomorphism AND the three reconstructions must be cross-dialect equivalent (proved by
+/// [`gmeow_logic_compile::cl_roundtrip::assert_all_dialects_isomorphic`]). It then pins
+/// the canonical-fixpoint dialect renderings as byte-exact goldens
+/// (`expected/projections/gmeow.{clif,cgif,xcl}`) and emits the `cl-dialects.json`
+/// verdict. A CL round-trip case does NOT materialize (like consistency mode); it carries
+/// only its dialect-text goldens + the verdict.
+fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, String> {
+    let prefix = |msg: String| format!("case {case_id}: {msg}");
+
+    // A cl-roundtrip case never declares `expect_unsupported` (an unsound program cannot
+    // round-trip); `compile_case_program(.., false)` therefore never yields `Unsupported`.
+    let program = match compile_case_program(case_id, case_dir, false)? {
+        CompileOutcome::Program(program, _diagnostics) => *program,
+        CompileOutcome::Unsupported => {
+            unreachable!("expect_unsupported=false never yields CompileOutcome::Unsupported")
+        }
+    };
+
+    // The C6 teeth: IR → {clif,cgif,xcl} → IR round-trip + all-three-edge cross-dialect.
+    gmeow_logic_compile::cl_roundtrip::assert_all_dialects_isomorphic(&program)
+        .map_err(|e| prefix(format!("CL dialect round-trip failed: {e}")))?;
+
+    // Pin the canonical-fixpoint dialect renderings the round-trip validated.
+    let dialect_texts = gmeow_logic_compile::cl_roundtrip::dialect_fixpoint_projections(&program)
+        .map_err(|e| prefix(format!("CL dialect projection failed: {e}")))?;
+
+    let mut text = BTreeMap::new();
+    let mut cl_dialects = serde_json::Map::new();
+    for (dialect, content) in dialect_texts {
+        text.insert(dialect.to_string(), content);
+        cl_dialects.insert(
+            dialect.to_string(),
+            serde_json::json!({ "round_trip": "pass" }),
+        );
+    }
+    cl_dialects.insert("cross_dialect".to_string(), serde_json::json!("pass"));
+
+    // An empty RDF map (RDF_TARGETS keys, no content) mirrors `empty_outputs`: a
+    // cl-roundtrip case gates no RDF projection goldens, only the dialect texts.
+    let mut rdf = BTreeMap::new();
+    for target in RDF_TARGETS {
+        rdf.insert(target.to_string(), String::new());
+    }
+
+    Ok(CaseOutputs {
+        case_id: case_id.to_string(),
+        materialized_nquads: String::new(),
+        projections: ProjectionOutputs {
+            rdf,
+            report_turtle: String::new(),
+            ledger: serde_json::json!({}),
+            text,
+            path_projections: Vec::new(),
+        },
+        explanations: Vec::new(),
+        verdicts: serde_json::json!({}),
+        certification: serde_json::json!({}),
+        budget_status: "ok".to_string(),
+        incomplete: false,
+        answers: BTreeMap::new(),
+        // A lossless round-trip is Exact by construction (the gate above proved it).
+        preservation: serialize::preservation_to_json(&PreservationClaim::exact()),
+        correspondence_gates: None,
+        cl_dialects: Some(serde_json::Value::Object(cl_dialects)),
+    })
 }
 
 /// The empty [`CaseOutputs`] an `expect_unsupported` case returns: the program is
@@ -372,6 +493,8 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         preservation: serialize::preservation_to_json(&PreservationClaim::unsupported()),
         // No program was compiled, so no correspondence gates ran.
         correspondence_gates: None,
+        // Not a CL round-trip case.
+        cl_dialects: None,
     }
 }
 

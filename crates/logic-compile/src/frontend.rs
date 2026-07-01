@@ -369,6 +369,20 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if !o_str.starts_with(LOGIC_NAMESPACE) {
             continue;
         }
+        // Skip the type triple that DEFINES a contract-config subject
+        // (`?s rdf:type logic:{ReasoningContract,ReasoningPreset,ClosureEntry}`): it is
+        // consumed by extract_contracts, exactly like the facet-config predicates in
+        // step 1. Retaining it (for a non-`logic:` subject, whose type triple step 1's
+        // predicate filter never reaches) re-extracts as a spurious empty contract on
+        // every round-trip — a canonical-RDF-1.2 non-idempotence (#767, Gap 1 completion).
+        let o_local = &o_str[LOGIC_NAMESPACE.len()..];
+        if matches!(
+            o_local,
+            "ReasoningContract" | "ReasoningPreset" | "ClosureEntry"
+        ) && config_subjects.contains(&subject_str(&quad.subject))
+        {
+            continue;
+        }
         if subject_str(&quad.subject).starts_with(LOGIC_NAMESPACE) {
             continue;
         }
