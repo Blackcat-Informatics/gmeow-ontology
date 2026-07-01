@@ -1,25 +1,12 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: CC-BY-4.0
-
-@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
-@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix schema: <https://schema.org/> .
-@prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 
-# Term equivalences for the GraphRAG extension — GMEOW authoring source.
-# Maximal bridging BY REFERENCE (Principle 5). All QIDs curl-validated against
-# the Wikidata API on 2026-06-12.
-
-gmeow:mapsetGraphrag a gmeow:MappingSet ;
-    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" ;
-    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/graphrag" ;
-    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """GraphRAG pipeline alignments (consumer: Project Lillith).
-        The pipeline activities are prov:Activity by inheritance (provenance set); cells here cover the artifacts.
-        schema.org: the corpus is the working dataset surface (#58's Croissant profile builds on this cell).
-        Wikidata: hub identifiers for the technique family — several cells are relatedMatch because Wikidata names the TECHNIQUE (community detection, summarization) where GMEOW names the derived ARTIFACT.""" ;
-    gmeow:setTrailer "# REFUSED (Principle 5 — the genuine gap, #54): gmeow:Embedding / gmeow:VectorIndex have no external RDF vocabulary to cell against — model, dimensionality, metric, and index parameters have no agreed semantic representation anywhere. Recorded rather than papered over; revisit when a standard emerges.\n# REFUSED (Principle 5 — no stable RDF namespace): OpenLineage and MLflow describe runs/lineage as JSON specs, not RDF vocabularies; bridging is a projection concern (#58 Workflow Run Crate), not a term alignment.\n# REFUSED (Principle 5 — instance-level): Leiden/Louvain algorithm identities belong on the clustering Activity as instance data, not as TBox alignments.\n# REFUSED (Principles 5/9 — the description/entity boundary): ExtractedEntity aligns to NOTHING entity-shaped (schema:Thing included): a description is not the thing it describes, and a mapping-layer bridge would invite consumers to skip the curation act that promotes one." .
+# Term equivalences (authored in-slice; source of alignment linkage).
 
 gmeow:eqGr001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Corpus ;
@@ -36,7 +23,7 @@ gmeow:eqGr002 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:Dataset ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
-    gmeow:comment "the working retrieval dataset; the #58 Croissant/RO-Crate profiles project through this cell" ;
+    gmeow:comment "the working retrieval dataset; the Croissant/RO-Crate profiles project through this cell" ;
     gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
 
 gmeow:eqGr003 a gmeow:TermEquivalence ;
@@ -74,3 +61,12 @@ gmeow:eqGr006 a gmeow:TermEquivalence ;
     gmeow:confidence 0.6 ;
     gmeow:comment "Wikidata 'automatic summarization' — the technique; the artifact also bridges via its Summary parent; curl-validated 2026-06-12" ;
     gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
+
+gmeow:eqProperties080 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:corpusMember ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:distribution ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a dataset's corpus members are its schema:distribution DataDownloads" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
