@@ -33,6 +33,7 @@ pub mod content_store;
 // The static, allocation-free read view over an RDF dataset (purrdf P2, #836):
 // `DatasetView` + `GraphMatch`. PyO3-free, oxigraph-free — pure kernel.
 pub mod dataset_view;
+pub mod describe;
 pub mod diagnostic;
 // Native FnO (W3C Function Ontology) typed catalog model + serializer (#848).
 // PyO3-free; the `gmeow-slice` FnO emitter builds a `FnoCatalog` from the slice
@@ -73,6 +74,7 @@ pub use bundle::{
 };
 pub use content_store::{Bytes, ContentDigest, ContentStore, ContentStoreError};
 pub use dataset_view::{DatasetMut, DatasetView, GraphMatch, GraphMatchValue};
+pub use describe::{describe, Describer};
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 pub use fno::{
     to_ntriples as fno_to_ntriples, to_quads as fno_to_quads, FnFunction, FnImpl, FnMapping,

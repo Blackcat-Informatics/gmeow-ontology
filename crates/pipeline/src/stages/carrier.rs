@@ -22,8 +22,8 @@ use std::path::{Path, PathBuf};
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
 use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{
-    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset, RdfLiteral, RdfQuad, RdfTerm,
-    SerializeGraph,
+    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset, RdfDatasetBuilder, RdfLiteral,
+    RdfQuad, RdfTerm, SerializeGraph,
 };
 use rayon::prelude::*;
 
@@ -115,7 +115,16 @@ pub(crate) fn serialize_carrier_snapshot(
     // SAME native-reasoner verdict the docs-graph stage projects — derived once from
     // stage-reason's closure (hard-fails if absent, never a silent default).
     let reasoning_verdict = crate::stages::docs_render::reasoning_verdict_from_reason(upstream)?;
-    blobs.push(build_docs_archive(root, &reasoning_verdict)?);
+    // The docs model (with the reasoning verdict attached) + its build-time
+    // executable-docs data (the reasoned "try it" diffs and the offline SPARQL
+    // playground asset). This is a DOCS-ONLY side computation: its outputs ride ONLY as
+    // site blobs in the ontology-docs archive and never fold into `graph/reasoning` or
+    // any graph `verify`/`reason` consume.
+    let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
+        .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
+    docs_model.attach_reasoning(reasoning_verdict);
+    let docs_exec = build_executable_docs_data(root, upstream, carrier, &docs_model)?;
+    blobs.push(build_docs_archive(root, &docs_model, &docs_exec)?);
     blobs.push(build_reasoning_blob(upstream)?);
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
     // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
@@ -1035,29 +1044,28 @@ fn build_okf_blob_from_dataset(carrier: &gmeow_rdf::RdfDataset) -> Result<BlobRo
 /// on (`resolve_doc_language` returns these internal tags). The prefix comes from
 /// `Translations::internal_tag`, never the carrier key or a hardcoded string, so a
 /// new `.po` catalog is picked up with the correct tag automatically.
+// The docs model (with the reasoning verdict already attached by the caller) + the
+// executable-docs data are passed in — both are shared with `build_executable_docs_data`
+// so the model is discovered and the reasoner run once per snapshot.
 fn build_docs_archive(
     root: &Path,
-    verdict: &gmeow_docs::model::ReasoningVerdict,
+    model: &gmeow_docs::model::DocsModel,
+    exec: &gmeow_docs::ExecutableDocsData,
 ) -> Result<BlobRow, PipelineError> {
-    let mut model = gmeow_docs::model::DocsModel::discover(root)
-        .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
-    // Attach the native-reasoner verdict so every rendered term page carries its
-    // reasoning badge (the production render path never renders one without it).
-    model.attach_reasoning(verdict.clone());
     let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
         .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
 
     // Render each language's full site in parallel: the per-language renders are
-    // independent pure functions of the shared read-only model, and this is the
-    // dominant cost of the snapshot stage (which sits on the build DAG's serial
-    // critical path). Results are collected then sorted by member path, so the
+    // independent pure functions of the shared read-only model + executable data, and
+    // this is the dominant cost of the snapshot stage (which sits on the build DAG's
+    // serial critical path). Results are collected then sorted by member path, so the
     // archive is byte-identical regardless of completion order.
     let langs = gmeow_docs::available_languages(&translations);
     let mut members: Vec<(String, Vec<u8>)> = langs
         .par_iter()
         .flat_map_iter(|lang| {
-            let site = gmeow_docs::render_site_lang(&model, lang);
+            let site = gmeow_docs::render_site_lang_exec(model, lang, exec);
             let prefix = translations.internal_tag(lang);
             site.files
                 .into_iter()
@@ -1066,6 +1074,274 @@ fn build_docs_archive(
         .collect();
     members.sort_by(|a, b| a.0.cmp(&b.0));
     archive_blob(REP_ONTOLOGY_DOCS, &members)
+}
+
+/// Compute the build-time [`gmeow_docs::ExecutableDocsData`] the "live" docs surfaces
+/// need — from the carrier, the reasoning EDB, and the on-disk worked examples.
+///
+/// - **Try it:** reason ONCE over `(ontology EDB ∪ all example ABoxes)` and slice the
+///   resulting closure by each example's own subjects, diffed against the base
+///   ontology closure (`stage-reason`'s committed closure) and the example's asserted
+///   triples. Inferences not attributable to a single example (shared / Skolem
+///   witnesses) go to a `cross_example` bucket — never silently dropped.
+/// - **Playground asset:** `documentation graph ∪ reasoned ontology closure`, TriG.
+/// - **Export handle:** the asserted ontology EDB (for `gmeow_rdf::describe`).
+fn build_executable_docs_data(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &gmeow_rdf::RdfDataset,
+    model: &gmeow_docs::model::DocsModel,
+) -> Result<gmeow_docs::ExecutableDocsData, PipelineError> {
+    use std::collections::{BTreeMap as StdBTreeMap, BTreeSet, HashSet};
+
+    // The exact object-level EDB the reason stage reasons over — also the export handle.
+    let edb = assemble_object_level_edb(root, upstream)?;
+
+    // Parse every worked example's ABox; remember its subjects + asserted display lines.
+    struct ExampleAbox {
+        key: String,
+        subjects: BTreeSet<String>,
+        asserted: Vec<String>,
+        dataset: std::sync::Arc<gmeow_rdf::RdfDataset>,
+    }
+    let mut examples: Vec<ExampleAbox> = Vec::new();
+    for ex in &model.examples {
+        let ds = parse_example(&ex.logical_path, &ex.text)?;
+        let mut subjects = BTreeSet::new();
+        let mut asserted = Vec::new();
+        for q in ds.owned_quads() {
+            if let RdfTerm::Iri(iri) = &q.subject {
+                subjects.insert(iri.clone());
+            }
+            asserted.push(format_triple(&q));
+        }
+        asserted.sort();
+        asserted.dedup();
+        examples.push(ExampleAbox {
+            key: gmeow_docs::example_key(&ex.slice, &ex.logical_path),
+            subjects,
+            asserted,
+            dataset: ds,
+        });
+    }
+
+    // Reason ONCE over (EDB ∪ every example ABox). push_dataset standardizes blanks
+    // apart per merged dataset, so example blanks never collide.
+    let mut union = RdfDatasetBuilder::new();
+    union.push_dataset(edb.as_ref());
+    for ex in &examples {
+        union.push_dataset(ex.dataset.as_ref());
+    }
+    let union_ds = union
+        .freeze()
+        .map_err(|e| stage_err(&format!("freeze try-it union EDB: {e}")))?;
+    let reasoned = crate::stages::reason::reason_over_dataset(union_ds.as_ref())?;
+    let union_closure = parse_dataset(reasoned.closure.as_bytes(), "text/turtle", None)
+        .map_err(|e| stage_err(&format!("try-it union closure parse: {e}")))?;
+
+    // The base ontology-only closure (already committed by the reason stage): subtract
+    // it so only EXAMPLE-INDUCED inferences remain (reuse, not a second authority).
+    let base_bytes = upstream
+        .get("stage-reason")
+        .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
+        .ok_or_else(|| stage_err("missing stage-reason inferred-closure artifact"))?;
+    let base_closure = parse_dataset(base_bytes, "text/turtle", None)
+        .map_err(|e| stage_err(&format!("base closure parse: {e}")))?;
+    let base_set: HashSet<String> = base_closure
+        .owned_quads()
+        .map(|q| format_triple(&q))
+        .collect();
+    let asserted_set: HashSet<String> = examples
+        .iter()
+        .flat_map(|e| e.asserted.iter().cloned())
+        .collect();
+
+    // Map each example subject to its example key (subjects are distinct across
+    // examples by construction — distinct example individuals).
+    let mut subject_to_example: StdBTreeMap<String, String> = StdBTreeMap::new();
+    for ex in &examples {
+        for s in &ex.subjects {
+            subject_to_example.insert(s.clone(), ex.key.clone());
+        }
+    }
+
+    // Attribute each example-induced inference to its example, else the cross bucket.
+    let mut per_example: StdBTreeMap<String, Vec<String>> = StdBTreeMap::new();
+    let mut cross_example: Vec<String> = Vec::new();
+    for q in union_closure.owned_quads() {
+        let line = format_triple(&q);
+        if base_set.contains(&line) || asserted_set.contains(&line) {
+            continue; // ontology-only inference or the example's own assertion.
+        }
+        let subject_iri = match &q.subject {
+            RdfTerm::Iri(iri) => Some(iri.clone()),
+            _ => None,
+        };
+        match subject_iri.and_then(|s| subject_to_example.get(&s).cloned()) {
+            Some(key) => per_example.entry(key).or_default().push(line),
+            None => cross_example.push(line),
+        }
+    }
+    cross_example.sort();
+    cross_example.dedup();
+
+    // Assemble the per-example asserted-vs-inferred diffs.
+    let mut example_inferences: StdBTreeMap<String, gmeow_docs::InferenceDiff> = StdBTreeMap::new();
+    for ex in &examples {
+        let mut inferred = per_example.remove(&ex.key).unwrap_or_default();
+        inferred.sort();
+        inferred.dedup();
+        let diff = gmeow_docs::InferenceDiff {
+            asserted: ex.asserted.clone(),
+            inferred,
+        };
+        if !diff.is_empty() {
+            example_inferences.insert(ex.key.clone(), diff);
+        }
+    }
+
+    // The playground asset: documentation graph ∪ the reasoned ontology closure,
+    // serialized to TriG. This is the "documentation + reasoned ontology" surface the
+    // playground queries AND the substrate term/slice `DESCRIBE` export reads — the
+    // closure carries the told-and-inferred ontology. The raw multi-graph EDB (with
+    // external imports and alignments) is deliberately EXCLUDED to keep the bundled
+    // asset bounded.
+    let playground_trig = build_playground_trig(carrier, &base_closure)?;
+
+    Ok(gmeow_docs::ExecutableDocsData {
+        example_inferences,
+        cross_example,
+        playground_trig,
+    })
+}
+
+/// Parse one worked example into a dataset, dispatching on its file extension —
+/// examples are authored in Turtle, but also JSON-LD-star and YAML-LD-star.
+fn parse_example(
+    logical_path: &str,
+    text: &str,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    let ext = logical_path
+        .rsplit('.')
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let media = match ext.as_str() {
+        "ttl" | "turtle" => "text/turtle",
+        "nt" | "ntriples" => "application/n-triples",
+        "nq" | "nquads" => "application/n-quads",
+        "trig" => "application/trig",
+        "rdf" | "xml" => "application/rdf+xml",
+        "jsonld" => {
+            return gmeow_rdf::native_codecs::jsonld::parse_jsonld(text.as_bytes())
+                .map_err(|e| stage_err(&format!("example jsonld parse {logical_path}: {e}")));
+        }
+        "yamlld" | "yaml" | "yml" => {
+            let json = gmeow_rdf::native_codecs::jsonld::yamlld_to_jsonld(text.as_bytes())
+                .map_err(|e| stage_err(&format!("example yamlld convert {logical_path}: {e}")))?;
+            return gmeow_rdf::native_codecs::jsonld::parse_jsonld(json.as_bytes())
+                .map_err(|e| stage_err(&format!("example yamlld parse {logical_path}: {e}")));
+        }
+        other => {
+            return Err(stage_err(&format!(
+                "example {logical_path}: unsupported format .{other}"
+            )))
+        }
+    };
+    parse_dataset(text.as_bytes(), media, None)
+        .map_err(|e| stage_err(&format!("example parse {logical_path}: {e}")))
+}
+
+/// Serialize `documentation graph ∪ reasoned closure` to TriG — the self-contained
+/// asset the offline SPARQL playground queries and the export `DESCRIBE` reads.
+fn build_playground_trig(
+    carrier: &gmeow_rdf::RdfDataset,
+    base_closure: &gmeow_rdf::RdfDataset,
+) -> Result<Vec<u8>, PipelineError> {
+    let mut pg = RdfDatasetBuilder::new();
+    // The documentation graph, routed back into its named graph.
+    let docs_graph = carrier.project_named_graph(GRAPH_DOCUMENTATION);
+    let docs_iri = RdfTerm::Iri(GRAPH_DOCUMENTATION.to_owned());
+    for q in docs_graph.owned_quads() {
+        let mut routed = q.clone();
+        routed.graph_name = Some(docs_iri.clone());
+        pg.push_owned_quad(&routed);
+    }
+    // The reasoned closure, routed into the reasoning graph.
+    let reasoning_iri = RdfTerm::Iri(gmeow_logic::result_rdf::GRAPH_REASONING.to_owned());
+    for q in base_closure.owned_quads() {
+        let mut routed = q.clone();
+        routed.graph_name = Some(reasoning_iri.clone());
+        pg.push_owned_quad(&routed);
+    }
+    let pg_ds = pg
+        .freeze()
+        .map_err(|e| stage_err(&format!("freeze playground dataset: {e}")))?;
+    serialize_dataset(&pg_ds, "application/trig", SerializeGraph::Dataset)
+        .map_err(|e| stage_err(&format!("serialize playground TriG: {e}")))
+}
+
+/// Format an owned quad's `(s, p, o)` as a compact, deterministic display line for the
+/// "try it" asserted-vs-inferred surfaces. The graph is dropped (these are triples).
+fn format_triple(q: &RdfQuad) -> String {
+    format!(
+        "{} {} {}",
+        term_display(&q.subject),
+        compact_iri(&q.predicate),
+        term_display(&q.object)
+    )
+}
+
+// The canonical prefix registry (generated from the ontology's prefix config,
+// longest-namespace-first). Shared verbatim with the LPG/JSON-LD projections rather
+// than hand-maintaining a second, divergent table for the try-it display lines.
+include!("lpg_prefixes.rs");
+
+/// A compact CURIE for a full IRI, or `<iri>` when no known prefix matches. Drawing
+/// from the full canonical registry means every external ontology GMEOW links to
+/// compacts on the try-it surface, not just the handful of core namespaces.
+fn compact_iri(iri: &str) -> String {
+    // `PREFIXES_BY_LEN` is longest-namespace-first, so the first namespace the IRI
+    // starts with is the most specific prefix.
+    for (prefix, ns) in PREFIXES_BY_LEN {
+        if let Some(local) = iri.strip_prefix(ns) {
+            // Only compact when the local part is a simple name (no slash), so a
+            // nested-path IRI is never mangled into a misleading CURIE.
+            if !local.contains('/') {
+                return format!("{prefix}:{local}");
+            }
+        }
+    }
+    format!("<{iri}>")
+}
+
+/// A compact display form for a term (IRI as CURIE, literal with datatype/lang, blank).
+fn term_display(term: &RdfTerm) -> String {
+    match term {
+        RdfTerm::Iri(iri) => compact_iri(iri),
+        RdfTerm::BlankNode(label) => format!("_:{label}"),
+        RdfTerm::Literal(lit) => format_literal(lit),
+        RdfTerm::Triple(t) => format!(
+            "<< {} {} {} >>",
+            term_display(&t.subject),
+            compact_iri(&t.predicate),
+            term_display(&t.object)
+        ),
+    }
+}
+
+/// A Turtle-ish display form for a literal.
+fn format_literal(lit: &RdfLiteral) -> String {
+    let lex = lit.lexical_form.replace('"', "\\\"");
+    if let Some(lang) = &lit.language {
+        return format!("\"{lex}\"@{lang}");
+    }
+    match &lit.datatype {
+        Some(dt) if dt != "http://www.w3.org/2001/XMLSchema#string" => {
+            format!("\"{lex}\"^^{}", compact_iri(dt))
+        }
+        _ => format!("\"{lex}\""),
+    }
 }
 
 /// Every `*.<ext>` directly under `dir`, sorted by path (empty if the dir is absent).
@@ -1296,10 +1572,14 @@ impl Stage for SnapshotStage {
         // authored quad carries ≥1 stage-origin (#1132 C9). v14 folds the byte-exact
         // generated metadata, statement, reasoning, and preservation projections into
         // REP_GENERATED so the superset gate can reconstruct every committed
-        // generated file without re-reading disk. v15 folds the CLIF projection
+        // generated file without re-reading disk.
+        // v15 embeds the executable-docs surfaces in the ontology-docs site — the
+        // offline SPARQL playground asset and the reasoner "try it"
+        // asserted-vs-inferred diffs (a docs-only side computation that never folds
+        // into the reasoned production graphs) — and folds the CLIF projection
         // (generated/cl/gmeow.clif) into REP_GENERATED as a committed byte projection
         // (a non-RDF text dialect with generated comments / section markers).
-        "snapshot.v15-clif-projection"
+        "snapshot.v15-executable-docs-and-clif"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -2477,11 +2757,13 @@ mod ustar_tests {
 
     #[test]
     fn build_docs_archive_packs_the_rendered_site() {
-        let blob = build_docs_archive(
-            &repo_root(),
-            &gmeow_docs::model::ReasoningVerdict::default(),
-        )
-        .expect("docs archive");
+        // The archive packing is exercised with a model-only render (empty executable
+        // data): the reasoned "try it" / playground surfaces need a full pipeline run,
+        // covered by the regenerate gate, not this structural packing test.
+        let root = repo_root();
+        let model = gmeow_docs::model::DocsModel::discover(&root).expect("docs model");
+        let blob = build_docs_archive(&root, &model, &gmeow_docs::ExecutableDocsData::default())
+            .expect("docs archive");
         assert_eq!(blob.rep, REP_ONTOLOGY_DOCS);
         assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
 
