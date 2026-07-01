@@ -845,6 +845,27 @@ const CONCURRENCY_CONTROL_PROTOCOLS: &[&str] = &[
     TIMESTAMP_ORDERING,
     OPTIMISTIC_VALIDATION,
 ];
+// Isolation-level-adequacy surface local names: the declared guarantee strength + verdict.
+const DECLARED_ISOLATION_LEVEL: &str = "declaredIsolationLevel";
+const ISOLATION_LEVEL_ADEQUACY: &str = "isolationLevelAdequacy";
+const ISOLATION_INADEQUACY_REASON: &str = "isolationInadequacyReason";
+// The closed set of isolation-level individuals (module.ttl). The concurrent evaluator realizes
+// snapshot isolation, so every level up to SNAPSHOT is met by construction; SERIALIZABLE and
+// OPACITY are met only when the schedule is conflict-serializable.
+const READ_UNCOMMITTED_ISOLATION: &str = "ReadUncommittedIsolation";
+const READ_COMMITTED_ISOLATION: &str = "ReadCommittedIsolation";
+const REPEATABLE_READ_ISOLATION: &str = "RepeatableReadIsolation";
+const SNAPSHOT_ISOLATION: &str = "SnapshotIsolation";
+const SERIALIZABLE_ISOLATION: &str = "SerializableIsolation";
+const OPACITY_ISOLATION: &str = "OpacityIsolation";
+const ISOLATION_LEVELS: &[&str] = &[
+    READ_UNCOMMITTED_ISOLATION,
+    READ_COMMITTED_ISOLATION,
+    REPEATABLE_READ_ISOLATION,
+    SNAPSHOT_ISOLATION,
+    SERIALIZABLE_ISOLATION,
+    OPACITY_ISOLATION,
+];
 
 /// The `xsd:boolean` N3 literal form.
 fn xsd_bool(v: bool) -> String {
@@ -1389,18 +1410,24 @@ fn classify_view_serializability(
     })
 }
 
-/// The concurrency-control protocol a program `root` DECLARES, resolved
-/// `root --logic:executedUnderContract--> contract --logic:declaredProtocol--> protocol`.
+/// Resolve a closed-set value a program `root` declares on its governing contract:
+/// `root --logic:executedUnderContract--> contract --logic:<prop>--> value`, validating that
+/// `value`'s local name is in `closed_set`.
 ///
-/// Returns `None` when no protocol is declared (no governing contract, or a contract with no
-/// `logic:declaredProtocol`) — a run that makes no protocol claim, verified against nothing.
+/// Returns `None` when nothing is declared (no governing contract, or a contract without the
+/// property) — a run that makes no such claim. `what` names the expected value kind for errors.
 ///
 /// # Errors
 ///
 /// A MALFORMED declaration is a HARD ERROR: more than one governing contract, more than one
-/// `logic:declaredProtocol`, a non-IRI value, or a protocol IRI outside the closed set
-/// [`CONCURRENCY_CONTROL_PROTOCOLS`].
-fn root_declared_protocol(facts: &WorldFacts, root: &str) -> Result<Option<String>, String> {
+/// value, a non-IRI value, or a value whose local name is outside `closed_set`.
+fn root_contract_value(
+    facts: &WorldFacts,
+    root: &str,
+    prop: &str,
+    closed_set: &[&str],
+    what: &str,
+) -> Result<Option<String>, String> {
     let contracts = facts.objects(root, &logic(EXECUTED_UNDER_CONTRACT));
     let contract = match contracts.len() {
         0 => return Ok(None),
@@ -1411,31 +1438,131 @@ fn root_declared_protocol(facts: &WorldFacts, root: &str) -> Result<Option<Strin
             ))
         }
     };
-    let protocols = facts.objects(contract, &logic(DECLARED_PROTOCOL));
-    match protocols.len() {
+    let values = facts.objects(contract, &logic(prop));
+    match values.len() {
         0 => {
-            if let Some(value) = facts.object_n3(contract, &logic(DECLARED_PROTOCOL)) {
+            if let Some(value) = facts.object_n3(contract, &logic(prop)) {
                 return Err(format!(
-                    "logic:ReasoningContract {contract:?} names a non-IRI logic:declaredProtocol value {value:?} (expected a logic:ConcurrencyControlProtocol individual)"
+                    "logic:ReasoningContract {contract:?} names a non-IRI logic:{prop} value {value:?} (expected {what})"
                 ));
             }
             Ok(None)
         }
         1 => {
-            let protocol = protocols[0];
-            match protocol.strip_prefix(LOGIC_NAMESPACE) {
-                Some(local) if CONCURRENCY_CONTROL_PROTOCOLS.contains(&local) => {
-                    Ok(Some(protocol.to_owned()))
-                }
+            let value = values[0];
+            match value.strip_prefix(LOGIC_NAMESPACE) {
+                Some(local) if closed_set.contains(&local) => Ok(Some(value.to_owned())),
                 _ => Err(format!(
-                    "logic:ReasoningContract {contract:?} names an unknown logic:declaredProtocol {protocol:?} (expected one of the closed concurrency-control-protocol set)"
+                    "logic:ReasoningContract {contract:?} names an unknown logic:{prop} {value:?} (expected {what} from the closed set)"
                 )),
             }
         }
         n => Err(format!(
-            "logic:ReasoningContract {contract:?} has {n} logic:declaredProtocol values (at most one required)"
+            "logic:ReasoningContract {contract:?} has {n} logic:{prop} values (at most one required)"
         )),
     }
+}
+
+/// The concurrency-control protocol a program `root` DECLARES (`logic:declaredProtocol`), or
+/// `None` when it declares none. Hard-fails on a malformed declaration ([`root_contract_value`]).
+fn root_declared_protocol(facts: &WorldFacts, root: &str) -> Result<Option<String>, String> {
+    root_contract_value(
+        facts,
+        root,
+        DECLARED_PROTOCOL,
+        CONCURRENCY_CONTROL_PROTOCOLS,
+        "a logic:ConcurrencyControlProtocol individual",
+    )
+}
+
+/// The isolation-level guarantee a program `root` DECLARES (`logic:declaredIsolationLevel`), or
+/// `None` when it declares none. Hard-fails on a malformed declaration ([`root_contract_value`]).
+fn root_declared_isolation_level(facts: &WorldFacts, root: &str) -> Result<Option<String>, String> {
+    root_contract_value(
+        facts,
+        root,
+        DECLARED_ISOLATION_LEVEL,
+        ISOLATION_LEVELS,
+        "a logic:IsolationLevel individual",
+    )
+}
+
+/// Classify whether the witnessed schedule MEETS the isolation-level strength the run DECLARES
+/// (`logic:declaredIsolationLevel`), and emit the verdict (`logic:isolationLevelAdequacy` + a
+/// `logic:isolationInadequacyReason` when inadequate). Returns an EMPTY vec when no level is
+/// declared.
+///
+/// The concurrent evaluator realizes SNAPSHOT ISOLATION (each leg reads a consistent start
+/// snapshot and writes independently), so every level up to and including snapshot is met by
+/// construction; serializable and opacity are met iff the schedule is conflict-serializable —
+/// a write-skew cycle (which snapshot admits) is adequate for snapshot yet inadequate for
+/// serializability. P12: a per-schedule classification over the already-derived conflict verdict.
+///
+/// # Errors
+///
+/// Propagates a malformed-declaration hard-fail from [`root_declared_isolation_level`].
+#[allow(clippy::too_many_arguments)]
+fn check_isolation_adequacy(
+    facts: &WorldFacts,
+    world: &str,
+    history_iri: &str,
+    root: &str,
+    conflict_serializable: bool,
+    source: &str,
+    deriv: &str,
+) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+    use crate::teleology::TeleologyQuad;
+
+    let Some(level) = root_declared_isolation_level(facts, root)? else {
+        return Ok(Vec::new());
+    };
+    let local = level
+        .strip_prefix(LOGIC_NAMESPACE)
+        .expect("declared isolation level is a logic: IRI");
+
+    let (adequate, reason): (bool, Option<String>) = match local {
+        // The engine realizes snapshot isolation, which is at least as strong as these.
+        READ_UNCOMMITTED_ISOLATION
+        | READ_COMMITTED_ISOLATION
+        | REPEATABLE_READ_ISOLATION
+        | SNAPSHOT_ISOLATION => (true, None),
+        // Stronger than snapshot: met iff conflict-serializable (no write-skew / cycle).
+        SERIALIZABLE_ISOLATION | OPACITY_ISOLATION => {
+            if conflict_serializable {
+                (true, None)
+            } else {
+                (
+                    false,
+                    Some("the witnessed schedule is not conflict-serializable (a write-skew or lost-update cycle), so it does not meet the declared serializable/opacity strength".to_owned()),
+                )
+            }
+        }
+        other => {
+            // root_declared_isolation_level already gates the closed set; be total.
+            return Err(format!("unhandled isolation level {other:?}"));
+        }
+    };
+
+    let mut out = Vec::new();
+    let mut push = |predicate: String, object: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: history_iri.to_owned(),
+            predicate,
+            object,
+            rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+            source_quad_ids: vec![source.to_owned()],
+            derivation_id: deriv.to_owned(),
+        });
+    };
+    push(logic(ISOLATION_LEVEL_ADEQUACY), xsd_bool(adequate));
+    if let Some(reason) = reason {
+        push(
+            logic(ISOLATION_INADEQUACY_REASON),
+            format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+        );
+    }
+    Ok(out)
 }
 
 /// The integer value of an N3 literal like `"5"^^<…#integer>` (the text between the first
@@ -1825,6 +1952,19 @@ fn emit_concurrent_history(
         right_tx,
         &r.steps,
         &edges,
+        source,
+        deriv,
+    )?);
+
+    // Classify whether the witnessed schedule MEETS the isolation-level strength the run
+    // declares (if any). The engine realizes snapshot isolation, so serializable/opacity are the
+    // only levels a schedule can fail — and only by not being conflict-serializable.
+    out.extend(check_isolation_adequacy(
+        facts,
+        world,
+        &history_iri,
+        root,
+        conflict_serializable,
         source,
         deriv,
     )?);
