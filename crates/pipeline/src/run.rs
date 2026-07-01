@@ -143,7 +143,11 @@ pub fn full_spec() -> PipelineSpec {
         ),
         st("stage-validate", "validate", &["stage-source-load"]),
         st("stage-conformance", "conformance", &[]),
-        st("stage-docs-render", "docs_render", &["stage-gts-compose"]),
+        st(
+            "stage-docs-render",
+            "docs_render",
+            &["stage-gts-compose", "stage-reason"],
+        ),
         st(
             "stage-snapshot",
             "snapshot",

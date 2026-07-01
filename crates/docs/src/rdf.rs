@@ -114,6 +114,27 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             &format!("<{}>", term.owner_slice),
             &mut lines,
         );
+        // Per-term native-reasoner status — projected ONLY when a verdict is
+        // attached (the production docs-graph stage consumes stage-reason), so the
+        // SPARQL surface never carries a fabricated satisfiability claim. A class
+        // is satisfiable unless proven unsatisfiable; a non-class is not-evaluated.
+        if let Some(verdict) = &model.reasoning {
+            let status = if term.category == crate::model::DocTermCategory::Class {
+                if verdict.unsatisfiable.contains(&term.iri) {
+                    "unsatisfiable"
+                } else {
+                    "satisfiable"
+                }
+            } else {
+                "not-evaluated"
+            };
+            triple(
+                &subject,
+                &format!("{GMEOW}docReasoningStatus"),
+                &literal(status),
+                &mut lines,
+            );
+        }
         annotate(
             &subject,
             &format!("Documentation entry: {}", term.curie),
@@ -355,6 +376,8 @@ mod tests {
             translations: crate::i18n::Translations::default(),
 
             ui_catalog: crate::i18n::UiCatalog::default(),
+            reasoning: None,
+            lang: String::new(),
         }
     }
 
@@ -405,6 +428,8 @@ mod tests {
             translations: crate::i18n::Translations::default(),
 
             ui_catalog: crate::i18n::UiCatalog::default(),
+            reasoning: None,
+            lang: String::new(),
         };
         assert_eq!(to_gmeow_rdf(&model), "");
     }
