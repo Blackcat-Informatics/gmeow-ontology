@@ -107,6 +107,7 @@ fn small_model() -> DocsModel {
         translations: Translations::default(),
         ui_catalog: UiCatalog::default(),
         reasoning: None,
+        lang: String::new(),
     }
 }
 

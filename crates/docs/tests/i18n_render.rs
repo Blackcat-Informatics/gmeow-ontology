@@ -95,6 +95,7 @@ fn bilingual_model() -> DocsModel {
         translations,
         ui_catalog: Default::default(),
         reasoning: None,
+        lang: String::new(),
     }
 }
 

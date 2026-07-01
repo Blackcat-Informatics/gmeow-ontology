@@ -103,6 +103,7 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
         translations: Default::default(),
         ui_catalog: Default::default(),
         reasoning: None,
+        lang: String::new(),
     }
 }
 
