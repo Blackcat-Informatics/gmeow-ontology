@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-validate-wasm"
+description = "wasm32 bindings for the repo-free GMEOW Tier-1 validator: validate authored RDF against a gmeow.gts bundle client-side (editor / browser / LLM client), returning JSON findings"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "validation", "shacl", "wasm", "knowledge-graph"]
+
+[lib]
+# cdylib for the wasm-bindgen build (the shipped npm/ESM artifact); rlib so the thin
+# binding logic still compiles + unit-tests on the native workspace gate
+# (`cargo nextest` / clippy --all-targets). The `#[wasm_bindgen]` shims compile on
+# native too; the real wasm + JS surface is exercised by the Node round-trip lane
+# (`crates/validate-wasm/js/tests`, run against the wasm-bindgen output).
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The wasm-clean Tier-1 validator core. Its default (non-`python`) build excludes the
+# native reasoner, rayon, ureq, and gmeow-slice (all `cfg(not(wasm32))`), so it
+# cross-compiles to wasm32; this crate calls only `data_validate::validate_json`.
+gmeow-validate = { path = "../validate" }
+# EXACT pin: the `wasm-bindgen` CLI that generates the JS bindings must match the
+# library version byte-for-byte or it refuses to run. `make wasm-pkg` and the CI Node
+# lane install the matching `wasm-bindgen-cli` version.
+wasm-bindgen = "=0.2.125"

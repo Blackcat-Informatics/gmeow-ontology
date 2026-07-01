@@ -2085,6 +2085,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-validate-wasm"
+version = "0.1.0"
+dependencies = [
+ "gmeow-validate",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gmeow-xsd"
 version = "0.1.0"
 dependencies = [
