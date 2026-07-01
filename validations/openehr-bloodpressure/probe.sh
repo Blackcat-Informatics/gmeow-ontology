@@ -23,6 +23,12 @@ FIXTURES="$HERE/../../docs/APPLIED_CATEGORY_THEORY/fixtures"
 OPT="$HERE/Blutdruck.opt"
 RESULT="$HERE/result.txt"
 
+# Per-run temp files for the CDR HTTP response bodies — mktemp (never a predictable
+# /tmp path, which is unsafe on a multi-user host) with a trap to clean up on exit.
+OPT_RESP="$(mktemp)"
+COMP_RESP="$(mktemp)"
+trap 'rm -f "$OPT_RESP" "$COMP_RESP"' EXIT
+
 BASE="${EHRBASE_URL:-http://localhost:8080/ehrbase}"
 ADMIN_USER="${EHRBASE_ADMIN_USER:-ehrbase-admin}"
 ADMIN_PASS="${EHRBASE_ADMIN_PASS:-EvenMoreSecretPassword}"
@@ -48,13 +54,13 @@ done
 
 # 2. Upload the Blutdruck OPT (idempotent — SYSTEM_ALLOWTEMPLATEOVERWRITE=true).
 echo "uploading Blutdruck.opt ..."
-opt_code=$(curl -s -o /tmp/opt_resp.txt -w "%{http_code}" "${AUTH[@]}" \
+opt_code=$(curl -s -o "$OPT_RESP" -w "%{http_code}" "${AUTH[@]}" \
   -H "Content-Type: application/xml" -H "Accept: application/xml" \
   -X POST "$API/definition/template/adl1.4" --data-binary "@$OPT")
 case "$opt_code" in
   200|201|204) echo "OPT accepted ($opt_code)." ;;
   409) echo "OPT already present ($opt_code) — continuing." ;;
-  *) fail_boundary "opt-upload: Blutdruck.opt rejected (HTTP $opt_code): $(cat /tmp/opt_resp.txt)" ;;
+  *) fail_boundary "opt-upload: Blutdruck.opt rejected (HTTP $opt_code): $(cat "$OPT_RESP")" ;;
 esac
 
 # 3. Create an EHR to hold the compositions. The ehr_id is the last path segment of the
@@ -69,14 +75,14 @@ echo "EHR created: $ehr_id"
 post_composition() {
   local label="$1" file="$2"
   local code
-  code=$(curl -s -o /tmp/comp_resp.txt -w "%{http_code}" "${AUTH[@]}" \
+  code=$(curl -s -o "$COMP_RESP" -w "%{http_code}" "${AUTH[@]}" \
     -H "Content-Type: application/json" -H "Accept: application/json" \
     -H "Prefer: return=representation" \
     -X POST "$API/ehr/$ehr_id/composition" --data-binary "@$file")
   if [ "$code" = "201" ] || [ "$code" = "200" ]; then
     echo "  $label: accepted ($code)"
   else
-    fail_boundary "$label: composition rejected (HTTP $code): $(head -c 800 /tmp/comp_resp.txt)"
+    fail_boundary "$label: composition rejected (HTTP $code): $(head -c 800 "$COMP_RESP")"
   fi
 }
 
