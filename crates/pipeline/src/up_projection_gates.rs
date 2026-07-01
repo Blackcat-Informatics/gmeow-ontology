@@ -3,7 +3,7 @@
 
 //! Re-derive the up-projection invertibility audit through the **correspondence gates**.
 //!
-//! The legacy audit ([`crate::up_projection::run_audit_nt`]) assigned each external target
+//! The legacy audit ([`crate::up_projection_corpus::run_audit_nt`]) assigned each external target
 //! term a heuristic bucket (`clean | liftable-with-claim | hard-mint | down-only | GAP`) and
 //! reported the raw count of `clean + liftable-with-claim` as the "liftable" headline. That
 //! number was never *verified*: nothing checked that a term's reverse (up-lift) rule actually
@@ -53,7 +53,9 @@ use gmeow_logic_compile::projections::correspondence_gates::{
     evaluate_gates, liftability, GateReport,
 };
 
-use crate::up_projection::{canon_qname, edoalpath_pairs, prefix, run_audit_nt, AuditReport};
+use crate::up_projection_corpus::{
+    canon_qname, edoalpath_pairs, prefix, run_audit_nt, AuditReport,
+};
 
 /// The `logic:` namespace the minted audit-correspondence and leg IRIs live under.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";

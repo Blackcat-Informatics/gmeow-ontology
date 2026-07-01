@@ -11,7 +11,7 @@ use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_gates::evaluate_gates;
 
 use super::*;
-use crate::up_projection::{AuditReport, FileBaseline};
+use crate::up_projection_corpus::{AuditReport, FileBaseline};
 
 // --------------------------------------------------------------------------- //
 // classify_term — the evidence → shape policy (isolated, no gates)
