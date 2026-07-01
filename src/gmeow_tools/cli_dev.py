@@ -274,16 +274,16 @@ def _fanout_native(
             timings_json,
             {
                 "command": "fanout",
-                "produced": report.get("produced"),
-                "written": report.get("written"),
-                "skipped": report.get("skipped"),
+                "produced": report["produced"],
+                "written": report["written"],
+                "skipped": report["skipped"],
             },
         )
 
     console.print(
         f"[green]✓ pipeline fanout: produced {report['produced']}, "
-        f"written {report.get('written', 0)}, "
-        f"unchanged {report.get('skipped', 0)}[/green]"
+        f"written {report['written']}, "
+        f"unchanged {report['skipped']}[/green]"
     )
 
 
