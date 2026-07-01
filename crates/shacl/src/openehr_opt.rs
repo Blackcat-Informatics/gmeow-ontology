@@ -215,6 +215,112 @@ pub fn read_opt_quantity_constraint(
     })
 }
 
+/// Walks an OPT document and extracts EVERY constraint it recognizes — `C_DV_QUANTITY`
+/// magnitude intervals, `C_STRING` regex patterns, and `C_CODE_PHRASE` coded value sets — as
+/// pure [`OptConstraintIr`] values in document order. Shape/class IRIs are minted
+/// deterministically from `base_iri` + a document-order index, so the same OPT always yields
+/// the same shapes. Hard-fails on a recognized-but-malformed constraint node (no silent skip)
+/// and on an OPT with no recognized constraint at all.
+///
+/// This is the general native-parser surface: `read_opt_quantity_constraint` targets one
+/// at-coded quantity ELEMENT (what the production pipeline lifts, the meaningful data-value
+/// constraints); this walker proves the reader handles the other ADL2 constraint node kinds
+/// present in a real OPT.
+pub fn read_all_opt_constraints(
+    opt_xml: &str,
+    base_iri: &str,
+) -> Result<Vec<OptConstraintIr>, OptError> {
+    let doc = roxmltree::Document::parse(opt_xml)
+        .map_err(|e| opt_err(format!("XML parse failure: {e}")))?;
+    let mut out = Vec::new();
+    let mut idx = 0usize;
+    for node in doc.descendants().filter(|n| n.is_element()) {
+        let kind = match xsi_type(node) {
+            Some("C_DV_QUANTITY") => {
+                let (interval, units) = magnitude_from_quantity(node, idx)?;
+                Some(OptConstraintKind::Quantity {
+                    magnitude_path: format!("{base_iri}magnitude"),
+                    interval,
+                    units_path: format!("{base_iri}units"),
+                    units,
+                })
+            }
+            Some("C_STRING") => {
+                child_element(node, "pattern")
+                    .and_then(|p| p.text())
+                    .map(|regex| OptConstraintKind::StringPattern {
+                        path: format!("{base_iri}text"),
+                        regex: regex.trim().to_owned(),
+                        flags: None,
+                    })
+            }
+            Some("C_CODE_PHRASE") => code_phrase_value_set(node, base_iri),
+            _ => None,
+        };
+        if let Some(kind) = kind {
+            out.push(OptConstraintIr {
+                shape_iri: format!("{base_iri}shape-{idx}"),
+                target_class: format!("{base_iri}Constraint-{idx}"),
+                kind,
+            });
+            idx += 1;
+        }
+    }
+    if out.is_empty() {
+        return Err(opt_err(
+            "no C_DV_QUANTITY / C_STRING / C_CODE_PHRASE constraint found in OPT",
+        ));
+    }
+    Ok(out)
+}
+
+/// Extract the magnitude interval + units from a `C_DV_QUANTITY` node's `<list><magnitude>`.
+fn magnitude_from_quantity(
+    node: roxmltree::Node,
+    idx: usize,
+) -> Result<(OptInterval, String), OptError> {
+    let list = child_element(node, "list")
+        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: no <list>")))?;
+    let magnitude = child_element(list, "magnitude")
+        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: <list> has no <magnitude>")))?;
+    let units = child_element(list, "units")
+        .and_then(|u| u.text())
+        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: no <units>")))?
+        .to_owned();
+    Ok((
+        OptInterval {
+            lower: Some(element_text_f64(magnitude, "lower")?),
+            upper: Some(element_text_f64(magnitude, "upper")?),
+            lower_included: element_text_bool(magnitude, "lower_included")?,
+            upper_included: element_text_bool(magnitude, "upper_included")?,
+        },
+        units,
+    ))
+}
+
+/// Extract a coded value set (`<code_list>` codes qualified by `<terminology_id><value>`)
+/// from a `C_CODE_PHRASE` node. Returns `None` when the node carries no `<code_list>`.
+fn code_phrase_value_set(node: roxmltree::Node, base_iri: &str) -> Option<OptConstraintKind> {
+    let terminology = child_element(node, "terminology_id")
+        .and_then(|t| child_element(t, "value"))
+        .and_then(|v| v.text())
+        .unwrap_or("unknown")
+        .trim()
+        .to_owned();
+    let codes: Vec<String> = node
+        .children()
+        .filter(|c| c.is_element() && c.tag_name().name() == "code_list")
+        .filter_map(|c| c.text())
+        .map(|s| format!("{base_iri}terminology/{terminology}/{}", s.trim()))
+        .collect();
+    if codes.is_empty() {
+        return None;
+    }
+    Some(OptConstraintKind::ValueSet {
+        path: format!("{base_iri}definingCode"),
+        codes,
+    })
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -223,5 +329,76 @@ mod tests {
     fn missing_node_id_hard_fails() {
         let err = read_magnitude_interval("<template></template>", "at9999").unwrap_err();
         assert!(err.to_string().contains("at9999"));
+    }
+}
+
+#[cfg(test)]
+mod walker_tests {
+    use super::*;
+    use gmeow_logic_compile::opt_lift::{lift_opt_to_validation_shape, recover_opt_from_shape};
+    use std::path::PathBuf;
+
+    fn blutdruck() -> String {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("../../validations/openehr-bloodpressure/Blutdruck.opt");
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    }
+
+    const BASE: &str = "https://gmeow.example/openehr/bp/";
+
+    #[test]
+    fn walker_extracts_quantity_string_and_coded_families_from_the_real_opt() {
+        let all = read_all_opt_constraints(&blutdruck(), BASE).expect("walk Blutdruck.opt");
+        // The vendored OPT has 2 C_DV_QUANTITY magnitudes, several C_STRING patterns, and
+        // a C_CODE_PHRASE code list — the walker must find all three families.
+        let has_quantity = all
+            .iter()
+            .any(|c| matches!(c.kind, OptConstraintKind::Quantity { .. }));
+        let has_pattern = all
+            .iter()
+            .any(|c| matches!(c.kind, OptConstraintKind::StringPattern { .. }));
+        let has_value_set = all
+            .iter()
+            .any(|c| matches!(c.kind, OptConstraintKind::ValueSet { .. }));
+        assert!(
+            has_quantity,
+            "no quantity extracted from {} constraints",
+            all.len()
+        );
+        assert!(
+            has_pattern,
+            "no string pattern extracted from {} constraints",
+            all.len()
+        );
+        assert!(
+            has_value_set,
+            "no coded value set extracted from {} constraints",
+            all.len()
+        );
+    }
+
+    #[test]
+    fn every_walked_constraint_round_trips_u_after_d_is_identity() {
+        // The section/retraction law holds on EVERY constraint the walker reads from real XML.
+        let all = read_all_opt_constraints(&blutdruck(), BASE).expect("walk");
+        assert!(
+            all.len() >= 3,
+            "expected several constraints, got {}",
+            all.len()
+        );
+        for c in &all {
+            let shape = lift_opt_to_validation_shape(c).expect("lift");
+            let recovered = recover_opt_from_shape(&shape).expect("recover");
+            assert_eq!(&recovered, c, "u∘d must be the identity on {c:?}");
+        }
+    }
+
+    #[test]
+    fn walker_is_deterministic_and_hard_fails_on_a_constraint_free_document() {
+        let a = read_all_opt_constraints(&blutdruck(), BASE).unwrap();
+        let b = read_all_opt_constraints(&blutdruck(), BASE).unwrap();
+        assert_eq!(a, b, "the walker must be deterministic in document order");
+        let err = read_all_opt_constraints("<template></template>", BASE).unwrap_err();
+        assert!(err.to_string().contains("no C_DV_QUANTITY"), "got: {err}");
     }
 }
