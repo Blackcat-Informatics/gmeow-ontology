@@ -334,7 +334,7 @@ mod tests {
         assert!(result.validate().is_ok());
     }
 
-    /// The W2 conformance case in executable form (mirrors the SHACL fixture
+    /// The DAG-profile conformance case in executable form (mirrors the SHACL fixture
     /// tests/conformance-fixtures/dag-strong-cyclic-plan.ttl): a strong-cyclic
     /// plan with a retry loop is valid canonically, but the SAME plan under the
     /// DAG-workflow profile resolves to `unsupported` with the offending back-edge

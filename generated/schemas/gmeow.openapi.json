@@ -13165,6 +13165,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:FreshnessGuard"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:FreshnessGuard"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:FreshnessGuard"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:GoalEvaluation"
                     },
                     {
@@ -13232,6 +13257,31 @@
             },
             "then": {
               "$ref": "#/$defs/logic:NonEntailmentObligation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "logic:NotificationWaitSchema"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:NotificationWaitSchema"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:NotificationWaitSchema"
             }
           },
           {
@@ -19981,6 +20031,94 @@
         ],
         "type": "object"
       },
+      "logic:FreshnessGuard": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:freshnessHorizon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:freshnessWindowEnd": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:freshnessWindowStart": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:guardsPrecondition": {}
+        },
+        "required": [
+          "logic:guardsPrecondition"
+        ],
+        "type": "object"
+      },
       "logic:GoalEvaluation": {
         "properties": {
           "@annotation": {
@@ -20285,6 +20423,43 @@
         "required": [
           "logic:obligationDischargeCondition",
           "logic:obligationForbiddenPredicate"
+        ],
+        "type": "object"
+      },
+      "logic:NotificationWaitSchema": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:awaitsSignal": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "logic:awaitsSignal"
         ],
         "type": "object"
       },

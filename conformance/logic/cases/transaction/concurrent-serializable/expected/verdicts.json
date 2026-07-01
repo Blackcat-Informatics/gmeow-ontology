@@ -1,6 +1,6 @@
 {
   "https://example.org/transaction/concurrent-serializable/world": {
-    "quads": 42,
+    "quads": 44,
     "status": "consistent"
   }
 }
