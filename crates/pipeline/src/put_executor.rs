@@ -4,9 +4,15 @@
 //! Native, lawful up-projection executor: the `put`-leg cutover.
 //!
 //! This module lifts external-vocabulary source triples to GMEOW by running each
-//! *lawful* alignment rule as a SPARQL `CONSTRUCT` — the "put leg" — through the
-//! native [`NativeSparqlEngine`]. It reproduces ONLY the lawful subset of the
-//! heuristic engine's per-edge lift:
+//! *gate-verified* alignment rule as a SPARQL `CONSTRUCT` — the "put leg" — through the
+//! native [`NativeSparqlEngine`]. The set of external terms it lifts, their orientation
+//! (direct vs inverse), and their gmeow target come SOLELY from the gate-derived audit's
+//! lift program ([`gate_verified_lift_program`]): the single source of truth that both this
+//! executor and the audit ledger consume. A term the audit RED-excludes (its reverse path
+//! does not invert its forward path) or leaves unsupported is NEVER lifted — it becomes
+//! honest residue, never a fact.
+//!
+//! Each surviving rule is one of:
 //!
 //! * a predicate/class **rename** (a lawful section) — [`LegPath::Step`];
 //! * an **inverse** rename — [`LegPath::Inverse`];
@@ -31,11 +37,13 @@ use gmeow_rdf::{RdfQuad, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult};
 use gmeow_sparql_eval::NativeSparqlEngine;
 
 use crate::up_projection_corpus::{
-    canon_qname, dump_nt, edoalpath_pairs, in_projection_ns, object_properties, sssom_clean_pairs,
-    sssom_closematch_pairs, structural_pairs, Graph, ADOPTED_PREDICATES, GM_ANNOTATION,
-    GM_ANN_PROPERTY, GM_ANN_VALUE, GM_CONFIDENCE, GM_MAPPED_FROM, GM_Q_OBJECT, GM_Q_OBJECT_LITERAL,
-    GM_Q_PREDICATE, GM_Q_SUBJECT, GM_STATEMENT_METADATA, NORMALIZED_PREDICATES, RDF_TYPE,
-    STATEMENT_METADATA_TERMS, XSD_DECIMAL,
+    canon_qname, dump_nt, in_projection_ns, object_properties, Graph, ADOPTED_PREDICATES,
+    GM_ANNOTATION, GM_ANN_PROPERTY, GM_ANN_VALUE, GM_CONFIDENCE, GM_MAPPED_FROM, GM_Q_OBJECT,
+    GM_Q_OBJECT_LITERAL, GM_Q_PREDICATE, GM_Q_SUBJECT, GM_STATEMENT_METADATA,
+    NORMALIZED_PREDICATES, RDF_TYPE, STATEMENT_METADATA_TERMS, XSD_DECIMAL,
+};
+use crate::up_projection_gates::{
+    gate_verified_lift_program, LiftKind, LiftProgram, LiftRule, Orientation,
 };
 
 /// The result of executing every lawful put leg over a source graph.
@@ -53,178 +61,62 @@ pub struct LiftedReport {
     pub residue: Vec<String>,
 }
 
-/// The lawful rule sets — the lawful subset of the old `build_lift_map`.
+/// The gate-verified rule sets the executor lifts — a projection of the shared
+/// [`LiftProgram`] into the query-builder's shape, plus the NON-gated structural constants
+/// (`ADOPTED_PREDICATES`, `NORMALIZED_PREDICATES`, `STATEMENT_METADATA_TERMS`) that are
+/// identity/normalization passthroughs, not external renames, and are never gate-filtered.
 struct LawfulRules {
-    /// external term -> gmeow term (predicate/class rename).
+    /// external term -> gmeow term (predicate/class **direct** rename → FACT).
     rules: BTreeMap<String, String>,
-    /// external term -> gmeow term (inverse rename; IRI/blank objects only).
+    /// external term -> gmeow term (**inverse** rename; IRI/blank objects only → FACT).
     inverse_rules: BTreeMap<String, String>,
-    /// external term -> (gmeow term, confidence lexeme) (lossy reified claim).
+    /// external term -> (gmeow term, confidence lexeme) (lossy reified CLAIM).
     claim_rules: BTreeMap<String, (String, String)>,
     /// GMEOW IRIs typed `owl:ObjectProperty` — a literal object on one is a claim.
     object_properties: BTreeSet<String>,
-    /// Count of non-unique (ambiguous) targets dropped rather than emitted.
+    /// Count of non-unique (ambiguous) targets dropped rather than emitted (from the program).
     ambiguous_dropped: usize,
+    /// Count of terms the correspondence gate RED-excluded (non-inverting reverse paths),
+    /// surfaced as residue rather than lifted (from the program).
+    gate_excluded: usize,
 }
 
-/// Execute every lawful put leg over `source_nt`, returning the lifted GMEOW graph
-/// and the honest residue ledger. An empty source graph is a HARD error.
-pub fn execute_put_legs(
-    source_nt: &str,
-    sssom_texts: &[String],
-    projection_ttls: &[String],
-    ontology_nt: &str,
-) -> Result<LiftedReport, String> {
-    let source = Graph::parse(source_nt.as_bytes(), "application/n-triples")?;
-    if source.is_empty() {
-        return Err("execute_put_legs: source graph is empty".to_owned());
-    }
-
-    let lawful = build_lawful_rules(sssom_texts, projection_ttls, ontology_nt)?;
-    let value_rule_dropped =
-        crate::up_projection_corpus::value_mapped_pairs(projection_ttls)?.len();
-
-    let engine = NativeSparqlEngine::new();
-    // A single deduped, ordered fact+claim quad set so output is deterministic.
-    let mut facts: BTreeSet<QuadKey> = BTreeSet::new();
-    let mut fact_quads: Vec<RdfQuad> = Vec::new();
-    let mut claim_quads: Vec<RdfQuad> = Vec::new();
-    let mut claim_cells: BTreeSet<String> = BTreeSet::new();
-
-    // Rename rules (predicate/class + gmeow-passthrough) and inverse rules produce FACTS.
-    for query in fact_queries(&lawful) {
-        for quad in run_construct(&engine, &source.dataset, &query)? {
-            let key = quad_key(&quad);
-            if facts.insert(key) {
-                fact_quads.push(quad);
-            }
-        }
-    }
-
-    // Claim rules produce reified CLAIM cells; count distinct `?cell a gm:StatementMetadata`.
-    // Each `engine.query()` builds an independent dataset, so two claim queries can mint the
-    // SAME template blank label (e.g. both `_:b0`); merging them would collapse two distinct
-    // cells into one corrupt node. Claim CONSTRUCTs filter `isIRI(?s)` and never bind a blank
-    // object, so EVERY blank in a claim result is a minted template blank — safe to rescope to
-    // a per-query-unique namespace before dedup/merge. (Fact outputs are NOT rescoped: they can
-    // carry SOURCE blanks whose identity must persist across queries; fact templates mint none.)
-    let mut seen_claim: BTreeSet<QuadKey> = BTreeSet::new();
-    for (idx, query) in claim_queries(&lawful).into_iter().enumerate() {
-        for quad in run_construct(&engine, &source.dataset, &query)? {
-            let quad = rescope_blanks(quad, idx);
-            let key = quad_key(&quad);
-            if !seen_claim.insert(key) {
-                continue;
-            }
-            if quad.predicate == RDF_TYPE
-                && matches!(&quad.object, RdfTerm::Iri(n) if n == GM_STATEMENT_METADATA)
-            {
-                if let RdfTerm::BlankNode(cell) = &quad.subject {
-                    claim_cells.insert(cell.clone());
-                }
-            }
-            claim_quads.push(quad);
-        }
-    }
-
-    // Gap terms: projection-namespace source terms with no rule of any kind.
-    let gap_terms = compute_gaps(&source.quads, &lawful);
-
-    let mut all_quads = fact_quads;
-    all_quads.extend(claim_quads);
-    let graph_nt = dump_nt(&all_quads)?;
-
-    let residue = build_residue(value_rule_dropped, lawful.ambiguous_dropped);
-
-    Ok(LiftedReport {
-        graph_nt,
-        lifted: facts.len(),
-        claimed: claim_cells.len(),
-        gap_terms,
-        residue,
-    })
-}
-
-/// Reproduce the LAWFUL parts of the old `build_lift_map`, dropping `value_rules`
-/// and the `ambiguous` map (both become residue, not rules).
-fn build_lawful_rules(
-    sssom_texts: &[String],
-    projection_ttls: &[String],
+/// Project the shared gate-verified [`LiftProgram`] into the executor's query-builder rule sets,
+/// then seed the NON-gated structural constants. Orientation and gate-filtering are ENTIRELY the
+/// program's responsibility (single source of truth); this function only re-shapes the surviving
+/// rules and adds the identity/normalization passthroughs.
+fn lawful_rules_from_program(
+    program: &LiftProgram,
     ontology_nt: &str,
 ) -> Result<LawfulRules, String> {
-    let (direct_edoalpath, inverse_edoalpath) = edoalpath_pairs(projection_ttls)?;
-    let identity = sssom_clean_pairs(sssom_texts)?;
-    let (exact_struct, generalizing_struct) = structural_pairs(projection_ttls)?;
-
-    // projection = union of exact_struct and direct_edoalpath (target -> set<gmeow>).
-    let mut projection: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for layer in [&exact_struct, &direct_edoalpath] {
-        for (target, gmeows) in layer {
-            projection
-                .entry(target.clone())
-                .or_default()
-                .extend(gmeows.iter().cloned());
-        }
-    }
-
     let mut rules: BTreeMap<String, String> = BTreeMap::new();
-    let mut ambiguous_dropped = 0usize;
-    // Track ambiguous targets so downstream steps can skip them (mirrors the old
-    // `ambiguous` map's role as a guard) without emitting them as rules.
-    let mut ambiguous: BTreeSet<String> = BTreeSet::new();
-    let mut targets: BTreeSet<String> = identity.keys().cloned().collect();
-    targets.extend(projection.keys().cloned());
-    for target in targets {
-        let ids = identity.get(&target).cloned().unwrap_or_default();
-        if ids.len() == 1 {
-            rules.insert(target, ids.into_iter().next().expect("one identity"));
-        } else if ids.len() > 1 {
-            ambiguous.insert(target);
-            ambiguous_dropped += 1;
-        } else {
-            let projs = projection.get(&target).cloned().unwrap_or_default();
-            if projs.len() == 1 {
-                rules.insert(target, projs.into_iter().next().expect("one projection"));
-            } else {
-                ambiguous.insert(target);
-                ambiguous_dropped += 1;
-            }
-        }
-    }
-
     let mut inverse_rules: BTreeMap<String, String> = BTreeMap::new();
-    for (target, gmeows) in inverse_edoalpath {
-        if rules.contains_key(&target) || ambiguous.contains(&target) {
-            continue;
-        }
-        if gmeows.len() == 1 {
-            inverse_rules.insert(target, gmeows.into_iter().next().expect("one inverse"));
-        } else {
-            ambiguous.insert(target);
-            ambiguous_dropped += 1;
+    let mut claim_rules: BTreeMap<String, (String, String)> = BTreeMap::new();
+
+    for (ext, rule) in &program.rules {
+        let LiftRule {
+            gmeow,
+            orientation,
+            kind,
+        } = rule;
+        match kind {
+            LiftKind::Claim { confidence } => {
+                claim_rules.insert(ext.clone(), (gmeow.clone(), confidence.clone()));
+            }
+            LiftKind::Fact => match orientation {
+                Orientation::Direct => {
+                    rules.insert(ext.clone(), gmeow.clone());
+                }
+                Orientation::Inverse => {
+                    inverse_rules.insert(ext.clone(), gmeow.clone());
+                }
+            },
         }
     }
 
-    let mut claim_rules: BTreeMap<String, (String, String)> = BTreeMap::new();
-    add_claims(
-        &mut claim_rules,
-        &mut ambiguous,
-        &mut ambiguous_dropped,
-        &rules,
-        &inverse_rules,
-        &generalizing_struct,
-    );
-    let close = sssom_closematch_pairs(sssom_texts)?;
-    add_claims(
-        &mut claim_rules,
-        &mut ambiguous,
-        &mut ambiguous_dropped,
-        &rules,
-        &inverse_rules,
-        &close,
-    );
-
-    // Seed the identity/normalized constants exactly as the old code did.
+    // NON-gated structural constants: identity adoption + statement-metadata passthrough +
+    // label normalization. These are not external renames (they carry no EDOAL round-trip to
+    // verify), so they are seeded unconditionally — the invariant explicitly exempts them.
     for adopted in ADOPTED_PREDICATES {
         rules
             .entry((*adopted).to_owned())
@@ -246,36 +138,133 @@ fn build_lawful_rules(
         inverse_rules,
         claim_rules,
         object_properties: object_properties(ontology_nt)?,
-        ambiguous_dropped,
+        ambiguous_dropped: program.ambiguous_dropped,
+        gate_excluded: program.gate_excluded,
     })
 }
 
-/// The old `add_claims`, adapted to record every multi-candidate target as residue
-/// (rather than into an `ambiguous` map that the executor no longer consumes).
-fn add_claims(
-    claim_rules: &mut BTreeMap<String, (String, String)>,
-    ambiguous: &mut BTreeSet<String>,
-    ambiguous_dropped: &mut usize,
-    rules: &BTreeMap<String, String>,
-    inverse_rules: &BTreeMap<String, String>,
-    candidates: &BTreeMap<String, BTreeMap<String, String>>,
-) {
-    for (target, cands) in candidates {
-        if rules.contains_key(target)
-            || inverse_rules.contains_key(target)
-            || ambiguous.contains(target)
-            || claim_rules.contains_key(target)
-        {
-            continue;
-        }
-        if cands.len() == 1 {
-            let (gmeow, conf) = cands.iter().next().expect("one claim candidate");
-            claim_rules.insert(target.clone(), (gmeow.clone(), conf.clone()));
-        } else {
-            ambiguous.insert(target.clone());
-            *ambiguous_dropped += 1;
+/// The corpus-independent put-leg program: the gate-verified rule sets plus the value-rule
+/// residue count. Built ONCE from the SSSOM/projection/ontology inputs (which do not vary per
+/// source file) via [`PutLegProgram::derive`], then applied to each source graph. Hoisting this
+/// out of the per-file [`execute_put_legs`] loop is the GAP 5 fix: the gate machinery (one
+/// correspondence + five gates per candidate term) runs once per corpus, not once per file.
+pub struct PutLegProgram {
+    lawful: LawfulRules,
+    value_rule_dropped: usize,
+}
+
+impl PutLegProgram {
+    /// Derive the gate-verified put-leg program from the corpus-independent inputs. This is the
+    /// single source of truth the executor lifts: [`gate_verified_lift_program`] decides which
+    /// external terms survive the correspondence gates, their orientation, and their gmeow target.
+    pub fn derive(
+        sssom_texts: &[String],
+        projection_ttls: &[String],
+        ontology_nt: &str,
+    ) -> Result<Self, String> {
+        let program = gate_verified_lift_program(sssom_texts, projection_ttls)?;
+        let lawful = lawful_rules_from_program(&program, ontology_nt)?;
+        let value_rule_dropped =
+            crate::up_projection_corpus::value_mapped_pairs(projection_ttls)?.len();
+        Ok(Self {
+            lawful,
+            value_rule_dropped,
+        })
+    }
+}
+
+/// Execute every lawful put leg over `source_nt`, returning the lifted GMEOW graph and the honest
+/// residue ledger. The gate-verified program is derived once here; when lifting many source files
+/// with the SAME mappings, prefer [`PutLegProgram::derive`] once + [`execute_put_legs_with`] per
+/// file so the gate machinery is not re-run per file. An empty source graph is a HARD error.
+pub fn execute_put_legs(
+    source_nt: &str,
+    sssom_texts: &[String],
+    projection_ttls: &[String],
+    ontology_nt: &str,
+) -> Result<LiftedReport, String> {
+    let program = PutLegProgram::derive(sssom_texts, projection_ttls, ontology_nt)?;
+    execute_put_legs_with(source_nt, &program)
+}
+
+/// Apply a pre-derived gate-verified [`PutLegProgram`] to one source graph. This is the per-file
+/// hot path; the corpus-independent program is built once by the caller. An empty source graph is
+/// a HARD error.
+pub fn execute_put_legs_with(
+    source_nt: &str,
+    program: &PutLegProgram,
+) -> Result<LiftedReport, String> {
+    let source = Graph::parse(source_nt.as_bytes(), "application/n-triples")?;
+    if source.is_empty() {
+        return Err("execute_put_legs: source graph is empty".to_owned());
+    }
+
+    let lawful = &program.lawful;
+    let value_rule_dropped = program.value_rule_dropped;
+
+    let engine = NativeSparqlEngine::new();
+    // A single deduped, ordered fact+claim quad set so output is deterministic.
+    let mut facts: BTreeSet<QuadKey> = BTreeSet::new();
+    let mut fact_quads: Vec<RdfQuad> = Vec::new();
+    let mut claim_quads: Vec<RdfQuad> = Vec::new();
+    let mut claim_cells: BTreeSet<String> = BTreeSet::new();
+
+    // Rename rules (predicate/class + gmeow-passthrough) and inverse rules produce FACTS.
+    for query in fact_queries(lawful) {
+        for quad in run_construct(&engine, &source.dataset, &query)? {
+            let key = quad_key(&quad);
+            if facts.insert(key) {
+                fact_quads.push(quad);
+            }
         }
     }
+
+    // Claim rules produce reified CLAIM cells; count distinct `?cell a gm:StatementMetadata`.
+    // Each `engine.query()` builds an independent dataset, so two claim queries can mint the
+    // SAME template blank label (e.g. both `_:b0`); merging them would collapse two distinct
+    // cells into one corrupt node. Claim CONSTRUCTs filter `isIRI(?s)` and never bind a blank
+    // object, so EVERY blank in a claim result is a minted template blank — safe to rescope to
+    // a per-query-unique namespace before dedup/merge. (Fact outputs are NOT rescoped: they can
+    // carry SOURCE blanks whose identity must persist across queries; fact templates mint none.)
+    let mut seen_claim: BTreeSet<QuadKey> = BTreeSet::new();
+    for (idx, query) in claim_queries(lawful).into_iter().enumerate() {
+        for quad in run_construct(&engine, &source.dataset, &query)? {
+            let quad = rescope_blanks(quad, idx);
+            let key = quad_key(&quad);
+            if !seen_claim.insert(key) {
+                continue;
+            }
+            if quad.predicate == RDF_TYPE
+                && matches!(&quad.object, RdfTerm::Iri(n) if n == GM_STATEMENT_METADATA)
+            {
+                if let RdfTerm::BlankNode(cell) = &quad.subject {
+                    claim_cells.insert(cell.clone());
+                }
+            }
+            claim_quads.push(quad);
+        }
+    }
+
+    // Gap terms: projection-namespace source terms with no rule of any kind.
+    let gap_terms = compute_gaps(&source.quads, lawful);
+
+    let mut all_quads = fact_quads;
+    all_quads.extend(claim_quads);
+    let graph_nt = dump_nt(&all_quads)?;
+
+    let residue = build_residue(
+        value_rule_dropped,
+        lawful.ambiguous_dropped,
+        lawful.gate_excluded,
+    );
+
+    Ok(LiftedReport {
+        graph_nt,
+        lifted: facts.len(),
+        claimed: claim_cells.len(),
+        gap_terms,
+        residue,
+    })
 }
 
 /// Build the FACT put-leg `CONSTRUCT` queries: predicate/class renames, inverse
@@ -469,14 +458,22 @@ fn compute_gaps(quads: &[RdfQuad], lawful: &LawfulRules) -> Vec<String> {
     gaps.into_iter().collect()
 }
 
-/// The honest loss-ledger notes for the heuristic categories this lawful executor drops.
-fn build_residue(value_rule_dropped: usize, ambiguous_dropped: usize) -> Vec<String> {
+/// The honest loss-ledger notes for the heuristic categories this lawful executor drops,
+/// plus the correspondence-gate exclusions (non-inverting reverse paths the gate refuses).
+fn build_residue(
+    value_rule_dropped: usize,
+    ambiguous_dropped: usize,
+    gate_excluded: usize,
+) -> Vec<String> {
     let mut notes: BTreeSet<String> = BTreeSet::new();
     notes.insert(format!(
         "value-transform rules dropped: {value_rule_dropped}"
     ));
     notes.insert(format!(
         "ambiguous (multi-candidate) terms dropped: {ambiguous_dropped}"
+    ));
+    notes.insert(format!(
+        "gate-excluded (non-inverting reverse path) terms dropped: {gate_excluded}"
     ));
     notes.insert(
         "context-descent, reverse-minting, and concept-reference resolution are \
@@ -764,5 +761,120 @@ mod tests {
     fn empty_source_is_an_error() {
         let err = execute_put_legs("", &[], &[], "").expect_err("empty source rejected");
         assert!(err.contains("source graph is empty"), "{err}");
+    }
+
+    /// One `gmeow:ProjectionMapping` EDOAL-path cell: a single-atom, no-mint pattern whose atom
+    /// carries `predicate <apred>` and (`subjectVar` == anchor ⇒ direct / `objectVar` == anchor
+    /// ⇒ inverse), with a binding `toPredicate <target>`. Two such cells for the same target —
+    /// a direct one and an inverse one — give `edoalpath_pairs` a `direct`/`inverse` pair, and
+    /// the single-atom no-mint binding also registers the target as a `simple-1to1` structural
+    /// class (bucket `clean`), so the term reaches `VerifiableRoundTrip` in the shared classifier.
+    fn edoal_cell(cell: &str, target: &str, apred: &str, inverse: bool) -> String {
+        let (subj, obj) = if inverse { ("o", "s") } else { ("s", "o") };
+        format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix foaf: <http://xmlns.com/foaf/0.1/> .\n\
+             gmeow:{cell} a gmeow:ProjectionMapping ;\n\
+               gmeow:hasMappingPattern [\n\
+                 gmeow:anchor \"s\" ; gmeow:value \"o\" ;\n\
+                 gmeow:atom ( [ gmeow:subjectVar \"{subj}\" ; gmeow:predicate <{apred}> ; \
+                                gmeow:objectVar \"{obj}\" ] ) ;\n\
+                 gmeow:edoalPath true ] ;\n\
+               gmeow:hasBinding [ gmeow:profile \"foaf\" ; gmeow:toPredicate <{target}> ; \
+                                  gmeow:relation \"=\" ] .\n"
+        )
+    }
+
+    #[test]
+    fn gate_red_excluded_term_is_never_lifted_by_the_executor() {
+        // The parity guard (issue #1145 invariant). `foaf:bad` has a direct EDOAL path on
+        // <gmeow:forward> and an inverse EDOAL path on a DIFFERENT predicate <gmeow:notInverse>:
+        // the reverse path does NOT invert the forward path, so the correspondence round-trip
+        // gate RED-excludes it (audit tier = red_excluded). `foaf:good` has a matching
+        // direct+inverse pair on <gmeow:good>, so it is proved-lawful and MUST be lifted.
+        //
+        // The executor's lifted external-term set must therefore be exactly the audit's
+        // non-red-excluded (proved+claimed) set: `foaf:good` lifts, `foaf:bad` never does. If a
+        // future change reintroduces an ungated derivation, `foaf:bad` would leak back in and
+        // this test FAILS.
+        let good = "http://xmlns.com/foaf/0.1/good";
+        let bad = "http://xmlns.com/foaf/0.1/bad";
+        let projection_ttls = vec![
+            edoal_cell(
+                "mapGoodFwd",
+                good,
+                "https://blackcatinformatics.ca/gmeow/good",
+                false,
+            ),
+            edoal_cell(
+                "mapGoodInv",
+                good,
+                "https://blackcatinformatics.ca/gmeow/good",
+                true,
+            ),
+            edoal_cell(
+                "mapBadFwd",
+                bad,
+                "https://blackcatinformatics.ca/gmeow/forward",
+                false,
+            ),
+            edoal_cell(
+                "mapBadInv",
+                bad,
+                "https://blackcatinformatics.ca/gmeow/notInverse",
+                true,
+            ),
+        ];
+
+        // Cross-check the shared producer directly: bad is gate-excluded, good survives.
+        let program =
+            gate_verified_lift_program(&[], &projection_ttls).expect("lift program builds");
+        assert!(
+            program.rules.contains_key(good),
+            "the proved (matching-inverse) term must survive the gate: {program:?}"
+        );
+        assert!(
+            !program.rules.contains_key(bad),
+            "the red-excluded (non-inverting) term must NOT survive the gate: {program:?}"
+        );
+        assert!(
+            program.gate_excluded >= 1,
+            "the non-inverting term is surfaced as gate-excluded residue: {program:?}"
+        );
+
+        // And end-to-end through the executor: a source using BOTH terms lifts good, never bad.
+        let source_nt = concat!(
+            "<http://a/1> <http://xmlns.com/foaf/0.1/good> <http://a/2> .\n",
+            "<http://a/1> <http://xmlns.com/foaf/0.1/bad> <http://a/3> .\n",
+        );
+        let report =
+            execute_put_legs(source_nt, &[], &projection_ttls, "").expect("execute put legs");
+        assert!(
+            report
+                .graph_nt
+                .contains("<https://blackcatinformatics.ca/gmeow/good>"),
+            "the proved term is lifted: {}",
+            report.graph_nt
+        );
+        // No lifted triple may mention EITHER the gate-excluded external term or its gmeow
+        // targets — the executor must not have run a rule for `foaf:bad` at all.
+        for leaked in [
+            bad,
+            "https://blackcatinformatics.ca/gmeow/forward",
+            "https://blackcatinformatics.ca/gmeow/notInverse",
+        ] {
+            assert!(
+                !report.graph_nt.contains(leaked),
+                "the gate-excluded term leaked a lifted triple mentioning <{leaked}>: {}",
+                report.graph_nt
+            );
+        }
+        // `foaf:bad` has no gate-surviving rule, so it is an honest gap term, not a silent drop.
+        assert!(
+            report.gap_terms.iter().any(|g| g == "foaf:bad"),
+            "the gate-excluded term is surfaced as a gap term: {:?}",
+            report.gap_terms
+        );
     }
 }

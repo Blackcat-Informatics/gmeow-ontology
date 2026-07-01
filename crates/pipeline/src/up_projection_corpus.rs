@@ -347,6 +347,23 @@ pub(crate) fn sssom_closematch_pairs(sssom_texts: &[String]) -> Result<TargetCla
     Ok(pairs)
 }
 
+/// The per-target best SSSOM bucket, keyed by full target IRI — the corpus-independent
+/// half of [`combined_class`]. Exposed for the gate-verified lift producer, which classifies
+/// every candidate term through the SAME bucketing the audit uses (never a bespoke copy).
+pub(crate) fn sssom_best_buckets_pub(
+    sssom_texts: &[String],
+) -> Result<BTreeMap<String, String>, String> {
+    sssom_best_buckets(sssom_texts)
+}
+
+/// The per-target best structural class, keyed by full target IRI — the other half of
+/// [`combined_class`]. Exposed for the gate-verified lift producer.
+pub(crate) fn structural_best_classes_pub(
+    projection_ttls: &[String],
+) -> Result<BTreeMap<String, String>, String> {
+    structural_best_classes(projection_ttls)
+}
+
 fn sssom_best_buckets(sssom_texts: &[String]) -> Result<BTreeMap<String, String>, String> {
     let mut best: BTreeMap<String, String> = BTreeMap::new();
     for (row, prefixes) in sssom_records(sssom_texts)? {
