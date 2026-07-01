@@ -508,8 +508,10 @@ fn up_projection_combined_class(
 ///
 /// Returns a dict `{graph_nt, lifted, claimed, gap_terms, residue}`: `graph_nt` is the
 /// lifted GMEOW graph as N-Triples bytes; `lifted`/`claimed` count lawful facts and
-/// reified claim cells; `gap_terms` names the projection-namespace source terms with no
-/// lawful rule; `residue` is the honest loss-ledger for the dropped heuristic categories.
+/// reified claim cells; `gap_terms` is a `dict[str, int]` mapping each projection-namespace
+/// source term with no lawful rule to its TRUE occurrence count in the source graph (never
+/// a fabricated constant); `residue` is the honest loss-ledger for the dropped heuristic
+/// categories.
 #[pyfunction]
 #[pyo3(signature = (source_nt, sssom_texts, projection_ttls, ontology_nt))]
 fn execute_put_legs(
@@ -533,7 +535,11 @@ fn execute_put_legs(
     out.set_item("graph_nt", PyBytes::new(py, report.graph_nt.as_bytes()))?;
     out.set_item("lifted", report.lifted)?;
     out.set_item("claimed", report.claimed)?;
-    out.set_item("gap_terms", PyList::new(py, report.gap_terms.iter())?)?;
+    let gap_terms = PyDict::new(py);
+    for (term, count) in &report.gap_terms {
+        gap_terms.set_item(term, count)?;
+    }
+    out.set_item("gap_terms", gap_terms)?;
     out.set_item("residue", PyList::new(py, report.residue.iter())?)?;
     Ok(out.into_any().unbind())
 }

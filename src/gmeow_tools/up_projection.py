@@ -85,7 +85,7 @@ def up_project(source: Graph) -> UpProjection:
     return UpProjection(
         graph=graph,
         lifted=raw["lifted"],
-        gap_terms=dict.fromkeys(raw["gap_terms"], 1),
+        gap_terms=dict(raw["gap_terms"]),
         claimed=raw["claimed"],
         residue=list(raw["residue"]),
     )
