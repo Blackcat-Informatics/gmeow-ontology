@@ -86,7 +86,7 @@ const OWL_HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
 // `decided` — but only because the *EL/RL path* already decided it. Listing it
 // here would obscure WHICH path is responsible. The coverage instrument tracks
 // what THIS DL post-pass decides; EL/RL coverage is the EL engine's concern.
-// Concretely: `make maint-classic-cross-check` and the frozen HermiT conformance
+// Concretely: `make -C validations/classic-cross-check validate` and the frozen HermiT conformance
 // gold (`tests/conformance/`) both pass with this omission, confirming the
 // conjunction instances in the committed bundle are fully decided by the
 // EL/RL path. If a future bundle introduces an intersection pattern the EL/RL

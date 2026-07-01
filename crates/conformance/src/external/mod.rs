@@ -22,7 +22,7 @@
 //!
 //! Zero-defer: lowered Lane-A cases are decided by the native engine (the
 //! consistency path's `gaps`-empty guard enforces it); heavy third-party corpora
-//! that exceed the native fragment are the Lane-B (`make maint-classic-cross-check`)
+//! that exceed the native fragment are the Lane-B (`make -C validations/classic-cross-check validate`)
 //! destination, vendored by X2–X5 on top of the convention established here.
 
 pub mod corpus;

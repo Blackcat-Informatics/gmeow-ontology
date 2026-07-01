@@ -58,7 +58,7 @@ fn main() -> Result<(), String> {
     for case in &cases {
         // Lane routing (#753): the release-as-evidence report is the Lane-A native
         // artifact. A Lane-B external corpus is oracle-backed and runs only in
-        // `make maint-classic-cross-check`, so it is excluded here (it may also lie
+        // `make -C validations/classic-cross-check validate`, so it is excluded here (it may also lie
         // outside the native fragment and would not be honestly decided).
         if matches!(
             gmeow_conformance::external::lane_for_case(&case.case_dir)?,
