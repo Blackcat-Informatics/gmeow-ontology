@@ -8,7 +8,7 @@
 //! (compile → certify → materialize+explain / foundation → answers). There is no
 //! PyO3, no Python, and no second engine in this path — the harness is a second
 //! *caller* of the engine cores, so its artifacts are identical by construction
-//! (the retired Python `logic_runner.run` this replaced was removed in #727).
+//! (the retired Python `logic_runner.run` this replaced has since been removed).
 //!
 //! Witnesses (`witnesses.json`) are intentionally NOT produced: the diff phase
 //! never compared them — they are a bless-only side file — so omitting them
@@ -109,7 +109,7 @@ pub struct CaseOutputs {
     /// compositions. `Some` iff the program authors `logic:Correspondence` individuals;
     /// `None` (no golden gated) for every correspondence-free case.
     pub correspondence_gates: Option<serde_json::Value>,
-    /// The Common Logic round-trip verdict (C6): `{ "<dialect>": {"round_trip":"pass"},
+    /// The Common Logic round-trip verdict: `{ "<dialect>": {"round_trip":"pass"},
     /// "cross_dialect": "pass" }`. `Some` only for a `cl-roundtrip` case (gating the
     /// `expected/cl-dialects.json` golden); `None` for every other verdict mode.
     pub cl_dialects: Option<serde_json::Value>,
@@ -141,7 +141,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         .map_err(|e| prefix(format!("cannot parse profile.json: {e}")))?;
     let profile = profile::parse_profile(&case_id, &profile_value)?;
 
-    // ── Consistency mode (#753) ───────────────────────────────────────────────
+    // ── Consistency mode ──────────────────────────────────────────────────────
     // External entailment/SZS cases reason over their RDF EDB through the native
     // DL consistency path, NOT the logic-compile/materialize chase. Branch BEFORE
     // reading/compiling `input.logic.ttl` (which a consistency case does not use).
@@ -149,7 +149,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         return run_consistency_case(&case_id, case_dir);
     }
 
-    // ── Common Logic round-trip mode (C6) ─────────────────────────────────────
+    // ── Common Logic round-trip mode ──────────────────────────────────────────
     // A `cl-roundtrip` case gates the CLIF/CGIF/XCL Exact projections (IR round-trip
     // isomorphism + cross-dialect equivalence) and pins their canonical rendering. It
     // does NOT materialize — branch before the compile/certify/chase, like consistency.
@@ -158,7 +158,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     }
 
     // ── Compile (frontend → IR → projections + nemo rules + ledger) ──────────
-    // The unsupported-contract firewall (#767 Gap 2) lives in `compile_case_program`,
+    // The unsupported-contract firewall lives in `compile_case_program`,
     // shared with the CL round-trip path so neither can evaluate an unsound program.
     let program = match compile_case_program(&case_id, case_dir, profile.expect_unsupported)? {
         // An `expect_unsupported` case: the program must not proceed — return empty
@@ -167,7 +167,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         CompileOutcome::Program(program, _diagnostics) => *program,
     };
 
-    // ── Universal CL round-trip invariant (C6) ────────────────────────────────
+    // ── Universal CL round-trip invariant ─────────────────────────────────────
     // Every materialized case's IR must round-trip through all three ISO 24707 dialects
     // (CLIF/CGIF/XCL) with IR isomorphism AND be cross-dialect equivalent. This dogfoods
     // the Exact projection claim over the whole corpus; a failure is a dialect bug, never
@@ -229,8 +229,8 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     let materialized_nquads = serialize::materialized_to_nquads(&quads);
     // Materialization-mode status: every materializing world is `consistent`,
     // EXCEPT when the budget governor exhausted the chase — then the run is
-    // `incomplete` (the external `Unknown`/budget-tripped branch, #753). A clean
-    // (non-exhausted) run reproduces the pre-#753 `consistent` golden byte-for-byte.
+    // `incomplete` (the external `Unknown`/budget-tripped branch). A clean
+    // (non-exhausted) run reproduces the `consistent` golden byte-for-byte.
     let mat_status = if incomplete {
         VerdictStatus::Incomplete
     } else {
@@ -239,7 +239,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     let world_counts = serialize::count_worlds(&quads);
     let verdicts = serialize::build_verdicts(&world_counts, |_| mat_status);
 
-    // ── Backward goals (#504) ────────────────────────────────────────────────
+    // ── Backward goals ────────────────────────────────────────────────────────
     let answers = resolve_answers(
         &case_id,
         case_dir,
@@ -343,8 +343,8 @@ enum CompileOutcome {
     Program(Box<gmeow_logic_compile::ir::LogicProgram>, Vec<Diagnostic>),
 }
 
-/// Parse a case's `input.logic.ttl` and apply the unsupported-contract firewall (#767
-/// Gap 2), shared by the materialization path and the CL round-trip path so neither can
+/// Parse a case's `input.logic.ttl` and apply the unsupported-contract firewall,
+/// shared by the materialization path and the CL round-trip path so neither can
 /// evaluate an unsound program.
 ///
 /// `parse_logic_str` returns `Err` only on a hard Turtle PARSE failure; a semantic
@@ -387,7 +387,7 @@ fn compile_case_program(
     Ok(CompileOutcome::Program(Box::new(program), diagnostics))
 }
 
-/// Run one `verdict_mode = cl-roundtrip` case (C6).
+/// Run one `verdict_mode = cl-roundtrip` case.
 ///
 /// Gates the three ISO 24707 dialects (CLIF/CGIF/XCL) as `PreservationKind::Exact`
 /// bidirectional projections: the case's IR must round-trip through each dialect with IR
@@ -409,7 +409,7 @@ fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, 
         }
     };
 
-    // The C6 teeth: IR → {clif,cgif,xcl} → IR round-trip + all-three-edge cross-dialect.
+    // The round-trip teeth: IR → {clif,cgif,xcl} → IR round-trip + all-three-edge cross-dialect.
     gmeow_logic_compile::cl_roundtrip::assert_all_dialects_isomorphic(&program)
         .map_err(|e| prefix(format!("CL dialect round-trip failed: {e}")))?;
 
@@ -499,12 +499,12 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
     }
 }
 
-/// Run one `verdict_mode = consistency` case (#753).
+/// Run one `verdict_mode = consistency` case.
 ///
 /// External entailment/SZS corpora are lowered into a world-scoped RDF EDB
 /// (`input.nq`) and decided by the native DL consistency path
 /// ([`gmeow_logic::reason::dl_consistency`]) — the verdict-only entry point that folds
-/// from the SAME shared closure as [`gmeow_logic::reason::reason_all`] (#768), so the
+/// from the SAME shared closure as [`gmeow_logic::reason::reason_all`], so the
 /// two can never disagree. The per-world verdict is `inconsistent` for any world bearing a
 /// populated `owl:Nothing` clash (an [`InconsistencyWitness`]), else `consistent`.
 /// No compile / certify / materialize / projection / answer artifacts are produced
@@ -528,7 +528,7 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
     let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
         .map_err(|e| prefix(format!("native DL consistency run failed: {e}")))?;
 
-    // Zero-defer (#753): a consistency case MUST be genuinely decided by the native
+    // Zero-defer: a consistency case MUST be genuinely decided by the native
     // path. A non-empty `gaps` means a construct is present that the native DL path
     // cannot honestly decide — refuse rather than emit a dishonest verdict.
     if !verdict.gaps.is_empty() {
@@ -558,7 +558,7 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
         .map(|w| w.world.clone())
         .collect();
 
-    // Hard-fail (no-optionality, #753): the emitted verdict iterates `world_counts`
+    // Hard-fail (no-optionality): the emitted verdict iterates `world_counts`
     // (worlds present in the EDB), so every inconsistent world MUST appear there — else
     // `build_verdicts` would silently omit its `inconsistent` status. The seed fixtures'
     // clash worlds all carry EDB quads, so this is a latent-invariant guard: an
@@ -854,7 +854,7 @@ fn resolve_query(
     let program = parse_query_program(query_text).map_err(err)?;
     let max_answers_usize = max_answers.map(|n| n as usize);
 
-    // Probabilistic profile (#506): weighted model counting; each binding carries a
+    // Probabilistic profile: weighted model counting; each binding carries a
     // `probability`. This is the only path that emits that key.
     if gmeow_logic::profile_gate::is_probabilistic_profile(profile_str) {
         let answer =
@@ -957,7 +957,7 @@ fn is_asserted(quad: &RunnerQuad) -> bool {
 // case in parallel (~3s). A separate serial smoke test here would only duplicate
 // that coverage at ~11s of gate time, so it is intentionally omitted (gate-perf).
 //
-// The diagnostic-gating firewall (#767 Gap 2) IS unit-tested below because its
+// The diagnostic-gating firewall IS unit-tested below because its
 // negative branches (a supported contract under `expect_unsupported`, an
 // un-declared compile error) are not exercisable through the committed corpus —
 // every committed `expected/`-bearing case is a supported preset, so a smoke test
@@ -1042,7 +1042,7 @@ mod gating_tests {
     #[test]
     fn undeclared_compile_error_hard_fails() {
         // A forbidden combo WITHOUT expect_unsupported must surface as a hard
-        // failure (the silent-run hole #767 Gap 2 closes), never a silent evaluate.
+        // failure (the silent-run hole this firewall closes), never a silent evaluate.
         let case = TmpCase::new("silent");
         case.write("input.logic.ttl", UNSUPPORTED_TTL);
         case.write(
@@ -1054,7 +1054,7 @@ mod gating_tests {
         assert!(err.contains("UNSUPPORTED_CONTRACT"), "{err}");
     }
 
-    // ── verdict_mode = consistency (#753) ─────────────────────────────────────
+    // ── verdict_mode = consistency ────────────────────────────────────────────
 
     const CONSISTENCY_PROFILE: &str = r#"{"verdict_mode":"consistency","mode":"native"}"#;
     const W: &str = "https://gmeow.example/dl/world";
