@@ -150,6 +150,11 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
                 }
                 i += 2; // consume the closing `*/`
             }
+            // A `/` that does not open a `/* … */` comment is malformed CGIF: the writer only
+            // ever emits `/` as a comment delimiter. Hard-fail rather than fall through to the
+            // bare-symbol arm, where `lex_bare` would break immediately on `/` (its own break
+            // char) without advancing `i` and spin forever.
+            '/' => return Err("unexpected '/' outside a /* … */ comment".to_owned()),
             '(' => {
                 tokens.push(Token::Open);
                 i += 1;
