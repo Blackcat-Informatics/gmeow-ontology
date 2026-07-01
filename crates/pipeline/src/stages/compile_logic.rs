@@ -12,8 +12,8 @@
 //! projection back-end once, and emits — as committed artifacts the single-pass
 //! regenerate/drift gate owns —
 //!
-//! * the eight projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
-//!   Datalog, N3, gUFO and Nemo projections, and the projection-report loss ledger), and
+//! * the nine projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
+//!   Datalog, N3, gUFO, Nemo and CLIF projections, and the projection-report loss ledger), and
 //! * the compile diagnostics rendered to the four canonical projections (JSON, SARIF,
 //!   HTML, and `gmeow:Finding` N-Quads) — each below-`Exact` projection's structural
 //!   drops surfaced as a `logic-compile.lossy-drop` note finding.
@@ -102,6 +102,9 @@ pub const GUFO_PATH: &str = "generated/foundation/gufo.ttl";
 pub const CANONICAL_RDF12_PATH: &str = "generated/logic/gmeow.logic.rdf12.ttl";
 /// Committed Nemo (`.rls`) projection.
 pub const RULES_PATH: &str = "generated/logic/gmeow.rls";
+/// Committed CLIF (Common Logic Interchange Format) projection: the bidirectional,
+/// `PreservationKind::Exact` s-expression FOL dialect.
+pub const CLIF_PATH: &str = "generated/cl/gmeow.clif";
 /// Committed SHACL-AF rule (computation) projection: the canon's derivation rules
 /// projected to a `sh:SPARQLRule` surface. Lives under its own `generated/shacl-af/`
 /// directory (NOT `generated/shapes/`) so the SHACL constraint validator never ingests
@@ -261,6 +264,7 @@ impl Stage for CompileLogicStage {
             canonical_rdf12.clone().into_bytes(),
         );
         artifacts.insert(RULES_PATH.to_string(), arts.nemo.into_bytes());
+        artifacts.insert(CLIF_PATH.to_string(), arts.clif.into_bytes());
         // The SHACL-AF rule (computation) surface: the canon's derivation rules projected to
         // sh:SPARQLRule. A byte-decorated text artifact (carries a GENERATED banner), so it
         // rides the generated-fanout archive (REP_GENERATED) as a committed byte projection.
@@ -538,6 +542,7 @@ mod tests {
             GUFO_PATH,
             CANONICAL_RDF12_PATH,
             RULES_PATH,
+            CLIF_PATH,
             SHACL_AF_PATH,
             // The in-memory channel that hands the logic projection rows + header
             // counts to stage-mappings (which assembles the committed report).
