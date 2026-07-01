@@ -398,12 +398,13 @@ pub fn coverage_heatmap_svg(model: &DocsModel) -> String {
         for (c, cov) in covered.iter().enumerate() {
             let x = MARGIN + LABEL_W + c as i64 * CELL_W;
             let fill = crate::badge::coverage_fraction_color(*cov, *n);
+            let text = crate::badge::text_color_for(fill);
             let pct = cov * 100 / *n;
             out.push_str(&format!(
                 "  <rect x=\"{x}\" y=\"{y}\" width=\"{CELL_W}\" height=\"{CELL_H}\" fill=\"{fill}\" \
                  stroke=\"#ffffff\" stroke-width=\"1\" />\n  \
                  <text x=\"{cx}\" y=\"{ty}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
-                 font-size=\"10\" fill=\"#ffffff\">{pct}%</text>\n",
+                 font-size=\"10\" fill=\"{text}\">{pct}%</text>\n",
                 cx = x + CELL_W / 2,
                 ty = y + CELL_H / 2 + 4,
             ));
