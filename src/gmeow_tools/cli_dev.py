@@ -2372,12 +2372,7 @@ def up_project_cmd(
     err_console.print(
         f"[green]lifted[/green] {result.lifted} facts · "
         f"[cyan]claimed[/cyan] {result.claimed} inferred · "
-        + (
-            f"[blue]bridged[/blue] {result.tag_resolved} QID-tag · "
-            if result.tag_resolved
-            else ""
-        )
-        + f"[yellow]gap[/yellow] {len(result.gap_terms)} terms",
+        f"[yellow]gap[/yellow] {len(result.gap_terms)} terms",
     )
     for term, n in sorted(result.gap_terms.items()):
         err_console.print(f"[yellow]gap[/yellow] {term} (x{n})")
@@ -2444,16 +2439,19 @@ def acceptance(
         verdict = "[green]PASS[/green]" if fa.get("passed") else "[red]FAIL[/red]"
         err_console.print(f"{verdict} {fa.get('source', 'source')}")
 
-    # The HARD corpus-aggregate recall floor is owned in Rust (single source of truth,
-    # GAP 3 / #1145). Default to the native floor; `--min-recall` only overrides it.
-    native_floor = float(native.get("min_recall_floor", 0.0))
+    # The HARD corpus-aggregate recall floor is owned in Rust (single source of truth).
+    # Default to the native floor; `--min-recall` only overrides it. These fields are
+    # REQUIRED in the native contract — read directly so a missing field fails closed
+    # instead of silently masking an integration regression.
+    native_floor = float(native["min_recall_floor"])
     floor = native_floor if min_recall is None else min_recall
-    aggregate = float(native.get("aggregate_recall", 100.0))
+    aggregate = float(native["aggregate_recall"])
     if aggregate < floor:
-        raise _fail(
+        message = (
             f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
             f"the floor {floor:.2f}% ({len(results)} source(s))"
         )
+        raise _fail(message)
     err_console.print(
         f"[green]✓[/green] corpus-aggregate round-trip recall "
         f"{aggregate:.2f}% ≥ floor {floor:.2f}%"
