@@ -38,10 +38,23 @@ stack down, and writes the outcome to `result.txt`. Sub-targets: `make up`, `mak
 
 ## Option B — Archie RM validator (Java)
 
-Prerequisites: a JVM + the `org.openehr:archie` library (e.g. via `jbang`). Load
-`Blutdruck.opt`, build the in-memory operational template, then parse and validate each of
-`blood_pressure.source.json` and `blood_pressure.augmented.json`, expecting zero errors for
-both. (Archie is invoked, not authored here — no Java/Python is vendored into this lane.)
+Prerequisites: a JVM (11+) and [`jbang`](https://www.jbang.dev/).
+
+```bash
+make -C validations/openehr-bloodpressure validate-archie
+```
+
+`archie_probe.java` is a small jbang script — the only authored code in this option. jbang
+resolves and fetches the actual Archie library (`com.nedap.healthcare.archie:archie-all:3.14.0`,
+pinned, from Maven Central) on first run and caches it; the library itself is never vendored
+into this repo. The script: unmarshals `Blutdruck.opt` via Archie's JAXB context
+(`com.nedap.archie.xml.JAXBUtil`) into an `OPERATIONAL_TEMPLATE`, parses each of
+`blood_pressure.source.json` and `blood_pressure.augmented.json` into a `COMPOSITION` via
+Archie's standards-compliant Jackson mapper (`com.nedap.archie.json.JacksonUtil`), and runs
+`com.nedap.archie.rmobjectvalidator.RMObjectValidator` over each against the template,
+expecting zero validation messages for both. (Correct the prior wording here: a thin jbang
+*runner* is now vendored in this lane; the Archie *library* itself is fetched by jbang, not
+vendored.)
 
 ## Output contract
 

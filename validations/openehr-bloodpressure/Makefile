@@ -6,8 +6,11 @@
 # compositions under the vendored Blutdruck.opt. See README.md.
 
 COMPOSE ?= docker compose
+JBANG ?= jbang
 
-.PHONY: validate up probe down clean help
+FIXTURES := ../../docs/APPLIED_CATEGORY_THEORY/fixtures
+
+.PHONY: validate up probe down clean help validate-archie
 
 help: ## Show the lane targets.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -27,3 +30,6 @@ down: ## Stop and remove the EHRbase stack and volumes.
 
 clean: down ## Alias for down; also removes the probe result.
 	-rm -f result.txt
+
+validate-archie: ## Option B: validate both compositions via the Archie RM validator (jbang, JVM required; writes result.txt).
+	@bash -o pipefail -c '$(JBANG) archie_probe.java Blutdruck.opt $(FIXTURES)/blood_pressure.source.json $(FIXTURES)/blood_pressure.augmented.json | tee result.txt'
