@@ -135,12 +135,28 @@ fn fanout_is_deterministic_regardless_of_jobs() {
     assert_eq!(serial.written, serial.produced);
     assert_eq!(serial.skipped, 0);
 
-    // Byte-identical trees: every projected path matches across the two roots.
-    let gts = fs::read(repo_root().join("generated/dist/gmeow.gts")).unwrap();
-    let projection = gmeow_pipeline::stages::superset::project_bundle(&gts).unwrap();
-    for path in projection.files.keys() {
+    // Byte-identical trees: every file fanout wrote into the serial root matches the
+    // same relative path under the parallel root. Enumerate via `walk()` on the serial
+    // tree instead of re-projecting the bundle a third time (that projection dominates
+    // this test's runtime and is redundant — `fanout` already ran the projection twice).
+    let mut written_paths = Vec::new();
+    walk(
+        &serial_root.join("generated"),
+        &serial_root,
+        &mut written_paths,
+    );
+    assert!(
+        written_paths.len() > 50,
+        "serial fanout produced implausibly few files ({}); the walk would vacuously pass",
+        written_paths.len()
+    );
+    for path in &written_paths {
+        if path == "generated/dist/gmeow.gts" {
+            continue; // the seed bundle we copied in identically to both roots
+        }
         let a = fs::read(serial_root.join(path)).unwrap();
-        let b = fs::read(parallel_root.join(path)).unwrap();
+        let b = fs::read(parallel_root.join(path))
+            .unwrap_or_else(|e| panic!("parallel fanout did not write {path}: {e}"));
         assert_eq!(a, b, "parallel fanout diverged from serial at {path}");
     }
 
