@@ -101,6 +101,13 @@ def _elapsed_ms(started: float) -> int:
     return int((time.perf_counter() - started) * 1000)
 
 
+def _validate_jobs(jobs: int | None) -> int | None:
+    """Reject a non-positive --jobs before it reaches the native usize boundary."""
+    if jobs is not None and jobs < 1:
+        raise typer.BadParameter("Number of jobs must be at least 1.")
+    return jobs
+
+
 def _run_pipeline(jobs: int | None = None, check: bool = False) -> dict[str, Any]:
     """Run the Rust single-pass build executor and return its summary report.
 
@@ -420,6 +427,7 @@ def regenerate(
     retired the Python generator orchestrator. With ``--check`` it compares every
     produced artifact against the committed bytes and exits non-zero on drift.
     """
+    jobs = _validate_jobs(jobs)
     _regenerate_native(jobs=jobs, check=check, timings_json=timings_json)
 
 
@@ -445,6 +453,7 @@ def fanout(
     Each file is written independently, so the writes run in parallel. Requires a bundle
     produced by a prior ``regenerate``; a missing bundle is a hard failure.
     """
+    jobs = _validate_jobs(jobs)
     _fanout_native(jobs=jobs, timings_json=timings_json)
 
 
@@ -588,6 +597,7 @@ def check_generated(
     executor (the build authority since P7) and exits non-zero if any
     committed artifact has drifted from what the pipeline reproduces.
     """
+    jobs = _validate_jobs(jobs)
     report = _run_pipeline(jobs=jobs, check=True)
     if timings_json is not None:
         _write_timings_json(
