@@ -46,6 +46,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & binary(fold_parity))
     | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
+    | (package(gmeow-logic) & test(/whole_bundle_coherence_gate.*heavy_offgate/))
     | (package(gmeow-rdf-capi) & binary(c_smoke))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
@@ -121,6 +122,17 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 # alongside other chases on the 16 GB runner. The longer timeout is only a
 # runaway cliff; the JUnit budget gate still enforces the 25 s policy.
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
+test-group = 'engine'
+slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# The whole-ontology coherence-gate teeth tests (crates/logic/tests/coherence_gate.rs)
+# drive the native DL consistency path (dl_consistency -> reason_closure -> Nemo chase),
+# once over a minimal injected clash and once over the WHOLE committed gmeow.gts bundle.
+# They share the `engine` memory group so the full-bundle chase does not OOM-thrash
+# alongside other chases; the longer timeout is only a runaway cliff, the JUnit budget
+# gate still enforces the 25 s policy.
+filter = 'package(gmeow-logic) & binary(coherence_gate)'
 test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
