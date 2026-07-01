@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Graph-box role coverage audit over authored GMEOW sources (#1115 Task 1).
+//! Graph-box role coverage audit over authored GMEOW sources.
 //!
 //! PyO3-free. Mirrors `gmeow_tools.box_roles` EXACTLY: it loads the authored
 //! Turtle sources, collects every typed GMEOW term, assigns each a single `kind`
@@ -329,7 +329,7 @@ fn finding_json(finding: &RoleFinding) -> serde_json::Value {
     })
 }
 
-/// Project a box-role audit into the canonical diagnostics report (#654).
+/// Project a box-role audit into the canonical diagnostics report.
 ///
 /// Mirrors `box_roles.to_diagnostics_report`: both missing and invalid coverage
 /// are gate-failing, so every finding is an `error`; the term's source rides in

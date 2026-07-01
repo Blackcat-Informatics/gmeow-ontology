@@ -129,7 +129,7 @@ pub struct ModuleResult {
 /// `namespace` is the GMEOW namespace (config `NAMESPACE`, e.g.
 /// `https://blackcatinformatics.ca/gmeow/`); `source_iri` is the source ontology's
 /// namespace IRI. This is the native port of the retired
-/// `gmeow_tools.extract._slme_provenance_ttl` (#695 / #1115).
+/// `gmeow_tools.extract._slme_provenance_ttl`.
 pub fn slme_provenance_ttl(
     namespace: &str,
     source_iri: &str,
@@ -138,7 +138,7 @@ pub fn slme_provenance_ttl(
 ) -> String {
     format!(
         "\n\
-         # --- SLME module-extraction provenance (#695; native, deterministic) ---\n\
+         # --- SLME module-extraction provenance (native, deterministic) ---\n\
          @prefix gmeow: <{namespace}> .\n\
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
          \n\

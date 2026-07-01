@@ -277,7 +277,7 @@ ex:Lonely1 ex:rel ex:Lonely2 .
     );
 }
 
-// ── Test: SLME provenance block (native port of the retired pytest, #1115) ───────
+// ── Test: SLME provenance block (native port of the retired pytest) ──────────────
 
 #[test]
 fn slme_provenance_block_is_deterministic_and_complete() {

@@ -7,7 +7,7 @@
 //! IRIs and reports invalid QIDs/PIDs and namespace misuse via the native
 //! [`crate::mapping_eval::check_syntax_iri`] checker, plus `schema:sameAs`-to-Wikidata
 //! profile-link notices. The universal `owl:sameAs` ban deliberately lives elsewhere
-//! ([`crate::store::sameas_violations`], Principle 5, #284); this auditor does NOT
+//! ([`crate::store::sameas_violations`], Principle 5); this auditor does NOT
 //! duplicate it.
 //!
 //! Each file is parsed independently ([`crate::store::parse_file_dataset`]) so a parse
