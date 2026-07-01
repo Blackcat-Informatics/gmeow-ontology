@@ -13,7 +13,7 @@
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-# --- Persistent qualities the HISTORY events are *of* (YAMATO #1080; not in the RM) ---
+# --- Persistent qualities the HISTORY events are *of* (YAMATO quality ladder; not in the RM) ---
 <urn:gmeow:quality:sysBP> a logic:Quality ;
     logic:genericQuality gmeow:pressure ;            # == OPT property openehr::pressure
     logic:qualityRole    gmeow:systolicRole ;        # == archetype node at0004 "Systolisch"
