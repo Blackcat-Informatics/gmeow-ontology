@@ -55,6 +55,8 @@ LOGIC_RDF12_FILE = GENERATED_DIR / "logic" / "gmeow.logic.rdf12.ttl"
 LOGIC_NEMO_FILE = GENERATED_DIR / "logic" / "gmeow.rls"
 #: The bidirectional CLIF (Common Logic Interchange Format) projection.
 LOGIC_CLIF_FILE = GENERATED_DIR / "cl" / "gmeow.clif"
+#: The bidirectional CGIF (Conceptual Graph Interchange Format) projection.
+LOGIC_CGIF_FILE = GENERATED_DIR / "cl" / "gmeow.cgif"
 LOGIC_REPORT_FILE = GENERATED_DIR / "logic" / "projection-report.ttl"
 
 

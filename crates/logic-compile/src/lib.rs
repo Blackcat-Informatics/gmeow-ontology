@@ -38,6 +38,9 @@
 #![forbid(unsafe_code)]
 
 pub mod adapter;
+// The CGIF (Conceptual Graph Interchange Format) text dialect: a bidirectional,
+// PreservationKind::Exact conceptual-graph FOL surface (writer + reader).
+pub mod cgif;
 // The CLIF (Common Logic Interchange Format) text dialect: a bidirectional,
 // PreservationKind::Exact s-expression FOL surface (writer + reader).
 pub mod clif;
