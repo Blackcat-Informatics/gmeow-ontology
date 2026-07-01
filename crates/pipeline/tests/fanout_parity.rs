@@ -56,7 +56,7 @@ fn fanout_reproduces_generated_from_the_bundle_alone() {
     fs::copy(&gts_src, dist.join("gmeow.gts")).unwrap();
 
     // Fanout writes the whole `generated/` tree from the bundle alone.
-    let report = gmeow_pipeline::fanout(&tmp).expect("fanout runs");
+    let report = gmeow_pipeline::fanout(&tmp, 4).expect("fanout runs");
     assert!(
         report.produced > 50,
         "fanout produced implausibly few files ({}); a rep class was dropped",
@@ -98,6 +98,76 @@ fn fanout_reproduces_generated_from_the_bundle_alone() {
             "fanout wrote an unprojected file: {path}"
         );
     }
+
+    let _ = fs::remove_dir_all(&tmp);
+}
+
+/// Seed a fresh temp root with ONLY the shipped bundle and return its path.
+fn seed_bundle_only_root(tag: &str) -> PathBuf {
+    let root = repo_root();
+    let gts_src = root.join("generated/dist/gmeow.gts");
+    let tmp = std::env::temp_dir().join(format!("gmeow-fanout-{}-{}", tag, std::process::id()));
+    let _ = fs::remove_dir_all(&tmp);
+    let dist = tmp.join("generated/dist");
+    fs::create_dir_all(&dist).unwrap();
+    fs::copy(&gts_src, dist.join("gmeow.gts")).unwrap();
+    tmp
+}
+
+/// The parallel write path (§6 "embarrassingly parallel") must be deterministic: the
+/// produced tree and the [`FanoutReport`] counters cannot depend on `jobs`. Fanning out
+/// serially (`jobs=1`) and highly-parallel (`jobs=8`) into two independently-seeded roots
+/// must yield the SAME report and BYTE-IDENTICAL trees. Both roots start in the same
+/// state (bundle only), so both are all-fresh writes: `written == produced, skipped == 0`.
+#[test]
+fn fanout_is_deterministic_regardless_of_jobs() {
+    let serial_root = seed_bundle_only_root("det-serial");
+    let parallel_root = seed_bundle_only_root("det-parallel");
+
+    let serial = gmeow_pipeline::fanout(&serial_root, 1).expect("serial fanout runs");
+    let parallel = gmeow_pipeline::fanout(&parallel_root, 8).expect("parallel fanout runs");
+
+    // Same counters regardless of parallelism, and both empty-tree runs are all-fresh.
+    assert_eq!(
+        serial, parallel,
+        "FanoutReport differs between jobs=1 and jobs=8"
+    );
+    assert_eq!(serial.written, serial.produced);
+    assert_eq!(serial.skipped, 0);
+
+    // Byte-identical trees: every projected path matches across the two roots.
+    let gts = fs::read(repo_root().join("generated/dist/gmeow.gts")).unwrap();
+    let projection = gmeow_pipeline::stages::superset::project_bundle(&gts).unwrap();
+    for path in projection.files.keys() {
+        let a = fs::read(serial_root.join(path)).unwrap();
+        let b = fs::read(parallel_root.join(path)).unwrap();
+        assert_eq!(a, b, "parallel fanout diverged from serial at {path}");
+    }
+
+    let _ = fs::remove_dir_all(&serial_root);
+    let _ = fs::remove_dir_all(&parallel_root);
+}
+
+/// Fanout is idempotent: a SECOND run over an already-projected tree rewrites nothing.
+/// This exercises the `skipped` counter deterministically under the parallel path —
+/// `write_artifact` sees byte-identical files and reports no rewrite.
+#[test]
+fn fanout_second_run_skips_every_file() {
+    let tmp = seed_bundle_only_root("idempotent");
+
+    let first = gmeow_pipeline::fanout(&tmp, 8).expect("first fanout runs");
+    assert_eq!(first.written, first.produced);
+    assert_eq!(first.skipped, 0);
+
+    // Nothing changed on disk, so the second run must rewrite nothing.
+    let second = gmeow_pipeline::fanout(&tmp, 8).expect("second fanout runs");
+    assert_eq!(second.produced, first.produced);
+    assert_eq!(
+        second.written, 0,
+        "second fanout rewrote {} file(s); projection is not idempotent",
+        second.written
+    );
+    assert_eq!(second.skipped, second.produced);
 
     let _ = fs::remove_dir_all(&tmp);
 }
