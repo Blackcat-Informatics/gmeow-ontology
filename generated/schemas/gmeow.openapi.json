@@ -19843,6 +19843,17 @@
               }
             ]
           },
+          "logic:candidateFormalizes": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
           "logic:candidateLifecycle": {
             "anyOf": [
               {
@@ -19904,6 +19915,25 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:candidateSourceField": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ProseField",
                 "type": "string"
               },
               {
