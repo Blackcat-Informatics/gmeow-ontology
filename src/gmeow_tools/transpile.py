@@ -49,10 +49,7 @@ class TranspileReport:
 
     lifted: int  # source triples lifted as bare facts
     claimed: int  # source triples lifted as provenance-stamped claims
-    context_resolved: int  # edges the descent resolved by graph position
-    tag_resolved: int  # gmeow:hasTag edges added by the QID-bridge pass
     gap_terms: int  # distinct source terms with no lift rule
-    ambiguous_terms: int  # distinct source terms held out as ambiguous
     draft_path: Path  # the pure-GMEOW intermediate
     gap_report_path: Path  # the gap report (un-lifted source triples)
     transform: TransformReport  # the MAXIMAL(G) report
@@ -62,17 +59,16 @@ def _gap_report(source: Graph, lift: UpProjection, stem: str) -> str:
     """Render a Markdown gap report — every un-lifted source triple.
 
     Never silently dropped: a triple is un-lifted because its term has **no lift
-    rule** (a coverage gap) or its reverse is **ambiguous** (many gmeow
-    up-targets, held out rather than guessed). Each is listed under its term.
+    rule** (a coverage gap). Each is listed under its term.
     """
-    gaps, ambig = lift.gap_terms, lift.ambiguous_terms
+    gaps = lift.gap_terms
     held: dict[str, list[tuple[str, str, str]]] = {}
     for s, p, o in source:
         if not isinstance(p, URIRef):
             continue
         is_type = p == RDF.type and isinstance(o, URIRef)
         term = _canon_qname(str(o)) if is_type else _canon_qname(str(p))
-        if term in gaps or term in ambig:
+        if term in gaps:
             held.setdefault(term, []).append((s.n3(), p.n3(), o.n3()))
 
     lines = [f"# Transpile gap report — {stem}\n"]
@@ -96,11 +92,6 @@ def _gap_report(source: Graph, lift: UpProjection, stem: str) -> str:
         lines.append("")
 
     section("Gap terms", gaps, "no GMEOW lift rule — a coverage gap")
-    section(
-        "Ambiguous terms",
-        ambig,
-        "several gmeow up-targets, held out rather than guessed",
-    )
 
     if held:
         lines.append("## Un-lifted source triples\n")
@@ -196,10 +187,7 @@ def transpile_graph(
     return TranspileReport(
         lifted=lift.lifted,
         claimed=lift.claimed,
-        context_resolved=lift.context_resolved,
-        tag_resolved=lift.tag_resolved,
         gap_terms=len(lift.gap_terms),
-        ambiguous_terms=len(lift.ambiguous_terms),
         draft_path=draft_path,
         gap_report_path=gap_report_path,
         transform=report,

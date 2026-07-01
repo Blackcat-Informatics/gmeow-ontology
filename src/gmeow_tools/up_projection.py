@@ -36,19 +36,15 @@ class UpProjection:
     """The result of an up-projection: graph plus native accounting.
 
     The lawful put executor reports ``lifted`` facts, ``claimed`` reified claim
-    cells, and the ``gap_terms`` it could not lift. The heuristic context-descent,
-    tag-resolution, and ambiguous accounting are dropped (lawful residue), so those
-    counts are inert zeros / empty maps; the native ``residue`` ledger records the
-    dropped heuristic categories honestly.
+    cells, and the ``gap_terms`` it could not lift; the native ``residue`` ledger
+    records the dropped heuristic categories (context-descent, tag-resolution,
+    ambiguity) honestly rather than carrying inert counters for them.
     """
 
     graph: Graph
     lifted: int
     gap_terms: dict[str, int]
-    ambiguous_terms: dict[str, int] = field(default_factory=dict)
     claimed: int = 0
-    context_resolved: int = 0
-    tag_resolved: int = 0
     residue: list[str] = field(default_factory=list)
 
 
