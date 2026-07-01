@@ -152,12 +152,17 @@ const GMEOW_CELL_VALUE_IRI: &str = "https://blackcatinformatics.ca/gmeow/cellVal
 pub enum DocsError {
     /// A slice-catalog discovery / parse error.
     Slice(SliceError),
+    /// The committed constraint-catalog fanout artifact
+    /// (`generated/catalog/constraint-catalog.nq`) is missing, unreadable,
+    /// unparsable, or carries a malformed `gmeow:ValidationRule` individual.
+    ConstraintCatalog(String),
 }
 
 impl std::fmt::Display for DocsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
+            DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
         }
     }
 }
@@ -1048,8 +1053,10 @@ impl DocsModel {
         // Optional UI-chrome overrides: `<root>/i18n/ontology-docs-templates.<lang>.po`.
         model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
         // The constraint catalog (`gmeow:ValidationRule` individuals), read from the
-        // committed N-Quads fanout artifact. Absent file → empty Vec.
-        model.constraint_rules = read_constraint_catalog(root);
+        // committed N-Quads fanout artifact. A missing/unparsable/malformed
+        // artifact is a broken invariant on a regenerated tree, not an optional
+        // input — hard-fail rather than render an empty-state page.
+        model.constraint_rules = read_constraint_catalog(root)?;
         Ok(model)
     }
 }
@@ -1057,24 +1064,33 @@ impl DocsModel {
 /// Read the constraint catalog from `<root>/generated/catalog/constraint-catalog.nq`
 /// — every `gmeow:ValidationRule` individual, sorted by rule code. The file is a
 /// committed fixed-point projection of `gmeow.gts` (N-Quads: every triple in the
-/// catalog fanout named graph), so the reader queries graph-agnostically. Returns
-/// an empty Vec if the file is absent (a bare `discover` without a regenerated
-/// tree) or unparsable — the "What GMEOW enforces" page then renders its
-/// empty-state line rather than hard-failing an otherwise-valid model build.
-fn read_constraint_catalog(root: &Path) -> Vec<ConstraintRule> {
+/// catalog fanout named graph), so the reader queries graph-agnostically.
+///
+/// This is a hard-fail read: a regenerated tree always carries this artifact, so
+/// a missing file, an unparsable one, or a `gmeow:ValidationRule` subject with no
+/// `gmeow:ruleCode` is a broken invariant (a pipeline bug), never an optional
+/// input — the caller must stop and report rather than silently render the
+/// "What GMEOW enforces" page as empty.
+fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError> {
     let path = root.join("generated/catalog/constraint-catalog.nq");
-    let Ok(bytes) = std::fs::read(&path) else {
-        return Vec::new();
-    };
-    let Ok(store) = Store::parse_nquads(&bytes) else {
-        return Vec::new();
-    };
+    let bytes = std::fs::read(&path).map_err(|e| {
+        DocsError::ConstraintCatalog(format!("cannot read {}: {e}", path.display()))
+    })?;
+    let store = Store::parse_nquads(&bytes).map_err(|e| {
+        DocsError::ConstraintCatalog(format!("cannot parse {}: {e}", path.display()))
+    })?;
     let mut rules: Vec<ConstraintRule> = Vec::new();
     for iri in store.subjects_of_type_any(GMEOW_VALIDATION_RULE) {
-        // The rule code is the identity; skip a malformed subject that carries none.
-        let Some(code) = store.first_literal_any(&iri, GMEOW_RULE_CODE) else {
-            continue;
-        };
+        // The rule code is the identity; a subject with none is malformed
+        // generated data, not a tolerable optional field.
+        let code = store
+            .first_literal_any(&iri, GMEOW_RULE_CODE)
+            .ok_or_else(|| {
+                DocsError::ConstraintCatalog(format!(
+                    "gmeow:ValidationRule {iri} in {} carries no gmeow:ruleCode",
+                    path.display()
+                ))
+            })?;
         let slug = gmeow_validate::rule_catalog::slugify(&code);
         let category = store
             .named_objects_any(&iri, GMEOW_RULE_CATEGORY)
@@ -1107,7 +1123,7 @@ fn read_constraint_catalog(root: &Path) -> Vec<ConstraintRule> {
         });
     }
     rules.sort_by(|a, b| a.code.cmp(&b.code));
-    rules
+    Ok(rules)
 }
 
 /// Read the ontology's concept DOI from `<root>/metadata/gmeow-self.ttl`: the
