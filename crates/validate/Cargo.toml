@@ -51,7 +51,8 @@ ciborium = "0.2"
 # so they are excluded from the wasm target entirely — the modules that use them are
 # `#[cfg(not(target_arch = "wasm32"))]` in lib.rs.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-# Reserved for future lint ports that need regex (kept in lockstep with shacl).
+# Regex engine for the native-only lint / constitution / repo-static gate modules
+# (version pin kept in lockstep with shacl).
 regex = "1"
 # Cargo manifest parsing for the native crate-layering DAG gate.
 toml = "0.8"
