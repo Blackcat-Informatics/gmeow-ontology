@@ -31,12 +31,12 @@ bibo:AcademicArticle	rdfs:subClassOf	gmeow:Article	semapv:ManualMappingCuration	
 doap:GitRepository	rdfs:subClassOf	gmeow:Repository	semapv:ManualMappingCuration	1.0	
 geo:Feature	skos:closeMatch	gmeow:Place	semapv:ManualMappingCuration	0.7	
 geo:Geometry	skos:closeMatch	gmeow:Geometry	semapv:ManualMappingCuration	0.9	
-gmeow:Activity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9	prov:Activity is provenance-shaped (used/generated), broader than the GMEOW provenance class; a close, not extensional-equivalent, match
+gmeow:Activity	skos:exactMatch	prov:Activity	semapv:ManualMappingCuration	0.95	the general provenance-activity class, co-extensive with prov:Activity; the narrower activity kinds (Event, ObservationalActivity, ImportActivity, ...) map in by closeMatch/relatedMatch
 gmeow:Agent	owl:equivalentClass	foaf:Agent	semapv:ManualMappingCuration	1.0	
 gmeow:Agent	owl:equivalentClass	prov:Agent	semapv:ManualMappingCuration	0.95	
 gmeow:Article	owl:equivalentClass	schema:Article	semapv:ManualMappingCuration	1.0	
 gmeow:ContactPoint	owl:equivalentClass	schema:ContactPoint	semapv:ManualMappingCuration	1.0	
-gmeow:CreativeWork	skos:closeMatch	schema:CreativeWork	semapv:ManualMappingCuration	0.8	Lossy: schema.org collapses WEMI into one flat node.
+gmeow:CreativeWork	skos:exactMatch	schema:CreativeWork	semapv:ManualMappingCuration	0.9	co-extensive at the top creative-work class; schema.org flattening the WEMI sub-structure is a preservation loss, not an extension difference — the WEMI tiers (gmeow:Work etc.) map separately by closeMatch
 gmeow:Credential	owl:equivalentClass	ceterms:Credential	semapv:ManualMappingCuration	0.9	Credential Engine CTDL Credential — superset by reference
 gmeow:Credential	owl:equivalentClass	schema:EducationalOccupationalCredential	semapv:ManualMappingCuration	1.0	
 gmeow:DataFeed	skos:closeMatch	schema:DataFeed	semapv:ManualMappingCuration	0.85	a published ordered item stream IS schema:DataFeed
@@ -46,7 +46,7 @@ gmeow:Family	owl:equivalentClass	gedcom:Family	semapv:ManualMappingCuration	1.0
 gmeow:GeoCoordinates	owl:equivalentClass	schema:GeoCoordinates	semapv:ManualMappingCuration	1.0	
 gmeow:Group	owl:equivalentClass	foaf:Group	semapv:ManualMappingCuration	0.95	
 gmeow:Identifier	skos:closeMatch	schema:PropertyValue	semapv:ManualMappingCuration	0.85	the reified external-identifier record IS schema's PropertyValue bundle (propertyID/value/url/name); closeMatch — schema's PropertyValue is broader (any keyed value), the projection narrows to identifier records
-gmeow:MediaObject	skos:closeMatch	schema:MediaObject	semapv:ManualMappingCuration	0.9	Direct correspondence.
+gmeow:MediaObject	skos:exactMatch	schema:MediaObject	semapv:ManualMappingCuration	0.9	direct 1:1 correspondence; schema:ImageObject/AudioObject map in as narrower subclasses
 gmeow:Membership	owl:equivalentClass	org:Membership	semapv:ManualMappingCuration	1.0	
 gmeow:Occupation	owl:equivalentClass	esco:Occupation	semapv:ManualMappingCuration	0.9	ESCO occupation is ISCO-grounded; GMEOW Occupation is the superset
 gmeow:Occupation	owl:equivalentClass	schema:Occupation	semapv:ManualMappingCuration	1.0	

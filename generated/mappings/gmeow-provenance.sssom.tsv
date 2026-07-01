@@ -12,7 +12,7 @@
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
-gmeow:Activity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9	
+gmeow:Activity	skos:exactMatch	prov:Activity	semapv:ManualMappingCuration	0.95	the general provenance-activity class, co-extensive with prov:Activity; the narrower activity kinds (Event, ObservationalActivity, ImportActivity, ...) map in by closeMatch/relatedMatch
 gmeow:CreativeWork	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.6	Source-hood is anti-rigid; the described thing is a CreativeWork (WEMI).
 gmeow:ImportActivity	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.8	
 gmeow:assertedAt	skos:closeMatch	prov:generatedAtTime	semapv:ManualMappingCuration	0.85	
@@ -21,6 +21,6 @@ gmeow:ingestedAt	skos:closeMatch	prov:endedAtTime	semapv:ManualMappingCuration	0
 gmeow:sourceLocation	skos:closeMatch	dcterms:source	semapv:ManualMappingCuration	0.6	
 gmeow:sourceModifiedAt	skos:closeMatch	dcterms:modified	semapv:ManualMappingCuration	0.9	
 gmeow:wasAssociatedWith	skos:closeMatch	prov:wasAssociatedWith	semapv:ManualMappingCuration	0.9	
-gmeow:wasAttributedTo	skos:closeMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.9	
-gmeow:wasDerivedFrom	skos:closeMatch	prov:wasDerivedFrom	semapv:ManualMappingCuration	0.9	the same derivation relation; gmeow's is deliberately domain-free so events and endurants may participate, so it is a close (not extensional-equivalent) match
-gmeow:wasGeneratedBy	skos:closeMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.9	
+gmeow:wasAttributedTo	skos:exactMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.95	
+gmeow:wasDerivedFrom	skos:exactMatch	prov:wasDerivedFrom	semapv:ManualMappingCuration	0.95	the same derivation relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range
+gmeow:wasGeneratedBy	skos:exactMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.95	
