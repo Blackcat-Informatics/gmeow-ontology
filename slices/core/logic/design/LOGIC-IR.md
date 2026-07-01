@@ -73,7 +73,10 @@ governs what may be done with it:
   [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md);
 - **action schema** — a named precondition/effect/invariant template a transaction program may
   invoke;
-- **validation shape** — a closed-world data-shape condition (the SHACL-shaped subset);
+- **validation shape** — a closed-world data-shape condition (the SHACL-shaped subset), the
+  single kind the SHACL Core and ShEx shape surfaces are generated lowerings of, distinct from
+  the general `constraint` kind whose full-FOL residue only these surfaces approximate (fully
+  specified in [`LOGIC-VALIDATION.md`](LOGIC-VALIDATION.md));
 - **correspondence** — a law-bearing, possibly-lossy, possibly-bidirectional alignment between a
   source pattern and a target pattern (the **ninth** kind), wrapping a `logic:Lens` (its executable
   `get`/`put` core) and carrying its morphism class on the seven-rung ordered law-spine, its claimed
