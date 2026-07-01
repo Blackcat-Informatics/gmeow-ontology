@@ -289,7 +289,11 @@ pub fn exactly_one_stereotype(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding>
                  AbstractIndividualType for abstract individuals)",
                 local(&cls, cfg)
             );
-            let mut f = Finding::new(Severity::Error, "discipline/stereotype", message);
+            let mut f = Finding::new(
+                Severity::Error,
+                crate::codes::DISCIPLINE_STEREOTYPE,
+                message,
+            );
             f.add_location(Location {
                 logical: Some(cls.clone()),
                 ..Location::default()
@@ -304,7 +308,11 @@ pub fn exactly_one_stereotype(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding>
                 local(&cls, cfg),
                 names.join(", ")
             );
-            let mut f = Finding::new(Severity::Error, "discipline/stereotype", message);
+            let mut f = Finding::new(
+                Severity::Error,
+                crate::codes::DISCIPLINE_STEREOTYPE,
+                message,
+            );
             f.add_location(Location {
                 logical: Some(cls.clone()),
                 ..Location::default()
@@ -345,7 +353,11 @@ pub fn identity_overlap(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
                 join_local(&kind_ancestors, cfg),
                 CATALOGUE
             );
-            let mut f = Finding::new(Severity::Error, "discipline/identity-overlap", message);
+            let mut f = Finding::new(
+                Severity::Error,
+                crate::codes::DISCIPLINE_IDENTITY_OVERLAP,
+                message,
+            );
             f.add_location(Location {
                 logical: Some(cls.clone()),
                 ..Location::default()
@@ -370,7 +382,11 @@ pub fn identity_overlap(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
                 names,
                 CATALOGUE
             );
-            let mut f = Finding::new(Severity::Error, "discipline/identity-overlap", message);
+            let mut f = Finding::new(
+                Severity::Error,
+                crate::codes::DISCIPLINE_IDENTITY_OVERLAP,
+                message,
+            );
             f.add_location(Location {
                 logical: Some(cls.clone()),
                 ..Location::default()
@@ -411,7 +427,11 @@ pub fn anti_rigidity_discipline(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Findin
                 local(&cls, cfg),
                 CATALOGUE
             );
-            let mut f = Finding::new(Severity::Error, "discipline/anti-rigidity", message);
+            let mut f = Finding::new(
+                Severity::Error,
+                crate::codes::DISCIPLINE_ANTI_RIGIDITY,
+                message,
+            );
             f.add_location(Location {
                 logical: Some(cls.clone()),
                 ..Location::default()
@@ -444,7 +464,11 @@ pub fn anti_rigidity_discipline(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Findin
                     bad_ancestors.join(", "),
                     CATALOGUE
                 );
-                let mut f = Finding::new(Severity::Error, "discipline/anti-rigidity", message);
+                let mut f = Finding::new(
+                    Severity::Error,
+                    crate::codes::DISCIPLINE_ANTI_RIGIDITY,
+                    message,
+                );
                 f.add_location(Location {
                     logical: Some(cls.clone()),
                     ..Location::default()
@@ -544,7 +568,11 @@ pub fn relator_mediation(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
                 ends,
                 CATALOGUE
             );
-            let mut f = Finding::new(Severity::Error, "discipline/relator-mediation", message);
+            let mut f = Finding::new(
+                Severity::Error,
+                crate::codes::DISCIPLINE_RELATOR_MEDIATION,
+                message,
+            );
             f.add_location(Location {
                 logical: Some(cls.clone()),
                 ..Location::default()
@@ -692,7 +720,11 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
                 local(axis, cfg),
                 axis_ranges.len()
             );
-            let mut f = Finding::new(Severity::Error, "discipline/coequal-orthogonality", message);
+            let mut f = Finding::new(
+                Severity::Error,
+                crate::codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
+                message,
+            );
             f.add_location(Location {
                 logical: Some(axis.clone()),
                 ..Location::default()
@@ -707,7 +739,11 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
                  value contradicts co-equality (P9) and invites sameAs collapse (P5)",
                 local(axis, cfg)
             );
-            let mut f = Finding::new(Severity::Error, "discipline/coequal-orthogonality", message);
+            let mut f = Finding::new(
+                Severity::Error,
+                crate::codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
+                message,
+            );
             f.add_location(Location {
                 logical: Some(axis.clone()),
                 ..Location::default()
@@ -738,7 +774,7 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
             // No single focus node — multiple axes involved; emit without location.
             problems.push(Finding::new(
                 Severity::Error,
-                "discipline/coequal-orthogonality",
+                crate::codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
                 message,
             ));
         }
@@ -756,7 +792,11 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
             local(&b, cfg)
         );
         // Two nodes involved — attach the first (a) as the focus node.
-        let mut f = Finding::new(Severity::Error, "discipline/coequal-orthogonality", message);
+        let mut f = Finding::new(
+            Severity::Error,
+            crate::codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
+            message,
+        );
         f.add_location(Location {
             logical: Some(a.clone()),
             ..Location::default()
@@ -779,7 +819,7 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
         // No single focus node — the axiom is missing; emit without location.
         problems.push(Finding::new(
             Severity::Error,
-            "discipline/coequal-orthogonality",
+            crate::codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
             message,
         ));
     }
@@ -878,7 +918,11 @@ pub fn frame_declaration_completeness(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<
                     local(domain, cfg),
                     local(prop, cfg)
                 );
-                let mut f = Finding::new(Severity::Error, "discipline/frame-completeness", message);
+                let mut f = Finding::new(
+                    Severity::Error,
+                    crate::codes::DISCIPLINE_FRAME_COMPLETENESS,
+                    message,
+                );
                 f.add_location(Location {
                     logical: Some(domain.clone()),
                     ..Location::default()

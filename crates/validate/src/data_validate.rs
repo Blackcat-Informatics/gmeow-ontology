@@ -178,7 +178,7 @@ fn run_deep_pass(
             // it must NOT be silently downgraded to an advisory note.
             let mut finding = Finding::new(
                 Severity::Error,
-                "validate.deep.contract-invalid",
+                crate::codes::VALIDATE_DEEP_CONTRACT_INVALID,
                 format!(
                     "deep semantic pass: bundle carries a garbled \
                      logic:admissibleValuation that cannot be resolved as a \
@@ -197,7 +197,7 @@ fn run_deep_pass(
             // the complete Tier-1 result and fold one advisory note.
             let mut finding = Finding::new(
                 Severity::Note,
-                "validate.deep.unavailable",
+                crate::codes::VALIDATE_DEEP_UNAVAILABLE,
                 format!("deep semantic pass skipped: {msg}"),
             )
             .with_tool("validate");

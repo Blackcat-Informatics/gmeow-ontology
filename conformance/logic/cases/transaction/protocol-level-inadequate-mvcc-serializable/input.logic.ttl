@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: transaction/protocol-level-inadequate-mvcc-serializable.
+#
+# A logic:ConcurrentComposition whose run declares BOTH a logic:ConcurrencyControlProtocol
+# (logic:declaredProtocol) and a logic:IsolationLevel (logic:declaredIsolationLevel). The
+# native evaluator cross-checks whether the declared protocol's GUARANTEED CEILING reaches the
+# declared level — a static consistency check between two contract facts, independent of the
+# witnessed schedule (Principle 12) — and records logic:protocolLevelAdequacy.
+# logic:MultiversionConcurrencyControl tops out at snapshot isolation (it still admits write
+# skew), so declaring logic:SerializableIsolation is INADEQUATE (false) with a
+# logic:protocolLevelInadequacyReason. This is the pairing consistency check, kept distinct from
+# whether the schedule respects the mechanism (logic:protocolEnforced) or meets the strength
+# (logic:isolationLevelAdequacy).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/transaction/protocol-level-inadequate-mvcc-serializable/> .
+
+ex:GoalExpression a logic:GoalExpression .
+
+# The compile-time reasoning contract selects the transaction-path Evolution facet.
+ex:TransactionContract a logic:ReasoningContract ;
+    logic:evolution logic:TransactionPathEvolution .
