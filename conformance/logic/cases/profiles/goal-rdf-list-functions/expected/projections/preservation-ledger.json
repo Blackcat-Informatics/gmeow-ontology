@@ -87,5 +87,10 @@
       "actual: ground axiom <https://example.org/profiles/goal-rdf-list-functions/Element> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
     ],
     "preservation": "SoundUnderApproximation"
+  },
+  "xcl": {
+    "complexity": "full first-order (semi-decidable)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
   }
 }
