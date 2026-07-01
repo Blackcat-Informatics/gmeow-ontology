@@ -551,6 +551,24 @@ fn sentences_without_meta_carrier_fails_closed() {
 }
 
 #[test]
+fn empty_meta_carrier_with_sentences_fails_closed() {
+    // An XCL document with idiomatic sentences and a PRESENT-BUT-EMPTY <gmeow-rdf-meta> carrier
+    // cannot be reconstructed either (the sentence view is validated-only, never the round-trip
+    // authority). The reader must FAIL CLOSED, not silently return an empty program.
+    let xcl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+               <gmeow-xcl><sentences>\
+               <atom><rel><name>https://blackcatinformatics.ca/logic/p</name></rel>\
+               <arg><var>x</var></arg></atom>\
+               </sentences><gmeow-rdf-meta></gmeow-rdf-meta></gmeow-xcl>\n";
+    let err = parse_xcl_str(xcl, Some("urn:test:emptymeta".to_owned())).unwrap_err();
+    assert!(
+        err.0.contains("empty <gmeow-rdf-meta> carrier"),
+        "expected a fail-closed error for empty-meta-carrier input, got: {}",
+        err.0
+    );
+}
+
+#[test]
 fn malformed_xml_hard_fails() {
     // A non-well-formed document (unclosed element) cannot yield a meta carrier, so the reader
     // must hard-fail with a bounded error rather than silently return an empty program.

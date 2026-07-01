@@ -98,6 +98,13 @@ pub fn parse_xcl_str(
 
     // Reconstruct the WHOLE program from the meta carrier's N-Triples.
     if meta_text.trim().is_empty() {
+        if !sentence_children.is_empty() {
+            return Err(LogicParseError(format!(
+                "XCL has idiomatic <{SENTENCES_ELEMENT}> but an empty <{RDF_META_ELEMENT}> \
+                 carrier element; reconstruction from the sentence view alone is lossy and \
+                 unsupported."
+            )));
+        }
         // No meta payload: a legitimately empty program (there were no sentences either).
         return Ok((
             LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), source_iri),
