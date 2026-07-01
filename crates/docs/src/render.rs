@@ -26,6 +26,7 @@ use std::sync::OnceLock;
 use minijinja::{context, Environment};
 use pulldown_cmark::{html as cmark_html, Options, Parser};
 
+use crate::exec::ExecutableDocsData;
 use crate::i18n::{self, ENGLISH};
 use crate::llms::{self, LlmsBullet, LlmsSection};
 use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
@@ -49,6 +50,10 @@ const CSS: &str = include_str!("../assets/gmeow.css");
 
 /// The site-relative path the CSS asset is emitted to.
 const CSS_PATH: &str = "assets/gmeow.css";
+
+/// The site-relative path the offline SPARQL playground's bundled RDF asset (TriG)
+/// is emitted to. Language-neutral: the RDF is language-independent.
+const PLAYGROUND_TRIG_PATH: &str = "assets/playground.trig";
 
 // ── Pages ──────────────────────────────────────────────────────────────────
 
@@ -247,6 +252,19 @@ pub fn render_site(model: &DocsModel) -> Site {
 /// model carries. The per-language tree is deterministic and preserves the
 /// no-dangling-link invariant (slugs / IRIs are language-independent).
 pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
+    render_site_lang_exec(model, lang, &ExecutableDocsData::default())
+}
+
+/// Render the full static-site tree for a target language, **with** the build-time
+/// executable-docs data.
+///
+/// This is the render the pipeline uses: `exec` carries the reasoned "try it" diffs,
+/// the offline SPARQL playground asset, and the reasoned ontology handle used for
+/// per-term/-slice multi-format export. The executable surfaces are rendered **only
+/// when the corresponding `exec` field is present** — an [`ExecutableDocsData::default`]
+/// (the model-only render used by unit tests / the PyO3 preview) produces the complete
+/// base site without them. See [`render_site_lang`] for the model-only convenience.
+pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDocsData) -> Site {
     // Build a localized copy of the model so the existing renderers (which read
     // label / definition / title directly) emit translated content with English
     // fallback. The English carrier needs no rewrite.
@@ -268,6 +286,17 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
         );
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
+
+    // The offline SPARQL playground's bundled RDF asset (documentation graph + the
+    // reasoned ontology closure, TriG). Emitted once under a language-neutral path —
+    // the RDF is language-independent, so it is never duplicated per locale. Present
+    // only when the pipeline supplied it (empty for a model-only render).
+    if exec.has_playground() {
+        files.insert(
+            PLAYGROUND_TRIG_PATH.to_string(),
+            exec.playground_trig.clone(),
+        );
+    }
 
     // Deterministic SVG diagrams (pure functions of the model).
     files.insert(
@@ -3619,6 +3648,32 @@ mod tests {
         let en_keys: Vec<&String> = en.files.keys().collect();
         let fr_keys: Vec<&String> = fr.files.keys().collect();
         assert_eq!(en_keys, fr_keys, "no dangling/extra links per language");
+    }
+
+    #[test]
+    fn playground_asset_emitted_only_with_executable_data() {
+        let model = tiny_model();
+
+        // A model-only render (empty executable data) ships NO playground asset — the
+        // base site is complete without the executable surfaces.
+        let base = render_site_lang(&model, "english");
+        assert!(
+            !base.files.contains_key(PLAYGROUND_TRIG_PATH),
+            "the model-only render must not emit the playground asset"
+        );
+
+        // With a playground asset supplied, it is emitted once, verbatim, under the
+        // language-neutral path.
+        let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
+            ..Default::default()
+        };
+        let live = render_site_lang_exec(&model, "english", &exec);
+        assert_eq!(
+            live.files.get(PLAYGROUND_TRIG_PATH).map(Vec::as_slice),
+            Some(exec.playground_trig.as_slice()),
+            "the playground asset must be emitted verbatim when supplied"
+        );
     }
 
     #[test]

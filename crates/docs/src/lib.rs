@@ -18,6 +18,7 @@
 
 pub mod card;
 pub mod coverage;
+pub mod exec;
 pub mod fixture;
 pub mod i18n;
 pub mod i18n_compile;
@@ -33,6 +34,7 @@ pub mod svg;
 #[cfg(feature = "python")]
 pub mod py;
 
+pub use exec::{example_key, ExecutableDocsData, InferenceDiff};
 pub use i18n::{available_languages, ui_string, Translations, UiCatalog};
 pub use lint::lint;
 pub use llms::{GMEOW_SUMMARY, LLMS_NOTE_CAP};
@@ -42,7 +44,9 @@ pub use model::{
     DocTermCategory, DocsError, DocsModel,
 };
 pub use rdf::to_gmeow_rdf;
-pub use render::{render_site, render_site_lang, to_html, to_markdown, Page, Site};
+pub use render::{
+    render_site, render_site_lang, render_site_lang_exec, to_html, to_markdown, Page, Site,
+};
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.docs` submodule (#630).
 #[cfg(feature = "python")]
