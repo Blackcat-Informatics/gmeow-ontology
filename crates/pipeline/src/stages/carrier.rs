@@ -480,6 +480,12 @@ fn rdf_fanout_members(
             "stage-compile-logic",
             crate::stages::compile_logic::DIAG_RDF_PATH,
         ),
+        // The generated constraint catalog `.nq` — its own fanout named graph,
+        // reconstructed byte-for-byte by the superset gate.
+        (
+            "stage-constraint-catalog",
+            crate::stages::constraint_catalog::CONSTRAINT_CATALOG_RDF_PATH,
+        ),
     ] {
         let bytes = upstream
             .get(stage)
@@ -1689,6 +1695,9 @@ impl SnapshotStage {
                 // verdict against the published external verdict and emits the
                 // divergences as a gmeow:Finding N-Quads product folded here.
                 "stage-conformance".to_string(),
+                // The generated constraint catalog `.nq`, folded as the
+                // graph/fanout/catalog/constraint-catalog.nq named graph.
+                "stage-constraint-catalog".to_string(),
                 "stage-docs-render".to_string(),
                 // The RDF fanout members ride in from their producing export leaves (the
                 // render ran once, in the leaf): profiles / evals scores.ttl / research-
@@ -1772,7 +1781,9 @@ impl Stage for SnapshotStage {
         // v17: the RDF fanout members (profiles / evals scores / research-object graphs)
         // ride in from their producing export leaves — `rdf_fanout_members` reads them
         // off those products instead of re-rendering from disk (§3.2 transform-once).
-        "snapshot.v17-fanout-presenter"
+        // v18 additionally consumes stage-constraint-catalog and folds its generated
+        // `.nq` as the graph/fanout/catalog/constraint-catalog.nq named graph.
+        "snapshot.v18-constraint-catalog-fanout-presenter"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from

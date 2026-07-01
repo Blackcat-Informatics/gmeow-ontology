@@ -6662,445 +6662,460 @@
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1329> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VectorIndex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/ValidationRule> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1330> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VectorIndex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/ValidationRule> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1331> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VectorIndex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/ValidationRule> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1332> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationActivity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Event> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VectorIndex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1333> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationActivity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Event> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VectorIndex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1334> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationResult> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VectorIndex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1335> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationResult> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationActivity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Event> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1336> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationResult> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationActivity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Event> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1337> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionMembership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/9eac73ba71c623ba562d5ed1e2b4af534c2a0302> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationResult> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1338> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionMembership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/ad08dd905d0d0c88cf44ffd0a9f392d856883436> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationResult> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1339> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionSet> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VerificationResult> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1340> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionSet> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionMembership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/9eac73ba71c623ba562d5ed1e2b4af534c2a0302> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1341> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionSet> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionMembership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/ad08dd905d0d0c88cf44ffd0a9f392d856883436> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1342> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VirtualLocation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionSet> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1343> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VirtualLocation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionSet> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1344> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VirtualLocation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VersionSet> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1345> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Voice> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VirtualLocation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1346> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VirtualLocation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1347> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/VirtualLocation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1348> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/InformationObject> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Voice> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1349> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/NarrativeScope> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1350> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/WebPage> >> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1351> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/InformationObject> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1352> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/NarrativeScope> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1353> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/WebPage> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/WebPage> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1354> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1355> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1356> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/InformationObject> >> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/WebPage> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1357> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/NarrativeScope> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1358> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1359> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/InformationObject> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1360> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> >> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/NarrativeScope> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1361> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Work> >> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1362> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WebSite> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1363> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/InformationObject> >> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1364> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/NarrativeScope> >> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Work> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1365> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Work> >> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1366> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/InformationObject> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/NarrativeScope> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1368> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WritingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Work> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1369> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WritingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1370> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
-   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WritingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
 <https://blackcatinformatics.ca/gmeow/ledger-entry-1371> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WritingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
+   <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1372> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WritingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
+   <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1373> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
+   <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/WritingSystem> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> ;
+   <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1374> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+   <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/skolem/9933fe4d16c74f10c3e6e68c3a20acbc494196e5> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/27e57db956c05a0343b7ecfd7f74c5837549edc4> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1372> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1375> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://blackcatinformatics.ca/gmeow/skolem/d9db9324584453f2f8e5f51a801babca848706ee> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/27e57db956c05a0343b7ecfd7f74c5837549edc4> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1373> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1376> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1374> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1377> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1375> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1378> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1376> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1379> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1377> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1380> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1378> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1381> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/AudioObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1379> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1382> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/BlogPosting> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1380> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1383> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/ContactPoint> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1381> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1384> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/ContactPoint> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1382> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1385> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Country> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1383> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1386> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1384> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1387> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/CreativeWork> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1385> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1388> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Dataset> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1386> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1389> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Dataset> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1387> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1390> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/DigitalDocument> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Document> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1388> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1391> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/DigitalDocument> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/DigitalDocument> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1389> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1392> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1390> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1393> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1391> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1394> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1392> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1395> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/EmailMessage> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1393> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1396> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EmailMessage> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1394> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1397> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/GeoCoordinates> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1395> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1398> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/GeoCoordinates> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1396> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1399> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/ImageObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1397> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1400> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1398> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1401> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1399> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1402> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/NewsArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1400> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1403> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1401> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1404> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1402> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1405> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1403> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1406> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1404> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1407> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1405> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1408> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1406> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1409> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/OrganizationRole> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Role> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1407> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1410> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1408> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1411> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1409> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1412> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1410> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1413> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1411> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1414> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Place> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1412> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1415> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1413> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1416> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/PostalAddress> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1414> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1417> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/PostalAddress> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1415> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1418> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/ScholarlyArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1416> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1419> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/WebPage> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "oracle comparison runs in classic-cross-check; native gaps fail #697"@en .
-<https://blackcatinformatics.ca/gmeow/ledger-entry-1417> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
+<https://blackcatinformatics.ca/gmeow/ledger-entry-1420> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/entryKind> <https://blackcatinformatics.ca/gmeow/NativeOnly> ;
    <https://blackcatinformatics.ca/gmeow/subsumes> << <https://schema.org/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/WebPage> >> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
@@ -7109,5 +7124,5 @@
 # --- native DL coverage defects ---
 
 # --- counts ---
-<https://blackcatinformatics.ca/gmeow/dl-el-crosscheck> <https://blackcatinformatics.ca/gmeow/entailmentCount> 1418 ;
+<https://blackcatinformatics.ca/gmeow/dl-el-crosscheck> <https://blackcatinformatics.ca/gmeow/entailmentCount> 1421 ;
    <https://blackcatinformatics.ca/gmeow/gapCount> 0 .
