@@ -57,7 +57,7 @@ const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// The diagnostic code stamped on every statement-invariant finding (the SARIF
 /// rule id). Mirrors the `<tool>.error` convention the legacy bridge uses.
-const STATEMENT_CODE: &str = "statement.invariant";
+const STATEMENT_CODE: &str = crate::codes::STATEMENT_INVARIANT;
 
 /// The OWL 2 datatype map — the only datatypes legal in a base-triple literal
 /// that is a logical data-property assertion. A byte-exact port of
@@ -122,7 +122,7 @@ fn is_property_type(iri: &str) -> bool {
 }
 
 /// The diagnostic code for the RDF-1.2 ↔ OWL round-trip lossless check (#809).
-const LOSSLESS_CODE: &str = "statement-compile.lossless-round-trip";
+const LOSSLESS_CODE: &str = crate::codes::STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP;
 fn lossless_finding(message: String) -> gmeow_diagnostics::Finding {
     gmeow_diagnostics::Finding::new(gmeow_diagnostics::Severity::Error, LOSSLESS_CODE, message)
         .with_tool("statement-compile")

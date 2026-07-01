@@ -24,6 +24,7 @@
 pub mod advisory;
 pub mod box_roles;
 pub mod cache;
+pub mod codes;
 pub mod constitution;
 pub mod coverage;
 pub mod crate_layering;
@@ -36,6 +37,7 @@ pub mod lint;
 pub mod mapping_eval;
 pub mod model;
 pub mod repo_static;
+pub mod rule_catalog;
 pub mod signature;
 pub mod slice_ownership;
 pub mod statement;

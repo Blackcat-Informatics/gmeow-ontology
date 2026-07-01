@@ -554,7 +554,7 @@ pub fn check_enforcement_coverage(ds: &RdfDataset) -> Vec<Finding> {
             findings.push(
                 Finding::new(
                     Severity::Warning,
-                    "constitution.honor-system",
+                    crate::codes::CONSTITUTION_HONOR_SYSTEM,
                     format!(
                         "principle {} ({}) is enforced only by review practice (honor system)",
                         principle.number,
@@ -569,7 +569,11 @@ pub fn check_enforcement_coverage(ds: &RdfDataset) -> Vec<Finding> {
     for orphan in enforcements.keys() {
         if !cited.contains(orphan) {
             findings.push(error(
-                "orphaned-enforcement",
+                crate::codes::CONSTITUTION_ORPHANED_ENFORCEMENT
+                    .strip_prefix(crate::codes::CONSTITUTION_FAMILY)
+                    .expect(
+                        "CONSTITUTION_ORPHANED_ENFORCEMENT carries the constitution. family prefix",
+                    ),
                 format!("orphaned enforcement {orphan} maps to no principle — why does it exist?"),
             ));
         }
@@ -880,7 +884,12 @@ pub fn constitution_full_report(
 
 /// Build one `constitution.<code>` error finding.
 fn error(code: &str, message: String) -> Finding {
-    Finding::new(Severity::Error, format!("constitution.{code}"), message).with_tool("constitution")
+    Finding::new(
+        Severity::Error,
+        format!("{}{code}", crate::codes::CONSTITUTION_FAMILY),
+        message,
+    )
+    .with_tool("constitution")
 }
 
 #[cfg(test)]
