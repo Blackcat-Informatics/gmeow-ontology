@@ -2078,7 +2078,7 @@ logic:gateVerdict
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "gate verdict"@x-gmeow-english ;
-    skos:definition "Relates a logic:GateProbe to its action-gate verdict, one of logic:GateAdmitted or logic:GateDenied. Domain logic:GateProbe (stated in prose). The materialized verdict of the precondition / capability / invariant / resource gate."@x-gmeow-english ;
+    skos:definition "Relates a logic:GateProbe to its action-gate verdict, one of logic:GateAdmitted, logic:GateDenied, or logic:GateUndetermined. Domain logic:GateProbe (stated in prose). The materialized verdict of the precondition / capability / invariant / resource / freshness gate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:gateDenialReason
@@ -2106,6 +2106,61 @@ logic:GateDenied
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Gate Denied"@x-gmeow-english ;
     skos:definition "The logic:gateVerdict value for an action the gate denies: a precondition, capability, invariant, or resource gate failed. The probe carries a logic:gateDenialReason naming the failing gate and, when declared, the logic:gateCompensation rollback."@x-gmeow-english .
+
+logic:GateUndetermined
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Gate Undetermined"@x-gmeow-english ;
+    skos:definition "The logic:gateVerdict value for an action whose gate is neither admitted nor denied because a precondition datum is outside its valid-time freshness window: the supporting datum was recorded too long before the logic:decisionTime to be relied upon (a logic:FreshnessGuard whose logic:freshnessHorizon is exceeded). The datum is treated as undetermined — NOT as stale-but-usable and NOT as a denial — mirroring the logic:GoalEvaluationUndetermined conclusiveness axis of goal evaluation: a judgment the evaluator declines to make on insufficiently-current input rather than guessing. The probe carries a logic:gateUndeterminedReason naming the stale datum and its exceeded horizon."@x-gmeow-english .
+
+logic:gateUndeterminedReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "gate undetermined reason"@x-gmeow-english ;
+    skos:definition "A human-readable reason on a logic:GateUndetermined logic:GateProbe naming the precondition datum whose valid-time freshness window was exceeded and the logic:freshnessHorizon it fell outside of. Domain logic:GateProbe, range a string literal (stated in prose). The stale-datum verdict is surfaced, never a silent pass or a spurious denial."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:decisionTime
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "decision time"@x-gmeow-english ;
+    skos:definition "The xsd:dateTime a logic:GateProbe is judged at — the \"now\" against which a logic:FreshnessGuard measures the age of a precondition datum. Domain logic:GateProbe, range xsd:dateTime (stated in prose). When a probe gates a schema carrying a freshness guard, a missing logic:decisionTime is a hard error, never a silent pass: the age comparison has no reference point and the evaluator refuses to guess."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:FreshnessGuard
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Freshness Guard"@x-gmeow-english ;
+    skos:definition "A valid-time currency guard on an action-schema precondition: it declares that the datum supporting a logic:precondition (via logic:guardsPrecondition) is relied upon only while its age — the span from the datum's logic:datumRecordedAt to the probe's logic:decisionTime — is within a declared logic:freshnessHorizon. Outside the horizon the datum is undetermined, not stale-but-used: the action gate yields logic:GateUndetermined rather than admitting on an out-of-date value or denying on a value that simply aged. This is GMEOW's native, canonical generalization of a decision-rule 'currency' annotation (a measurement valid only if recorded within N of the decision) — the valid-time freshness discipline the typed context algebra applies, executed at the action gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:freshnessGuard
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "freshness guard"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to a logic:FreshnessGuard it carries — the valid-time currency guard on one of its preconditions. Domain logic:ActionSchema, range logic:FreshnessGuard (stated in prose). MULTI-valued: a schema may guard several preconditions, each with its own horizon."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:guardsPrecondition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "guards precondition"@x-gmeow-english ;
+    skos:definition "Relates a logic:FreshnessGuard to the logic:precondition situation it guards — the situation whose supporting datum must be current for the gate to admit. Domain logic:FreshnessGuard, range the guarded precondition situation (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:freshnessHorizon
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "freshness horizon"@x-gmeow-english ;
+    skos:definition "The maximum admissible age of a guarded precondition datum, as an xsd:duration measured from the datum's logic:datumRecordedAt to the probe's logic:decisionTime. Domain logic:FreshnessGuard, range xsd:duration (stated in prose). Only fixed-length designators are admissible (weeks / days / hours / minutes / seconds); a nominal-length designator (years / months, which are not fixed spans) is a hard error, because the age comparison would be ill-defined."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:datumRecordedAt
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "datum recorded at"@x-gmeow-english ;
+    skos:definition "The xsd:dateTime at which the datum supporting a guarded precondition situation was recorded — the start of the age span a logic:FreshnessGuard measures against its logic:freshnessHorizon. Domain a precondition situation, range xsd:dateTime (stated in prose). Compared against logic:decisionTime in a single timescale; a missing value under a declared freshness guard is a hard error, never a silent pass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:TransactionStep
     a owl:Class ;

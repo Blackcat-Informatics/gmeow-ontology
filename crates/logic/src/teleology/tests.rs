@@ -1979,3 +1979,131 @@ fn evaluation_time_iri_and_absent_from_driver_emitted_eval() {
          (time-of-judgment is unspecified, not defaulted)"
     );
 }
+
+// ── Facet: FreshnessGuard (valid-time currency gate → GateUndetermined) ──────────
+
+const XSD_DT: &str = "<http://www.w3.org/2001/XMLSchema#dateTime>";
+const XSD_DUR: &str = "<http://www.w3.org/2001/XMLSchema#duration>";
+
+#[test]
+fn parse_xsd_duration_seconds_fixed_designators() {
+    assert_eq!(parse_xsd_duration_seconds("P3D").unwrap(), 259_200);
+    assert_eq!(parse_xsd_duration_seconds("P1W").unwrap(), 604_800);
+    assert_eq!(parse_xsd_duration_seconds("PT3H").unwrap(), 10_800);
+    assert_eq!(parse_xsd_duration_seconds("PT90M").unwrap(), 5_400);
+    assert_eq!(parse_xsd_duration_seconds("P1DT12H").unwrap(), 129_600);
+    assert_eq!(parse_xsd_duration_seconds("PT30S").unwrap(), 30);
+}
+
+#[test]
+fn parse_xsd_duration_seconds_rejects_nominal_and_malformed() {
+    // Nominal-length designators (years / months) have no fixed second-count → hard error.
+    assert!(parse_xsd_duration_seconds("P1Y").is_err());
+    assert!(parse_xsd_duration_seconds("P1M").is_err());
+    // A negative horizon is nonsensical.
+    assert!(parse_xsd_duration_seconds("-P3D").is_err());
+    // Structurally malformed.
+    assert!(parse_xsd_duration_seconds("3D").is_err()); // no leading P
+    assert!(parse_xsd_duration_seconds("P").is_err()); // no components
+    assert!(parse_xsd_duration_seconds("P3DT").is_err()); // empty time part
+    assert!(parse_xsd_duration_seconds("PT1X").is_err()); // unknown designator
+}
+
+#[test]
+fn literal_lex_extracts_typed_literal_value() {
+    assert_eq!(
+        literal_lex(&format!("\"2026-06-18T00:00:00Z\"^^{XSD_DT}")).as_deref(),
+        Some("2026-06-18T00:00:00Z")
+    );
+    // An IRI form is not a literal.
+    assert_eq!(literal_lex("<https://example.org/x>"), None);
+}
+
+/// A schema with one freshness-guarded precondition; `recorded` is the datum's
+/// logic:datumRecordedAt.
+fn freshness_nq(recorded: &str) -> String {
+    let mut nq = path_nq(&[&["ready"]]);
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#guard0> <{W}> .\n",
+        l("freshnessGuard")
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {} <{W}#ready> <{W}> .\n",
+        l("guardsPrecondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {} \"P3D\"^^{XSD_DUR} <{W}> .\n",
+        l("freshnessHorizon")
+    ));
+    nq.push_str(&format!(
+        "<{W}#ready> {} \"{recorded}\"^^{XSD_DT} <{W}> .\n",
+        l("datumRecordedAt")
+    ));
+    nq
+}
+
+#[test]
+fn freshness_guard_fresh_datum_is_none() {
+    // Datum recorded 2 days before the decision, horizon 3 days → fresh.
+    let f = freshness_nq("2026-06-18T00:00:00Z");
+    let facts = facts_of(&f);
+    let v =
+        freshness_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).unwrap();
+    assert!(
+        v.is_none(),
+        "a datum within the horizon must not be stale: {v:?}"
+    );
+}
+
+#[test]
+fn freshness_guard_stale_datum_is_undetermined() {
+    // Datum recorded 5 days before the decision, horizon 3 days → stale.
+    let f = freshness_nq("2026-06-15T00:00:00Z");
+    let facts = facts_of(&f);
+    let v =
+        freshness_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).unwrap();
+    let (sit, reason) = v.expect("an out-of-horizon datum must be stale");
+    assert_eq!(sit, format!("{W}#ready"));
+    assert!(
+        reason.contains("freshness horizon"),
+        "reason names the horizon: {reason:?}"
+    );
+}
+
+#[test]
+fn freshness_guard_missing_decision_time_is_hard_error() {
+    // A guard is declared but the probe supplies no decisionTime → hard error, never a pass.
+    let f = freshness_nq("2026-06-15T00:00:00Z");
+    let facts = facts_of(&f);
+    assert!(freshness_verdict(&facts, &format!("{W}#schema"), None).is_err());
+}
+
+#[test]
+fn freshness_guard_missing_datum_recorded_at_is_hard_error() {
+    // Guard declared, decisionTime present, but the datum carries no datumRecordedAt.
+    let mut nq = path_nq(&[&["ready"]]);
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#ready> <{W}> .\n",
+        l("precondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#schema> {} <{W}#guard0> <{W}> .\n",
+        l("freshnessGuard")
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {} <{W}#ready> <{W}> .\n",
+        l("guardsPrecondition")
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {} \"P3D\"^^{XSD_DUR} <{W}> .\n",
+        l("freshnessHorizon")
+    ));
+    let facts = facts_of(&nq);
+    assert!(
+        freshness_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).is_err()
+    );
+}

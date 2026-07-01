@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/currency-freshness-guard/world": {
+    "quads": 20,
+    "status": "consistent"
+  }
+}

@@ -265,6 +265,33 @@ logic:McpActionPolicyShape
         sh:message "An MCP-action schema must declare at least one logic:compensation — the rollback that recovers from the realized outcome." ;
     ] .
 
+# logic:FreshnessGuardShape — well-formedness for a valid-time currency guard.
+# A freshness guard must name the precondition it guards (logic:guardsPrecondition)
+# and the maximum admissible datum age (logic:freshnessHorizon, an xsd:duration).
+# Without both the age comparison the native gate performs is ill-defined, so each
+# is required and single-valued: one guard governs exactly one precondition's currency.
+logic:FreshnessGuardShape
+    a sh:NodeShape ;
+    rdfs:label "FreshnessGuard well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:FreshnessGuard: the valid-time currency guard on an action-schema precondition. It must declare exactly one logic:guardsPrecondition (the situation whose supporting datum must be current) and exactly one logic:freshnessHorizon (the maximum admissible datum age, an xsd:duration). Both are load-bearing for the native gate's age comparison; a guard missing either would gate on an ill-defined window."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:FreshnessGuard ;
+    sh:property [
+        sh:path logic:guardsPrecondition ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A FreshnessGuard must guard exactly one logic:precondition (via logic:guardsPrecondition)." ;
+    ] ;
+    sh:property [
+        sh:path logic:freshnessHorizon ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:duration ;
+        sh:severity sh:Violation ;
+        sh:message "A FreshnessGuard must declare exactly one logic:freshnessHorizon (an xsd:duration — the maximum admissible datum age)." ;
+    ] .
+
 # Dual-authority consistency (VANTAGE-SCOPED, never a global satisfaction verdict).
 # A conclusive gmeow:satisfiedBy(goal, situation) edge is the projection of a
 # satisfied + completed logic:GoalEvaluation. This sh:sparql constraint flags a
