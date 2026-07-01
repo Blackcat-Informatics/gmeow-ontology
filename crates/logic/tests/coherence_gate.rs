@@ -38,6 +38,13 @@ const A: &str = "https://blackcatinformatics.ca/gmeow/test/coherence/A";
 const B: &str = "https://blackcatinformatics.ca/gmeow/test/coherence/B";
 const W: &str = "https://blackcatinformatics.ca/gmeow/test/coherence/world";
 
+// The NET-NEW foundational-partition edge on this branch: gmeow:Agent is disjoint
+// with gmeow:SocialObject (it did NOT exist before). Using the real production IRIs
+// proves the newly-asserted disjointness — not a synthetic one — has teeth: an
+// individual typed as both is forced to owl:Nothing by the coherence gate.
+const AGENT: &str = "https://blackcatinformatics.ca/gmeow/Agent";
+const SOCIAL_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/SocialObject";
+
 /// The injected disjoint-class clash, as world-scoped N-Quads.
 fn clash_nquads() -> String {
     format!(
@@ -50,6 +57,16 @@ fn clash_nquads() -> String {
 /// The same world with only the type assertion — no disjointness, hence coherent.
 fn benign_nquads() -> String {
     format!("<{X}> <{RDF_TYPE}> <{A}> <{W}> .\n")
+}
+
+/// The net-new top-sortal clash: individual X is typed both gmeow:Agent and
+/// gmeow:SocialObject, which this branch asserts owl:disjointWith. World-scoped.
+fn top_sortal_clash_nquads() -> String {
+    format!(
+        "<{X}> <{RDF_TYPE}> <{AGENT}> <{W}> .\n\
+         <{X}> <{RDF_TYPE}> <{SOCIAL_OBJECT}> <{W}> .\n\
+         <{AGENT}> <{OWL_DISJOINT_WITH}> <{SOCIAL_OBJECT}> <{W}> .\n"
+    )
 }
 
 /// Repo root: `crates/logic` → `../..`.
@@ -83,6 +100,31 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
             .any(|w| w.individual.contains("coherence/x")),
         "the inconsistency witness must name the injected individual: {:?}",
         v1.inconsistencies
+    );
+}
+
+#[test]
+fn dl_consistency_gate_catches_net_new_agent_social_object_clash() {
+    // The foundational partition's NET-NEW edge (gmeow:Agent ⊥ gmeow:SocialObject,
+    // which did not exist before this branch) must have teeth: an individual typed as
+    // both a gmeow:Agent and a gmeow:SocialObject is forced to owl:Nothing.
+    let poisoned = dataset_from_bytes(
+        top_sortal_clash_nquads().as_bytes(),
+        NativeRdfFormat::NQuads,
+    )
+    .expect("parse top-sortal clash N-Quads");
+    let v = dl_consistency(poisoned.as_ref()).expect("consistency run over top-sortal clash");
+    assert!(
+        !v.consistent,
+        "an individual typed both gmeow:Agent and gmeow:SocialObject must be inconsistent \
+         under the net-new top-sortal disjointness"
+    );
+    assert!(
+        v.inconsistencies
+            .iter()
+            .any(|w| w.individual.contains("coherence/x")),
+        "the inconsistency witness must name the injected individual: {:?}",
+        v.inconsistencies
     );
 }
 
