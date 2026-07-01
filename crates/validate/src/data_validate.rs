@@ -134,6 +134,31 @@ pub fn run_tier1(
     Ok(report)
 }
 
+/// Run Tier-1 conformance and return the [`Report`] as a JSON string — the
+/// deep-less, Python-free entry for the wasm/CLI boundary.
+///
+/// This is the sole validation surface exposed to wasm: it wraps [`run_tier1`]
+/// (never the native `--deep` path) and serializes the canonical
+/// `gmeow_diagnostics::Report` with serde_json, so a browser / editor / LLM client
+/// receives structured findings without any PyO3 or filesystem coupling. Native
+/// callers that want a JSON result share this same entry.
+///
+/// # Errors
+///
+/// Returns `Err` for the same Tier-1 reasons as [`run_tier1`] (missing/malformed
+/// `shapes-archive`, unparsable shapes, unparsable data graph), or if the report
+/// fails to serialize to JSON.
+pub fn validate_json(
+    data_bytes: &[u8],
+    data_format: &str,
+    gts_bytes: &[u8],
+    namespace: &str,
+    origin: &str,
+) -> Result<String, String> {
+    let report = run_tier1(data_bytes, data_format, gts_bytes, namespace, origin)?;
+    serde_json::to_string(&report).map_err(|e| format!("report JSON serialization failed: {e}"))
+}
+
 /// Run Tier-1 conformance and, when `deep` is set, the opt-in native **Tier-2**
 /// semantic pass — the consumer `gmeow validate [--deep] <data>` entry.
 ///
@@ -583,6 +608,45 @@ logic:c rdf:type logic:ReasoningContract ;
         assert!(
             !report.ok(),
             "a garbled contract policy must fail the gate (report.ok() must be false)"
+        );
+    }
+
+    #[test]
+    fn report_json_round_trips() {
+        // The wasm/CLI boundary (`validate_json`) serializes a Report to JSON; this
+        // guards that the canonical Report model round-trips through serde_json so a
+        // client can parse the findings back losslessly.
+        let mut report = Report::new("validate");
+        report.add_finding(
+            Finding::new(Severity::Error, "tier1.fixture", "a fixture finding")
+                .with_tool("validate"),
+        );
+        let json = serde_json::to_string(&report).expect("Report must serialize to JSON");
+        let back: Report = serde_json::from_str(&json).expect("Report JSON must deserialize back");
+        assert_eq!(
+            report, back,
+            "Report must round-trip through JSON unchanged"
+        );
+    }
+
+    #[test]
+    fn validate_json_surfaces_missing_shapes_as_err_string() {
+        // A plain GTS bundle carries no `shapes-archive` blob, so the wasm/CLI entry
+        // must return an Err STRING (not panic) that names the missing surface — the
+        // no-optionality hard-fail surfaced as a boundary-friendly error.
+        let bundle =
+            gts_bytes_from_turtle("@prefix ex: <http://example.org/> .\nex:a ex:b ex:c .\n");
+        let err = validate_json(
+            b"<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/T> .\n",
+            "n-triples",
+            &bundle,
+            "https://blackcatinformatics.ca/gmeow/",
+            "fixture.nt",
+        )
+        .expect_err("a bundle without a shapes-archive must be an Err");
+        assert!(
+            err.contains("shapes-archive"),
+            "the error must name the missing bundle surface: {err}"
         );
     }
 
