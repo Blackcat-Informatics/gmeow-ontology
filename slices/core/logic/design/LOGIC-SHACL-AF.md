@@ -87,7 +87,12 @@ shapes the result/frame projections emit (those validate; these derive):
 
 The projection is **not** the inverse of constraint validation and never re-expresses a
 `logic:` constraint as a rule: derivation and constraint are kept apart on the SHACL
-surface exactly as they are in the canon.
+surface exactly as they are in the canon. The constraint half — the closed-world
+data-shape validation the result/frame projections emit as `sh:sparql`, and the
+`logic:` **validation shape** node kind it generalizes — is the subject of its peer
+document, [`LOGIC-VALIDATION.md`](LOGIC-VALIDATION.md), which projects that node kind to a
+SHACL Core surface and a ShEx surface under the same emit-only, ledgered, purity-gated
+doctrine this document applies to rules.
 
 ### Where the loss is
 
