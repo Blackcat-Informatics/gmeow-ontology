@@ -548,6 +548,20 @@ wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web b
 wasm-pkg-test: wasm-pkg ## Build the purrdf package and run the Node real-execution round-trip lane.
 	cd crates/rdf-wasm/js && node --test tests/*.test.mjs
 
+maint-refresh-purrdf-asset: wasm-pkg ## Refresh the vendored purrdf wasm engine shipped in the docs SPARQL playground.
+	@# The docs site's offline SPARQL playground loads a PINNED copy of the purrdf
+	@# wasm engine (crates/docs/assets/purrdf/). The regenerate pipeline never builds
+	@# wasm, so the artifact is vendored here as a build input and refreshed by hand
+	@# after any change to crates/rdf-wasm. `wasm-pkg` already applies `wasm-opt -Oz`
+	@# when available.
+	cp crates/rdf-wasm/js/pkg/gmeow_rdf_wasm.js \
+	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm.d.ts \
+	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm \
+	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm.d.ts \
+	   crates/docs/assets/purrdf/
+	@echo "OK: vendored purrdf wasm engine refreshed (crates/docs/assets/purrdf/)"
+	@echo "    run 'make check' + 'make wasm-pkg-test' to re-verify the anti-rot gates"
+
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (#1045 maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
