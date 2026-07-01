@@ -35,6 +35,7 @@ pub mod graph;
 pub mod loader;
 pub mod node;
 pub mod provenance;
+pub mod put_executor;
 pub mod registry;
 pub mod run;
 pub mod scheduler;
