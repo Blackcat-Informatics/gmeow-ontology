@@ -2,6 +2,5 @@
 % Datalog projection of the canonical logic: program.
 
 % === Ground facts (axioms) ===
-type("https://example.org/transaction/trajectory-audit-concurrent/TransactionContract", "https://blackcatinformatics.ca/logic/ReasoningContract", "default").
 
 % === Rules ===

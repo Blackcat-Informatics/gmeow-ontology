@@ -45,6 +45,12 @@ pub enum VerdictMode {
     #[default]
     Materialization,
     Consistency,
+    /// The Common Logic round-trip mode (C6): gates the CLIF/CGIF/XCL Exact projections
+    /// (IR round-trip isomorphism + cross-dialect equivalence) and pins their canonical
+    /// rendering. Like `Consistency` it is modal-by-test-intent — a genuinely different
+    /// engine operation (project/parse/isomorphism, no materialize chase), not a quality
+    /// knob.
+    CommonLogic,
 }
 
 /// Optional budget governor ceilings (issue #502). Each is an optional positive
@@ -235,9 +241,10 @@ fn parse_verdict_mode(case_id: &str, obj: &Map<String, Value>) -> Result<Verdict
         None | Some(Value::Null) => Ok(VerdictMode::Materialization),
         Some(Value::String(s)) if s == "materialization" => Ok(VerdictMode::Materialization),
         Some(Value::String(s)) if s == "consistency" => Ok(VerdictMode::Consistency),
+        Some(Value::String(s)) if s == "cl-roundtrip" => Ok(VerdictMode::CommonLogic),
         Some(other) => Err(format!(
-            "case {case_id}: profile.json verdict_mode must be \"materialization\" or \
-             \"consistency\", got {other}"
+            "case {case_id}: profile.json verdict_mode must be \"materialization\", \
+             \"consistency\", or \"cl-roundtrip\", got {other}"
         )),
     }
 }
@@ -387,6 +394,12 @@ mod tests {
                 .unwrap()
                 .verdict_mode,
             VerdictMode::Consistency
+        );
+        assert_eq!(
+            parse_profile("c", &json!({ "verdict_mode": "cl-roundtrip" }))
+                .unwrap()
+                .verdict_mode,
+            VerdictMode::CommonLogic
         );
     }
 
