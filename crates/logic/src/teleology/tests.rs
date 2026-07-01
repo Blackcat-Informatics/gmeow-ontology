@@ -2256,6 +2256,31 @@ fn window_verdict_absent_window_is_none_no_regression() {
 }
 
 #[test]
+fn freshness_verdict_window_only_guard_skips_horizon_axis() {
+    // Absent-horizon dual of the absent-window rule: a WINDOW-ONLY guard (no
+    // logic:freshnessHorizon) must impose NO age constraint — freshness_verdict skips it
+    // rather than hard-erroring on the missing horizon. Regression guard: the horizon
+    // evaluator once required a horizon on every guard, which rejected the window-only
+    // guards the SHACL shape explicitly permits.
+    let f = window_nq(
+        "2026-06-18T00:00:00Z",
+        None,
+        Some(("2026-06-01T00:00:00Z", "2026-06-30T00:00:00Z")),
+    );
+    let facts = facts_of(&f);
+    let v =
+        freshness_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).unwrap();
+    assert!(
+        v.is_none(),
+        "a window-only guard imposes no age constraint (horizon axis skipped): {v:?}"
+    );
+    // The horizon evaluator must not hard-error on the absent horizon even with no
+    // decisionTime supplied (the window axis alone governs, evaluated separately).
+    let v2 = freshness_verdict(&facts, &format!("{W}#schema"), None).unwrap();
+    assert!(v2.is_none(), "absent horizon must never hard-error: {v2:?}");
+}
+
+#[test]
 fn window_verdict_end_before_start_is_hard_error() {
     // A malformed interval whose end precedes its start is a hard error.
     let f = window_nq(

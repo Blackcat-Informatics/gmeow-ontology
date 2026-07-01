@@ -2198,12 +2198,16 @@ fn freshness_verdict(
                 format!("logic:FreshnessGuard {guard:?} has no logic:guardsPrecondition")
             })?
             .to_owned();
-        let horizon_lex = facts
+        // Absent-horizon semantics: a guard that declares no logic:freshnessHorizon
+        // imposes NO constraint on the age axis (a window-only guard is gated solely by
+        // window_verdict, and a guard with neither axis constrains nothing). Mirrors the
+        // absent-window rule in window_verdict.
+        let Some(horizon_lex) = facts
             .object_n3(guard, &logic(FRESHNESS_HORIZON))
             .and_then(literal_lex)
-            .ok_or_else(|| {
-                format!("logic:FreshnessGuard {guard:?} has no logic:freshnessHorizon")
-            })?;
+        else {
+            continue;
+        };
         let horizon_secs = parse_xsd_duration_seconds(&horizon_lex)?;
         let decision_lex = decision_time.ok_or_else(|| {
             format!(
