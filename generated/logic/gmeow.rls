@@ -41,6 +41,19 @@
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/TransactionStep>, <https://blackcatinformatics.ca/logic/TemporalFramework>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/TruthAlgebra>, <https://blackcatinformatics.ca/logic/ParaconsistentFramework>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/World>, <https://blackcatinformatics.ca/logic/ModalFramework>, "default").
+<https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint>, "default").
+<https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/StratifiedNAFProfile>, "default").
+<https://blackcatinformatics.ca/logic/candidateExtractionProvenance>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, "hand-harvested from the logic:properPartOf skos:definition (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+<https://blackcatinformatics.ca/logic/candidateFormalizes>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/properPartOf>, "default").
+<https://blackcatinformatics.ca/logic/candidateLifecycle>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/CandidateAccepted>, "default").
+<https://blackcatinformatics.ca/logic/candidateNegativeCase>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/cqProperPartAsymmetrySymmetricPairRejected>, "default").
+<https://blackcatinformatics.ca/logic/candidatePositiveCase>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/cqProperPartAsymmetryHolds>, "default").
+<https://blackcatinformatics.ca/logic/candidateProjectionBehavior>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/SoundUnderApproximation>, "default").
+<https://blackcatinformatics.ca/logic/candidateScope>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, "logic:properPartOf asymmetry over the endurant strict-parthood spine", "default").
+<https://blackcatinformatics.ca/logic/candidateSemanticRisk>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/RiskCoreContaminating>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, "sha256:0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621", "default").
+<https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
 <https://blackcatinformatics.ca/logic/hasThresholdRow>(<https://blackcatinformatics.ca/logic/defaultLadderProfile>, <https://blackcatinformatics.ca/logic/ladderRowAwareness>, "default").
 <https://blackcatinformatics.ca/logic/hasThresholdRow>(<https://blackcatinformatics.ca/logic/defaultLadderProfile>, <https://blackcatinformatics.ca/logic/ladderRowConceptual>, "default").
 <https://blackcatinformatics.ca/logic/hasThresholdRow>(<https://blackcatinformatics.ca/logic/defaultLadderProfile>, <https://blackcatinformatics.ca/logic/ladderRowDeclarative>, "default").

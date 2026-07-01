@@ -609,6 +609,138 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:capability on <https://blackcatinformatics.ca/logic/wfConstructModel> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -1578,6 +1710,17 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2578,6 +2721,138 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:capability on <https://blackcatinformatics.ca/logic/wfConstructModel> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -3557,6 +3832,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:rightOperand on <https://blackcatinformatics.ca/logic/wfPhaseSequence> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -4350,6 +4636,138 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5339,6 +5757,17 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:rightOperand on <https://blackcatinformatics.ca/logic/wfPhaseSequence> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -6066,6 +6495,149 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/World> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from the logic:properPartOf skos:definition (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/logic/properPartOf> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqProperPartAsymmetrySymmetricPairRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqProperPartAsymmetryHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateScope> \"logic:properPartOf asymmetry over the endurant strict-parthood spine\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
