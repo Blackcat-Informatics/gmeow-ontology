@@ -763,6 +763,16 @@ fn build_archive_blobs(
     // phase 1 returns, so a disk read here would tar the stale committed set.
     let mappings =
         members_basename_from_artifacts(mappings_artifacts, "generated/mappings/", ".sssom.tsv");
+    // Fail closed, mirroring the axioms guard below: an empty match means the
+    // stage-mappings product keyed its SSSOM under an unexpected prefix (or emitted
+    // none), which would silently fold an EMPTY mappings archive into the bundle. A
+    // missing required surface is a hard error, never a degraded fallback.
+    if mappings.is_empty() {
+        return Err(stage_err(
+            "no generated/mappings/*.sssom.tsv artifacts in the stage-mappings product — \
+             the mappings archive would fold empty (fail-closed)",
+        ));
+    }
     // queries: member = bare filename.
     let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?)?;
     // schemas: the SHACL-derived JSON Schema + OpenAPI (#700), member = bare

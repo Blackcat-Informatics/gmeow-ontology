@@ -2000,8 +2000,14 @@ fn parse_xsd_duration_seconds_rejects_nominal_and_malformed() {
     // Nominal-length designators (years / months) have no fixed second-count → hard error.
     assert!(parse_xsd_duration_seconds("P1Y").is_err());
     assert!(parse_xsd_duration_seconds("P1M").is_err());
-    // A negative horizon is nonsensical.
-    assert!(parse_xsd_duration_seconds("-P3D").is_err());
+    // A negative horizon is nonsensical — and must be rejected via the dedicated
+    // negative-value guard (leading '-' before 'P'), not the generic "must start with 'P'"
+    // path, so the guard is actually exercised.
+    let neg = parse_xsd_duration_seconds("-P3D").unwrap_err();
+    assert!(
+        neg.contains("is negative"),
+        "unexpected error message: {neg}"
+    );
     // Structurally malformed.
     assert!(parse_xsd_duration_seconds("3D").is_err()); // no leading P
     assert!(parse_xsd_duration_seconds("P").is_err()); // no components
@@ -2319,6 +2325,54 @@ fn window_verdict_declared_window_missing_bound_is_hard_error() {
     // No freshnessWindowEnd.
     let facts = facts_of(&nq);
     assert!(window_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).is_err());
+}
+
+#[test]
+fn gate_probe_malformed_guard_surfaces_hard_error_even_when_gate_denies() {
+    // A malformed logic:FreshnessGuard (a guarded precondition with no
+    // logic:datumRecordedAt) must surface a HARD error even when the base gate DENIES for
+    // an unrelated reason (the precondition does not obtain) — never a silent skip
+    // (LOGIC-TELEOLOGY.md: these malformations are always surfaced, never a silent pass).
+    let ty = rdf_type_tok();
+    let mut nq = format!(
+        "<{W}#state0> {ty} {sit} <{W}> .\n\
+         <{W}#state0> {obt} <{W}#other> <{W}> .\n",
+        sit = l("Situation"),
+        obt = l("situationObtains"),
+    );
+    nq.push_str(&format!(
+        "<{W}#schema> {ty} {as_} <{W}> .\n\
+         <{W}#schema> {pre} <{W}#ready> <{W}> .\n\
+         <{W}#schema> {fg} <{W}#guard0> <{W}> .\n",
+        as_ = l("ActionSchema"),
+        pre = l("precondition"),
+        fg = l("freshnessGuard"),
+    ));
+    nq.push_str(&format!(
+        "<{W}#guard0> {ty} {fgty} <{W}> .\n\
+         <{W}#guard0> {gp} <{W}#ready> <{W}> .\n\
+         <{W}#guard0> {fh} \"P3D\"^^{XSD_DUR} <{W}> .\n",
+        fgty = l("FreshnessGuard"),
+        gp = l("guardsPrecondition"),
+        fh = l("freshnessHorizon"),
+    ));
+    // <W#ready> carries NO logic:datumRecordedAt → the guard is malformed. state0 does not
+    // obtain `ready`, so the base gate DENIES; the malformation must still be surfaced.
+    nq.push_str(&format!(
+        "<{W}#probe> {ty} {gpr} <{W}> .\n\
+         <{W}#probe> {ps} <{W}#schema> <{W}> .\n\
+         <{W}#probe> {pst} <{W}#state0> <{W}> .\n\
+         <{W}#probe> {dt} \"2026-06-20T00:00:00Z\"^^{XSD_DT} <{W}> .\n",
+        gpr = l("GateProbe"),
+        ps = l("probesSchema"),
+        pst = l("probesState"),
+        dt = l("decisionTime"),
+    ));
+    let err = materialize_teleology(&store_from(&nq)).unwrap_err();
+    assert!(
+        err.contains("datumRecordedAt"),
+        "a malformed guard on a denied gate must surface a hard datumRecordedAt error: {err}"
+    );
 }
 
 /// Build a probe over `<W#schema>` at `<W#state0>` with the given decision time so the

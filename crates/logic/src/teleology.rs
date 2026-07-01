@@ -2095,9 +2095,17 @@ fn literal_lex(n3: &str) -> Option<String> {
 ///
 /// Returns `Err` for a malformed lexical form, a nominal designator, or a negative span.
 fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
-    let body = lex
-        .strip_prefix('P')
-        .ok_or_else(|| format!("xsd:duration {lex:?} must start with 'P'"))?;
+    // xsd:duration's negative form is a leading '-' BEFORE 'P' (e.g. "-P3D"); strip it and
+    // track the sign so a negative horizon is rejected with the intended "is negative"
+    // message rather than the generic "must start with 'P'". The scan below only ever
+    // accumulates non-negative magnitudes, so the sign lives here, not in `total`.
+    let (negative, rest) = match lex.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, lex),
+    };
+    let body = rest.strip_prefix('P').ok_or_else(|| {
+        format!("xsd:duration {lex:?} must start with 'P' (optionally preceded by '-')")
+    })?;
     if body.is_empty() {
         return Err(format!("xsd:duration {lex:?} carries no components"));
     }
@@ -2158,7 +2166,7 @@ fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
         }
         scan(tp, true, &mut total)?;
     }
-    if total < 0.0 {
+    if negative {
         return Err(format!(
             "xsd:duration {lex:?} is negative; a freshness horizon must be non-negative"
         ));
@@ -2379,38 +2387,32 @@ fn emit_gate_probe(
         .map(|s| (*s).to_owned())
         .collect();
     let gate = gate_action(facts, &schema, &state, &caps);
-    // The freshness gate is a probe-level refinement layered atop the base gate: it
-    // needs the probe's logic:decisionTime, which gate_action (a pure precondition /
-    // capability / invariant / resource gate over a bare state) has no access to. Only
-    // when the base gate ADMITS do we ask whether a guarded precondition's datum is
-    // still current — a failing precondition already denies, so a stale-datum check on
-    // a denied gate would be moot. A stale datum flips the admit to logic:GateUndetermined.
+    // The freshness gate is a probe-level refinement layered atop the base gate: it needs
+    // the probe's logic:decisionTime, which gate_action (a pure precondition / capability /
+    // invariant / resource gate over a bare state) has no access to.
+    //
+    // WELL-FORMEDNESS is checked UNCONDITIONALLY: a malformed logic:FreshnessGuard (a
+    // guarded precondition with no logic:datumRecordedAt, a probe with no logic:decisionTime
+    // under a declared guard, a nominal/negative horizon, a half-declared or inverted
+    // window) is a HARD, SURFACED error even when the base gate denies for an unrelated
+    // reason — never a silent skip (LOGIC-TELEOLOGY.md). Only the resulting VERDICT (stale /
+    // off-window / pending) refines an ADMIT: a gate that already denies is not re-labelled
+    // logic:GateUndetermined, so `.filter(|_| admits)` drops the verdict while `?` still
+    // propagates any malformation error. Every admit-case output is thus unchanged.
+    let admits = matches!(gate, ActionGate::Admit);
     let decision_time = facts
         .object_n3(probe, &logic(DECISION_TIME))
         .and_then(literal_lex);
-    let stale = if matches!(gate, ActionGate::Admit) {
-        freshness_verdict(facts, &schema, decision_time.as_deref())?
-    } else {
-        None
-    };
+    let stale = freshness_verdict(facts, &schema, decision_time.as_deref())?.filter(|_| admits);
     // The SECOND freshness axis: an explicit valid-time window (the openEHR DLM
     // `time_window`). It is INDEPENDENT of the age horizon above — a datum can pass the
     // horizon yet fall outside its declared window, or vice versa — and yields the same
     // logic:GateUndetermined verdict for a DISTINCT cause (off-episode, not merely aged).
-    // Evaluated only when the base gate admits, exactly like the horizon axis.
-    let off_window = if matches!(gate, ActionGate::Admit) {
-        window_verdict(facts, &schema, decision_time.as_deref())?
-    } else {
-        None
-    };
+    let off_window = window_verdict(facts, &schema, decision_time.as_deref())?.filter(|_| admits);
     // A notification-wait schema whose external signal has not obtained is pending — the
     // same withheld-judgment value as a stale datum (logic:GateUndetermined), carrying a
     // distinct witness (logic:awaitingSignal). Only meaningful when the base gate admits.
-    let awaiting = if matches!(gate, ActionGate::Admit) {
-        wait_verdict(facts, &schema, &state)
-    } else {
-        None
-    };
+    let awaiting = wait_verdict(facts, &schema, &state).filter(|_| admits);
 
     let source = triple_reifier(probe, &logic(PROBES_SCHEMA), &schema)?;
     let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
