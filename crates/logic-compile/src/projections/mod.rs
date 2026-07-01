@@ -762,6 +762,7 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
         || axiom.scope.time.is_some()
         || axiom.scope.confidence.is_some()
         || axiom.scope.provenance.is_some()
+        || axiom.scope.module.is_some()
 }
 
 /// Per-contract `actual_drops` notes for a LOSSY down-projection target.  A
