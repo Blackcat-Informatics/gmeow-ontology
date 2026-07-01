@@ -160,6 +160,15 @@ tracking, no provenance, and it fails silently on non-injective `get`. It is the
 mode/tabling/minting declarations and a declared law status. Naive backward-execution is a named
 anti-pattern, never the architecture.
 
+At the **process layer** the in-band witness is realized by a pair of back-references an executed
+occurrence carries: `logic:instantiatesSchema` (occurrence → `logic:ActionSchema`, the reusable type)
+and `logic:instantiatesPlan` (occurrence → the `logic:Plan` it was executed under, the whole planned
+skeleton). Together they are the in-band complement that lets a plan↔execution-record correspondence's
+`put` leg recover the planned portion of a run rather than synthesize a plausible plan — the openEHR
+Instruction-State-Machine linkage (Instruction → Activity → Action) made canonical. Where the witness
+is present the planned portion round-trips; the off-plan reality is an honest loss-ledger entry, never
+a failure.
+
 ## The quantitative and contextual axes
 
 A correspondence carries each axis **separately**, because they answer different questions and the

@@ -92,6 +92,11 @@ const GUARD_SITUATION: &str = "guardSituation";
 const ITERATION_BODY: &str = "iterationBody";
 const ITERATION_CONDITION: &str = "iterationCondition";
 const INSTANTIATES_SCHEMA: &str = "instantiatesSchema";
+/// `logic:instantiatesPlan` — the plan-level witness: an executed step (occurrence)
+/// back-references the `logic:Plan` program it was executed under, complementing the
+/// step's `logic:instantiatesSchema` (Event→Schema) with the Event→Plan link the
+/// correspondence `put`-leg needs to recover the planned skeleton from a run record.
+const INSTANTIATES_PLAN: &str = "instantiatesPlan";
 const TRANSITION_FROM_STATE: &str = "transitionFromState";
 const TRANSITION_TO_STATE: &str = "transitionToState";
 const SITUATION_OBTAINS: &str = "situationObtains";
@@ -1048,6 +1053,7 @@ pub(crate) fn emit_program_outcome(
             out.extend(emit_committed_run(
                 facts,
                 world,
+                root,
                 &outcome_iri,
                 &path_iri,
                 &outcome.path,
@@ -1079,6 +1085,7 @@ pub(crate) fn emit_program_outcome(
 fn emit_committed_run(
     facts: &WorldFacts,
     world: &str,
+    root: &str,
     link_subject: &str,
     path_iri: &str,
     path: &[String],
@@ -1117,6 +1124,7 @@ fn emit_committed_run(
         for (predicate, object) in [
             (RDF_TYPE.to_owned(), n3(&logic(TRANSACTION_STEP))),
             (logic(INSTANTIATES_SCHEMA), n3(&step.schema)),
+            (logic(INSTANTIATES_PLAN), n3(root)),
             (logic(TRANSITION_FROM_STATE), n3(&step.from_state)),
             (logic(TRANSITION_TO_STATE), n3(&step.to_state)),
         ] {
@@ -1944,6 +1952,7 @@ fn emit_concurrent_history(
     out.extend(emit_committed_run(
         facts,
         world,
+        root,
         outcome_iri,
         &left_path_iri,
         &l.path,
@@ -1958,6 +1967,7 @@ fn emit_concurrent_history(
     out.extend(emit_committed_run(
         facts,
         world,
+        root,
         outcome_iri,
         &right_path_iri,
         &r.path,
