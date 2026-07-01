@@ -35,6 +35,13 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # ledger (`projection_ledger_rows`), surfaced verbatim on the compiler-products
 # documentation pages. Pure-Rust: it carries no reasoning-runtime dependencies.
 gmeow-logic-compile = { path = "../logic-compile" }
+# Single source of the rule-code → in-page-slug transform: the constraint
+# catalog page anchors each `gmeow:ValidationRule` by
+# `gmeow_validate::rule_catalog::slugify(code)` — the identical slug the validator
+# stamps into a finding's `helpUri` fragment — so a finding's help link resolves to
+# its rule entry. Pure-Rust rlib (the `python` feature stays off here); acyclic
+# (validate does not depend on docs).
+gmeow-validate = { path = "../validate" }
 # Static-site renderers (T1, #853). minijinja is a pure-Rust template engine (no
 # build scripts, deterministic rendering); pulldown-cmark converts the per-page
 # Markdown body to HTML. Both are self-contained — no network assets are pulled.

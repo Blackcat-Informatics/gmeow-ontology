@@ -485,6 +485,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_advice_use_for_consumers", "Use for consumers"),
     ("body_advice_use_when", "Use when"),
     ("body_alignments", "Alignments"),
+    ("body_applies_to", "Applies to"),
     ("body_artifacts", "Artifacts"),
     ("body_at_a_glance", "At a glance"),
     ("body_badge_legend", "Badge legend"),
@@ -536,6 +537,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_documentation_coverage", "Documentation coverage"),
     ("body_documentation_health", "Documentation health"),
     ("body_domain", "Domain"),
+    ("body_enforced_constraints", "What GMEOW enforces"),
     ("body_example_files", "Example files"),
     ("body_examples", "Examples"),
     ("body_examples_using_this_term", "Examples using this term"),
@@ -555,8 +557,11 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_label_alignment_density", "Alignment density"),
     ("body_label_cite_ontology", "Cite the ontology"),
     ("body_label_cite_slice", "Cite the slice"),
+    ("body_label_help_link", "Help link"),
     ("body_label_orphan_terms", "Orphan terms"),
     ("body_label_permalink", "Permalink"),
+    ("body_label_rule_code", "Rule code"),
+    ("body_label_severity", "Severity"),
     ("body_label_status", "Status"),
     ("body_learning_path_not_found", "Learning path not found."),
     ("body_learning_paths", "Learning paths"),
@@ -565,6 +570,10 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_logic_and_reasoning", "Logic & Reasoning"),
     ("body_logic_stereotypes", "Logic stereotypes"),
     ("body_neighborhood", "Neighborhood"),
+    (
+        "body_no_enforced_constraints",
+        "No validation rules are declared in the constraint catalog.",
+    ),
     (
         "body_no_learning_paths",
         "No learning paths are declared in the guides slice.",
@@ -914,9 +923,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 97 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 103 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 157);
+        assert_eq!(UI_TEMPLATES.len(), 163);
     }
 
     #[test]

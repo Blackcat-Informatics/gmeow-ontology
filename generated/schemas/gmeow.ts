@@ -2042,6 +2042,7 @@ export enum PipelineEnum {
 export enum PipelineStageEnum {
     stage_compile_logic = "stage-compile-logic",
     stage_conformance = "stage-conformance",
+    stage_constraint_catalog = "stage-constraint-catalog",
     stage_docs_render = "stage-docs-render",
     stage_export_apache = "stage-export-apache",
     stage_export_bench = "stage-export-bench",
@@ -6631,6 +6632,12 @@ export interface UsageAttestation extends Observation {
 
 export interface Utilization extends Measurement {
     utilizationOf?: Location,
+}
+
+export interface ValidationRule extends InformationObject {
+    ruleCategory?: string[],
+    ruleCode?: string[],
+    ruleHelpUri?: string[],
 }
 
 export interface VectorIndex extends InformationObject {
