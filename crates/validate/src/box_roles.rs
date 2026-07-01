@@ -18,7 +18,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_rdf::{DatasetView, GraphMatch, TermRef, TermValue};
+use gmeow_rdf::{DatasetView, GraphMatch, RdfDatasetBuilder, TermRef, TermValue};
 
 use crate::model::{owl, rdf, rdfs};
 use crate::store;
@@ -128,6 +128,7 @@ pub fn audit_box_roles(
     let mut source_by_term: BTreeMap<String, String> = BTreeMap::new();
     let mut types_by_term: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
 
+    let mut builder = RdfDatasetBuilder::new();
     for path in paths {
         let dataset = store::parse_file_dataset(path)?;
         if let Some(type_id) = dataset.term_id_by_value(&TermValue::iri(rdf::TYPE)) {
@@ -150,10 +151,16 @@ pub fn audit_box_roles(
                     .insert(rdf_type.to_owned());
             }
         }
+        // Fold this file into the merged view under a fresh blank scope, reusing the
+        // parse above instead of reading every file from disk a second time.
+        builder.push_dataset(&dataset);
     }
 
-    // The merged dataset backs the role lookups and the role-typing check.
-    let merged = store::dataset_from_paths(paths)?;
+    // The merged dataset (blank-scoped per file, deduped at freeze) backs the role
+    // lookups and the role-typing check.
+    let merged = builder
+        .freeze()
+        .map_err(|e| format!("dataset freeze failed: {e}"))?;
     let role_pred_id = merged.term_id_by_value(&TermValue::iri(&graph_box_role));
     let role_class_id = merged.term_id_by_value(&TermValue::iri(&graph_box_role_class));
     let type_id = merged.term_id_by_value(&TermValue::iri(rdf::TYPE));
@@ -304,15 +311,11 @@ fn finding_lines(findings: &[RoleFinding], ontology_iri: &str, namespace: &str) 
 /// Render the audit as stable JSON (mirrors `box_roles.render_json`):
 /// `json.dumps(as_dict, indent=2, sort_keys=True)`.
 pub fn render_json(report: &BoxRoleAudit) -> String {
-    let role_counts: serde_json::Map<String, serde_json::Value> = report
-        .role_counts
-        .iter()
-        .map(|(k, v)| (k.clone(), serde_json::json!(v)))
-        .collect();
     let value = serde_json::json!({
         "ok": report.ok(),
         "termCount": report.term_count,
-        "roleCounts": serde_json::Value::Object(role_counts),
+        // `role_counts` is a BTreeMap, so serde emits a sorted-key JSON object directly.
+        "roleCounts": report.role_counts,
         "missing": report.missing.iter().map(finding_json).collect::<Vec<_>>(),
         "invalid": report.invalid.iter().map(finding_json).collect::<Vec<_>>(),
     });

@@ -190,10 +190,15 @@ fn fixture_paths(fixtures_dir: &Path) -> Result<Vec<PathBuf>, String> {
         for entry in std::fs::read_dir(&dir)
             .map_err(|e| format!("failed to read fixtures dir {}: {e}", dir.display()))?
         {
-            let path = entry
-                .map_err(|e| format!("failed to read fixtures dir entry: {e}"))?
-                .path();
-            if path.is_dir() {
+            let entry = entry.map_err(|e| format!("failed to read fixtures dir entry: {e}"))?;
+            // Use the dirent file type (no stat, no symlink follow) so a circular symlink
+            // can't drive the walk into an infinite loop.
+            let is_dir = entry
+                .file_type()
+                .map_err(|e| format!("failed to read fixtures dir entry type: {e}"))?
+                .is_dir();
+            let path = entry.path();
+            if is_dir {
                 stack.push(path);
             } else if path
                 .extension()
