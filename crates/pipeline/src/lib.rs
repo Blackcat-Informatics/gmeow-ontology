@@ -43,6 +43,7 @@ pub mod stages;
 pub mod transcode;
 pub mod transform;
 pub mod up_projection;
+pub mod up_projection_corpus;
 pub mod up_projection_gates;
 pub mod up_projection_report;
 
