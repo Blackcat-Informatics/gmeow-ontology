@@ -839,12 +839,18 @@ const STRICT_TWO_PHASE_LOCKING: &str = "StrictTwoPhaseLocking";
 const STRONG_STRICT_TWO_PHASE_LOCKING: &str = "StrongStrictTwoPhaseLocking";
 const TIMESTAMP_ORDERING: &str = "TimestampOrdering";
 const OPTIMISTIC_VALIDATION: &str = "OptimisticValidation";
+const MULTIVERSION_CONCURRENCY_CONTROL: &str = "MultiversionConcurrencyControl";
 const CONCURRENCY_CONTROL_PROTOCOLS: &[&str] = &[
     STRICT_TWO_PHASE_LOCKING,
     STRONG_STRICT_TWO_PHASE_LOCKING,
     TIMESTAMP_ORDERING,
     OPTIMISTIC_VALIDATION,
+    MULTIVERSION_CONCURRENCY_CONTROL,
 ];
+// Protocol -> isolation-level adequacy surface: does the declared mechanism reach the declared
+// strength? Emitted only when a run declares BOTH a protocol and a level.
+const PROTOCOL_LEVEL_ADEQUACY: &str = "protocolLevelAdequacy";
+const PROTOCOL_LEVEL_INADEQUACY_REASON: &str = "protocolLevelInadequacyReason";
 // Isolation-level-adequacy surface local names: the declared guarantee strength + verdict.
 const DECLARED_ISOLATION_LEVEL: &str = "declaredIsolationLevel";
 const ISOLATION_LEVEL_ADEQUACY: &str = "isolationLevelAdequacy";
@@ -1570,6 +1576,113 @@ fn check_isolation_adequacy(
     Ok(out)
 }
 
+/// The ladder rank of a `logic:IsolationLevel` local name (RU < RC < RR < Snapshot <
+/// Serializable = Opacity). Opacity folds to the serializable rank because this committed-only
+/// engine produces no aborted/in-flight transactions, so opacity's extra constraints are vacuous
+/// (mirroring [`check_isolation_adequacy`]). Total over the closed `ISOLATION_LEVELS` set.
+fn isolation_rank(level_local: &str) -> u8 {
+    match level_local {
+        READ_UNCOMMITTED_ISOLATION => 0,
+        READ_COMMITTED_ISOLATION => 1,
+        REPEATABLE_READ_ISOLATION => 2,
+        SNAPSHOT_ISOLATION => 3,
+        SERIALIZABLE_ISOLATION | OPACITY_ISOLATION => 4,
+        other => unreachable!("isolation_rank over a non-isolation-level local name {other:?}"),
+    }
+}
+
+/// The strongest `logic:IsolationLevel` (as a local name) a `logic:ConcurrencyControlProtocol`
+/// GUARANTEES when its discipline is respected. Multiversion concurrency control tops out at
+/// snapshot isolation (it still admits write skew); the four serializability-strength protocols
+/// reach serializable (coincident with opacity here). Total over `CONCURRENCY_CONTROL_PROTOCOLS`.
+fn protocol_ceiling(protocol_local: &str) -> &'static str {
+    match protocol_local {
+        MULTIVERSION_CONCURRENCY_CONTROL => SNAPSHOT_ISOLATION,
+        STRICT_TWO_PHASE_LOCKING
+        | STRONG_STRICT_TWO_PHASE_LOCKING
+        | TIMESTAMP_ORDERING
+        | OPTIMISTIC_VALIDATION => SERIALIZABLE_ISOLATION,
+        other => unreachable!("protocol_ceiling over a non-protocol local name {other:?}"),
+    }
+}
+
+/// Classify whether the `logic:ConcurrencyControlProtocol` a run DECLARES is strong enough to
+/// guarantee the `logic:IsolationLevel` it also declares — a static consistency cross-check
+/// between two separately-declared contract facts, INDEPENDENT of any one witnessed schedule
+/// (P12). Emits `logic:protocolLevelAdequacy` (+ a `logic:protocolLevelInadequacyReason` when
+/// false) on the history node.
+///
+/// Returns an EMPTY vec unless the run declares BOTH a protocol and a level: with only one (or
+/// neither) there is no pairing to judge — the ABSENCE of a cross-claim, not a degraded fallback.
+/// It never infers the level from the protocol nor the protocol from the level; the three
+/// concurrency concerns stay distinct.
+///
+/// # Errors
+///
+/// Propagates a malformed declared protocol/level (a value outside its closed set) from the
+/// underlying `root_declared_*` readers, or a declared protocol/level value that is not a
+/// `logic:`-namespaced IRI.
+fn check_protocol_level_adequacy(
+    facts: &WorldFacts,
+    world: &str,
+    history_iri: &str,
+    root: &str,
+    source: &str,
+    deriv: &str,
+) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+    use crate::teleology::TeleologyQuad;
+
+    let (Some(protocol), Some(level)) = (
+        root_declared_protocol(facts, root)?,
+        root_declared_isolation_level(facts, root)?,
+    ) else {
+        return Ok(Vec::new());
+    };
+    let protocol_local = protocol
+        .strip_prefix(LOGIC_NAMESPACE)
+        .ok_or_else(|| format!("declared protocol {protocol:?} is not a logic: IRI"))?;
+    let level_local = level
+        .strip_prefix(LOGIC_NAMESPACE)
+        .ok_or_else(|| format!("declared isolation level {level:?} is not a logic: IRI"))?;
+
+    let ceiling = protocol_ceiling(protocol_local);
+    let adequate = isolation_rank(ceiling) >= isolation_rank(level_local);
+    let reason = if adequate {
+        None
+    } else {
+        let skew_note = if ceiling == SNAPSHOT_ISOLATION {
+            " (its snapshot ceiling still admits the write skew that serializability forbids)"
+        } else {
+            ""
+        };
+        Some(format!(
+            "the declared protocol logic:{protocol_local} guarantees at most logic:{ceiling}, which \
+             is weaker than the declared logic:{level_local}{skew_note}"
+        ))
+    };
+
+    let mut out = Vec::new();
+    let mut push = |predicate: String, object: String| {
+        out.push(TeleologyQuad {
+            graph: world.to_owned(),
+            subject: history_iri.to_owned(),
+            predicate,
+            object,
+            rule_iri: TRANSACTION_RULE_IRI.to_owned(),
+            source_quad_ids: vec![source.to_owned()],
+            derivation_id: deriv.to_owned(),
+        });
+    };
+    push(logic(PROTOCOL_LEVEL_ADEQUACY), xsd_bool(adequate));
+    if let Some(reason) = reason {
+        push(
+            logic(PROTOCOL_LEVEL_INADEQUACY_REASON),
+            format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+        );
+    }
+    Ok(out)
+}
+
 /// The integer value of an N3 literal like `"5"^^<…#integer>` (the text between the first
 /// pair of quotes, parsed as `i64`).
 fn parse_int_literal(n3: &str) -> Option<i64> {
@@ -1723,6 +1836,15 @@ fn verify_protocol_enforcement(
             } else {
                 (true, None)
             }
+        }
+        MULTIVERSION_CONCURRENCY_CONTROL => {
+            // The engine realizes snapshot isolation BY CONSTRUCTION (each leg reads a consistent
+            // start snapshot and writes new versions independently), which IS the multiversion
+            // discipline — so it requires no lock or timestamp events and its schedule respects the
+            // protocol structurally. Absence of events is therefore not a fault here (unlike the
+            // locking / timestamp protocols); the meaningful signal for multiversion runs is the
+            // protocol -> level adequacy pairing, not this enforcement verdict.
+            (true, None)
         }
         other => {
             // root_declared_protocol already gates the closed set; be total.
@@ -1970,6 +2092,18 @@ fn emit_concurrent_history(
         &history_iri,
         root,
         conflict_serializable,
+        source,
+        deriv,
+    )?);
+
+    // Cross-check whether the declared PROTOCOL is strong enough to guarantee the declared LEVEL
+    // (a static pairing consistency check between two contract facts, independent of the witnessed
+    // schedule) — e.g. multiversion concurrency control declared under serializable is inadequate.
+    out.extend(check_protocol_level_adequacy(
+        facts,
+        world,
+        &history_iri,
+        root,
         source,
         deriv,
     )?);

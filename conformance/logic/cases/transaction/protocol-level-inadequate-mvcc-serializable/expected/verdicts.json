@@ -1,0 +1,6 @@
+{
+  "https://example.org/transaction/protocol-level-inadequate-mvcc-serializable/world": {
+    "quads": 51,
+    "status": "consistent"
+  }
+}
