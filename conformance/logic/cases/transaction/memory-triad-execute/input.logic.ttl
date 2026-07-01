@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: transaction/memory-triad-execute.
+#
+# The LIVE EXECUTION of the memory MCP triad as a Transaction-Logic transaction (the companion to
+# transaction/trajectory-audit, which is the read-only audit). The world facts (input.nq) record a
+# gmeow:ToolCall sequence — the triad's store_claim then revise_belief — anchored under a turn that
+# runs logic:CommittedExecution. The native auditor groups the bound ToolCalls
+# (logic:instantiatesSchema) under their logic:properPartOf anchor (which bears the
+# logic:transitionFromState start state), orders them by gmeow:atTime, right-folds them into a
+# logic:SerialConjunction, and runs the executional-entailment engine. Because the governing
+# contract COMMITS, a successful run materializes the executed path and the per-step situation-level
+# supersession — revise_belief's logic:del retiring the stored claim's support (Principle 10:
+# superseded, never erased). This is exactly what the live server commits when a write tool's
+# precondition obtains.
+#
+# The world facts seed the teleology evaluator; this input.logic.ttl carries the minimal,
+# clean-compiling, certifiable program axiom the projections need. The contract selects the
+# Evolution facet (logic:TransactionPathEvolution) that classifies the audited transaction, and
+# declares logic:CommittedExecution for fidelity with the world-facts wiring.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/transaction/memory-triad-execute/> .
+
+ex:GoalExpression a logic:GoalExpression .
+
+ex:TransactionContract a logic:ReasoningContract ;
+    logic:evolution logic:TransactionPathEvolution ;
+    logic:executionMode logic:CommittedExecution .
