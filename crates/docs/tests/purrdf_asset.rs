@@ -7,20 +7,58 @@
 //! The playground ships a PINNED copy of the purrdf wasm package under
 //! `crates/docs/assets/purrdf/`, refreshed by `make maint-refresh-purrdf-asset`. The
 //! pipeline never rebuilds wasm, so nothing structurally forces the vendored blob to
-//! stay in step with `crates/rdf-wasm`. This gating test (on `make check`) proves the
+//! stay in step with `crates/rdf-wasm`. These gating tests (on `make check`) prove the
 //! vendored artifact is a real wasm module that still carries the SPARQL `query`
 //! surface — so an implementer who adds/renames the binding but forgets to re-vendor
 //! is caught here rather than shipping a dead playground. Behaviour (does a query
 //! actually evaluate?) is covered by the Node execution lane
 //! (`crates/rdf-wasm/js/tests/vendored_asset.test.mjs`, on `make wasm-pkg-test`).
+//!
+//! The structural checks alone let a *stale-but-still-functional* engine (one that
+//! kept the `query` glue string but drifted in its wasm bytes) slip through, so a
+//! BLAKE3 content-digest manifest (`assets/purrdf/DIGESTS.blake3`) pins the exact
+//! vendored bytes: any change to a vendored file without re-running
+//! `make maint-refresh-purrdf-asset` (which rewrites the manifest under
+//! `GMEOW_PURRDF_BLESS=1`) fails the digest gate.
 
 use std::path::PathBuf;
 
-fn asset(name: &str) -> PathBuf {
+/// The vendored files whose bytes the digest manifest pins — exactly the set the
+/// `maint-refresh-purrdf-asset` target copies out of `crates/rdf-wasm/js/pkg/`.
+const VENDORED_FILES: &[&str] = &[
+    "gmeow_rdf_wasm.d.ts",
+    "gmeow_rdf_wasm.js",
+    "gmeow_rdf_wasm_bg.wasm",
+    "gmeow_rdf_wasm_bg.wasm.d.ts",
+];
+
+const DIGEST_MANIFEST: &str = "DIGESTS.blake3";
+
+fn purrdf_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("assets")
         .join("purrdf")
-        .join(name)
+}
+
+fn asset(name: &str) -> PathBuf {
+    purrdf_dir().join(name)
+}
+
+/// The manifest content for the current on-disk vendored bytes: one
+/// `<blake3-hex>  <filename>` line per vendored file, sorted by filename, LF-terminated.
+fn current_manifest() -> String {
+    let mut lines: Vec<String> = VENDORED_FILES
+        .iter()
+        .map(|&name| {
+            let bytes = std::fs::read(asset(name))
+                .unwrap_or_else(|e| panic!("vendored {name} must exist: {e}"));
+            format!("{}  {name}", blake3::hash(&bytes).to_hex())
+        })
+        .collect();
+    lines.sort();
+    let mut out = lines.join("\n");
+    out.push('\n');
+    out
 }
 
 #[test]
@@ -63,5 +101,29 @@ fn vendored_bindings_expose_the_sparql_query_surface() {
     assert!(
         dts.contains("query(sparql: string, base?: string | null): string"),
         "vendored .d.ts lacks the query type signature — stale vendored engine"
+    );
+}
+
+#[test]
+fn vendored_bytes_match_the_blake3_manifest() {
+    let manifest_path = asset(DIGEST_MANIFEST);
+    let current = current_manifest();
+
+    // Re-vendoring rewrites the manifest through this same path (invoked by
+    // `make maint-refresh-purrdf-asset`), so the pinned digests always describe the
+    // exact bytes the maint target produced — no external `b3sum` needed.
+    if std::env::var_os("GMEOW_PURRDF_BLESS").is_some() {
+        std::fs::write(&manifest_path, &current).expect("write purrdf digest manifest");
+        return;
+    }
+
+    let committed = std::fs::read_to_string(&manifest_path).unwrap_or_else(|e| {
+        panic!("missing {DIGEST_MANIFEST} (run make maint-refresh-purrdf-asset): {e}")
+    });
+    assert_eq!(
+        committed, current,
+        "vendored purrdf bytes drifted from {DIGEST_MANIFEST}: a vendored file changed \
+         without re-running `make maint-refresh-purrdf-asset`. The structural checks pass \
+         a stale-but-still-functional engine; this digest gate does not."
     );
 }

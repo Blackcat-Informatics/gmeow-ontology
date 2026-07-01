@@ -46,3 +46,7 @@ pulldown-cmark = { version = "0.13", default-features = false, features = ["html
 # `use pretty_assertions::assert_eq;` per test file; identical on pass.
 pretty_assertions = "1"
 insta = { version = "1.48", features = ["json"] }
+# Content-digest manifest for the vendored purrdf wasm anti-rot gate: recompute
+# the BLAKE3 of each vendored file and compare to the committed manifest so a
+# stale-but-still-functional re-vendor cannot slip past the structural checks.
+blake3 = "1"
