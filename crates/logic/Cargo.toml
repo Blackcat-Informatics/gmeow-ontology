@@ -59,6 +59,13 @@ sha1 = "0.10"
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the Python compiler byte-for-byte.
 sha2 = "0.10"
+# chrono: xsd:dateTime PARSING ONLY (parse_from_rfc3339) for the logic:FreshnessGuard
+# valid-time currency gate — comparing a datum's logic:datumRecordedAt against a
+# logic:GateProbe's logic:decisionTime. default-features off + alloc only: the clock
+# feature is deliberately excluded so no wall-clock/system-time enters the evaluator
+# (determinism contract). The xsd:duration horizon is parsed by a local fixed-length
+# parser (weeks/days/hours/minutes/seconds), not chrono.
+chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
 # pyo3: PyO3 Python bindings. Enabled only for the unified native extension.
 pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
