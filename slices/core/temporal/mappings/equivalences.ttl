@@ -659,3 +659,14 @@ gmeow:eqTemporal054 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "the end-boundary twin of eqTemporal053 (PROV activity alignment phase 2)";
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqWikidata049 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CalendarSystem ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q4036 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "calendar" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

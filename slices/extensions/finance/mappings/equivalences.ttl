@@ -1,20 +1,59 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix semapv:  <https://w3id.org/semapv/vocab/> .
-@prefix schema:  <https://schema.org/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix fibo-fbc-fi-fi: <https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/> .
+@prefix fibo-fnd-acc-ae: <https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/AccountingEquity/> .
+@prefix fibo-fnd-pas-ps: <https://spec.edmcouncil.org/fibo/ontology/FND/ProductsAndServices/ProductsAndServices/> .
+@prefix schema: <https://schema.org/> .
 
-# Term equivalences for the finance domain — schema.org financial extension.
-# Compiled to mappings/gmeow-schema-org-finance.sssom.tsv by `gmeow compile-mappings`.
-# schema.org's financial terms are FIBO-derived and form the clean projection target.
+# Term equivalences (authored in-slice; source of alignment linkage).
 
-gmeow:mapsetSchemaOrgFinance a gmeow:MappingSet ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
-    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/schema-org-finance" ;
-    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "schema.org financial extension alignments for the GMEOW finance slice. schema.org BankAccount/DepositAccount/MonetaryAmount/Invoice/Order/Payment/LoanOrCredit are the clean projection targets." .
+gmeow:eqFibo005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:FinancialTransaction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fnd-pas-ps:TransactionEvent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "a financial transaction event; canonical FIBO defining module is FND ProductsAndServices, not FBC FinancialProductsAndServices" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+
+gmeow:eqFibo006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:LedgerAccount ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fnd-acc-ae:Account ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a book-keeping account; GMEOW distinguishes LedgerAccount from FinancialAccount" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+
+gmeow:eqFibo007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Posting ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fnd-acc-ae:BookEntry ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "an accounting entry / posting in double-entry bookkeeping" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+
+gmeow:eqFibo008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Asset ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fbc-fi-fi:FinancialInstrument ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a financial asset / instrument; GMEOW Asset is broader (includes real estate)" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
+
+gmeow:eqFibo009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Holding ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject fibo-fbc-fi-fi:Holding ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a holding of a financial asset by an agent" ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" .
 
 gmeow:eqSchemaOrgFin001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:FinancialAccount ;
@@ -34,33 +73,6 @@ gmeow:eqSchemaOrgFin002 a gmeow:TermEquivalence ;
     gmeow:comment "a deposit account is a kind of bank account" ;
     gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
 
-gmeow:eqSchemaOrgFin003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:MonetaryAmount ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:MonetaryAmount ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.85 ;
-    gmeow:comment "a quantity of money; GMEOW makes the currency frame explicit via ReferenceFrame" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
-
-gmeow:eqSchemaOrgFin004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:monetaryValue ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:value ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "the numeric value of a monetary amount" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
-
-gmeow:eqSchemaOrgFin005 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:currency ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:currency ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "the currency of a monetary amount; GMEOW uses a ReferenceFrame individual, schema.org uses a string code" ;
-    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
-
 gmeow:eqSchemaOrgFin006 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:iban ;
     gmeow:alignPredicate skos:exactMatch ;
@@ -78,7 +90,6 @@ gmeow:eqSchemaOrgFin007 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "the balance of a bank account" ;
     gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" .
-
 
 gmeow:eqSchemaOrgFin008 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:FinancialTransaction ;
