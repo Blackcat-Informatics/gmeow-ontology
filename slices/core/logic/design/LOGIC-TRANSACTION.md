@@ -240,6 +240,29 @@ to run from the earlier timestamp to the later; and `logic:OptimisticValidation`
 cross-leg read-write conflict. A declared protocol whose required events are absent is a hard
 error, never a silent pass.
 
+**Protocol → isolation-level adequacy.** The isolation level and the concurrency-control protocol
+are *separately declared*, so a run may pair the two incoherently — name a protocol whose strongest
+achievable guarantee is weaker than the level it also declares. The evaluator classifies that
+pairing directly, independent of any one witnessed schedule: each `logic:ConcurrencyControlProtocol`
+has a **guaranteed ceiling** — the strongest `logic:IsolationLevel` it enforces when its discipline
+is respected — and the pairing is adequate iff that ceiling is at least the run's
+`logic:declaredIsolationLevel`. The verdict is recorded as `logic:protocolLevelAdequacy` (with a
+`logic:protocolLevelInadequacyReason` on failure), emitted only when a run declares **both** a
+protocol and a level — otherwise there is no cross-claim to judge. The ceilings:
+`logic:MultiversionConcurrencyControl` reaches `logic:SnapshotIsolation` (it reads each transaction
+from a consistent start snapshot and so still admits **write skew**), while
+`logic:StrictTwoPhaseLocking`, `logic:StrongStrictTwoPhaseLocking`, `logic:TimestampOrdering`, and
+`logic:OptimisticValidation` each reach `logic:SerializableIsolation` (coincident with
+`logic:OpacityIsolation` here, since only committed runs produce a history). The one incoherent
+pairing this vocabulary admits is therefore multiversion concurrency control declared under a
+serializable-or-stronger level: the protocol's snapshot ceiling cannot exclude the write-skew cycle
+that serializability forbids. This is a **consistency cross-check between two declarations, never an
+inference of one from the other** — the level stays a guarantee strength and the protocol an
+implementation mechanism, and a run is free to under-declare its level for a stronger protocol (that
+pairing is adequate). Multiversion concurrency control requires no lock or timestamp events: the
+evaluator realizes snapshot isolation by construction, so its `logic:protocolEnforced` verdict holds
+structurally while only the level-adequacy pairing carries a defeasible signal.
+
 ## Where it connects, and what it is not
 
 A transaction path says **how state changes**. It is connected to, but never identical with,

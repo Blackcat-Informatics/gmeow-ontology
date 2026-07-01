@@ -494,12 +494,30 @@ ASK {
     logic:SnapshotIsolation        a logic:IsolationLevel .
     logic:SerializableIsolation    a logic:IsolationLevel .
     logic:OpacityIsolation         a logic:IsolationLevel .
-    logic:StrictTwoPhaseLocking       a logic:ConcurrencyControlProtocol .
-    logic:StrongStrictTwoPhaseLocking a logic:ConcurrencyControlProtocol .
-    logic:TimestampOrdering           a logic:ConcurrencyControlProtocol .
-    logic:OptimisticValidation        a logic:ConcurrencyControlProtocol .
+    logic:StrictTwoPhaseLocking        a logic:ConcurrencyControlProtocol .
+    logic:StrongStrictTwoPhaseLocking  a logic:ConcurrencyControlProtocol .
+    logic:TimestampOrdering            a logic:ConcurrencyControlProtocol .
+    logic:OptimisticValidation         a logic:ConcurrencyControlProtocol .
+    logic:MultiversionConcurrencyControl a logic:ConcurrencyControlProtocol .
 }""" ;
-    gmeow:saRationale "Each of the three closed concurrency value sets MUST enumerate exactly its declared members: the two serializability criteria, the six isolation levels (through opacity), and the four concurrency-control protocols." .
+    gmeow:saRationale "Each of the three closed concurrency value sets MUST enumerate exactly its declared members: the two serializability criteria, the six isolation levels (through opacity), and the five concurrency-control protocols (including multiversion concurrency control, whose guaranteed ceiling is snapshot isolation)." .
+
+# --- 30b. Protocol -> isolation-level adequacy wiring terms exist (MUST) -------
+ex:saProtocolLevelAdequacyWiringTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:MultiversionConcurrencyControl a logic:ConcurrencyControlProtocol .
+    logic:protocolLevelAdequacy a owl:DatatypeProperty .
+    logic:protocolLevelInadequacyReason a owl:DatatypeProperty .
+    logic:isolationLevelAdequacy a owl:DatatypeProperty .
+    logic:protocolEnforced a owl:DatatypeProperty .
+    FILTER (logic:protocolLevelAdequacy != logic:isolationLevelAdequacy)
+    FILTER (logic:protocolLevelAdequacy != logic:protocolEnforced)
+}""" ;
+    gmeow:saRationale "The protocol -> isolation-level adequacy cross-check MUST be declared as its OWN surface: logic:protocolLevelAdequacy (with logic:protocolLevelInadequacyReason) classifies whether the declared logic:ConcurrencyControlProtocol reaches the declared logic:IsolationLevel, and it MUST be a distinct property from logic:isolationLevelAdequacy (whether the witnessed schedule meets the strength) and logic:protocolEnforced (whether the schedule respects the mechanism). logic:MultiversionConcurrencyControl MUST exist as the sub-serializable protocol (snapshot ceiling) that gives the adequacy check its inadequate case, so the three concurrency concerns stay distinct while their pairing is consistency-checked." .
 
 # --- 31. SerializationAnomaly is NOT a contradiction witness (MUST) -----------
 # There is no canonical contradiction-WITNESS CLASS in the module: the witness is
