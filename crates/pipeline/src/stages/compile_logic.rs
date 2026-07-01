@@ -411,10 +411,27 @@ fn build_logic_bundle(
     let logic_dataset = logic_graph_dataset(canonical_rdf12_turtle)?;
     let rc_dataset = relational_core_graph_dataset(relational_core_nt)?;
     let corr_dataset = correspondence_graph_dataset(correspondence_nt)?;
+    // The logic-compile diagnostics RDF also rides the carrier, in the shared
+    // `graph/diagnostics` named graph, so the presenter unions it with the SHACL
+    // diagnostics as a pure keyed fold (PIPELINE_SPINE §4) instead of re-parsing the byte
+    // artifact. It is object-level-inert (a Finding graph), so it never reaches the reason
+    // EDB (which projects only logic / relational-core / correspondence). The byte lane is
+    // kept for the byte readers.
+    let diag_rdf = artifacts.get(DIAG_RDF_PATH).ok_or_else(|| {
+        stage_err(format!(
+            "build_logic_bundle missing {DIAG_RDF_PATH} artifact"
+        ))
+    })?;
+    let diag_dataset = crate::stages::carrier::parse_into_graph(
+        diag_rdf,
+        "application/n-quads",
+        crate::stages::carrier::GRAPH_DIAGNOSTICS,
+    )?;
     let dataset = Arc::new(gmeow_rdf::RdfDataset::union(&[
         logic_dataset.as_ref(),
         rc_dataset.as_ref(),
         corr_dataset.as_ref(),
+        diag_dataset.as_ref(),
     ]));
     let mut bundle = bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
     let pinned = bundle.graph_digest(GRAPH_LOGIC);
