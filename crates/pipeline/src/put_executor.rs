@@ -55,8 +55,9 @@ pub struct LiftedReport {
     pub lifted: usize,
     /// Count of reified CLAIM cells produced (lossy lifts).
     pub claimed: usize,
-    /// Projection-namespace source terms with NO lawful rule (sorted, deduped, canon qnames).
-    pub gap_terms: Vec<String>,
+    /// Projection-namespace source terms with NO lawful rule, mapped to their TRUE
+    /// occurrence count in the source graph (canon qnames; never a fabricated constant).
+    pub gap_terms: BTreeMap<String, usize>,
     /// Honest loss-ledger notes for the dropped heuristic categories (sorted, deduped).
     pub residue: Vec<String>,
 }
@@ -435,27 +436,30 @@ fn run_construct(
 }
 
 /// Projection-namespace source terms (predicate positions + rdf:type objects) that
-/// no lawful rule of any kind covers — sorted, deduped canon qnames.
-fn compute_gaps(quads: &[RdfQuad], lawful: &LawfulRules) -> Vec<String> {
+/// no lawful rule of any kind covers, mapped to their TRUE occurrence count — one
+/// increment per matching source triple position, never deduped away. This is the
+/// real per-term frequency downstream prioritization relies on; it must never be
+/// flattened to a fabricated constant.
+fn compute_gaps(quads: &[RdfQuad], lawful: &LawfulRules) -> BTreeMap<String, usize> {
     let has_rule = |term: &str| {
         lawful.rules.contains_key(term)
             || lawful.inverse_rules.contains_key(term)
             || lawful.claim_rules.contains_key(term)
     };
-    let mut gaps: BTreeSet<String> = BTreeSet::new();
+    let mut gaps: BTreeMap<String, usize> = BTreeMap::new();
     for triple in quads {
         if in_projection_ns(&triple.predicate) && !has_rule(&triple.predicate) {
-            gaps.insert(canon_qname(&triple.predicate));
+            *gaps.entry(canon_qname(&triple.predicate)).or_insert(0) += 1;
         }
         if triple.predicate == RDF_TYPE {
             if let RdfTerm::Iri(node) = &triple.object {
                 if in_projection_ns(node) && !has_rule(node) {
-                    gaps.insert(canon_qname(node));
+                    *gaps.entry(canon_qname(node)).or_insert(0) += 1;
                 }
             }
         }
     }
-    gaps.into_iter().collect()
+    gaps
 }
 
 /// The honest loss-ledger notes for the heuristic categories this lawful executor drops,
@@ -847,6 +851,7 @@ mod tests {
         let source_nt = concat!(
             "<http://a/1> <http://xmlns.com/foaf/0.1/good> <http://a/2> .\n",
             "<http://a/1> <http://xmlns.com/foaf/0.1/bad> <http://a/3> .\n",
+            "<http://a/2> <http://xmlns.com/foaf/0.1/bad> <http://a/4> .\n",
         );
         let report =
             execute_put_legs(source_nt, &[], &projection_ttls, "").expect("execute put legs");
@@ -871,9 +876,13 @@ mod tests {
             );
         }
         // `foaf:bad` has no gate-surviving rule, so it is an honest gap term, not a silent drop.
-        assert!(
-            report.gap_terms.iter().any(|g| g == "foaf:bad"),
-            "the gate-excluded term is surfaced as a gap term: {:?}",
+        // It occurs TWICE in the source; the reported count must be the real occurrence count
+        // (2), never a fabricated constant (1) — the GAP 4 honesty invariant.
+        assert_eq!(
+            report.gap_terms.get("foaf:bad").copied(),
+            Some(2),
+            "the gate-excluded term's gap count must be the TRUE occurrence count, not a \
+             fabricated constant: {:?}",
             report.gap_terms
         );
     }
