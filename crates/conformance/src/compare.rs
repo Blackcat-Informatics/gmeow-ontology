@@ -452,6 +452,42 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
                 (_, Err(e)) => diffs.push(format!("[{case_id}] {target}: {e}")),
             }
         }
+
+        // ── CL dialect projections (C6, cl-roundtrip cases only) ───────────────
+        // A `cl-roundtrip` case pins the three ISO 24707 dialect renderings
+        // (`gmeow.{clif,cgif,xcl}`) byte-exactly. Opt-in like certification: compared
+        // only when the golden exists — a non-`cl-roundtrip` case produces none and
+        // pins none, so `!exists && !produced` is correctly a no-op.
+        const DIALECTS: [(&str, &str); 3] = [
+            ("clif", "gmeow.clif"),
+            ("cgif", "gmeow.cgif"),
+            ("xcl", "gmeow.xcl"),
+        ];
+        for (target, filename) in DIALECTS {
+            let expected_path = proj.join(filename);
+            let produced = out.projections.text.get(target);
+            if !expected_path.exists() {
+                if produced.is_some() {
+                    diffs.push(format!(
+                        "[{case_id}] projection {target}: golden {filename} is missing from \
+                         expected/projections/ — run the bless mode to generate it"
+                    ));
+                }
+                continue;
+            }
+            match (produced, read_text(&expected_path)) {
+                (Some(content), Ok(expected_text)) => {
+                    for d in compare_text(content, &expected_text) {
+                        diffs.push(format!("[{case_id}] {target}: {d}"));
+                    }
+                }
+                (None, _) => diffs.push(format!(
+                    "[{case_id}] projection {target}: golden {filename} exists but no dialect \
+                     text produced (is this a cl-roundtrip case?)"
+                )),
+                (_, Err(e)) => diffs.push(format!("[{case_id}] {target}: {e}")),
+            }
+        }
     }
 
     // ── Verdicts (canonical JSON) ─────────────────────────────────────────────
@@ -515,6 +551,22 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
                 "[{case_id}] correspondence-gates: golden correspondence-gates.json is missing \
                  from expected/ but the program authors logic:Correspondence individuals — run \
                  the bless mode to generate it"
+            ));
+        }
+    }
+
+    // ── Common Logic round-trip verdict (cl-roundtrip ⇒ require-golden) ────────
+    // A `cl-roundtrip` case MUST commit the `cl-dialects.json` golden — the per-dialect
+    // round-trip + cross-dialect verdict. A missing golden is a hard failure, never a
+    // silent pass.
+    if let Some(actual_cl) = &out.cl_dialects {
+        let cl_path = expected.join("cl-dialects.json");
+        if cl_path.exists() {
+            diff_json_golden(&cl_path, actual_cl, case_id, "cl-dialects", &mut diffs);
+        } else {
+            diffs.push(format!(
+                "[{case_id}] cl-dialects: golden cl-dialects.json is missing from expected/ but \
+                 this is a cl-roundtrip case — run the bless mode to generate it"
             ));
         }
     }

@@ -428,12 +428,13 @@ fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, 
     }
     cl_dialects.insert("cross_dialect".to_string(), serde_json::json!("pass"));
 
-    // An empty RDF map (RDF_TARGETS keys, no content) mirrors `empty_outputs`: a
-    // cl-roundtrip case gates no RDF projection goldens, only the dialect texts.
-    let mut rdf = BTreeMap::new();
-    for target in RDF_TARGETS {
-        rdf.insert(target.to_string(), String::new());
-    }
+    // A cl-roundtrip case gates NO RDF projection goldens (only the dialect texts), and
+    // its `expected/projections/` dir DOES exist (it holds gmeow.{clif,cgif,xcl}), so the
+    // RDF compare loop runs. Leave the RDF map EMPTY (not RDF_TARGETS→"") so each target's
+    // `produced` is `None` and the loop skips it — an empty-string entry would instead be
+    // read as "produced but golden missing" and hard-fail. (empty_outputs can safely use
+    // RDF_TARGETS→"" only because an expect_unsupported case has no projections/ dir.)
+    let rdf = BTreeMap::new();
 
     Ok(CaseOutputs {
         case_id: case_id.to_string(),
