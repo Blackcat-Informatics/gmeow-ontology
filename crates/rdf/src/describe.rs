@@ -44,6 +44,8 @@ pub struct Describer<'a> {
     /// term id → the `(reifier, triple-term)` bindings whose reified triple has this
     /// id as its subject or object.
     reifiers_by_endpoint: BTreeMap<TermId, Vec<(TermId, TermId)>>,
+    /// reifier id → the `(p, o)` annotation bindings hung off that reifier.
+    annotations_by_reifier: BTreeMap<TermId, Vec<(TermId, TermId)>>,
 }
 
 impl<'a> Describer<'a> {
@@ -75,10 +77,19 @@ impl<'a> Describer<'a> {
             }
         }
 
+        let mut annotations_by_reifier: BTreeMap<TermId, Vec<(TermId, TermId)>> = BTreeMap::new();
+        for (reifier, p, o) in dataset.annotations() {
+            annotations_by_reifier
+                .entry(reifier)
+                .or_default()
+                .push((p, o));
+        }
+
         Self {
             dataset,
             by_endpoint,
             reifiers_by_endpoint,
+            annotations_by_reifier,
         }
     }
 
@@ -115,8 +126,18 @@ impl<'a> Describer<'a> {
         self.describe_seeds(seeds)
     }
 
-    /// The shared walk: BFS from `seeds`, expanding only blank-node endpoints, then
-    /// re-intern the collected quads + statement layer into a fresh dataset.
+    /// The shared walk: a single BFS from `seeds`, expanding **every** blank node it
+    /// can reach — whether that blank surfaces as a quad endpoint, as a reifier id, as
+    /// an endpoint of a reified triple, or as an annotation object — then re-intern the
+    /// collected quads + statement layer into a fresh dataset.
+    ///
+    /// Folding the reifier/annotation harvest **into** the frontier loop (rather than
+    /// running it once after the quad walk) is what makes the blank-node closure
+    /// transitive across the statement layer: a blank reifier's own describing triples
+    /// ride along because the reifier id is pushed to the frontier (its quads live in
+    /// `by_endpoint`), and a blank annotation object's triples ride along because it is
+    /// pushed to the frontier when the annotation is harvested. Otherwise those blanks
+    /// dangle — emitted in the subgraph with nothing describing them.
     fn describe_seeds(&self, seeds: Vec<TermId>) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
         let mut anchors: BTreeSet<TermId> = BTreeSet::new();
         let mut frontier: Vec<TermId> = Vec::new();
@@ -127,33 +148,58 @@ impl<'a> Describer<'a> {
         }
 
         let mut quads: HashSet<QuadIds> = HashSet::new();
+        let mut reifiers: BTreeSet<(TermId, TermId)> = BTreeSet::new();
+        let mut annotations: Vec<(TermId, TermId, TermId)> = Vec::new();
+        let mut visited_reifiers: HashSet<TermId> = HashSet::new();
+
+        // Expand a blank endpoint into the frontier; named nodes never expand (that
+        // would drag in the entire neighbourhood of the graph).
+        macro_rules! expand_blank {
+            ($frontier:ident, $anchors:ident, $end:expr) => {{
+                let end = $end;
+                if self.is_blank(end) && $anchors.insert(end) {
+                    $frontier.push(end);
+                }
+            }};
+        }
+
         while let Some(anchor) = frontier.pop() {
-            let Some(touching) = self.by_endpoint.get(&anchor) else {
-                continue;
-            };
-            for &q in touching {
-                quads.insert(q);
-                // Only blank-node endpoints expand the closure; a named node would
-                // drag in the entire neighbourhood of the graph.
-                for end in [q.s, q.o] {
-                    if self.is_blank(end) && anchors.insert(end) {
-                        frontier.push(end);
+            if let Some(touching) = self.by_endpoint.get(&anchor) {
+                for &q in touching {
+                    quads.insert(q);
+                    expand_blank!(frontier, anchors, q.s);
+                    expand_blank!(frontier, anchors, q.o);
+                }
+            }
+
+            // Reifiers whose reified triple is about this anchor. Selection is by
+            // reified-triple endpoint; a named-node reifier is still kept (only blank
+            // ids/objects expand).
+            if let Some(bindings) = self.reifiers_by_endpoint.get(&anchor) {
+                for &b @ (reifier, triple) in bindings {
+                    reifiers.insert(b);
+                    if !visited_reifiers.insert(reifier) {
+                        continue;
+                    }
+                    // A blank reifier becomes an anchor so its own plain quads (which
+                    // live in `by_endpoint`) are collected.
+                    expand_blank!(frontier, anchors, reifier);
+                    // The reified triple's own blank subject/object stay closed too.
+                    if let TermRef::Triple { s, p: _, o } = self.dataset.resolve(triple) {
+                        expand_blank!(frontier, anchors, s);
+                        expand_blank!(frontier, anchors, o);
+                    }
+                    // Harvest the reifier's annotations, closing blank objects.
+                    if let Some(annos) = self.annotations_by_reifier.get(&reifier) {
+                        for &(p, o) in annos {
+                            annotations.push((reifier, p, o));
+                            expand_blank!(frontier, anchors, p);
+                            expand_blank!(frontier, anchors, o);
+                        }
                     }
                 }
             }
         }
-
-        // Reifiers whose reified triple is about any anchored node, plus their
-        // annotations.
-        let mut reifiers: BTreeSet<(TermId, TermId)> = BTreeSet::new();
-        for anchor in &anchors {
-            if let Some(bindings) = self.reifiers_by_endpoint.get(anchor) {
-                for &b in bindings {
-                    reifiers.insert(b);
-                }
-            }
-        }
-        let reifier_ids: BTreeSet<TermId> = reifiers.iter().map(|&(r, _)| r).collect();
 
         // Re-intern the selected quads + statement layer into a fresh dataset. A remap
         // memoizes old-id → new-id so the owned-term round-trip runs once per term.
@@ -171,13 +217,11 @@ impl<'a> Describer<'a> {
             let t = self.map_id(&mut builder, &mut remap, triple);
             builder.push_reifier(r, t);
         }
-        for (reifier, p, o) in self.dataset.annotations() {
-            if reifier_ids.contains(&reifier) {
-                let r = self.map_id(&mut builder, &mut remap, reifier);
-                let p = self.map_id(&mut builder, &mut remap, p);
-                let o = self.map_id(&mut builder, &mut remap, o);
-                builder.push_annotation(r, p, o);
-            }
+        for &(reifier, p, o) in &annotations {
+            let r = self.map_id(&mut builder, &mut remap, reifier);
+            let p = self.map_id(&mut builder, &mut remap, p);
+            let o = self.map_id(&mut builder, &mut remap, o);
+            builder.push_annotation(r, p, o);
         }
 
         builder.freeze()
@@ -420,5 +464,82 @@ mod tests {
         let ttl = serialize_dataset(&scbd, "text/turtle", SerializeGraph::Dataset).unwrap();
         let back = parse_dataset(&ttl, "text/turtle", None).unwrap();
         assert_eq!(back.quad_count(), 2);
+    }
+
+    #[test]
+    fn blank_reifier_own_triples_are_closed() {
+        // A blank reifier that is ALSO the subject of a plain quad
+        // (`_:stmt ex:author ex:alice`). That describing quad must ride along with the
+        // reifier — a plain forward walk would drop it, leaving a dangling blank.
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri(S.to_string());
+        let p = b.intern_iri("https://e/p".to_string());
+        let o = b.intern_iri("https://e/o".to_string());
+        b.push_quad(s, p, o, None);
+        let triple_term = b.intern_triple(s, p, o);
+        let reifier = b.intern_blank("stmt1".to_string(), gmeow_rdf_core::BlankScope::DEFAULT);
+        b.push_reifier(reifier, triple_term);
+        // A plain triple describing the blank reifier itself.
+        let author = b.intern_iri("https://e/author".to_string());
+        let alice = b.intern_iri("https://e/alice".to_string());
+        b.push_quad(reifier, author, alice, None);
+        let ds = b.freeze().unwrap();
+
+        let scbd = describe(&ds, S).unwrap();
+        assert_eq!(
+            scbd.reifiers().count(),
+            1,
+            "the reifier about S must be kept"
+        );
+        let has_author = scbd.quad_refs().any(|q| {
+            matches!(q.s, TermRef::Blank { .. })
+                && matches!(q.p, TermRef::Iri(i) if i == "https://e/author")
+                && matches!(q.o, TermRef::Iri(i) if i == "https://e/alice")
+        });
+        assert!(
+            has_author,
+            "the blank reifier's own describing triple must be included"
+        );
+    }
+
+    #[test]
+    fn blank_annotation_object_is_closed() {
+        // S p o, reified; the reifier's `source` annotation points at a blank provenance
+        // node that itself carries a triple (`_:prov ex:by ex:agent`). The annotation
+        // side-table does not live in `by_endpoint`, so without folding the annotation
+        // harvest into the walk that blank would dangle.
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri(S.to_string());
+        let p = b.intern_iri("https://e/p".to_string());
+        let o = b.intern_iri("https://e/o".to_string());
+        b.push_quad(s, p, o, None);
+        let triple_term = b.intern_triple(s, p, o);
+        let reifier = b.intern_blank("stmt1".to_string(), gmeow_rdf_core::BlankScope::DEFAULT);
+        b.push_reifier(reifier, triple_term);
+        let source = b.intern_iri("https://e/source".to_string());
+        let prov = b.intern_blank("prov".to_string(), gmeow_rdf_core::BlankScope::DEFAULT);
+        b.push_annotation(reifier, source, prov);
+        // The blank provenance node's own describing triple (a plain quad).
+        let by = b.intern_iri("https://e/by".to_string());
+        let agent = b.intern_iri("https://e/agent".to_string());
+        b.push_quad(prov, by, agent, None);
+        let ds = b.freeze().unwrap();
+
+        let scbd = describe(&ds, S).unwrap();
+        assert_eq!(
+            scbd.annotations().count(),
+            1,
+            "the source annotation must be kept"
+        );
+        // The blank provenance node's `by agent` triple must survive (no dangling blank).
+        let has_by = scbd.quad_refs().any(|q| {
+            matches!(q.s, TermRef::Blank { .. })
+                && matches!(q.p, TermRef::Iri(i) if i == "https://e/by")
+                && matches!(q.o, TermRef::Iri(i) if i == "https://e/agent")
+        });
+        assert!(
+            has_by,
+            "the blank annotation object's own triple must be included"
+        );
     }
 }
