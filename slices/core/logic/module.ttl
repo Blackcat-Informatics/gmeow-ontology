@@ -2201,6 +2201,13 @@ logic:instantiatesSchema
     skos:definition "Relates a gmeow:Event (an action occurrence — a particular event executed along a particular path) to the logic:ActionSchema it instantiates. Domain gmeow:Event, range logic:ActionSchema (stated in prose). The occurrence is the same perdurant an intentional moment links to through gmeow:motivates; the schema is the reusable type it instantiates. The schema names what an action does; the path records that it was done and what changed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:instantiatesPlan
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "instantiates plan"@x-gmeow-english ;
+    skos:definition "Relates an executed action occurrence — a materialized logic:TransactionStep (a gmeow:Event minted per run position) — to the logic:Plan program it was executed under. Domain the occurrence, range logic:Plan (stated in prose). It is the plan-level companion of logic:instantiatesSchema: where that link records the reusable type an occurrence instantiates (Event to ActionSchema), this records the whole plan the occurrence realizes (Event to Plan). The pair is a load-bearing in-band recovery witness — the executed record carries, in band, a back-reference to both the schema and the plan it instantiates — so a correspondence's put leg can recover the planned skeleton from an execution record (the mnemomorphism's in-band complement at the process layer) rather than synthesizing a plausible plan. Without it the descriptive run and the prescriptive plan are only externally related; with it the planned portion round-trips."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # --- Goal decomposition (gmeow:Goal -> gmeow:Goal, satisfaction dependency) ----
 
 logic:refinesGoal
