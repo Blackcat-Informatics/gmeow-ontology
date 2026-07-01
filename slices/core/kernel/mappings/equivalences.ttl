@@ -360,7 +360,7 @@ gmeow:eqProperties055 a gmeow:TermEquivalence ;
     gmeow:alignObject dpv:Generalisation ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN (#73)" ;
+    gmeow:comment "DPV Generalisation (reduce granularity/precision by grouping or rounding) — the privacy-technique counterpart of the gmeow:coarsenTo projection-time directive; the seam to PRIV-GEN" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
 
 gmeow:eqProperties056 a gmeow:TermEquivalence ;

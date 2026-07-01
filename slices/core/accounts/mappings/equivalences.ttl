@@ -42,4 +42,4 @@ gmeow:eqProperties032 a gmeow:TermEquivalence ;
 
 gmeow:eqProperties092 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:accountServiceHomepage ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject foaf:accountServiceHomepage ;
-    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "FOAF's OnlineAccount service-homepage idiom (#411/#417)" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "FOAF's OnlineAccount service-homepage idiom" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .

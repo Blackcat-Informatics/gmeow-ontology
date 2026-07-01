@@ -827,7 +827,7 @@ gmeow:eqQudt004 a gmeow:TermEquivalence ;
     gmeow:alignObject qudt:QuantityValue ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "QUDT's value+unit bundle; GMEOW adds determinacy and provenance axes (#77)." ;
+    gmeow:comment "QUDT's value+unit bundle; GMEOW adds determinacy and provenance axes." ;
     gmeow:sssomFile "gmeow-qudt.sssom.tsv" .
 
 gmeow:eqQudt005 a gmeow:TermEquivalence ;
