@@ -9,6 +9,7 @@
 //! [`RDF_META_ELEMENT`](super::RDF_META_ELEMENT) element.
 
 use crate::ir::{Formula, LogicAxiom, LogicProgram, Term};
+use crate::nt::nt_escape_literal;
 use crate::projections::{rdf, target_meta, ProjectionResult};
 
 use super::{xml_escape_attr, xml_escape_text, RDF_META_ELEMENT, ROOT_ELEMENT};
@@ -502,29 +503,10 @@ fn nt_triple(subject: &str, predicate: &str, object: &str) -> String {
     format!("{} {} {object} .", nt_iri(subject), nt_iri(predicate))
 }
 
-/// Encode an IRI as an N-Triples `<…>`. The N-Triples `IRIREF` grammar forbids `<`, `>`, `"`,
-/// `{`, `}`, `|`, `^`, `` ` ``, `\`, and every code point `<= 0x20` appearing raw; each must ride
-/// as a `\uXXXX` `UCHAR`, or the re-parse hard-fails.
+/// Encode an IRI as an N-Triples `<…>`. See [`crate::nt::nt_escape_iri`] for the shared
+/// inner-content escaper; this wraps it in the angle brackets.
 fn nt_iri(iri: &str) -> String {
-    let mut out = String::with_capacity(iri.len() + 2);
-    out.push('<');
-    for c in iri.chars() {
-        match c {
-            '\\' => out.push_str("\\u005C"),
-            '"' => out.push_str("\\u0022"),
-            '<' => out.push_str("\\u003C"),
-            '>' => out.push_str("\\u003E"),
-            '{' => out.push_str("\\u007B"),
-            '}' => out.push_str("\\u007D"),
-            '|' => out.push_str("\\u007C"),
-            '^' => out.push_str("\\u005E"),
-            '`' => out.push_str("\\u0060"),
-            c if c <= ' ' => out.push_str(&format!("\\u{:04X}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out.push('>');
-    out
+    format!("<{}>", crate::nt::nt_escape_iri(iri))
 }
 
 /// Encode a plain (`xsd:string`) literal as an N-Triples `"…"`.
@@ -535,20 +517,4 @@ fn nt_plain_literal(lexical: &str) -> String {
 /// Encode a typed literal as an N-Triples `"…"^^<dt>`.
 fn nt_typed_literal(lexical: &str, datatype: &str) -> String {
     format!("\"{}\"^^{}", nt_escape_literal(lexical), nt_iri(datatype))
-}
-
-/// Escape a literal lexical form for an N-Triples `"…"` string.
-fn nt_escape_literal(lex: &str) -> String {
-    let mut out = String::with_capacity(lex.len());
-    for c in lex.chars() {
-        match c {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c => out.push(c),
-        }
-    }
-    out
 }

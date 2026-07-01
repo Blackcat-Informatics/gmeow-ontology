@@ -350,6 +350,67 @@ fn xml_and_ntriples_forbidden_chars_survive_the_round_trip() {
 }
 
 #[test]
+fn control_chars_del_c1_c0_survive_the_round_trip() {
+    // The shared `crate::nt` codec (crates/logic-compile/src/nt.rs) must UCHAR-escape the
+    // FULL control-character range, not just `<= 0x20`: DEL (0x7F), a C1 control (0x85), and
+    // an arbitrary C0 control (0x01), injected into BOTH an IRI and a literal lexical. Proves
+    // the carrier survives the full control-char range and the emitted XML stays parseable.
+    let weird_iri = format!("{LOGIC}weird/a\u{7F}b\u{85}c\u{01}d");
+    let axiom = LogicAxiom::ground(weird_iri.clone(), iri("knows"), iri("target"), false).unwrap();
+
+    let nasty_lex = "del\u{7F}c1\u{85}c0\u{01}end";
+    let formula = Formula::atom(
+        Term::iri(iri("tagged")).unwrap(),
+        vec![Term::literal(nasty_lex, Some(iri("Tag"))).unwrap()],
+    )
+    .unwrap();
+
+    let orig = LogicProgram::new(
+        vec![axiom],
+        Vec::new(),
+        Vec::new(),
+        Some("urn:test:iri".to_owned()),
+    )
+    .with_formulas(vec![formula]);
+
+    let src = Some("urn:test:iri".to_owned());
+    let xcl1 = project_xcl(&orig).expect("project_xcl").content;
+    // The projection must remain well-formed XML despite the raw control characters.
+    roxmltree::Document::parse(&xcl1)
+        .expect("XCL with DEL/C1/C0 control chars must still be well-formed XML");
+
+    let (fp, _diags) = parse_xcl_str(&xcl1, src.clone())
+        .expect("parse_xcl_str must not hard-fail on control-char content");
+    assert!(
+        fp.axioms.iter().any(|a| a.subject == weird_iri),
+        "the control-char IRI subject was lost or mangled by the round-trip:\n{:#?}",
+        fp.axioms
+    );
+    assert!(
+        fp.formulas.iter().any(|f| matches!(
+            f,
+            Formula::Atom { args, .. }
+                if args.iter().any(|t| matches!(
+                    t,
+                    Term::Literal { lexical, .. } if lexical == nasty_lex
+                ))
+        )),
+        "the control-char literal was lost or mangled by the round-trip:\n{:#?}",
+        fp.formulas
+    );
+
+    // Idempotent at the fixpoint: a second round-trip is the byte identity.
+    let xcl2 = project_xcl(&fp).expect("project_xcl").content;
+    assert_eq!(
+        xcl1, xcl2,
+        "XCL emission is not idempotent for control-char content"
+    );
+    let (fp2, _) = parse_xcl_str(&xcl2, src).expect("parse_xcl_str #2");
+    assert_ir_isomorphic(&fp, &fp2)
+        .unwrap_or_else(|e| panic!("control-char round-trip not idempotent: {e}"));
+}
+
+#[test]
 fn path_shape_round_trips_with_typed_integer_depths() {
     // A logic:PathShape rides the RDF/predication channel. Its min/max depths are integers in the
     // IR (`u32`) and are emitted as typed `xsd:integer` literals; the whole shape must survive.

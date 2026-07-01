@@ -763,7 +763,7 @@ fn escape_iri(iri: &str) -> String {
             '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
                 out.push_str(&format!("\\u{:04X}", c as u32));
             }
-            c if (c as u32) <= 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c if c.is_control() || c == ' ' => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
     }
@@ -784,7 +784,7 @@ fn quote(value: &str) -> String {
         for c in pre.chars() {
             match c {
                 '\n' => escaped.push('\n'),
-                c if (c as u32) < 0x20 => escaped.push_str(&format!("\\u{:04X}", c as u32)),
+                c if c.is_control() => escaped.push_str(&format!("\\u{:04X}", c as u32)),
                 c => escaped.push(c),
             }
         }
@@ -798,7 +798,7 @@ fn quote(value: &str) -> String {
                 '\\' => out.push_str("\\\\"),
                 '\t' => out.push_str("\\t"),
                 '\r' => out.push_str("\\r"),
-                c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+                c if c.is_control() => out.push_str(&format!("\\u{:04X}", c as u32)),
                 c => out.push(c),
             }
         }
