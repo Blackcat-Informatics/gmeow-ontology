@@ -111,13 +111,18 @@ pub(crate) fn serialize_carrier_snapshot(
         .artifacts();
     let mut blobs = build_archive_blobs(root, &schema_json, &openapi_json, &compile_artifacts)?;
     blobs.extend(build_guide_blobs(root)?);
-    // The docs model + its build-time executable-docs data (the reasoned "try it"
-    // diffs, the offline SPARQL playground asset, the reasoned ontology export handle).
-    // This is a DOCS-ONLY side computation: its outputs ride ONLY as site blobs in the
-    // ontology-docs archive and never fold into `graph/reasoning` or any graph
-    // `verify`/`reason` consume.
-    let docs_model = gmeow_docs::model::DocsModel::discover(root)
+    // The rendered docs site embeds the per-term reasoning badge, so it carries the
+    // SAME native-reasoner verdict the docs-graph stage projects — derived once from
+    // stage-reason's closure (hard-fails if absent, never a silent default).
+    let reasoning_verdict = crate::stages::docs_render::reasoning_verdict_from_reason(upstream)?;
+    // The docs model (with the reasoning verdict attached) + its build-time
+    // executable-docs data (the reasoned "try it" diffs and the offline SPARQL
+    // playground asset). This is a DOCS-ONLY side computation: its outputs ride ONLY as
+    // site blobs in the ontology-docs archive and never fold into `graph/reasoning` or
+    // any graph `verify`/`reason` consume.
+    let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
         .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
+    docs_model.attach_reasoning(reasoning_verdict);
     let docs_exec = build_executable_docs_data(root, upstream, carrier, &docs_model)?;
     blobs.push(build_docs_archive(root, &docs_model, &docs_exec)?);
     blobs.push(build_reasoning_blob(upstream)?);
@@ -1017,6 +1022,9 @@ fn build_okf_blob_from_dataset(carrier: &gmeow_rdf::RdfDataset) -> Result<BlobRo
 /// on (`resolve_doc_language` returns these internal tags). The prefix comes from
 /// `Translations::internal_tag`, never the carrier key or a hardcoded string, so a
 /// new `.po` catalog is picked up with the correct tag automatically.
+// The docs model (with the reasoning verdict already attached by the caller) + the
+// executable-docs data are passed in — both are shared with `build_executable_docs_data`
+// so the model is discovered and the reasoner run once per snapshot.
 fn build_docs_archive(
     root: &Path,
     model: &gmeow_docs::model::DocsModel,

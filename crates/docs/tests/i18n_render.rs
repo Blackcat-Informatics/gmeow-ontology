@@ -94,6 +94,8 @@ fn bilingual_model() -> DocsModel {
         available_languages: vec!["english".to_string(), "fr".to_string(), "zh".to_string()],
         translations,
         ui_catalog: Default::default(),
+        reasoning: None,
+        lang: String::new(),
     }
 }
 
