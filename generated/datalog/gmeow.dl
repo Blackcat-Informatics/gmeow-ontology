@@ -41,6 +41,19 @@ proseFieldProperty("https://blackcatinformatics.ca/logic/ProseFieldUseWhen", "ht
 instantiatesFramework("https://blackcatinformatics.ca/logic/TransactionStep", "https://blackcatinformatics.ca/logic/TemporalFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/TruthAlgebra", "https://blackcatinformatics.ca/logic/ParaconsistentFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/World", "https://blackcatinformatics.ca/logic/ModalFramework", "default").
+candidateCategory("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
+candidateContract("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", 'hand-harvested from the logic:FunctionalComplex skos:definition, which contrasts it against logic:Collection and logic:Quantity (design/LOGIC-FOUNDATION.md, §Typed formalization governance)', "default").
+candidateFormalizes("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/FunctionalComplex", "default").
+candidateLifecycle("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
+candidateNegativeCase("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/cqFunctionalComplexKindDisjointOverlapRejected", "default").
+candidatePositiveCase("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/cqFunctionalComplexKindDisjointHolds", "default").
+candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/SoundUnderApproximation", "default").
+candidateScope("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", 'pairwise owl:disjointWith over the three mereological individuation kinds logic:Collection, logic:FunctionalComplex and logic:Quantity', "default").
+candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/RiskCoreContaminating", "default").
+candidateSourceField("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", 'sha256:ae6ffde78c8d4cd93cdb0d06ee67fd15ab46573e7aa4f1fe5f2ee2dd209cb529', "default").
+reviewedBy("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", 'hand-harvested from the logic:properPartOf skos:definition (design/LOGIC-FOUNDATION.md, §Typed formalization governance)', "default").

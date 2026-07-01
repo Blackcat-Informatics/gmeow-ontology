@@ -43,6 +43,23 @@
 <https://blackcatinformatics.ca/logic/TransactionStep> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TemporalFramework> .
 <https://blackcatinformatics.ca/logic/TruthAlgebra> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ParaconsistentFramework> .
 <https://blackcatinformatics.ca/logic/World> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> "hand-harvested from the logic:FunctionalComplex skos:definition, which contrasts it against logic:Collection and logic:Quantity (design/LOGIC-FOUNDATION.md, §Typed formalization governance)" .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/logic/FunctionalComplex> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqFunctionalComplexKindDisjointOverlapRejected> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqFunctionalComplexKindDisjointHolds> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateScope> "pairwise owl:disjointWith over the three mereological individuation kinds logic:Collection, logic:FunctionalComplex and logic:Quantity" .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceHash> "sha256:ae6ffde78c8d4cd93cdb0d06ee67fd15ab46573e7aa4f1fe5f2ee2dd209cb529" .
+<https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> .
+<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningPreset> .
+<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/formulaFragment> <https://blackcatinformatics.ca/logic/HornFragment> .
+<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/modelSemantics> <https://blackcatinformatics.ca/logic/LeastModelSemantics> .
+<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/negationOperator> <https://blackcatinformatics.ca/logic/DefaultNegation> .
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> .
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> .
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> "hand-harvested from the logic:properPartOf skos:definition (design/LOGIC-FOUNDATION.md, §Typed formalization governance)" .
@@ -56,10 +73,6 @@
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> .
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateSourceHash> "sha256:0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621" .
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> .
-<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningPreset> .
-<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/formulaFragment> <https://blackcatinformatics.ca/logic/HornFragment> .
-<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/modelSemantics> <https://blackcatinformatics.ca/logic/LeastModelSemantics> .
-<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/negationOperator> <https://blackcatinformatics.ca/logic/DefaultNegation> .
 <https://blackcatinformatics.ca/logic/properPartOf> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/MereologicalFramework> .
 <https://blackcatinformatics.ca/logic/defaultLadderProfile> <https://blackcatinformatics.ca/logic/hasThresholdRow> <https://blackcatinformatics.ca/logic/ladderRowAwareness> .
 <https://blackcatinformatics.ca/logic/defaultLadderProfile> <https://blackcatinformatics.ca/logic/hasThresholdRow> <https://blackcatinformatics.ca/logic/ladderRowConceptual> .
