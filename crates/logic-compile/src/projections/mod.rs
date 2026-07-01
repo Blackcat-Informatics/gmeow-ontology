@@ -4,13 +4,15 @@
 //! Projection back-ends: [`LogicProgram`] → each target format.
 //!
 //! The projection phase of the GMEOW Logic compiler; the Python duplicate
-//! (`logic_projections.py`) has been retired.  Eight whole-program targets:
+//! (`logic_projections.py`) has been retired.  Nine whole-program targets:
 //!
 //! * [`text::project_datalog`], [`text::project_n3`], [`text::project_nemo`] —
 //!   **byte-identical** text targets (the conformance goldens compare bytes).
 //! * [`rdf::project_owl_dl`], [`rdf::project_owl_el`], [`rdf::project_gufo`],
 //!   [`rdf::project_canonical_rdf12`] — **RDF-isomorphic** targets (serialized via
 //!   oxigraph; the goldens compare by graph isomorphism).
+//! * [`crate::clif::project_clif`] — the bidirectional **CLIF** s-expression FOL
+//!   dialect, `PreservationKind::Exact` in both directions.
 //! * [`shacl_af::project_shacl_af`] — the SHACL-AF `sh:SPARQLRule` **computation**
 //!   surface (a byte-stable text target; the canon's derivation rules projected to a
 //!   SHACL rule dialect, never bolted onto SHACL — `design/LOGIC-SHACL-AF.md`).
@@ -77,6 +79,8 @@ pub struct CompiledArtifacts {
     pub canonical_rdf12: String,
     /// `generated/logic/gmeow.rls`.
     pub nemo: String,
+    /// `generated/cl/gmeow.clif`.
+    pub clif: String,
     /// `generated/shacl-af/gmeow.shacl-af.ttl` — the SHACL-AF rule (computation) surface.
     pub shacl_af: String,
     /// `generated/logic/projection-report.ttl`.
@@ -94,7 +98,7 @@ pub struct CompiledArtifacts {
     /// depth-bounded Datalog rule scheme, and the `"property-path"` ledger row.
     /// Empty when the program declares no path shapes — never absent.
     pub path_projections: Vec<PathProjection>,
-    /// The whole-program + path-shape projection rows (the seven standard targets plus
+    /// The whole-program + path-shape projection rows (the nine standard targets plus
     /// the per-shape `property-path:<iri>` rows) that fed [`report`](Self::report).
     /// Surfaced so a downstream assembler (the pipeline) can union them with the
     /// correspondence-calculus loss ledger and serialize the FINAL projection report
@@ -143,6 +147,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let gufo = rdf::project_gufo(program).map_err(|e| e.to_string())?;
     let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| e.to_string())?;
     let nemo = text::project_nemo(program)?;
+    let clif = crate::clif::project_clif(program)?;
     let shacl_af = shacl_af::project_shacl_af(program);
 
     let results = [
@@ -153,6 +158,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         &gufo,
         &canonical_rdf12,
         &nemo,
+        &clif,
         &shacl_af,
     ];
     let mut owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
@@ -167,7 +173,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let path_projections = paths::project_path_shapes(program);
 
     // One ProjectionResult per path shape, keyed `property-path:<iri>`, fed into the
-    // report alongside the seven whole-program projections so the report carries the
+    // report alongside the nine whole-program projections so the report carries the
     // path targets too.  The kind is the declared `property-path` preservation; a
     // path projection records no `actual_drops` (the overclaim gate is a no-op for
     // its SoundUnder kind).
@@ -270,6 +276,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         gufo: gufo.content,
         canonical_rdf12: canonical_rdf12.content,
         nemo: nemo.content,
+        clif: clif.content,
         shacl_af: shacl_af.content,
         report,
         nemo_rules,
@@ -493,6 +500,15 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             vec![],
         ),
         "nemo" => (PreservationKind::Exact, "PTIME/datalog", vec![]),
+        // CLIF: a bidirectional s-expression FOL dialect. ExactPreservation —
+        // the idiomatic FOL channel (rules + formulas) round-trips verbatim and the
+        // RDF/predication channel rides the lossless canonical-RDF-1.2 leg, so nothing
+        // is dropped (the production round-trip test pins this).
+        "clif" => (
+            PreservationKind::Exact,
+            "full first-order (semi-decidable)",
+            vec![],
+        ),
         "shacl-af" => (
             PreservationKind::SoundUnder,
             "terminating/PTIME-data",
@@ -573,7 +589,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 13] = [
+const LEDGER_TARGETS: [&str; 14] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -581,6 +597,7 @@ const LEDGER_TARGETS: [&str; 13] = [
     "gufo",
     "canonical-rdf12",
     "nemo",
+    "clif",
     "shacl-af",
     "property-path",
     // The correspondence-calculus alignment lowerings: each carries its own
@@ -745,6 +762,7 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
         || axiom.scope.time.is_some()
         || axiom.scope.confidence.is_some()
         || axiom.scope.provenance.is_some()
+        || axiom.scope.module.is_some()
 }
 
 /// Per-contract `actual_drops` notes for a LOSSY down-projection target.  A
