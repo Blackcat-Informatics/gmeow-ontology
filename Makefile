@@ -71,14 +71,14 @@ NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify mappings \
-	lint-alignment doc-lint sparql-conformance gts-codec-hygiene
+	lint-alignment doc-lint sparql-conformance gts-codec-hygiene coherence-gate-teeth
 
 .PHONY: help \
 	install fmt lint \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify test test-fast rust-build rust-test rust-docs check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity gts-codec-hygiene sparql-conformance wasm wasm-pkg wasm-pkg-test \
+	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy rdf-core-hygiene carrier-purity gts-codec-hygiene sparql-conformance wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -315,6 +315,9 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
+
+coherence-gate-teeth: rust-build ## Run the whole-ontology coherence-gate teeth proof on-gate (budget-exempt, ~95s).
+	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_coherence_gate/)'
 
 sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate (EPIC #906 Task 4).
 	@# Replays every captured query through NativeSparqlEngine over the merged ontology,

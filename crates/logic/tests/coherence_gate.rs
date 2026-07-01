@@ -1,4 +1,4 @@
-//! Whole-ontology coherence-gate teeth tests (H1).
+//! Whole-ontology coherence-gate teeth tests.
 //!
 //! `make check` already runs a whole-ontology native DL consistency pass: the
 //! `reason-verify` target imports the committed `gmeow.gts` bundle and reasons over
@@ -12,13 +12,17 @@
 //!   proof over a minimal dataset. It exercises the SAME engine the whole-ontology gate
 //!   uses, is trivially within the per-test budget, and therefore always runs on the
 //!   `make check` lane (never carved out by `default-filter`).
-//! - `whole_bundle_coherence_gate_catches_injected_clash_heavy_offgate` — the same clash
-//!   injected on top of the WHOLE committed `gmeow.gts`, additionally asserting the shipped
-//!   ontology is itself coherent (a regression guard on the bundle). The full-bundle chase
-//!   runs ~95 s, well over the 25 s per-test budget, so it is carved out of the per-commit
-//!   gate by `default-filter` and runs only on `make maint-rust-heavy`. AC2 is already met
-//!   on-gate by the minimal test above; this is the literal whole-ontology proof. (The
-//!   per-commit `make check` still runs a whole-ontology consistency pass via `reason-verify`.)
+//! - `whole_bundle_coherence_gate_catches_injected_clash` — the same clash injected on
+//!   top of the WHOLE committed `gmeow.gts`, additionally asserting the shipped ontology
+//!   is itself coherent (a regression guard on the bundle). This is the literal
+//!   whole-ontology proof and it RUNS ON-GATE, via the dedicated `make
+//!   coherence-gate-teeth` target. The full-bundle chase takes ~95 s, well over the 25 s
+//!   per-test budget, so it stays carved out of the budget-gated `ci`/`default` nextest
+//!   profile by `default-filter` — that exclusion is budget-exempt, not gate-exempt:
+//!   `coherence-gate-teeth` invokes it explicitly with `--ignore-default-filter` and an
+//!   `-E` selector, without feeding the JUnit report into the 25 s budget gate, and is
+//!   wired into `make check` via `CHECK_TARGETS`. The minimal test above remains a fast,
+//!   deterministic companion.
 
 use gmeow_logic::reason::dl_consistency;
 use gmeow_rdf::{dataset_from_bytes, import_gts_events, NativeRdfFormat, RdfDatasetBuilder};
@@ -83,7 +87,7 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
 }
 
 #[test]
-fn whole_bundle_coherence_gate_catches_injected_clash_heavy_offgate() {
+fn whole_bundle_coherence_gate_catches_injected_clash() {
     // Load the committed bundle exactly as production `reason-verify` does.
     let gts_path = repo_root().join("generated/dist/gmeow.gts");
     let bytes = std::fs::read(&gts_path)
