@@ -467,11 +467,161 @@ fn internal_tag_map(catalog: &SliceCatalog) -> BTreeMap<String, String> {
 
 // ── UI-chrome string table ──────────────────────────────────────────────────────
 
-/// The English UI-chrome strings, ported verbatim from the legacy Python
-/// `_ONTOLOGY_DOCS_TEMPLATES` table (60 keys). These are the category labels,
-/// nav items, page titles, section headings, footer, and accessibility strings
-/// the renderer emits. Sorted by key for determinism.
+/// The English UI-chrome strings. The nav/page/section/category/footer group was
+/// ported verbatim from the legacy Python `_ONTOLOGY_DOCS_TEMPLATES` table; the
+/// `body_*` group routes the Markdown body renderers' structural chrome (section
+/// headings, inline labels, approximate-match caveats, and status prose) through
+/// the same override catalog, so no user-facing chrome is hardcoded English.
+/// Sorted by key for determinism.
 pub const UI_TEMPLATES: &[(&str, &str)] = &[
+    // Body chrome (heading / label / caveat / status strings emitted by the
+    // Markdown body renderers; localizable via the same override catalog).
+    ("body_about", "About"),
+    ("body_advice_avoid_for_consumers", "Avoid for consumers"),
+    ("body_advice_avoid_when", "Avoid when"),
+    ("body_advice_example", "Example"),
+    ("body_advice_how_to_use", "How to use"),
+    ("body_advice_scope", "Scope"),
+    ("body_advice_use_for_consumers", "Use for consumers"),
+    ("body_advice_use_when", "Use when"),
+    ("body_alignments", "Alignments"),
+    ("body_artifacts", "Artifacts"),
+    ("body_at_a_glance", "At a glance"),
+    ("body_badge_legend", "Badge legend"),
+    ("body_box_role", "Box role"),
+    ("body_browse", "Browse"),
+    ("body_by_term_count", "By term count"),
+    ("body_canonical_ir", "Canonical IR"),
+    (
+        "body_caveat_broad",
+        "broader match — the external term is more general",
+    ),
+    (
+        "body_caveat_close",
+        "approximate match (close) — not an exact equivalence",
+    ),
+    (
+        "body_caveat_disclosure_post",
+        "for the per-target structural drops.",
+    ),
+    (
+        "body_caveat_disclosure_pre",
+        "An approximate match is a lossy projection — the external term is not an exact \
+         equivalent. See the [preservation loss ledger]",
+    ),
+    (
+        "body_caveat_narrow",
+        "narrower match — the external term is more specific",
+    ),
+    (
+        "body_caveat_related",
+        "related match — associative, not an equivalence",
+    ),
+    ("body_changelog", "Changelog"),
+    ("body_citation", "Citation"),
+    ("body_compiler_diagnostics", "Compiler diagnostics"),
+    ("body_compiler_products", "Compiler products"),
+    (
+        "body_completeness_distribution",
+        "Completeness distribution",
+    ),
+    ("body_concern_not_found", "Concern not found."),
+    ("body_concerns", "Concerns"),
+    ("body_constraints", "Constraints"),
+    ("body_coverage_by_dimension", "Coverage by dimension"),
+    ("body_coverage_by_slice", "Coverage by slice"),
+    ("body_definition", "Definition"),
+    ("body_dependency_graph", "Dependency graph"),
+    ("body_derivation_graph", "Derivation graph"),
+    ("body_documentation_coverage", "Documentation coverage"),
+    ("body_documentation_health", "Documentation health"),
+    ("body_domain", "Domain"),
+    ("body_example_files", "Example files"),
+    ("body_examples", "Examples"),
+    ("body_examples_using_this_term", "Examples using this term"),
+    ("body_external_ontologies", "External ontologies"),
+    ("body_formalized_by", "Formalized by"),
+    ("body_framework_distribution", "Framework distribution"),
+    ("body_frameworks", "Frameworks"),
+    ("body_getting_started", "Getting started"),
+    ("body_goal", "Goal"),
+    (
+        "body_health_heatmap_legend",
+        "Per-slice coverage of each documentation dimension — green ≥ 80%, amber ≥ 50%, \
+         red below.",
+    ),
+    ("body_integrity_constraints", "Integrity constraints"),
+    ("body_label_added_in", "Added in"),
+    ("body_label_alignment_density", "Alignment density"),
+    ("body_label_cite_ontology", "Cite the ontology"),
+    ("body_label_cite_slice", "Cite the slice"),
+    ("body_label_orphan_terms", "Orphan terms"),
+    ("body_label_permalink", "Permalink"),
+    ("body_label_status", "Status"),
+    ("body_learning_path_not_found", "Learning path not found."),
+    ("body_learning_paths", "Learning paths"),
+    ("body_linkage", "Linkage"),
+    ("body_linkages", "Linkages"),
+    ("body_logic_and_reasoning", "Logic & Reasoning"),
+    ("body_logic_stereotypes", "Logic stereotypes"),
+    ("body_neighborhood", "Neighborhood"),
+    (
+        "body_no_learning_paths",
+        "No learning paths are declared in the guides slice.",
+    ),
+    (
+        "body_no_logic_stereotypes",
+        "No logic stereotypes are declared yet.",
+    ),
+    (
+        "body_no_recipes",
+        "No recipes are declared in the guides slice.",
+    ),
+    (
+        "body_no_verify_queries",
+        "No verification queries are declared in any slice.",
+    ),
+    ("body_other_equivalences", "Other equivalences"),
+    ("body_part_of", "Part of"),
+    ("body_preservation_loss_ledger", "Preservation loss ledger"),
+    ("body_profiles", "Profiles"),
+    ("body_projection_surface", "Projection surface"),
+    ("body_projects_toward", "Projects toward"),
+    ("body_range", "Range"),
+    ("body_read_next", "Read next"),
+    ("body_reasoning", "Reasoning"),
+    ("body_reasoning_consistent", "consistent"),
+    ("body_reasoning_inconsistent", "**inconsistent**"),
+    (
+        "body_reasoning_not_evaluated",
+        "**Not evaluated** — satisfiability is a class notion; the reasoner decides none \
+         for this term.",
+    ),
+    (
+        "body_reasoning_satisfiable",
+        "**Satisfiable** — the native DL reasoner found this class consistent.",
+    ),
+    ("body_reasoning_status", "Reasoning status"),
+    (
+        "body_reasoning_unsatisfiable",
+        "**Unsatisfiable** — the native DL reasoner proved this class necessarily empty \
+         (`rdfs:subClassOf owl:Nothing`).",
+    ),
+    ("body_recipe_not_found", "Recipe not found."),
+    ("body_recipes", "Recipes"),
+    ("body_related_terms", "Related terms"),
+    ("body_slice_not_found", "Slice not found."),
+    ("body_slices", "Slices"),
+    ("body_stability", "Stability"),
+    ("body_super_classes", "Super-classes"),
+    ("body_super_properties", "Super-properties"),
+    ("body_term_not_found", "Term not found."),
+    ("body_terms_used", "Terms used"),
+    ("body_tested_by", "Tested by"),
+    ("body_usage_advice", "Usage Advice"),
+    ("body_vocabulary_by_category", "Vocabulary by category"),
+    ("body_what_is_this", "What is this?"),
+    ("body_where_to_go_next", "Where to go next"),
     // Category labels
     ("category_class", "Classes"),
     ("category_datatype", "Datatypes"),
@@ -763,8 +913,10 @@ msgstr ""
     }
 
     #[test]
-    fn ui_templates_has_sixty_keys() {
-        assert_eq!(UI_TEMPLATES.len(), 60);
+    fn ui_templates_key_count_is_pinned() {
+        // 60 legacy nav/page/section/category/footer keys + 97 `body_*` chrome
+        // keys routing the Markdown body renderers through the override catalog.
+        assert_eq!(UI_TEMPLATES.len(), 157);
     }
 
     #[test]

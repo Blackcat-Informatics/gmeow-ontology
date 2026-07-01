@@ -336,6 +336,33 @@ fn documentation_health_counts_match_the_coverage_source() {
         distributed, total,
         "distribution must cover every term once"
     );
+
+    // The enhanced dashboard surfaces (the cached model carries no reasoning
+    // verdict, so the Reasoning section is correctly absent here).
+    for section in [
+        "## Coverage by slice",
+        "diagrams/coverage-heatmap.svg",
+        "## Linkage",
+        "**Alignment density:**",
+        "**Orphan terms:**",
+        "## Framework distribution",
+        "## Badge legend",
+    ] {
+        assert!(
+            page.contains(section),
+            "health page missing enhanced section `{section}`"
+        );
+    }
+    // The framework distribution reflects the gmeow: framework annotations,
+    // rendered as `logic:`-prefixed CURIEs.
+    assert!(
+        page.contains("`logic:DeonticFramework`") || page.contains("`logic:TeleologicalFramework`"),
+        "health page framework distribution must list at least one framework"
+    );
+    assert!(
+        !page.contains("## Reasoning"),
+        "no reasoning section without an attached verdict"
+    );
 }
 
 #[test]
