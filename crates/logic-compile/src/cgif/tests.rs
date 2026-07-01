@@ -496,6 +496,22 @@ fn graph_only_cgif_without_meta_carrier_fails_closed() {
 }
 
 #[test]
+fn bare_slash_hard_fails_instead_of_looping() {
+    // A `/` that does not open a `/* … */` comment is malformed CGIF. The lexer must hard-fail
+    // with a bounded error rather than spin forever: `/` is one of `lex_bare`'s break chars, so
+    // routing a lone `/` into the bare-symbol path would return an empty token without advancing
+    // the cursor and loop indefinitely. This regression guards that the gate actually catches it.
+    let err = super::parse_forms("(\"a\" / \"b\")").expect_err("a bare '/' must be rejected");
+    assert!(
+        err.contains("unexpected '/'"),
+        "expected an 'unexpected /' error, got: {err}"
+    );
+    // Also at end-of-input and mid-symbol — every bare-`/` position must fail, not hang.
+    assert!(super::parse_forms("foo/").is_err());
+    assert!(super::parse_forms("/").is_err());
+}
+
+#[test]
 fn production_module_round_trip_is_isomorphic() {
     // The hard Exact proof: the real logic: slice module must round-trip through CGIF with ZERO
     // loss against the Exact `canonical-rdf12` reference. The comparison is taken at the
