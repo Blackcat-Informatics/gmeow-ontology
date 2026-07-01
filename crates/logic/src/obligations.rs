@@ -525,6 +525,55 @@ mod tests {
     }
 
     #[test]
+    fn candidate_over_typing_a_non_assertion_is_surfaced_not_silent() {
+        // The over-typing review is realized by the shipped non-entailment machinery, not
+        // a separate flag: a FormalizationCandidate categorized
+        // logic:CategoryNonEntailmentObligation records a deliberate non-assertion, and its
+        // axiom is FORBIDDEN from letting the engine derive that predicate. If a
+        // formalization over-types — entailing the deliberately withheld conclusion — the
+        // executable check SURFACES it as logic:ObligationViolated (a hard error), never
+        // silently asserting it; when the predicate is genuinely absent the obligation is
+        // DISCHARGED (actively checked, never silently skipped). This binds Principle 9's
+        // no-overtyping to the candidate lifecycle.
+        let logic = "https://blackcatinformatics.ca/logic/";
+        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let any_uri = "http://www.w3.org/2001/XMLSchema#anyURI";
+        let forbidden = "https://blackcatinformatics.ca/gmeow/overTypedClaim";
+        // A store carrying the obligation AND the candidate that declares it — the exact
+        // shape of a candidate whose formalization touches a deliberate non-assertion.
+        let ntriples = format!(
+            "<https://ex/obl> <{rdf_type}> <{logic}NonEntailmentObligation> .\n\
+             <https://ex/obl> <{logic}obligationForbiddenPredicate> \"{forbidden}\"^^<{any_uri}> .\n\
+             <https://ex/obl> <{logic}obligationDischargeCondition> <{logic}DischargeFiniteClosure> .\n\
+             <https://ex/cand> <{rdf_type}> <{logic}FormalizationCandidate> .\n\
+             <https://ex/cand> <{logic}candidateCategory> <{logic}CategoryNonEntailmentObligation> .\n\
+             <https://ex/cand> <{logic}candidateNonEntailment> <https://ex/obl> .\n"
+        );
+        let store = store_from_ntriples(&ntriples);
+
+        // Green: the forbidden predicate is not derived → the obligation is DISCHARGED. The
+        // check runs and surfaces no error: checked-and-passed, not silently skipped.
+        let discharged =
+            check_non_entailment_obligations(&store, &BTreeSet::new()).expect("check runs");
+        assert!(
+            !discharged.iter().any(|f| f.severity == Severity::Error),
+            "a discharged non-entailment obligation must produce no error finding: {discharged:?}"
+        );
+
+        // Red: the formalization over-types — the forbidden predicate appears as a DERIVED
+        // edge. The check must SURFACE it as ObligationViolated, never silently assert it.
+        let mut derived = BTreeSet::new();
+        derived.insert(forbidden.to_owned());
+        let surfaced = check_non_entailment_obligations(&store, &derived).expect("check runs");
+        assert!(
+            surfaced.iter().any(|f| f.code == "verify.non-entailment.derived"
+                && f.severity == Severity::Error),
+            "a candidate over-typing a deliberate non-assertion must be surfaced as \
+             logic:ObligationViolated: {surfaced:?}"
+        );
+    }
+
+    #[test]
     fn unwired_discharge_condition_is_a_hard_error() {
         // Declaring a discharge condition the engine does not wire is an error, never a
         // silent unknown.
