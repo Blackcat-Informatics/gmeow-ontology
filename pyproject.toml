@@ -43,7 +43,7 @@ gmeow-music = "gmeow_tools.ext.music.cli:app"
 [project.optional-dependencies]
 # The classic_cross_check oracle lane (#666) — the ONLY place gmeow uses upstream
 # rdflib/owlrl, as the independent reasoner/engine oracle. Installed via
-# `pip install '.[crosscheck]'` for `make maint-classic-cross-check`; never needed for
+# `pip install '.[crosscheck]'` for `make -C validations/classic-cross-check validate`; never needed for
 # normal repo use. The gmeow_tools.oracles engine_crosscheck / rl_agreement tests
 # pytest.importorskip these, so the default `make check`/`make test` lanes pass
 # without them.
@@ -64,7 +64,7 @@ dev = [
     "owlrl>=6.0.2",  # OWL 2 RL oracle for the classic_cross_check lane (#38); also
     # surfaced as the `crosscheck` extra. Kept in dev so the lane runs in local dev.
     "rdflib>=7.6",  # upstream rdflib — the classic_cross_check ORACLE only (#834); no
-    # first-party module imports it. Pinned here so `make maint-classic-cross-check` has it.
+    # first-party module imports it. Pinned here so `make -C validations/classic-cross-check validate` has it.
     "xmlschema>=4.3",  # Crossref 5.4.0 XSD validation (#693)
     "cryptography>=44.0",  # Ed25519 keys for GTS signature/trust tests (#646)
     "mlcroissant>=1.0",  # Croissant JSON-LD validation — un-skippable (no importorskip)
@@ -177,7 +177,7 @@ markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
     "docker: tests that require Docker (ROBOT/Jena)",
     "maintainer: heavy / kept-Python-module tests (export/okf read-library, the mapping & statement compilers, transpiler). The Rust pipeline (crates/pipeline) is the build authority and covers committed generated output via byte-parity + `check-generated`, so these are a SEPARATE maintainer-only suite — EXCLUDED from CI and EVERY required `make` target; run on demand with `make maint-test-heavy` (#861).",
-    "classic_cross_check: legacy-oracle cross-check tests (ELK/HermiT/owlrl/rdflib) — run ONLY in the `make maint-classic-cross-check` lane (#666), never required for normal repo use",
+    "classic_cross_check: legacy-oracle cross-check tests (ELK/HermiT/owlrl/rdflib) — run ONLY in the `make -C validations/classic-cross-check validate` lane (#666), never required for normal repo use",
 ]
 
 [tool.codespell]
