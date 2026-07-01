@@ -29,9 +29,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::sync::Arc;
 
-use gmeow_rdf_core::{
-    QuadIds, RdfDataset, RdfDatasetBuilder, RdfDiagnostic, TermId, TermRef, TermValue,
-};
+use crate::{QuadIds, RdfDataset, RdfDatasetBuilder, RdfDiagnostic, TermId, TermRef, TermValue};
 
 /// A reusable extractor: it builds the subject/object adjacency and the reifier
 /// endpoint index **once**, so extracting the SCBD of many subjects (one per exported
@@ -112,9 +110,9 @@ impl<'a> Describer<'a> {
     ///
     /// # Errors
     /// Propagates a freeze diagnostic (see [`describe_iri`](Self::describe_iri)).
-    pub fn describe_iris(
+    pub fn describe_iris<'s>(
         &self,
-        subjects: impl IntoIterator<Item = &'a str>,
+        subjects: impl IntoIterator<Item = &'s str>,
     ) -> Result<Arc<RdfDataset>, RdfDiagnostic> {
         let seeds: Vec<TermId> = subjects
             .into_iter()
@@ -178,23 +176,25 @@ impl<'a> Describer<'a> {
             if let Some(bindings) = self.reifiers_by_endpoint.get(&anchor) {
                 for &b @ (reifier, triple) in bindings {
                     reifiers.insert(b);
-                    if !visited_reifiers.insert(reifier) {
-                        continue;
-                    }
-                    // A blank reifier becomes an anchor so its own plain quads (which
-                    // live in `by_endpoint`) are collected.
+                    // Close THIS binding's blank endpoints every time: a reifier may
+                    // reify more than one triple, so each triple's blank subject/object
+                    // (and a blank reifier id, whose own plain quads live in
+                    // `by_endpoint`) must be anchored — `expand_blank!` is idempotent.
                     expand_blank!(frontier, anchors, reifier);
-                    // The reified triple's own blank subject/object stay closed too.
                     if let TermRef::Triple { s, p: _, o } = self.dataset.resolve(triple) {
                         expand_blank!(frontier, anchors, s);
                         expand_blank!(frontier, anchors, o);
                     }
-                    // Harvest the reifier's annotations, closing blank objects.
-                    if let Some(annos) = self.annotations_by_reifier.get(&reifier) {
-                        for &(p, o) in annos {
-                            annotations.push((reifier, p, o));
-                            expand_blank!(frontier, anchors, p);
-                            expand_blank!(frontier, anchors, o);
+                    // Harvest the reifier's annotations ONCE — they are keyed by the
+                    // reifier, not by the individual binding, so only this needs the
+                    // visited-guard.
+                    if visited_reifiers.insert(reifier) {
+                        if let Some(annos) = self.annotations_by_reifier.get(&reifier) {
+                            for &(p, o) in annos {
+                                annotations.push((reifier, p, o));
+                                expand_blank!(frontier, anchors, p);
+                                expand_blank!(frontier, anchors, o);
+                            }
                         }
                     }
                 }
@@ -203,9 +203,15 @@ impl<'a> Describer<'a> {
 
         // Re-intern the selected quads + statement layer into a fresh dataset. A remap
         // memoizes old-id → new-id so the owned-term round-trip runs once per term.
+        // `quads` is a `HashSet` (for dedup during the walk), whose iteration order is
+        // randomized — re-interning in that order would make the extracted subgraph's
+        // bytes unstable across runs. Sort by the source `(g, s, p, o)` ids first so the
+        // output is deterministic (byte-reproducibility).
+        let mut ordered: Vec<QuadIds> = quads.into_iter().collect();
+        ordered.sort_unstable_by_key(|q| (q.g, q.s, q.p, q.o));
         let mut builder = RdfDatasetBuilder::new();
         let mut remap: BTreeMap<TermId, TermId> = BTreeMap::new();
-        for q in &quads {
+        for q in &ordered {
             let s = self.map_id(&mut builder, &mut remap, q.s);
             let p = self.map_id(&mut builder, &mut remap, q.p);
             let o = self.map_id(&mut builder, &mut remap, q.o);
@@ -265,7 +271,7 @@ pub fn describe(dataset: &RdfDataset, subject: &str) -> Result<Arc<RdfDataset>, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf_core::{RdfLiteral, RdfQuad, RdfTerm};
+    use crate::{RdfLiteral, RdfQuad, RdfTerm};
 
     const S: &str = "https://e/s";
     const OTHER: &str = "https://e/other";
@@ -362,7 +368,7 @@ mod tests {
         let mut b = RdfDatasetBuilder::new();
         let s = b.intern_iri(S.to_string());
         let has = b.intern_iri("https://e/hasRestriction".to_string());
-        let bnode = b.intern_blank("r1".to_string(), gmeow_rdf_core::BlankScope::DEFAULT);
+        let bnode = b.intern_blank("r1".to_string(), crate::BlankScope::DEFAULT);
         let on = b.intern_iri("https://e/onProperty".to_string());
         let target = b.intern_iri("https://e/target".to_string());
         b.push_quad(s, has, bnode, None);
@@ -400,7 +406,7 @@ mod tests {
         let o = b.intern_iri("https://e/o".to_string());
         b.push_quad(s, p, o, None);
         let triple_term = b.intern_triple(s, p, o);
-        let reifier = b.intern_blank("stmt1".to_string(), gmeow_rdf_core::BlankScope::DEFAULT);
+        let reifier = b.intern_blank("stmt1".to_string(), crate::BlankScope::DEFAULT);
         b.push_reifier(reifier, triple_term);
         let certainty = b.intern_iri("https://e/certainty".to_string());
         let high = b.intern_literal(RdfLiteral::simple("high"));
@@ -429,42 +435,9 @@ mod tests {
         assert_eq!(scbd.quad_count(), 2, "both subjects' triples in the union");
     }
 
-    #[test]
-    fn round_trips_through_every_serializer() {
-        use crate::native_codecs::jsonld::serialize_dataset_to_jsonld;
-        use crate::{parse_dataset, serialize_dataset, SerializeGraph};
-
-        let ds = dataset(&[
-            triple(S, "https://e/p", iri("https://e/o")),
-            triple(
-                S,
-                "https://e/label",
-                RdfTerm::literal(RdfLiteral::simple("hi")),
-            ),
-        ]);
-        let scbd = describe(&ds, S).unwrap();
-
-        // Every native RDF format serializes non-empty bytes.
-        for media in [
-            "text/turtle",
-            "application/n-triples",
-            "application/n-quads",
-            "application/trig",
-            "application/rdf+xml",
-        ] {
-            let bytes = serialize_dataset(&scbd, media, SerializeGraph::Dataset)
-                .unwrap_or_else(|e| panic!("serialize {media}: {e}"));
-            assert!(!bytes.is_empty(), "{media} produced empty output");
-        }
-        // JSON-LD rides the separate native_codecs path (not a NativeRdfFormat).
-        let jsonld = serialize_dataset_to_jsonld(&scbd).expect("jsonld");
-        assert!(jsonld.trim_start().starts_with('{') || jsonld.contains("@graph"));
-
-        // A Turtle round-trip preserves the two triples.
-        let ttl = serialize_dataset(&scbd, "text/turtle", SerializeGraph::Dataset).unwrap();
-        let back = parse_dataset(&ttl, "text/turtle", None).unwrap();
-        assert_eq!(back.quad_count(), 2);
-    }
+    // The serializer round-trip (describe → every `native_codecs` format) lives in
+    // `gmeow-rdf` (`crates/rdf/tests/describe_serialize.rs`) because the serializers
+    // are in that higher crate; `gmeow-rdf-core` holds only the extraction itself.
 
     #[test]
     fn blank_reifier_own_triples_are_closed() {
@@ -477,7 +450,7 @@ mod tests {
         let o = b.intern_iri("https://e/o".to_string());
         b.push_quad(s, p, o, None);
         let triple_term = b.intern_triple(s, p, o);
-        let reifier = b.intern_blank("stmt1".to_string(), gmeow_rdf_core::BlankScope::DEFAULT);
+        let reifier = b.intern_blank("stmt1".to_string(), crate::BlankScope::DEFAULT);
         b.push_reifier(reifier, triple_term);
         // A plain triple describing the blank reifier itself.
         let author = b.intern_iri("https://e/author".to_string());
@@ -514,10 +487,10 @@ mod tests {
         let o = b.intern_iri("https://e/o".to_string());
         b.push_quad(s, p, o, None);
         let triple_term = b.intern_triple(s, p, o);
-        let reifier = b.intern_blank("stmt1".to_string(), gmeow_rdf_core::BlankScope::DEFAULT);
+        let reifier = b.intern_blank("stmt1".to_string(), crate::BlankScope::DEFAULT);
         b.push_reifier(reifier, triple_term);
         let source = b.intern_iri("https://e/source".to_string());
-        let prov = b.intern_blank("prov".to_string(), gmeow_rdf_core::BlankScope::DEFAULT);
+        let prov = b.intern_blank("prov".to_string(), crate::BlankScope::DEFAULT);
         b.push_annotation(reifier, source, prov);
         // The blank provenance node's own describing triple (a plain quad).
         let by = b.intern_iri("https://e/by".to_string());
@@ -540,6 +513,48 @@ mod tests {
         assert!(
             has_by,
             "the blank annotation object's own triple must be included"
+        );
+    }
+
+    #[test]
+    fn reifier_reifying_multiple_triples_closes_each_binding() {
+        // One reifier reifies TWO triples about S. The second reified triple is NOT
+        // asserted as a plain quad and its object is a blank with its own triple, so the
+        // blank is reachable ONLY through that second binding. Deduplicating the whole
+        // binding on the reifier id (rather than only the annotation harvest) would skip
+        // closing the second triple's endpoints and drop the blank.
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri(S.to_string());
+        let p1 = b.intern_iri("https://e/p1".to_string());
+        let o1 = b.intern_iri("https://e/o1".to_string());
+        let p2 = b.intern_iri("https://e/p2".to_string());
+        let blank = b.intern_blank("bo".to_string(), crate::BlankScope::DEFAULT);
+        // Only the first triple is asserted as a plain quad; the second exists solely as
+        // a reified statement.
+        b.push_quad(s, p1, o1, None);
+        let t1 = b.intern_triple(s, p1, o1);
+        let t2 = b.intern_triple(s, p2, blank);
+        let reifier = b.intern_blank("stmt".to_string(), crate::BlankScope::DEFAULT);
+        b.push_reifier(reifier, t1);
+        b.push_reifier(reifier, t2);
+        // The blank object of the second reified triple carries its own describing triple.
+        let deep = b.intern_iri("https://e/deep".to_string());
+        let val = b.intern_iri("https://e/val".to_string());
+        b.push_quad(blank, deep, val, None);
+        let ds = b.freeze().unwrap();
+
+        let scbd = describe(&ds, S).unwrap();
+        assert_eq!(
+            scbd.reifiers().count(),
+            2,
+            "both reified triples must be kept"
+        );
+        let has_deep = scbd
+            .quad_refs()
+            .any(|q| matches!(q.p, TermRef::Iri(i) if i == "https://e/deep"));
+        assert!(
+            has_deep,
+            "the blank endpoint of the second reified triple must be closed"
         );
     }
 }
