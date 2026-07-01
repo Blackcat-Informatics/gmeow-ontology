@@ -772,11 +772,14 @@ fn escape_iri(iri: &str) -> String {
 
 fn quote(value: &str) -> String {
     if value.contains('\n') {
-        // Triple-quoted long string: `\` and the `"""` delimiter escape exactly as
-        // before (byte-parity-critical), then `\n` stays literal while every other
-        // control char (`< 0x20`, e.g. NUL/backspace/FF/CR/TAB) is `\uXXXX`-escaped.
-        // The control-char pass runs after the `\`/`"""` replaces; since it only
-        // rewrites chars `< 0x20` it never disturbs the `\`/`"` those introduced.
+        // Triple-quoted long string: `\` and the `"""` delimiter escape exactly as before
+        // (byte-parity-critical), then `\n` stays literal while every other control character
+        // (C0, DEL, and the C1 block) is `\uXXXX`-escaped. This escapes MORE than the W3C
+        // canonical form (canon.rs keeps C1 raw): this rendering feeds the CL-dialect carrier,
+        // whose payload is embedded in an XML text node where raw C1 is normalized/replaced on
+        // read, so it must ride as ASCII. The control-char pass runs after the `\`/`"""`
+        // replaces; since it only rewrites control code points it never disturbs the `\`/`"`
+        // those introduced.
         let pre = value
             .replace('\\', "\\\\")
             .replace("\"\"\"", "\\\"\\\"\\\"");

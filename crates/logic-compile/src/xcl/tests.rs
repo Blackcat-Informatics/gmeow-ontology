@@ -12,7 +12,7 @@ use crate::ir::{
     LogicModality, LogicProgram, LogicRule, MorphismClass, MorphismKind, PathBase, PathShapeIr,
     ReasoningContract, SemanticProfileId, Term, TransactionProgramIr,
 };
-use crate::xcl::{parse_xcl_str, project_xcl};
+use crate::xcl::{parse_xcl_str, project_xcl, xml_escape_attr, xml_escape_text};
 
 // The real `logic:` namespace (see `crate::ir::LOGIC_NAMESPACE`); a meta-channel triple is only
 // re-classified as a domain axiom when its predicate sits in this namespace, so the round-trip
@@ -408,6 +408,40 @@ fn control_chars_del_c1_c0_survive_the_round_trip() {
     let (fp2, _) = parse_xcl_str(&xcl2, src).expect("parse_xcl_str #2");
     assert_ir_isomorphic(&fp, &fp2)
         .unwrap_or_else(|e| panic!("control-char round-trip not idempotent: {e}"));
+}
+
+#[test]
+fn xml_escape_renders_del_and_c1_as_char_refs_not_replacement() {
+    // The sentence-view escaper must treat DEL (0x7F) and the C1 block (0x80-0x9F) as legal XML
+    // 1.0 `Char`s — emitting them as numeric character references — and reserve U+FFFD only for
+    // the C0 controls XML forbids outright (here 0x01). Tab/LF/CR pass through raw.
+    let s = "a\u{7F}b\u{85}c\u{01}d\t&<>";
+    let text = xml_escape_text(s);
+    assert!(
+        text.contains("&#x7F;"),
+        "DEL must ride as a char ref: {text}"
+    );
+    assert!(
+        text.contains("&#x85;"),
+        "C1 must ride as a char ref: {text}"
+    );
+    assert!(
+        text.contains('\u{FFFD}'),
+        "an XML-illegal C0 control must become U+FFFD: {text}"
+    );
+    assert!(
+        !text.contains('\u{01}'),
+        "raw 0x01 must not survive: {text}"
+    );
+    assert!(text.contains('\t'), "TAB must pass through raw: {text}");
+    assert_eq!(&text[text.len() - 15..], "d\t&amp;&lt;&gt;");
+    // The whole escaped text node must be legal inside a well-formed XML document.
+    let doc = format!("<r>{text}</r>");
+    roxmltree::Document::parse(&doc).expect("escaped text must be well-formed XML");
+
+    // Attribute escaping shares the rule and additionally escapes the double quote.
+    let attr = xml_escape_attr("q\"\u{85}\u{01}");
+    assert!(attr.contains("&quot;") && attr.contains("&#x85;") && attr.contains('\u{FFFD}'));
 }
 
 #[test]
