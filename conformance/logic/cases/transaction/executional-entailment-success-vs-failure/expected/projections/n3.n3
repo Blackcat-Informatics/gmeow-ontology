@@ -10,6 +10,5 @@
 
 # === Axioms ===
 <https://example.org/transaction/executional-entailment-success-vs-failure/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
-<https://example.org/transaction/executional-entailment-success-vs-failure/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
 
 # === Rules ===

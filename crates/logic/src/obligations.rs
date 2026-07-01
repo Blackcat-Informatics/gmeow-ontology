@@ -41,10 +41,12 @@
 //! builds — Rust authority, surfaced through the already-wired `make verify` gate.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 use std::sync::Arc;
 
 use gmeow_rdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
 use gmeow_sparql_eval::NativeSparqlEngine;
+use sha2::{Digest, Sha256};
 
 use gmeow_diagnostics::{Finding, Severity};
 
@@ -52,6 +54,12 @@ use crate::foundation;
 
 /// The `logic:` namespace prefix (every governance term is `logic:`-namespaced).
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+/// The canonical source language every localizable source literal carries
+/// (`@x-gmeow-english`). A `logic:candidateSourceHash` is computed over exactly this
+/// lexical form; generators project public `@en`/`@zh`/`@fr`, which must never be the
+/// hashed text — so the drift check reads only the source-language literal.
+const SOURCE_LANG: &str = "x-gmeow-english";
 
 /// The discharge conditions the engine actually wires. Any other declared condition
 /// is a hard error rather than a silent `logic:ObligationUnknown` — an unwired
@@ -529,6 +537,154 @@ pub fn formalization_coverage(store: &Arc<RdfDataset>) -> Result<Vec<Finding>, S
     Ok(findings)
 }
 
+/// The `sha256:`-prefixed lowercase-hex digest of `prose`, matching the recorded
+/// `logic:candidateSourceHash` lexical form byte-for-byte (the digest is over the raw
+/// UTF-8 lexical text — no language tag, no surrounding quotes, no trailing newline).
+fn candidate_source_hash(prose: &str) -> String {
+    let digest = Sha256::digest(prose.as_bytes());
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for b in digest {
+        let _ = write!(hex, "{b:02x}");
+    }
+    format!("sha256:{hex}")
+}
+
+/// A harvested candidate's declared hash and the distinct source-language prose literals
+/// resolved for the annotation field it names — accumulated across query rows so the
+/// language filter and cardinality checks run once per candidate.
+struct HarvestHash {
+    /// The `logic:candidateFormalizes` term IRI.
+    term: String,
+    /// The recorded `logic:candidateSourceHash` lexical form.
+    declared_hash: String,
+    /// Distinct `@x-gmeow-english` lexical forms of the harvested field (should be one).
+    prose: BTreeSet<String>,
+}
+
+/// Recompute-and-enforce `logic:candidateSourceHash` drift over the reasoned store.
+///
+/// Every `logic:FormalizationCandidate` claims, in its governance prose, that a later
+/// edit to the prose it harvested "surfaces as drift". This makes that claim executable:
+/// for a candidate carrying the full harvest back-link — `logic:candidateFormalizes ?term`
+/// AND `logic:candidateSourceField ?field` — it resolves the exact annotation the ontology
+/// itself names for that field (`?field logic:proseFieldProperty ?prop`, the closed
+/// `logic:ProseField` → property map), reads `?term ?prop ?prose` in the canonical source
+/// language, recomputes the `sha256:` digest, and emits an error `Finding` on any mismatch.
+/// It is the recompute the SHACL `sh:minCount 1` presence shape structurally cannot express.
+///
+/// A candidate carrying neither back-link leg (e.g. a doc-section harvest with no single
+/// source triple) has nothing to recompute against and never enters the inner join, so it
+/// is skipped; a candidate carrying exactly one leg is a half-link already hard-failed by
+/// the paired-harvest verify query, so it is out of scope here too. Zero or multiple
+/// distinct source-language prose literals for a resolved field is itself a drift error
+/// (a dangling or ambiguous harvest link).
+///
+/// # Errors
+///
+/// Returns `Err` if the governance query fails to parse or evaluate.
+pub fn check_candidate_source_hash_drift(store: &Arc<RdfDataset>) -> Result<Vec<Finding>, String> {
+    let rows = select(
+        store,
+        "PREFIX logic: <https://blackcatinformatics.ca/logic/>
+         SELECT ?c ?term ?prop ?hash ?prose WHERE {
+           ?c a logic:FormalizationCandidate ;
+              logic:candidateFormalizes ?term ;
+              logic:candidateSourceField ?field ;
+              logic:candidateSourceHash ?hash .
+           ?field logic:proseFieldProperty ?prop .
+           ?term ?prop ?prose .
+         }",
+    )?;
+
+    let mut by_candidate: BTreeMap<String, HarvestHash> = BTreeMap::new();
+    for row in rows {
+        let (Some(c), Some(term), Some(hash)) = (row.get("c"), row.get("term"), row.get("hash"))
+        else {
+            continue;
+        };
+        let entry = by_candidate
+            .entry(term_value(c))
+            .or_insert_with(|| HarvestHash {
+                term: term_value(term),
+                declared_hash: term_value(hash),
+                prose: BTreeSet::new(),
+            });
+        // Only the canonical source-language literal is the hashed text; projected
+        // public-language translations (@en/@zh/@fr) must never be hashed.
+        if let Some(TermValue::Literal {
+            lexical_form,
+            language,
+            ..
+        }) = row.get("prose")
+        {
+            if language.as_deref() == Some(SOURCE_LANG) {
+                entry.prose.insert(lexical_form.clone());
+            }
+        }
+    }
+
+    let mut findings = Vec::new();
+    for (candidate, harvest) in &by_candidate {
+        let prose = match harvest.prose.len() {
+            1 => harvest.prose.iter().next().expect("len == 1"),
+            0 => {
+                findings.push(
+                    Finding::new(
+                        Severity::Error,
+                        "verify.candidate-hash.no-source-prose",
+                        format!(
+                            "formalization candidate <{candidate}> harvests <{}> but that term \
+                             carries no @{SOURCE_LANG} prose for its declared source field; the \
+                             logic:candidateSourceHash cannot be recomputed (dangling harvest link)",
+                            harvest.term
+                        ),
+                    )
+                    .with_tool("verify"),
+                );
+                continue;
+            }
+            _ => {
+                findings.push(
+                    Finding::new(
+                        Severity::Error,
+                        "verify.candidate-hash.ambiguous-source-prose",
+                        format!(
+                            "formalization candidate <{candidate}> harvesting <{}> resolves to \
+                             multiple distinct @{SOURCE_LANG} prose literals for its source field; \
+                             the harvested source is ambiguous",
+                            harvest.term
+                        ),
+                    )
+                    .with_tool("verify"),
+                );
+                continue;
+            }
+        };
+        let recomputed = candidate_source_hash(prose);
+        if recomputed != harvest.declared_hash {
+            let mut finding = Finding::new(
+                Severity::Error,
+                "verify.candidate-hash.drift",
+                format!(
+                    "formalization candidate <{candidate}> is stale: logic:candidateSourceHash \
+                     records {declared} but the current @{SOURCE_LANG} prose of <{term}> hashes to \
+                     {recomputed} — the harvested prose changed without re-review",
+                    declared = harvest.declared_hash,
+                    term = harvest.term,
+                ),
+            )
+            .with_tool("verify");
+            finding.tags = vec![
+                "formalization-governance".to_owned(),
+                "source-hash-drift".to_owned(),
+            ];
+            findings.push(finding);
+        }
+    }
+    findings.sort_by(|a, b| (&a.code, &a.message).cmp(&(&b.code, &b.message)));
+    Ok(findings)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -783,6 +939,109 @@ mod tests {
         assert!(
             has_error,
             "findings must contain at least one error for malformed multi-category candidate"
+        );
+    }
+
+    /// Build a store carrying one harvested candidate: it formalizes `term` via a source
+    /// field whose `logic:proseFieldProperty` is `prop`, records `declared_hash`, and the
+    /// term carries `prose` on `prop` in the given language. Mirrors the shape of a real
+    /// foundational-partition candidate's harvest back-link.
+    fn harvested_candidate_store(
+        term: &str,
+        prop: &str,
+        prose: &str,
+        lang: &str,
+        declared_hash: &str,
+    ) -> Arc<RdfDataset> {
+        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let logic = "https://blackcatinformatics.ca/logic/";
+        let field = "https://blackcatinformatics.ca/logic/ProseFieldDefinition";
+        let ntriples = format!(
+            "<https://ex/cand> <{rdf_type}> <{logic}FormalizationCandidate> .\n\
+             <https://ex/cand> <{logic}candidateFormalizes> <{term}> .\n\
+             <https://ex/cand> <{logic}candidateSourceField> <{field}> .\n\
+             <https://ex/cand> <{logic}candidateSourceHash> \"{declared_hash}\" .\n\
+             <{field}> <{logic}proseFieldProperty> <{prop}> .\n\
+             <{term}> <{prop}> \"{prose}\"@{lang} .\n"
+        );
+        store_from_ntriples(&ntriples)
+    }
+
+    #[test]
+    fn source_hash_matches_prose_no_drift() {
+        // A candidate whose recorded hash IS the sha256 of the current source-language
+        // prose produces no finding — the teeth stay silent when nothing drifted.
+        let term = "https://blackcatinformatics.ca/logic/Endurant";
+        let prop = "http://www.w3.org/2004/02/skos/core#definition";
+        let prose = "A continuant wholly present at each moment of its existence.";
+        let hash = candidate_source_hash(prose);
+        let store = harvested_candidate_store(term, prop, prose, SOURCE_LANG, &hash);
+        let findings = check_candidate_source_hash_drift(&store).expect("check runs");
+        assert!(
+            findings.is_empty(),
+            "a matching source hash must produce no drift finding: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn edited_prose_surfaces_as_drift() {
+        // The recorded hash anchors the OLD prose; the term now carries EDITED prose, so
+        // the recompute no longer matches — the drift check must fire a hard error, giving
+        // the "a later prose edit surfaces as drift" governance claim real teeth.
+        let term = "https://blackcatinformatics.ca/logic/Endurant";
+        let prop = "http://www.w3.org/2004/02/skos/core#definition";
+        let stale_hash = candidate_source_hash("The ORIGINAL, reviewed definition prose.");
+        let edited_prose = "The definition prose after an un-reviewed edit.";
+        let store = harvested_candidate_store(term, prop, edited_prose, SOURCE_LANG, &stale_hash);
+        let findings = check_candidate_source_hash_drift(&store).expect("check runs");
+        let drift = findings
+            .iter()
+            .find(|f| f.code == "verify.candidate-hash.drift")
+            .expect("edited prose must surface as a drift finding");
+        assert_eq!(drift.severity, Severity::Error);
+        assert!(
+            drift.message.contains(term),
+            "the drift finding must name the formalized term: {drift:?}"
+        );
+    }
+
+    #[test]
+    fn projected_translation_is_not_hashed() {
+        // Only the @x-gmeow-english source literal is the hashed text. A projected public
+        // translation (@en) on the same field must be ignored: the term carries ONLY an
+        // @en literal here, so the harvest resolves no source-language prose and the check
+        // reports a dangling link rather than silently hashing the translation.
+        let term = "https://blackcatinformatics.ca/logic/Endurant";
+        let prop = "http://www.w3.org/2004/02/skos/core#definition";
+        let prose = "An English projection that must never be hashed.";
+        let hash = candidate_source_hash(prose);
+        let store = harvested_candidate_store(term, prop, prose, "en", &hash);
+        let findings = check_candidate_source_hash_drift(&store).expect("check runs");
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "verify.candidate-hash.no-source-prose"),
+            "a term with only a projected @en literal must report no source-language prose, \
+             never silently hash the translation: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn candidate_without_harvest_link_is_skipped() {
+        // The Event⊥Situation shape: a candidate carrying neither back-link leg has no
+        // single source triple to recompute against and must be silently skipped, never a
+        // false drift error.
+        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let logic = "https://blackcatinformatics.ca/logic/";
+        let ntriples = format!(
+            "<https://ex/cand> <{rdf_type}> <{logic}FormalizationCandidate> .\n\
+             <https://ex/cand> <{logic}candidateSourceHash> \"sha256:deadbeef\" .\n"
+        );
+        let store = store_from_ntriples(&ntriples);
+        let findings = check_candidate_source_hash_drift(&store).expect("check runs");
+        assert!(
+            findings.is_empty(),
+            "a candidate with no harvest back-link must be skipped, not flagged: {findings:?}"
         );
     }
 
