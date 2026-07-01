@@ -161,6 +161,15 @@ tracking, no provenance, and it fails silently on non-injective `get`. It is the
 mode/tabling/minting declarations and a declared law status. Naive backward-execution is a named
 anti-pattern, never the architecture.
 
+At the **process layer** the in-band witness is realized by a pair of back-references an executed
+occurrence carries: `logic:instantiatesSchema` (occurrence → `logic:ActionSchema`, the reusable type)
+and `logic:instantiatesPlan` (occurrence → the `logic:Plan` it was executed under, the whole planned
+skeleton). Together they are the in-band complement that lets a plan↔execution-record correspondence's
+`put` leg recover the planned portion of a run rather than synthesize a plausible plan — the openEHR
+Instruction-State-Machine linkage (Instruction → Activity → Action) made canonical. Where the witness
+is present the planned portion round-trips; the off-plan reality is an honest loss-ledger entry, never
+a failure.
+
 ## The quantitative and contextual axes
 
 A correspondence carries each axis **separately**, because they answer different questions and the
@@ -271,7 +280,7 @@ openEHR is the worked instance. It is a six-layer standard, and GMEOW subsumes e
 projection doctrine — the **data axis** (`DV_QUANTITY` ↔ frame-relative quantity, reaching
 section/retraction via an in-band complement) and the **process axis** (openEHR PROC / Task-Planning ↔
 `logic:Plan`, a lossy lens for execution). The process axis joins this calculus to the canonical
-process model (work-streams W1/W2/W3): openEHR Task Planning is one more by-reference projection
+process model: openEHR Task Planning is one more by-reference projection
 target of `logic:Plan`, and the correspondence calculus is its projection mechanism. The YAMATO
 refinements that ground both axes (persistent `Quality`; action/event open-closed; causal-vs-temporal
 parts) are adopted by-reference (Principle 5; see
