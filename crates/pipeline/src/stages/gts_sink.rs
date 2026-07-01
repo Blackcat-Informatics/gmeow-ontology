@@ -43,6 +43,10 @@ impl GtsSinkStage {
         Self {
             consumes: vec![
                 "stage-snapshot".to_string(),
+                // The executable-docs "try it" surface reasons over the object-level EDB,
+                // whose authored / imports / alignments graphs ride on the source-load
+                // product (read, not re-loaded from disk).
+                "stage-source-load".to_string(),
                 "stage-export-json-schema".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
@@ -126,6 +130,16 @@ mod tests {
         .expect("minimal carrier dataset");
         let snapshot =
             StageProduct::from_artifacts_over("stage-snapshot", carrier, BTreeMap::new());
+
+        // A minimal source-load product: the executable-docs "try it" EDB reads the
+        // authored / imports / alignments graphs off it (empty here — this unit test
+        // pins the sink's fail-closed wiring, not a real reasoned closure).
+        let source_load = StageProduct::from_artifacts_over(
+            "stage-source-load",
+            gmeow_rdf::parse_dataset(b"", "application/n-quads", None)
+                .expect("empty source-load dataset"),
+            BTreeMap::new(),
+        );
 
         let mut compile_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         for path in [
@@ -220,6 +234,7 @@ mod tests {
         upstream.insert("stage-mappings".to_string(), mappings);
         upstream.insert("stage-reason".to_string(), reason);
         upstream.insert("stage-snapshot".to_string(), snapshot);
+        upstream.insert("stage-source-load".to_string(), source_load);
         upstream.insert("stage-statements".to_string(), statements);
         upstream.insert("stage-validate".to_string(), validate);
         let out = GtsSinkStage::new()

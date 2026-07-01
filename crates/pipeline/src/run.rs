@@ -222,6 +222,7 @@ pub fn full_spec() -> PipelineSpec {
             "stage-mappings",
             "stage-reason",
             "stage-snapshot",
+            "stage-source-load",
             "stage-statements",
             "stage-validate",
         ],
