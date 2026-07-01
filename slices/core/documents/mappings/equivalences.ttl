@@ -14,11 +14,11 @@
 
 gmeow:eqClasses015 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:CreativeWork ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject schema:CreativeWork ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "Lossy: schema.org collapses WEMI into one flat node." ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "co-extensive at the top creative-work class; schema.org flattening the WEMI sub-structure is a preservation loss, not an extension difference — the WEMI tiers (gmeow:Work etc.) map separately by closeMatch" ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
 
 gmeow:eqClasses016 a gmeow:TermEquivalence ;
@@ -87,11 +87,11 @@ gmeow:eqClasses023 a gmeow:TermEquivalence ;
 
 gmeow:eqClasses024 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:MediaObject ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject schema:MediaObject ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Direct correspondence." ;
+    gmeow:comment "direct 1:1 correspondence; schema:ImageObject/AudioObject map in as narrower subclasses" ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
 
 gmeow:eqClasses025 a gmeow:TermEquivalence ;

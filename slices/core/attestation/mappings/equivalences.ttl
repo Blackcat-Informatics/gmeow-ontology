@@ -70,26 +70,26 @@ gmeow:eqAttestation004 a gmeow:TermEquivalence ;
 
 gmeow:eqAttestation005 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:wasGeneratedBy ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject prov:wasGeneratedBy ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.95 ;
     gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
 
 gmeow:eqAttestation006 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:wasDerivedFrom ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject prov:wasDerivedFrom ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.95 ;
     gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
 
 gmeow:eqAttestation007 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:wasAttributedTo ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject prov:wasAttributedTo ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.95 ;
     gmeow:sssomFile "gmeow-attestation.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
