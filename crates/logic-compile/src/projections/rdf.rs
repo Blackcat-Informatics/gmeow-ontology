@@ -597,6 +597,9 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
             if let Some(p) = &scope.provenance {
                 g.add_iri(&reifier, &logic("provenance"), p);
             }
+            if let Some(m) = &scope.module {
+                g.add_iri(&reifier, &logic("inModule"), m);
+            }
         }
     }
 
@@ -682,6 +685,9 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         }
         if let Some(p) = &scope.provenance {
             g.add_iri(&rule_node, &logic("provenance"), p);
+        }
+        if let Some(m) = &scope.module {
+            g.add_iri(&rule_node, &logic("inModule"), m);
         }
 
         // Aggregation (reduce): the function, the aggregated variable, the result variable, and

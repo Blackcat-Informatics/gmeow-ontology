@@ -2781,6 +2781,7 @@ _LOGIC_MODES = (
     "n3",
     "gufo",
     "canonical-rdf12",
+    "clif",
     "report",
 )
 
@@ -2910,6 +2911,7 @@ def logic_compile(
 
     from gmeow_tools.config import PROJECT_ROOT as _PROJECT_ROOT
     from gmeow_tools.logic_compile import (
+        LOGIC_CLIF_FILE,
         LOGIC_DATALOG_FILE,
         LOGIC_GUFO_FILE,
         LOGIC_N3_FILE,
@@ -2928,7 +2930,22 @@ def logic_compile(
     # artifact, the logic ones included, and reports any drift.
     if check and mode is None:
         report = _run_pipeline(check=True)
-        logic_drift = [d for d in report.get("drifted", []) if "/logic/" in d]
+        # The logic-compile stage emits into several generated/ subdirectories, not
+        # only generated/logic/: OWL, Datalog, N3, the gUFO foundation, SHACL-AF, and
+        # the Common Logic dialect (generated/cl/gmeow.clif). Gate drift across all of
+        # them so every committed logic artifact (CLIF included) is covered.
+        _logic_prefixes = (
+            "generated/logic/",
+            "generated/owl/",
+            "generated/datalog/",
+            "generated/n3/",
+            "generated/foundation/",
+            "generated/shacl-af/",
+            "generated/cl/",
+        )
+        logic_drift = [
+            d for d in report.get("drifted", []) if any(p in d for p in _logic_prefixes)
+        ]
         if logic_drift:
             for rel in sorted(logic_drift):
                 err_console.print(f"[red]drift[/red] {rel}")
@@ -2953,6 +2970,7 @@ def logic_compile(
             "n3": LOGIC_N3_FILE,
             "gufo": LOGIC_GUFO_FILE,
             "canonical-rdf12": LOGIC_RDF12_FILE,
+            "clif": LOGIC_CLIF_FILE,
             "report": LOGIC_REPORT_FILE,
         }
         # Projection target short-name → compile_logic dict key.
@@ -2963,6 +2981,7 @@ def logic_compile(
             "n3": "n3",
             "gufo": "gufo",
             "canonical-rdf12": "canonical_rdf12",
+            "clif": "clif",
             "report": "report",
         }
 
@@ -2991,7 +3010,7 @@ def logic_compile(
         # mapping (the key comes from the validated _mode_to_key table).
         _artifacts = cast("dict[str, object]", compiled)
         content = str(_artifacts[_mode_to_key[mode]])
-        _sfx = ".ttl" if mode not in ("datalog", "n3") else f".{mode}"
+        _sfx = ".ttl" if mode not in ("datalog", "n3", "clif") else f".{mode}"
 
         if check:
             import tempfile
