@@ -2398,8 +2398,9 @@ def acceptance(
     min_recall: float | None = typer.Option(
         None,
         "--min-recall",
-        help="HARD aggregate floor (#579): if the corpus-aggregate round-trip "
-        "recall %% falls below this, fail with exit 1. Omit for report-only.",
+        help="Override the HARD corpus-aggregate recall floor. When omitted the "
+        "native floor (Rust ACCEPTANCE_MIN_RECALL_PCT, single source of truth) is "
+        "enforced. Pass 0 to measure without a floor.",
     ),
 ) -> None:
     """Score the full transpile against real data — the honest scoreboard (#450).
@@ -2411,11 +2412,13 @@ def acceptance(
     The corpus is the verbatim ``external/`` snapshots — numbers that cannot be
     moved by writing fixtures.
 
-    The per-file round-trip gate stays a scoreboard (red until done). Passing
-    ``--min-recall`` adds a SEPARATE *aggregate* floor (#579): the pooled
-    Σ recovered / Σ addressable recall across the whole corpus must clear it, or
-    the command hard-fails — making the transpile gate block without demanding
-    100%% per-file recall (honest-scoreboard doctrine preserved).
+    The per-file round-trip gate stays a scoreboard (red until done). The HARD
+    enforcement is the SEPARATE *aggregate* floor (GAP 3, #1145): the pooled
+    Σ recovered / Σ addressable recall across the whole corpus must clear the
+    native ``ACCEPTANCE_MIN_RECALL_PCT`` floor, or the command hard-fails — making
+    the transpile gate block without demanding 100%% per-file recall
+    (honest-scoreboard doctrine preserved). ``--min-recall`` only *overrides* that
+    native floor (e.g. 0 to measure); the default is the Rust-owned figure.
     """
     import gmeow_native.pipeline as _pipeline
 
@@ -2441,17 +2444,20 @@ def acceptance(
         verdict = "[green]PASS[/green]" if fa.get("passed") else "[red]FAIL[/red]"
         err_console.print(f"{verdict} {fa.get('source', 'source')}")
 
-    if min_recall is not None:
-        aggregate = float(native.get("aggregate_recall", 100.0))
-        if aggregate < min_recall:
-            raise _fail(
-                f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
-                f"the floor {min_recall:.2f}% ({len(results)} source(s))"
-            )
-        err_console.print(
-            f"[green]✓[/green] corpus-aggregate round-trip recall "
-            f"{aggregate:.2f}% ≥ floor {min_recall:.2f}%"
+    # The HARD corpus-aggregate recall floor is owned in Rust (single source of truth,
+    # GAP 3 / #1145). Default to the native floor; `--min-recall` only overrides it.
+    native_floor = float(native.get("min_recall_floor", 0.0))
+    floor = native_floor if min_recall is None else min_recall
+    aggregate = float(native.get("aggregate_recall", 100.0))
+    if aggregate < floor:
+        raise _fail(
+            f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
+            f"the floor {floor:.2f}% ({len(results)} source(s))"
         )
+    err_console.print(
+        f"[green]✓[/green] corpus-aggregate round-trip recall "
+        f"{aggregate:.2f}% ≥ floor {floor:.2f}%"
+    )
 
 
 @app.command()
