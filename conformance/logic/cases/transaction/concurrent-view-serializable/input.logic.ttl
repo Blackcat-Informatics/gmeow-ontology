@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: transaction/concurrent-view-serializable.
+#
+# A logic:ConcurrentComposition whose two legs stand in a READ dependency: the
+# left leg writes a situation (sitA) that the right leg reads (its precondition,
+# obtaining at the shared start so the leg is independently executable). Over the
+# deterministic index-order interleaving the right leg's read observes the left
+# leg's write, so the engine DERIVES a logic:readsFrom edge (right reads from
+# left) and a logic:happensBefore edge (left before right) alongside the single
+# acyclic logic:precedes conflict. The witnessed schedule is view-equivalent to
+# the serial order left-then-right, so the history logic:satisfiesCriterion BOTH
+# logic:ConflictSerializability and logic:ViewSerializability — the view surface
+# of the conflict-serializability contract. (For two transactions the two
+# criteria coincide; the read-from / happens-before edges are the witnessed-
+# schedule structure the classification rests on.)
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/transaction/concurrent-view-serializable/> .
+
+ex:GoalExpression a logic:GoalExpression .
+
+# The compile-time reasoning contract selects the Evolution facet that classifies this
+# transaction program. logic:TransactionPathEvolution drives certification to the
+# transaction-path decidability class (conflict-/view-serializability; PTIME
+# classification, not search).
+ex:TransactionContract a logic:ReasoningContract ;
+    logic:evolution logic:TransactionPathEvolution .

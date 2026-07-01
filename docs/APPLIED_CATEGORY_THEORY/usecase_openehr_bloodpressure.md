@@ -134,7 +134,7 @@ composition for every item in §4, that the validator ignores? Enumerating the r
 | `archetype_details` | ARCHETYPED | no (fixed `archetype_id`/`template_id`/`rm_version`) | — | ✗ cannot inject |
 | ELEMENT in the data tree | ITEM_TREE | no | **yes** — only `at0004`/`at0005` admitted | ✗ violates cardinality |
 | `context.other_context` | ITEM_STRUCTURE | archetyped | yes (context archetype) | ✗ risky / slot-dependent |
-| `links` (every LOCATABLE) | LINK[] | semi (typed URI targets) | no (RM-level) | ✓ for reifier/coref URIs |
+| `links` (every LOCATABLE) | LINK[] | semi (typed URI targets) | no (RM-level) | ✓ for reifier/coref URIs — but `LINK.target` is a `DV_EHR_URI`, whose `Scheme_valid` RM invariant forces the `ehr` scheme (a coref pointer must be `ehr://…`, never a bare `urn:`) |
 | **`feeder_audit.original_content`** | **DV_ENCAPSULATED → DV_PARSABLE** | **yes (arbitrary string + formalism)** | **no (RM-level)** | ✓✓ **bulk carrier** |
 | `feeder_audit…other_details` | ITEM_STRUCTURE | archetyped-but-open | no (RM-level) | ✓ for structured bits |
 
@@ -153,9 +153,17 @@ three are **RM-level** metadata that `Blutdruck.opt` does not constrain (OPTs co
   RM extension or the **content-hash-bound sidecar** (`take1.md` §13.2). Recommendation: support
   *both* — `feeder_audit`/`links` for single-file self-containment, sidecar for purity — and let
   the consumer pick.
-- **Empirical validation pending.** "RM permits `DV_PARSABLE` here" is a spec reading; it must be
-  confirmed against the validator zoo (Archie, EHRbase, reference ITS). This is the empirical
-  half of §13.4-Q1 — *falsifiable, and now scoped to one concrete probe.*
+- **Empirical validation — PASS observed via the standalone lane (not CI-reproduced).** "RM permits
+  `DV_PARSABLE` here" was a spec reading; the standalone lane `validations/openehr-bloodpressure/`
+  checks it against real reference validators (EHRbase CDR, pinned image `ehrbase/ehrbase:2.15.0`;
+  and the Archie RM validator). Running the lane uploads `Blutdruck.opt` and POSTs both
+  compositions; the recorded outcome is that `source` and `augmented` each return 201 — both
+  validate. This is reproducible **on demand** via `make -C validations/openehr-bloodpressure`; it
+  is deliberately **outside `make check`** (it needs Docker/Java) so the green is not asserted by CI
+  — re-run the lane to confirm. One real RM invariant the by-hand `links` reading missed surfaced
+  and is now fixed: `LINK.target` is a `DV_EHR_URI`, so its value must use the `ehr` scheme
+  (`Scheme_valid`) — the augmented coref `LINK` uses `ehr://…`. The bulk carrier
+  (`feeder_audit.original_content`) was never the obstacle.
 - **The composition's existing `feeder_audit` already carries the FHIR trail.** The complement is
   *additive* (extend `other_details` / set `original_content`); it must not clobber the FHIR
   lineage. Non-destructive by construction.
@@ -163,11 +171,18 @@ three are **RM-level** metadata that `Blutdruck.opt` does not constrain (OPTs co
 **Realized as a concrete artifact.** `fixtures/blood_pressure.augmented.json` is the actual `d(g)`:
 the unmodified RM slice (`fixtures/blood_pressure.source.json`, vendored from Genkidata, Apache-2.0)
 plus the GMEOW complement (`fixtures/blood_pressure.complement.ttl`) carried in
-`feeder_audit.original_content` (DV_PARSABLE `text/turtle`) + a COMPOSITION `LINK` — generated
-non-destructively (the systolic `DV_QUANTITY` and the FHIR lineage are byte-preserved). The
-remaining empirical step (run it through Archie/EHRbase to confirm clause (a)) is scripted in
-`fixtures/README.md` — it needs Java / a running CDR, which is outside GMEOW's Docker-free gate, so
-it is a one-command probe for the breakout, not part of `make check`.
+`feeder_audit.original_content` (DV_PARSABLE `text/turtle`) + a COMPOSITION `LINK` (its
+`DV_EHR_URI` target on the `ehr` scheme) — generated non-destructively (the systolic `DV_QUANTITY`
+and the FHIR lineage are byte-preserved). The empirical step (run it through EHRbase/Archie to
+confirm clause (a)) is the standalone lane `validations/openehr-bloodpressure/` — it needs a running
+CDR / Java, outside GMEOW's Docker-free gate, so it is a `make -C validations/openehr-bloodpressure`
+probe, not part of `make check`. **Recorded outcome: both compositions validate (PASS) against the
+pinned EHRbase image — reproduce on demand via the lane; it is not re-run by CI.** The in-gate
+structural + data round trip is proven by the conformance case
+`correspondence/openehr-bloodpressure-section-retraction` (structural: the witness resolves and its
+auto-derived inverse is well-formed) and `crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`
+(data: `u` re-lifts the RM slice via the `rmPath` witness, unions with the complement, and the
+reconstruction equals the golden source `blood_pressure.source.ttl`).
 
 ---
 
@@ -180,10 +195,19 @@ it is a one-command probe for the breakout, not part of `make check`.
   determinacy, the standpoint, and the reifier identities.
 
 Because `get` was mnemomorphic and the complement carries exactly `S ∖ im(get)`, **nothing the
-retraction needs was discarded** → `u(d(g)) = g` on the canonical IR (the Round-trip gate,
-`take1.md` §15.3). This is the **section/retraction rung** realized: `:sysBP-of-P` round-trips
-via the persistent-quality identity carried in the complement; the framed value round-trips via
-the RM `DV_QUANTITY`; the standpoint/axes round-trip via the Turtle blob keyed by `at0004`.
+retraction needs was discarded** → `u(d(g)) = g` on the canonical IR. Two complementary checks
+back this, and it is worth being precise about what each proves. The **structural** Round-trip /
+Mnemomorphism gates (`take1.md` §15.3–§15.4, conformance case
+`correspondence/openehr-bloodpressure-section-retraction`) confirm the witness *resolves* and its
+lawful auto-derived inverse (`put = get.invert()`) is *well-formed* — they do not execute the
+recovery over data. The **data** proof
+(`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`) does execute it: `u` re-lifts the
+RM `DV_QUANTITY` values through the `rmPath` witness (`at0004`/`at0005`), unions them with the parsed
+complement, and asserts the canonicalization equals the golden source `blood_pressure.source.ttl` —
+so corrupting the RM magnitude fails the test. Together they realize the **section/retraction rung**:
+`:sysBP-of-P` round-trips via the persistent-quality identity carried in the complement; the framed
+value round-trips via the RM `DV_QUANTITY`; the standpoint/axes round-trip via the Turtle blob keyed
+by `at0004`.
 
 Without the complement (RM slice alone), `u` would be a **candidate preimage only** (`take1.md`
 §6.1): it could not recover the standpoint, the axes, or the persistent-quality identity — it
@@ -226,11 +250,19 @@ shape SystolicMeasurement:
 ```
 
 The **half-open boundary** (`upper_included = false`) is a first-class flag in the lowering, not
-an off-by-one approximation — and the round-trip must regenerate `upper_included = false`, not
-`true`. This is the sharp ADL-fidelity test (`take1.md` §13.4-Q2): `u ∘ d = id` on the
-*constraint*, including boundary inclusivity. `logic:` full-FOL strictly exceeds the ADL
-constraint here (it can also state cross-field constraints ADL cannot, e.g. systolic > diastolic)
-— the "augment" beyond subsumption.
+an off-by-one approximation. This is exercised for real: the native reader
+`crates/shacl/src/openehr_opt.rs` reads the systolic/diastolic `C_DV_QUANTITY` `magnitude` block
+straight out of the vendored `Blutdruck.opt` (`[0, 1000)` mm[Hg], `lower_included=true`,
+`upper_included=false`) and lowers it — `lower_included → sh:minInclusive`,
+`upper_included=false → sh:maxExclusive` (never `sh:maxInclusive`). The test
+`crates/shacl/tests/bloodpressure_halfopen.rs` drives that reader end-to-end and asserts the
+produced shape rejects `value == 1000`; flipping the OPT's `upper_included` to `true` fails the
+test. This is the sharp ADL-fidelity check (`take1.md` §13.4-Q2) on boundary inclusivity for the
+blood-pressure magnitude — the narrow slice of a general OPT→SHACL constraint lowering.
+(Scope note: only the magnitude-interval slice is lowered here; the general ADL2/OPT constraint
+lowering across the CKM is a separate roadmap capability.) `logic:` full-FOL strictly exceeds the
+ADL constraint here (it can also state cross-field constraints ADL cannot, e.g. systolic >
+diastolic) — the "augment" beyond subsumption.
 
 ---
 
@@ -238,15 +270,17 @@ constraint here (it can also state cross-field constraints ADL cannot, e.g. syst
 
 | `take1.md` law / gate | This case |
 |---|---|
-| Validation (§13.1.1) | RM slice validates under `Blutdruck.opt`; complement in RM-level `feeder_audit`/`links` (pending validator-zoo confirmation) |
-| Lossless subsumption `u∘d=id` (§13.1.2) | holds — complement carries `S ∖ im(get)`; **section/retraction rung** |
-| Store-replacement `d∘u≅o` (§13.1.3) | holds for faithful instances — RM slice regenerated incl. half-open interval |
-| Round-trip gate (§15.3) | passes on canonical IR |
+| Validation (§13.1.1) | **PASS observed via the standalone lane, not CI** — `source` and `augmented` both validate under `Blutdruck.opt` against pinned EHRbase `2.15.0` (`validations/openehr-bloodpressure/`, reproduce on demand); complement in RM-level `feeder_audit`/`links`, the `LINK.target` `DV_EHR_URI` on the `ehr` scheme |
+| Lossless subsumption `u∘d=id` (§13.1.2) | holds — the data test reconstructs `S` from the RM slice re-lifted via the `rmPath` witness ∪ the complement and asserts it equals the golden `blood_pressure.source.ttl`; load-bearing (corrupting an RM magnitude fails) — **section/retraction rung** (`crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs`) |
+| Store-replacement `d∘u≅o` (§13.1.3) | holds for faithful instances — RM slice regenerated incl. the half-open interval read from the OPT (`crates/shacl/src/openehr_opt.rs`, `crates/shacl/tests/bloodpressure_halfopen.rs`) |
+| Round-trip gate (§15.3) | passes on canonical IR — confirms the witness resolves and its auto-derived inverse is well-formed (`correspondence/openehr-bloodpressure-section-retraction`); data recovery proven by the reconstruction test above |
 | Mnemomorphism gate (§15.4) | passes — witness = `archetype_node_id` path + complement |
 | Loss ledger (§15.6) | **exact** for the RM slice + complement; **under-approximation** for any consumer that drops the complement (RM-only reader) — that reader gets a valid-but-lessened view, declared |
 
 **Boundary finding:** for `openEHR-EHR-OBSERVATION.blood_pressure.v2`, *no field in `S ∖ im(get)`
 forces a validation-vs-losslessness tradeoff* — the complement fits in RM-level transparent
-slots. "Perfectly replace openEHR" **holds for this archetype**, modulo the two honest caveats in
-§5 (semantic propriety of `feeder_audit`; empirical validator-zoo confirmation). That is exactly
-the falsifiable, nameable result `take1.md` §17 asks for — here, a *positive* one.
+slots. "Perfectly replace openEHR" **holds for this archetype** — now confirmed empirically (both
+compositions validate in EHRbase), modulo the one remaining honest caveat in §5 (semantic propriety
+of `feeder_audit` as the canonical-source carrier). That is exactly the falsifiable, nameable result
+`take1.md` §17 asks for — here, a *positive* one. The probe also caught and fixed one real RM
+invariant the by-hand reading missed (`LINK.target` must be an `ehr`-scheme `DV_EHR_URI`).

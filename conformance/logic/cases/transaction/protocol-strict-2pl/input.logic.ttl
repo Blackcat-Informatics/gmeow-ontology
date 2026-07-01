@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: transaction/protocol-strict-2pl.
+#
+# A logic:ConcurrentComposition whose run declares a logic:ConcurrencyControlProtocol
+# (logic:declaredProtocol on its contract) and records the protocol's own events
+# (per-leg logic:transactionTimestamp and/or per-action logic:lockAcquired /
+# logic:lockReleased). The native evaluator classifies whether the witnessed
+# schedule respects that protocol's discipline over those recorded events — a
+# polynomial WELL-FORMEDNESS check (Principle 12), never a schedule search — and
+# records the verdict as logic:protocolEnforced (with a logic:protocolViolationReason
+# when the schedule breaks the discipline).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom
+# the projections need (no asserted teleology triples here).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/transaction/protocol-strict-2pl/> .
+
+ex:GoalExpression a logic:GoalExpression .
+
+# The compile-time reasoning contract selects the transaction-path Evolution facet.
+ex:TransactionContract a logic:ReasoningContract ;
+    logic:evolution logic:TransactionPathEvolution .

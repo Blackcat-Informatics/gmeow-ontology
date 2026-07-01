@@ -1,0 +1,5 @@
+{
+  "reasoning_contract": {"preset": "StratifiedNAFProfile"},
+  "certify": true,
+  "teleology_lowering": true
+}
