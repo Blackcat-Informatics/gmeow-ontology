@@ -62,7 +62,10 @@ run_eprover() {
 
 szs_status() {
   # Extract the SZS status token eprover prints, e.g. "# SZS status Theorem".
-  grep -o '# SZS status [A-Za-z]*' | tail -1 | awk '{print $NF}'
+  # `|| true`: under `set -euo pipefail` a no-match `grep` exits 1 and would
+  # abort the whole probe before any PASS/BOUNDARY line prints; the empty-status
+  # ("") case below is the intended handling when E emits no SZS line at all.
+  grep -o '# SZS status [A-Za-z]*' | tail -1 | awk '{print $NF}' || true
 }
 
 # ── Check A — foundation consistency. ──────────────────────────────────────
