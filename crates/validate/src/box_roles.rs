@@ -360,10 +360,10 @@ pub fn to_diagnostics_report(report: &BoxRoleAudit, ontology_iri: &str, namespac
 
     let mut out = Report::new(TOOL);
     for finding in &report.missing {
-        out.add_finding(item(finding, "box-roles.missing"));
+        out.add_finding(item(finding, crate::codes::BOX_ROLES_MISSING));
     }
     for finding in &report.invalid {
-        out.add_finding(item(finding, "box-roles.invalid"));
+        out.add_finding(item(finding, crate::codes::BOX_ROLES_INVALID));
     }
     out
 }

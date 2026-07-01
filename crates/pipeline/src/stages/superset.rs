@@ -140,6 +140,9 @@ enum GraphForm {
     /// N-Quads of the graph re-rooted into the embedded graph label (the `.nq`
     /// 4th-column IRI, which differs from the fanout container IRI). RDFC-canonical.
     NQuads(&'static str),
+    /// N-Quads re-rooted into the graph's OWN fanout IRI: the committed `.nq`
+    /// carries the fanout container IRI itself as its 4th column. RDFC-canonical.
+    NQuadsSelf,
 }
 
 /// A committed path carried as the fold of one named graph: the backing graph IRI
@@ -172,6 +175,11 @@ fn graph_rep_for_path(path: &str) -> Option<GraphRep> {
     let iri = rdf_fanout_graph_iri(path)?;
     let form = if path.ends_with(".nt") {
         GraphForm::NTriples
+    } else if path == "generated/catalog/constraint-catalog.nq" {
+        // The catalog `.nq` carries its OWN fanout IRI as the 4th-column label (it is
+        // generated with that label, not the shared diagnostics one), so its
+        // reconstruction restamps back to the per-file fanout container.
+        GraphForm::NQuadsSelf
     } else if path.ends_with(".nq") {
         // The diagnostics `.nq` carry the shared `graph/diagnostics` 4th-column label;
         // reconstruction restamps to it (not the per-file fanout container).
@@ -206,6 +214,11 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         || path == "generated/logic/gmeow.correspondence.nt"
         || path == "generated/diagnostics/shacl.nq"
         || path == "generated/diagnostics/logic-compile.nq"
+        // The generated constraint catalog: its committed `.nq` carries the fanout
+        // graph IRI itself as its 4th column (unlike the diagnostics `.nq`, which
+        // restamp to the shared `graph/diagnostics` label), so its reconstruction
+        // restamps to its OWN fanout IRI (see `graph_rep_for_path`).
+        || path == "generated/catalog/constraint-catalog.nq"
         // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
         || path == "generated/projections/core-prefixes.ttl"
         || path == "generated/projections/functions.fno.ttl"
@@ -362,6 +375,11 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
             // `project_named_graph` drops the graph label; restamp to the embedded
             // label so the RDFC-canonical N-Quads 4th column matches the committed file.
             let rooted = crate::stages::carrier::rooted_in_graph(&projected, label).ok()?;
+            canonical_ntriples(&rooted).ok()
+        }
+        GraphForm::NQuadsSelf => {
+            // The committed 4th column is the fanout IRI itself — restamp back to it.
+            let rooted = crate::stages::carrier::rooted_in_graph(&projected, &rep.iri).ok()?;
             canonical_ntriples(&rooted).ok()
         }
     }

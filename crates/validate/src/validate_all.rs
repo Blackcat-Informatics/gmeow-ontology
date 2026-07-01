@@ -246,11 +246,13 @@ impl ValidationRun {
         }
 
         if signature_hard_failures {
+            let mut report = build_report(Vec::new(), Vec::new(), signature_findings);
+            crate::rule_catalog::populate_rules(&mut report);
             return Ok(Self {
                 dataset,
                 shapes,
                 timings,
-                report: build_report(Vec::new(), Vec::new(), signature_findings),
+                report,
                 declared_terms: Vec::new(),
                 advisory_claims: Vec::new(),
             });
@@ -280,11 +282,13 @@ impl ValidationRun {
 
         // Python short-circuits if syntax or sameAs failed — no merged graph work.
         if !errors.is_empty() {
+            let mut report = build_report(errors, warnings, shacl_findings);
+            crate::rule_catalog::populate_rules(&mut report);
             return Ok(Self {
                 dataset,
                 shapes,
                 timings,
-                report: build_report(errors, warnings, shacl_findings),
+                report,
                 declared_terms: Vec::new(),
                 advisory_claims: Vec::new(),
             });
@@ -543,7 +547,7 @@ impl ValidationRun {
         // (hard-fail) paths above. D3/#762 replaces this demonstrator with harvested
         // advisory rules (find via the "advisory-demonstrator" tag).
         let advisory = Advisory::note(
-            "advice.tier.active",
+            crate::codes::ADVICE_TIER_ACTIVE,
             "Advisory tier active — soft (deonticRecommendation) advice will surface here once advisory rules are harvested (#762).",
         )
         .with_suggestion("Run `gmeow describe <term>` to see modeling guidance (avoidWhen / useWhen / howToUse).")
@@ -567,13 +571,19 @@ impl ValidationRun {
                 report.add_finding(
                     Finding::new(
                         Severity::Warning,
-                        "validate.deep.skipped",
+                        crate::codes::VALIDATE_DEEP_SKIPPED,
                         "validate --deep requires a GTS bundle (gts_bytes); the semantic pass was skipped",
                     )
                     .with_tool("validate"),
                 );
             }
         }
+
+        // Resolve every emitted finding code to its constraint-catalog entry:
+        // populate `report.rules` so each code carries a rule whose `helpUri`
+        // anchors the "what GMEOW enforces" catalog page. Idempotent — the
+        // advisory demonstrator's own rule (with its help URI) is left intact.
+        crate::rule_catalog::populate_rules(&mut report);
 
         Ok(Self {
             dataset,
@@ -749,7 +759,7 @@ pub(crate) fn fold_reasoning_result(
             let finding = if permitted {
                 Finding::new(
                     Severity::Warning,
-                    "validate.deep.permitted-conflict",
+                    crate::codes::VALIDATE_DEEP_PERMITTED_CONFLICT,
                     format!(
                         "individual {} carries a within-world contradiction in world {}, \
                          permitted and disclosed under contradiction policy {} \
@@ -763,7 +773,7 @@ pub(crate) fn fold_reasoning_result(
             } else {
                 Finding::new(
                     Severity::Error,
-                    "validate.deep.inconsistent",
+                    crate::codes::VALIDATE_DEEP_INCONSISTENT,
                     format!(
                         "individual {} forced into owl:Nothing in world {} \
                          (logic:ReasoningResult information=both)",
@@ -780,7 +790,7 @@ pub(crate) fn fold_reasoning_result(
         report.add_finding(
             Finding::new(
                 Severity::Warning,
-                "validate.deep.unsatisfiable",
+                crate::codes::VALIDATE_DEEP_UNSATISFIABLE,
                 format!(
                     "class {} is unsatisfiable (provably empty) in world {}",
                     unsat.class, unsat.world
@@ -795,7 +805,7 @@ pub(crate) fn fold_reasoning_result(
         report.add_finding(
             Finding::new(
                 Severity::Warning,
-                "validate.deep.unsupported-construct",
+                crate::codes::VALIDATE_DEEP_UNSUPPORTED_CONSTRUCT,
                 format!(
                     "DL construct {construct} is present but was not decided by the native \
                      reasoner; the semantic verdict is incomplete for it"
@@ -815,7 +825,7 @@ pub(crate) fn fold_reasoning_result(
             report.add_finding(
                 Finding::new(
                     Severity::Note,
-                    "validate.deep.projection-loss",
+                    crate::codes::VALIDATE_DEEP_PROJECTION_LOSS,
                     format!(
                         "projection gts → {to}: loss code '{}' — {}",
                         entry.code, entry.note
@@ -840,7 +850,7 @@ pub(crate) fn fold_reasoning_result(
         report.add_finding(
             Finding::new(
                 Severity::Warning,
-                "validate.deep.incomplete",
+                crate::codes::VALIDATE_DEEP_INCOMPLETE,
                 format!(
                     "native deep semantic pass did not reach a conclusive verdict \
                      (evaluation={}, completeness={}); results may be partial",
@@ -857,7 +867,7 @@ pub(crate) fn fold_reasoning_result(
         report.add_finding(
             Finding::new(
                 Severity::Note,
-                "validate.deep.consistent",
+                crate::codes::VALIDATE_DEEP_CONSISTENT,
                 format!(
                     "native deep semantic pass: consistent (information={}, evaluation={}, \
                      completeness={})",
@@ -908,7 +918,7 @@ pub(crate) fn shacl_findings_from_report(
     if findings.is_empty() && !report.conforms {
         let mut finding = Finding::new(
             Severity::Error,
-            "shacl.nonconforming",
+            crate::codes::SHACL_NONCONFORMING,
             "SHACL validation failed: non-conforming with no results",
         )
         .with_tool("shacl")
@@ -1265,7 +1275,7 @@ fn run_example_shacl(
         Err(e) => {
             return Ok(vec![Finding::new(
                 Severity::Error,
-                "example.parse",
+                crate::codes::EXAMPLE_PARSE,
                 format!("example {name}: failed to parse {}: {e}", path.display()),
             )
             .with_tool("validate")]);

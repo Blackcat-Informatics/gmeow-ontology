@@ -225,6 +225,20 @@ fn first_concern_markdown_golden() {
 }
 
 #[test]
+fn constraint_catalog_markdown_golden() {
+    // The "What GMEOW enforces" page lists every gmeow:ValidationRule grouped by
+    // finding category. It is large (~50 rules); lock the header region plus the
+    // first category's first rule block — the deterministic, low-churn part that
+    // pins the per-rule shape (the `<a id="{slug}">` anchor, severity/rule-code
+    // rows, and the helpUri deep link). The full render is exercised by the site
+    // build; the anchor-resolves-to-helpUri invariant by the crate unit tests.
+    let model = common::cached_model();
+    let md = to_markdown(&model, &Page::ConstraintCatalog);
+    let head: String = md.lines().take(24).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
+#[test]
 fn slice_dependency_svg_golden() {
     // The SVG is large (a node per slice). Lock its structural head (the SVG
     // open tag, title, marker defs, and the first node) rather than every node —

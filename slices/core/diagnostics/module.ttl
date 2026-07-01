@@ -39,6 +39,42 @@ gmeow:Finding
     gmeow:howToUse "Project one Finding per Rust gmeow_diagnostics::Finding: bind gmeow:findingSeverity, gmeow:findingCode, gmeow:findingMessage, the producing tool via gmeow:vantage (and gmeow:findingTool for the flat name), and gmeow:findingLocation at the reified statement, hanging the GTS wire coordinates on the location node."@x-gmeow-english ;
     gmeow:useWhen "Use to record a diagnostic as a first-class, queryable RDF claim — when a validation/lint/reasoning verdict should ride in the graph (e.g. embedded in a .gts feedback bundle) so it can be joined against the ontology it describes."@x-gmeow-english .
 
+gmeow:ValidationRule
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Validation Rule"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A single enforced check the validator runs — the catalog entry a gmeow:Finding resolves to through its shared code. Where gmeow:Finding is one occurrence (a violation at a location), a ValidationRule is the standing definition: the code, the kind (gmeow:ruleCategory over the same logic:FindingCategory axis a finding carries), the default grade (gmeow:ruleSeverity), the SHACL shape it projects to (gmeow:enforcedByShape), the terms it governs (gmeow:appliesToTerm), and the prose it encodes (logic:formalizes, from which its skos:definition is generated). The rule definitions are the gmeow: RDF projection of the Rust validator's rule surface; individuals are generated from the reasoned graph, never authored by hand, so 'what GMEOW enforces' stays a projection of the axioms rather than a maintained list."@x-gmeow-english ;
+    skos:example "ex:ruleRelatorMediation a gmeow:ValidationRule ; gmeow:ruleCode \"discipline/relator-mediation\" ; gmeow:ruleCategory logic:FindingModelingDisciplineViolation ; gmeow:ruleSeverity \"binding\" ."@x-gmeow-english ;
+    skos:scopeNote "The enforced-check sibling of gmeow:Finding: they share the code space (a finding's gmeow:findingCode equals its rule's gmeow:ruleCode), but a ValidationRule is an InformationObject describing the check, not a gmeow:Observation about a datum. Distinct rule and finding properties keep the domains clean — asserting a finding property on a rule would wrongly entail the rule is an Observation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring ValidationRule individuals by hand as the source of truth — they are generated from the reasoned graph and the validator's rule surface — and avoid using one where a plain gmeow:Finding (one occurrence) is meant; the rule is the standing definition, the finding is the event."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Read it as the resolution target of a finding code: from a gmeow:Finding take gmeow:findingCode, look up the gmeow:ValidationRule with the equal gmeow:ruleCode, and surface its generated skos:definition, gmeow:enforcedByShape, gmeow:appliesToTerm, and logic:formalizes prose as 'what this code enforces'."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the definition of an enforced check as a first-class, queryable RDF entity — the machine-readable constraint catalog that lets a validator finding code resolve to what it enforces, which terms it governs, and the prose it formalizes."@x-gmeow-english .
+
+gmeow:appliesToTerm
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "applies to term"@x-gmeow-english ;
+    skos:definition "A bridge annotation from a gmeow:ValidationRule to a gmeow:/logic: term the rule governs: the class, property, or individual whose data or modelling the check constrains. Subject is a ValidationRule, object a governed term; an annotation property, never a reasoned axiom, so it carries no DL or EL profile weight and does not constrain the term. The catalog generator resolves the governed terms from the reasoned graph (the disjointness members, the mediated relator, the frame-carrier class), so a reader can ask 'which rules touch this term'."@x-gmeow-english ;
+    skos:example "ex:ruleRelatorMediation gmeow:appliesToTerm gmeow:Commitment ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to CONSTRAIN a term (that is the enforced shape or axiom, reached via gmeow:enforcedByShape / logic:formalizes) or to point at a datum occurrence (that is a finding's gmeow:findingLocation); appliesToTerm names the governed vocabulary, not the enforcement or the violation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point a ValidationRule at each gmeow:/logic: term it governs, as generated from the reasoned graph; render the reverse direction as 'rules that enforce something about this term' in the term's documentation."@x-gmeow-english ;
+    gmeow:useWhen "Use to link an enforced check to the terms it governs so the constraint catalog can be read per-term as well as per-rule."@x-gmeow-english .
+
+gmeow:enforcedByShape
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "enforced by shape"@x-gmeow-english ;
+    skos:definition "A bridge annotation from a gmeow:ValidationRule to the SHACL sh:NodeShape or constraint component that operationalises it at validation time. Per Principle 17 the SHACL shape is a generated, lossy PROJECTION of the canonical logic: axiom (reached via logic:formalizes) — enforcedByShape names that projection, not the source, so a reader can jump from a finding code to the exact shape that fired. An annotation property crossing into the SHACL artifact; it carries no DL or EL weight."@x-gmeow-english ;
+    skos:example "ex:ruleFrameCompleteness gmeow:enforcedByShape <https://blackcatinformatics.ca/gmeow/EventFrameRequirementShape> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the shape as the source of the rule (the source is the logic: axiom via logic:formalizes; SHACL is its projection, Principle 17) and avoid pointing it at a term (that is gmeow:appliesToTerm); enforcedByShape names the enforcing projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point a ValidationRule at the generated SHACL shape/component that fires for its code, as resolved by the catalog generator; render it as the 'enforced by' link beside the logic: source."@x-gmeow-english ;
+    gmeow:useWhen "Use to link an enforced check to the SHACL shape that realises it, so a finding code resolves to both its canonical logic: source and its concrete enforcing projection."@x-gmeow-english .
+
 gmeow:findingCategory
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
@@ -197,6 +233,45 @@ gmeow:gtsTermId
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the value carried in the SARIF logicalLocation and the Rust Location.gts_term_id."@x-gmeow-english ;
     gmeow:useWhen "Use on a finding's location node to pin the GTS term-id of the term diagnosed."@x-gmeow-english .
+
+gmeow:ruleCategory
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ValidationRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "rule category"@x-gmeow-english ;
+    rdfs:range logic:FindingCategory ;
+    skos:definition "The KIND of an enforced check — a logic:FindingCategory individual, the SAME axis a gmeow:Finding carries via gmeow:findingCategory, asserted here on the standing gmeow:ValidationRule rather than the occurrence. A rule's category is DERIVED by the catalog generator from the kind of axiom it enforces (a disjointness check is a data-shape/partition rule, a relator-mediation check a modeling-discipline rule, a frame check a frame-relativity rule), never hand-assigned. Distinct property from gmeow:findingCategory only because the domains differ (rule vs finding); the value vocabulary is shared, so a code's rule category and its findings' category agree by construction."@x-gmeow-english ;
+    skos:example "ex:ruleRelatorMediation gmeow:ruleCategory logic:FindingModelingDisciplineViolation ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a parallel category vocabulary (reuse logic:FindingCategory, the finding axis) and avoid conflating it with gmeow:ruleSeverity (the grade) or gmeow:ruleCode (the identity); the category is the orthogonal KIND of check."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Have the catalog generator derive it from the enforced-axiom kind and project it as one logic:FindingCategory individual; consumers read it beside gmeow:ruleSeverity to group the catalog by kind."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the kind of an enforced check on its ValidationRule, over the same logic:FindingCategory axis its findings carry."@x-gmeow-english .
+
+gmeow:ruleCode
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ValidationRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "rule code"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The stable identifier of an enforced check (e.g. \"discipline/relator-mediation\", \"frame-completeness\", \"shacl.MinCountConstraintComponent\") — the SAME string space as gmeow:findingCode, asserted on the standing gmeow:ValidationRule. It is the join key by which a finding resolves to its catalog entry: a gmeow:Finding's gmeow:findingCode equals exactly one ValidationRule's gmeow:ruleCode. Short and stable across runs; minted by the Rust check that emits it, never derived from the ontology."@x-gmeow-english ;
+    skos:example "ex:ruleRelatorMediation gmeow:ruleCode \"discipline/relator-mediation\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting the human description here (that is the generated skos:definition) and avoid run-varying values; the code is the stable rule key that a finding's gmeow:findingCode matches."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set it to the validator's finding code verbatim so gmeow:findingCode = gmeow:ruleCode is the resolution join; the code also slugifies into the rule's gmeow:ruleHelpUri anchor."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the stable code of an enforced check on its ValidationRule so findings can resolve to their catalog entry by code."@x-gmeow-english .
+
+gmeow:ruleHelpUri
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ValidationRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "rule help URI"@x-gmeow-english ;
+    rdfs:range xsd:anyURI ;
+    skos:definition "The canonical 'learn more' link of an enforced check — the constraint-catalog anchor a reader follows to see what the code enforces, which terms it governs, and the prose it formalizes. It is the rule-level source that a finding projects as gmeow:findingHelpUri (SARIF rule helpUri, LSP codeDescription): the same link, carried once on the standing rule. Deterministically the enforced-constraints catalog page anchored by the code's slug (path/dot separators to hyphens), so a validator finding code and its catalog entry never disagree."@x-gmeow-english ;
+    skos:example "ex:ruleRelatorMediation gmeow:ruleHelpUri \"https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#discipline-relator-mediation\"^^xsd:anyURI ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating the description here (that is skos:definition) and avoid run-varying values; the help URI is the stable, rule-level pointer to the catalog entry, computed from the code's slug."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project it from the shared slugify(code) so it equals the enforced-constraints page anchor for the code; a finding's gmeow:findingHelpUri is projected from the same value."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry an enforced check's stable catalog link on its ValidationRule, the rule-level source of every finding's help URI."@x-gmeow-english .
 
 gmeow:severityError
     a gmeow:DiagnosticSeverity ;
