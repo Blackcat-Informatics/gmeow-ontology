@@ -30,9 +30,8 @@ from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
 from gmeow_tools.config import DIST_DIR
 from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.transform import TransformReport, transform_graph
-from gmeow_tools.up_projection import UpProjection, up_project
+from gmeow_tools.up_projection import UpProjection, up_project, up_project_descend
 from gmeow_tools.up_projection_audit import _canon_qname
-from gmeow_tools.up_projection_descend import up_project_descend
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
