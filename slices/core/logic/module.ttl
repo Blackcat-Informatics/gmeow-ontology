@@ -3804,6 +3804,53 @@ logic:CounterpartNonTransitivityObligation
     logic:obligationDischargeCondition logic:DischargeSyntacticReachability ;
     logic:obligationDischargeVerdict logic:ObligationDischarged .
 
+# ── A worked production formalization candidate (the harvest mechanism, live) ─────
+# The prose→axiom harvest mechanism dogfooded end-to-end on a real, already-enforced
+# axiom: the strict-order asymmetry of logic:properPartOf (typed logic:asymmetricProperty
+# above), harvested from that term's own skos:definition. The candidate carries the
+# harvest back-link (logic:candidateFormalizes → the term, logic:candidateSourceField →
+# which field), so harvest coverage is queryable in both directions over the reasoned
+# graph, and logic:candidateSourceHash is the real content hash of that definition prose
+# (drift-detecting). Accepted through review with a positive/negative case pair.
+
+logic:reviewerLogicFoundation
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic foundation maintainer"@x-gmeow-english ;
+    skos:definition "The reviewer-decision provenance node the logic foundation records against an accepted logic:FormalizationCandidate: an auditable IRI (never a free literal) standing for the maintainer authority that adjudicated the prose-to-axiom promotion, so the reviewer gate is machine-checkable."@x-gmeow-english .
+
+logic:cqProperPartAsymmetryHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf asymmetry holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the properPartOf-asymmetry axiom must satisfy: given logic:properPartOf(a,b), the reasoner must not also hold logic:properPartOf(b,a) — the strict-order reading the harvested prose commits to."@x-gmeow-english .
+
+logic:cqProperPartAsymmetrySymmetricPairRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf symmetric pair is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the properPartOf-asymmetry axiom must respect: a purported model asserting both logic:properPartOf(a,b) and logic:properPartOf(b,a) is a violation, not an admissible model — the boundary the formalization must not cross."@x-gmeow-english .
+
+logic:candidateProperPartOfAsymmetric
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf is asymmetric"@x-gmeow-english ;
+    skos:definition "The worked production formalization candidate that harvests the asymmetry of logic:properPartOf from that term's skos:definition into an enforced strict-order integrity constraint: the keystone demonstration of the prose→axiom harvest mechanism. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqProperPartAsymmetryHolds) and a negative countermodel (logic:cqProperPartAsymmetrySymmetricPairRejected); its harvest back-link (logic:candidateFormalizes logic:properPartOf, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit to the prose surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:properPartOf skos:definition (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "logic:properPartOf asymmetry over the endurant strict-parthood spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqProperPartAsymmetryHolds ;
+    logic:candidateNegativeCase logic:cqProperPartAsymmetrySymmetricPairRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:properPartOf ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
 # ── Closed value class: the eleven formalization categories ──────────────────────
 
 logic:FormalizationCategory
