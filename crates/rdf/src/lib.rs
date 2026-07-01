@@ -38,9 +38,11 @@ pub use gmeow_rdf_core::{
 #[cfg(feature = "gts")]
 pub mod gts;
 // Per-subject Symmetric-CBD subgraph extraction: the subgraph that *describes* a
-// term/slice, used by the docs multi-format export. Pure IR (no codec, no gts), so it
-// is always available.
-pub mod describe;
+// term/slice, used by the docs multi-format export AND by the native engine's DESCRIBE
+// evaluation. It lives in `gmeow-rdf-core` (pure IR, no codec/gts) so both the higher
+// `gmeow-rdf` surface and the lower `gmeow-sparql-eval` engine share one CBD authority;
+// re-exported here for existing `gmeow_rdf::describe::*` callers.
+pub use gmeow_rdf_core::describe;
 #[cfg(feature = "gts")]
 pub mod gts_view;
 // The native RDF text codecs (#909 / EPIC #906 S3): the codec-only `GtsCodecBackend`
