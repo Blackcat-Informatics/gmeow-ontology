@@ -132,8 +132,9 @@ typed subjects) is **held out and reported**, never guessed.
 **Measured non-goal:** typing an *untyped* node from the `rdfs:range` of its
 incoming edge ("path context") was prototyped and resolved **zero** extra edges
 on the real corpus — the untyped nodes' own predicates are mostly gaps, so an
-inferred type buys nothing. It is deliberately not implemented; see the
-`up_projection_descend` module docstring.
+inferred type buys nothing. The context-aware descent it belonged to has since
+been retired: the lawful `put` leg lifts by the alignment alone, so any
+context-descent coverage is honest loss-ledger residue, not a silent guess.
 
 ## Acceptance — the honest, real-data scoreboard
 
