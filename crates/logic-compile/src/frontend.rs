@@ -48,6 +48,8 @@ use super::ir::{
     SemanticProfileId, Term, LOGIC_NAMESPACE,
 };
 
+/// Re-export the CGIF reader alongside CLIF (the conceptual-graph dialect inverse).
+pub use crate::cgif::parse_cgif_str;
 /// Re-export the CLIF reader so the FOL-text inverse sits alongside the other frontend
 /// entry points (`gmeow_logic_compile::frontend::parse_clif_str` resolves, as does the
 /// canonical `gmeow_logic_compile::clif::parse_clif_str`).
