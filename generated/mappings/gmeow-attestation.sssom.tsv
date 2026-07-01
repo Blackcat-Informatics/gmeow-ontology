@@ -35,6 +35,6 @@ gmeow:attestedSubject	skos:closeMatch	vc:credentialSubject	semapv:ManualMappingC
 gmeow:attester	skos:closeMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.7	The attester is the agent to whom the attestation is attributed; directionality differs (attester is a direct property, wasAttributedTo is an annotation/derivation)
 gmeow:attester	skos:closeMatch	vc:issuer	semapv:ManualMappingCuration	0.8	
 gmeow:issuedAt	skos:closeMatch	vc:issuanceDate	semapv:ManualMappingCuration	0.85	
-gmeow:wasAttributedTo	skos:exactMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.95	
-gmeow:wasDerivedFrom	skos:exactMatch	prov:wasDerivedFrom	semapv:ManualMappingCuration	0.95	
-gmeow:wasGeneratedBy	skos:exactMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.95	
+gmeow:wasAttributedTo	skos:closeMatch	prov:wasAttributedTo	semapv:ManualMappingCuration	0.9	
+gmeow:wasDerivedFrom	skos:closeMatch	prov:wasDerivedFrom	semapv:ManualMappingCuration	0.9	
+gmeow:wasGeneratedBy	skos:closeMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.9	
