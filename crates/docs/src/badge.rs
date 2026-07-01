@@ -138,6 +138,18 @@ pub fn coverage_fraction_color(num: usize, den: usize) -> &'static str {
     }
 }
 
+/// The text color paired with a coverage/badge `fill` for WCAG-AA contrast: dark
+/// [`INK`] on the light amber mid, white on the saturated fills. The SINGLE
+/// authority both the badges and the coverage heatmap read, so a heatmap cell and
+/// a badge of the same fill never disagree on legibility.
+pub fn text_color_for(fill: &str) -> &'static str {
+    if fill == C_COMPLETE_MID {
+        INK
+    } else {
+        WHITE
+    }
+}
+
 /// The completeness badge for a coverage score (0..=6).
 fn completeness_badge(present: usize, total: usize) -> Badge {
     let fill = if present <= 2 {
@@ -147,7 +159,7 @@ fn completeness_badge(present: usize, total: usize) -> Badge {
     } else {
         C_COMPLETE_HIGH
     };
-    let text = if fill == C_COMPLETE_MID { INK } else { WHITE };
+    let text = text_color_for(fill);
     Badge {
         family: "completeness",
         value: present.to_string(),
@@ -166,11 +178,7 @@ fn stability_badge(stability: DocTermStability) -> Badge {
         }
         DocTermStability::Deprecated => ("deprecated", "deprecated", C_STABILITY_DEPRECATED),
     };
-    let text = if fill == C_STABILITY_EXPERIMENTAL {
-        INK
-    } else {
-        WHITE
-    };
+    let text = text_color_for(fill);
     Badge {
         family: "stability",
         value: value.to_string(),
