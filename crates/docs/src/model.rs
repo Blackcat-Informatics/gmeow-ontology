@@ -95,7 +95,7 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
 
-// ── Constraint catalog (gmeow:ValidationRule individuals, #751) ─────────────────
+// ── Constraint catalog (gmeow:ValidationRule individuals) ───────────────────────
 /// The class every catalog subject is typed as in
 /// `generated/catalog/constraint-catalog.nq`.
 const GMEOW_VALIDATION_RULE: &str = "https://blackcatinformatics.ca/gmeow/ValidationRule";
@@ -701,7 +701,7 @@ pub struct ReasoningVerdict {
     pub unsatisfiable: std::collections::BTreeSet<String>,
 }
 
-/// One `gmeow:ValidationRule` individual from the constraint catalog (#751): the
+/// One `gmeow:ValidationRule` individual from the constraint catalog: the
 /// human-readable record of a constraint the validator enforces. Read from
 /// `generated/catalog/constraint-catalog.nq` (a committed fixed-point projection
 /// of `gmeow.gts`) and rendered on the "What GMEOW enforces" page, where each

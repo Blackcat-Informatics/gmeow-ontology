@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `constraint-catalog` export leaf (#751): the machine-readable "what GMEOW
+//! The `constraint-catalog` export leaf: the machine-readable "what GMEOW
 //! enforces" surface, generated (never hand-authored) from the validator's rule
 //! registry and the reasoned ontology.
 //!
