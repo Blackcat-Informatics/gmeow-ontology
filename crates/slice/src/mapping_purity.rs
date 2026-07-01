@@ -12,38 +12,32 @@
 //! quantitative axes, standpoint), the foundational bridge, and the cross-vocab
 //! `MappingSet` publication headers (set-level metadata, not linkage).
 //!
-//! This gate enforces the invariant structurally: a `gmeow:TermEquivalence`
-//! subject authored anywhere under `dsl/mappings/` is a linkage restatement in
-//! the wrong place and is a hard ERROR. `gmeow:MappingSet` headers,
-//! `gmeow:ProjectionMapping` enrichment cells, and FnO function bodies are NOT
-//! linkage and are unaffected.
+//! This gate enforces the invariant structurally: any subject *typed*
+//! `gmeow:TermEquivalence` authored anywhere under `dsl/mappings/` is a linkage
+//! restatement in the wrong place and is a hard ERROR. The check parses each
+//! file into the native [`Dataset`] IR and queries `?s rdf:type
+//! gmeow:TermEquivalence` on the resolved type IRI — so it cannot be evaded by a
+//! prefix alias bound to the gmeow namespace (`gm:TermEquivalence`) nor by a
+//! comma-typed list (`x a skos:Concept, gmeow:TermEquivalence`), both of which a
+//! text scan would miss. `gmeow:MappingSet` headers, `gmeow:ProjectionMapping`
+//! enrichment cells, FnO function bodies, and the `gmeow:TermEquivalence` *class
+//! definition* in `vocabulary.ttl` (a subject typed `owl:Class`, not
+//! `TermEquivalence`) are NOT matched and are unaffected.
 //!
 //! Hard-fail, no warning-only (CONSTITUTION / no-optionality). Surfaced as a
 //! `mapping-compile.dsl-linkage-purity` [`ProjectionDiagnostic`] and enforced in
 //! the `mappings` stage so `regenerate` / `check-generated` / `make check` all
-//! reject a stray linkage cell.
+//! reject a stray linkage cell. A file that fails to parse is a hard error, not a
+//! silently-skipped source.
 
 use std::path::{Path, PathBuf};
 
-use regex::Regex;
-
 use crate::diagnostics::ProjectionDiagnostic;
 use crate::error::SliceError;
+use crate::rdf_query::Dataset;
 
-/// A `gmeow:TermEquivalence` type assertion in either CURIE or full-IRI form,
-/// as the object of an `a` / `rdf:type` predicate. The authoring convention is
-/// `gmeow:eqX a gmeow:TermEquivalence ;`, but the full-IRI and `rdf:type` forms
-/// are matched too so the gate cannot be evaded by spelling.
-fn term_equivalence_re() -> Regex {
-    // The object is delimited two ways: the CURIE by a following non-word char or
-    // line end (so `gmeow:TermEquivalenceFoo` does not match — the `regex` crate has
-    // no look-around, so the boundary char is consumed, which is fine for counting);
-    // the full IRI by its closing `>`.
-    Regex::new(
-        r"(?m)(?:\ba\b|rdf:type|<http://www\.w3\.org/1999/02/22-rdf-syntax-ns#type>)\s+(?:gmeow:TermEquivalence(?:[^A-Za-z0-9_]|$)|<https://blackcatinformatics\.ca/gmeow/TermEquivalence>)",
-    )
-    .expect("static gmeow:TermEquivalence type-assertion regex")
-}
+/// The `gmeow:TermEquivalence` class IRI — the alignment-linkage cell type.
+const GM_TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
 
 /// Recursively collect `.ttl` files under `dir` (a missing root yields nothing;
 /// a transient FS error surfaces — no silent drop).
@@ -76,23 +70,26 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceError> {
 /// Returns [`SliceError`] on a filesystem error reading the scanned tree (a
 /// missing `dsl/mappings/` is not an error — it simply contributes no sources).
 pub fn lint_dsl_mapping_purity(root: &Path) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
-    let re = term_equivalence_re();
     let mut files: Vec<PathBuf> = Vec::new();
     collect_ttl(&root.join("dsl").join("mappings"), &mut files)?;
     files.sort();
 
     let mut diagnostics: Vec<ProjectionDiagnostic> = Vec::new();
     for file in &files {
-        let text = std::fs::read_to_string(file)?;
-        let count = re.find_iter(&text).count();
-        if count == 0 {
-            continue;
-        }
         let rel = file
             .strip_prefix(root)
             .unwrap_or(file)
             .to_string_lossy()
             .into_owned();
+        // Parse structurally: a subject *typed* gmeow:TermEquivalence is a linkage
+        // cell regardless of prefix alias or comma-typed list. A parse failure is a
+        // hard error, never a silently-skipped file.
+        let bytes = std::fs::read(file)?;
+        let dataset = Dataset::parse_turtle(&bytes, &rel)?;
+        let count = dataset.subject_terms_of_type(GM_TERM_EQUIVALENCE)?.len();
+        if count == 0 {
+            continue;
+        }
         diagnostics.push(ProjectionDiagnostic {
             severity: "ERROR".to_owned(),
             check: "dsl-linkage-purity".to_owned(),
@@ -172,6 +169,44 @@ mod tests {
             found.len(),
             2,
             "both stray-cell spellings must red: {found:#?}"
+        );
+        assert!(found.iter().all(|d| d.check == "dsl-linkage-purity"));
+
+        std::fs::remove_dir_all(&tmp).ok();
+    }
+
+    /// The structural parse defeats the two evasions a text scan would miss: a
+    /// prefix alias bound to the gmeow namespace, and a comma-typed type list.
+    #[test]
+    fn catches_prefix_alias_and_comma_typed_list_evasions() {
+        let tmp = std::env::temp_dir().join(format!(
+            "gmeow-purity-evasion-{}-{}",
+            std::process::id(),
+            line!()
+        ));
+        std::fs::remove_dir_all(&tmp).ok();
+        let dir = tmp.join("dsl").join("mappings");
+        std::fs::create_dir_all(&dir).expect("mkdir");
+
+        // Evasion 1: a non-canonical CURIE alias bound to the gmeow namespace.
+        // The literal token `gmeow:TermEquivalence` never appears, yet the subject
+        // is unambiguously typed as the linkage class.
+        let aliased = "@prefix gm: <https://blackcatinformatics.ca/gmeow/> .\n\
+             gm:eq1 a gm:TermEquivalence ; gm:alignSubject gm:Foo .\n";
+        std::fs::write(dir.join("aliased.ttl"), aliased).expect("write aliased");
+
+        // Evasion 2: a comma-typed list — `TermEquivalence` is not the token right
+        // after `a`, so a text scan anchored on `a <type>` misses it.
+        let comma_list = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+             gmeow:eq2 a skos:Concept, gmeow:TermEquivalence ; gmeow:alignSubject gmeow:Bar .\n";
+        std::fs::write(dir.join("comma-list.ttl"), comma_list).expect("write comma-list");
+
+        let found = lint_dsl_mapping_purity(&tmp).expect("scan");
+        assert_eq!(
+            found.len(),
+            2,
+            "both the aliased-prefix and comma-typed-list evasions must red: {found:#?}"
         );
         assert!(found.iter().all(|d| d.check == "dsl-linkage-purity"));
 
