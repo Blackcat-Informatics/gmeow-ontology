@@ -27,6 +27,8 @@
 
 use std::fmt;
 
+use gmeow_logic_compile::opt_lift::{OptConstraintIr, OptConstraintKind, OptInterval};
+
 /// A parsed `C_DV_QUANTITY` magnitude interval, read verbatim from an OPT.
 #[derive(Debug, Clone, PartialEq)]
 pub struct MagnitudeInterval {
@@ -234,6 +236,36 @@ pub fn lower_magnitude_to_shacl_ttl(
         lower = format_bound(interval.lower),
         upper = format_bound(interval.upper),
     )
+}
+
+/// Reads a `C_DV_QUANTITY` constraint for `node_id` and packages it as the pure,
+/// crate-agnostic [`OptConstraintIr`] the `logic:` lift consumes. Reuses the hard-fail
+/// fixed-path descent of [`read_magnitude_interval`]; `magnitude_path`/`units_path` are the
+/// domain predicates the lifted shape constrains.
+pub fn read_opt_quantity_constraint(
+    opt_xml: &str,
+    node_id: &str,
+    shape_iri: &str,
+    target_class: &str,
+    magnitude_path: &str,
+    units_path: &str,
+) -> Result<OptConstraintIr, OptError> {
+    let m = read_magnitude_interval(opt_xml, node_id)?;
+    Ok(OptConstraintIr {
+        shape_iri: shape_iri.to_owned(),
+        target_class: target_class.to_owned(),
+        kind: OptConstraintKind::Quantity {
+            magnitude_path: magnitude_path.to_owned(),
+            interval: OptInterval {
+                lower: Some(m.lower),
+                upper: Some(m.upper),
+                lower_included: m.lower_included,
+                upper_included: m.upper_included,
+            },
+            units_path: units_path.to_owned(),
+            units: m.units,
+        },
+    })
 }
 
 #[cfg(test)]

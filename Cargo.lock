@@ -1959,6 +1959,7 @@ version = "0.1.0"
 dependencies = [
  "criterion",
  "gmeow-gts",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "gmeow-slice",
  "gmeow-sparql-algebra",
