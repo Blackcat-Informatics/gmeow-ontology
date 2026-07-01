@@ -100,5 +100,10 @@
       "actual: ground axiom <https://example.org/foundation/relcomp-under-mediated/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Spouse1> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
     ],
     "preservation": "SoundUnderApproximation"
+  },
+  "xcl": {
+    "complexity": "full first-order (semi-decidable)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
   }
 }

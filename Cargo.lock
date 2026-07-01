@@ -1799,6 +1799,7 @@ dependencies = [
  "gmeow-rdf",
  "gmeow-sparql-algebra",
  "insta",
+ "roxmltree",
  "serde",
  "serde_json",
  "sha2",

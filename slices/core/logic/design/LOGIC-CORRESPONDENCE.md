@@ -44,8 +44,9 @@ projection of `logic:`, peer to the OWL/Datalog/gUFO projections, never a second
 The current mapping DSL (`dsl/mappings/`) is a useful first inversion (one source → four artifacts)
 but stops one level too shallow: it is "a spec layer never reasoned over," so it cannot say *what kind*
 of correspondence a mapping is, it collapses the distinct quantitative axes into one
-`gmeow:confidence`, and it authors down- and up-projection apart (the up-projection is an independent
-SSSOM-reading heuristic, `crates/pipeline/src/up_projection.rs`). Folding correspondence into the IR
+`gmeow:confidence`, and it authors down- and up-projection apart (the up-projection was an independent
+SSSOM-reading heuristic authored separately from the down CONSTRUCT — now retired in favour of the
+derived `put` leg executed natively by `crates/pipeline/src/put_executor.rs`). Folding correspondence into the IR
 makes it **reasoned over**, **content-addressed**, and **governed by the loss ledger**.
 
 ## The ninth node kind
