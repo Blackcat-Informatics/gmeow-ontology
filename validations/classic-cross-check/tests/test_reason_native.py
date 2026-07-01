@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Native-reasoning **report-wrapper** tests (`gmeow_tools.reason`, #665 / #695).
+"""Native-reasoning **report-wrapper** tests (`gmeow_tools.reason`).
 
 What remains here is the thin Python orchestration layer `gmeow_tools.reason`
 exercises that genuinely belongs to Python — discovering verify-query files,
@@ -12,9 +12,8 @@ the normal `make check` `reason` and `verify` targets.
 The engine-direct tests that used to live here — the `gmeow_logic.reason_native`
 result structure, the `gmeow_logic.verify_native` violation path, the three
 `reason_native_artifacts` structural-token checks, and the byte-regenerable
-artifact pin — were migrated to / subsumed by their native Rust twins under issue
-#896 (the python lane no longer pays those full-bundle chases). Their coverage now
-lives in:
+artifact pin — were migrated to / subsumed by their native Rust twins (the python
+lane no longer pays those full-bundle chases). Their coverage now lives in:
 
 * `crates/logic/src/reason/mod.rs` — `reason_all` (consistency + non-empty closure)
 * `crates/logic/src/verify.rs` — `violating_query_yields_error_finding_with_detail`
@@ -136,7 +135,7 @@ class TestReasonNativePipeline:
 
 
 class TestVerifyNative:
-    """``reason.verify_native`` — native reasoned-graph verify (#695)."""
+    """``reason.verify_native`` — native reasoned-graph verify."""
 
     def test_clean_report_discovers_queries_and_writes_artifacts(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path

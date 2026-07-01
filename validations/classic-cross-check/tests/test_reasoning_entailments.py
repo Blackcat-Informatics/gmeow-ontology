@@ -1,15 +1,15 @@
-"""Reasoning-case orchestration tests for the axiomatized doctrine (#38).
+"""Reasoning-case orchestration tests for the axiomatized doctrine.
 
 The POSITIVE OWL 2 RL entailment tests that used to live here — derived ancestry,
 location-through-containment, sub-organization transitivity, ProximityMeasurement
 survival — were migrated to the native Rust reasoning harness
-(``crates/logic/tests/ontology_entailments.rs``) under issue #896: the EL/DL/RL
+(``crates/logic/tests/ontology_entailments.rs``): the EL/DL/RL
 chase now runs once, scoped and Docker-free, in Rust instead of rebuilding a
 reasoned rdflib graph per pytest. See ``dsl/tests/MIGRATION-LEDGER.md``.
 
 What remains here is the **reasoning-case orchestration** layer: the live
 HermiT/ROBOT inconsistency and fixture-coherence cases run through a dev-only
-oracle module (``gmeow_tools.oracles.reasoning_cases``) so Make/CI can schedule
+oracle module (``oracles.reasoning_cases``) so Make/CI can schedule
 Docker outside pytest. These tests exercise that Python orchestration (call
 order, monkeypatched reasoner) — an independent live Python impl with no Rust
 twin, so they are retained-with-reason rather than migrated.
@@ -20,7 +20,7 @@ from __future__ import annotations
 import pytest
 from gmeow_rdf.compat.rdflib import RDF, Graph
 
-from gmeow_tools.oracles import reasoning_cases
+from oracles import reasoning_cases
 
 
 def test_two_axis_case_expects_inconsistency(

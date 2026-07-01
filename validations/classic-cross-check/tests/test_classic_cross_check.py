@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tests for the enforced native↔oracle divergence cross-check (#666, Task 4).
+"""Tests for the enforced native↔oracle divergence cross-check (Task 4).
 
 These tests are Docker-free: they exercise the authoritative Rust comparator
 (``gmeow_logic.build_divergence_ledger``), the enforcement verdict, and the SARIF
@@ -15,7 +15,7 @@ import json
 import gmeow_logic
 import pytest
 
-from gmeow_tools.oracles import classic_cross_check as crosscheck
+from oracles import classic_cross_check as crosscheck
 
 CROSSCHECK_WORLD = crosscheck.CROSSCHECK_WORLD
 
