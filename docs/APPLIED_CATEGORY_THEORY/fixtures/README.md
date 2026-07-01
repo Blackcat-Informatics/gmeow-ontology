@@ -13,35 +13,59 @@ These artifacts ground the data-axis and process-axis use cases
 |---|---|---|
 | `blood_pressure.source.json` | the unmodified openEHR `Blutdruck` COMPOSITION (RM instance) | **vendored** from [Genkidata](https://github.com/Berlin-Institute-of-Health/Genkidata) `compositions/blood_pressure.json`, © Berlin Institute of Health, **Apache-2.0** (see *Attribution*) |
 | `blood_pressure.complement.ttl` | the GMEOW in-band complement (`S ∖ im(get)`) | GMEOW (CC-BY-4.0) |
-| `blood_pressure.augmented.json` | `⟨ openEHR file ⊕ gmeow complement ⟩` — the down-projection artifact `d(g)`; the complement rides in `feeder_audit.original_content` (DV_PARSABLE, `text/turtle`) + a COMPOSITION `LINK` | derived (source Apache-2.0 + GMEOW complement CC-BY-4.0) |
+| `blood_pressure.source.ttl` | the reconstructed canonical GMEOW source `S` = the complement ∪ the two asserted `gmeow:measuredValue` leaves re-lifted from the RM slice; the golden for `u(d(S)) = S` | GMEOW (CC-BY-4.0) |
+| `blood_pressure.augmented.json` | `⟨ openEHR file ⊕ gmeow complement ⟩` — the down-projection artifact `d(g)`; the complement rides in `feeder_audit.original_content` (DV_PARSABLE, `text/turtle`) + a COMPOSITION `LINK` whose `DV_EHR_URI` target uses the `ehr` scheme (see *The empirical slot test*) | derived (source Apache-2.0 + GMEOW complement CC-BY-4.0) |
 | `rchops21.plan.ttl` | RCHOPS21 chemotherapy as a GMEOW `logic:Plan` | GMEOW (CC-BY-4.0) rendering derived from openEHR PROC 1.6.0; openEHR DLM **not** vendored (cited only) |
 
-## The empirical slot test (the part to run against the validator zoo)
+## Executable proofs (in GMEOW's gate)
+
+The round trip is proven two ways inside `make check` — no external tooling required:
+
+- **Structural** — the conformance case
+  `conformance/logic/cases/correspondence/openehr-bloodpressure-section-retraction/` authors the
+  YAMATO canonical graph + a `logic:Correspondence` (`SectionRetraction`, mnemomorphic) whose
+  `gmeow:SeqPath` get-leg encodes the `archetype_node_id` path witness; the round-trip +
+  mnemomorphism gates pass (`expected/correspondence-gates.json`). This confirms the witness
+  *resolves* and its auto-derived inverse is *well-formed* — the data recovery itself is the next
+  proof.
+- **Data** — `crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs` reads the *real*
+  fixtures and actually reconstructs `S`: the RM systolic/diastolic `DV_QUANTITY` + FHIR lineage are
+  byte-preserved between `source` and `augmented` (`d` is additive), and `u` re-lifts each
+  `DV_QUANTITY` through the complement's `gmeow:rmPath` witness (`at0004`/`at0005`), unions the
+  minted `gmeow:measuredValue` leaves with the parsed complement, and asserts the canonicalization
+  equals the golden `blood_pressure.source.ttl`. Because the leaves are read from the RM slice at
+  test time, corrupting an RM magnitude fails the test — this is the `u∘d=id` proof, not a
+  copy-equality check. (A separate assertion confirms the embedded complement canonicalizes equal to
+  `blood_pressure.complement.ttl`, i.e. the carrier survives the RDF-1.2 parser byte-losslessly.)
+- **ADL fidelity** — `crates/shacl/src/openehr_opt.rs` reads the systolic/diastolic `C_DV_QUANTITY`
+  `magnitude` block straight out of the vendored `Blutdruck.opt` and lowers the half-open
+  `[0, 1000)` mm[Hg] to `sh:minInclusive` + `sh:maxExclusive` (never `sh:maxInclusive`);
+  `crates/shacl/tests/bloodpressure_halfopen.rs` drives that reader and asserts `value == hi` is
+  rejected. Flipping the OPT's `upper_included` to `true` fails the test — boundary inclusivity is
+  read from the OPT, not hand-transcribed. (Only the magnitude-interval slice is lowered; the
+  general OPT→SHACL constraint lowering is a separate roadmap capability.)
+
+## The empirical slot test (the validator-zoo lane)
 
 `take1.md` §13.4-Q1 / §17 asks whether the in-band complement is **validation-transparent**: does
 `blood_pressure.augmented.json` still validate under `Blutdruck.opt`, exactly as
-`blood_pressure.source.json` does? The artifact is built so this is a single probe. The spec-level
-prediction is **PASS** (the complement rides in RM-level `feeder_audit`/`links`, which the OPT does
-not constrain — OPTs constrain archetyped *content*, not the audit envelope). To confirm
-empirically against real tooling (requires Java / a running CDR — not in GMEOW's Docker-free gate):
+`blood_pressure.source.json` does? This is the external, empirical half — it needs an openEHR CDR or
+the Archie Java library, outside GMEOW's Docker-free gate — so it lives in the standalone lane
+[`validations/openehr-bloodpressure/`](../../../validations/openehr-bloodpressure/) (vendored
+`Blutdruck.opt` + an EHRbase Docker probe). Run it with `make -C validations/openehr-bloodpressure`.
 
-```sh
-# Option A — EHRbase (a running openEHR CDR): upload the OPT, then both compositions.
-#   POST /rest/openehr/v1/definition/template/adl1.4   (Blutdruck.opt)
-#   POST /rest/openehr/v1/ehr/{ehr_id}/composition      (each .json)   → expect 204/201 for BOTH
-#
-# Option B — Archie (org.openehr:archie) RM/template validation in a tiny Java/Kotlin harness:
-#   load Blutdruck.opt → build the in-memory template → validate(parse(<file>))
-#   expect zero errors for BOTH source and augmented.
-#
-# PASS  ⇒ "perfectly replace openEHR" holds for openEHR-EHR-OBSERVATION.blood_pressure.v2.
-# FAIL  ⇒ the rejecting field is the exact, nameable boundary of GMEOW's subsumption (record it).
-```
+**Result: PASS (observed via the lane, not CI)** — running the lane against the pinned EHRbase image
+(`ehrbase/ehrbase:2.15.0`) has both `source` and `augmented` validate under the real `Blutdruck.opt`
+(`POST …/ehr/{id}/composition` → 201 for both). This is reproducible on demand via
+`make -C validations/openehr-bloodpressure`; it is not re-run by `make check`/CI, so re-run the lane
+to confirm rather than trusting this line. On that evidence, "perfectly replace openEHR" holds for
+`openEHR-EHR-OBSERVATION.blood_pressure.v2`.
 
-Then verify the round trip `u(d(g)) = g`: parse `blood_pressure.augmented.json`, read the RM slice
-**and** the `feeder_audit.original_content` Turtle, and confirm the reconstructed GMEOW graph is
-canonical-IR-identical to `blood_pressure.complement.ttl` ⊕ the RM-derived facts (the Round-trip
-gate, `take1.md` §15.3).
+The probe also corrected one real openEHR RM-invariant defect the by-hand `links` analysis missed:
+a COMPOSITION `LINK.target` is typed `DV_EHR_URI`, whose `Scheme_valid` invariant requires the `ehr`
+URI scheme — so the complement-pointer `LINK` must use `ehr://…`, not a bare `urn:`. The bulk
+complement carrier (`feeder_audit.original_content`, a `DV_PARSABLE`) is RM-level and OPT-transparent
+and was never the obstacle; only the redundant coreference `LINK` needed the valid scheme.
 
 ## Attribution (Apache-2.0, Genkidata)
 
