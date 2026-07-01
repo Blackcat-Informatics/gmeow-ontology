@@ -39,6 +39,18 @@ test("the VENDORED engine evaluates a SPARQL SELECT", () => {
   assert.deepEqual(names, ["Ann", "Bob"]);
 });
 
+test("the VENDORED engine evaluates a SPARQL DESCRIBE", () => {
+  // The docs per-term/per-slice export links are DESCRIBE-based, so a DESCRIBE
+  // regression would break the exported playground flow while SELECT still worked.
+  const ds = Dataset.parse(
+    '@prefix ex: <https://e/> . ex:a ex:name "Ann" . ex:a ex:knows ex:b .',
+    "turtle",
+  );
+  const ttl = ds.query("PREFIX ex: <https://e/> DESCRIBE ex:a");
+  const back = Dataset.parse(ttl, "turtle");
+  assert.ok(back.size > 0, "DESCRIBE returns a non-empty graph");
+});
+
 test("the VENDORED engine hard-fails a malformed query", () => {
   const ds = Dataset.parse("<https://e/s> <https://e/p> <https://e/o> .", "ntriples");
   assert.throws(() => ds.query("SELECT ?x WHERE { not sparql"));
