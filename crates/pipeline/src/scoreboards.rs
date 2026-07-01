@@ -554,23 +554,62 @@ fn draft_gates(
     Ok((gates, store_len(&output_store)?))
 }
 
+/// The corpus-wide context shared by every source file in one acceptance run: the ontology
+/// N-Triples, the language tag maps, and the ONCE-derived gate-verified put-leg program. Building
+/// this once (rather than re-reading SSSOM/projection TTLs and re-running the correspondence gates
+/// per file) is the GAP 5 fix — the gate machinery is corpus-independent, so it need not re-run
+/// per source file.
+struct AcceptanceContext {
+    ontology_nt: String,
+    tag_map: HashMap<String, String>,
+    inverse_tag_map: HashMap<String, String>,
+    put_program: put_executor::PutLegProgram,
+}
+
+impl AcceptanceContext {
+    fn load(root: &Path) -> Result<Self, String> {
+        let ontology_nt = ontology_nt(root)?;
+        let tag_map = gmeow_validate::language_tags::load_tag_map(ontology_nt.as_bytes(), "nt")?;
+        let inverse_tag_map = invert_tag_map(&tag_map);
+        let sssom_texts = sssom_texts(root)?;
+        let projection_ttls = projection_ttls(root)?;
+        let put_program =
+            put_executor::PutLegProgram::derive(&sssom_texts, &projection_ttls, &ontology_nt)?;
+        Ok(Self {
+            ontology_nt,
+            tag_map,
+            inverse_tag_map,
+            put_program,
+        })
+    }
+}
+
 pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileAcceptance, String> {
+    let ctx = AcceptanceContext::load(root)?;
+    run_acceptance_with(root, source, descend, &ctx)
+}
+
+/// Run acceptance for one source file against a pre-loaded corpus context (ontology + gate-verified
+/// put-leg program derived once). The per-file hot path.
+fn run_acceptance_with(
+    root: &Path,
+    source: &Path,
+    descend: bool,
+    ctx: &AcceptanceContext,
+) -> Result<FileAcceptance, String> {
     let source_store = dataset_from_files(&[source.to_path_buf()])?;
     let source_nt =
         dump_ds_to_nt(&source_store).map_err(|e| format!("serialize source graph: {e}"))?;
-    let ontology_nt = ontology_nt(root)?;
-    let tag_map = gmeow_validate::language_tags::load_tag_map(ontology_nt.as_bytes(), "nt")?;
-    let inverse_tag_map = invert_tag_map(&tag_map);
-    let sssom_texts = sssom_texts(root)?;
-    let projection_ttls = projection_ttls(root)?;
+    let ontology_nt = &ctx.ontology_nt;
+    let tag_map = &ctx.tag_map;
+    let inverse_tag_map = &ctx.inverse_tag_map;
 
     // The lawful native put-leg executor is the sole draft source. The retired
     // heuristic engine had a `descend` context-resolution mode; the lawful put leg has
     // no such mode — context-descent is dropped heuristic residue — so the flag is
     // inert here and retained only for CLI signature stability.
     let _ = descend;
-    let executor =
-        put_executor::execute_put_legs(&source_nt, &sssom_texts, &projection_ttls, &ontology_nt)?;
+    let executor = put_executor::execute_put_legs_with(&source_nt, &ctx.put_program)?;
     if executor.graph_nt.trim().is_empty() {
         return Err(format!(
             "transpile: nothing lifted to GMEOW from {} — empty draft",
@@ -583,9 +622,9 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
     let (mut gates, output_triples) = draft_gates(
         root,
         &source_store,
-        &ontology_nt,
-        &tag_map,
-        &inverse_tag_map,
+        ontology_nt,
+        tag_map,
+        inverse_tag_map,
         &executor.graph_nt,
         executor.lifted,
         executor.gap_terms.len(),
@@ -619,9 +658,12 @@ pub fn run_acceptance_corpus(
     if sources.is_empty() {
         return Err("no source given and no external/ snapshots found".to_owned());
     }
+    // Derive the corpus-independent context (ontology + gate-verified put-leg program) ONCE, then
+    // apply it to every source file — the gate machinery is not re-run per file (GAP 5).
+    let ctx = AcceptanceContext::load(root)?;
     sources
         .iter()
-        .map(|path| run_acceptance(root, path, descend))
+        .map(|path| run_acceptance_with(root, path, descend, &ctx))
         .collect()
 }
 

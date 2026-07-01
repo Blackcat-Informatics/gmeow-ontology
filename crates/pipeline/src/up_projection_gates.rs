@@ -54,7 +54,9 @@ use gmeow_logic_compile::projections::correspondence_gates::{
 };
 
 use crate::up_projection_corpus::{
-    canon_qname, edoalpath_pairs, prefix, run_audit_nt, AuditReport,
+    canon_qname, combined_class, edoalpath_pairs, prefix, run_audit_nt, sssom_best_buckets_pub,
+    sssom_clean_pairs, sssom_closematch_pairs, structural_best_classes_pub, structural_pairs,
+    AuditReport,
 };
 
 /// The `logic:` namespace the minted audit-correspondence and leg IRIs live under.
@@ -432,6 +434,355 @@ pub(crate) fn ledger_from_audit(
         per_vocab,
         gaps: audit.gaps.clone(),
     })
+}
+
+// --------------------------------------------------------------------------- //
+// The gate-verified lift program — the single source of truth the executor lifts.
+// --------------------------------------------------------------------------- //
+
+/// The orientation of a gate-verified lift, single-sourced from the shared
+/// [`TermShape`] the gate classifies (`shape.legs` distinguishes the two).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Orientation {
+    /// A forward rename: source `?s <ext> ?o` lifts to `?s <gmeow> ?o` (a `LegPath::Step`).
+    Direct,
+    /// An inverse rename: source `?s <ext> ?o` lifts to `?o <gmeow> ?s`
+    /// (a `LegPath::Inverse(Step)` put-leg body).
+    Inverse,
+}
+
+/// Whether a gate-verified lift lands as a plain FACT (a crisp `Equiv` rename) or a lossy
+/// reified CLAIM cell (an `Overlaps` / vague / close-match generalization).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum LiftKind {
+    /// A crisp rename asserted as a fact.
+    Fact,
+    /// A lossy lift disclosed as a `gm:StatementMetadata` claim cell, with its confidence lexeme.
+    Claim {
+        /// The decimal confidence lexeme (may be empty for a structural/close-match with none).
+        confidence: String,
+    },
+}
+
+/// One gate-verified lift rule for one external-vocabulary term: the gmeow target it lifts to,
+/// the single-sourced orientation, and whether it lands as a fact or a reified claim. Only
+/// terms whose gate tier is `proved` or `claimed` ever appear here — a `red_excluded`
+/// (non-inverting) or `unsupported` term is dropped, exactly as the audit ledger drops it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LiftRule {
+    /// The gmeow target IRI (predicate or class).
+    pub gmeow: String,
+    /// The orientation, taken from the shared gate classification.
+    pub orientation: Orientation,
+    /// Fact vs reified claim, taken from the shared correspondence relation.
+    pub kind: LiftKind,
+}
+
+/// The gate-verified lift program the executor consumes: the per-term lift rules (keyed by the
+/// external-vocabulary term IRI) that survive the correspondence gates, plus the honest residue
+/// counts (ambiguous multi-candidate targets and gate-excluded non-inverting terms) so nothing
+/// is dropped silently.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct LiftProgram {
+    /// external term IRI → the single gate-verified lift rule for it.
+    pub rules: BTreeMap<String, LiftRule>,
+    /// Count of terms with multiple candidate gmeow targets, dropped rather than guessed.
+    pub ambiguous_dropped: usize,
+    /// Count of terms the correspondence gate RED-excluded (a reverse path that does not invert
+    /// its forward path); surfaced as residue, never silently lifted as a fact.
+    pub gate_excluded: usize,
+}
+
+/// A candidate lift for one external term, resolved from the projection/SSSOM pairs *before*
+/// the gate decides whether it is lawful. `gmeow` is the single unique target (multi-candidate
+/// terms are recorded as `ambiguous` and never become a candidate).
+struct CandidateLift {
+    gmeow: String,
+    confidence: Option<String>,
+}
+
+/// Build the **gate-verified lift program**: the single authority for which external terms the
+/// executor lifts, their orientation, and their gmeow target. Every candidate term (resolved
+/// from the SSSOM/EDOAL/structural pairs) is classified through the SAME
+/// [`evidence_for`]/[`classify_term`] + correspondence-gate path the audit ledger uses, and only
+/// the gate-surviving (`proved` + `claimed`) terms are kept. A term whose reverse EDOAL path does
+/// not invert its forward path is RED-excluded here exactly as the ledger red-excludes it, so the
+/// executor can never lift a non-invertible term the audit certifies as unlawful.
+///
+/// Corpus-independent: the tier depends only on the term's bucket and its EDOAL direct/inverse
+/// paths, so the program is derived ONCE and applied to every source file (no per-file recompute).
+pub fn gate_verified_lift_program(
+    sssom_texts: &[String],
+    projection_ttls: &[String],
+) -> Result<LiftProgram, String> {
+    // The buckets + EDOAL paths that define each term's gate tier (corpus-independent), keyed by
+    // full target IRI — the SAME inputs the audit's `combined_class` / `unique_qname_map` read.
+    let sssom_buckets = sssom_best_buckets_pub(sssom_texts)?;
+    let structural = structural_best_classes_pub(projection_ttls)?;
+    let (direct_edoal, inverse_edoal) = edoalpath_pairs(projection_ttls)?;
+    let direct_one = unique_iri_map(&direct_edoal);
+    let inverse_one = unique_iri_map(&inverse_edoal);
+
+    // The candidate targets — the SAME resolution the retired ungated map used, but now only a
+    // source of the gmeow target / confidence; the tier + orientation are decided by the gate.
+    let (direct_candidates, inverse_candidates, claim_candidates, ambiguous_dropped) =
+        candidate_lifts(sssom_texts, projection_ttls, &direct_edoal, &inverse_edoal)?;
+
+    // Every term that has any candidate lift is put through the gate; the shared classification
+    // decides the tier (drop red_excluded/unsupported) AND the orientation (direct vs inverse).
+    let mut terms: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    terms.extend(direct_candidates.keys().cloned());
+    terms.extend(inverse_candidates.keys().cloned());
+    terms.extend(claim_candidates.keys().cloned());
+
+    let mut rules: BTreeMap<String, LiftRule> = BTreeMap::new();
+    let mut gate_excluded = 0usize;
+    for term in terms {
+        let bucket = combined_class(&term, &sssom_buckets, &structural);
+        let evidence = evidence_for(
+            &bucket,
+            direct_one.get(&term).map(String::as_str),
+            inverse_one.get(&term).map(String::as_str),
+        );
+        let Some(shape) = classify_term(&evidence) else {
+            // Unsupported bucket: no lift rule at all (matches the audit's unsupported tier).
+            continue;
+        };
+        // Run this one term's correspondence through the SAME gates the ledger uses. A term whose
+        // reverse path does not invert its forward path REDs the round-trip gate → excluded.
+        let tier = gate_tier_for(&term, &shape)?;
+        match tier {
+            Tier::RedExcluded => {
+                gate_excluded += 1;
+                continue;
+            }
+            Tier::Proved | Tier::Claimed => {}
+        }
+        // Resolve the surviving term's target, orientation, AND fact-vs-claim from the candidate
+        // maps — the SAME `=`/`<=`/closeMatch relation substrate the audit buckets read. A crisp
+        // rename (SSSOM exact / `=` structural / direct EDOAL) is a FACT; a generalizing (`<=`) or
+        // closeMatch candidate is a lossy reified CLAIM. Orientation follows the EDOAL anchor
+        // (subject-anchored = direct; object-anchored = inverse). The gate tier above has already
+        // decided survival; this only shapes the surviving rule. (Crisp candidates take precedence
+        // over claim candidates, exactly as `candidate_lifts` resolves them.)
+        let rule = if let Some(c) = direct_candidates.get(&term) {
+            LiftRule {
+                gmeow: c.gmeow.clone(),
+                orientation: Orientation::Direct,
+                kind: LiftKind::Fact,
+            }
+        } else if let Some(c) = inverse_candidates.get(&term) {
+            LiftRule {
+                gmeow: c.gmeow.clone(),
+                orientation: Orientation::Inverse,
+                kind: LiftKind::Fact,
+            }
+        } else if let Some(c) = claim_candidates.get(&term) {
+            LiftRule {
+                gmeow: c.gmeow.clone(),
+                // A claim rides the predicate position of the source triple (direct shape); the
+                // lossy relation is carried by the reified cell, not by an inverted put-leg.
+                orientation: Orientation::Direct,
+                kind: LiftKind::Claim {
+                    confidence: c.confidence.clone().unwrap_or_default(),
+                },
+            }
+        } else {
+            // No target resolved for this gate-surviving term (all candidates were ambiguous):
+            // it stays residue, never lifted.
+            continue;
+        };
+        rules.insert(term, rule);
+    }
+
+    Ok(LiftProgram {
+        rules,
+        ambiguous_dropped,
+        gate_excluded,
+    })
+}
+
+/// The gate tier for a single term's correspondence shape, computed through the EXACT gate
+/// machinery the audit ledger uses ([`classify_term`] → [`CorrespondenceProgram::with_derived_puts`]
+/// → [`evaluate_gates`] → [`tier_of`]). This is the single classification; the producer never
+/// re-implements a second copy of the direct/inverse orientation-and-inversion logic.
+fn gate_tier_for(term: &str, shape: &TermShape) -> Result<Tier, String> {
+    let corr_iri = format!("{LOGIC_NS}up-projection-lift/{}", slug(term));
+    let (get_leg, put_leg, legs) = match &shape.legs {
+        Some((direct, inverse)) => {
+            let get_iri = format!("{corr_iri}/get");
+            let put_iri = format!("{corr_iri}/put");
+            let legs = vec![
+                TransactionProgramIr {
+                    iri: get_iri.clone(),
+                    body: LegPath::Step(direct.clone()),
+                },
+                TransactionProgramIr {
+                    iri: put_iri.clone(),
+                    body: LegPath::Inverse(Box::new(LegPath::Step(inverse.clone()))),
+                },
+            ];
+            (Some(get_iri), Some(put_iri), legs)
+        }
+        None => (None, None, Vec::new()),
+    };
+    let determinacy = match shape.relation {
+        CorrespondenceRelation::Overlaps => Some(Determinacy::Vague),
+        _ => Some(Determinacy::Crisp),
+    };
+    let correspondence = Correspondence::new(
+        corr_iri,
+        shape.relation,
+        shape.class,
+        shape.kind,
+        shape.mnemomorphic,
+        determinacy,
+        get_leg,
+        put_leg,
+        shape.laws.clone(),
+        None,
+        None,
+        None,
+        None,
+        None,
+    )
+    .map_err(|e| format!("gate-verified lift correspondence for {term} is malformed: {e}"))?;
+    let program = CorrespondenceProgram::new(
+        vec![correspondence],
+        Vec::new(),
+        PreservationKind::SoundUnder,
+    )
+    .with_leg_programs(legs);
+    let (gated, _outcomes) = program.with_derived_puts()?;
+    let report = evaluate_gates(&gated, &[]);
+    let r = report
+        .per_correspondence
+        .first()
+        .ok_or_else(|| format!("gate report empty for {term}"))?;
+    Ok(tier_of(r))
+}
+
+/// Resolve the candidate gmeow target for each external term from the SSSOM/EDOAL/structural
+/// pairs — a unique-target-wins resolution (the retired executor's `build_lawful_rules` logic,
+/// now confined to *target resolution* only; the tier and orientation are the gate's job).
+/// Returns `(direct, inverse, claim)` candidate maps plus the count of multi-candidate terms
+/// dropped as ambiguous residue.
+#[allow(clippy::type_complexity)]
+fn candidate_lifts(
+    sssom_texts: &[String],
+    projection_ttls: &[String],
+    direct_edoal: &BTreeMap<String, std::collections::BTreeSet<String>>,
+    inverse_edoal: &BTreeMap<String, std::collections::BTreeSet<String>>,
+) -> Result<
+    (
+        BTreeMap<String, CandidateLift>,
+        BTreeMap<String, CandidateLift>,
+        BTreeMap<String, CandidateLift>,
+        usize,
+    ),
+    String,
+> {
+    let identity = sssom_clean_pairs(sssom_texts)?;
+    let (exact_struct, generalizing_struct) = structural_pairs(projection_ttls)?;
+    let closematch = sssom_closematch_pairs(sssom_texts)?;
+
+    let mut ambiguous_dropped = 0usize;
+
+    // Direct rename target: SSSOM exact ∪ structural exact ∪ direct EDOAL path (single unique).
+    let mut direct_union: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+    for layer in [&identity, &exact_struct, direct_edoal] {
+        for (target, gmeows) in layer {
+            direct_union
+                .entry(target.clone())
+                .or_default()
+                .extend(gmeows.iter().cloned());
+        }
+    }
+    let mut direct: BTreeMap<String, CandidateLift> = BTreeMap::new();
+    for (target, gmeows) in direct_union {
+        match unique_of(&gmeows) {
+            Some(gmeow) => {
+                direct.insert(
+                    target,
+                    CandidateLift {
+                        gmeow,
+                        confidence: None,
+                    },
+                );
+            }
+            None => ambiguous_dropped += 1,
+        }
+    }
+
+    // Inverse rename target: inverse EDOAL path only, and only when no direct rename exists.
+    let mut inverse: BTreeMap<String, CandidateLift> = BTreeMap::new();
+    for (target, gmeows) in inverse_edoal {
+        if direct.contains_key(target) {
+            continue;
+        }
+        match unique_of(gmeows) {
+            Some(gmeow) => {
+                inverse.insert(
+                    target.clone(),
+                    CandidateLift {
+                        gmeow,
+                        confidence: None,
+                    },
+                );
+            }
+            None => ambiguous_dropped += 1,
+        }
+    }
+
+    // Claim target: generalizing structural ∪ SSSOM closeMatch, only when neither a direct nor an
+    // inverse rename covers the term. Each carries its confidence lexeme.
+    let mut claim: BTreeMap<String, CandidateLift> = BTreeMap::new();
+    for layer in [&generalizing_struct, &closematch] {
+        for (target, cands) in layer {
+            if direct.contains_key(target)
+                || inverse.contains_key(target)
+                || claim.contains_key(target)
+            {
+                continue;
+            }
+            if cands.len() == 1 {
+                let (gmeow, conf) = cands.iter().next().expect("one claim candidate");
+                claim.insert(
+                    target.clone(),
+                    CandidateLift {
+                        gmeow: gmeow.clone(),
+                        confidence: Some(conf.clone()),
+                    },
+                );
+            } else if cands.len() > 1 {
+                ambiguous_dropped += 1;
+            }
+        }
+    }
+
+    Ok((direct, inverse, claim, ambiguous_dropped))
+}
+
+/// The single unique member of a set, or `None` when it is empty or ambiguous.
+fn unique_of(set: &std::collections::BTreeSet<String>) -> Option<String> {
+    (set.len() == 1).then(|| set.iter().next().expect("one member").clone())
+}
+
+/// Re-key a full-IRI → predicate-set map keeping only targets that resolve to exactly one
+/// predicate — the full-IRI twin of [`unique_qname_map`], used by the lift producer (which keys
+/// on target IRIs, not qnames).
+fn unique_iri_map(
+    m: &BTreeMap<String, std::collections::BTreeSet<String>>,
+) -> BTreeMap<String, String> {
+    m.iter()
+        .filter(|(_, preds)| preds.len() == 1)
+        .map(|(target, preds)| {
+            (
+                target.clone(),
+                preds.iter().next().expect("one predicate").clone(),
+            )
+        })
+        .collect()
 }
 
 /// Re-key a full-IRI → predicate-set map by canonical qname, keeping only targets that resolve
