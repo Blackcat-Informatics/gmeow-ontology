@@ -129,7 +129,14 @@ fn escape_iri(iri: &str) -> String {
     out
 }
 
-/// Escape a literal lexical form for N-Triples (incl. all C0 control chars).
+/// Escape a literal lexical form for N-Triples. Escapes `\` and `"`, emits the readable ECHAR
+/// forms for `\n`/`\r`/`\t`, and rides EVERY other control character (C0, DEL, and the C1 block
+/// `0x80-0x9F`) as `\uXXXX`. This deliberately escapes MORE than the W3C-pinned canonical form
+/// (`gmeow_rdf_core::ir::canon::write_literal_escaped`, which keeps C1 raw): this serializer's
+/// output is embedded verbatim inside an XML text node by the CL-dialect carrier, and an XML
+/// parser normalizes/replaces raw C1 code points on read — so the payload only survives an XML
+/// round-trip if the full control range rides as ASCII `\uXXXX`. The canonical form answers to
+/// RDFC-1.0 byte-conformance; this one answers to XML transport.
 fn escape_literal(lex: &str) -> String {
     let mut out = String::with_capacity(lex.len());
     for ch in lex.chars() {

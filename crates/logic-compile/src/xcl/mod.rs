@@ -77,7 +77,10 @@ pub(crate) const RDF_META_ELEMENT: &str = "gmeow-rdf-meta";
 /// block (`0x80-0x9F`) ARE legal `Char` code points (merely discouraged), so they ride through a
 /// numeric character reference losslessly.
 fn is_xml_char(c: char) -> bool {
-    matches!(c, '\t' | '\n' | '\r') || !c.is_control()
+    // Tab/LF/CR are the only sub-0x20 code points XML 1.0 admits; every code point at 0x20 or
+    // above — including DEL (0x7F) and the C1 block (0x80-0x9F) — is a legal `Char`. (Not
+    // `!c.is_control()`, which would wrongly exclude DEL/C1 and force them to U+FFFD.)
+    matches!(c, '\t' | '\n' | '\r') || (c as u32) >= 0x20
 }
 
 /// Escape a string for an XML **text node**: `&`, `<`, `>`, plus every control character. This
