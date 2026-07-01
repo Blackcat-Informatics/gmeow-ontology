@@ -29,7 +29,7 @@
 //! predicate path itself. Any engine / query / lowering failure is a HARD error —
 //! a rule is never silently skipped.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use gmeow_logic_compile::ir::LegPath;
 use gmeow_logic_compile::projections::paths::lower_leg_path;
@@ -204,8 +204,11 @@ pub fn execute_put_legs_with(
     let value_rule_dropped = program.value_rule_dropped;
 
     let engine = NativeSparqlEngine::new();
-    // A single deduped, ordered fact+claim quad set so output is deterministic.
-    let mut facts: BTreeSet<QuadKey> = BTreeSet::new();
+    // A single deduped, ordered fact+claim quad set. `dump_nt` freeze-sorts the final
+    // N-Triples output by (s,p,o,g), so the emitted graph is deterministic regardless
+    // of in-loop dedup structure or `Vec` push order — a plain `HashSet<RdfQuad>` dedups
+    // directly with no per-quad string-tuple allocation.
+    let mut facts: HashSet<RdfQuad> = HashSet::new();
     let mut fact_quads: Vec<RdfQuad> = Vec::new();
     let mut claim_quads: Vec<RdfQuad> = Vec::new();
     let mut claim_cells: BTreeSet<String> = BTreeSet::new();
@@ -213,8 +216,7 @@ pub fn execute_put_legs_with(
     // Rename rules (predicate/class + gmeow-passthrough) and inverse rules produce FACTS.
     for query in fact_queries(lawful) {
         for quad in run_construct(&engine, &source.dataset, &query)? {
-            let key = quad_key(&quad);
-            if facts.insert(key) {
+            if facts.insert(quad.clone()) {
                 fact_quads.push(quad);
             }
         }
@@ -227,12 +229,11 @@ pub fn execute_put_legs_with(
     // object, so EVERY blank in a claim result is a minted template blank — safe to rescope to
     // a per-query-unique namespace before dedup/merge. (Fact outputs are NOT rescoped: they can
     // carry SOURCE blanks whose identity must persist across queries; fact templates mint none.)
-    let mut seen_claim: BTreeSet<QuadKey> = BTreeSet::new();
+    let mut seen_claim: HashSet<RdfQuad> = HashSet::new();
     for (idx, query) in claim_queries(lawful).into_iter().enumerate() {
         for quad in run_construct(&engine, &source.dataset, &query)? {
             let quad = rescope_blanks(quad, idx);
-            let key = quad_key(&quad);
-            if !seen_claim.insert(key) {
+            if !seen_claim.insert(quad.clone()) {
                 continue;
             }
             if quad.predicate == RDF_TYPE
@@ -487,10 +488,6 @@ fn build_residue(
     notes.into_iter().collect()
 }
 
-/// A deduplication key over `(subject, predicate, object)`. Blank-node identity is
-/// carried by label so freshly minted claim cells never collide across solutions.
-type QuadKey = (String, String, String);
-
 /// Rewrite every blank-node label in `quad` to the per-query-unique namespace
 /// `_:q{idx}__{label}`, in both subject and object positions. Applied ONLY to claim
 /// results, where every blank is a minted template blank (the `isIRI(?s)` filter and
@@ -502,26 +499,6 @@ fn rescope_blanks(quad: RdfQuad, idx: usize) -> RdfQuad {
         other => other,
     };
     RdfQuad::new(rescope(quad.subject), quad.predicate, rescope(quad.object))
-}
-
-fn quad_key(quad: &RdfQuad) -> QuadKey {
-    (
-        term_key(&quad.subject),
-        quad.predicate.clone(),
-        term_key(&quad.object),
-    )
-}
-
-fn term_key(term: &RdfTerm) -> String {
-    match term {
-        RdfTerm::Iri(node) => format!("<{node}>"),
-        RdfTerm::BlankNode(node) => format!("_:{node}"),
-        RdfTerm::Literal(lit) => format!(
-            "\"{}\"^^{:?}@{:?}#{:?}",
-            lit.lexical_form, lit.datatype, lit.language, lit.direction
-        ),
-        RdfTerm::Triple(_) => "<<triple>>".to_owned(),
-    }
 }
 
 #[cfg(test)]
