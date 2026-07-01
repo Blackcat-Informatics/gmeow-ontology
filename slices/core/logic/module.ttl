@@ -1042,6 +1042,35 @@ logic:McpActionSchema
     skos:definition "A logic:ActionSchema that grounds an MCP (Model Context Protocol) tool action — the opt-in marker subtype that brings an action schema under the stricter MCP-action governance profile (logic:McpActionPolicyShape). Beyond the facets every action schema carries it must always declare a logic:compensation (rollback) because an MCP tool that mutates external state must be recoverable: the dogfood case where the canonical process model governs the agent's own tool calls. A plain logic:ActionSchema is NOT required to carry compensation; typing it logic:McpActionSchema is the explicit declaration that the governance profile applies."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:NotificationWaitSchema
+    a owl:Class ;
+    rdfs:subClassOf logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Notification Wait Schema"@x-gmeow-english ;
+    skos:definition "A logic:ActionSchema whose completion the engine learns of ONLY by being externally told: it does not fire until a logic:ExternalSignal it logic:awaitsSignal obtains in the state — a manual-notification or callback-driven completion, the prescriptive-descriptive epistemic boundary where what the engine knows of the real world is limited to what it is informed of. The opt-in marker subtype that brings an action schema under the wait-well-formedness profile (logic:NotificationWaitShape, which requires a logic:awaitsSignal). At the action gate a wait whose signal has not obtained is neither admitted nor denied but logic:GateUndetermined, carrying a logic:awaitingSignal witness — the wait is pending (the engine has not been told), a judgment withheld rather than a failure; in a plan a wait step blocks the path until the signal is received."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalSignal
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Signal"@x-gmeow-english ;
+    skos:definition "A situation type the engine can learn of ONLY by external notification — a manual notification, a callback, a sensor reading, an external service response — never by computing it from the state. The thing a logic:NotificationWaitSchema logic:awaitsSignal: until the signal obtains (the engine is told), a wait on it is pending. It marks the descriptive-side input at the prescriptive-descriptive seam, distinct from a logic:precondition the engine evaluates over facts it already holds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:awaitsSignal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "awaits signal"@x-gmeow-english ;
+    skos:definition "Relates a logic:NotificationWaitSchema to the logic:ExternalSignal situation whose arrival its completion waits on. Domain logic:NotificationWaitSchema, range a logic:ExternalSignal situation (stated in prose). The wait fires only once this signal obtains in the state; until then it is pending (logic:awaitingSignal), never silently completed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:awaitingSignal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "awaiting signal"@x-gmeow-english ;
+    skos:definition "Relates a logic:GateUndetermined logic:GateProbe over a logic:NotificationWaitSchema to the logic:ExternalSignal it is still waiting on — the witness that the wait is pending (the engine has not been told), the reason the gate is undetermined rather than admitted. Domain logic:GateProbe, range the awaited logic:ExternalSignal (stated in prose). Distinguishes a pending wait from a plain denial: the wait can still complete once the signal arrives."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:MeasurementFrameMissing
     a owl:NamedIndividual ,
         logic:QualityConstraint ;
@@ -2111,7 +2140,7 @@ logic:GateUndetermined
     a owl:NamedIndividual ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Gate Undetermined"@x-gmeow-english ;
-    skos:definition "The logic:gateVerdict value for an action whose gate is neither admitted nor denied because a precondition datum is outside its valid-time freshness window: the supporting datum was recorded too long before the logic:decisionTime to be relied upon (a logic:FreshnessGuard whose logic:freshnessHorizon is exceeded). The datum is treated as undetermined — NOT as stale-but-usable and NOT as a denial — mirroring the logic:GoalEvaluationUndetermined conclusiveness axis of goal evaluation: a judgment the evaluator declines to make on insufficiently-current input rather than guessing. The probe carries a logic:gateUndeterminedReason naming the stale datum and its exceeded horizon."@x-gmeow-english .
+    skos:definition "The logic:gateVerdict value for an action whose gate is neither admitted nor denied because the judgment is withheld on insufficient information — a single conclusiveness value with two causes. (1) A precondition datum is outside its valid-time freshness window: the supporting datum was recorded too long before the logic:decisionTime to be relied upon (a logic:FreshnessGuard whose logic:freshnessHorizon is exceeded), the datum treated as undetermined rather than stale-but-usable, carrying a logic:gateUndeterminedReason. (2) A logic:NotificationWaitSchema is still awaiting its logic:ExternalSignal: the engine has not been told the wait completed, carrying a logic:awaitingSignal witness. Both mirror the logic:GoalEvaluationUndetermined conclusiveness axis of goal evaluation: a judgment the evaluator declines to make on insufficient input rather than guessing — NOT a denial, since the datum may refresh or the signal may arrive."@x-gmeow-english .
 
 logic:gateUndeterminedReason
     a owl:DatatypeProperty ;

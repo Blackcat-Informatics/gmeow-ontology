@@ -2107,3 +2107,45 @@ fn freshness_guard_missing_datum_recorded_at_is_hard_error() {
         freshness_verdict(&facts, &format!("{W}#schema"), Some("2026-06-20T00:00:00Z")).is_err()
     );
 }
+
+// ── Facet: NotificationWaitSchema (external signal → pending / received) ──────────
+
+#[test]
+fn wait_verdict_signal_received_is_none() {
+    // The awaited signal obtains at the state → the wait is received, not pending.
+    let mut nq = path_nq(&[&["signalArrived"]]);
+    nq.push_str(&format!(
+        "<{W}#waitSchema> {} <{W}#signalArrived> <{W}> .\n",
+        l("awaitsSignal")
+    ));
+    let f = facts_of(&nq);
+    let v = wait_verdict(&f, &format!("{W}#waitSchema"), &format!("{W}#state0"));
+    assert!(v.is_none(), "a received signal must not be pending: {v:?}");
+}
+
+#[test]
+fn wait_verdict_signal_absent_is_pending() {
+    // The awaited signal does NOT obtain → the wait is pending (awaiting).
+    let mut nq = path_nq(&[&["somethingElse"]]);
+    nq.push_str(&format!(
+        "<{W}#waitSchema> {} <{W}#manualSignOff> <{W}> .\n",
+        l("awaitsSignal")
+    ));
+    let f = facts_of(&nq);
+    let (signal, reason) = wait_verdict(&f, &format!("{W}#waitSchema"), &format!("{W}#state0"))
+        .expect("an un-obtained awaited signal must be pending");
+    assert_eq!(signal, format!("{W}#manualSignOff"));
+    assert!(
+        reason.contains("pending external signal"),
+        "reason names the pending signal: {reason:?}"
+    );
+}
+
+#[test]
+fn wait_verdict_no_signal_declared_is_none() {
+    // A schema that awaits nothing is an ordinary action — never pending.
+    let nq = path_nq(&[&["ready"]]);
+    let f = facts_of(&nq);
+    let v = wait_verdict(&f, &format!("{W}#plainSchema"), &format!("{W}#state0"));
+    assert!(v.is_none());
+}

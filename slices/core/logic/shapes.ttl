@@ -292,6 +292,24 @@ logic:FreshnessGuardShape
         sh:message "A FreshnessGuard must declare exactly one logic:freshnessHorizon (an xsd:duration — the maximum admissible datum age)." ;
     ] .
 
+# logic:NotificationWaitShape — the wait-well-formedness PROFILE. Like
+# logic:McpActionPolicyShape it does NOT auto-apply to every logic:ActionSchema:
+# it targets only the opt-in marker subtype logic:NotificationWaitSchema, so a
+# plain action schema is never forced to declare a signal. A wait schema must name
+# the logic:ExternalSignal it awaits, or the gate has nothing to wait on.
+logic:NotificationWaitShape
+    a sh:NodeShape ;
+    rdfs:label "NotificationWait well-formedness shape"@x-gmeow-english ;
+    skos:definition "The wait-well-formedness profile: a sh:NodeShape (a CONSTRAINT, not ontology vocabulary) over the logic:NotificationWaitSchema instances whose completion the engine learns of only by external notification. It targets ONLY the opt-in marker subtype logic:NotificationWaitSchema, never every logic:ActionSchema. It requires at least one logic:awaitsSignal (the logic:ExternalSignal the wait blocks on): a wait schema with no signal has nothing to wait on and could never surface as pending, which would silently collapse the prescriptive-descriptive epistemic boundary the construct exists to hold."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:NotificationWaitSchema ;
+    sh:property [
+        sh:path logic:awaitsSignal ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NotificationWaitSchema must declare at least one logic:awaitsSignal (the logic:ExternalSignal whose arrival the wait blocks on)." ;
+    ] .
+
 # Dual-authority consistency (VANTAGE-SCOPED, never a global satisfaction verdict).
 # A conclusive gmeow:satisfiedBy(goal, situation) edge is the projection of a
 # satisfied + completed logic:GoalEvaluation. This sh:sparql constraint flags a
