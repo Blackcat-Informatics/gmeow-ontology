@@ -1,0 +1,17 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 18dc91d865ca13ebc7c76c1e3d4bc8fa3faf4a92
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1217
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1217
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 62470a21f04ba9365919fa949eabffbcc3a15e6c
+GhpRsq-Head-Ref: paudley/735-harvest-coherence-gate
+GhpRsq-Head-OID: 18dc91d865ca13ebc7c76c1e3d4bc8fa3faf4a92
+GhpRsq-Result-Tree: 26fb04e715d63387523db9a677a1b2a375e56644
+GhpRsq-Result-Commit: 1c1353ddaf33a0c4b89ab3ac84ad0d186680cf1c
+GhpRsq-Parent-Hashes: 18dc91d865ca13ebc7c76c1e3d4bc8fa3faf4a92
+GhpRsq-Squash-Notes-SHA256: 20b957a54be5f90a186caf118b740ed83d7e8a428b21215c8025f4aef57a3ffc
