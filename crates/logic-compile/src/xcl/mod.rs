@@ -49,6 +49,9 @@ pub mod writer;
 pub use reader::parse_xcl_str;
 pub use writer::project_xcl;
 
+#[cfg(test)]
+mod tests;
+
 // --------------------------------------------------------------------------- //
 // Document element names
 // --------------------------------------------------------------------------- //
