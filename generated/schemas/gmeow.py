@@ -2066,6 +2066,7 @@ class PipelineEnum(str, Enum):
 class PipelineStageEnum(str, Enum):
     stage_compile_logic = "stage-compile-logic"
     stage_conformance = "stage-conformance"
+    stage_constraint_catalog = "stage-constraint-catalog"
     stage_docs_render = "stage-docs-render"
     stage_export_apache = "stage-export-apache"
     stage_export_bench = "stage-export-bench"
@@ -8029,6 +8030,14 @@ class Utilization(Measurement):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Utilization"
     is_a: ClassVar[str] = "Measurement"
     utilizationOf: Location | None = Field(default=None)
+
+
+class ValidationRule(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ValidationRule"
+    is_a: ClassVar[str] = "InformationObject"
+    ruleCategory: list[str] | None = Field(default=None)
+    ruleCode: list[str] | None = Field(default=None)
+    ruleHelpUri: list[str] | None = Field(default=None)
 
 
 class VectorIndex(InformationObject):

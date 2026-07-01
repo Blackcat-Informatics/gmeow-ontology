@@ -148,6 +148,13 @@ pub fn full_spec() -> PipelineSpec {
             "docs_render",
             &["stage-gts-compose", "stage-reason"],
         ),
+        // The generated constraint catalog: one gmeow:ValidationRule per finding code,
+        // enriched from the reasoned graph, folded into the bundle by stage-snapshot.
+        st(
+            "stage-constraint-catalog",
+            "constraint_catalog",
+            &["stage-reason"],
+        ),
         st(
             "stage-snapshot",
             "snapshot",
@@ -155,6 +162,8 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-compile-logic",
                 // Fold the external-corpus divergence Findings into graph/conformance.
                 "stage-conformance",
+                // Fold the generated constraint catalog into graph/fanout/catalog.
+                "stage-constraint-catalog",
                 "stage-docs-render",
                 // The RDF fanout members ride in from their producing export leaves (the
                 // render ran once, in the leaf): profiles / evals scores / research-object

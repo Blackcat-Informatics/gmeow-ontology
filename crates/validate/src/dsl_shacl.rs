@@ -72,7 +72,7 @@ fn dsl_findings(
         findings.push(
             Finding::new(
                 Severity::Error,
-                format!("{label}-dsl.nonconforming"),
+                format!("{label}{}", crate::codes::DSL_NONCONFORMING_SUFFIX),
                 "SHACL validation failed: non-conforming with no results",
             )
             .with_tool(tool),

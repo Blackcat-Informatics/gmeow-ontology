@@ -2042,6 +2042,7 @@ enum PipelineEnum {
 enum PipelineStageEnum {
   stage_compile_logic
   stage_conformance
+  stage_constraint_catalog
   stage_docs_render
   stage_export_apache
   stage_export_bench
@@ -7963,6 +7964,14 @@ type Utilization {
   id: String
   iri: String
   utilizationOf: Location
+}
+
+type ValidationRule {
+  id: String
+  iri: String
+  ruleCategory: [String!]
+  ruleCode: [String!]
+  ruleHelpUri: [String!]
 }
 
 type VectorIndex {
