@@ -1,0 +1,38 @@
+<!-- cited-iri-skeleton
+  https://blackcatinformatics.ca/gmeow/derivation/5d7dd3f895ff5e62625fff237f1f1c264ccd8831
+  https://blackcatinformatics.ca/gmeow/derivation/71e7c78ed141488579c2118ed8670988b2a1571f
+  https://blackcatinformatics.ca/gmeow/reifier/43de7ef48cb178dad518e7493cf3e6c6f08a8f11
+  https://blackcatinformatics.ca/gmeow/reifier/a3510bfa3cb271a745a88fe6d5ea2df38ceff4cc
+  https://blackcatinformatics.ca/logic/assert
+  https://blackcatinformatics.ca/logic/effect
+  https://blackcatinformatics.ca/logic/rule/transaction
+  https://blackcatinformatics.ca/logic/step/4012ac227947f23f8cd31004aa494a7fa69c561d
+  https://blackcatinformatics.ca/logic/supersededBy
+  https://example.org/transaction/memory-triad-execute/claimInMemory
+  https://example.org/transaction/memory-triad-execute/reviseEffect
+  https://example.org/transaction/memory-triad-execute/reviseSchema
+  https://example.org/transaction/memory-triad-execute/world
+-->
+
+<!-- step-skeleton
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/71e7c78ed141488579c2118ed8670988b2a1571f
+    rule=https://blackcatinformatics.ca/logic/rule/transaction
+    term=https://blackcatinformatics.ca/logic/step/4012ac227947f23f8cd31004aa494a7fa69c561d
+    term=https://blackcatinformatics.ca/logic/supersededBy
+    term=https://example.org/transaction/memory-triad-execute/claimInMemory
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/5d7dd3f895ff5e62625fff237f1f1c264ccd8831
+    rule=https://blackcatinformatics.ca/logic/assert
+    term=https://blackcatinformatics.ca/logic/effect
+    term=https://example.org/transaction/memory-triad-execute/reviseEffect
+    term=https://example.org/transaction/memory-triad-execute/reviseSchema
+-->
+
+# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/a3510bfa3cb271a745a88fe6d5ea2df38ceff4cc>`
+
+**World:** `<https://example.org/transaction/memory-triad-execute/world>`
+**Target derivation:** `<https://blackcatinformatics.ca/gmeow/derivation/71e7c78ed141488579c2118ed8670988b2a1571f>`
+
+**Derived** by rule `<https://blackcatinformatics.ca/logic/rule/transaction>`:
+  `<https://example.org/transaction/memory-triad-execute/claimInMemory>` `<https://blackcatinformatics.ca/logic/supersededBy>` `<https://blackcatinformatics.ca/logic/step/4012ac227947f23f8cd31004aa494a7fa69c561d>` *(in `<https://example.org/transaction/memory-triad-execute/world>`)*
+  **Asserted fact** (input — `<https://blackcatinformatics.ca/gmeow/reifier/43de7ef48cb178dad518e7493cf3e6c6f08a8f11>`):
+    `<https://example.org/transaction/memory-triad-execute/reviseSchema>` `<https://blackcatinformatics.ca/logic/effect>` `<https://example.org/transaction/memory-triad-execute/reviseEffect>` *(in `<https://example.org/transaction/memory-triad-execute/world>`)*
