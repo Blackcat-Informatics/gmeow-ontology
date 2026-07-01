@@ -332,6 +332,47 @@ fn relcomp_under_mediated() {
     );
 }
 
+// ── Discipline: RelComp on production `subClassOf logic:Relator` relators ────────
+
+/// Production relators are typed `a logic:Kind ; rdfs:subClassOf logic:Relator` (a
+/// class-edge to the meta-class), NOT the direct `a logic:Relator` the base
+/// [`relcomp_under_mediated`] case uses.  These assertions pin that the discipline is
+/// live on that production shape (previously it was wholly dormant on it): it fires on
+/// an under-mediated subclass relator, clears on a well-mediated one, and never fires
+/// on the `logic:Relator` meta-class itself.
+#[test]
+fn relcomp_on_subclass_relator() {
+    let base = "https://example.org/foundation/relcomp-subclass-relator";
+    let nq = format!(
+        // Enrollment: a Kind subClassOf logic:Relator mediating two distinct roles.
+        "<{base}/Enrollment> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}subClassOf> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}mediates> <{base}/Student> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}mediates> <{base}/Course> <{base}/schema> .\n\
+         <{base}/Devotion> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Devotion> <{LOGIC}subClassOf> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Devotion> <{LOGIC}mediates> <{base}/Devotee> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    // Under-mediated subclass relator fires RelComp — the discipline now reaches the
+    // production `subClassOf logic:Relator` shape.
+    assert!(
+        has_violation(&quads, &format!("{base}/Devotion"), "RelComp"),
+        "Devotion (subClassOf logic:Relator, one relatum) must fire RelComp"
+    );
+    // Well-mediated subclass relator does NOT fire.
+    assert!(
+        !has_violation(&quads, &format!("{base}/Enrollment"), "RelComp"),
+        "Enrollment (subClassOf logic:Relator, two relata) must NOT fire RelComp"
+    );
+    // The Relator meta-class itself is never a concreteRelator (its subclasses make
+    // hasLogicSubclass hold, suppressing it), so it never fires RelComp.
+    assert!(
+        !has_violation(&quads, &format!("{LOGIC}Relator"), "RelComp"),
+        "logic:Relator (the meta-class) must never fire RelComp"
+    );
+}
+
 // ── Anti-rigidity policies ───────────────────────────────────────────────────────
 
 /// Two-world input: alice exists in both, Employee (a Role) typed instance carol.
