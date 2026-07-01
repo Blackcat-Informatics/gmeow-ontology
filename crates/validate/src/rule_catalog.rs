@@ -6,12 +6,17 @@
 //! # The irreducible line
 //!
 //! A finding code exists *only because* a Rust check mints it (e.g.
-//! `Finding::new(Severity::Error, "discipline/relator-mediation", …)`). The set
-//! of codes, each code's default grade, and the *kind* of thing it enforces are
-//! therefore intrinsic Rust facts and live here. Everything human-readable — the
-//! per-term description and the category — is **generated** from the reasoned
-//! graph by the constraint-catalog pipeline stage, never authored here, so the
-//! catalog stays a projection of the axioms rather than a hand-maintained list.
+//! `Finding::new(Severity::Error, codes::DISCIPLINE_RELATOR_MEDIATION, …)`). The
+//! set of codes, each code's default grade, and the *kind* of thing it enforces
+//! are therefore intrinsic Rust facts and live here. Every literal code value is
+//! declared exactly once, in [`crate::codes`] — emit sites reference the const,
+//! never a bare string — so totality (every emitted code is catalogued) holds by
+//! construction and is checked at build time by
+//! `tests::every_declared_code_is_classified`, not by scanning source text.
+//! Everything human-readable — the per-term description and the category — is
+//! **generated** from the reasoned graph by the constraint-catalog pipeline
+//! stage, never authored here, so the catalog stays a projection of the axioms
+//! rather than a hand-maintained list.
 //!
 //! This module owns exactly four things:
 //!
@@ -24,6 +29,7 @@
 //!   emitted code carries a rule entry whose `helpUri` resolves to the catalog.
 //! * [`all_rules`] — the enumeration the catalog generator projects from.
 
+use crate::codes;
 use gmeow_diagnostics::{Report, Rule, Severity};
 use std::collections::BTreeSet;
 
@@ -71,230 +77,267 @@ pub struct RuleSeed {
 /// grade and enforcement kind. Dynamic codes (built with `format!`) are covered
 /// by [`FAMILY_PREFIXES`] / [`FAMILY_SUFFIXES`] instead of one row each.
 ///
-/// The coherence test scans the crate source and fails the build if any emitted
-/// literal code is neither listed here nor covered by a family classifier — so
-/// this table stays total by construction.
+/// Each row's code is a [`codes`] const, never a raw literal — [`codes`] is the
+/// single authority for every emitted code, and
+/// `tests::every_declared_code_is_classified` fails the build if a const exists
+/// there without a corresponding row (or family) here, so this table stays total
+/// by construction rather than by a source-scanning heuristic.
 pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
     // ── Modelling disciplines (OntoUML / CONSTITUTION) — data- and vocab-facing ──
     (
-        "discipline/stereotype",
+        codes::DISCIPLINE_STEREOTYPE,
         Severity::Error,
         Enforcement::Discipline,
     ),
     (
-        "discipline/identity-overlap",
+        codes::DISCIPLINE_IDENTITY_OVERLAP,
         Severity::Error,
         Enforcement::Discipline,
     ),
     (
-        "discipline/anti-rigidity",
+        codes::DISCIPLINE_ANTI_RIGIDITY,
         Severity::Error,
         Enforcement::Discipline,
     ),
     (
-        "discipline/relator-mediation",
+        codes::DISCIPLINE_RELATOR_MEDIATION,
         Severity::Error,
         Enforcement::Discipline,
     ),
     (
-        "discipline/coequal-orthogonality",
+        codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
         Severity::Error,
         Enforcement::Discipline,
     ),
     (
-        "discipline/frame-completeness",
+        codes::DISCIPLINE_FRAME_COMPLETENESS,
         Severity::Error,
         Enforcement::Discipline,
     ),
     // ── SHACL data-shape (the non-family static outcome) ──
-    ("shacl.nonconforming", Severity::Error, Enforcement::Shacl),
+    (
+        codes::SHACL_NONCONFORMING,
+        Severity::Error,
+        Enforcement::Shacl,
+    ),
     // ── Bundle trust / signature ──
-    ("signature.verify", Severity::Error, Enforcement::Signature),
-    ("signature.invalid", Severity::Error, Enforcement::Signature),
-    ("signature.missing", Severity::Error, Enforcement::Signature),
     (
-        "signature.unverified",
+        codes::SIGNATURE_VERIFY,
         Severity::Error,
         Enforcement::Signature,
     ),
     (
-        "signature.untrusted",
+        codes::SIGNATURE_INVALID,
         Severity::Error,
         Enforcement::Signature,
     ),
-    ("signature.key", Severity::Info, Enforcement::Signature),
+    (
+        codes::SIGNATURE_MISSING,
+        Severity::Error,
+        Enforcement::Signature,
+    ),
+    (
+        codes::SIGNATURE_UNVERIFIED,
+        Severity::Error,
+        Enforcement::Signature,
+    ),
+    (
+        codes::SIGNATURE_UNTRUSTED,
+        Severity::Error,
+        Enforcement::Signature,
+    ),
+    (codes::SIGNATURE_KEY, Severity::Info, Enforcement::Signature),
     // ── Deep-reason (`--deep`) semantic outcomes ──
     (
-        "validate.deep.skipped",
+        codes::VALIDATE_DEEP_SKIPPED,
         Severity::Warning,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.permitted-conflict",
+        codes::VALIDATE_DEEP_PERMITTED_CONFLICT,
         Severity::Warning,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.inconsistent",
+        codes::VALIDATE_DEEP_INCONSISTENT,
         Severity::Error,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.unsatisfiable",
+        codes::VALIDATE_DEEP_UNSATISFIABLE,
         Severity::Warning,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.unsupported-construct",
+        codes::VALIDATE_DEEP_UNSUPPORTED_CONSTRUCT,
         Severity::Warning,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.projection-loss",
+        codes::VALIDATE_DEEP_PROJECTION_LOSS,
         Severity::Note,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.incomplete",
+        codes::VALIDATE_DEEP_INCOMPLETE,
         Severity::Warning,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.consistent",
+        codes::VALIDATE_DEEP_CONSISTENT,
         Severity::Note,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.contract-invalid",
+        codes::VALIDATE_DEEP_CONTRACT_INVALID,
         Severity::Error,
         Enforcement::DeepReason,
     ),
     (
-        "validate.deep.unavailable",
+        codes::VALIDATE_DEEP_UNAVAILABLE,
         Severity::Note,
         Enforcement::DeepReason,
     ),
     // ── Dev-governance / repo-structural (developer CLI) ──
     (
-        "constitution.honor-system",
+        codes::CONSTITUTION_HONOR_SYSTEM,
         Severity::Warning,
         Enforcement::Governance,
     ),
     (
-        "constitution.orphaned-enforcement",
+        codes::CONSTITUTION_ORPHANED_ENFORCEMENT,
         Severity::Warning,
         Enforcement::Governance,
     ),
     (
-        "slice-ownership.unowned",
+        codes::SLICE_OWNERSHIP_UNOWNED,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "slice-ownership.conflict",
+        codes::SLICE_OWNERSHIP_CONFLICT,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "slice-ownership.mismatch",
+        codes::SLICE_OWNERSHIP_MISMATCH,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "slice-ownership.undeclared-dependency",
+        codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY,
         Severity::Warning,
         Enforcement::Governance,
     ),
     (
-        "slice-ownership.stale-dependency",
+        codes::SLICE_OWNERSHIP_STALE_DEPENDENCY,
         Severity::Warning,
         Enforcement::Governance,
     ),
     (
-        "slice-ownership.unparseable-query",
+        codes::SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
         Severity::Warning,
         Enforcement::Governance,
     ),
     (
-        "crate-layering.violation",
+        codes::CRATE_LAYERING_VIOLATION,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "crate-layering.observation",
+        codes::CRATE_LAYERING_OBSERVATION,
         Severity::Warning,
         Enforcement::Governance,
     ),
     (
-        "repo-static.violation",
+        codes::REPO_STATIC_VIOLATION,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "repo-static.observation",
+        codes::REPO_STATIC_OBSERVATION,
         Severity::Warning,
         Enforcement::Governance,
     ),
     (
-        "coverage.gap-class",
+        codes::COVERAGE_GAP_CLASS,
         Severity::Info,
         Enforcement::Governance,
     ),
     (
-        "coverage.gap-predicate",
+        codes::COVERAGE_GAP_PREDICATE,
         Severity::Info,
         Enforcement::Governance,
     ),
     (
-        "box-roles.missing",
+        codes::BOX_ROLES_MISSING,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "box-roles.invalid",
+        codes::BOX_ROLES_INVALID,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "wikidata.qid-syntax",
+        codes::WIKIDATA_QID_SYNTAX,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "wikidata.namespace-misuse",
+        codes::WIKIDATA_NAMESPACE_MISUSE,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "statement.invariant",
+        codes::STATEMENT_INVARIANT,
         Severity::Error,
         Enforcement::Governance,
     ),
     (
-        "statement-compile.lossless-round-trip",
+        codes::STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP,
         Severity::Error,
         Enforcement::Governance,
     ),
     // ── Input well-formedness ──
-    ("example.parse", Severity::Error, Enforcement::Parse),
+    (codes::EXAMPLE_PARSE, Severity::Error, Enforcement::Parse),
 ];
 
 /// Dynamic code families keyed by a leading prefix (the `format!("{prefix}{…}")`
 /// codes). Each covers arbitrarily many concrete codes minted at runtime.
 pub const FAMILY_PREFIXES: &[(&str, Severity, Enforcement)] = &[
-    ("shacl.", Severity::Error, Enforcement::Shacl),
-    ("signature.", Severity::Error, Enforcement::Signature),
-    ("gts.", Severity::Warning, Enforcement::Signature),
-    ("validate.deep.", Severity::Warning, Enforcement::DeepReason),
-    ("constitution.", Severity::Warning, Enforcement::Governance),
-    ("slice-ownership.", Severity::Error, Enforcement::Governance),
-    ("advice.", Severity::Note, Enforcement::Advisory),
+    (codes::SHACL_FAMILY, Severity::Error, Enforcement::Shacl),
+    (
+        codes::SIGNATURE_FAMILY,
+        Severity::Error,
+        Enforcement::Signature,
+    ),
+    (codes::GTS_FAMILY, Severity::Warning, Enforcement::Signature),
+    (
+        codes::VALIDATE_DEEP_FAMILY,
+        Severity::Warning,
+        Enforcement::DeepReason,
+    ),
+    (
+        codes::CONSTITUTION_FAMILY,
+        Severity::Warning,
+        Enforcement::Governance,
+    ),
+    (
+        codes::SLICE_OWNERSHIP_FAMILY,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (codes::ADVICE_FAMILY, Severity::Note, Enforcement::Advisory),
 ];
 
 /// Dynamic code families keyed by a trailing suffix — the per-DSL SHACL failure
 /// `format!("{label}-dsl.nonconforming")`.
-pub const FAMILY_SUFFIXES: &[(&str, Severity, Enforcement)] =
-    &[("-dsl.nonconforming", Severity::Error, Enforcement::Shacl)];
+pub const FAMILY_SUFFIXES: &[(&str, Severity, Enforcement)] = &[(
+    codes::DSL_NONCONFORMING_SUFFIX,
+    Severity::Error,
+    Enforcement::Shacl,
+)];
 
 /// The stable anchor transform: `/` and `.` become `-`, everything else is kept.
 /// The *single* implementation shared by the validator (a finding's help URI) and
@@ -406,7 +449,6 @@ pub fn all_rules() -> Vec<RuleSeed> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
 
     #[test]
     fn slugify_replaces_path_and_dot_separators() {
@@ -491,133 +533,76 @@ mod tests {
 
     #[test]
     fn static_rules_are_unique_and_slug_distinct() {
-        let mut codes = BTreeSet::new();
+        let mut seen = BTreeSet::new();
         let mut slugs = BTreeSet::new();
         for (code, _, _) in STATIC_RULES {
-            assert!(codes.insert(*code), "duplicate static code {code}");
+            assert!(seen.insert(*code), "duplicate static code {code}");
             assert!(slugs.insert(slugify(code)), "slug collision for {code}");
             assert!(is_known(code), "static code {code} not classified");
         }
     }
 
-    /// Decide whether a string literal is a finding-code candidate. Real codes
-    /// carry a `.` separator or the `discipline/` prefix; file paths, MIME types,
-    /// and tool names either end in an extension or use `/` without `discipline/`.
-    fn looks_like_code(lit: &str) -> bool {
-        if lit.is_empty() || lit.contains(char::is_whitespace) {
-            return false;
-        }
-        // discipline codes are the only `/`-bearing codes.
-        if lit.contains('/') {
-            return lit.starts_with("discipline/") && !lit.contains(".ttl");
-        }
-        // otherwise a code must be dot-segmented and not a filename.
-        if !lit.contains('.') {
-            return false;
-        }
-        const EXTENSIONS: &[&str] = &[
-            ".ttl", ".rs", ".py", ".sh", ".json", ".md", ".nt", ".nq", ".gts", ".toml", ".cff",
-            ".po", ".rq", ".yaml", ".yml", ".html", ".css", ".b",
-        ];
-        if EXTENSIONS.iter().any(|e| lit.ends_with(e)) {
-            return false;
-        }
-        // codes are lowercase alnum with `.`/`-` separators only.
-        lit.chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.' || c == '-')
-    }
-
-    /// Scan the crate's production source (each file truncated at its `mod tests`)
-    /// and assert every finding-code literal is recognised by the registry, so a
-    /// newly-added `Finding::new(…, "new/code", …)` fails the build until it is
-    /// catalogued. Dynamic (`format!`) codes are literal-free here and covered by
-    /// the family classifiers instead. This is the coherence gate: no emitted code
-    /// escapes the catalog.
+    /// The compile-time totality gate: every code const declared in
+    /// [`codes::ALL_CODES`] must be classified by [`is_known`], must appear as a
+    /// `STATIC_RULES` row, and must be unique. This replaces the previous
+    /// source-scanning heuristic — totality now holds *by construction*: a new
+    /// emit site can only reference a `codes::` const (there is no other way to
+    /// mint a code, since every wrapper/helper in this crate takes the code as an
+    /// argument sourced from `codes`), and a const added to [`codes::ALL_CODES`]
+    /// without a matching `STATIC_RULES` row fails right here, at build time, not
+    /// via a grep over the source.
     #[test]
-    fn every_emitted_code_literal_is_catalogued() {
-        let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
-        let mut unknown: Vec<String> = Vec::new();
-        for entry in std::fs::read_dir(&src).expect("read validate/src") {
-            let path = entry.expect("dir entry").path();
-            if path.extension().and_then(|e| e.to_str()) != Some("rs") {
-                continue;
-            }
-            let text = std::fs::read_to_string(&path).expect("read source file");
-            // Drop the trailing `#[cfg(test)]` / `mod tests` region so test-only
-            // codes (e.g. "validate.x", "tier1.fixture") do not count.
-            let production = match text.find("mod tests") {
-                Some(idx) => &text[..idx],
-                None => &text[..],
-            };
-            // Only consider literals that are arguments to `Finding::new(` or a
-            // lone code argument on its own line (the multi-line call shape). Both
-            // reduce to: string literals appearing in a `Finding::new( … )` span.
-            for literal in code_literals_near_finding_new(production) {
-                if looks_like_code(&literal) && !is_known(&literal) {
-                    unknown.push(format!("{}: {literal}", path.display()));
-                }
-            }
+    fn every_declared_code_is_classified() {
+        let mut seen = BTreeSet::new();
+        for &code in codes::ALL_CODES {
+            assert!(
+                seen.insert(code),
+                "duplicate entry in codes::ALL_CODES: {code}"
+            );
+            assert!(
+                is_known(code),
+                "codes::ALL_CODES entry {code} is not classified by STATIC_RULES or a family — \
+                 add a STATIC_RULES row (or confirm it is meant to be family-only and drop it \
+                 from ALL_CODES)"
+            );
         }
-        assert!(
-            unknown.is_empty(),
-            "finding codes emitted but absent from the rule catalog (add to STATIC_RULES or a family):\n{}",
-            unknown.join("\n")
-        );
     }
 
-    /// Extract string literals that appear inside a `Finding::new( … )` call span.
-    /// The span runs from `Finding::new(` to its balanced closing paren, capturing
-    /// every `"…"` literal within (the code is among them; messages are filtered
-    /// out later by [`looks_like_code`]). Also captures lone `"code",` argument
-    /// lines that feed a code variable passed to `Finding::new`.
-    fn code_literals_near_finding_new(text: &str) -> Vec<String> {
-        let mut out = Vec::new();
-        let bytes = text.as_bytes();
-        let needle = "Finding::new(";
-        let mut search_from = 0usize;
-        while let Some(rel) = text[search_from..].find(needle) {
-            let start = search_from + rel + needle.len();
-            // Walk to the balanced close paren (or a cap) collecting literals.
-            let mut depth = 1i32;
-            let mut i = start;
-            while i < bytes.len() && depth > 0 && i - start < 400 {
-                match bytes[i] {
-                    b'(' => depth += 1,
-                    b')' => depth -= 1,
-                    b'"' => {
-                        // read literal
-                        let mut j = i + 1;
-                        while j < bytes.len() && bytes[j] != b'"' {
-                            if bytes[j] == b'\\' {
-                                j += 1;
-                            }
-                            j += 1;
-                        }
-                        if j < bytes.len() {
-                            out.push(text[i + 1..j].to_string());
-                            i = j;
-                        }
-                    }
-                    _ => {}
-                }
-                i += 1;
-            }
-            search_from = start;
+    /// `STATIC_RULES` is a subset of `codes::ALL_CODES`: every static row's code
+    /// must be a declared const in the enumeration authority, so the registry and
+    /// the enumeration can never silently diverge.
+    #[test]
+    fn static_rules_are_a_subset_of_all_codes() {
+        let all: BTreeSet<&str> = codes::ALL_CODES.iter().copied().collect();
+        for (code, _, _) in STATIC_RULES {
+            assert!(
+                all.contains(code),
+                "STATIC_RULES code {code} is missing from codes::ALL_CODES"
+            );
         }
-        // Lone `"code",` / `code = "…"` argument lines (variable-fed codes whose
-        // literal is defined near the call, e.g. box-roles / coverage helpers).
-        for line in text.lines() {
-            let t = line.trim();
-            if let Some(rest) = t.strip_prefix('"') {
-                if let Some(end) = rest.find('"') {
-                    let lit = &rest[..end];
-                    let tail = rest[end + 1..].trim();
-                    if tail == "," || tail.is_empty() {
-                        out.push(lit.to_string());
-                    }
-                }
-            }
+    }
+
+    /// Every family prefix/suffix used by `FAMILY_PREFIXES` / `FAMILY_SUFFIXES`
+    /// must be declared in [`codes::ALL_FAMILY_PREFIXES`] /
+    /// [`codes::ALL_FAMILY_SUFFIXES`], so a family base can only ever originate
+    /// from the `codes` authority.
+    #[test]
+    fn family_prefixes_and_suffixes_are_declared_in_codes() {
+        let declared_prefixes: BTreeSet<&str> =
+            codes::ALL_FAMILY_PREFIXES.iter().copied().collect();
+        for (prefix, _, _) in FAMILY_PREFIXES {
+            assert!(
+                declared_prefixes.contains(prefix),
+                "family prefix {prefix} is missing from codes::ALL_FAMILY_PREFIXES"
+            );
         }
-        out
+        let declared_suffixes: BTreeSet<&str> =
+            codes::ALL_FAMILY_SUFFIXES.iter().copied().collect();
+        for (suffix, _, _) in FAMILY_SUFFIXES {
+            assert!(
+                declared_suffixes.contains(suffix),
+                "family suffix {suffix} is missing from codes::ALL_FAMILY_SUFFIXES"
+            );
+        }
     }
 }

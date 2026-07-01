@@ -45,7 +45,7 @@ pub fn ownership_findings(report: &OwnershipReport) -> Vec<Finding> {
     for owner in unowned {
         findings.push(finding(
             Severity::Error,
-            "slice-ownership.unowned",
+            crate::codes::SLICE_OWNERSHIP_UNOWNED,
             format!(
                 "{term} rdfs:isDefinedBy {declared} — no slice physically \
                  defines this term (#329)",
@@ -74,7 +74,7 @@ fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
     match diag {
         OwnershipDiagnostic::Conflict { term, claimants } => Some(finding(
             Severity::Error,
-            "slice-ownership.conflict",
+            crate::codes::SLICE_OWNERSHIP_CONFLICT,
             format!(
                 "{term} rdfs:isDefinedBy is claimed by multiple slices {claimants:?} \
                  — a term must have exactly one owning slice (#329)",
@@ -88,7 +88,7 @@ fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
             physical,
         } => Some(finding(
             Severity::Error,
-            "slice-ownership.mismatch",
+            crate::codes::SLICE_OWNERSHIP_MISMATCH,
             format!(
                 "{term} rdfs:isDefinedBy {declared} — must equal the owning slice \
                  IRI {physical} (#329)",
@@ -102,7 +102,7 @@ fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
             edge_kind,
         } => Some(finding(
             Severity::Warning,
-            "slice-ownership.undeclared-dependency",
+            crate::codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY,
             format!(
                 "{from_slice} depends on {to_slice} ({edge_kind:?}) with no \
                  gmeow:sliceDependsOn declaration",
@@ -114,7 +114,7 @@ fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
             to_slice,
         } => Some(finding(
             Severity::Warning,
-            "slice-ownership.stale-dependency",
+            crate::codes::SLICE_OWNERSHIP_STALE_DEPENDENCY,
             format!(
                 "{from_slice} declares gmeow:sliceDependsOn {to_slice} but no \
                  artifact references it",
@@ -127,7 +127,7 @@ fn diagnostic_finding(diag: &OwnershipDiagnostic) -> Option<Finding> {
             message,
         } => Some(finding(
             Severity::Warning,
-            "slice-ownership.unparseable-query",
+            crate::codes::SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
             format!("{slice}: query {logical_path} failed to parse — {message}"),
             Some(slice.to_string()),
         )),
