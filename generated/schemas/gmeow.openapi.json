@@ -20032,6 +20032,7 @@
         "type": "object"
       },
       "logic:FreshnessGuard": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -20071,10 +20072,49 @@
               }
             ]
           },
+          "logic:freshnessWindowEnd": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "logic:freshnessWindowStart": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          },
           "logic:guardsPrecondition": {}
         },
         "required": [
-          "logic:freshnessHorizon",
           "logic:guardsPrecondition"
         ],
         "type": "object"
