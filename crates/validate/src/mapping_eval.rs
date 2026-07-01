@@ -26,6 +26,7 @@ use crate::store;
 const WD_NS: &str = "http://www.wikidata.org/entity/";
 const WDT_NS: &str = "http://www.wikidata.org/prop/direct/";
 const WD_HTTPS_NS: &str = "https://www.wikidata.org/entity/";
+const WDT_HTTPS_NS: &str = "https://www.wikidata.org/prop/direct/";
 const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
 const DC_NS: &str = "http://purl.org/dc/elements/1.1/";
 const DCMITYPE_NS: &str = "http://purl.org/dc/dcmitype/";
@@ -300,6 +301,21 @@ pub fn check_syntax_iri(iri: &str, in_object_position: bool) -> Vec<Misuse> {
                 local_id: local.to_owned(),
                 kind: NamespaceMisuse::HttpsUrlShouldBeCurie,
                 message: format!("{iri} should be written as wd:{local}"),
+            }];
+        }
+        return vec![Misuse {
+            local_id: local.to_owned(),
+            kind: NamespaceMisuse::BadSyntax,
+            message: format!("malformed identifier in HTTPS URL: {iri}"),
+        }];
+    }
+
+    if let Some(local) = iri.strip_prefix(WDT_HTTPS_NS) {
+        if is_valid_id(local) {
+            return vec![Misuse {
+                local_id: local.to_owned(),
+                kind: NamespaceMisuse::HttpsUrlShouldBeCurie,
+                message: format!("{iri} should be written as wdt:{local}"),
             }];
         }
         return vec![Misuse {
@@ -1195,6 +1211,21 @@ mod tests {
         );
         assert_eq!(
             check_syntax_iri("http://www.wikidata.org/entity/Q0", false)[0].kind,
+            NamespaceMisuse::BadSyntax
+        );
+        // HTTPS direct-property namespace: previously unrecognized (dropped); now flagged
+        // with the wdt: CURIE suggestion, mirroring the HTTPS-entity branch.
+        assert_eq!(
+            check_syntax_iri("https://www.wikidata.org/prop/direct/P31", false)[0].kind,
+            NamespaceMisuse::HttpsUrlShouldBeCurie
+        );
+        assert!(
+            check_syntax_iri("https://www.wikidata.org/prop/direct/P31", false)[0]
+                .message
+                .contains("wdt:P31")
+        );
+        assert_eq!(
+            check_syntax_iri("https://www.wikidata.org/prop/direct/P0", false)[0].kind,
             NamespaceMisuse::BadSyntax
         );
     }

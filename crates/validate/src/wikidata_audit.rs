@@ -27,6 +27,8 @@ const WD_NS: &str = "http://www.wikidata.org/entity/";
 const WDT_NS: &str = "http://www.wikidata.org/prop/direct/";
 /// The HTTPS form of the Wikidata entity namespace (should be the `wd:` CURIE).
 const WD_HTTPS: &str = "https://www.wikidata.org/entity/";
+/// The HTTPS form of the Wikidata direct-property namespace (should be the `wdt:` CURIE).
+const WDT_HTTPS: &str = "https://www.wikidata.org/prop/direct/";
 /// `schema:sameAs` predicate IRI.
 const SCHEMA_SAMEAS: &str = "https://schema.org/sameAs";
 
@@ -85,10 +87,10 @@ impl AuditReport {
 /// On a parse error, returns exactly one `error` finding with empty
 /// subject/predicate/object and message `format!("failed to parse Turtle: {e}")`.
 /// Otherwise iterates every quad; for IRI objects in the Wikidata entity / direct /
-/// HTTPS namespaces it runs [`mapping_eval::check_syntax_iri`] (mapping `bad-syntax`
-/// → `error`, everything else → `warning`), and for `schema:sameAs`-to-`wd:` it adds
-/// a profile-link warning. Non-IRI objects are skipped (mirrors `isinstance(o,
-/// URIRef)`).
+/// HTTPS-entity / HTTPS-direct namespaces it runs [`mapping_eval::check_syntax_iri`]
+/// (mapping `bad-syntax` → `error`, everything else → `warning`), and for
+/// `schema:sameAs` to a Wikidata entity (either scheme) it adds a profile-link warning.
+/// Non-IRI objects are skipped (mirrors `isinstance(o, URIRef)`).
 pub fn audit_file(path: &Path) -> Vec<AuditFinding> {
     let file = path.display().to_string();
     let dataset = match store::parse_file_dataset(path) {
@@ -117,7 +119,11 @@ pub fn audit_file(path: &Path) -> Vec<AuditFinding> {
         let subject = store::subject_display(dataset.resolve(quad.s));
 
         // Invalid or misused Wikidata IRIs.
-        if obj.starts_with(WD_NS) || obj.starts_with(WDT_NS) || obj.starts_with(WD_HTTPS) {
+        if obj.starts_with(WD_NS)
+            || obj.starts_with(WDT_NS)
+            || obj.starts_with(WD_HTTPS)
+            || obj.starts_with(WDT_HTTPS)
+        {
             for misuse in mapping_eval::check_syntax_iri(obj, true) {
                 let severity = if misuse.kind.as_str() == "bad-syntax" {
                     "error"
@@ -135,8 +141,8 @@ pub fn audit_file(path: &Path) -> Vec<AuditFinding> {
             }
         }
 
-        // schema:sameAs with a Wikidata entity (acceptable but worth noting).
-        if pred == SCHEMA_SAMEAS && obj.starts_with(WD_NS) {
+        // schema:sameAs with a Wikidata entity, either scheme (acceptable but worth noting).
+        if pred == SCHEMA_SAMEAS && (obj.starts_with(WD_NS) || obj.starts_with(WD_HTTPS)) {
             findings.push(AuditFinding {
                 file: file.clone(),
                 subject: subject.clone(),
@@ -290,7 +296,54 @@ mod tests {
         );
     }
 
-    // Case 5: an empty file list renders the "No issues found." banner.
+    // Case 5: an HTTPS direct-property URL is now audited (previously dropped) and
+    // suggests the wdt: CURIE.
+    #[test]
+    fn audit_file_https_direct_property() {
+        let path = write_tmp(
+            "gmeow_validate_wda_https_wdt.ttl",
+            "@prefix ex: <http://example.org/> .\n\
+             ex:item ex:ref <https://www.wikidata.org/prop/direct/P31> .\n",
+        );
+        let findings = audit_file(&path);
+        std::fs::remove_file(&path).ok();
+        assert_eq!(
+            findings.len(),
+            1,
+            "https wdt: URL must produce exactly one finding"
+        );
+        assert_eq!(findings[0].severity, "warning");
+        assert!(
+            findings[0].message.contains("should be written as wdt:P31"),
+            "message must suggest the wdt: CURIE; got: {}",
+            findings[0].message
+        );
+    }
+
+    // Case 6: `schema:sameAs` to an HTTPS-form Wikidata entity fires the profile-link
+    // warning (an HTTPS entity is still a Wikidata entity).
+    #[test]
+    fn audit_file_schema_sameas_https_entity() {
+        let path = write_tmp(
+            "gmeow_validate_wda_sameas_https.ttl",
+            "@prefix ex: <http://example.org/> .\n\
+             @prefix schema: <https://schema.org/> .\n\
+             ex:item schema:sameAs <https://www.wikidata.org/entity/Q42> .\n",
+        );
+        let findings = audit_file(&path);
+        std::fs::remove_file(&path).ok();
+        let sameas: Vec<_> = findings
+            .iter()
+            .filter(|f| f.message.contains("schema:sameAs to Wikidata entity"))
+            .collect();
+        assert_eq!(
+            sameas.len(),
+            1,
+            "schema:sameAs to an HTTPS Wikidata entity must warn; got: {findings:?}"
+        );
+    }
+
+    // Case 7: an empty file list renders the "No issues found." banner.
     #[test]
     fn render_audit_empty() {
         let report = audit_files(&[]);
