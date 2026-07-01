@@ -5691,6 +5691,38 @@ logic:protocolViolationReason
     skos:definition "A human-readable description of WHY a logic:ConcurrentHistory's witnessed schedule fails the concurrency-control protocol its run declared — present exactly when logic:protocolEnforced is false. Domain logic:ConcurrentHistory, range xsd:string (stated in prose). It names the discipline the schedule breaks (a non-two-phase lock order, a lock released before commit, a conflict edge against timestamp order, or a cross-leg read-write conflict that optimistic validation would abort), so a protocol failure is surfaced with its cause rather than as a bare boolean. It is a description of a mechanism-level finding, never a claim of logical contradiction within a state."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Isolation-level adequacy: does the schedule meet the declared strength? ---
+# A logic:IsolationLevel is a declared GUARANTEE STRENGTH; the native evaluator
+# classifies whether a run's witnessed schedule MEETS it. The concurrent engine
+# realizes snapshot isolation (each leg reads a consistent start snapshot and
+# writes independently), so every level up to and including logic:SnapshotIsolation
+# is met by construction; logic:SerializableIsolation and logic:OpacityIsolation
+# are met only when the schedule is conflict-serializable (a write-skew cycle,
+# which snapshot admits, fails them). The level is declared on the contract
+# (logic:declaredIsolationLevel); the verdict is recorded on the history
+# (logic:isolationLevelAdequacy).
+
+logic:declaredIsolationLevel
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "declared isolation level"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:IsolationLevel guarantee strength its concurrent transactions must meet. Domain logic:ReasoningContract, range logic:IsolationLevel (stated in prose); at most one per contract, from the closed isolation-level set (a value outside it is a hard error). It is kept DISTINCT from logic:declaredProtocol (the mechanism that would enforce the level) and from logic:serializabilityCriterion (a history property): an isolation level is the guarantee STRENGTH required, neither the mechanism that achieves it nor the property a particular history happens to have. The native evaluator classifies whether the witnessed schedule meets this declared strength and records the result as logic:isolationLevelAdequacy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:isolationLevelAdequacy
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "isolation level adequacy"@x-gmeow-english ;
+    skos:definition "The boolean verdict of classifying a logic:ConcurrentHistory's witnessed schedule against the logic:IsolationLevel its run declared (logic:declaredIsolationLevel): true iff the schedule meets that declared guarantee strength. Domain logic:ConcurrentHistory, range xsd:boolean (stated in prose); present only when a level is declared. Because the concurrent evaluator realizes snapshot isolation, every level up to logic:SnapshotIsolation is adequate by construction; logic:SerializableIsolation and logic:OpacityIsolation are adequate iff the schedule is conflict-serializable — a write-skew cycle (which snapshot admits) is adequate for snapshot yet INADEQUATE for serializability. A false verdict carries a logic:isolationInadequacyReason. It is guarantee-strength adequacy, kept distinct from logic:protocolEnforced (mechanism soundness) and logic:satisfiesCriterion (the history property)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:isolationInadequacyReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "isolation inadequacy reason"@x-gmeow-english ;
+    skos:definition "A human-readable description of WHY a logic:ConcurrentHistory's witnessed schedule fails to meet its declared logic:IsolationLevel — present exactly when logic:isolationLevelAdequacy is false. Domain logic:ConcurrentHistory, range xsd:string (stated in prose). In the snapshot-isolation model this is the case of a schedule that is not conflict-serializable (a write-skew or lost-update cycle) declared under logic:SerializableIsolation or logic:OpacityIsolation, and the reason names that: the schedule is not conflict-serializable, so it does not meet the declared strength. It is a guarantee-level finding, never a claim of logical contradiction within a state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # ── The full first-order formula AST surface (TBox + RBox) ────────────────────
 # The reified vocabulary the typed full-FOL formula core serializes into: a
 # logic:Formula tree of quantifiers (logic:forall / logic:exists), connectives

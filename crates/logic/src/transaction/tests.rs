@@ -1471,3 +1471,98 @@ fn optimistic_validation_enforced_iff_no_cross_leg_read_write_conflict() {
         Some(false)
     );
 }
+
+// ── Isolation-level adequacy: does the schedule meet the declared strength? ──────
+
+/// Wire the concurrent root `cc` to a contract declaring `level_local`.
+fn declares_isolation(level_local: &str) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    format!(
+        "{}{}{}",
+        q(&e("contract"), ty, &l("ReasoningContract")),
+        q(&e("cc"), &l("executedUnderContract"), &e("contract")),
+        q(
+            &e("contract"),
+            &l("declaredIsolationLevel"),
+            &l(level_local)
+        ),
+    )
+}
+
+/// The boolean logic:isolationLevelAdequacy verdict on the history, if present.
+fn isolation_adequate(quads: &[crate::teleology::TeleologyQuad]) -> Option<bool> {
+    quads
+        .iter()
+        .find(|q| q.predicate.ends_with("isolationLevelAdequacy"))
+        .map(|q| q.object.starts_with("\"true\""))
+}
+
+#[test]
+fn no_declared_isolation_level_emits_no_adequacy_verdict() {
+    // The read-dependency world with no isolation declaration → no adequacy verdict.
+    let nq = protocol_world("");
+    assert_eq!(isolation_adequate(&outcome_quads(&nq, "cc")), None);
+}
+
+#[test]
+fn snapshot_and_weaker_levels_are_always_adequate_even_on_a_cycle() {
+    // The cross-dependency world is conflict-CYCLIC (a write-skew). The engine realizes snapshot
+    // isolation, so every level up to snapshot is met by construction — snapshot ADMITS write skew.
+    for level in [
+        "ReadUncommittedIsolation",
+        "ReadCommittedIsolation",
+        "RepeatableReadIsolation",
+        "SnapshotIsolation",
+    ] {
+        let nq = format!("{}{}", cross_dependency_world(), declares_isolation(level));
+        assert_eq!(
+            isolation_adequate(&outcome_quads(&nq, "cc")),
+            Some(true),
+            "{level} must be adequate under the snapshot-isolation model even on a cycle"
+        );
+    }
+}
+
+#[test]
+fn serializable_isolation_is_inadequate_on_a_cycle_with_reason() {
+    // Declared serializable over a conflict-cyclic (write-skew) schedule → inadequate + reason.
+    let nq = format!(
+        "{}{}",
+        cross_dependency_world(),
+        declares_isolation("SerializableIsolation")
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert_eq!(isolation_adequate(&quads), Some(false));
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("isolationInadequacyReason")),
+        "an inadequate level carries its reason"
+    );
+}
+
+#[test]
+fn serializable_and_opacity_are_adequate_on_a_serializable_schedule() {
+    // The read-dependency world is conflict-serializable (one acyclic edge), so BOTH the
+    // serializable and opacity strengths are met (opacity coincides with serializable here —
+    // there are no aborted/in-flight transactions, only committed runs produce a history).
+    for level in ["SerializableIsolation", "OpacityIsolation"] {
+        let nq = protocol_world(&declares_isolation(level));
+        assert_eq!(
+            isolation_adequate(&outcome_quads(&nq, "cc")),
+            Some(true),
+            "{level} must be adequate for a conflict-serializable schedule"
+        );
+    }
+}
+
+#[test]
+fn opacity_is_inadequate_on_a_cycle() {
+    // Opacity coincides with serializable in this model: a cycle fails it.
+    let nq = format!(
+        "{}{}",
+        cross_dependency_world(),
+        declares_isolation("OpacityIsolation")
+    );
+    assert_eq!(isolation_adequate(&outcome_quads(&nq, "cc")), Some(false));
+}
