@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Validator-zoo probe for the F6 openEHR blood-pressure in-band-complement claim.
+# Validator-zoo probe for the openEHR blood-pressure in-band-complement claim.
 #
 # Drives a running EHRbase CDR: uploads the Blutdruck OPT, then POSTs BOTH the vendored
 # source composition and the GMEOW-augmented composition, and reports a single falsifiable

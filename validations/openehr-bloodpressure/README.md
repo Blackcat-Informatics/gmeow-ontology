@@ -3,7 +3,7 @@
 
 # openEHR blood-pressure validator-zoo lane
 
-Confirms, against an **openEHR reference validator**, the empirical half of the F6
+Confirms, against an **openEHR reference validator**, the empirical half of the
 in-band-complement claim: that the down-projection `d(g)` —
 `blood_pressure.augmented.json`, a valid openEHR composition carrying the GMEOW complement
 in `feeder_audit.original_content` — still validates under the real `Blutdruck.opt`
