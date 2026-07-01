@@ -368,6 +368,7 @@ mod tests {
             external_terms: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
+            constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
 
@@ -420,6 +421,7 @@ mod tests {
             external_terms: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
+            constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
 

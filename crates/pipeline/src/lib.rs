@@ -31,6 +31,7 @@
 pub mod bundle;
 pub mod cache;
 pub mod error;
+pub mod fanout;
 pub mod graph;
 pub mod loader;
 pub mod node;
@@ -55,6 +56,7 @@ pub mod py;
 pub use bundle::{bundle_artifact, bundle_artifacts, PipelineHandle};
 pub use cache::PipelineCache;
 pub use error::PipelineError;
+pub use fanout::{fanout, FanoutReport};
 pub use graph::StageGraph;
 pub use loader::{bind, PipelineSpec, StageSpec};
 pub use node::{

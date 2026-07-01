@@ -41,22 +41,30 @@ pub const SNAPSHOT_PATH: &str = "generated/dist/gmeow.gts";
 const GRAPH_IMPORTS: &str = "https://blackcatinformatics.ca/gmeow/graph/imports";
 const GRAPH_METADATA: &str = "https://blackcatinformatics.ca/gmeow/graph/metadata";
 const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
-const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
+pub(crate) const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
 const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
-const GRAPH_DOCUMENTATION: &str = "https://blackcatinformatics.ca/gmeow/graph/documentation";
-const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+pub(crate) const GRAPH_DOCUMENTATION: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/documentation";
+pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 /// The native↔external-corpus reasoning-divergence Findings, folded as their own
 /// queryable named graph so a repo-free consumer reads every coverage divergence
 /// (native-incomplete `DlGap` / native-disagrees `CorpusOnly`) against the W3C
 /// published expected verdicts without re-grading the corpus. Sibling of
 /// `graph/diagnostics` (correctness evidence, not validation/lint findings).
-const GRAPH_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/graph/conformance";
+pub(crate) const GRAPH_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/graph/conformance";
 /// The compiler's projection-report loss ledger, folded as its own queryable named
 /// graph so a repo-free consumer reads every projection's preservation kind and
 /// structural lossy drops without re-running the compiler.
-const GRAPH_PROJECTION_LEDGER: &str =
+pub(crate) const GRAPH_PROJECTION_LEDGER: &str =
     "https://blackcatinformatics.ca/gmeow/graph/projection-ledger";
+/// The authored default graph (root ontology + slice modules + translations + guide
+/// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
+/// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
+/// graph: the presenter re-roots it into the carrier's DEFAULT graph, so it never appears
+/// as a named graph in the emitted bundle (never a committed-file reconstruction rep).
+pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/authored-default";
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
@@ -67,12 +75,11 @@ const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 /// the native verify lane runs over it, and pass 2 folds the attestation in as
 /// `gmeow:graph/verify`.
 pub fn build_snapshot(
-    root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
     blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
 ) -> Result<Vec<u8>, PipelineError> {
-    let carrier = assemble_carrier(root, upstream)?;
+    let carrier = assemble_carrier(upstream)?;
     serialize_snapshot(&carrier, blobs, report_blobs)
 }
 
@@ -123,12 +130,12 @@ pub(crate) fn serialize_carrier_snapshot(
     let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
         .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
     docs_model.attach_reasoning(reasoning_verdict);
-    let docs_exec = build_executable_docs_data(root, upstream, carrier, &docs_model)?;
+    let docs_exec = build_executable_docs_data(upstream, carrier, &docs_model)?;
     blobs.push(build_docs_archive(root, &docs_model, &docs_exec)?);
     blobs.push(build_reasoning_blob(upstream)?);
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
     // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
-    blobs.push(build_fanout_opaque_blob(root, carrier, upstream)?);
+    blobs.push(build_fanout_opaque_blob(carrier, upstream)?);
 
     let shacl_json = upstream
         .get("stage-validate")
@@ -163,70 +170,172 @@ pub(crate) fn serialize_carrier_snapshot(
 /// projection-ledger, provenance) are parsed and re-rooted here. This carrier is the
 /// single internal transport — it is BOTH serialized to gts and carried as the snapshot
 /// product's bundle, so the snapshot is assembled ONCE.
-fn assemble_carrier(
+/// Every authored source [`build_self_description_dataset`] reads, so the
+/// `stage-source-load` cache busts when any of them changes (cache soundness — a stale
+/// self-description graph would ship a stale bundle). Over-covers rather than under: the
+/// authored ontology + modules + imports (base / provenance), the self-description
+/// metadata, the slice manifests (slice-analysis), the full SHACL shape surface (verify),
+/// and the docs sources (translations + guides folded into the authored default). The
+/// generated SSSOM alignments (`generated/mappings/`) are a produced artifact, not an
+/// authored source, so they are covered by the producing stage's own cache, not here.
+pub(crate) fn self_description_source_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    let mut files = crate::stages::source_load::authored_files(root)?;
+    files.extend(crate::stages::source_load::manifest_files(root)?);
+    files.extend(crate::stages::docs_render::docs_source_files(root)?);
+    let metadata = root.join("metadata").join("gmeow-self.ttl");
+    if metadata.is_file() {
+        files.push(metadata);
+    }
+    files.extend(list_files(&root.join("shapes"), "ttl")?);
+    files.extend(list_files(&root.join("generated/shapes"), "ttl")?);
+    files.extend(slice_named_files(root, "shapes.ttl")?);
+    files.sort();
+    files.dedup();
+    Ok(files)
+}
+
+/// Build the self-description named graphs from the authored sources — the graphs the
+/// presenter used to re-load and re-canonicalize on the serial snapshot node. The
+/// `stage-source-load` stage attaches this to its product so the LOAD and CANONICALIZE
+/// happen ONCE, at the parallel DAG root, and the presenter merely reads and folds them
+/// (PIPELINE_SPINE §3.2/§4 — the terminal assembles nothing).
+///
+/// The returned dataset carries, each in its final named graph: the authored default
+/// ([`GRAPH_AUTHORED_DEFAULT`], re-rooted into the carrier's default graph by the
+/// presenter), the import closure ([`GRAPH_IMPORTS`]), self-description metadata
+/// ([`GRAPH_METADATA`]), SSSOM alignment axioms ([`GRAPH_ALIGNMENTS`]), the slice-analysis
+/// graph ([`GRAPH_SLICE_ANALYSIS`]), the native verify attestation ([`GRAPH_VERIFY`], over
+/// the authored ∪ imports EDB), and the occurrence-based provenance projection
+/// ([`crate::stages::provenance_graph::GRAPH_PROVENANCE`]). Byte-identical to the former
+/// in-snapshot construction — the SAME loaders and canonicalizers, relocated verbatim.
+pub(crate) fn build_self_description_dataset(
     root: &Path,
-    upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    // ── the authored default graph (ontology + slice modules; NO imports) ──────
     let authored = load_authored_default(root)?;
     let authored_canon = canonicalize_nq(&authored, "base")?;
-    // Reject quoted triples in the authored default graph (it carries none); the
-    // default graph is NOT re-rooted.
     reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
+    // The authored default rides its own named graph (re-rooted to default by the
+    // presenter); base ∪ imports is the EDB the verify attestation runs over.
     let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err(&format!("base parse: {e}")))?;
 
-    // ── the snapshot-owned named-graph sources ─────────────────────────────────
     let imports = load_imports(root)?;
     let metadata = load_metadata(root)?;
     let alignments = load_alignments(root)?;
     let slice_analysis = build_slice_analysis(root, &authored)?;
-    let rdf12 = upstream
-        .get("stage-statements")
-        .and_then(|p| p.artifact(RDF12_PATH))
-        .ok_or_else(|| stage_err("missing statements RDF 1.2 artifact"))?
-        .to_vec();
-    let documentation = upstream
-        .get("stage-docs-render")
-        .and_then(|p| p.artifact(crate::stages::docs_render::DOCS_GRAPH_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing docs-render documentation graph"))?;
-    // graph/diagnostics ← SHACL diagnostics ∪ logic-compile diagnostics.
-    let mut diagnostics = upstream
-        .get("stage-validate")
-        .and_then(|p| p.artifact(crate::stages::validate::SHACL_RDF_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing validate-stage SHACL diagnostics RDF graph"))?;
-    let compile_diagnostics = upstream
-        .get("stage-compile-logic")
-        .and_then(|p| p.artifact(crate::stages::compile_logic::DIAG_RDF_PATH))
-        .ok_or_else(|| stage_err("missing compile-logic diagnostics RDF graph"))?;
-    if !diagnostics.is_empty() && !diagnostics.ends_with(b"\n") {
-        diagnostics.push(b'\n');
-    }
-    diagnostics.extend_from_slice(compile_diagnostics);
-    let conformance = upstream
-        .get("stage-conformance")
-        .and_then(|p| p.artifact(crate::stages::conformance::CONFORMANCE_NQ_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| stage_err("missing conformance-stage divergence Finding graph"))?;
-    let projection_ledger = {
-        let report_ttl = upstream
-            .get("stage-mappings")
-            .and_then(|p| p.artifact(crate::stages::compile_logic::PROJECTION_REPORT_PATH))
-            .ok_or_else(|| stage_err("missing mappings projection-report loss ledger"))?;
-        turtle_to_nquads(report_ttl)?
-    };
-    // graph/verify ← native attestation over the authored ∪ imports EDB (the verify
-    // graph is never its own input — #695).
     let verify_attestation = {
         let imports_ds = parse_dataset(&imports, "text/turtle", None)
             .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
         let edb = gmeow_rdf::RdfDataset::union(&[base.as_ref(), imports_ds.as_ref()]);
         run_verify_attestation(root, &edb)?
     };
-    // graph/provenance ← the gated public provenance projection (S0.5).
     let provenance_nt = build_provenance_projection(root)?;
+
+    let datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
+        rooted_in_graph(&base, GRAPH_AUTHORED_DEFAULT)?,
+        parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
+        parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
+        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
+        parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
+        parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
+        parse_into_graph(
+            provenance_nt.as_bytes(),
+            "application/n-triples",
+            crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        )?,
+    ];
+    let refs: Vec<&gmeow_rdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
+    Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
+}
+
+/// The `stage-source-load` product's carrier dataset (the authored base default graph
+/// plus the self-description named graphs it attaches). HARD-fails if the edge is missing.
+fn source_load_dataset(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    Ok(upstream
+        .get("stage-source-load")
+        .ok_or_else(|| {
+            stage_err("missing stage-source-load product for the self-description graphs")
+        })?
+        .bundle()
+        .dataset_arc())
+}
+
+/// Read one self-description graph off the `stage-source-load` product, re-rooted into
+/// `graph_iri` (the presenter's read half of [`build_self_description_dataset`]). The
+/// producer attached it canonical and rooted; this is a pure projection — no load, no
+/// canonicalize.
+fn source_load_graph(
+    upstream: &BTreeMap<String, StageProduct>,
+    graph_iri: &str,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    rooted_in_graph(
+        &source_load_dataset(upstream)?.project_named_graph(graph_iri),
+        graph_iri,
+    )
+}
+
+/// Read a first-class carrier named graph off its PRODUCER's attached dataset, re-rooted
+/// into `graph_iri` (PIPELINE_SPINE §4 — the presenter is a pure keyed fold: it projects
+/// the producer's already-parsed named graph, never re-parses the producer's byte
+/// artifact). The producer attached it via `parse_into_graph`; this is the read half —
+/// no parse. A missing producer HARD-fails (no-optionality).
+fn producer_graph(
+    upstream: &BTreeMap<String, StageProduct>,
+    stage: &str,
+    graph_iri: &str,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    let product = upstream.get(stage).ok_or_else(|| {
+        stage_err(&format!(
+            "missing {stage} product for the <{graph_iri}> graph"
+        ))
+    })?;
+    rooted_in_graph(
+        &product.bundle().dataset().project_named_graph(graph_iri),
+        graph_iri,
+    )
+}
+
+fn assemble_carrier(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    // ── the self-description graphs ride in from stage-source-load's carrier ────
+    // The presenter no longer loads or canonicalizes any source: the authored default,
+    // imports, metadata, alignments, slice-analysis, verify attestation, and provenance
+    // were all built ONCE at the parallel DAG root (`build_self_description_dataset`) and
+    // are read here as pure projections. The authored default rides its own named graph;
+    // re-rooting it with `project_named_graph` lands it back in the carrier's DEFAULT
+    // graph (label dropped).
+    let base = std::sync::Arc::new(
+        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    );
+    // ── the first-class carrier graphs ride in from their producers' datasets ───
+    // Each is read off the PRODUCER's attached named graph (a pure keyed fold), NOT
+    // re-parsed from the producer's byte artifact (PIPELINE_SPINE §4 — the presenter
+    // parses nothing). The statement layer is the producer's dataset (the parse of the
+    // RDF-1.2 artifact, carried default-graph-only) re-rooted here — the same quads the
+    // former `parse_into_graph(&rdf12, ...)` produced, off the already-attached dataset
+    // instead of re-parsing the byte artifact. `stage-statements` carries only its default
+    // graph (`gts_compose` folds it WHOLE, so it must not carry a named-graph copy), so
+    // re-rooting the whole dataset is exactly the former per-parse named-graph fold.
+    let statements = rooted_in_graph(
+        upstream
+            .get("stage-statements")
+            .ok_or_else(|| stage_err("missing stage-statements product for the statement layer"))?
+            .bundle()
+            .dataset(),
+        GRAPH_STATEMENTS,
+    )?;
+    let documentation = producer_graph(upstream, "stage-docs-render", GRAPH_DOCUMENTATION)?;
+    // graph/diagnostics ← SHACL diagnostics (stage-validate) ∪ logic-compile diagnostics
+    // (stage-compile-logic), each read off its producer's attached graph and unioned here.
+    let diagnostics = gmeow_rdf::RdfDataset::union(&[
+        producer_graph(upstream, "stage-validate", GRAPH_DIAGNOSTICS)?.as_ref(),
+        producer_graph(upstream, "stage-compile-logic", GRAPH_DIAGNOSTICS)?.as_ref(),
+    ]);
+    let conformance = producer_graph(upstream, "stage-conformance", GRAPH_CONFORMANCE)?;
+    let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let compile = upstream
@@ -243,24 +352,17 @@ fn assemble_carrier(
     // ── route every snapshot-owned source into its named graph, then union all ──
     let mut datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
         base,
-        parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
-        parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
-        parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
-        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
-        parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
-        parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
-        parse_into_graph(&documentation, "application/n-quads", GRAPH_DOCUMENTATION)?,
-        parse_into_graph(&diagnostics, "application/n-quads", GRAPH_DIAGNOSTICS)?,
-        parse_into_graph(
-            &projection_ledger,
-            "application/n-quads",
-            GRAPH_PROJECTION_LEDGER,
-        )?,
-        parse_into_graph(
-            provenance_nt.as_bytes(),
-            "application/n-triples",
-            crate::stages::provenance_graph::GRAPH_PROVENANCE,
-        )?,
+        statements,
+        // The self-description graphs are read (not re-loaded) off stage-source-load.
+        source_load_graph(upstream, GRAPH_IMPORTS)?,
+        source_load_graph(upstream, GRAPH_METADATA)?,
+        source_load_graph(upstream, GRAPH_ALIGNMENTS)?,
+        source_load_graph(upstream, GRAPH_SLICE_ANALYSIS)?,
+        source_load_graph(upstream, GRAPH_VERIFY)?,
+        source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
+        documentation,
+        std::sync::Arc::new(diagnostics),
+        projection_ledger,
         rooted_in_graph(
             &compile.bundle().dataset().project_named_graph(logic_iri),
             logic_iri,
@@ -279,12 +381,8 @@ fn assemble_carrier(
         )?,
     ];
     // graph/conformance is folded only when non-empty (an all-agree corpus has none).
-    if !conformance.is_empty() {
-        datasets.push(parse_into_graph(
-            &conformance,
-            "application/n-quads",
-            GRAPH_CONFORMANCE,
-        )?);
+    if conformance.quad_count() != 0 {
+        datasets.push(conformance);
     }
     // graph/projections/<name>.edoal ← each committed EDOAL projection, one named
     // graph per file. EDOAL renders through the canonical-Turtle serializer, so the
@@ -307,7 +405,7 @@ fn assemble_carrier(
     // recomputed from THIS run's source. Each producing stage emits the committed file
     // as the canonical fold of these triples, so the superset gate reconstructs them
     // byte-for-byte (PIPELINE_SPINE §5; RDF travels as RDF, never a blob).
-    for (path, bytes) in rdf_fanout_members(root, upstream)? {
+    for (path, bytes) in rdf_fanout_members(upstream)? {
         let iri = crate::stages::superset::rdf_fanout_graph_iri(&path)
             .ok_or_else(|| stage_err(&format!("non-RDF path in rdf_fanout_members: {path}")))?;
         let media_type = if path.ends_with(".nt") {
@@ -327,23 +425,25 @@ fn assemble_carrier(
 /// RDF-fanout named graph, recomputed from THIS run's source. Each is the canonical
 /// fold the producing stage also emits as its committed file. Grows class-by-class.
 fn rdf_fanout_members(
-    root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    // profiles — `owl:Ontology` import closures, emitted as canonical Turtle.
-    for (name, ttl) in crate::stages::profiles::render_profiles(root)? {
-        out.insert(format!("generated/profiles/{name}"), ttl.into_bytes());
+    // profiles — `owl:Ontology` import closures, canonical Turtle. Read off the
+    // stage-export-profiles product (rendered once, in that leaf; keyed by full path).
+    for (path, bytes) in producer_artifacts("stage-export-profiles", upstream)? {
+        out.insert(path, bytes);
     }
     // research-objects — the RO-crate `.ttl` re-serializations + the `lillith.dcat.ttl`
-    // CONSTRUCT (opaque JSON/HTML/XML members ride the opaque fanout blob).
-    for (path, bytes) in crate::stages::research_objects::render_research_objects(root)? {
+    // CONSTRUCT (opaque JSON/HTML/XML members ride the opaque fanout blob). Read off the
+    // stage-export-research-objects product; keep only the RDF members.
+    for (path, bytes) in producer_artifacts("stage-export-research-objects", upstream)? {
         if is_rdf_member(&path) {
             out.insert(path, bytes);
         }
     }
-    // evals scores.ttl — the meta-claim Assessments (opaque MD/JSON ride the blob).
-    for (path, bytes) in crate::stages::evals::render_evals(root)? {
+    // evals scores.ttl — the meta-claim Assessments (opaque MD/JSON ride the blob). Read
+    // off the stage-export-evals product; keep only the RDF members.
+    for (path, bytes) in producer_artifacts("stage-export-evals", upstream)? {
         if is_rdf_member(&path) {
             out.insert(path, bytes);
         }
@@ -380,6 +480,12 @@ fn rdf_fanout_members(
             "stage-compile-logic",
             crate::stages::compile_logic::DIAG_RDF_PATH,
         ),
+        // The generated constraint catalog `.nq` — its own fanout named graph,
+        // reconstructed byte-for-byte by the superset gate.
+        (
+            "stage-constraint-catalog",
+            crate::stages::constraint_catalog::CONSTRAINT_CATALOG_RDF_PATH,
+        ),
     ] {
         let bytes = upstream
             .get(stage)
@@ -403,21 +509,18 @@ fn rdf_fanout_members(
 /// Skolem witnesses. Excluding them makes the closure (and its witness IRIs) a
 /// function of the ontology alone, not of its self-description. This is the single
 /// EDB the sole `stage-reason` pass reasons over; it depends only on the
-/// `stage-statements` and `stage-compile-logic` products plus the on-disk authored /
-/// imports / alignments sources — never on the snapshot, so reasoning need not wait
-/// on carrier assembly.
+/// `stage-statements`, `stage-compile-logic`, and `stage-source-load` products (the
+/// authored / imports / alignments self-description graphs) — never on the snapshot, so
+/// reasoning need not wait on carrier assembly.
 pub(crate) fn assemble_object_level_edb(
-    root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    let authored = load_authored_default(root)?;
-    let authored_canon = canonicalize_nq(&authored, "base")?;
-    reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
-    let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
-        .map_err(|e| stage_err(&format!("base parse: {e}")))?;
-
-    let imports = load_imports(root)?;
-    let alignments = load_alignments(root)?;
+    // The authored default, imports, and alignments are read (not re-loaded) off
+    // stage-source-load — the same self-description graphs the presenter folds — so the
+    // reasoned closure's worlds match the bundle's by construction, with ONE load.
+    let base = std::sync::Arc::new(
+        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    );
     let rdf12 = upstream
         .get("stage-statements")
         .and_then(|p| p.artifact(RDF12_PATH))
@@ -433,8 +536,8 @@ pub(crate) fn assemble_object_level_edb(
     let datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
-        parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
-        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
+        source_load_graph(upstream, GRAPH_IMPORTS)?,
+        source_load_graph(upstream, GRAPH_ALIGNMENTS)?,
         rooted_in_graph(
             &compile.bundle().dataset().project_named_graph(logic_iri),
             logic_iri,
@@ -492,7 +595,7 @@ fn serialize_snapshot(
 
 /// Parse `bytes` natively and re-root every quad into `graph_iri` (see
 /// [`rooted_in_graph`]).
-fn parse_into_graph(
+pub(crate) fn parse_into_graph(
     bytes: &[u8],
     media_type: &str,
     graph_iri: &str,
@@ -710,6 +813,38 @@ fn build_archive_blobs(
     ])
 }
 
+/// The full committed-path → bytes artifact map a producing `stage` attached to the
+/// carrier. The presenter reads a leaf's rendered output off its product here rather
+/// than re-rendering it from disk — the render happens ONCE, in the producing stage
+/// (PIPELINE_SPINE §3.2 the transform-once razor; §4 the terminal recomputes no view).
+/// A missing product HARD-fails (no-optionality): the stage MUST be declared upstream.
+fn producer_artifacts(
+    stage: &str,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+    Ok(upstream
+        .get(stage)
+        .ok_or_else(|| stage_err(&format!("missing {stage} product for the fanout presenter")))?
+        .artifacts())
+}
+
+/// One byte-artifact `path` off a producing `stage`'s product (see [`producer_artifacts`]).
+fn producer_artifact(
+    stage: &str,
+    path: &str,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<Vec<u8>, PipelineError> {
+    upstream
+        .get(stage)
+        .and_then(|p| p.artifact(path))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| {
+            stage_err(&format!(
+                "missing {path} in {stage} for the fanout presenter"
+            ))
+        })
+}
+
 /// Fold the opaque (non-RDF, not-already-carried) members of one leaf's output into
 /// the fanout member map.
 fn take_opaque(members: &mut BTreeMap<String, Vec<u8>>, arts: BTreeMap<String, Vec<u8>>) {
@@ -733,6 +868,27 @@ pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
     )
 }
 
+/// The committed repo-relative path an archive member reconstructs — the inverse of
+/// this stage's member-naming conventions, so the superset gate and the fanout
+/// projection resolve a blob member to its `generated/` path without guessing. The
+/// basename-keyed reps (`REP_MAPPINGS`/`REP_QUERIES`/`REP_SCHEMAS`, keyed by bare
+/// filename in their single directory via `members_basename`) get their directory
+/// prefix restored here; the repo-relative reps (`REP_AXIOMS`/`REP_SHAPES`/
+/// `REP_GENERATED`, keyed by `members_relpath`) pass through unchanged. One authority:
+/// carrier.rs owns both the forward member naming and this inverse. Returns `None`
+/// for a rep that carries no committed `generated/` file (mirrors
+/// [`archive_rep_carries_generated`]).
+pub(crate) fn committed_path_for_archive_member(rep: &str, member: &str) -> Option<String> {
+    match rep {
+        REP_MAPPINGS => Some(format!("generated/mappings/{member}")),
+        REP_QUERIES => Some(format!("generated/queries/{member}")),
+        REP_SCHEMAS => Some(format!("generated/schemas/{member}")),
+        // Already repo-relative (`generated/...` or source `shapes/`/`slices/`).
+        REP_AXIOMS | REP_SHAPES | REP_GENERATED => Some(member.to_string()),
+        _ => None,
+    }
+}
+
 /// Whether `path` is an RDF text artifact (carried as a NAMED GRAPH, never a blob).
 fn is_rdf_member(path: &str) -> bool {
     path.ends_with(".ttl") || path.ends_with(".nt") || path.ends_with(".nq")
@@ -749,22 +905,22 @@ fn opaque_already_carried(path: &str) -> bool {
         || path == "generated/logic/gmeow.rls" // REP_AXIOMS
 }
 
-/// Build the generated-fanout archive [`REP_GENERATED`]: recompute each byte-exact
-/// `generated/` fanout output from THIS run's carrier (carrier-reading leaves),
-/// source (source-reading leaves), or sink-consumed stage products. Plain RDF files
-/// with canonical graph folds ride as named graphs; byte-decorated RDF reports
-/// whose committed form includes generated comments / section markers ride here as
-/// committed byte projections. The post-snapshot export leaves still write the disk
-/// files (additive — the writer retirement is a separate concern); the bytes here
-/// are byte-identical to the committed files, which the superset gate proves.
+/// Build the generated-fanout archive [`REP_GENERATED`]: the byte-exact `generated/`
+/// fanout members that ride as opaque byte projections (as opposed to named-graph
+/// folds). Each rides in from a sink-consumed stage product — either projected from
+/// THIS run's carrier dataset (lpg / schemas) or read off its producing export leaf's
+/// product (the render ran once, in the leaf; the presenter never re-renders from
+/// disk). Byte-decorated RDF reports whose committed form carries generated comments /
+/// section markers ride here rather than as canonical graph folds. The bytes are
+/// byte-identical to the committed files, which the superset gate proves.
 fn build_fanout_opaque_blob(
-    root: &Path,
     carrier: &gmeow_rdf::RdfDataset,
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<BlobRow, PipelineError> {
     let mut members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
-    // carrier-reading leaves (project from THIS run's carrier dataset).
+    // carrier-reading leaves (project from THIS run's carrier dataset — §8 permits a
+    // side format produced from the in-memory carrier, never from disk).
     take_opaque(
         &mut members,
         crate::stages::lpg::render_from_dataset(carrier)?,
@@ -774,30 +930,34 @@ fn build_fanout_opaque_blob(
         crate::stages::schemas::render_schemas_from_dataset(carrier)?,
     );
 
-    // source-reading leaves (read slices/metadata; no snapshot dependency).
+    // source-reading export leaves: read their ALREADY-rendered output off the producing
+    // stage's product (the render ran once, in the leaf), never re-rendered from disk.
     take_opaque(
         &mut members,
-        crate::stages::references::render_references(root)?,
+        producer_artifacts("stage-export-references", upstream)?,
     );
     take_opaque(
         &mut members,
-        crate::stages::bench::render_bench_leaderboard(root)?,
+        producer_artifacts("stage-export-bench", upstream)?,
     );
-    members.insert(
-        crate::stages::apache::APACHE_PATH.to_string(),
-        crate::stages::apache::render_apache(root)?.into_bytes(),
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-apache", upstream)?,
     );
-    members.insert(
-        crate::stages::matrix::MATRIX_PATH.to_string(),
-        crate::stages::matrix::render_matrix(root)?.into_bytes(),
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-matrix", upstream)?,
     );
 
     // evals + research-objects: the OPAQUE members only (their `.ttl`/`.dcat.ttl` ride
-    // as named graphs). Recomputed from source — byte-identical to the committed files.
-    take_opaque(&mut members, crate::stages::evals::render_evals(root)?);
+    // as named graphs). Read off the producing leaf's product — byte-identical.
     take_opaque(
         &mut members,
-        crate::stages::research_objects::render_research_objects(root)?,
+        producer_artifacts("stage-export-evals", upstream)?,
+    );
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-research-objects", upstream)?,
     );
 
     // diagnostics sidecars (`.json`/`.sarif`/`.html`) ride in from the sink-consumed
@@ -851,23 +1011,28 @@ fn build_fanout_opaque_blob(
     }
 
     // The statement-layer OWL + RDF-1.2 byte projections are byte-decorated (generated
-    // banners) and this fanout runs in the gts-sink, which does NOT consume
-    // stage-statements — so recompute them from source via `compile_statements(root)`
-    // (deterministic; byte-identical to the committed files and to the stage-statements
-    // output) rather than pulling them from an upstream the sink lacks. Carrying these
-    // as REP_GENERATED blob members is what lets the superset gate reconstruct them.
-    let (statements_owl, statements_rdf12) = crate::stages::statements::compile_statements(root)?;
+    // banners), so they cannot reconstruct from a canonical named-graph fold — carry
+    // their committed byte projections here. Read off the sink-consumed stage-statements
+    // product (the compile ran once, in that stage), never recomputed from disk.
     members.insert(
         crate::stages::statements::OWL_PATH.to_string(),
-        statements_owl.into_bytes(),
+        producer_artifact(
+            "stage-statements",
+            crate::stages::statements::OWL_PATH,
+            upstream,
+        )?,
     );
     members.insert(
         crate::stages::statements::RDF12_PATH.to_string(),
-        statements_rdf12.into_bytes(),
+        producer_artifact(
+            "stage-statements",
+            crate::stages::statements::RDF12_PATH,
+            upstream,
+        )?,
     );
-    members.extend(crate::stages::metadata::render_metadata_from_dataset(
-        root, carrier,
-    )?);
+    // metadata (void.ttl + dcat.ttl) — byte-decorated, carried as byte projections; read
+    // off the stage-export-metadata product (rendered once from the same snapshot carrier).
+    members.extend(producer_artifacts("stage-export-metadata", upstream)?);
     members.insert(
         crate::stages::yaml_ld::PRESERVATION_PATH.to_string(),
         crate::stages::yaml_ld::preservation_ledger().into_bytes(),
@@ -933,18 +1098,23 @@ fn build_fanout_opaque_blob(
         shacl_af,
     );
 
-    // context.jsonld + dsl-stats: recomputed from source (the producing stage is not
-    // sink-consumed; these are deterministic source projections, byte-identical to
-    // the committed files).
+    // context.jsonld + dsl-stats ride in from the sink-consumed stage-mappings product
+    // (rendered once by that stage), never recomputed here.
     members.insert(
         crate::stages::mappings::JSONLD_CONTEXT_PATH.to_string(),
-        gmeow_slice::emit_jsonld_context().into_bytes(),
+        producer_artifact(
+            "stage-mappings",
+            crate::stages::mappings::JSONLD_CONTEXT_PATH,
+            upstream,
+        )?,
     );
     members.insert(
         crate::stages::mappings::DSL_STATS_PATH.to_string(),
-        gmeow_slice::emit_dsl_stats(root)
-            .map_err(|e| stage_err(&format!("recompute dsl-stats: {e}")))?
-            .into_bytes(),
+        producer_artifact(
+            "stage-mappings",
+            crate::stages::mappings::DSL_STATS_PATH,
+            upstream,
+        )?,
     );
 
     let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
@@ -1087,7 +1257,6 @@ fn build_docs_archive(
 /// - **Playground asset:** `documentation graph ∪ reasoned ontology closure`, TriG.
 /// - **Export handle:** the asserted ontology EDB (for `gmeow_rdf::describe`).
 fn build_executable_docs_data(
-    root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &gmeow_rdf::RdfDataset,
     model: &gmeow_docs::model::DocsModel,
@@ -1095,7 +1264,9 @@ fn build_executable_docs_data(
     use std::collections::{BTreeMap as StdBTreeMap, BTreeSet, HashSet};
 
     // The exact object-level EDB the reason stage reasons over — also the export handle.
-    let edb = assemble_object_level_edb(root, upstream)?;
+    // The EDB reads its authored / imports / alignments graphs off the stage-source-load
+    // product (not from disk), so neither it nor this computation needs `root`.
+    let edb = assemble_object_level_edb(upstream)?;
 
     // Parse every worked example's ABox; remember its subjects + asserted display lines.
     struct ExampleAbox {
@@ -1513,7 +1684,16 @@ impl SnapshotStage {
                 // verdict against the published external verdict and emits the
                 // divergences as a gmeow:Finding N-Quads product folded here.
                 "stage-conformance".to_string(),
+                // The generated constraint catalog `.nq`, folded as the
+                // graph/fanout/catalog/constraint-catalog.nq named graph.
+                "stage-constraint-catalog".to_string(),
                 "stage-docs-render".to_string(),
+                // The RDF fanout members ride in from their producing export leaves (the
+                // render ran once, in the leaf): profiles / evals scores.ttl / research-
+                // object graphs. `rdf_fanout_members` reads them off these products.
+                "stage-export-evals".to_string(),
+                "stage-export-profiles".to_string(),
+                "stage-export-research-objects".to_string(),
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
                 "stage-mappings".to_string(),
@@ -1526,6 +1706,11 @@ impl SnapshotStage {
                 "stage-export-json-schema".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
+                // The self-description named graphs (authored default / imports / metadata
+                // / alignments / slice-analysis / verify / provenance) are attached by
+                // stage-source-load; the presenter reads them off this product instead of
+                // re-loading + re-canonicalizing the sources (PIPELINE_SPINE §3.2/§4).
+                "stage-source-load".to_string(),
                 "stage-statements".to_string(),
                 "stage-validate".to_string(),
             ],
@@ -1578,8 +1763,16 @@ impl Stage for SnapshotStage {
         // asserted-vs-inferred diffs (a docs-only side computation that never folds
         // into the reasoned production graphs) — and folds the CLIF projection
         // (generated/cl/gmeow.clif) into REP_GENERATED as a committed byte projection
-        // (a non-RDF text dialect with generated comments / section markers).
-        "snapshot.v15-executable-docs-and-clif"
+        // (a non-RDF text dialect with generated comments / section markers) and the
+        // executable-docs surfaces (offline SPARQL playground + reasoner "try it" diffs).
+        // v16: the presenter reads the self-description graphs off stage-source-load (no
+        // in-snapshot source load or canonicalize) — PIPELINE_SPINE §3.2/§4.
+        // v17: the RDF fanout members (profiles / evals scores / research-object graphs)
+        // ride in from their producing export leaves — `rdf_fanout_members` reads them
+        // off those products instead of re-rendering from disk (§3.2 transform-once).
+        // v18 additionally consumes stage-constraint-catalog and folds its generated
+        // `.nq` as the graph/fanout/catalog/constraint-catalog.nq named graph.
+        "snapshot.v18-constraint-catalog-fanout-presenter"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -1607,7 +1800,7 @@ impl Stage for SnapshotStage {
         // export leaf (N-Quads/TriG/JSON-LD/OKF/LPG/metadata/logic AND the gts export)
         // reads off this product's bundle. NOTHING is serialized here: GTS is exit-only,
         // produced by the `stage-export-gts` leaf like any other export format.
-        let carrier = assemble_carrier(input.root, input.upstream)?;
+        let carrier = assemble_carrier(input.upstream)?;
         let bundle = build_snapshot_bundle(carrier, input.upstream, BTreeMap::new())?;
         Ok(StageOutput {
             product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle)),
@@ -2523,7 +2716,7 @@ fn canonicalize_term_xsd(term: &mut gmeow_rdf::RdfTerm) -> Result<(), PipelineEr
 /// Parse a single Turtle source and serialize it straight to N-Quads (no `Store`).
 /// The native equivalent of the old `Store::new()+ingest_turtle+store_to_nquads`
 /// trio for single-file named-graph sources (metadata, slice-analysis).
-fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, PipelineError> {
+pub(crate) fn turtle_to_nquads(bytes: &[u8]) -> Result<Vec<u8>, PipelineError> {
     dataset_to_nquads(parse_turtle_dataset(bytes)?.as_ref())
 }
 
