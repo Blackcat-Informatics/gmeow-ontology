@@ -212,10 +212,19 @@ impl Stage for DocsRenderStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let verdict = reasoning_verdict_from_reason(input.upstream)?;
         let graph = render_docs_graph(input.root, verdict)?;
+        let graph_bytes = graph.into_bytes();
+        // Attach the documentation projection as the carrier's `graph/documentation`
+        // named graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4),
+        // never re-parses the byte artifact. The byte lane is kept for the byte readers.
+        let dataset = crate::stages::carrier::parse_into_graph(
+            &graph_bytes,
+            "application/n-quads",
+            crate::stages::carrier::GRAPH_DOCUMENTATION,
+        )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(DOCS_GRAPH_PATH.to_string(), graph.into_bytes());
+        artifacts.insert(DOCS_GRAPH_PATH.to_string(), graph_bytes);
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), artifacts),
+            product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })
     }
 }
