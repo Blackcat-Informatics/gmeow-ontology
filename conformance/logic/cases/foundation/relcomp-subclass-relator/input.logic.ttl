@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/relcomp-subclass-relator
+# AC: foundation lowering — the relator-mediation discipline (RelComp) generalized
+# to the PRODUCTION relator shape.
+#
+# Production relators are typed `a logic:Kind ; logic:subClassOf logic:Relator` — a
+# class-edge to the Relator meta-class, NOT the direct `a logic:Relator` the
+# relcomp-under-mediated case uses. The hasMetaClass-keyed relator markers never
+# bind on that shape, so the discipline used to be wholly dormant on it. This case
+# proves the generalized discipline (isRelatorClass :- subClassOfT(?C, logic:Relator))
+# reaches it:
+#   * ex:Devotion   — a concrete relator (a logic:Kind, subClassOf logic:Relator, no
+#     logic: subclass) with ONLY ONE logic:mediates relatum (ex:Devotee) → logic:RelComp.
+#   * ex:Enrollment — the same production shape with TWO DISTINCT logic:mediates relata
+#     (ex:Student, ex:Course) → trips nothing (negative control).
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the schema facts (the
+# Kind puns, the subClassOf edges, and the logic:mediates edges) are duplicated there
+# in the named world ex:schema; these declarations are the program axioms the
+# projections need.
+#
+# EXPECTED SIDE-ARTIFACT: logic:Relator appears here as a bare, stereotype-less
+# subClassOf object (exactly as it is declared in production, `a owl:Class`), so the
+# existing exactly-one-stereotype discipline fires logic:StereotypeCardinality on it.
+# That is orthogonal to this case's subject; logic:Relator correctly does NOT fire
+# logic:RelComp (it is not a concreteRelator — nothing makes it isRelatorClass).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/relcomp-subclass-relator/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Schema: an under-mediated relator and a well-formed one, both in the production
+# `a logic:Kind ; subClassOf logic:Relator` shape (also world facts in input.nq).
+ex:Devotion   a logic:Kind ;
+    logic:subClassOf logic:Relator ;
+    logic:mediates ex:Devotee .
+ex:Enrollment a logic:Kind ;
+    logic:subClassOf logic:Relator ;
+    logic:mediates ex:Student, ex:Course .
