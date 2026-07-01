@@ -54,3 +54,6 @@ pub mod ir;
 pub mod projections;
 pub mod relational_core;
 pub mod result_shape;
+// The XCL (eXtended Common Logic Markup Language) XML dialect: a bidirectional,
+// PreservationKind::Exact XML FOL surface (writer + reader), sibling of clif/cgif.
+pub mod xcl;
