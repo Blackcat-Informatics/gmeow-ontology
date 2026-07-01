@@ -32,13 +32,19 @@
 use std::sync::Arc;
 
 use gmeow_diagnostics::model::Location;
-use gmeow_diagnostics::{Finding, Report, Severity};
+use gmeow_diagnostics::Report;
 use gmeow_rdf::RdfDataset;
 use gmeow_shacl::shape_union::EXCLUDED;
 
 use crate::gufo::{self, GufoConfig};
+use crate::report_bridge::{build_report, shacl_findings_from_report};
 use crate::store;
-use crate::validate_all::{build_report, shacl_findings_from_report};
+
+// `Finding`/`Severity` are only constructed by the native-only Tier-2 deep pass
+// (and its tests). The wasm Tier-1 surface folds findings through `report_bridge`
+// and never names these types directly.
+#[cfg(not(target_arch = "wasm32"))]
+use gmeow_diagnostics::{Finding, Severity};
 
 /// Typed error for the Tier-2 deep pass, distinguishing failure modes that
 /// require different treatment at the graceful-degradation boundary.
@@ -54,6 +60,7 @@ use crate::validate_all::{build_report, shacl_findings_from_report};
 ///   failure). The caller emits a `Severity::Note` advisory
 ///   (`validate.deep.unavailable`) and leaves the Tier-1 result intact (graceful
 ///   degradation).
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 enum DeepPassError {
     /// The declared contradiction-policy contract is garbled; this is INVALID
@@ -69,8 +76,10 @@ enum DeepPassError {
 /// stage and the Python `bundle` reader.
 const REP_SHAPES: &str = "shapes-archive";
 
-/// Run Tier-1 conformance of `data_bytes` (an RDF graph in `data_format`) against
-/// the shapes and disciplines carried in `gts_bytes`.
+/// Run **Tier-1** conformance of `data_bytes` (an RDF graph in `data_format`) against
+/// the shapes and disciplines carried in `gts_bytes`. This is the wasm-clean core:
+/// it carries no reasoner, so it compiles for `wasm32-unknown-unknown` and is the
+/// sole validation surface exposed at the wasm/CLI boundary (see [`validate_json`]).
 ///
 /// `data_format` is a media type or short format id understood by
 /// [`gmeow_rdf::parse_dataset`] (`turtle`/`ttl`, `trig`, `n-triples`/`nt`,
@@ -85,24 +94,16 @@ const REP_SHAPES: &str = "shapes-archive";
 /// user's graph. Named graphs in TriG/N-Quads are flattened to the default graph
 /// so the shapes see every triple.
 ///
-/// When `deep` is set, the opt-in **Tier-2** semantic pass additionally reasons over
-/// the user's data MERGED with the bundle's axioms and folds the shared
-/// `logic:ReasoningResult` verdict into the same report. Tier-2 degrades gracefully:
-/// any failure of the semantic pass becomes a single `validate.deep.unavailable`
-/// advisory note, leaving the complete Tier-1 result and its exit code intact.
-///
 /// # Errors
 ///
 /// Returns `Err` if the bundle carries no `shapes-archive` blob, the archive is
-/// malformed, the shapes fail to parse, or the data graph fails to parse. A Tier-2
-/// (`deep`) failure is NOT an error — it is folded as an advisory note.
-pub fn run(
+/// malformed, the shapes fail to parse, or the data graph fails to parse.
+pub fn run_tier1(
     data_bytes: &[u8],
     data_format: &str,
     gts_bytes: &[u8],
     namespace: &str,
     origin: &str,
-    deep: bool,
 ) -> Result<Report, String> {
     let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
     let dataset = data_dataset_flat(data_bytes, data_format)?;
@@ -130,6 +131,35 @@ pub fn run(
         report.add_finding(f);
     }
 
+    Ok(report)
+}
+
+/// Run Tier-1 conformance and, when `deep` is set, the opt-in native **Tier-2**
+/// semantic pass — the consumer `gmeow validate [--deep] <data>` entry.
+///
+/// Tier-2 has no wasm form (it reasons via the native DL engine), so `deep` lives
+/// only on this native-only wrapper; the wasm boundary reaches validation solely
+/// through the deep-less [`run_tier1`] core. When `deep` is set, the semantic pass
+/// reasons over the user's data MERGED with the bundle's axioms and folds the shared
+/// `logic:ReasoningResult` verdict into the same report. Tier-2 degrades gracefully:
+/// an infrastructure failure becomes a single `validate.deep.unavailable` advisory
+/// note, leaving the complete Tier-1 result and its exit code intact.
+///
+/// # Errors
+///
+/// Returns `Err` for the same Tier-1 reasons as [`run_tier1`]. A Tier-2 (`deep`)
+/// failure is NOT an error — it is folded as an advisory note.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn run(
+    data_bytes: &[u8],
+    data_format: &str,
+    gts_bytes: &[u8],
+    namespace: &str,
+    origin: &str,
+    deep: bool,
+) -> Result<Report, String> {
+    let mut report = run_tier1(data_bytes, data_format, gts_bytes, namespace, origin)?;
+
     // Tier-2 (`--deep`): opt-in native semantic pass over user data + bundle axioms.
     if deep {
         run_deep_pass(gts_bytes, data_bytes, data_format, origin, &mut report);
@@ -154,6 +184,7 @@ pub fn run(
 ///   This is INVALID INPUT (no-optionality discipline): folded as a
 ///   `validate.deep.contract-invalid` `Severity::Error` finding that FAILS the
 ///   gate. It must NOT be downgraded to an advisory note.
+#[cfg(not(target_arch = "wasm32"))]
 fn run_deep_pass(
     gts_bytes: &[u8],
     data_bytes: &[u8],
@@ -229,6 +260,7 @@ fn run_deep_pass(
 /// `logic:ReasoningContract` carries a garbled `logic:admissibleValuation` that
 /// cannot be resolved to a [`ContradictionPolicy`]. This is INVALID INPUT and
 /// must HARD-FAIL the gate; the caller emits a `Severity::Error` finding.
+#[cfg(not(target_arch = "wasm32"))]
 fn deep_consistency_findings(
     gts_bytes: &[u8],
     data_bytes: &[u8],
@@ -262,6 +294,7 @@ fn deep_consistency_findings(
 /// Tier-2 reasoner (the world structure must survive, so this does NOT flatten the
 /// way [`data_store`] does for SHACL). Handles every supported format, routing
 /// JSON-LD through the gmeow-gts codec exactly as [`data_store`] does.
+#[cfg(not(target_arch = "wasm32"))]
 fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
     if is_json_ld(data_format) {
         // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
@@ -398,7 +431,9 @@ fn cbor_text_field<'a>(meta: &'a ciborium::value::Value, key: &str) -> Option<&'
     None
 }
 
-#[cfg(test)]
+// The deep-pass tests exercise `run_deep_pass`, which is native-only; the whole
+// module is gated to the native target so a wasm `--all-targets` pass stays clean.
+#[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests {
     use super::*;
 

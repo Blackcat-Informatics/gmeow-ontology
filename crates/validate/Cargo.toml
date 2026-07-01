@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-validate"
-description = "GMEOW validation-path lints in Rust: native Turtle syntax check and the Principle 5 owl:sameAs ban, exposed to Python via PyO3 (#579)"
+description = "GMEOW validation in Rust: the wasm-clean repo-free Tier-1 conformance core (SHACL + OntoUML disciplines over a gmeow.gts bundle) plus the native slice-authoring dev gate, exposed to Python via PyO3"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -20,22 +20,49 @@ path = "src/lib.rs"
 [features]
 python = ["dep:pyo3", "gmeow-diagnostics/python"]
 
+# Dependencies of the wasm-clean Tier-1 core (compiled on EVERY target, including
+# wasm32-unknown-unknown). Only what data_validate/store/gufo/findings/report_bridge
+# and the JSON entry actually need — every one is oxigraph-free, PyO3-free, and
+# thread-free.
 [dependencies]
-# Reserved for future lint ports that need regex (kept in lockstep with shacl).
-regex = "1"
-# Serialization for timing records and JSON result export (#634).
+# Report JSON export at the wasm/CLI boundary; timing/result serde on the native side.
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-# Cargo manifest parsing for the native crate-layering DAG gate (#947).
+# SHACL engine: the Rust-native validation reuses parsed shapes and validates the
+# frozen dataset directly. The engine core is PyO3-free; only the py modules touch PyO3.
+gmeow-shacl = { path = "../shacl" }
+# Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics. The `gts`
+# feature is oxigraph-free and already cross-compiles to wasm32 (the purrdf engine).
+gmeow-rdf = { path = "../rdf", features = ["gts"] }
+# Canonical Finding/Report model. Its default (non-`python`) surface is pure serde,
+# so it is wasm-clean; the `python` feature layers pyo3 on for the native extension.
+gmeow-diagnostics = { path = "../diagnostics" }
+# GTS CONTAINER engine: the Tier-1 shape-archive read walks `Graph::blob_meta`/`blobs`.
+# CONTAINER symbols only (no codec feature) — the same wasm-clean surface gmeow-rdf's
+# `gts` feature builds; pure-Rust structured-zstd, no C/duckdb/zstd-sys linkage.
+gmeow-gts = { version = "0.9.11" }
+# CBOR reader for the bundle blob metadata: `Graph::blob_meta` values are
+# `ciborium::value::Value`, read to resolve a blob by its `rep` label.
+ciborium = "0.2"
+
+# Native-only dependencies: the slice-authoring dev gate, repo-lint guards, DSL
+# phases, and the Tier-2 `--deep` reasoner path. None of these cross-compile to wasm
+# (gmeow-logic drags in nemo/scryer/tokio, rayon needs threads, ureq needs sockets),
+# so they are excluded from the wasm target entirely — the modules that use them are
+# `#[cfg(not(target_arch = "wasm32"))]` in lib.rs.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# Reserved for future lint ports that need regex (kept in lockstep with shacl).
+regex = "1"
+# Cargo manifest parsing for the native crate-layering DAG gate.
 toml = "0.8"
-# JSON Schema draft-2020-12 instance validator (#700 Task 4). default-features
-# off drops the network/file remote-$ref resolvers (reqwest/rustls/resolve-http):
-# the GMEOW JSON Schema is fully self-contained ($defs-local refs only), so we
-# never fetch remote schemas. No optional resolver feature is enabled — a
-# capability cfg would be optionality, not compliance (#579).
+# JSON Schema draft-2020-12 instance validator. default-features off drops the
+# network/file remote-$ref resolvers (reqwest/rustls/resolve-http): the GMEOW JSON
+# Schema is fully self-contained ($defs-local refs only), so we never fetch remote
+# schemas. No optional resolver feature is enabled — a capability cfg would be
+# optionality, not compliance.
 jsonschema = { version = "0.46", default-features = false }
 # YAML instance parsing: serde_yaml deserializes straight into serde_json::Value,
-# so a YAML instance validates identically to its JSON twin (#700 Task 4).
+# so a YAML instance validates identically to its JSON twin.
 serde_yaml = "0.9"
 # SHA-256 for content-addressed validation cache keys (parity with Python hashlib).
 sha2 = "0.10"
@@ -45,46 +72,21 @@ sha2 = "0.10"
 rayon = "1"
 # Blocking HTTP client for the maintainer-only Wikidata live existence lane.
 ureq = "3"
-# SHACL engine: the Rust-native validation orchestration reuses parsed shapes
-# and validates the shared store directly (#634). The engine core is PyO3-free;
-# only the py modules on both sides touch PyO3.
-gmeow-shacl = { path = "../shacl" }
-# Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics (#648).
-gmeow-rdf = { path = "../rdf", features = ["gts"] }
 # Native slice catalog + S6a semantic Merkle cache: the whole-ontology merged-SHACL
 # source key is the path-independent, comment-insensitive product key over the slice
-# composition (RFC #820 §12). gmeow-slice depends only on gmeow-rdf, so this edge
-# keeps the crate DAG acyclic and layering-legal (#820 S0). Its default build is a
-# pure rlib (no pyo3); the unified gmeow_native cdylib enables its `python` feature.
+# composition. gmeow-slice depends only on gmeow-rdf, keeping the crate DAG acyclic.
 gmeow-slice = { path = "../slice" }
-# Canonical Finding/Report model (#654). The RDF/SHACL -> Finding bridge lives
-# here, NOT in the PyO3-free gmeow-rdf-core kernel: gmeow-diagnostics links pyo3
-# unconditionally, and gmeow-validate already links pyo3, so this dependency
-# keeps the kernel clean while threading wire-coordinate findings end-to-end.
-gmeow-diagnostics = { path = "../diagnostics" }
 # Dependency-free license-token policy classifier (RUST-FIRST single source of truth):
-# the `license_policy_for` pyfunction surfaces it to the Python `LinkPolicy` shim, so
-# the classification algorithm lives in exactly one place.
+# the `license_policy_for` pyfunction surfaces it to the Python `LinkPolicy` shim.
 gmeow-license = { path = "../license" }
-# Native reasoning engine (#768 ME2): the `validate --deep` semantic pass reasons
-# over the bundle (`gmeow_logic::reason::reason_all`) and reads the shared
-# logic:ReasoningResult to emit semantic findings. nemo is already built once for
-# the workspace, so this edge is link-only marginal cost; no cycle (logic does not
-# depend on validate) and layering-legal (the gate only constrains the rdf kernel).
+# Native reasoning engine: the `validate --deep` semantic pass reasons over the bundle
+# (`gmeow_logic::reason::reason_all`) and reads the shared logic:ReasoningResult. nemo
+# is built once for the workspace, so this edge is link-only marginal cost; no cycle
+# (logic does not depend on validate).
 gmeow-logic = { path = "../logic" }
-# GTS CONTAINER engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
-# the toolchain salt mixes `gmeow_gts::wire::VERSION`, and signature verification uses
-# `gmeow_gts::verify`/`policy`. All CONTAINER symbols (no codec feature) — gmeow-gts is the
-# gmeow.gts file layer only; RDF codec work lives in gmeow-rdf's native codecs.
-gmeow-gts = { version = "0.9.11" }
-# CBOR reader for the bundle blob metadata: `gmeow_gts::model::Graph::blob_meta`
-# values are `ciborium::value::Value`, read to resolve a blob by its `rep` label.
-ciborium = "0.2"
-# pyo3 is an UNCONDITIONAL native-only dependency: this crate is native-only and
-# carries NO architecture cfgs (never a [target.'cfg(...)'] table). A capability
-# cfg would be optionality, not compliance (#579). The engine core
-# (store.rs/model.rs) stays PyO3-free; only py.rs imports pyo3, so the rlib links
-# into a future Rust compiler without Python.
+# pyo3 native-only: it physically cannot link into wasm. The engine core stays
+# PyO3-free; only the py modules import it, so the rlib links into a future Rust
+# compiler (and the wasm target) without Python.
 pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 
 [dev-dependencies]
