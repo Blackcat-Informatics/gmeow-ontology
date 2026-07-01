@@ -1,0 +1,7 @@
+{
+  "certified": true,
+  "decidability_class": "terminating/PTIME-data",
+  "evolution_class": "transaction-path/PTIME-classification (conflict-serializability; classification not search; step-governor bounded)",
+  "profile_id": "StratifiedNAFProfile",
+  "violations": []
+}
