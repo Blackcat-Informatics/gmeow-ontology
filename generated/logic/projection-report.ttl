@@ -26619,6 +26619,19 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:abe65f37f6d6f4fe>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:abe65f37f6d6f4fe" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Procedure|http://www.w3.org/2004/02/skos/core#relatedMatch|https://specifications.openehr.org/releases/PROC/latest/task_planning.html#WORK_PLAN" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "actual: logic:ConcurrentComposition: under-approximated where TP-VML has no explicit concurrency-serializability guarantee (logic:ConcurrentHistory / logic:serializabilityCriterion are derived natively, not carried)" ,
+        "actual: per-outcome logic:compensation: omitted where TP-VML has no compensation primitive on a task outcome" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:abf4024e9593440d>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:abf4024e9593440d" ;
@@ -26894,6 +26907,18 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:af51653fc79af659>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:af51653fc79af659" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Procedure|http://www.w3.org/2004/02/skos/core#relatedMatch|https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK_PLAN" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "actual: per-outcome logic:compensation: omitted where TP-VML has no compensation primitive on a task outcome" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:af5dc984df8c4451>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:af5dc984df8c4451" ;
@@ -27019,6 +27044,18 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:b16634b366a442dd" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/referenceValue|http://www.w3.org/2004/02/skos/core#closeMatch|http://inspire.ec.europa.eu/ont/cp#nationalCadastralReference" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:b1906626893b5b65>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:b1906626893b5b65" ;
+    gmeow:lossyDrop "actual: TP-VML task scheduling annotations (planned time / wait windows) are not carried by the flat gmeow:ProcedureStep; scheduling is a solver-layer concern (Principle 12)" ,
+        "actual: correspondence: https://blackcatinformatics.ca/gmeow/ProcedureStep|http://www.w3.org/2004/02/skos/core#relatedMatch|https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -35297,6 +35334,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:ab59e7c633269cb6> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ab6976edfd614f4f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ab6b73dc721f8dc3> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:abe65f37f6d6f4fe> ,
         <https://blackcatinformatics.ca/logic/target/sssom:abf4024e9593440d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ac013aeebd3aace9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ac0a41009058ef56> ,
@@ -35322,6 +35360,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:ae0f623b5223fe0e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:ae96fd4d1a4a38d4> ,
         <https://blackcatinformatics.ca/logic/target/sssom:aea968fa41162294> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:af51653fc79af659> ,
         <https://blackcatinformatics.ca/logic/target/sssom:af5dc984df8c4451> ,
         <https://blackcatinformatics.ca/logic/target/sssom:afdbb81963e16d4c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b00a3ebca29abc48> ,
@@ -35334,6 +35373,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:b10e3b3ef33a8b8c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b157935cd3af5c0d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b16634b366a442dd> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:b1906626893b5b65> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b1ab99466808cb44> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b1e17afd2f23fcce> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b20eb37189bfddf9> ,
