@@ -1,0 +1,13 @@
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/DiastolicShape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 1000 ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ["mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string>] ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/SystolicShape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 1000 ;
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ["mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string>] ;
+}

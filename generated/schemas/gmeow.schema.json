@@ -2763,6 +2763,87 @@
       ],
       "type": "object"
     },
+    "Diastolic": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/magnitude": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "exclusiveMaximum": 1000.0,
+              "minimum": 0.0
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ],
+                "exclusiveMaximum": 1000.0,
+                "minimum": 0.0
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/units": {
+          "enum": [
+            "mm[Hg]"
+          ]
+        }
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/units"
+      ],
+      "type": "object"
+    },
     "Diff": {
       "properties": {
         "@annotation": {
@@ -8839,6 +8920,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "gmeow:Diastolic"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Diastolic"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Diastolic"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "gmeow:Diff"
                   },
                   {
@@ -12606,6 +12712,31 @@
           },
           "then": {
             "$ref": "#/$defs/SupportAssessment"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:Systolic"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Systolic"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Systolic"
           }
         },
         {
@@ -18101,6 +18232,87 @@
       "required": [
         "gmeow:supportGround",
         "gmeow:supportUnderStandard"
+      ],
+      "type": "object"
+    },
+    "Systolic": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/magnitude": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "exclusiveMaximum": 1000.0,
+              "minimum": 0.0
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ],
+                "exclusiveMaximum": 1000.0,
+                "minimum": 0.0
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/units": {
+          "enum": [
+            "mm[Hg]"
+          ]
+        }
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/units"
       ],
       "type": "object"
     },

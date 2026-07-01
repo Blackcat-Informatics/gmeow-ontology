@@ -1,0 +1,12 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/DiastolicShape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 1000 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string> ) ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/SystolicShape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 1000 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string> ) ] .
