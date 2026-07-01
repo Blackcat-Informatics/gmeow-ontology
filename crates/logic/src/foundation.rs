@@ -782,6 +782,28 @@ const STRATUM_2: &[Rule] = &[
     ancestor_marker!("isRelatorClass", "Relator"),
     // isRelatorClass(?C, ?C) :- hasMetaClass(?C, logic:Relator)
     sortal_marker!("isRelatorClass", "Relator"),
+    // isRelatorClass(?C, ?C) :- subClassOfT(?C, logic:Relator)
+    // Production relators are typed `a logic:Kind ; rdfs:subClassOf logic:Relator` — a
+    // class-edge to the Relator meta-class, never a direct `a logic:Relator`.  The two
+    // hasMetaClass-keyed markers above never bind on that shape (logic:Relator itself
+    // carries no hasMetaClass fact), leaving the relator-mediation discipline (RelComp)
+    // dormant on every production relator.  This marker confers relator-hood on every
+    // subclass of the Relator category so the discipline reaches them.  logic:Relator
+    // itself is never flagged: subClassOfT is non-reflexive, and even were it derived,
+    // concreteRelator is guarded by NOT hasLogicSubclass, which holds for logic:Relator.
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("isRelatorClass")),
+            var("?C"),
+        ),
+        body: &[pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("subClassOfT")),
+            TermPat::Const(logic_iri!("Relator")),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
     // kindAncestor(?C, ?A) :- hasMetaClass(?A, logic:Kind), subClassOfT(?C, ?A)
     Rule {
         head: pos(
