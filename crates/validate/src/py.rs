@@ -17,13 +17,14 @@
 //! wasm.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use gmeow_diagnostics::py::PyReport;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyCapsule, PyDict, PyList};
 
+use crate::box_roles;
 use crate::constitution;
 use crate::coverage;
 use crate::crate_layering;
@@ -40,6 +41,7 @@ use crate::slice_ownership;
 use crate::statement;
 use crate::store;
 use crate::validate_all::{self, ValidateOptions};
+use crate::wikidata_audit;
 
 /// Build the standard `{"errors": [...], "warnings": [...]}` report dict.
 fn report_dict(py: Python<'_>, errors: Vec<String>, warnings: Vec<String>) -> PyResult<Py<PyAny>> {
@@ -690,6 +692,144 @@ fn coverage_analyze(
     Ok(out.into_any().unbind())
 }
 
+/// Run the coverage harness over the vendored fixtures (mirrors
+/// `coverage.run_coverage`).
+///
+/// `fixtures_dir` / `mappings_dir` / `namespace` are `config.FIXTURES_DIR` /
+/// `config.MAPPINGS_DIR` / `config.NAMESPACE`. Returns a dict with the four
+/// sorted IRI lists plus the two coverage fractions:
+/// `{ covered_classes, gap_classes, covered_predicates, gap_predicates,
+/// class_coverage, predicate_coverage }`. A read/parse failure maps to a Python
+/// `ValueError` (a hard failure that must surface).
+#[pyfunction]
+fn run_coverage(
+    py: Python<'_>,
+    fixtures_dir: String,
+    mappings_dir: String,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
+    let report = coverage::run_coverage(
+        Path::new(&fixtures_dir),
+        Path::new(&mappings_dir),
+        &namespace,
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let out = PyDict::new(py);
+    out.set_item(
+        "covered_classes",
+        PyList::new(py, report.covered_classes.iter())?,
+    )?;
+    out.set_item("gap_classes", PyList::new(py, report.gap_classes.iter())?)?;
+    out.set_item(
+        "covered_predicates",
+        PyList::new(py, report.covered_predicates.iter())?,
+    )?;
+    out.set_item(
+        "gap_predicates",
+        PyList::new(py, report.gap_predicates.iter())?,
+    )?;
+    out.set_item("class_coverage", report.class_coverage())?;
+    out.set_item("predicate_coverage", report.predicate_coverage())?;
+    Ok(out.into_any().unbind())
+}
+
+/// Project the coverage harness into the canonical diagnostics `Report` pyclass
+/// (mirrors `coverage.to_diagnostics_report`).
+///
+/// `fixtures_dir` / `mappings_dir` / `namespace` are as for [`run_coverage`].
+/// Coverage gaps are informational, so every finding is an `info` and the report
+/// stays `ok`. A read/parse failure maps to a Python `ValueError`.
+#[pyfunction]
+fn coverage_diagnostics_report(
+    py: Python<'_>,
+    fixtures_dir: String,
+    mappings_dir: String,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
+    let report = coverage::run_coverage(
+        Path::new(&fixtures_dir),
+        Path::new(&mappings_dir),
+        &namespace,
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let diag = coverage::coverage_to_diagnostics(&report);
+    Ok(Py::new(py, PyReport::from_engine(diag))?.into_any())
+}
+
+/// Audit explicit `gmeow:graphBoxRole` coverage over authored sources (mirrors
+/// `box_roles.audit_box_roles`).
+///
+/// `paths` is the authored term-source list (`graph.default_audit_paths()`);
+/// `ontology_iri` / `namespace` are `config.ONTOLOGY_IRI` / `config.NAMESPACE`.
+/// Returns a dict with the FIXED snake_case schema:
+/// `{ ok, term_count, role_counts, missing, invalid, text, json }`, where each of
+/// `missing`/`invalid` is a list of `{term, kind, source, message}` dicts, `text`
+/// is the human render and `json` the stable JSON render. A parse failure maps to
+/// a Python `ValueError` (a hard failure that must surface — the audit has no
+/// rdflib fallback).
+#[pyfunction]
+fn audit_box_roles(
+    py: Python<'_>,
+    paths: Vec<String>,
+    ontology_iri: String,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
+    let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
+    let audit = box_roles::audit_box_roles(&path_bufs, &ontology_iri, &namespace)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let finding_list = |findings: &[box_roles::RoleFinding]| -> PyResult<Bound<'_, PyList>> {
+        let list = PyList::empty(py);
+        for f in findings {
+            let d = PyDict::new(py);
+            d.set_item("term", &f.term)?;
+            d.set_item("kind", &f.kind)?;
+            d.set_item("source", &f.source)?;
+            d.set_item("message", &f.message)?;
+            list.append(d)?;
+        }
+        Ok(list)
+    };
+
+    let role_counts = PyDict::new(py);
+    for (role, count) in &audit.role_counts {
+        role_counts.set_item(role, count)?;
+    }
+
+    let out = PyDict::new(py);
+    out.set_item("ok", audit.ok())?;
+    out.set_item("term_count", audit.term_count)?;
+    out.set_item("role_counts", role_counts)?;
+    out.set_item("missing", finding_list(&audit.missing)?)?;
+    out.set_item("invalid", finding_list(&audit.invalid)?)?;
+    out.set_item(
+        "text",
+        box_roles::render_text(&audit, &ontology_iri, &namespace),
+    )?;
+    out.set_item("json", box_roles::render_json(&audit))?;
+    Ok(out.into_any().unbind())
+}
+
+/// Project the box-role audit into the canonical diagnostics `Report` pyclass
+/// (mirrors `box_roles.to_diagnostics_report`).
+///
+/// `paths` / `ontology_iri` / `namespace` are as for [`audit_box_roles`]. Both
+/// missing and invalid coverage are gate-failing, so every finding is an `error`.
+/// A parse failure maps to a Python `ValueError`.
+#[pyfunction]
+fn box_roles_diagnostics_report(
+    py: Python<'_>,
+    paths: Vec<String>,
+    ontology_iri: String,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
+    let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
+    let audit = box_roles::audit_box_roles(&path_bufs, &ontology_iri, &namespace)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let report = box_roles::to_diagnostics_report(&audit, &ontology_iri, &namespace);
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 #[pyfunction]
 fn wikidata_check_syntax_iri(
     iri: String,
@@ -705,6 +845,36 @@ fn wikidata_check_syntax_iri(
             )
         })
         .collect()
+}
+
+/// Audit Turtle files for Wikidata misuse (native port of `wikidata_audit`).
+///
+/// Returns a `PyDict`: `{ ok, error_count, warning_count, findings: [{file, subject,
+/// predicate, object, severity, message}], text }` where `text` is the rendered
+/// report. Per-file parse errors surface as `error` findings (never a raised
+/// exception), mirroring the retired harness.
+#[pyfunction]
+fn wikidata_audit_files(py: Python<'_>, paths: Vec<String>) -> PyResult<Py<PyAny>> {
+    let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
+    let report = wikidata_audit::audit_files(&path_bufs);
+    let out = PyDict::new(py);
+    out.set_item("ok", report.ok())?;
+    out.set_item("error_count", report.errors())?;
+    out.set_item("warning_count", report.warnings())?;
+    let findings = PyList::empty(py);
+    for finding in &report.findings {
+        let item = PyDict::new(py);
+        item.set_item("file", &finding.file)?;
+        item.set_item("subject", &finding.subject)?;
+        item.set_item("predicate", &finding.predicate)?;
+        item.set_item("object", &finding.object)?;
+        item.set_item("severity", &finding.severity)?;
+        item.set_item("message", &finding.message)?;
+        findings.append(item)?;
+    }
+    out.set_item("findings", findings)?;
+    out.set_item("text", wikidata_audit::render_audit(&report))?;
+    Ok(out.into_any().unbind())
 }
 
 #[pyfunction]
@@ -1384,6 +1554,20 @@ fn lint_deposit_native(self_description_json: String) -> PyResult<Vec<String>> {
     crossref::lint_deposit(&self_description_json).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
+/// Native license-policy classifier — the RUST-FIRST single source of truth behind
+/// `gmeow_tools.config.policy_for_license`.
+///
+/// Maps a license id to the `LinkPolicy` StrEnum string values (`"import-ok"` /
+/// `"reference-only"`); a restrictive NC/ND/SA/GPL/… marker or an unknown license
+/// fails safe to `"reference-only"`.
+#[pyfunction]
+fn license_policy_for(license_id: &str) -> &'static str {
+    match gmeow_license::policy_for_license(license_id) {
+        gmeow_license::LicensePolicy::ImportOk => "import-ok",
+        gmeow_license::LicensePolicy::ReferenceOnly => "reference-only",
+    }
+}
+
 /// Register the `gmeow-validate` surface on a Python module.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -1391,6 +1575,7 @@ fn lint_deposit_native(self_description_json: String) -> PyResult<Vec<String>> {
 /// that carries their typed configuration across the FFI boundary. Called by the
 /// unified `gmeow_native` cdylib (#630) to populate `gmeow_native.validate`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(license_policy_for, m)?)?;
     m.add_class::<PyLintConfig>()?;
     m.add_class::<PySignatureConfig>()?;
     m.add_class::<PyValidateOptions>()?;
@@ -1428,7 +1613,12 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
+    m.add_function(wrap_pyfunction!(run_coverage, m)?)?;
+    m.add_function(wrap_pyfunction!(coverage_diagnostics_report, m)?)?;
+    m.add_function(wrap_pyfunction!(audit_box_roles, m)?)?;
+    m.add_function(wrap_pyfunction!(box_roles_diagnostics_report, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_check_syntax_iri, m)?)?;
+    m.add_function(wrap_pyfunction!(wikidata_audit_files, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_mapping_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_collect_ids, m)?)?;
     m.add_function(wrap_pyfunction!(wikidata_diagnostics_report, m)?)?;

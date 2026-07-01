@@ -1,0 +1,748 @@
+<?xml version='1.0' encoding='utf-8'?>
+<doi_batch xmlns="http://www.crossref.org/schema/5.4.0" xmlns:ai="http://www.crossref.org/AccessIndicators.xsd" xmlns:rel="http://www.crossref.org/relations.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.crossref.org/schema/5.4.0 https://www.crossref.org/schemas/crossref5.4.0.xsd" version="5.4.0">
+  <head>
+    <doi_batch_id>test-batch-001</doi_batch_id>
+    <timestamp>20240115120000</timestamp>
+    <depositor>
+      <depositor_name>Blackcat Informatics® Inc.</depositor_name>
+      <email_address>root@blackcatinformatics.ca</email_address>
+    </depositor>
+    <registrant>Blackcat Informatics® Inc.</registrant>
+  </head>
+  <body>
+    <database>
+      <database_metadata language="en">
+        <contributors>
+          <organization sequence="first" contributor_role="author">Blackcat Informatics® Inc.</organization>
+          <person_name sequence="additional" contributor_role="author">
+            <given_name>Patrick</given_name>
+            <surname>Audley</surname>
+            <ORCID>https://orcid.org/0000-0003-4382-7625</ORCID>
+          </person_name>
+        </contributors>
+        <titles>
+          <title>GMEOW — Global Metadata and Entity Ontology for the Web</title>
+        </titles>
+        <description>GMEOW is an ontology engine for machine and human minds that treats every mental act as an attributed, revisable claim rather than a stored truth — a place to record not just what an agent (or a person) believes, but who held it, from what vantage, with what confidence, on what evidence, by which kind of reasoning, in what state of awareness, and whether it has since been defeated. Its flagship use is grounded agent memory — store, recall, revise — that can tell a recalled fact from a confabulated one and surfaces disagreement as coexisting standpoints rather than overwriting the loser. Truth is never a bit on a triple: belief, knowledge, inference, calibration, and reality-monitoring are all first-class, vantage-indexed claims, revision is suppression rather than deletion, and a full model of mind — endurant states and occurrent processes over content typed by direction of fit — gives every faculty both a human and a machine face. Every fact is authored once across GMEOW's self-contained slices, generated outward as lossy projections (OWL, SHACL, JSON-LD, schema.org, citation and deposit forms) and maximally linked to 85 external vocabularies and authority identifiers, so a GMEOW graph is a first-class node in the linked-data and persistent-identifier web.</description>
+        <database_date>
+          <publication_date media_type="online">
+            <month>06</month>
+            <day>03</day>
+            <year>2026</year>
+          </publication_date>
+        </database_date>
+        <database_date>
+          <update_date media_type="online">
+            <month>06</month>
+            <day>03</day>
+            <year>2026</year>
+          </update_date>
+        </database_date>
+        <publisher>
+          <publisher_name>Blackcat Informatics® Inc.</publisher_name>
+          <publisher_place>Spruce Grove, AB, Canada</publisher_place>
+        </publisher>
+        <institution>
+          <institution_name>Blackcat Informatics® Inc.</institution_name>
+          <institution_id type="wikidata">https://www.wikidata.org/entity/Q140285712</institution_id>
+          <institution_acronym>BII</institution_acronym>
+          <institution_place>Spruce Grove, AB, Canada</institution_place>
+        </institution>
+        <publisher_item>
+          <item_number item_number_type="site">GMEOW</item_number>
+        </publisher_item>
+        <version_info>
+          <version>0.1.0</version>
+          <description>Release 0.1.0 of the GMEOW ontology.</description>
+        </version_info>
+      </database_metadata>
+      <dataset dataset_type="record">
+        <contributors>
+          <organization sequence="first" contributor_role="author">Blackcat Informatics® Inc.</organization>
+          <person_name sequence="additional" contributor_role="author">
+            <given_name>Patrick</given_name>
+            <surname>Audley</surname>
+            <ORCID>https://orcid.org/0000-0003-4382-7625</ORCID>
+          </person_name>
+        </contributors>
+        <titles>
+          <title>GMEOW — Global Metadata and Entity Ontology for the Web (concept)</title>
+        </titles>
+        <database_date>
+          <publication_date media_type="online">
+            <month>06</month>
+            <day>03</day>
+            <year>2026</year>
+          </publication_date>
+        </database_date>
+        <database_date>
+          <update_date media_type="online">
+            <month>06</month>
+            <day>03</day>
+            <year>2026</year>
+          </update_date>
+        </database_date>
+        <publisher_item>
+          <item_number item_number_type="doi-suffix">26w4o</item_number>
+          <item_number item_number_type="site">GMEOW</item_number>
+          <identifier id_type="other">https://blackcatinformatics.ca/gmeow</identifier>
+        </publisher_item>
+        <description>GMEOW is an ontology engine for machine and human minds that treats every mental act as an attributed, revisable claim rather than a stored truth — a place to record not just what an agent (or a person) believes, but who held it, from what vantage, with what confidence, on what evidence, by which kind of reasoning, in what state of awareness, and whether it has since been defeated. Its flagship use is grounded agent memory — store, recall, revise — that can tell a recalled fact from a confabulated one and surfaces disagreement as coexisting standpoints rather than overwriting the loser. Truth is never a bit on a triple: belief, knowledge, inference, calibration, and reality-monitoring are all first-class, vantage-indexed claims, revision is suppression rather than deletion, and a full model of mind — endurant states and occurrent processes over content typed by direction of fit — gives every faculty both a human and a machine face. Every fact is authored once across GMEOW's self-contained slices, generated outward as lossy projections (OWL, SHACL, JSON-LD, schema.org, citation and deposit forms) and maximally linked to 85 external vocabularies and authority identifiers, so a GMEOW graph is a first-class node in the linked-data and persistent-identifier web.</description>
+        <format>Turtle; RDF/XML; N-Triples; JSON-LD; OWL; SHACL; GTS</format>
+        <ai:program name="AccessIndicators">
+          <ai:free_to_read start_date="2026-06-03" />
+          <ai:license_ref start_date="2026-06-03" applies_to="vor">https://creativecommons.org/licenses/by/4.0/</ai:license_ref>
+          <ai:license_ref start_date="2026-06-03" applies_to="tdm">https://creativecommons.org/licenses/by/4.0/</ai:license_ref>
+        </ai:program>
+        <rel:program name="relations">
+          <rel:related_item>
+            <rel:description>Turtle serialization of the ontology.</rel:description>
+            <rel:intra_work_relation relationship-type="hasFormat" identifier-type="uri">https://blackcatinformatics.ca/gmeow.ttl</rel:intra_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>RDF/XML serialization of the ontology.</rel:description>
+            <rel:intra_work_relation relationship-type="hasFormat" identifier-type="uri">https://blackcatinformatics.ca/gmeow.rdf</rel:intra_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>N-Triples serialization of the ontology.</rel:description>
+            <rel:intra_work_relation relationship-type="hasFormat" identifier-type="uri">https://blackcatinformatics.ca/gmeow.nt</rel:intra_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>JSON-LD serialization of the ontology.</rel:description>
+            <rel:intra_work_relation relationship-type="hasFormat" identifier-type="uri">https://blackcatinformatics.ca/gmeow.jsonld</rel:intra_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GTS content-addressed package serialization of the ontology.</rel:description>
+            <rel:intra_work_relation relationship-type="hasFormat" identifier-type="uri">https://blackcatinformatics.ca/gmeow.gts</rel:intra_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>Source repository for the GMEOW ontology.</rel:description>
+            <rel:inter_work_relation relationship-type="isSupplementedBy" identifier-type="uri">https://github.com/Blackcat-Informatics/gmeow-ontology</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Audio Feature Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://w3id.org/afo/onto/1.1#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Audio Feature Vocabulary by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://w3id.org/afo/vocab/1.1#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to BBC News Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.bbc.co.uk/ontologies/news/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to BFO by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="isDerivedFrom" identifier-type="uri">http://purl.obolibrary.org/obo/bfo.owl</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to BIBFRAME by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://id.loc.gov/ontologies/bibframe/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to BIBO by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/ontology/bibo/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to BIO vocabulary by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/vocab/bio/0.1/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to BOT (Building Topology Ontology) by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://w3id.org/bot#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Brick by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://brickschema.org/schema/Brick#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to CC REL by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://creativecommons.org/ns#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to OMRAS2 Chord Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/ontology/chord/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to CodeMeta by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://codemeta.github.io/terms/#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to CRMarchaeo by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.cidoc-crm.org/crmarchaeo/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to CRMdig by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.ics.forth.gr/isl/CRMdig/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to CRMsci by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.cidoc-crm.org/extensions/crmsci/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to DCMI Metadata Terms by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/dc/terms/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Discogs by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://www.discogs.com/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to DOAP by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://usefulinc.com/ns/doap#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to DOLCE/DUL by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="isDerivedFrom" identifier-type="uri">http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to W3C DQV by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/ns/dqv#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to W3C EXIF by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/2003/12/exif/ns#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FaBiO by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/spar/fabio/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FALDO by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://biohackathon.org/resource/faldo#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to HL7 FHIR by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://hl7.org/fhir/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FIBO FinancialInstruments by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FIBO FinancialProductsAndServices by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FIBO AccountingEquity by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/AccountingEquity/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FIBO CurrencyAmount by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FIBO ProductsAndServices by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://spec.edmcouncil.org/fibo/ontology/FND/ProductsAndServices/ProductsAndServices/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FIBO ISO4217 Currency Codes by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FOAF by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://xmlns.com/foaf/0.1/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to ForgeFed by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://forgefed.org/ns#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to FRBRcore by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/vocab/frbr/core#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to W3C GEDCOM by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/2000/10/swap/pim/gedcom#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to GEDCOM X by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://gedcomx.org/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to GeoSPARQL by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.opengis.net/ont/geosparql#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to GeoNames by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.geonames.org/ontology#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Glottolog by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://glottolog.org/resource/languoid/id/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Gender, Sex, and Sexual Orientation Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.obolibrary.org/obo/GSSO_</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to GTFS by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://vocab.gtfs.org/terms#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to gUFO by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="isDerivedFrom" identifier-type="uri">http://purl.org/nemo/gufo#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Getty Vocabulary Program by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://vocab.getty.edu/ontology#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Homosaurus by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://homosaurus.org/v4/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to ifcOWL (IFC4) by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.buildingsmart-tech.org/ifcOWL/IFC4#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to IIIF Presentation API by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://iiif.io/api/presentation/3#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to IPTC NewsML-G2 by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://iptc.org/std/NewsML-G2/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to IVOA by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.ivoa.net/rdf/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to JAMS Annotation Vocabulary by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://w3id.org/polifonia/ontology/jams/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Lexvo by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://lexvo.org/id/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to LIME by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/ns/lemon/lime#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to LOINC by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://loinc.org/rdf/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to LRMoo by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://iflastandards.info/ns/lrm/lrmoo/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Lexvo Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://lexvo.org/ontology#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Ontology for Media Resources by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/ns/ma-ont#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to MusicBrainz by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://musicbrainz.org/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to OGC Moving Features by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.opengis.net/ont/movingfeatures#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Music Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/ontology/mo/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to MOAT by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://moat-project.org/ns#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Nepomuk Message Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to IVOA ObsCore by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.ivoa.net/rdf/ObsCore#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to ODRL 2.2 by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/ns/odrl/2/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to OntoLex-Lemon by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/ns/lemon/ontolex#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to ORG by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/ns/org#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Polifonia Ontology Network by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://w3id.org/polifonia/ontology/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to PREMIS 3 by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.loc.gov/premis/rdf/v3/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to PROV-O by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/ns/prov#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to RDF Data Cube by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/linked-data/cube#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to QUDT by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://qudt.org/schema/qudt/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to REL (Relationship) by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.org/vocab/relationship/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to RightsStatements.org by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://rightsstatements.org/vocab/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Schema.org by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">https://schema.org/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to SIOC by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://rdfs.org/sioc/ns#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to SKOS by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/2004/02/skos/core#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to SNOMED CT by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://snomed.info/id/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Sequence Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://purl.obolibrary.org/obo/SO_</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to SPDX by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://spdx.org/rdf/terms#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to SPDX License List by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://spdx.org/licenses/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Tag Ontology by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.holygoat.co.uk/owl/redwood/0.1/tags/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Getty TGN by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://vocab.getty.edu/tgn/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to OWL-Time by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/2006/time#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to UMBEL by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="isDerivedFrom" identifier-type="uri">http://umbel.org/umbel#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to vCard by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/2006/vcard/ns#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to WGS84 Geo Positioning by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.w3.org/2003/01/geo/wgs84_pos#</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to Wikidata by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://www.wikidata.org/entity/</rel:inter_work_relation>
+          </rel:related_item>
+          <rel:related_item>
+            <rel:description>GMEOW aligns to WOT Schema by reference.</rel:description>
+            <rel:inter_work_relation relationship-type="references" identifier-type="uri">http://xmlns.com/wot/0.1/</rel:inter_work_relation>
+          </rel:related_item>
+        </rel:program>
+        <version_info>
+          <version>0.1.0</version>
+          <description>Release 0.1.0 of the GMEOW ontology.</description>
+        </version_info>
+        <doi_data>
+          <doi>10.67342/26w4o</doi>
+          <resource>https://blackcatinformatics.ca/gmeow</resource>
+          <collection property="text-mining">
+            <item>
+              <resource mime_type="text/turtle" content_version="vor">https://blackcatinformatics.ca/gmeow.ttl</resource>
+            </item>
+            <item>
+              <resource mime_type="application/rdf+xml" content_version="vor">https://blackcatinformatics.ca/gmeow.rdf</resource>
+            </item>
+            <item>
+              <resource mime_type="application/n-triples" content_version="vor">https://blackcatinformatics.ca/gmeow.nt</resource>
+            </item>
+            <item>
+              <resource mime_type="application/ld+json" content_version="vor">https://blackcatinformatics.ca/gmeow.jsonld</resource>
+            </item>
+            <item>
+              <resource mime_type="application/cbor-seq" content_version="vor">https://blackcatinformatics.ca/gmeow.gts</resource>
+            </item>
+          </collection>
+        </doi_data>
+        <citation_list>
+          <citation key="ref-afo" type="web_resource">
+            <unstructured_citation>Audio Feature Ontology. https://w3id.org/afo/onto/1.1#.</unstructured_citation>
+          </citation>
+          <citation key="ref-afv" type="web_resource">
+            <unstructured_citation>Audio Feature Vocabulary. https://w3id.org/afo/vocab/1.1#.</unstructured_citation>
+          </citation>
+          <citation key="ref-bbc" type="web_resource">
+            <unstructured_citation>BBC News Ontology. http://www.bbc.co.uk/ontologies/news/.</unstructured_citation>
+          </citation>
+          <citation key="ref-bfo" type="web_resource">
+            <unstructured_citation>BFO. http://purl.obolibrary.org/obo/bfo.owl.</unstructured_citation>
+          </citation>
+          <citation key="ref-bibframe" type="web_resource">
+            <unstructured_citation>BIBFRAME. http://id.loc.gov/ontologies/bibframe/.</unstructured_citation>
+          </citation>
+          <citation key="ref-bibo" type="web_resource">
+            <unstructured_citation>BIBO. http://purl.org/ontology/bibo/.</unstructured_citation>
+          </citation>
+          <citation key="ref-bio" type="web_resource">
+            <unstructured_citation>BIO vocabulary. http://purl.org/vocab/bio/0.1/.</unstructured_citation>
+          </citation>
+          <citation key="ref-bot" type="web_resource">
+            <unstructured_citation>BOT (Building Topology Ontology). https://w3id.org/bot#.</unstructured_citation>
+          </citation>
+          <citation key="ref-brick" type="web_resource">
+            <unstructured_citation>Brick. https://brickschema.org/schema/Brick#.</unstructured_citation>
+          </citation>
+          <citation key="ref-cc" type="web_resource">
+            <unstructured_citation>CC REL. http://creativecommons.org/ns#.</unstructured_citation>
+          </citation>
+          <citation key="ref-chord" type="web_resource">
+            <unstructured_citation>OMRAS2 Chord Ontology. http://purl.org/ontology/chord/.</unstructured_citation>
+          </citation>
+          <citation key="ref-codemeta" type="web_resource">
+            <unstructured_citation>CodeMeta. https://codemeta.github.io/terms/#.</unstructured_citation>
+          </citation>
+          <citation key="ref-crmarc" type="web_resource">
+            <unstructured_citation>CRMarchaeo. http://www.cidoc-crm.org/crmarchaeo/.</unstructured_citation>
+          </citation>
+          <citation key="ref-crmdig" type="web_resource">
+            <unstructured_citation>CRMdig. http://www.ics.forth.gr/isl/CRMdig/.</unstructured_citation>
+          </citation>
+          <citation key="ref-crmsci" type="web_resource">
+            <unstructured_citation>CRMsci. http://www.cidoc-crm.org/extensions/crmsci/.</unstructured_citation>
+          </citation>
+          <citation key="ref-dcterms" type="web_resource">
+            <unstructured_citation>DCMI Metadata Terms. http://purl.org/dc/terms/.</unstructured_citation>
+          </citation>
+          <citation key="ref-discogs" type="web_resource">
+            <unstructured_citation>Discogs. https://www.discogs.com/.</unstructured_citation>
+          </citation>
+          <citation key="ref-doap" type="web_resource">
+            <unstructured_citation>DOAP. http://usefulinc.com/ns/doap#.</unstructured_citation>
+          </citation>
+          <citation key="ref-dolce" type="web_resource">
+            <unstructured_citation>DOLCE/DUL. http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#.</unstructured_citation>
+          </citation>
+          <citation key="ref-dqv" type="web_resource">
+            <unstructured_citation>W3C DQV. http://www.w3.org/ns/dqv#.</unstructured_citation>
+          </citation>
+          <citation key="ref-exif" type="web_resource">
+            <unstructured_citation>W3C EXIF. http://www.w3.org/2003/12/exif/ns#.</unstructured_citation>
+          </citation>
+          <citation key="ref-fabio" type="web_resource">
+            <unstructured_citation>FaBiO. http://purl.org/spar/fabio/.</unstructured_citation>
+          </citation>
+          <citation key="ref-faldo" type="web_resource">
+            <unstructured_citation>FALDO. http://biohackathon.org/resource/faldo#.</unstructured_citation>
+          </citation>
+          <citation key="ref-fhir" type="web_resource">
+            <unstructured_citation>HL7 FHIR. http://hl7.org/fhir/.</unstructured_citation>
+          </citation>
+          <citation key="ref-fibo-fbc-fi-fi" type="web_resource">
+            <unstructured_citation>FIBO FinancialInstruments. https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/.</unstructured_citation>
+          </citation>
+          <citation key="ref-fibo-fbc-pas-fpas" type="web_resource">
+            <unstructured_citation>FIBO FinancialProductsAndServices. https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/.</unstructured_citation>
+          </citation>
+          <citation key="ref-fibo-fnd-acc-ae" type="web_resource">
+            <unstructured_citation>FIBO AccountingEquity. https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/AccountingEquity/.</unstructured_citation>
+          </citation>
+          <citation key="ref-fibo-fnd-acc-cur" type="web_resource">
+            <unstructured_citation>FIBO CurrencyAmount. https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/.</unstructured_citation>
+          </citation>
+          <citation key="ref-fibo-fnd-pas-ps" type="web_resource">
+            <unstructured_citation>FIBO ProductsAndServices. https://spec.edmcouncil.org/fibo/ontology/FND/ProductsAndServices/ProductsAndServices/.</unstructured_citation>
+          </citation>
+          <citation key="ref-fibo-iso4217" type="web_resource">
+            <unstructured_citation>FIBO ISO4217 Currency Codes. https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/.</unstructured_citation>
+          </citation>
+          <citation key="ref-foaf" type="web_resource">
+            <unstructured_citation>FOAF. http://xmlns.com/foaf/0.1/.</unstructured_citation>
+          </citation>
+          <citation key="ref-forgefed" type="web_resource">
+            <unstructured_citation>ForgeFed. https://forgefed.org/ns#.</unstructured_citation>
+          </citation>
+          <citation key="ref-frbr" type="web_resource">
+            <unstructured_citation>FRBRcore. http://purl.org/vocab/frbr/core#.</unstructured_citation>
+          </citation>
+          <citation key="ref-gedcom" type="web_resource">
+            <unstructured_citation>W3C GEDCOM. http://www.w3.org/2000/10/swap/pim/gedcom#.</unstructured_citation>
+          </citation>
+          <citation key="ref-gedcomx" type="web_resource">
+            <unstructured_citation>GEDCOM X. http://gedcomx.org/.</unstructured_citation>
+          </citation>
+          <citation key="ref-geo" type="web_resource">
+            <unstructured_citation>GeoSPARQL. http://www.opengis.net/ont/geosparql#.</unstructured_citation>
+          </citation>
+          <citation key="ref-geonames" type="web_resource">
+            <unstructured_citation>GeoNames. http://www.geonames.org/ontology#.</unstructured_citation>
+          </citation>
+          <citation key="ref-glottolog" type="web_resource">
+            <unstructured_citation>Glottolog. https://glottolog.org/resource/languoid/id/.</unstructured_citation>
+          </citation>
+          <citation key="ref-gsso" type="web_resource">
+            <unstructured_citation>Gender, Sex, and Sexual Orientation Ontology. http://purl.obolibrary.org/obo/GSSO_.</unstructured_citation>
+          </citation>
+          <citation key="ref-gtfs" type="web_resource">
+            <unstructured_citation>GTFS. http://vocab.gtfs.org/terms#.</unstructured_citation>
+          </citation>
+          <citation key="ref-gufo" type="web_resource">
+            <unstructured_citation>gUFO. http://purl.org/nemo/gufo#.</unstructured_citation>
+          </citation>
+          <citation key="ref-gvp" type="web_resource">
+            <unstructured_citation>Getty Vocabulary Program. http://vocab.getty.edu/ontology#.</unstructured_citation>
+          </citation>
+          <citation key="ref-homosaurus" type="web_resource">
+            <unstructured_citation>Homosaurus. https://homosaurus.org/v4/.</unstructured_citation>
+          </citation>
+          <citation key="ref-ifc" type="web_resource">
+            <unstructured_citation>ifcOWL (IFC4). http://www.buildingsmart-tech.org/ifcOWL/IFC4#.</unstructured_citation>
+          </citation>
+          <citation key="ref-iiif" type="web_resource">
+            <unstructured_citation>IIIF Presentation API. http://iiif.io/api/presentation/3#.</unstructured_citation>
+          </citation>
+          <citation key="ref-iptc" type="web_resource">
+            <unstructured_citation>IPTC NewsML-G2. http://iptc.org/std/NewsML-G2/.</unstructured_citation>
+          </citation>
+          <citation key="ref-ivoa" type="web_resource">
+            <unstructured_citation>IVOA. http://www.ivoa.net/rdf/.</unstructured_citation>
+          </citation>
+          <citation key="ref-jams" type="web_resource">
+            <unstructured_citation>JAMS Annotation Vocabulary. http://w3id.org/polifonia/ontology/jams/.</unstructured_citation>
+          </citation>
+          <citation key="ref-lexvo" type="web_resource">
+            <unstructured_citation>Lexvo. http://lexvo.org/id/.</unstructured_citation>
+          </citation>
+          <citation key="ref-lime" type="web_resource">
+            <unstructured_citation>LIME. http://www.w3.org/ns/lemon/lime#.</unstructured_citation>
+          </citation>
+          <citation key="ref-loinc" type="web_resource">
+            <unstructured_citation>LOINC. http://loinc.org/rdf/.</unstructured_citation>
+          </citation>
+          <citation key="ref-lrmoo" type="web_resource">
+            <unstructured_citation>LRMoo. http://iflastandards.info/ns/lrm/lrmoo/.</unstructured_citation>
+          </citation>
+          <citation key="ref-lvont" type="web_resource">
+            <unstructured_citation>Lexvo Ontology. http://lexvo.org/ontology#.</unstructured_citation>
+          </citation>
+          <citation key="ref-ma" type="web_resource">
+            <unstructured_citation>Ontology for Media Resources. http://www.w3.org/ns/ma-ont#.</unstructured_citation>
+          </citation>
+          <citation key="ref-mbz" type="web_resource">
+            <unstructured_citation>MusicBrainz. https://musicbrainz.org/.</unstructured_citation>
+          </citation>
+          <citation key="ref-mf" type="web_resource">
+            <unstructured_citation>OGC Moving Features. http://www.opengis.net/ont/movingfeatures#.</unstructured_citation>
+          </citation>
+          <citation key="ref-mo" type="web_resource">
+            <unstructured_citation>Music Ontology. http://purl.org/ontology/mo/.</unstructured_citation>
+          </citation>
+          <citation key="ref-moat" type="web_resource">
+            <unstructured_citation>MOAT. http://moat-project.org/ns#.</unstructured_citation>
+          </citation>
+          <citation key="ref-nmo" type="web_resource">
+            <unstructured_citation>Nepomuk Message Ontology. http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#.</unstructured_citation>
+          </citation>
+          <citation key="ref-obscore" type="web_resource">
+            <unstructured_citation>IVOA ObsCore. http://www.ivoa.net/rdf/ObsCore#.</unstructured_citation>
+          </citation>
+          <citation key="ref-odrl" type="web_resource">
+            <unstructured_citation>ODRL 2.2. http://www.w3.org/ns/odrl/2/.</unstructured_citation>
+          </citation>
+          <citation key="ref-ontolex" type="web_resource">
+            <unstructured_citation>OntoLex-Lemon. http://www.w3.org/ns/lemon/ontolex#.</unstructured_citation>
+          </citation>
+          <citation key="ref-org" type="web_resource">
+            <unstructured_citation>ORG. http://www.w3.org/ns/org#.</unstructured_citation>
+          </citation>
+          <citation key="ref-pon" type="web_resource">
+            <unstructured_citation>Polifonia Ontology Network. https://w3id.org/polifonia/ontology/.</unstructured_citation>
+          </citation>
+          <citation key="ref-premis" type="web_resource">
+            <unstructured_citation>PREMIS 3. http://www.loc.gov/premis/rdf/v3/.</unstructured_citation>
+          </citation>
+          <citation key="ref-prov" type="web_resource">
+            <unstructured_citation>PROV-O. http://www.w3.org/ns/prov#.</unstructured_citation>
+          </citation>
+          <citation key="ref-qb" type="web_resource">
+            <unstructured_citation>RDF Data Cube. http://purl.org/linked-data/cube#.</unstructured_citation>
+          </citation>
+          <citation key="ref-qudt" type="web_resource">
+            <unstructured_citation>QUDT. http://qudt.org/schema/qudt/.</unstructured_citation>
+          </citation>
+          <citation key="ref-rel" type="web_resource">
+            <unstructured_citation>REL (Relationship). http://purl.org/vocab/relationship/.</unstructured_citation>
+          </citation>
+          <citation key="ref-rstmt" type="web_resource">
+            <unstructured_citation>RightsStatements.org. https://rightsstatements.org/vocab/.</unstructured_citation>
+          </citation>
+          <citation key="ref-schema" type="web_resource">
+            <unstructured_citation>Schema.org. https://schema.org/.</unstructured_citation>
+          </citation>
+          <citation key="ref-sioc" type="web_resource">
+            <unstructured_citation>SIOC. http://rdfs.org/sioc/ns#.</unstructured_citation>
+          </citation>
+          <citation key="ref-skos" type="web_resource">
+            <unstructured_citation>SKOS. http://www.w3.org/2004/02/skos/core#.</unstructured_citation>
+          </citation>
+          <citation key="ref-snomed" type="web_resource">
+            <unstructured_citation>SNOMED CT. http://snomed.info/id/.</unstructured_citation>
+          </citation>
+          <citation key="ref-so" type="web_resource">
+            <unstructured_citation>Sequence Ontology. http://purl.obolibrary.org/obo/SO_.</unstructured_citation>
+          </citation>
+          <citation key="ref-spdx" type="web_resource">
+            <unstructured_citation>SPDX. http://spdx.org/rdf/terms#.</unstructured_citation>
+          </citation>
+          <citation key="ref-spdxlic" type="web_resource">
+            <unstructured_citation>SPDX License List. http://spdx.org/licenses/.</unstructured_citation>
+          </citation>
+          <citation key="ref-tags" type="web_resource">
+            <unstructured_citation>Tag Ontology. http://www.holygoat.co.uk/owl/redwood/0.1/tags/.</unstructured_citation>
+          </citation>
+          <citation key="ref-tgn" type="web_resource">
+            <unstructured_citation>Getty TGN. http://vocab.getty.edu/tgn/.</unstructured_citation>
+          </citation>
+          <citation key="ref-time" type="web_resource">
+            <unstructured_citation>OWL-Time. http://www.w3.org/2006/time#.</unstructured_citation>
+          </citation>
+          <citation key="ref-umbel" type="web_resource">
+            <unstructured_citation>UMBEL. http://umbel.org/umbel#.</unstructured_citation>
+          </citation>
+          <citation key="ref-vcard" type="web_resource">
+            <unstructured_citation>vCard. http://www.w3.org/2006/vcard/ns#.</unstructured_citation>
+          </citation>
+          <citation key="ref-wgs84" type="web_resource">
+            <unstructured_citation>WGS84 Geo Positioning. http://www.w3.org/2003/01/geo/wgs84_pos#.</unstructured_citation>
+          </citation>
+          <citation key="ref-wikidata" type="web_resource">
+            <unstructured_citation>Wikidata. http://www.wikidata.org/entity/.</unstructured_citation>
+          </citation>
+          <citation key="ref-wot" type="web_resource">
+            <unstructured_citation>WOT Schema. http://xmlns.com/wot/0.1/.</unstructured_citation>
+          </citation>
+        </citation_list>
+      </dataset>
+    </database>
+  </body>
+</doi_batch>

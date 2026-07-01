@@ -116,9 +116,50 @@ pub struct ModuleResult {
     pub findings: Vec<Finding>,
 }
 
+// ── Provenance ───────────────────────────────────────────────────────────────────
+
+/// Return a deterministic SLME-extraction provenance block (Turtle).
+///
+/// Reuses the provenance vocabulary (`gmeow:Activity`, `gmeow:wasGeneratedBy`,
+/// `gmeow:wasDerivedFrom`, `gmeow:wasAssociatedWith`) — no new terms are minted (this
+/// is INSTANCE data, which the annotation contract does not govern). The
+/// `method`/`axiom_count` ride as `rdfs:comment`. No timestamps are emitted, so the
+/// block is a pure function of its inputs (determinism, Principle 4).
+///
+/// `namespace` is the GMEOW namespace (config `NAMESPACE`, e.g.
+/// `https://blackcatinformatics.ca/gmeow/`); `source_iri` is the source ontology's
+/// namespace IRI. This is the native port of the retired
+/// `gmeow_tools.extract._slme_provenance_ttl`.
+pub fn slme_provenance_ttl(
+    namespace: &str,
+    source_iri: &str,
+    method: &str,
+    axiom_count: usize,
+) -> String {
+    format!(
+        "\n\
+         # --- SLME module-extraction provenance (native, deterministic) ---\n\
+         @prefix gmeow: <{namespace}> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         \n\
+         gmeow:activity/slme-extract a gmeow:Activity ;\n\
+         \x20   gmeow:wasDerivedFrom <{source_iri}> ;\n\
+         \x20   gmeow:wasAssociatedWith gmeow:agent/native-slme ;\n\
+         \x20   rdfs:comment \"SLME method {method}; {axiom_count} axioms\"@en .\n\
+         \n\
+         <{namespace}module/slme-extract> gmeow:wasGeneratedBy gmeow:activity/slme-extract .\n"
+    )
+}
+
 // ── Public entry ────────────────────────────────────────────────────────────────
 
-/// Extract a syntactic-locality module from `ontology_ttl` around the seed `terms`.
+/// Extract a syntactic-locality module from `ontology_ttl` around the seed `terms`,
+/// emitting the module **with its extraction provenance appended** — a single artifact
+/// carrying both (MAXIMAL INFORMATION FLOW). `namespace` is the GMEOW namespace used by
+/// the provenance triples; `source_iri` is the source ontology's namespace IRI recorded
+/// as `gmeow:wasDerivedFrom`. The appended block reuses provenance vocabulary only and is
+/// timestamp-free, so the whole output is a pure function of the inputs (determinism,
+/// Principle 4).
 ///
 /// # Errors
 ///
@@ -128,6 +169,8 @@ pub fn extract_module(
     ontology_ttl: &str,
     terms: &[String],
     method: &str,
+    namespace: &str,
+    source_iri: &str,
 ) -> Result<ModuleResult, String> {
     let (method, unknown_method) = Method::parse(method);
     let mut findings: Vec<Finding> = Vec::new();
@@ -235,7 +278,16 @@ pub fn extract_module(
         collect_bnode_closure(&t.object, &bnode_index, &mut module, &mut module_quads);
     }
 
-    let module_ttl = serialize_turtle(module_quads)?;
+    let mut module_ttl = serialize_turtle(module_quads)?;
+    // Append the extraction provenance so the extraction emits module + provenance as a
+    // single artifact. The block is timestamp-free, so the combined output stays a pure
+    // function of the inputs (determinism, Principle 4).
+    module_ttl.push_str(&slme_provenance_ttl(
+        namespace,
+        source_iri,
+        method.as_str(),
+        selected_axiom_count,
+    ));
 
     Ok(ModuleResult {
         module_ttl,

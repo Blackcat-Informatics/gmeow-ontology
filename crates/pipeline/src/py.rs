@@ -962,9 +962,70 @@ fn usize_map(
     Ok(out.into_any().unbind())
 }
 
+/// Export every flat consumer view from a folded GTS snapshot to `out_dir`.
+///
+/// Folds `gts_bytes` into the carrier dataset, renders every export artifact
+/// (`render_all_with_languages`, honoring the requested public-BCP-47
+/// `languages` list — empty falls back to `["en"]`), writes each one to
+/// `out_dir/<basename>` (the canonical producer keys them under `dist/`), and
+/// returns the written paths sorted. This is the native replacement for the
+/// retired `gmeow_tools.export` writer orchestration.
+#[pyfunction]
+fn export_views(
+    gts_bytes: Vec<u8>,
+    out_dir: String,
+    languages: Vec<String>,
+) -> PyResult<Vec<String>> {
+    let dataset = gmeow_rdf::gts::flattened_dataset_from_bytes(&gts_bytes)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let artifacts = crate::stages::export::render_all_with_languages(&dataset, &languages)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let out_root = Path::new(&out_dir);
+    std::fs::create_dir_all(out_root).map_err(|e| {
+        pyo3::exceptions::PyValueError::new_err(format!("cannot create {out_dir}: {e}"))
+    })?;
+    let mut written: Vec<String> = Vec::with_capacity(artifacts.len());
+    for (dist_path, bytes) in &artifacts {
+        let name = Path::new(dist_path)
+            .file_name()
+            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("artifact has no file name"))?;
+        let dest = out_root.join(name);
+        std::fs::write(&dest, bytes).map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("cannot write {}: {e}", dest.display()))
+        })?;
+        written.push(dest.display().to_string());
+    }
+    written.sort();
+    Ok(written)
+}
+
+/// Summarise every term in a folded GTS snapshot as `(curie, label, definition)`.
+///
+/// Serves the source-free bundle checks (`label`/`definition` empty → missing).
+#[pyfunction]
+fn bundle_term_summaries(gts_bytes: Vec<u8>) -> PyResult<Vec<(String, String, String)>> {
+    let dataset = gmeow_rdf::gts::flattened_dataset_from_bytes(&gts_bytes)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let view = crate::stages::export::FoldView::new(&dataset);
+    let terms = crate::stages::export::collect_terms(&view);
+    Ok(terms
+        .into_iter()
+        .map(|t| (t.curie, t.label, t.definition))
+        .collect())
+}
+
+/// Compact an IRI to its `prefix:local` CURIE form (identity if no prefix matches).
+#[pyfunction]
+fn compact_curie(iri: String) -> String {
+    crate::stages::export::curie(&iri)
+}
+
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
 /// `gmeow_native` cdylib (#630); exposes `run_pipeline`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(export_views, m)?)?;
+    m.add_function(wrap_pyfunction!(bundle_term_summaries, m)?)?;
+    m.add_function(wrap_pyfunction!(compact_curie, m)?)?;
     m.add_function(wrap_pyfunction!(run_pipeline, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements_report, m)?)?;
