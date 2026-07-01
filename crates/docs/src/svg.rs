@@ -329,6 +329,92 @@ pub fn concern_overview_svg(model: &DocsModel) -> String {
     out
 }
 
+/// Render a per-slice documentation-coverage heatmap: one row per slice that has
+/// terms, one cell per coverage dimension, each cell filled on the shared
+/// red/amber/green coverage scale ([`crate::badge::coverage_fraction_color`]) by
+/// the fraction of the slice's terms that carry that dimension.
+///
+/// Deterministic and structural: slices are taken in the model's IRI order and
+/// every coordinate derives from that order; every label is XML-escaped.
+pub fn coverage_heatmap_svg(model: &DocsModel) -> String {
+    use crate::coverage::{alignment_subjects, term_coverage, TermCoverage, DIMENSIONS};
+
+    let aligned = alignment_subjects(model);
+    let mut rows: Vec<(String, usize, [usize; TermCoverage::TOTAL])> = Vec::new();
+    for slice in &model.slices {
+        let terms: Vec<&DocTerm> = model
+            .terms
+            .iter()
+            .filter(|t| t.owner_slice == slice.iri)
+            .collect();
+        if terms.is_empty() {
+            continue;
+        }
+        let mut covered = [0usize; TermCoverage::TOTAL];
+        for t in &terms {
+            for (i, present) in term_coverage(t, &aligned).flags().iter().enumerate() {
+                if *present {
+                    covered[i] += 1;
+                }
+            }
+        }
+        rows.push((local_name(&slice.iri).to_string(), terms.len(), covered));
+    }
+
+    const LABEL_W: i64 = 220;
+    const CELL_W: i64 = 92;
+    const CELL_H: i64 = 22;
+    const MARGIN: i64 = 24;
+    const HEADER_H: i64 = 24;
+    let cols = TermCoverage::TOTAL as i64;
+    let width = MARGIN * 2 + LABEL_W + cols * CELL_W;
+    let height = MARGIN * 2 + HEADER_H + rows.len().max(1) as i64 * CELL_H;
+
+    let mut out = String::new();
+    svg_open(&mut out, width, height, "Documentation coverage by slice");
+
+    // Header: the dimension labels above each column.
+    for (c, dim) in DIMENSIONS.iter().enumerate() {
+        let cx = MARGIN + LABEL_W + c as i64 * CELL_W + CELL_W / 2;
+        out.push_str(&format!(
+            "  <text x=\"{cx}\" y=\"{hy}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
+             font-size=\"11\" fill=\"#1b2436\">{}</text>\n",
+            xml_escape(dim.label),
+            hy = MARGIN + HEADER_H - 8,
+        ));
+    }
+
+    // One row per slice: the slice name then a colored, percentage-labelled cell
+    // per coverage dimension.
+    for (r, (label, n, covered)) in rows.iter().enumerate() {
+        let y = MARGIN + HEADER_H + r as i64 * CELL_H;
+        out.push_str(&format!(
+            "  <text x=\"{lx}\" y=\"{ty}\" text-anchor=\"end\" font-family=\"sans-serif\" \
+             font-size=\"11\" fill=\"#1b2436\">{}</text>\n",
+            xml_escape(label),
+            lx = MARGIN + LABEL_W - 6,
+            ty = y + CELL_H / 2 + 4,
+        ));
+        for (c, cov) in covered.iter().enumerate() {
+            let x = MARGIN + LABEL_W + c as i64 * CELL_W;
+            let fill = crate::badge::coverage_fraction_color(*cov, *n);
+            let text = crate::badge::text_color_for(fill);
+            let pct = cov * 100 / *n;
+            out.push_str(&format!(
+                "  <rect x=\"{x}\" y=\"{y}\" width=\"{CELL_W}\" height=\"{CELL_H}\" fill=\"{fill}\" \
+                 stroke=\"#ffffff\" stroke-width=\"1\" />\n  \
+                 <text x=\"{cx}\" y=\"{ty}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
+                 font-size=\"10\" fill=\"{text}\">{pct}%</text>\n",
+                cx = x + CELL_W / 2,
+                ty = y + CELL_H / 2 + 4,
+            ));
+        }
+    }
+
+    out.push_str("</svg>\n");
+    out
+}
+
 /// Open an SVG document with a fixed viewport and an accessible title.
 fn svg_open(out: &mut String, width: i64, height: i64, title: &str) {
     out.push_str(&format!(

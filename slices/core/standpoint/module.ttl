@@ -27,6 +27,7 @@ gmeow:Standpoint
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Standpoint"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ModalFramework ;
     rdfs:subClassOf gmeow:Entity ;
     skos:definition "A named perspective / frame within which claims are held true — a state's official position, a community's usage, an editorial or historiographic point of view. Minted only when the frame needs its own identity and labels; often a bare gmeow:Agent (a polity, an organization) suffices as the value of gmeow:accordingTo instead. Standpoints form a poset under gmeow:sharpens, topped by gmeow:universalStandpoint."@x-gmeow-english ;
     skos:example "ex:ottomanView a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint ."@x-gmeow-english ;
@@ -42,6 +43,7 @@ gmeow:StandpointModality
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Standpoint Modality"@x-gmeow-english ;
+    logic:instantiatesFramework logic:ModalFramework ;
     rdfs:subClassOf logic:QualityValue ;
     skos:definition "The belief value a standpoint assigns a proposition — a closed value vocabulary spanning the Standpoint-Logic □/◊ and the CRMinf belief value (true/false/probable/possible), plus the Frankfurt bullshit modality: gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted, gmeow:bullshit. Absence of a value is read as unequivocal."@x-gmeow-english ;
     skos:example "ex:claim gmeow:standpointModality gmeow:refuted ."@x-gmeow-english ;
