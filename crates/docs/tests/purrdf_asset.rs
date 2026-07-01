@@ -47,15 +47,18 @@ fn asset(name: &str) -> PathBuf {
 /// The manifest content for the current on-disk vendored bytes: one
 /// `<blake3-hex>  <filename>` line per vendored file, sorted by filename, LF-terminated.
 fn current_manifest() -> String {
-    let mut lines: Vec<String> = VENDORED_FILES
-        .iter()
-        .map(|&name| {
+    // Order by filename (not by the formatted `<hash>  <name>` line) so a change to one
+    // file's hash never reshuffles the other rows — the manifest diff stays minimal.
+    let mut names: Vec<&str> = VENDORED_FILES.to_vec();
+    names.sort_unstable();
+    let lines: Vec<String> = names
+        .into_iter()
+        .map(|name| {
             let bytes = std::fs::read(asset(name))
                 .unwrap_or_else(|e| panic!("vendored {name} must exist: {e}"));
             format!("{}  {name}", blake3::hash(&bytes).to_hex())
         })
         .collect();
-    lines.sort();
     let mut out = lines.join("\n");
     out.push('\n');
     out
