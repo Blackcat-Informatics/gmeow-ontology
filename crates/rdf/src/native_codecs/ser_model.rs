@@ -110,6 +110,24 @@ fn is_literal_direction(direction: &str) -> bool {
     matches!(direction, "ltr" | "rtl")
 }
 
+/// Escape an IRI body for an N-Triples / Turtle / TriG `<…>` `IRIREF`. The W3C grammar
+/// forbids `<`, `>`, `"`, `{`, `}`, `|`, `^`, `` ` ``, `\`, and every code point `<= 0x20`
+/// appearing raw; each rides as a `\uXXXX` `UCHAR` (the text parser decodes them back). A
+/// clean ASCII IRI (every production IRI) passes through byte-for-byte unchanged.
+fn escape_iri(iri: &str) -> String {
+    let mut out = String::with_capacity(iri.len());
+    for ch in iri.chars() {
+        match ch {
+            '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
+                out.push_str(&format!("\\u{:04X}", ch as u32));
+            }
+            c if (c as u32) <= 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
 /// Escape a literal lexical form for N-Triples (incl. all C0 control chars).
 fn escape_literal(lex: &str) -> String {
     let mut out = String::with_capacity(lex.len());
@@ -131,7 +149,7 @@ fn escape_literal(lex: &str) -> String {
 fn render_term(g: &SerGraph, tid: usize) -> String {
     let t = &g.terms[tid];
     match t.kind {
-        SerTermKind::Iri => format!("<{}>", t.value.as_deref().unwrap_or("")),
+        SerTermKind::Iri => format!("<{}>", escape_iri(t.value.as_deref().unwrap_or(""))),
         SerTermKind::Bnode => match &t.value {
             Some(v) => format!("_:{v}"),
             None => format!("_:b{tid}"),
@@ -261,7 +279,7 @@ fn render_trig_term(g: &SerGraph, tid: usize) -> String {
     let t = &g.terms[tid];
     match t.kind {
         SerTermKind::Iri if t.value.as_deref() == Some(RDF_REIFIES) => "rdf:reifies".to_string(),
-        SerTermKind::Iri => format!("<{}>", t.value.as_deref().unwrap_or("")),
+        SerTermKind::Iri => format!("<{}>", escape_iri(t.value.as_deref().unwrap_or(""))),
         SerTermKind::Bnode => match &t.value {
             Some(v) => format!("_:{v}"),
             None => format!("_:b{tid}"),

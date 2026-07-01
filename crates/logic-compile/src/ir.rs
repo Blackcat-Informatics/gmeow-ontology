@@ -359,16 +359,22 @@ pub struct ContextualScope {
     pub modality: LogicModality,
     /// IRI string of the provenance source / asserting agent.
     pub provenance: Option<String>,
+    /// IRI string of the `logic:Module` (Common Logic module / named theory) this
+    /// statement is asserted in — the theory-structuring context dimension, orthogonal
+    /// to the epistemic `standpoint`/`modality` dimension (a module is *where* a sentence
+    /// lives, not *under whose perspective* it holds). `None` = the top-level module.
+    pub module: Option<String>,
 }
 
 impl ContextualScope {
-    /// Construct, validating the confidence range, mirroring Python `__post_init__`.
+    /// Construct, validating the confidence range.
     pub fn new(
         standpoint: Option<String>,
         time: Option<String>,
         confidence: Option<f64>,
         modality: LogicModality,
         provenance: Option<String>,
+        module: Option<String>,
     ) -> Result<Self, String> {
         if let Some(c) = confidence {
             if !(0.0..=1.0).contains(&c) {
@@ -383,6 +389,7 @@ impl ContextualScope {
             confidence,
             modality,
             provenance,
+            module,
         })
     }
 
@@ -401,11 +408,12 @@ impl ContextualScope {
             None => String::new(),
         };
         format!(
-            "st={}{SEP}t={}{SEP}c={conf}{SEP}m={}{SEP}p={}",
+            "st={}{SEP}t={}{SEP}c={conf}{SEP}m={}{SEP}p={}{SEP}mod={}",
             self.standpoint.as_deref().unwrap_or(""),
             self.time.as_deref().unwrap_or(""),
             self.modality.as_str(),
             self.provenance.as_deref().unwrap_or(""),
+            self.module.as_deref().unwrap_or(""),
         )
     }
 }
