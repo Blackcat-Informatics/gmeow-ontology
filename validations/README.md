@@ -21,6 +21,7 @@ One self-contained subdirectory per lane, each with its own `Makefile` and `READ
 | Lane | What it proves |
 |------|----------------|
 | [`openehr-bloodpressure/`](./openehr-bloodpressure/) | The down-projection `d(g)` = `blood_pressure.augmented.json` (a valid openEHR composition + the GMEOW in-band complement) validates under the real `Blutdruck.opt` Operational Template, in an openEHR reference CDR (EHRbase) or the Archie RM validator — the empirical half of the openEHR blood-pressure section/retraction claim (`docs/APPLIED_CATEGORY_THEORY/usecase_openehr_bloodpressure.md`). |
+| [`classic-cross-check/`](./classic-cross-check/) | GMEOW's **native** reasoning / OWL 2 RL closure / RDF-1.2-statement pipeline agrees with — or strictly subsumes — the classical **ELK / HermiT / ROBOT / Jena / owlrl** oracles' own verdicts. The oracle half of the correspondence-calculus doctrine (`docs/APPLIED_CATEGORY_THEORY/take1.md` §10.2): the native Rust engine (#1087, F1–F7) is the authority, the classical engines are demoted conformance oracles, gated fragment-by-fragment by the divergence ledger. Needs Docker and/or a JVM, so it lives here — never in CI or `make check`. |
 
 ## Running a lane
 

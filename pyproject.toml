@@ -88,7 +88,10 @@ line-length = 88
 target-version = "py313"
 src = ["src", "tests", "packages/gmeow-dev/src"]
 # generated/ is owned by registered generators (#287); never lint outputs.
-extend-exclude = ["generated"]
+# validations/ holds standalone external validator-zoo lanes, deliberately
+# outside the repo's normal workflow (their own Makefile/pytest, never make
+# check / CI); fenced off from mainline lint exactly like generated/ (#1087).
+extend-exclude = ["generated", "validations"]
 
 [tool.ruff.lint]
 select = [
