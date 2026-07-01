@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ir::{
     Correspondence, CorrespondenceRelation, Determinacy, MorphismClass, MorphismKind,
@@ -11,7 +11,7 @@ use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_gates::evaluate_gates;
 
 use super::*;
-use crate::up_projection::{AuditReport, FileBaseline};
+use crate::up_projection_corpus::{AuditReport, FileBaseline};
 
 // --------------------------------------------------------------------------- //
 // classify_term — the evidence → shape policy (isolated, no gates)
@@ -197,5 +197,217 @@ fn an_equivalence_overclaim_on_a_lossy_rung_reds() {
     assert!(
         report.per_correspondence[0].overclaim.is_red(),
         "equivalence on a non-injective rung must RED"
+    );
+}
+
+// --------------------------------------------------------------------------- //
+// candidate_lifts — cross-layer ambiguity guard (issue #1145 / feedback #4)
+// --------------------------------------------------------------------------- //
+
+fn edoal_set(pairs: &[(&str, &[&str])]) -> BTreeMap<String, BTreeSet<String>> {
+    pairs
+        .iter()
+        .map(|(target, gmeows)| {
+            (
+                (*target).to_owned(),
+                gmeows
+                    .iter()
+                    .map(|g| (*g).to_owned())
+                    .collect::<BTreeSet<_>>(),
+            )
+        })
+        .collect()
+}
+
+/// A single-atom, generalizing (`<=`) structural cell: `toPredicate <target>` keyed on a real
+/// `edoalSource <gmeow>` so `structural_pairs` records it in the *generalizing* claim layer.
+fn generalizing_struct_cell(
+    cell: &str,
+    source_gmeow: &str,
+    target: &str,
+    confidence: &str,
+) -> String {
+    format!(
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         gmeow:{cell} a gmeow:ProjectionMapping ;\n\
+           gmeow:hasMappingPattern [\n\
+             gmeow:edoalSource <{source_gmeow}> ] ;\n\
+           gmeow:hasBinding [ gmeow:toPredicate <{target}> ; \
+                              gmeow:relation \"<=\" ; \
+                              gmeow:confidence \"{confidence}\" ] .\n"
+    )
+}
+
+#[test]
+fn a_direct_ambiguous_term_is_not_recovered_as_inverse_or_claim() {
+    // GUARD (feedback #4, case 1): a target with MULTIPLE direct candidates is dropped as
+    // ambiguous residue. The retired executor tracked such a target in a shared `ambiguous` set
+    // so no lower-priority layer could recover it. The refactor's inverse/claim loops only checked
+    // `direct.contains_key` — which is FALSE for a dropped-ambiguous target — so the SAME term
+    // could re-enter as an inverse or a claim lift. It must stay honest residue at every layer.
+    let target = "https://schema.org/ambiguous";
+    // Direct EDOAL: TWO distinct gmeow candidates → ambiguous, target NOT inserted into `direct`.
+    let direct_edoal = edoal_set(&[(
+        target,
+        &[
+            "https://blackcatinformatics.ca/gmeow/one",
+            "https://blackcatinformatics.ca/gmeow/two",
+        ],
+    )]);
+    // Inverse EDOAL: a SINGLE clean candidate on the SAME target — must NOT be recovered.
+    let inverse_edoal = edoal_set(&[(target, &["https://blackcatinformatics.ca/gmeow/inv"])]);
+    // A closeMatch SSSOM claim on the SAME target — must NOT be recovered either.
+    let sssom = concat!(
+        "#curie_map:\n",
+        "#  gmeow: https://blackcatinformatics.ca/gmeow/\n",
+        "#  schema: https://schema.org/\n",
+        "#  skos: http://www.w3.org/2004/02/skos/core#\n",
+        "subject_id\tpredicate_id\tobject_id\tconfidence\n",
+        "gmeow:claimant\tskos:closeMatch\tschema:ambiguous\t0.8\n",
+    );
+
+    let (direct, inverse, claim, ambiguous_dropped) =
+        candidate_lifts(&[sssom.to_owned()], &[], &direct_edoal, &inverse_edoal)
+            .expect("candidate_lifts resolves");
+
+    assert!(
+        !direct.contains_key(target),
+        "the multi-candidate direct target is dropped, never a lift"
+    );
+    assert!(
+        !inverse.contains_key(target),
+        "a direct-ambiguous target must NOT be recovered as an inverse lift"
+    );
+    assert!(
+        !claim.contains_key(target),
+        "a direct-ambiguous target must NOT be recovered as a claim lift"
+    );
+    // Counted exactly ONCE (at the direct layer); the blocked inverse/claim never re-count it.
+    assert_eq!(
+        ambiguous_dropped, 1,
+        "the ambiguous target is counted once, not double-counted across layers"
+    );
+}
+
+#[test]
+fn conflicting_generalizing_and_closematch_targets_are_ambiguous_not_first_layer_wins() {
+    // GUARD (feedback #4, case 2): the claim step must consider the UNION of the generalizing
+    // structural and SSSOM closeMatch candidates per target. A target with ONE candidate in EACH
+    // layer pointing at DIFFERENT gmeow targets is a cross-layer conflict → ambiguous. The buggy
+    // per-layer `claim.contains_key` short-circuit let the first layer win instead.
+    let target = "https://schema.org/conflict";
+    // Generalizing structural: target → gmeow:general (confidence-bearing `<=` cell).
+    let ttl = generalizing_struct_cell(
+        "genCell",
+        "https://blackcatinformatics.ca/gmeow/general",
+        target,
+        "0.9",
+    );
+    // SSSOM closeMatch: SAME target → a DIFFERENT gmeow:close.
+    let sssom = concat!(
+        "#curie_map:\n",
+        "#  gmeow: https://blackcatinformatics.ca/gmeow/\n",
+        "#  schema: https://schema.org/\n",
+        "#  skos: http://www.w3.org/2004/02/skos/core#\n",
+        "subject_id\tpredicate_id\tobject_id\tconfidence\n",
+        "gmeow:close\tskos:closeMatch\tschema:conflict\t0.8\n",
+    );
+
+    let (_direct, _inverse, claim, ambiguous_dropped) = candidate_lifts(
+        &[sssom.to_owned()],
+        &[ttl],
+        &BTreeMap::new(),
+        &BTreeMap::new(),
+    )
+    .expect("candidate_lifts resolves");
+
+    assert!(
+        !claim.contains_key(target),
+        "a cross-layer generalizing-vs-closeMatch conflict must NOT resolve to a claim lift"
+    );
+    assert_eq!(
+        ambiguous_dropped, 1,
+        "the cross-layer conflict is counted as one ambiguous drop"
+    );
+}
+
+#[test]
+fn a_single_agreeing_claim_candidate_still_lifts() {
+    // NON-REGRESSION: a target with the SAME gmeow across the generalizing and closeMatch layers
+    // (or in just one layer) is NOT a conflict and must still resolve to a claim lift, so the
+    // union guard tightens ONLY the genuinely ambiguous case, not the honest single-candidate one.
+    let target = "https://schema.org/agree";
+    let ttl = generalizing_struct_cell(
+        "agreeCell",
+        "https://blackcatinformatics.ca/gmeow/agree",
+        target,
+        "0.9",
+    );
+    let sssom = concat!(
+        "#curie_map:\n",
+        "#  gmeow: https://blackcatinformatics.ca/gmeow/\n",
+        "#  schema: https://schema.org/\n",
+        "#  skos: http://www.w3.org/2004/02/skos/core#\n",
+        "subject_id\tpredicate_id\tobject_id\tconfidence\n",
+        "gmeow:agree\tskos:closeMatch\tschema:agree\t0.8\n",
+    );
+
+    let (_direct, _inverse, claim, ambiguous_dropped) = candidate_lifts(
+        &[sssom.to_owned()],
+        &[ttl],
+        &BTreeMap::new(),
+        &BTreeMap::new(),
+    )
+    .expect("candidate_lifts resolves");
+
+    assert_eq!(
+        claim.get(target).map(|c| c.gmeow.as_str()),
+        Some("https://blackcatinformatics.ca/gmeow/agree"),
+        "an agreeing single-target claim across both layers still lifts"
+    );
+    assert_eq!(ambiguous_dropped, 0, "no ambiguity when both layers agree");
+}
+
+#[test]
+fn a_generalizing_winner_survives_a_self_ambiguous_closematch_layer() {
+    // NON-REGRESSION (layer priority): when the generalizing layer has a single unique winner
+    // but the closeMatch layer is internally ambiguous (>1 distinct candidate) for the SAME
+    // target, the generalizing winner must still lift — a self-ambiguous lower-priority layer is
+    // NOT a cross-layer conflict, and dropping the clean generalizing pick would be a real
+    // coverage regression (this mirrors the corpus's `prov:Activity` / `sosa:Observation` shape).
+    let target = "https://schema.org/priority";
+    let ttl = generalizing_struct_cell(
+        "priorityCell",
+        "https://blackcatinformatics.ca/gmeow/generalWinner",
+        target,
+        "0.9",
+    );
+    // TWO closeMatch rows for the SAME target → the closeMatch layer is self-ambiguous.
+    let sssom = concat!(
+        "#curie_map:\n",
+        "#  gmeow: https://blackcatinformatics.ca/gmeow/\n",
+        "#  schema: https://schema.org/\n",
+        "#  skos: http://www.w3.org/2004/02/skos/core#\n",
+        "subject_id\tpredicate_id\tobject_id\tconfidence\n",
+        "gmeow:closeA\tskos:closeMatch\tschema:priority\t0.8\n",
+        "gmeow:closeB\tskos:closeMatch\tschema:priority\t0.7\n",
+    );
+
+    let (_direct, _inverse, claim, ambiguous_dropped) = candidate_lifts(
+        &[sssom.to_owned()],
+        &[ttl],
+        &BTreeMap::new(),
+        &BTreeMap::new(),
+    )
+    .expect("candidate_lifts resolves");
+
+    assert_eq!(
+        claim.get(target).map(|c| c.gmeow.as_str()),
+        Some("https://blackcatinformatics.ca/gmeow/generalWinner"),
+        "the clean generalizing winner survives a self-ambiguous closeMatch layer"
+    );
+    assert_eq!(
+        ambiguous_dropped, 0,
+        "a self-ambiguous lower-priority layer is not a cross-layer conflict"
     );
 }

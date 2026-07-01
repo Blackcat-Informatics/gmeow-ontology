@@ -1104,6 +1104,17 @@ fn build_fanout_opaque_blob(
         .ok_or_else(|| stage_err("missing generated/cl/gmeow.cgif in stage-compile-logic"))?;
     members.insert(crate::stages::compile_logic::CGIF_PATH.to_string(), cgif);
 
+    // XCL (the XML dialect) rides in from the same sink-consumed stage-compile-logic
+    // product. It is a non-RDF text projection whose committed form carries an XML
+    // declaration and generated `<!-- … -->` comments, so it cannot reconstruct from a
+    // canonical named-graph fold; it is carried here as a committed byte projection.
+    let xcl = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::XCL_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing generated/cl/gmeow.xcl in stage-compile-logic"))?;
+    members.insert(crate::stages::compile_logic::XCL_PATH.to_string(), xcl);
+
     // The SHACL-AF rule (computation) surface rides in from the same sink-consumed
     // compile-logic product (byte-decorated Turtle with a GENERATED banner — not a plain
     // canonical fold), as a committed byte projection.

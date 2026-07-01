@@ -60,10 +60,11 @@ expression algebra plus a per-profile fan-out). Three defects follow, each real:
   layer is explicit that `logic:confidence`, `logic:probability`, `logic:weight`, and
   `logic:evidenceStrength` are not interchangeable — and *determinacy* (is the target crisp or
   vague?) is a fifth, orthogonal concern the single number cannot express.
-- **Decoupled asymmetry.** Down-projection is the CONSTRUCT; up-projection is an independent
-  heuristic (`crates/pipeline/src/up_projection.rs`) that re-reads SSSOM and *re-derives* an
-  inverse, audited post hoc at ~81% liftability. Down and up are authored apart and free to
-  drift — the very defect the first inversion targeted, re-appearing one level up.
+- **Decoupled asymmetry.** Down-projection is the CONSTRUCT; up-projection *was* an independent
+  heuristic that re-read SSSOM and *re-derived* an inverse, audited post hoc at ~81% liftability.
+  Down and up were authored apart and free to drift — the very defect the first inversion targeted,
+  re-appearing one level up. (The calculus below retires that heuristic: the up-projection is now the
+  derived `put` leg of the correspondence, executed natively as a projection of the same IR.)
 
 ### 2.2 Why external standards cannot be the source of truth
 
@@ -788,7 +789,7 @@ committed SSSOM/EDOAL/FnO/CONSTRUCT **byte- or graph-isomorphically** (the exist
 `projection_lint`/`alignment_lint` deleted. Real files touched: `slices/core/logic/module.ttl`
 (or a new `slices/core/correspondence/` slice — see open question below);
 `crates/logic-compile/src/{ir.rs, projections/mod.rs, report.rs}`;
-`crates/pipeline/src/{up_projection.rs, stages/mappings.rs}`; `crates/slice/src/{edoal_emit,
+`crates/pipeline/src/{put_executor.rs, stages/mappings.rs}`; `crates/slice/src/{edoal_emit,
 fno_emit, sparql_emit, mapping_emit}.rs` (rendering logic *moves* under the new back-ends).
 
 **Open placement question:** a dedicated `slices/core/correspondence/` slice (its own

@@ -263,7 +263,7 @@ fn fold_up_projection_audit(
             .join(format!("{name}.ttl"));
         let ttl =
             std::fs::read_to_string(&path).map_err(|e| stage_err(format!("read {path:?}: {e}")))?;
-        let nt = crate::up_projection::ttl_to_nt(&ttl)
+        let nt = crate::up_projection_corpus::ttl_to_nt(&ttl)
             .map_err(|e| stage_err(format!("corpus {name} ttl→nt: {e}")))?;
         corpus_nts.push((name.to_string(), nt));
     }

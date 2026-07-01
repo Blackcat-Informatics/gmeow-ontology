@@ -57,7 +57,11 @@ WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
 # codegen for regenerate/reasoning throughput. CI and release workflows append the
 # portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
 
-ACCEPTANCE_MIN_RECALL ?= 60
+# The enforced corpus-aggregate recall floor lives in Rust
+# (scoreboards::ACCEPTANCE_MIN_RECALL_PCT — the single source of truth). Leave this
+# EMPTY to enforce that native floor; set it only to OVERRIDE for a dev measurement
+# (e.g. `make acceptance ACCEPTANCE_MIN_RECALL=0` to measure without a floor).
+ACCEPTANCE_MIN_RECALL ?=
 FUZZ_TARGETS = nquads gts shacl sssom statements
 FUZZ_TIME ?= 30
 MUTANTS_ARGS ?=
@@ -71,14 +75,14 @@ NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify mappings \
-	lint-alignment doc-lint sparql-conformance gts-codec-hygiene
+	lint-alignment doc-lint sparql-conformance gts-codec-hygiene coherence-gate-teeth
 
 .PHONY: help \
 	install fmt lint \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify test test-fast rust-build rust-test rust-docs check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene carrier-purity gts-codec-hygiene sparql-conformance wasm wasm-pkg wasm-pkg-test \
+	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy rdf-core-hygiene carrier-purity gts-codec-hygiene sparql-conformance wasm wasm-pkg wasm-pkg-test \
 	capi-build capi-header capi-check capi-install \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
@@ -289,7 +293,7 @@ coverage: ## Gate vendored entity-slice class and predicate coverage.
 	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
 
 acceptance: ## Gate full transpile recall against external RDF snapshots.
-	$(GMEOW_DEV) acceptance --min-recall $(ACCEPTANCE_MIN_RECALL)
+	$(GMEOW_DEV) acceptance $(if $(strip $(ACCEPTANCE_MIN_RECALL)),--min-recall $(ACCEPTANCE_MIN_RECALL),)
 
 crossref: ## Generate the CrossRef DOI deposit XML.
 	$(GMEOW_DEV) crossref
@@ -315,6 +319,9 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
+
+coherence-gate-teeth: rust-build ## Run the whole-ontology coherence-gate teeth proof on-gate (budget-exempt, ~95s).
+	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_coherence_gate/)'
 
 sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate (EPIC #906 Task 4).
 	@# Replays every captured query through NativeSparqlEngine over the merged ontology,
