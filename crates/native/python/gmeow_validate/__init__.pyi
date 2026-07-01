@@ -54,6 +54,13 @@ class ValidationStore:
     def _store_capsule(self) -> Any: ...
     def validate(self, shapes: Any) -> Any: ...
 
+# ── License policy ───────────────────────────────────────────────────────────
+
+# Classify a license id into the LinkPolicy string values ("import-ok" /
+# "reference-only"); the RUST-FIRST single source of truth for
+# gmeow_tools.config.policy_for_license.
+def license_policy_for(license_id: str) -> str: ...
+
 # ── Annotation predicate registry ────────────────────────────────────────────
 
 def annotation_predicates() -> list[str]: ...

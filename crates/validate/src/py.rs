@@ -1554,6 +1554,20 @@ fn lint_deposit_native(self_description_json: String) -> PyResult<Vec<String>> {
     crossref::lint_deposit(&self_description_json).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
+/// Native license-policy classifier — the RUST-FIRST single source of truth behind
+/// `gmeow_tools.config.policy_for_license`.
+///
+/// Maps a license id to the `LinkPolicy` StrEnum string values (`"import-ok"` /
+/// `"reference-only"`); a restrictive NC/ND/SA/GPL/… marker or an unknown license
+/// fails safe to `"reference-only"`.
+#[pyfunction]
+fn license_policy_for(license_id: &str) -> &'static str {
+    match gmeow_license::policy_for_license(license_id) {
+        gmeow_license::LicensePolicy::ImportOk => "import-ok",
+        gmeow_license::LicensePolicy::ReferenceOnly => "reference-only",
+    }
+}
+
 /// Register the `gmeow-validate` surface on a Python module.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -1561,6 +1575,7 @@ fn lint_deposit_native(self_description_json: String) -> PyResult<Vec<String>> {
 /// that carries their typed configuration across the FFI boundary. Called by the
 /// unified `gmeow_native` cdylib (#630) to populate `gmeow_native.validate`.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(license_policy_for, m)?)?;
     m.add_class::<PyLintConfig>()?;
     m.add_class::<PySignatureConfig>()?;
     m.add_class::<PyValidateOptions>()?;
