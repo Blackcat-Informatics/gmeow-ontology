@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
-//! Native OWL 2 RL entailment harness for the migrated reasoning pytest cluster (issue #896).
+//! Native OWL 2 RL entailment harness for the migrated reasoning pytest cluster.
 //!
 //! ## What this replaces
 //! The `python` CI lane (~45 min) was dominated by OWL/EL/DL reasoning tests that each rebuilt
 //! a reasoned graph via the OWL-2-RL chase (the `native_rl_rdflib.native_rl_closure`
-//! oracle, since relocated to `validations/classic-cross-check/oracles/`, #1087).
+//! oracle, since relocated to `validations/classic-cross-check/oracles/`).
 //! The per-slice entailment tests follow a single shape — parse the relevant slice `module.ttl`
 //! files, inject a tiny test A-Box, close under RL, assert a derived triple is present (and a
 //! contrasting one absent). This harness is the native twin of that
@@ -77,7 +77,7 @@ fn turtle_quads(rel_paths: &[String]) -> Vec<RdfQuad> {
         let path = root.join(rel);
         let bytes = std::fs::read(&path)
             .unwrap_or_else(|e| panic!("missing ontology source {}: {e}", path.display()));
-        // Parse through the canonical native codec (#909) directly into the frozen IR;
+        // Parse through the canonical native codec directly into the frozen IR;
         // its `RdfQuad`s feed the scoped closure builder below.
         let dataset = parse_dataset(&bytes, "text/turtle", None)
             .unwrap_or_else(|e| panic!("Turtle parse failed for {}: {e}", path.display()));
@@ -181,7 +181,7 @@ pub fn assert_entailed(closure: &RlClosure, asserted: &[RdfQuad], s: &str, p: &s
 
 #[test]
 fn smoke_property_chain_entailment_and_negative() {
-    // hasParent ∘ hasParent ⊑ hasAncestor (#38): inject a two-step parent chain over the
+    // hasParent ∘ hasParent ⊑ hasAncestor: inject a two-step parent chain over the
     // genealogy module's TBox (the same module the Python ancestry test parses).
     let (a, b, c, unrelated) = (ex("a"), ex("b"), ex("c"), ex("unrelated"));
     let abox = vec![
@@ -208,11 +208,11 @@ fn smoke_property_chain_entailment_and_negative() {
 }
 
 // ── Migrated from the reasoning-entailments pytest cluster (now at
-//    validations/classic-cross-check/tests/test_reasoning_entailments.py, #1087) ─────────────
-// The native twins of the `_materialize(module, *abox)` positive-entailment tests (#38). The
+//    validations/classic-cross-check/tests/test_reasoning_entailments.py) ─────────────
+// The native twins of the `_materialize(module, *abox)` positive-entailment tests. The
 // three `reasoning_cases` monkeypatch tests (two-axis / two-kind / run_all order) are NOT migrated
 // — they exercise the Python Docker-orchestration layer (the `reasoning_cases` oracle, relocated to
-// `validations/classic-cross-check/oracles/`, #1087), an independent live Python impl with no Rust
+// `validations/classic-cross-check/oracles/`), an independent live Python impl with no Rust
 // twin (retain-with-reason, see MIGRATION-LEDGER.md).
 
 #[test]
@@ -299,11 +299,11 @@ fn proximity_measurement_is_a_measurement() {
     );
 }
 
-// ── Migrated from tests/test_mereology.py (#76) ─────────────────────────────────────────────
+// ── Migrated from tests/test_mereology.py ─────────────────────────────────────────────
 // The three `_materialize(*modules, abox=...)` propagation tests. The three structural tests
 // (`_universal_part_properties_*`, `_existing_part_like_relations_*`, `_no_winner_or_cardinality_*`)
 // run over the ASSERTED merged graph with no closure — they are TBox-well-formedness checks that
-// belong to the #867 slicetest structural migration, not this reasoning migration; left in place.
+// belong to the slicetest structural migration, not this reasoning migration; left in place.
 
 #[test]
 fn specialized_part_relations_entail_generic_parthood() {
@@ -388,14 +388,14 @@ fn event_location_propagates_through_spatial_containment() {
 // ── Migrated from tests/test_competency.py (the entailment-dependent competency questions) ───
 // The competency QUERY tests (`_query_terms`) answer on the ASSERTED merged graph via SPARQL
 // property paths (`rdfs:subClassOf*`) and pay no closure cost — they stay in pytest (now fast),
-// pending the #867 slicetest migration. Only the two genuinely entailment-dependent contrasts
+// pending the slicetest migration. Only the two genuinely entailment-dependent contrasts
 // migrate here: the ancestry property-chain answer (already covered by
 // `ancestry_is_derived_not_asserted` above) and the PlaceNaming `equivalentClass` classification.
 
 #[test]
 fn place_naming_is_entailed_not_asserted() {
-    // PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place (the first owl:equivalentClass defined class,
-    // #105): a NameUsage that names a gmeow:Place is CLASSIFIED a PlaceNaming — the type is
+    // PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place (the first owl:equivalentClass defined class):
+    // a NameUsage that names a gmeow:Place is CLASSIFIED a PlaceNaming — the type is
     // entailed, authored nowhere (Principle 6 reuse, Principle 8 reasoning-centric).
     let (usage, place, toponym) = (ex("usage"), ex("place"), ex("toponym"));
     let (person_usage, person) = (ex("personUsage"), ex("person"));
@@ -421,11 +421,11 @@ fn place_naming_is_entailed_not_asserted() {
     );
 }
 
-// ── Migrated from tests/test_sensory.py (#126, #77) ─────────────────────────────────────────
+// ── Migrated from tests/test_sensory.py ─────────────────────────────────────────
 // The `native_rl_closure` tests parse the sensory + observation modules, inject a SensoryObservation
 // A-Box, and assert the OWL-RL entailment (specialization, equivalentClass inheritance, property
 // chains, contested-coexistence). The structural tests (`load_merged_graph`, no closure — the
-// subProperty / inverseOf / equivalentClass *asserted* TBox checks) stay in pytest (#867).
+// subProperty / inverseOf / equivalentClass *asserted* TBox checks) stay in pytest.
 
 #[test]
 fn sensory_observation_specialises_observation() {
@@ -456,7 +456,7 @@ fn sensor_specialises_agent() {
 
 #[test]
 fn sensory_quantity_inherits_scalar_quantity() {
-    // SensoryQuantity ≡ ScalarQuantity (#77, #126): a SensoryQuantity individual is a ScalarQuantity.
+    // SensoryQuantity ≡ ScalarQuantity: a SensoryQuantity individual is a ScalarQuantity.
     let sq1 = ex("sq1");
     let abox = vec![iri_quad(&sq1, RDF_TYPE, &gmeow("SensoryQuantity"))];
     let closure = scoped_closure(&["core/observations", "extensions/sensory"], &abox);
@@ -580,7 +580,7 @@ fn contested_sensory_readings_coexist() {
 
 // ── Migrated from tests/test_places.py (the coordinate/geometry observation chains) ─────────
 // The other ~128 test_places.py tests are structural / SHACL / fixture checks (no closure) and
-// stay in pytest (#867). Only these two property-chain entailments migrate here.
+// stay in pytest. Only these two property-chain entailments migrate here.
 
 #[test]
 fn coordinate_observation_chain_fires() {
@@ -618,10 +618,10 @@ fn geometry_observation_chain_fires() {
     );
 }
 
-// ── Migrated from tests/test_sensory_environment.py (#87) ────────────────────────────────────
+// ── Migrated from tests/test_sensory_environment.py ────────────────────────────────────
 // The four pure entailment tests. `test_mental_reference_frame_requires_host` is MIXED (a
 // structural blank-node restriction-axiom check + a consistency check) and stays in pytest as a
-// small scoped structural test. The remaining structural/mapping tests stay in pytest (#867).
+// small scoped structural test. The remaining structural/mapping tests stay in pytest.
 
 #[test]
 fn sensory_environment_el_axioms_fire() {
@@ -699,10 +699,10 @@ fn frame_inheritance_via_coordinate_matrix() {
     );
 }
 
-// ── Migrated from tests/test_observations.py (#69, #77, #96, #125) ──────────────────────────
+// ── Migrated from tests/test_observations.py ──────────────────────────
 // The universal-claim-construct subsumptions, the isResultOf/frame property chains, the
 // SpatialMeasurement/CoordinateObservation entailments, and the EL-consistency survivals. The
-// Stream/property structural tests (`load_merged_graph`, no closure) stay in pytest (#867).
+// Stream/property structural tests (`load_merged_graph`, no closure) stay in pytest.
 // `test_sensory_observation_specialises_observation` is omitted — its twin already exists above.
 
 #[test]
@@ -821,7 +821,7 @@ fn observation_frame_inheritance_property_chain() {
 
 #[test]
 fn frame_inheritance_via_quantity() {
-    // A Quantity result inherits the observation's reference frame (#77).
+    // A Quantity result inherits the observation's reference frame.
     let (obs1, q1, frame) = (ex("obs1"), ex("q1"), ex("frameSI"));
     let abox = vec![
         iri_quad(&obs1, RDF_TYPE, &gmeow("Measurement")),
@@ -839,7 +839,7 @@ fn frame_inheritance_via_quantity() {
 
 #[test]
 fn stream_el_axiom_stays_consistent() {
-    // A Stream with streamOf survives materialization (#96).
+    // A Stream with streamOf survives materialization.
     let (stream1, entity1) = (ex("stream1"), ex("entity1"));
     let abox = vec![
         iri_quad(&stream1, RDF_TYPE, &gmeow("Stream")),
@@ -852,7 +852,7 @@ fn stream_el_axiom_stays_consistent() {
 
 #[test]
 fn coordinate_observation_infers_spatial_measurement() {
-    // CoordinateObservation ⊑ SpatialMeasurement (⊑ Observation) (#125).
+    // CoordinateObservation ⊑ SpatialMeasurement (⊑ Observation).
     let co1 = ex("co1");
     let abox = vec![iri_quad(&co1, RDF_TYPE, &gmeow("CoordinateObservation"))];
     let closure = scoped_closure(&["core/observations", "core/places"], &abox);

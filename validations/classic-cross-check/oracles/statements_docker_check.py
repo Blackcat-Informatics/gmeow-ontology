@@ -1,7 +1,7 @@
 """Jena/ROBOT-backed statement checks kept out of pytest.
 
 The ``classic-cross-check`` Jena oracle for the **native** RDF 1.2 statement lead
-writer (#667). The committed ``gmeow.rdf12.ttl`` is produced natively by the
+writer. The committed ``gmeow.rdf12.ttl`` is produced natively by the
 gmeow-rdf Rust codec on the primary path; this lane re-reads it with **Apache
 Jena** and proves the two engines agree by RDF 1.2 graph isomorphism. The lossless
 check therefore binds to Jena directly (:func:`assert_lossless_jena`), NOT to the
@@ -38,7 +38,7 @@ def assert_lossless_jena(owl_graph: Graph, rdf12_path: Path) -> list[str]:
     (native-gmeow-rdf-written) RDF 1.2 artifact back to OWL normal form with Apache
     Jena and compares it to the authored OWL graph by isomorphism. Binding to Jena
     here (not the native codec) is what makes this lane a genuine cross-engine
-    check of the native lead writer (#667).
+    check of the native lead writer.
     """
     normalized = normalize_rdf12_to_owl(rdf12_path)
     if isomorphic(owl_graph, normalized):
@@ -55,8 +55,8 @@ def assert_lossless_jena(owl_graph: Graph, rdf12_path: Path) -> list[str]:
 def assert_committed_artifacts_match_dsl() -> None:
     """The committed statement artifacts must match the canonical DSL.
 
-    Drift-checks via the Rust ``gmeow-pipeline`` executor (the build authority
-    since #861 P7) and filters its drift findings to the statement artifacts.
+    Drift-checks via the Rust ``gmeow-pipeline`` executor (the build authority)
+    and filters its drift findings to the statement artifacts.
     """
     import os
 

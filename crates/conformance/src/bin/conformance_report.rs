@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Materialize the logic-conformance suite verdicts as a single canonical-JSON
-//! artifact, for folding into the signed release bundle (#673, §18).
+//! artifact, for folding into the signed release bundle (§18).
 //!
 //! `make conformance` runs the corpus under `cargo-nextest` and *discards* the
 //! per-case verdicts once the goldens match. The release-as-evidence lane needs
@@ -56,7 +56,7 @@ fn main() -> Result<(), String> {
     // BTreeMap keys → sorted, deterministic ordering independent of discovery.
     let mut by_case: BTreeMap<String, serde_json::Value> = BTreeMap::new();
     for case in &cases {
-        // Lane routing (#753): the release-as-evidence report is the Lane-A native
+        // Lane routing: the release-as-evidence report is the Lane-A native
         // artifact. A Lane-B external corpus is oracle-backed and runs only in
         // `make -C validations/classic-cross-check validate`, so it is excluded here (it may also lie
         // outside the native fragment and would not be honestly decided).

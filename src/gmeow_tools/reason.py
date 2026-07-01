@@ -6,8 +6,8 @@ the primary path: ``make check`` and the required ``quality`` gate reason
 natively (``make reason`` / ``gmeow-dev reason --mode native``, Java/Docker-free),
 and every pytest that drives these functions is ``docker``/``classic_cross_check``
 marked or mocks them out. The only live callers of the ROBOT/Docker functions
-are the relocated classic-cross-check lane (``validations/classic-cross-check/``,
-#1087) and the maintainer ``gmeow-dev`` docker reasoning subcommands
+are the relocated classic-cross-check lane (``validations/classic-cross-check/``)
+and the maintainer ``gmeow-dev`` docker reasoning subcommands
 (``reason``/``verify --mode docker``, ``maint-reason-hermit``/``maint-verify-docker``)
 — never normal repo use. The native functions here (``reason_native`` /
 ``verify_native``) are the mainline path and stay Docker-free.
@@ -55,7 +55,7 @@ FULL_FILE = DIST_DIR / "gmeow-full.ttl"
 INFERRED_CLOSURE_FILE = DIST_DIR / "gmeow-inferred-closure.rdf12.ttl"
 #: Diagnostics-artifact stem for the native lane (JSON / SARIF / HTML).
 NATIVE_REASON_STEM = "gmeow-reason-native"
-#: Diagnostics-artifact stem for the native reasoned-graph verify lane (#695).
+#: Diagnostics-artifact stem for the native reasoned-graph verify lane.
 NATIVE_VERIFY_STEM = "gmeow-verify-native"
 
 
@@ -68,7 +68,7 @@ def _rel(path: Path) -> str:
 #: and grows with the ontology; the default 900s container ceiling sits right at
 #: that cliff (a trivial property addition has tipped main's 879s over). HermiT
 #: gets a wider ceiling; every other (fast) ROBOT op keeps the default. Speeding
-#: HermiT up is tracked for the gate-health pass (#433).
+#: HermiT up is tracked for the gate-health pass.
 _HERMIT_TIMEOUT: float = 1800.0
 
 
@@ -98,7 +98,7 @@ def merge_release(
     Returns:
         The path to the merged ontology.
     """
-    # The root IRI is the CORE profile (#330); the global gate keeps
+    # The root IRI is the CORE profile; the global gate keeps
     # covering everything by merging the generated FULL profile instead.
     from gmeow_tools.config import FULL_PROFILE_FILE
 
@@ -176,7 +176,7 @@ def reason(
     return output
 
 
-#: OWL-native release syntaxes (#12): extension → ROBOT convert format.
+#: OWL-native release syntaxes: extension → ROBOT convert format.
 #: ofn and owx are lossless OWL 2 forms; omn (Manchester) is itself LOSSY —
 #: it cannot express every OWL 2 axiom (GCIs etc.; ROBOT warns and drops).
 OWL_SYNTAXES: dict[str, str] = {"ofn": "ofn", "owx": "owx", "omn": "omn"}
@@ -392,7 +392,7 @@ def _reason_report_from_native_result(
 
     derived = [a for a in result.get("inferred", []) if not a.get("is_edb")]
     gaps = result.get("gaps", [])
-    # Thin passthrough of the typed shared-result status fields (#768 ME2): the
+    # Thin passthrough of the typed shared-result status fields (ME2): the
     # native lane emits the four-valued information state + computation status in
     # the Rust dict; surface them in the summary (no Python logic — a dict read).
     status = result.get("status", {})
@@ -638,7 +638,7 @@ def verify_native(
     queries: Path = VERIFY_DIR,
     output_dir: Path = DIST_DIR,
 ) -> DiagnosticsReport:
-    """Run the native reasoned-graph negative tests (Java/Docker-free, #695).
+    """Run the native reasoned-graph negative tests (Java/Docker-free).
 
     The Rust authority (``gmeow_logic.verify_native``) materializes the asserted
     graph unioned with the native EL/DL derived closure and runs every verify
@@ -666,7 +666,7 @@ def verify_native(
 
     pairs = _verify_query_pairs(queries)
     # verify_native hands back a live diagnostics Report pyclass directly — no
-    # JSON round-trip (#630).
+    # JSON round-trip.
     report = gmeow_logic.verify_native(gts.read_bytes(), pairs)
 
     output_dir.mkdir(parents=True, exist_ok=True)

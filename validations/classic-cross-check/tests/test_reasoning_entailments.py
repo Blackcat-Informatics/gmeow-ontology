@@ -1,9 +1,9 @@
-"""Reasoning-case orchestration tests for the axiomatized doctrine (#38).
+"""Reasoning-case orchestration tests for the axiomatized doctrine.
 
 The POSITIVE OWL 2 RL entailment tests that used to live here — derived ancestry,
 location-through-containment, sub-organization transitivity, ProximityMeasurement
 survival — were migrated to the native Rust reasoning harness
-(``crates/logic/tests/ontology_entailments.rs``) under issue #896: the EL/DL/RL
+(``crates/logic/tests/ontology_entailments.rs``): the EL/DL/RL
 chase now runs once, scoped and Docker-free, in Rust instead of rebuilding a
 reasoned rdflib graph per pytest. See ``dsl/tests/MIGRATION-LEDGER.md``.
 

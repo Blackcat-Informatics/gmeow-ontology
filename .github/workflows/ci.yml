@@ -27,15 +27,15 @@ env:
 # canonical `make lint` target; the python job keeps a separate mypy invocation
 # only to emit per-category diagnostics SARIF.
 #
-# Diagnostics SARIF taxonomy (#662): each job's per-category SARIF is uploaded to
+# Diagnostics SARIF taxonomy: each job's per-category SARIF is uploaded to
 # code scanning under a category == the JOB name, and its artifacts land under
 # `dist/diagnostics/<category>/`. Wired here: `python` (mypy via the external-tool
 # wrapper). Still a
 # documented follow-up — `lint` and `rust` need the native `gmeow_diagnostics`
 # extension / a Python toolchain added to those jobs, and `ontology` a dedicated
-# feedback run; that work is coordinated with #666, which restructures the
+# feedback run; that work is coordinated with the effort that restructures the
 # reason/statements jobs into `native` + `classic-cross-check`. Per the owner's
-# rule, whichever of #662/#666 lands second renames the categories in one place.
+# rule, whichever lands second renames the categories in one place.
 # Uploads are fork-safe: only push + same-repo PRs hit code scanning; fork PRs
 # fall back to a workflow artifact (their token lacks security-events: write).
 jobs:
@@ -77,7 +77,7 @@ jobs:
   python:
     runs-on: ubuntu-latest
     # security-events: write lets this job's per-category (python/mypy) SARIF
-    # surface in the Security tab via upload-sarif (#662).
+    # surface in the Security tab via upload-sarif.
     permissions:
       contents: read
       security-events: write
@@ -109,7 +109,7 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Build + install the unified gmeow_native extension (#630)
+      - name: Build + install the unified gmeow_native extension
         # One cdylib folds in rdf + diagnostics + shacl + validate + logic, so the
         # diagnostics Report/Finding pyclasses are a single shared type. The legacy
         # import names (gmeow_logic etc.) are Python shims aliasing the submodules.
@@ -124,7 +124,7 @@ jobs:
       - name: gmeow_shacl extension imports
         run: uv run python -c "import gmeow_shacl; print('gmeow_shacl at', gmeow_shacl.__file__)"
 
-      # Per-category diagnostics (#662): re-run mypy through the external-tool
+      # Per-category diagnostics: re-run mypy through the external-tool
       # wrapper purely to emit a `python`-category SARIF of any type errors. The
       # AUTHORITATIVE mypy gate is the "Type-check (mypy)" step above (which runs
       # before the native exts, against the stubs); this step is continue-on-error
@@ -137,7 +137,7 @@ jobs:
 
       # Upload to code scanning only for push + same-repo PRs (a fork PR's token
       # lacks security-events: write). Fork PRs fall back to a workflow artifact.
-      - name: Upload python diagnostics SARIF (#662)
+      - name: Upload python diagnostics SARIF
         uses: ./.github/actions/upload-diagnostics-sarif
         with:
           sarif_file: dist/diagnostics/python/gmeow-feedback.sarif
@@ -149,7 +149,7 @@ jobs:
         continue-on-error: true
         run: make diagnostics-rust-sarif
 
-      - name: Upload rust diagnostics SARIF (#671)
+      - name: Upload rust diagnostics SARIF
         uses: ./.github/actions/upload-diagnostics-sarif
         with:
           sarif_file: dist/diagnostics/rust/gmeow-feedback.sarif
@@ -166,7 +166,7 @@ jobs:
       - name: Unit tests (pure Python)
         timeout-minutes: 60
         # --durations=25 surfaces the slowest tests in every run — the migration
-        # worklist for moving the pytest suite into high-performance Rust (#781/#867).
+        # worklist for moving the pytest suite into high-performance Rust.
         run: make test-fast
 
   # Sharded across 3 runners via nextest's `--partition count:N/3` (balances the
@@ -227,7 +227,7 @@ jobs:
       - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
         run: cargo nextest run --profile ci --workspace --exclude gmeow-native --partition count:${{ matrix.shard }}/3
 
-      # 25s per-test budget gate (#1045): hard-fail if any test on this shard's slice
+      # 25s per-test budget gate: hard-fail if any test on this shard's slice
       # of the ci profile exceeded the always-on budget. Runs against the exact
       # junit.xml the nextest step above produced for this shard.
       - name: Test duration budget gate (25s)
@@ -253,7 +253,7 @@ jobs:
           path: target/nextest/ci/junit.xml
           reporter: java-junit
 
-  # libpurrdf C-ABI (purrdf P8 / #842): build via cargo-c, verify the committed
+  # libpurrdf C-ABI (purrdf P8): build via cargo-c, verify the committed
   # purrdf.h ABI header is current (drift gate), and compile + link + run the C
   # smoke test against the real shared library.
   capi:
@@ -286,7 +286,7 @@ jobs:
       - name: libpurrdf C-ABI gate (header drift + C smoke)
         run: make capi-check
 
-  # Prebuild the unified gmeow_native extension ONCE (#630/#876). The four ontology
+  # Prebuild the unified gmeow_native extension ONCE. The four ontology
   # consumer jobs below download+install this wheel instead of each running the full
   # `maturin develop` (nightly toolchain + rust-cache + native compile), which cuts
   # the per-job setup from minutes to seconds so each lane lands under the 5-minute
@@ -318,7 +318,7 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Build the unified gmeow_native wheel (#630)
+      - name: Build the unified gmeow_native wheel
         run: make native-py-wheel
 
       - name: Upload the gmeow_native wheel
@@ -377,19 +377,19 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      # The validate gate runs SHACL through the gmeow_shacl extension (#578); the
+      # The validate gate runs SHACL through the gmeow_shacl extension; the
       # unified extension is prebuilt once in `native-build` and installed here from
       # the wheel rather than compiled per-job.
-      - name: Download the prebuilt gmeow_native wheel (#876)
+      - name: Download the prebuilt gmeow_native wheel
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: gmeow-native-wheel
           path: dist/wheels
 
-      - name: Install the unified gmeow_native extension from the wheel (#630/#876)
+      - name: Install the unified gmeow_native extension from the wheel
         run: make native-py-install
 
-      # Persist the content-addressed `.cache/validate` (#654) across runs. Every
+      # Persist the content-addressed `.cache/validate` across runs. Every
       # validate phase (merged-SHACL, the per-example SHACL passes, the DSL passes)
       # is wrapped in a content-keyed cache with no TTL; a stale restore self-heals
       # because a mismatched in-process key is simply a miss. Without this, CI pays
@@ -440,19 +440,19 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      - name: Download the prebuilt gmeow_native wheel (#876)
+      - name: Download the prebuilt gmeow_native wheel
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: gmeow-native-wheel
           path: dist/wheels
 
-      - name: Install the unified gmeow_native extension from the wheel (#630/#876)
+      - name: Install the unified gmeow_native extension from the wheel
         run: make native-py-install
 
       - name: Engine cross-check (rdflib ≡ gmeow_rdf on every query)
         run: make maint-crosscheck
 
-      - name: Full-registry drift gate (statements run natively via gmeow-rdf, #667)
+      - name: Full-registry drift gate (statements run natively via gmeow-rdf)
         run: make check-generated
 
       - name: Constitution check (every principle has live enforcement)
@@ -490,22 +490,22 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      - name: Download the prebuilt gmeow_native wheel (#876)
+      - name: Download the prebuilt gmeow_native wheel
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: gmeow-native-wheel
           path: dist/wheels
 
-      - name: Install the unified gmeow_native extension from the wheel (#630/#876)
+      - name: Install the unified gmeow_native extension from the wheel
         run: make native-py-install
 
-      - name: Reasoned-graph negative tests (native verify, Docker-free — #695)
+      - name: Reasoned-graph negative tests (native verify, Docker-free)
         run: make verify
 
-      - name: Transpile acceptance — hard aggregate recall floor (#579)
+      - name: Transpile acceptance — hard aggregate recall floor
         run: make acceptance
 
-      - name: Vendored-entity coverage — hard class/predicate floors (#579)
+      - name: Vendored-entity coverage — hard class/predicate floors
         run: make coverage
 
   ontology-misc:
@@ -540,13 +540,13 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      - name: Download the prebuilt gmeow_native wheel (#876)
+      - name: Download the prebuilt gmeow_native wheel
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: gmeow-native-wheel
           path: dist/wheels
 
-      - name: Install the unified gmeow_native extension from the wheel (#630/#876)
+      - name: Install the unified gmeow_native extension from the wheel
         run: make native-py-install
 
       - name: Mappings → axioms + linksets, QID syntax
@@ -558,13 +558,13 @@ jobs:
       - name: Alignment direction lint
         run: make lint-alignment
 
-      - name: Claim audit gates on the worked fixture (#55)
+      - name: Claim audit gates on the worked fixture
         run: make audit
 
       - name: Compliance report (per-principle gate evidence)
         run: make compliance-report
 
-  # === CLASSIC-CROSS-CHECK LANE (#666/#695, Principle 18; relocated by #1087) ===
+  # === CLASSIC-CROSS-CHECK LANE (Principle 18; relocated) ===
   # The Java+Docker classic oracle lane (ELK/HermiT/ROBOT/Jena/owlrl) has been
   # relocated OUT of CI entirely into the standalone `validations/classic-cross-check/`
   # validator-zoo suite — run on demand with `make -C validations/classic-cross-check`,
@@ -572,9 +572,9 @@ jobs:
   # is the native, Docker-free reasoning lane in the required `quality` aggregator
   # below; Principle 18 is proven natively by the divergence-ledger enforcer and
   # the frozen oracle-gold conformance case (in `make conformance`). (The rdflib
-  # query cross-check — the #906 lane — stays in `gmeow-dev crosscheck-queries`.)
+  # query cross-check lane stays in `gmeow-dev crosscheck-queries`.)
 
-  # purrdf wasm build + Node real-execution lane (P10, #846). The in-memory RDF/JS
+  # purrdf wasm build + Node real-execution lane (P10). The in-memory RDF/JS
   # engine MUST compile to wasm32-unknown-unknown (`make wasm` hard-fails if the
   # target is absent in CI), and the actual wasm is exercised through the public
   # RDF/JS surface in Node — including the RDF-1.2 wedge (directional literals +
@@ -618,12 +618,12 @@ jobs:
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   #
   # The classic-cross-check lane is DELIBERATELY outside CI — relocated to the
-  # standalone `validations/classic-cross-check/` suite (#1087), NOT in this
-  # aggregator's `needs:` (#666/#695, Principle 18): the Docker/Java oracle lane
+  # standalone `validations/classic-cross-check/` suite, NOT in this
+  # aggregator's `needs:` (Principle 18): the Docker/Java oracle lane
   # is a separately-observed, run-on-demand cross-check, never a requirement to
   # merge or to use the repo. The required gate stays Docker-free and Java-free.
   # Statements now run natively via the gmeow-rdf codec inside the `ontology`
-  # job's `check-generated` (#667) — there is no separate statements lane.
+  # job's `check-generated` — there is no separate statements lane.
   quality:
     needs: [native-build, lint, python, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()

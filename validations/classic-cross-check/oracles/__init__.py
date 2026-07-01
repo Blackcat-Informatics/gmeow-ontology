@@ -1,4 +1,4 @@
-"""Classic-cross-check oracle lanes (relocated out of the mainline, #1087).
+"""Classic-cross-check oracle lanes (relocated out of the mainline).
 
 Modules here call the foreign classical engines — ELK, HermiT, ROBOT, Apache
 Jena, and the upstream ``owlrl`` OWL 2 RL reasoner — to cross-check GMEOW's

@@ -10,7 +10,7 @@ agrees with — or strictly subsumes — what those black-box oracles decide.
 
 This is the **oracle** half of the correspondence-calculus doctrine
 (`docs/APPLIED_CATEGORY_THEORY/take1.md` §10.2): the native Rust engine
-(`gmeow_logic`, delivered under META-EPIC #1087, F1–F7) is the **authority**;
+(`gmeow_logic`) is the **authority**;
 the classical engines are **demoted to conformance oracles**, subsumed
 fragment-by-fragment and gated by the divergence ledger. The native side is
 proven inside the repo's Docker-free `make check` gate (native EL/DL reasoning,

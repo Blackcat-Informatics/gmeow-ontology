@@ -32,14 +32,14 @@ const GTS_SUBCOMMANDS: &[&str] = &[
     "gts_to_sqlite",
     "gts_to_duckdb",
 ];
-// engine_crosscheck.py is the sole remaining rdflib runtime keeper (the #906
+// engine_crosscheck.py is the sole remaining rdflib runtime keeper (the
 // rdflib query cross-check). rl_agreement.py + the rest of the classic oracle
-// lane were relocated out of src/ to validations/classic-cross-check/ (#1087).
+// lane were relocated out of src/ to validations/classic-cross-check/.
 const RDFLIB_KEEPERS: &[&str] = &["oracles/engine_crosscheck.py"];
 
 // The maint-* targets allowed to reach Docker/Java. The classic-cross-check
 // oracle lane (maint-classic-cross-check / maint-reasoning-cases /
-// maint-statements-docker-check) was relocated to validations/ (#1087) and is
+// maint-statements-docker-check) was relocated to validations/ and is
 // no longer a mainline target.
 const LANE_MAKE_TARGETS: &[&str] = &[
     "full-release",
@@ -399,7 +399,7 @@ fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<Pa
 fn check_lane_purity(root: &Path, report: &mut RepoStaticReport) {
     check_required_ci_jobs(root, report);
     // The classic-cross-check oracle workflow was retired: the lane moved to the
-    // standalone validations/classic-cross-check/ suite (#1087), so there is no
+    // standalone validations/classic-cross-check/ suite, so there is no
     // .github/workflows/classic-cross-check.yml to structurally police anymore.
     check_makefile_lane_purity(root, report);
 }

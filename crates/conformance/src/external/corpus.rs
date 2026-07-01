@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Per-corpus vendoring metadata + license audit (#753).
+//! Per-corpus vendoring metadata + license audit.
 //!
 //! Every vendored external corpus carries a `corpus.json` at
 //! `conformance/logic/cases/external/<corpus>/corpus.json` declaring its SPDX

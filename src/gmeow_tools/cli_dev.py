@@ -104,10 +104,10 @@ def _elapsed_ms(started: float) -> int:
 def _run_pipeline(jobs: int | None = None, check: bool = False) -> dict[str, Any]:
     """Run the Rust single-pass build executor and return its summary report.
 
-    Calls ``gmeow_native.pipeline.run_pipeline(root, jobs, check)`` — the #861
+    Calls ``gmeow_native.pipeline.run_pipeline(root, jobs, check)`` — the
     DAG executor that reads the dogfooded build graph (``slices/core/pipeline/``)
     and reproduces every committed artifact single-pass. This is THE build
-    authority since #861 P7 retired the Python generator orchestrator.
+    authority since P7 retired the Python generator orchestrator.
 
     Raises a clear ``typer.Exit`` if the native extension is not importable (the
     ``gmeow_native`` cdylib must be rebuilt with the pipeline submodule).
@@ -145,7 +145,7 @@ def _compile_statements_native() -> dict[str, str]:
 
 
 def _statement_compile_report() -> Any:
-    """Native statement compiler diagnostics folded into feedback (#935).
+    """Native statement compiler diagnostics folded into feedback.
 
     Python owns only the developer feedback surface here. The compiler itself is
     the Rust `stage-statements` implementation exposed through
@@ -170,7 +170,7 @@ def _statement_compile_report() -> Any:
 
 
 def _mapping_compile_report() -> Any:
-    """Native mapping compiler diagnostics folded into feedback (#934)."""
+    """Native mapping compiler diagnostics folded into feedback."""
     try:
         import gmeow_native.pipeline as _pipeline
     except ImportError as exc:
@@ -365,7 +365,7 @@ def regenerate(
     """Rebuild all checked-in generated artifacts from canonical sources.
 
     Runs the dogfooded build DAG (``slices/core/pipeline/``) single-pass through
-    the Rust ``gmeow-pipeline`` executor — THE build authority since #861 P7
+    the Rust ``gmeow-pipeline`` executor — THE build authority since P7
     retired the Python generator orchestrator. With ``--check`` it compares every
     produced artifact against the committed bytes and exits non-zero on drift.
     """
@@ -440,7 +440,7 @@ def release_bundle(
         help=("Repeatable evidence spec path:media_type:attestation_type:rep:label."),
     ),
 ) -> None:
-    """Fold check/conformance/SARIF/perf evidence into a SIGNED gmeow.gts (#673).
+    """Fold check/conformance/SARIF/perf evidence into a SIGNED gmeow.gts.
 
     Reads the committed unsigned snapshot and each evidence artifact (HARD-fails
     on any missing file), then calls the native Rust
@@ -509,7 +509,7 @@ def check_generated(
     """Drift-check every committed artifact against its canonical source.
 
     Runs the dogfooded build DAG in CHECK mode through the Rust ``gmeow-pipeline``
-    executor (the build authority since #861 P7) and exits non-zero if any
+    executor (the build authority since P7) and exits non-zero if any
     committed artifact has drifted from what the pipeline reproduces.
     """
     report = _run_pipeline(jobs=jobs, check=True)
@@ -579,7 +579,7 @@ def validate(
             "Run the native semantic pass after structural validation: reason over "
             "the bundle and fold the shared logic:ReasoningResult verdict "
             "(inconsistency, unsatisfiable classes, undecided constructs) into the "
-            "report. Runs the full reasoner, so it is opt-in (#768)."
+            "report. Runs the full reasoner, so it is opt-in."
         ),
     ),
 ) -> None:
@@ -588,7 +588,7 @@ def validate(
     In normal mode this checks the repository Turtle sources. When ``--gts`` is
     given, validate a folded GTS bundle directly instead. If any signature or
     trust flag is supplied with ``--gts``, a signature/trust verification
-    pre-gate runs before ontology validation (#646).
+    pre-gate runs before ontology validation.
 
     The pre-gate verifies embedded GTS signatures against the configured trust
     policy: ``--trust-policy`` loads a TOML file with trusted signer KIDs and
@@ -773,7 +773,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
 
     def _generated() -> DiagnosticsReport:
         # Drift surface for the build: run the Rust pipeline in CHECK mode (the
-        # build authority since #861 P7) and project its drift findings into the
+        # build authority since P7) and project its drift findings into the
         # canonical diagnostics report folded into the bundle.
         from gmeow_tools import diagnostics
 
@@ -817,7 +817,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
         return _mapping_compile_report()
 
     def _slice_ownership() -> DiagnosticsReport:
-        # The FULL native slice-ownership report (#809): ownership-defect errors
+        # The FULL native slice-ownership report: ownership-defect errors
         # PLUS the dependency-observation warnings that `make validate` keeps out
         # of its focused gate. Folding it here carries those previously-dropped
         # warnings, structured, into SARIF/JSON/HTML + gmeow.gts.
@@ -845,7 +845,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
 
 
 def _fold_surfaces(report: Any) -> None:
-    """Fold every migrated dev-gate surface's findings into ``report`` (#654).
+    """Fold every migrated dev-gate surface's findings into ``report``.
 
     Mutates ``report`` in place. Each surface thunk is guarded: a surface that
     fails to run leaves a visible ``feedback.<label>-skipped`` *warning* finding
@@ -914,11 +914,11 @@ def feedback(
     console (per ``--diagnostics-console``) and writes the selected
     ``<stem>.{json,sarif,html}`` artifacts (per ``--diagnostics-artifacts``) plus
     the self-describing ``<stem>.gts`` feedback bundle (the findings as queryable
-    RDF plus the SARIF and JSON projections as content-addressed blobs, #654). The
+    RDF plus the SARIF and JSON projections as content-addressed blobs). The
     canonical ``gmeow.gts`` is never touched.
 
     All five ``--diagnostics-*`` knobs mirror ``GMEOW_DIAGNOSTICS_*`` env vars
-    (flag > env > default) so Make and CI set policy once (#662). A
+    (flag > env > default) so Make and CI set policy once. A
     ``--diagnostics-category`` rides into the SARIF run as ``automationDetails.id``
     for per-category GitHub code-scanning grouping, and (off a TTY, with no
     explicit dir) lands artifacts under ``dist/diagnostics/<category>/``.
@@ -953,7 +953,7 @@ def feedback(
 
     # Fold the native (Java/Docker-free) reasoning + reasoned-graph verify lanes
     # into the same report so their findings ride the shared SARIF + self-attesting
-    # .gts feedback bundle (#695). The bundle then carries validation + reasoning +
+    # .gts feedback bundle. The bundle then carries validation + reasoning +
     # verify findings, all self-attested.
     try:
         from gmeow_tools import reason as reasoning
@@ -974,7 +974,7 @@ def feedback(
 
     # Fold every other migrated dev-gate surface (alignment, coverage,
     # acceptance, wikidata, constitution, box-roles, audit, generator drift) so
-    # the bundle is the complete picture of the gate, not just validation (#654).
+    # the bundle is the complete picture of the gate, not just validation.
     _fold_surfaces(report)
 
     # The stable category rides into the report metadata so the Rust SARIF
@@ -1038,7 +1038,7 @@ def external_tool_cmd(
     Wraps a tool GMEOW does not own (pre-commit, mypy, pytest, cargo, clippy,
     maturin) so its raw log rides the same diagnostics rail — projected to the
     console and written as the selected ``<stem>.{json,sarif,html}`` artifacts
-    under the resolved (optionally category-scoped) directory (#662). The five
+    under the resolved (optionally category-scoped) directory. The five
     ``--diagnostics-*`` knobs and ``GMEOW_DIAGNOSTICS_*`` env vars resolve exactly
     as for ``feedback``.
 
@@ -1087,7 +1087,7 @@ def external_tool_cmd(
 
 @app.command(name="constitution-check")
 def constitution_check() -> None:
-    """Verify every constitutional principle has live enforcement (#280)."""
+    """Verify every constitutional principle has live enforcement."""
     report = gmeow_validate.constitution_full_report(
         str(PROJECT_ROOT / "governance" / "constitution.ttl"),
         str(PROJECT_ROOT / "CONSTITUTION.md"),
@@ -1140,7 +1140,7 @@ def box_roles_audit(
 def audit(
     files: list[Path] = typer.Argument(  # noqa: B008
         ...,
-        help="Turtle data files to audit against the claim gates (#55).",
+        help="Turtle data files to audit against the claim gates.",
     ),
     json_out: bool = typer.Option(
         False, "--json", help="Emit the documented flat-JSON claim shape."
@@ -1199,7 +1199,7 @@ def crosscheck_queries() -> None:
     engine: each query under ``queries/`` is executed on the same merged graph
     under both engines and the answers compared by value. Any divergence fails.
     The agreement matrix is also written as JSON/SARIF/HTML via the diagnostics
-    rail (#667 — the surface no longer terminates at stdout only).
+    rail (the surface no longer terminates at stdout only).
     """
     from gmeow_tools.oracles.engine_crosscheck import run
 
@@ -1964,8 +1964,8 @@ def coverage(
 ) -> None:
     """Report how much of the vendored entity slice GMEOW covers.
 
-    With ``--min-class`` / ``--min-predicate`` the command becomes a HARD gate
-    (#579): a measured coverage fraction below either floor exits 1. The floors
+    With ``--min-class`` / ``--min-predicate`` the command becomes a HARD gate:
+    a measured coverage fraction below either floor exits 1. The floors
     are the project's vendored-entity coverage contract — the Makefile passes the
     current measured values so any regression below them fails the build.
     """
@@ -2065,7 +2065,7 @@ def build() -> None:
     The JSON-LD ``@context`` is no longer built here: it is emitted from the Rust
     ``PREFIX_REGISTRY`` authority by the ``mappings`` stage into
     ``generated/context.jsonld`` (and folded into ``gmeow.gts``), retiring the
-    orphaned Python ``jsonld_context`` builder (#1009 §2 / #933).
+    orphaned Python ``jsonld_context`` builder.
     """
     from gmeow_rdf.compat.rdflib import Graph
 
@@ -2182,7 +2182,7 @@ def transform(
     ),
     lang: str | None = _lang_option(),
 ) -> None:
-    """Transpile an A-Box to MAXIMAL(G) = G + E(G) + P(G) (#34).
+    """Transpile an A-Box to MAXIMAL(G) = G + E(G) + P(G).
 
     One fat multi-vocabulary file family: <stem>.gts (canonical, full RDF 1.2
     provenance audit trail), index.nq (RDF 1.2), index.ttl / index.jsonld
@@ -2246,7 +2246,7 @@ def up_project_cmd(
         None, "-o", "--out", help="Write the GMEOW lift here (default: stdout Turtle)."
     ),
 ) -> None:
-    """Lift a consumer-vocabulary RDF file UP into pure GMEOW (#451).
+    """Lift a consumer-vocabulary RDF file UP into pure GMEOW.
 
     Rewrites each term with a mechanically-invertible alignment rule to its GMEOW
     counterpart as a fact; a ``skos:closeMatch`` term is lifted as a provenance-
@@ -2303,7 +2303,7 @@ def acceptance(
         "enforced. Pass 0 to measure without a floor.",
     ),
 ) -> None:
-    """Score the full transpile against real data — the honest scoreboard (#450).
+    """Score the full transpile against real data — the honest scoreboard.
 
     Runs every acceptance gate over each source: pure-GMEOW intermediate (hard),
     round-trip ⊇ source per vocabulary (scoreboard, red until done), size
@@ -2313,7 +2313,7 @@ def acceptance(
     moved by writing fixtures.
 
     The per-file round-trip gate stays a scoreboard (red until done). The HARD
-    enforcement is the SEPARATE *aggregate* floor (GAP 3, #1145): the pooled
+    enforcement is the SEPARATE *aggregate* floor: the pooled
     Σ recovered / Σ addressable recall across the whole corpus must clear the
     native ``ACCEPTANCE_MIN_RECALL_PCT`` floor, or the command hard-fails — making
     the transpile gate block without demanding 100%% per-file recall
@@ -2508,7 +2508,7 @@ def compile_gts(
             "run 'gmeow regenerate' first (a statement-less dist would drop "
             "confidence/standpoint/provenance)."
         )
-    # The Rust pipeline (the build authority since #861 P7) folds the snapshot
+    # The Rust pipeline (the build authority since P7) folds the snapshot
     # at its single gts_sink; running it reproduces generated/dist/gmeow.gts.
     _regenerate_native()
     target = out or config.GTS_SNAPSHOT_FILE
@@ -2555,7 +2555,7 @@ def import_foundation(
         None, "--nq", help="Optional .nq form for reconciliation."
     ),
 ) -> None:
-    """Import the foundation corpus (#364).
+    """Import the foundation corpus.
 
     Emits the graph, the budget report, and the six lossy projections
     (+ optional .nq reconciliation). Corpus-derived artifacts are external
@@ -2581,7 +2581,7 @@ def describe(
     ),
     lang: str | None = _lang_option(),
 ) -> None:
-    """Describe a GMEOW term as useful prose (#325).
+    """Describe a GMEOW term as useful prose.
 
     Composes definition, stereotype, slice + tier, alignments, scope notes,
     examples, and the flat-first/reify-on-demand pairing. Works offline
@@ -2629,7 +2629,7 @@ def extract_docs(
     ),
     lang: str | None = _lang_option(),
 ) -> None:
-    """Extract the browsable docs tree from a GTS snapshot (#439).
+    """Extract the browsable docs tree from a GTS snapshot.
 
     The tree is the full ontology-docs site (per-term reference pages, slice
     guides, alignment + linkage indexes), unpacked verbatim from the
@@ -2712,7 +2712,7 @@ def logic_query(
         help="Emit the raw {bindings, status} JSON instead of a table.",
     ),
 ) -> None:
-    """Resolve a backward goal (`.logic`) over a materialized world (issue #504, v4).
+    """Resolve a backward goal (`.logic`) over a materialized world (v4).
 
     Loads the N-Quads EDB, parses the `.logic` program, enforces the cut/profile
     gate, and routes the goal through the dispatcher — the oxigraph SPARQL fast
@@ -2815,7 +2815,7 @@ def logic_compile(
         raise _fail(f"✗ unknown --mode {mode!r} (valid: {', '.join(_LOGIC_MODES)})")
 
     # --check with no --mode: drift-gate via the Rust pipeline (the build
-    # authority since #861 P7). The pipeline reproduces every committed
+    # authority since P7). The pipeline reproduces every committed
     # artifact, the logic ones included, and reports any drift.
     if check and mode is None:
         report = _run_pipeline(check=True)
@@ -2849,7 +2849,7 @@ def logic_compile(
 
     # --mode only (no --check or with --check): compile (in Rust) and emit /
     # inspect one back-end.  The whole frontend → IR → projections + report
-    # pipeline runs in ``gmeow_logic.compile_logic`` (#664/#727); this command
+    # pipeline runs in ``gmeow_logic.compile_logic``; this command
     # selects one artifact from its result dict.
     if mode is not None:
         _mode_to_file = {
@@ -2891,7 +2891,7 @@ def logic_compile(
             raise _fail(f"✗ logic: compile failed: {exc}") from exc
 
         # Parse diagnostics now arrive as a native ``gmeow_diagnostics`` Report
-        # (#856); each finding dict carries the canonical ``logic-compile.<code>``.
+        # Each finding dict carries the canonical ``logic-compile.<code>``.
         for diag in compiled["diagnostics_report"].findings:
             err_console.print(
                 f"[yellow]{diag['severity']}[/yellow] "
@@ -2962,9 +2962,8 @@ def certify(
 
     This is the standalone build-error surface for the logic-profile / decidability
     certifier — the analogue of ``reasoning_lint`` for the IR.  It parses the
-    program, runs the native ``gmeow_logic.certify`` certifier (Rust-authoritative
-    since #497/#651), prints
-    every self-documenting violation string to stderr, and exits non-zero when
+    program, runs the native ``gmeow_logic.certify`` certifier (Rust-authoritative),
+    prints every self-documenting violation string to stderr, and exits non-zero when
     any violation is found (zero when certified clean).  Mirror of how
     ``reasoning_lint`` fails the build under ``make check``.
 
@@ -3003,10 +3002,10 @@ def certify(
             except (OSError, json.JSONDecodeError) as exc:
                 raise _fail(f"✗ certify: cannot read {sibling}: {exc}") from exc
             if isinstance(sibling_data, dict) and "reasoning_contract" in sibling_data:
-                # #767: the contract preset lives under reasoning_contract.preset
+                # The contract preset lives under reasoning_contract.preset
                 # (the retired top-level semantic_profile key is gone).
                 #
-                # Mirror the Rust authority's hard-fail (#767, Gap 5): a PRESENT
+                # Mirror the Rust authority's hard-fail (Gap 5): a PRESENT
                 # reasoning_contract that is not an object with a string `preset` is
                 # malformed and must hard-fail, never silently fall through to the
                 # default preset.  Absence stays the PositiveHornProfile fallback.
@@ -3028,15 +3027,15 @@ def certify(
             f"{sorted(_valid_profiles)}"
         )
 
-    # Rust-authoritative certification (#497/#664): the whole compile pipeline and
+    # Rust-authoritative certification: the whole compile pipeline and
     # the certifier run in Rust.  ``compile_logic`` returns the ``nemo_rules`` rule
-    # text the certifier consumes (the Python compiler was deleted in #727).
+    # text the certifier consumes (the Python compiler was deleted).
     try:
         import gmeow_logic
     except ImportError as exc:
         raise _fail(
             "✗ certify: gmeow_logic native extension is not installed "
-            "(certification is Rust-authoritative since #497) — run 'make native-py'."
+            "(certification is Rust-authoritative) — run 'make native-py'."
         ) from exc
     try:
         source_ttl = input_path.read_text(encoding="utf-8")

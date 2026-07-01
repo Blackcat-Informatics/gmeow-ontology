@@ -93,7 +93,7 @@ const OWL_HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
 // path cannot handle, the HermiT conformance gate will catch the regression.
 const OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
 
-/// The #697 construct families this module *inventories* in the committed
+/// The construct families this module *inventories* in the committed
 /// bundle (the `(iri, qname, suffix)` triples scanned by [`scan_coverage`]).
 ///
 /// IMPORTANT — presence in this table is **inventory, not a coverage claim.**
@@ -206,7 +206,7 @@ pub struct InconsistencyWitness {
 
 /// Native DL construct-coverage inventory for one reasoning run.
 ///
-/// `present` is the set of issue-#697 construct families whose IRI appears in
+/// `present` is the set of construct families whose IRI appears in
 /// the input bundle. `decided` is the subset the native Docker-free reasoner
 /// can **genuinely** decide the consistency consequences of — i.e. every
 /// present instance either produced its defined consequence or is provably
@@ -653,7 +653,7 @@ fn has_fact(
 /// The witness identity is a *deterministic, content-addressed* function of the
 /// scope `(world, property, filler_class, ordinal)` — deliberately **not** the
 /// parent individual. This is the **termination guarantee** (restricted-chase
-/// blocking by class-set, the canonical approach in #697): an obligation
+/// blocking by class-set, the canonical approach): an obligation
 /// `≥n p.D` in `world` always discharges to the *same* `n` witnesses
 /// `w₀…wₙ₋₁` regardless of which individual raised it, so a cyclic axiom like
 /// `D ⊑ ∃p.D` reuses the witness it already invented (`p(w_D, w_D')` where
@@ -845,7 +845,7 @@ pub(crate) fn augment_inferred_with_dl(
                     // `owl:Nothing` — an inconsistency. This is the closure half of
                     // `oneOf` (the member→type direction above is the easy half); it
                     // terminates because the enumeration is finite and no witnesses
-                    // are invented. (Issue #697 Gap G: the frozen HermiT gold caught
+                    // are invented. (Gap G: the frozen HermiT gold caught
                     // this clash; native must too — native ⊇ oracle.)
                     //
                     // Distinctness here is the **explicit** stance only (asserted
@@ -964,7 +964,7 @@ pub(crate) fn augment_inferred_with_dl(
 
     loop {
         let before = facts.len();
-        // perf: index rebuilt each fixpoint iter; incremental update tracked under #630
+        // perf: index rebuilt each fixpoint iter; incremental update tracked separately
         let index = build_index(&facts);
         let predicate_index = build_predicate_index(&facts);
         let mut subjects_by_world: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -2090,7 +2090,7 @@ pub(crate) fn verdict_from_inferred(
         }
     }
     // The unsatisfiable (empty, unpopulated) classes are a separate scan, shared
-    // with the typed-result fold (#768) via [`unsatisfiable_from_inferred`].
+    // with the typed-result fold via [`unsatisfiable_from_inferred`].
     let unsatisfiable_classes = unsatisfiable_from_inferred(inferred);
 
     // Only a populated clash (an individual in owl:Nothing) makes the ontology
@@ -2114,7 +2114,7 @@ pub(crate) fn verdict_from_inferred(
 /// itself. An unsatisfiable class does **not** by itself make the ontology
 /// inconsistent (the module distinction).
 ///
-/// Factored out so the typed `logic:ReasoningResult` fold (#768) can recover the
+/// Factored out so the typed `logic:ReasoningResult` fold can recover the
 /// same DL diagnostic from the shared closure payload without re-running the
 /// chase, byte-identically with [`verdict_from_inferred`].
 pub fn unsatisfiable_from_inferred(inferred: &[InferredAxiom]) -> Vec<UnsatClass> {
@@ -2142,7 +2142,7 @@ pub fn unsatisfiable_from_inferred(inferred: &[InferredAxiom]) -> Vec<UnsatClass
 /// all share, so the gap `code` (`reason.dl-gap.{name}`) and `message` stay
 /// byte-identical whether a consumer reads `DlVerdict::gaps` directly or
 /// reconstructs them from a typed result's
-/// `preservation.unsupported_constructs` (#768).
+/// `preservation.unsupported_constructs`.
 pub fn gaps_from_unsupported<I, S>(unsupported: I) -> Vec<RdfLoss>
 where
     I: IntoIterator<Item = S>,
@@ -2162,7 +2162,7 @@ where
         .collect()
 }
 
-/// Scan the input `edb` for the #697 construct families and report **honest**
+/// Scan the input `edb` for the construct families and report **honest**
 /// native coverage.
 ///
 /// `present` lists the families whose IRI appears in the bundle (as a predicate
@@ -2663,7 +2663,7 @@ mod tests {
         // Colour = oneOf (red green); x : Colour but x differentFrom both red and
         // green ⇒ x can be no member ⇒ x : owl:Nothing ⇒ INCONSISTENT. This is the
         // CLOSURE half of oneOf (the member→type direction is the easy half), the
-        // beyond-EL nominal reasoning the #697 frozen HermiT gold demands native
+        // beyond-EL nominal reasoning the frozen HermiT gold demands native
         // catch (native ⊇ oracle).
         const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
         const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";

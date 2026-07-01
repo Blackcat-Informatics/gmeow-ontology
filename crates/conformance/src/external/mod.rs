@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! External-corpus ingestion adapter (#753, X1 keystone of epic #752).
+//! External-corpus ingestion adapter (X1 keystone of the epic).
 //!
 //! Lowers third-party standard correctness suites — TPTP SZS problems and W3C
 //! `manifest.ttl` entailment tests — into the runner's verdict schema and per-case
