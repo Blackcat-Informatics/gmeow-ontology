@@ -56,6 +56,80 @@ impl SupersetReport {
     }
 }
 
+/// Every committed `generated/` path the shipped bundle carries, mapped to its
+/// reconstructed bytes — the pure projection of `gmeow.gts` back onto the flat
+/// consumer tree (PIPELINE_SPINE §6). No disk read, no comparison: this is the
+/// single reconstruction authority. The superset gate ([`check_superset`]) compares
+/// it against the committed tree; the fanout phase ([`crate::fanout`]) writes it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BundleProjection {
+    /// Committed repo-relative path -> reconstructed bytes.
+    pub files: BTreeMap<String, Vec<u8>>,
+}
+
+/// Reconstruct every committed `generated/` file the bundle carries, keyed by its
+/// committed repo-relative path (PIPELINE_SPINE §5/§6). Drives off the *bundle's*
+/// representatives, never the on-disk tree, so it reconstructs from `gmeow.gts`
+/// alone — the property the fanout phase depends on. Two rep classes:
+///
+/// * **named-graph folds** — each EDOAL projection graph (`…/graph/projections/…`)
+///   and RDF-fanout graph (`…/graph/fanout/…`) folds to its committed RDF bytes via
+///   [`reconstruct_graph`]; and
+/// * **inline blob members** — every archive member resolved to its committed
+///   `generated/` path by [`read_blob_members`].
+///
+/// The two rep classes are disjoint by construction (RDF travels as a named graph,
+/// opaque/byte-decorated output as a blob member), so no path is produced twice.
+pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, PipelineError> {
+    let dataset = read_dataset(gts_bytes)?;
+    let dataset = dataset.as_ref();
+    let blob_members = read_blob_members(gts_bytes)?;
+
+    let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+
+    // Named-graph reps: fold each reconstruction graph to its committed RDF bytes.
+    for iri in reconstruction_graph_iris(dataset) {
+        let Some(path) =
+            edoal_path_for_graph_iri(&iri).or_else(|| rdf_fanout_path_for_graph_iri(&iri))
+        else {
+            continue;
+        };
+        let rep = graph_rep_for_path(&path).ok_or_else(|| {
+            // A reconstruction graph IRI whose committed path resolves no graph rep is
+            // a wiring contradiction (the IRI came from the rep's own inverse map).
+            stage_err(&format!(
+                "reconstruction graph {iri} maps to {path} but no graph representative"
+            ))
+        })?;
+        let folded = reconstruct_graph(dataset, &rep).ok_or_else(|| {
+            stage_err(&format!(
+                "reconstruction graph {iri} is present but folds to no bytes"
+            ))
+        })?;
+        if files.insert(path.clone(), folded).is_some() {
+            return Err(stage_err(&format!(
+                "{path} is carried by two representatives (named graph {iri} collides)"
+            )));
+        }
+    }
+
+    // Inline blob members: the opaque + byte-decorated committed files under
+    // `generated/`. Source archive members (`shapes/`, `slices/`, `dsl/`) are carried
+    // for self-sufficiency but are not `generated/` targets — skip them.
+    for (path, bytes) in blob_members {
+        if !path.starts_with("generated/") {
+            continue;
+        }
+        if files.insert(path.clone(), bytes).is_some() {
+            return Err(stage_err(&format!(
+                "{path} is carried by two representatives (blob member collides with a named graph)"
+            )));
+        }
+    }
+
+    Ok(BundleProjection { files })
+}
+
 /// The serialization whose output equals one named graph's committed bytes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum GraphForm {
@@ -209,78 +283,54 @@ fn reconstruction_graph_iris(dataset: &RdfDataset) -> BTreeSet<String> {
 /// Run the superset gate over `gts_bytes` (the emitted `gmeow.gts`) against every
 /// committed file under `<root>/generated/`.
 pub fn check_superset(root: &Path, gts_bytes: &[u8]) -> Result<SupersetReport, PipelineError> {
-    let dataset = read_dataset(gts_bytes)?;
-    let dataset = dataset.as_ref();
-    let blob_members = read_blob_members(gts_bytes)?;
+    // The single reconstruction authority: every committed path the bundle carries,
+    // reconstructed from the shipped bytes alone. The gate compares it to disk; the
+    // fanout phase writes it. One code path, no second reconstruction.
+    let projection = project_bundle(gts_bytes)?;
+    sweep_against_committed(&projection, root)
+}
+
+/// Sweep a reconstructed [`BundleProjection`] against the committed `generated/` tree
+/// under `root`: forward (missing / mismatch) and reverse (orphan). A pure function of
+/// the projection and the on-disk tree — no bundle parsing — so the sweep verdicts are
+/// unit-testable with an injected projection.
+fn sweep_against_committed(
+    projection: &BundleProjection,
+    root: &Path,
+) -> Result<SupersetReport, PipelineError> {
     let committed = committed_generated_paths(root)?;
+    let committed_set: BTreeSet<&str> = committed.iter().map(String::as_str).collect();
 
     let mut missing = Vec::new();
     let mut mismatch = Vec::new();
-
-    // Track which blob members a committed path consumed, for the reverse sweep.
-    let mut used_blob_members: BTreeSet<String> = BTreeSet::new();
 
     // ── Forward sweep: every committed path must reconstruct from the bundle. ──
     for path in &committed {
         if EXCLUDED.contains(&path.as_str()) {
             continue;
         }
-        let committed_bytes = std::fs::read(root.join(path))
-            .map_err(|e| stage_err(&format!("read committed {path}: {e}")))?;
-
-        if let Some(rep) = graph_rep_for_path(path) {
-            match reconstruct_graph(dataset, &rep) {
-                Some(folded) => {
-                    if folded == committed_bytes {
-                        continue;
-                    }
+        match projection.files.get(path) {
+            None => missing.push(path.clone()),
+            Some(reconstructed) => {
+                let committed_bytes = std::fs::read(root.join(path))
+                    .map_err(|e| stage_err(&format!("read committed {path}: {e}")))?;
+                if *reconstructed != committed_bytes {
                     mismatch.push(path.clone());
                 }
-                None => missing.push(path.clone()),
             }
-            continue;
         }
-
-        // Opaque: the path is an archive-blob member, keyed by repo-relative path
-        // or by bare basename (the existing reps use one of the two).
-        if let Some(key) = match_blob_member(path, &blob_members) {
-            used_blob_members.insert(key.clone());
-            if blob_members[&key] == committed_bytes {
-                continue;
-            }
-            mismatch.push(path.clone());
-            continue;
-        }
-
-        missing.push(path.clone());
     }
 
-    // ── Reverse sweep: every `generated/`-TARGETING representative must map to a
-    // committed `generated/` path. The bundle is a *superset* of `generated/`
-    // (§5): it also carries source archives (`dsl/`, `slices/` shapes/cells/tests)
-    // and the rendered docs site for self-sufficiency — those are legitimate extra
-    // payload, NOT orphans. An orphan is a STALE `generated/` reconstruction rep: a
-    // carried member whose key denotes a `generated/` path with no committed file. ──
-    let committed_set: BTreeSet<&str> = committed.iter().map(String::as_str).collect();
+    // ── Reverse sweep: every reconstructed `generated/` path must back a committed
+    // file. The bundle is a *superset* of `generated/` (§5): it also carries source
+    // archives (`dsl/`, `slices/` shapes/cells/tests) and the rendered docs site for
+    // self-sufficiency — but `project_bundle` already filtered those out (it emits
+    // only `generated/`-targeting reps). An orphan is thus a STALE reconstruction rep:
+    // a carried `generated/` path with no committed file. ──
     let mut orphan = Vec::new();
-    for member in blob_members.keys() {
-        if member.starts_with("generated/")
-            && !used_blob_members.contains(member)
-            && !committed_set.contains(member.as_str())
-        {
-            orphan.push(format!("blob-member:{member}"));
-        }
-    }
-    // Named-graph orphans: every RDF-reconstruction graph in the bundle (an EDOAL
-    // projection graph or an `…/graph/fanout/…` RDF-fanout graph) must back a
-    // committed file. Other carrier graphs (statements, imports, reasoning, …) are
-    // not `generated/`-reconstruction reps and are out of scope.
-    for iri in reconstruction_graph_iris(dataset) {
-        let path = edoal_path_for_graph_iri(&iri).or_else(|| rdf_fanout_path_for_graph_iri(&iri));
-        if let Some(path) = path {
-            if !committed_set.contains(path.as_str()) {
-                orphan.push(format!("named-graph:{iri}"));
-            }
+    for path in projection.files.keys() {
+        if !committed_set.contains(path.as_str()) {
+            orphan.push(path.clone());
         }
     }
 
@@ -340,21 +390,6 @@ pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> Result<Vec<u8>, String
         .map_err(|e| format!("RDFC-1.0 canonicalize: {e}"))
 }
 
-/// Match a committed path against the unpacked archive-blob member keys: first by
-/// repo-relative path (the preferred, collision-free key), then by bare basename
-/// (the legacy reps key SSSOM / queries / schemas by basename, unique within their
-/// directory). Returns the matched member key.
-fn match_blob_member(path: &str, members: &BTreeMap<String, Vec<u8>>) -> Option<String> {
-    if members.contains_key(path) {
-        return Some(path.to_string());
-    }
-    let base = path.rsplit('/').next().unwrap_or(path);
-    if members.contains_key(base) {
-        return Some(base.to_string());
-    }
-    None
-}
-
 /// Parse the emitted bundle back into a native dataset (closes serialize -> parse).
 fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
     let bundle = gmeow_rdf::import_gts_events(gts_bytes)
@@ -362,10 +397,14 @@ fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, Pipeline
     Ok(bundle.dataset)
 }
 
-/// Unpack every inline archive blob into a single `member-key -> bytes` map. The
+/// Unpack every inline archive blob into a single `committed-path -> bytes` map. The
 /// blob payloads are read from the GTS fold (digest -> bytes) joined with the
 /// blob lookaside (digest -> representation); each archive is a deterministic
-/// USTAR whose members are the committed files.
+/// USTAR whose members are the committed files. Each member is keyed by its full
+/// committed repo-relative path via
+/// [`crate::stages::carrier::committed_path_for_archive_member`] (the inverse of the
+/// rep's member-naming convention), so the caller resolves a member to its
+/// `generated/` path with no basename guessing.
 fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let graph = gmeow_rdf::gts::read_graph(gts_bytes, true)
         .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
@@ -396,7 +435,16 @@ fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, Pipe
         for (name, member_bytes) in gmeow_rdf::ustar::read_archive(&bytes)
             .map_err(|e| stage_err(&format!("unpack archive {}: {e}", record.digest)))?
         {
-            out.insert(name, member_bytes);
+            let Some(committed) =
+                crate::stages::carrier::committed_path_for_archive_member(rep, &name)
+            else {
+                // A rep that passed `archive_rep_carries_generated` but resolves no
+                // committed path is a wiring contradiction — fail closed, never drop.
+                return Err(stage_err(&format!(
+                    "archive rep {rep} carries member {name} with no committed-path mapping"
+                )));
+            };
+            out.insert(committed, member_bytes);
         }
     }
     Ok(out)
@@ -498,19 +546,37 @@ mod tests {
     }
 
     #[test]
-    fn match_blob_member_prefers_repo_relative_then_basename() {
-        let mut members = BTreeMap::new();
-        members.insert("generated/mappings/foaf.sssom.tsv".to_string(), vec![1u8]);
-        members.insert("bare.rq".to_string(), vec![2u8]);
+    fn archive_member_committed_path_restores_directory_for_basename_reps() {
+        use crate::stages::carrier::committed_path_for_archive_member;
+        // Basename-keyed reps get their directory prefix restored.
         assert_eq!(
-            match_blob_member("generated/mappings/foaf.sssom.tsv", &members).as_deref(),
+            committed_path_for_archive_member("mappings-archive", "foaf.sssom.tsv").as_deref(),
             Some("generated/mappings/foaf.sssom.tsv")
         );
         assert_eq!(
-            match_blob_member("generated/queries/bare.rq", &members).as_deref(),
-            Some("bare.rq")
+            committed_path_for_archive_member("queries-archive", "bare.rq").as_deref(),
+            Some("generated/queries/bare.rq")
         );
-        assert_eq!(match_blob_member("generated/x/none.txt", &members), None);
+        assert_eq!(
+            committed_path_for_archive_member("schemas-archive", "gmeow.schema.json").as_deref(),
+            Some("generated/schemas/gmeow.schema.json")
+        );
+        // Repo-relative reps pass through unchanged.
+        assert_eq!(
+            committed_path_for_archive_member("generated-opaque-archive", "generated/n3/gmeow.n3")
+                .as_deref(),
+            Some("generated/n3/gmeow.n3")
+        );
+        assert_eq!(
+            committed_path_for_archive_member("axioms-archive", "generated/owl/gmeow-dl.ttl")
+                .as_deref(),
+            Some("generated/owl/gmeow-dl.ttl")
+        );
+        // A non-generated rep resolves nothing.
+        assert_eq!(
+            committed_path_for_archive_member("cells-archive", "dsl/mappings/x.ttl"),
+            None
+        );
     }
 
     #[test]
@@ -585,6 +651,89 @@ mod tests {
         assert!(edoal_projection_graph_iri("generated/projections/core-prefixes.ttl").is_none());
         assert!(edoal_projection_graph_iri("generated/projections/functions.fno.ttl").is_none());
         assert!(edoal_projection_graph_iri("generated/mappings/foaf.sssom.tsv").is_none());
+    }
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap()
+    }
+
+    #[test]
+    fn project_bundle_reconstructs_the_committed_tree_and_gate_is_clean() {
+        // Single-authority proof: project_bundle reconstructs every committed
+        // generated/ file from the shipped gmeow.gts alone, and the refactored
+        // forward+reverse sweep is clean against the committed tree.
+        let root = repo_root();
+        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
+        let proj = project_bundle(&gts).unwrap();
+        assert!(
+            proj.files.len() > 50,
+            "projection unexpectedly small ({}); reconstruction likely dropped reps",
+            proj.files.len()
+        );
+        // A byte-decorated RDF file rides a blob member; a plain RDF file a named-graph
+        // fold — both must be present in the one projection.
+        assert!(
+            proj.files
+                .contains_key("generated/logic/inferred-closure.rdf12.ttl"),
+            "byte-decorated closure must reconstruct from a blob member"
+        );
+        assert!(
+            proj.files
+                .keys()
+                .any(|p| p.starts_with("generated/profiles/")),
+            "a profiles/*.ttl named-graph fold must reconstruct"
+        );
+        // Every reconstructed path is under generated/ (source archives filtered out).
+        for path in proj.files.keys() {
+            assert!(
+                path.starts_with("generated/"),
+                "projection leaked a non-generated path: {path}"
+            );
+        }
+        let report = check_superset(&root, &gts).unwrap();
+        assert!(
+            report.is_clean(),
+            "superset gate not clean after the seam refactor: {report:?}"
+        );
+    }
+
+    #[test]
+    fn sweep_detects_missing_mismatch_and_orphan() {
+        use std::io::Write;
+        // A temp committed tree: two files under generated/.
+        let dir = std::env::temp_dir().join(format!("gmeow-superset-sweep-{}", std::process::id()));
+        let gen = dir.join("generated/x");
+        std::fs::create_dir_all(&gen).unwrap();
+        let write = |name: &str, bytes: &[u8]| {
+            let mut f = std::fs::File::create(gen.join(name)).unwrap();
+            f.write_all(bytes).unwrap();
+        };
+        write("kept.ttl", b"KEEP");
+        write("drift.ttl", b"DISK-BYTES");
+        write("absent.ttl", b"NO-REP");
+
+        // A projection that: matches kept, drifts on drift, has NO rep for absent
+        // (missing), and carries a stale extra path (orphan).
+        let mut files = BTreeMap::new();
+        files.insert("generated/x/kept.ttl".to_string(), b"KEEP".to_vec());
+        files.insert(
+            "generated/x/drift.ttl".to_string(),
+            b"BUNDLE-BYTES".to_vec(),
+        );
+        files.insert("generated/x/stale.ttl".to_string(), b"ORPHAN".to_vec());
+        let projection = BundleProjection { files };
+
+        let report = sweep_against_committed(&projection, &dir).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert_eq!(report.missing, vec!["generated/x/absent.ttl".to_string()]);
+        assert_eq!(report.mismatch, vec!["generated/x/drift.ttl".to_string()]);
+        assert_eq!(report.orphan, vec!["generated/x/stale.ttl".to_string()]);
+        assert!(!report.is_clean());
     }
 
     #[test]
