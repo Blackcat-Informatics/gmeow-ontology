@@ -111,7 +111,11 @@ pub(crate) fn serialize_carrier_snapshot(
         .artifacts();
     let mut blobs = build_archive_blobs(root, &schema_json, &openapi_json, &compile_artifacts)?;
     blobs.extend(build_guide_blobs(root)?);
-    blobs.push(build_docs_archive(root)?);
+    // The rendered docs site embeds the per-term reasoning badge, so it carries the
+    // SAME native-reasoner verdict the docs-graph stage projects — derived once from
+    // stage-reason's closure (hard-fails if absent, never a silent default).
+    let reasoning_verdict = crate::stages::docs_render::reasoning_verdict_from_reason(upstream)?;
+    blobs.push(build_docs_archive(root, &reasoning_verdict)?);
     blobs.push(build_reasoning_blob(upstream)?);
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
     // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
@@ -1009,9 +1013,15 @@ fn build_okf_blob_from_dataset(carrier: &gmeow_rdf::RdfDataset) -> Result<BlobRo
 /// on (`resolve_doc_language` returns these internal tags). The prefix comes from
 /// `Translations::internal_tag`, never the carrier key or a hardcoded string, so a
 /// new `.po` catalog is picked up with the correct tag automatically.
-fn build_docs_archive(root: &Path) -> Result<BlobRow, PipelineError> {
-    let model = gmeow_docs::model::DocsModel::discover(root)
+fn build_docs_archive(
+    root: &Path,
+    verdict: &gmeow_docs::model::ReasoningVerdict,
+) -> Result<BlobRow, PipelineError> {
+    let mut model = gmeow_docs::model::DocsModel::discover(root)
         .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
+    // Attach the native-reasoner verdict so every rendered term page carries its
+    // reasoning badge (the production render path never renders one without it).
+    model.attach_reasoning(verdict.clone());
     let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
         .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
@@ -2443,7 +2453,11 @@ mod ustar_tests {
 
     #[test]
     fn build_docs_archive_packs_the_rendered_site() {
-        let blob = build_docs_archive(&repo_root()).expect("docs archive");
+        let blob = build_docs_archive(
+            &repo_root(),
+            &gmeow_docs::model::ReasoningVerdict::default(),
+        )
+        .expect("docs archive");
         assert_eq!(blob.rep, REP_ONTOLOGY_DOCS);
         assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
 
