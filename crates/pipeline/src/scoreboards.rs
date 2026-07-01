@@ -17,7 +17,6 @@ use std::time::Instant;
 use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
-use crate::up_projection;
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_rdf::{
     flat_dataset_from_quads, parse_dataset, serialize_dataset, DatasetView, GraphMatch, RdfDataset,
@@ -484,42 +483,35 @@ pub fn claim_audit_diagnostics(report: &ClaimAuditReport) -> Report {
     out
 }
 
-/// A report-only gate comparing the heuristic draft to the lawful executor draft:
-/// how many facts/claims each lifted and how many output triples each produced. It
-/// never fails (scoreboard-only) — its purpose is to surface the parity numbers that
-/// authorize the cutover, and to make a near-zero executor lift (a population/orientation
-/// wiring bug) loudly visible rather than silently accepted as a floor drop.
-fn parity_gate(
-    heuristic: &up_projection::UpProjectionReport,
-    executor: &put_executor::LiftedReport,
-    heuristic_output: usize,
-    executor_output: usize,
-) -> GateResult {
+/// A report-only gate disclosing the lawful executor's lift counts and the heuristic
+/// categories it drops. It never fails (scoreboard-only) — its purpose is to keep the
+/// lawful-vs-heuristic coverage delta visible as honest loss-ledger residue rather than
+/// silently fabricating the dropped coverage.
+fn residue_gate(executor: &put_executor::LiftedReport) -> GateResult {
     let mut gate = GateResult::new(
-        "executor:parity",
+        "loss-ledger-residue",
         true,
         false,
         format!(
-            "executor lifted {} facts + {} claims (output {} triples) vs heuristic {} lifted (output {} triples)",
-            executor.lifted, executor.claimed, executor_output, heuristic.lifted, heuristic_output
+            "{} facts + {} claims lifted lawfully; {} heuristic residue {} dropped (honest, not fabricated)",
+            executor.lifted,
+            executor.claimed,
+            executor.residue.len(),
+            if executor.residue.len() == 1 {
+                "category"
+            } else {
+                "categories"
+            }
         ),
     );
     gate.metrics
-        .insert("heuristic_lifted".to_owned(), heuristic.lifted as f64);
+        .insert("lifted".to_owned(), executor.lifted as f64);
     gate.metrics
-        .insert("executor_lifted".to_owned(), executor.lifted as f64);
+        .insert("claimed".to_owned(), executor.claimed as f64);
     gate.metrics
-        .insert("executor_claimed".to_owned(), executor.claimed as f64);
-    gate.metrics
-        .insert("heuristic_output".to_owned(), heuristic_output as f64);
-    gate.metrics
-        .insert("executor_output".to_owned(), executor_output as f64);
-    gate.metrics.insert(
-        "executor_gap_terms".to_owned(),
-        executor.gap_terms.len() as f64,
-    );
+        .insert("gap_terms".to_owned(), executor.gap_terms.len() as f64);
     gate.detail
-        .push("Loss-ledger residue (dropped heuristic categories):".to_owned());
+        .push("Dropped heuristic categories (loss-ledger residue):".to_owned());
     gate.detail
         .extend(executor.residue.iter().map(|r| format!("- {r}")));
     gate
@@ -572,15 +564,14 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
     let sssom_texts = sssom_texts(root)?;
     let projection_ttls = projection_ttls(root)?;
 
-    // Authoritative draft: the heuristic up-projection engine (retired in a later step).
-    let lift = up_projection::up_project_nt(
-        &source_nt,
-        &sssom_texts,
-        &projection_ttls,
-        &ontology_nt,
-        descend,
-    )?;
-    if lift.graph_nt.trim().is_empty() {
+    // The lawful native put-leg executor is the sole draft source. The retired
+    // heuristic engine had a `descend` context-resolution mode; the lawful put leg has
+    // no such mode — context-descent is dropped heuristic residue — so the flag is
+    // inert here and retained only for CLI signature stability.
+    let _ = descend;
+    let executor =
+        put_executor::execute_put_legs(&source_nt, &sssom_texts, &projection_ttls, &ontology_nt)?;
+    if executor.graph_nt.trim().is_empty() {
         return Err(format!(
             "transpile: nothing lifted to GMEOW from {} — empty draft",
             source
@@ -595,47 +586,14 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
         &ontology_nt,
         &tag_map,
         &inverse_tag_map,
-        &lift.graph_nt,
-        lift.lifted,
-        lift.gap_terms.len(),
+        &executor.graph_nt,
+        executor.lifted,
+        executor.gap_terms.len(),
     )?;
-
-    // Report-only parity arm: the lawful native put-leg executor. Runs the identical
-    // gate chain so its hard-gate verdicts and recall are directly comparable to the
-    // heuristic, but every executor gate is scoreboard-only (hard = false) so it never
-    // changes the authoritative pass/fail while the heuristic is still the live path.
-    // The parity numbers this surfaces are the empirical measurement that authorizes
-    // the cutover (equivalence-before-deletion).
-    let executor =
-        put_executor::execute_put_legs(&source_nt, &sssom_texts, &projection_ttls, &ontology_nt)?;
-    let exec_output_triples = if executor.graph_nt.trim().is_empty() {
-        0
-    } else {
-        let (exec_gates, exec_output) = draft_gates(
-            root,
-            &source_store,
-            &ontology_nt,
-            &tag_map,
-            &inverse_tag_map,
-            &executor.graph_nt,
-            executor.lifted,
-            executor.gap_terms.len(),
-        )?;
-        for g in exec_gates {
-            gates.push(GateResult {
-                name: format!("executor:{}", g.name),
-                hard: false,
-                ..g
-            });
-        }
-        exec_output
-    };
-    gates.push(parity_gate(
-        &lift,
-        &executor,
-        output_triples,
-        exec_output_triples,
-    ));
+    // Honest loss-ledger disclosure: the heuristic categories the lawful put leg drops
+    // (context-descent, reverse-minting, value-transforms, ambiguous multi-candidate
+    // targets) are recorded as residue, never fabricated into coverage.
+    gates.push(residue_gate(&executor));
 
     Ok(FileAcceptance {
         source: source
