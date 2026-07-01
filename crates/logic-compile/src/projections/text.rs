@@ -153,7 +153,7 @@ pub fn project_datalog(program: &LogicProgram) -> ProjectionResult {
         complexity: cx.to_owned(),
         lossy_drops: drops.into_iter().map(str::to_owned).collect(),
         actual_drops: {
-            let mut d = contract_drop_notes(program, "Datalog");
+            let mut d = contract_drop_notes(program, "Datalog", &|_| false);
             d.extend(aggregation_drop_notes(program, "Datalog"));
             d
         },
@@ -282,7 +282,7 @@ pub fn project_n3(program: &LogicProgram) -> ProjectionResult {
         complexity: cx.to_owned(),
         lossy_drops: drops.into_iter().map(str::to_owned).collect(),
         actual_drops: {
-            let mut d = contract_drop_notes(program, "N3");
+            let mut d = contract_drop_notes(program, "N3", &|_| false);
             d.extend(aggregation_drop_notes(program, "N3"));
             d
         },
@@ -464,7 +464,7 @@ pub fn project_nemo(program: &LogicProgram) -> Result<ProjectionResult, String> 
     // formula as flagged residue and make the preservation program-dependent: Exact iff the
     // program carries no formulas, else SoundUnder — so the overclaim gate stays honest
     // instead of a static Exact silently omitting the formula layer.
-    let mut actual_drops = formula_residue_notes(program, "Nemo");
+    let mut actual_drops = formula_residue_notes(program, "Nemo", &|_| false);
     actual_drops.extend(aggregation_drop_notes(program, "Nemo"));
     let preservation = if actual_drops.is_empty() {
         kind

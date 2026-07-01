@@ -15,6 +15,28 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection datalog drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection datalog drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection datalog drops: actual: reasoning contract (an anonymous faceted contract) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)",
       "tool": "logic-compile",
       "locations": [
@@ -114,6 +136,28 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -599,6 +643,39 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -620,7 +697,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -642,7 +785,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -664,7 +873,51 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -697,7 +950,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -719,7 +1038,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -741,7 +1126,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -763,7 +1214,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -785,7 +1302,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -807,6 +1390,61 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -818,7 +1456,51 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -851,6 +1533,61 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -862,7 +1599,40 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -1852,6 +2622,39 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -1863,7 +2666,40 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2270,6 +3106,28 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection n3 drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection n3 drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection n3 drops: actual: reasoning contract (an anonymous faceted contract) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)",
       "tool": "logic-compile",
       "locations": [
@@ -2369,6 +3227,28 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection nemo drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection nemo drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -2854,6 +3734,39 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2875,7 +3788,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2897,7 +3876,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2919,7 +3964,51 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2952,7 +4041,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2974,7 +4129,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2996,7 +4217,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -3018,7 +4305,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -3040,7 +4393,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -3062,6 +4481,61 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -3073,7 +4547,51 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -3106,6 +4624,61 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -3117,7 +4690,40 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4107,6 +5713,39 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -4118,7 +5757,40 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4437,6 +6109,28 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -4922,6 +6616,39 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4943,7 +6670,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateCategory on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4965,7 +6758,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateContract on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4987,7 +6846,51 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateExtractionProvenance on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5020,7 +6923,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateFormalizes on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5042,7 +7011,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateLifecycle on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5064,7 +7099,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateNegativeCase on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5086,7 +7187,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidatePositiveCase on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5108,7 +7275,73 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateProjectionBehavior on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5130,6 +7363,61 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateScope on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -5141,7 +7429,51 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSemanticRisk on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5174,6 +7506,61 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceField on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -5185,7 +7572,40 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:candidateSourceHash on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6175,6 +8595,39 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -6186,7 +8639,40 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -6934,6 +9420,391 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from the logic:Endurant skos:definition, which contrasts logic:Perdurant, which has temporal parts (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/logic/Endurant> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqEndurantPerdurantClashRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqEndurantPerdurantDisjointHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateScope> \"logic:Endurant owl:disjointWith logic:Perdurant — the continuant/occurrent divide at the top of the foundation\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:38eeca57276fd0bd982db498a305d97aa9a19f4549a1b9f5e292136a6cf282ab\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryNecessaryCondition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"read from gmeow:Entity's gmeow:howToUse annotation, which enumerates the four sortals (Agent, InformationObject, PhysicalObject, SocialObject); the covering is realized in the OWL projection (owl:unionOf), is non-monotone, and is disclosed in the loss ledger — NOT natively enforced (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqEntitySortalCoveringGapRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqEntitySortalCoveringHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateScope> \"covering: every gmeow:Entity is one of {Agent, InformationObject, PhysicalObject, SocialObject}\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskProjectionOnly> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:349511ccdf3a10b7ce908e62ee66b4102b0469b4b54b191148d817380a8b96ae\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEntitySortalCovering> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"doc-section/foundation harvest over the occurrent structure (design/LOGIC-FOUNDATION.md, the occurrent section), NOT a single annotation-field harvest — the Event/Situation contrast is spread across the occurrent design prose; anchored to logic:Event's skos:definition for drift detection\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqEventSituationClashRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqEventSituationDisjointHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateScope> \"logic:Event owl:disjointWith logic:Situation — the occurrence/configuration distinction within the occurrent branch\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:b9c5746f9d224a4dad32653671549671d5daec63b28758a89151e13fbff3a479\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
@@ -7077,6 +9948,127 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryNecessaryCondition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"anchored to logic:Object's skos:definition; completes the individuation-kind pairwise disjointness (logic:candidateFunctionalComplexKindDisjoint) into a partition, realized in the OWL projection (owl:unionOf), non-monotone, disclosed in the loss ledger — NOT natively enforced (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqObjectIndividuationCoveringGapRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqObjectIndividuationCoveringHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateScope> \"covering: every logic:Object is one of {Collection, Quantity, FunctionalComplex}\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskProjectionOnly> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:38a90c195ba1d756389d6ba561031830dbcfdfb0b56297023db5bf719bd2f7d2\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
@@ -7210,6 +10202,292 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryDeliberateOverlap> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from the gmeow:SocialObject skos:definition, which states no disjointness with InformationObject is asserted so that socially-sustained narratives may carry information content without identity clash (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/gmeow/SocialObject> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqSocialInformationOverlapDisjointRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqSocialInformationOverlapHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateScope> \"the deliberately-preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap: an explicit, reviewed non-assertion of disjointness\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskAdvisory> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:d1c66e293aa207e3e28455c2ebeb59705c8656ee088e85cd5b7d858eb09f1b36\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from the gmeow:PhysicalObject gmeow:avoidWhen annotation, which states the three other sortals are disjoint with PhysicalObject by design (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/gmeow/PhysicalObject> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqTopSortalDisjointClashRejected> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqTopSortalDisjointHolds> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateScope> \"pairwise owl:disjointWith among the four top sortals gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject and gmeow:SocialObject, except the preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:82ff1dac761cc77e2acb02a0a81e079ba64bebc2337f4e190489a9c074b1af35\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateTopSortalDisjoint> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -8387,6 +11665,28 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/wfResolveThenBuild> <https://blackcatinformatics.ca/logic/rightOperand> <https://blackcatinformatics.ca/logic/wfConstructModel> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
