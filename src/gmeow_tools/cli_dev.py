@@ -2361,8 +2361,7 @@ def up_project_cmd(
     floor when the type adds no signal. Reads from stdin and writes Turtle to
     stdout, so ``cat src | gmeow up-project - | gmeow transform -`` streams.
     """
-    from gmeow_tools.up_projection import up_project
-    from gmeow_tools.up_projection_descend import up_project_descend
+    from gmeow_tools.up_projection import up_project, up_project_descend
 
     src, _stem = _read_turtle(source)
     try:
@@ -2392,15 +2391,12 @@ def up_project_cmd(
             if result.tag_resolved
             else ""
         )
-        + f"[yellow]gap[/yellow] {len(result.gap_terms)} terms · "
-        f"[yellow]ambiguous[/yellow] {len(result.ambiguous_terms)} terms",
+        + f"[yellow]gap[/yellow] {len(result.gap_terms)} terms",
     )
-    for term, n in sorted(result.claim_terms.items()):
-        err_console.print(f"[cyan]claimed[/cyan] {term} (x{n})")
     for term, n in sorted(result.gap_terms.items()):
         err_console.print(f"[yellow]gap[/yellow] {term} (x{n})")
-    for term, n in sorted(result.ambiguous_terms.items()):
-        err_console.print(f"[yellow]ambiguous[/yellow] {term} (x{n})")
+    for note in result.residue:
+        err_console.print(f"[dim]residue[/dim] {note}")
 
 
 @app.command()

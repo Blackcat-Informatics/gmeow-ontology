@@ -20,9 +20,7 @@ pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#ty
 pub(crate) const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 pub(crate) const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 pub(crate) const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
-pub(crate) const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 pub(crate) const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
-pub(crate) const RDFS_SUB_CLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 pub(crate) const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 pub(crate) const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 
@@ -31,7 +29,6 @@ pub(crate) const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#e
 pub(crate) const SKOS_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
 pub(crate) const SKOS_PREF_LABEL: &str = "http://www.w3.org/2004/02/skos/core#prefLabel";
 pub(crate) const SKOS_ALT_LABEL: &str = "http://www.w3.org/2004/02/skos/core#altLabel";
-pub(crate) const WD: &str = "http://www.wikidata.org/entity/";
 
 pub(crate) const GM_PROJECTION_MAPPING: &str =
     "https://blackcatinformatics.ca/gmeow/ProjectionMapping";
@@ -54,7 +51,6 @@ pub(crate) const GM_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/pred
 pub(crate) const GM_SUBJECT_VAR: &str = "https://blackcatinformatics.ca/gmeow/subjectVar";
 pub(crate) const GM_OBJECT_VAR: &str = "https://blackcatinformatics.ca/gmeow/objectVar";
 pub(crate) const GM_OBJECT_VALUE: &str = "https://blackcatinformatics.ca/gmeow/objectValue";
-pub(crate) const GM_OPTIONAL_GROUP: &str = "https://blackcatinformatics.ca/gmeow/optionalGroup";
 pub(crate) const GM_BIND_VAR: &str = "https://blackcatinformatics.ca/gmeow/bindVar";
 pub(crate) const GM_BIND_EXPR: &str = "https://blackcatinformatics.ca/gmeow/bindExpr";
 pub(crate) const GM_T_PRED: &str = "https://blackcatinformatics.ca/gmeow/tPred";
@@ -71,9 +67,6 @@ pub(crate) const GM_ANNOTATION: &str = "https://blackcatinformatics.ca/gmeow/ann
 pub(crate) const GM_ANN_PROPERTY: &str = "https://blackcatinformatics.ca/gmeow/annProperty";
 pub(crate) const GM_ANN_VALUE: &str = "https://blackcatinformatics.ca/gmeow/annValue";
 pub(crate) const GM_MAPPED_FROM: &str = "https://blackcatinformatics.ca/gmeow/mappedFrom";
-pub(crate) const GM_AUTHORITY_LINK: &str = "https://blackcatinformatics.ca/gmeow/authorityLink";
-pub(crate) const GM_TAG: &str = "https://blackcatinformatics.ca/gmeow/Tag";
-pub(crate) const GM_HAS_TAG: &str = "https://blackcatinformatics.ca/gmeow/hasTag";
 
 pub(crate) const ADOPTED_PREDICATES: &[&str] = &[SKOS_EXACT_MATCH, SKOS_CLOSE_MATCH];
 pub(crate) const STATEMENT_METADATA_TERMS: &[&str] = &[
@@ -549,52 +542,6 @@ pub(crate) fn edoalpath_pairs(
     Ok((direct, inverse))
 }
 
-pub(crate) fn multiatom_pairs(
-    projection_ttls: &[String],
-) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
-    let mut pairs: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for ttl in projection_ttls {
-        let graph = Graph::parse(ttl.as_bytes(), "text/turtle")?;
-        let q = &graph.quads;
-        for cell in subjects(q, RDF_TYPE, GM_PROJECTION_MAPPING) {
-            let Some(pattern) = value(q, &cell, GM_HAS_MAPPING_PATTERN) else {
-                continue;
-            };
-            let mut obj_source = BTreeMap::new();
-            for atom in pattern_atoms(q, value(q, &pattern, GM_ATOM).as_ref(), &mut HashSet::new())
-            {
-                let objvar = value(q, &atom, GM_OBJECT_VAR);
-                let pred = value_named(q, &atom, GM_PREDICATE);
-                if let (Some(objvar), Some(pred)) = (objvar, pred) {
-                    if pred.starts_with(GM) {
-                        obj_source.insert(term_key(&objvar), pred);
-                    }
-                }
-            }
-            for binding in objects(q, &cell, GM_HAS_BINDING) {
-                for tmpl in objects(q, &binding, GM_TEMPLATE_ATOMS) {
-                    for tatom in rdf_list(q, Some(&tmpl)) {
-                        let tpred = value_named(q, &tatom, GM_T_PRED);
-                        let tobj = value(q, &tatom, GM_T_OBJ);
-                        let Some(tpred) = tpred else {
-                            continue;
-                        };
-                        if !in_projection_ns(&tpred) {
-                            continue;
-                        }
-                        if let Some(source) =
-                            tobj.as_ref().and_then(|t| obj_source.get(&term_key(t)))
-                        {
-                            pairs.entry(tpred).or_default().insert(source.clone());
-                        }
-                    }
-                }
-            }
-        }
-    }
-    Ok(pairs)
-}
-
 fn structural_best_classes(projection_ttls: &[String]) -> Result<BTreeMap<String, String>, String> {
     let mut best: BTreeMap<String, String> = BTreeMap::new();
     for ttl in projection_ttls {
@@ -659,54 +606,6 @@ fn emitted_targets(quads: &[RdfQuad], binding: &RdfTerm) -> BTreeSet<String> {
         }
     }
     targets
-}
-
-pub(crate) fn ancestor_closure(quads: &[RdfQuad]) -> BTreeMap<String, BTreeSet<String>> {
-    let mut direct: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for q in quads.iter().filter(|q| q.predicate == RDFS_SUB_CLASS_OF) {
-        if let (RdfTerm::Iri(sub), RdfTerm::Iri(obj)) = (&q.subject, &q.object) {
-            direct.entry(sub.clone()).or_default().insert(obj.clone());
-        }
-    }
-    let classes: BTreeSet<String> = direct
-        .keys()
-        .cloned()
-        .chain(direct.values().flat_map(|v| v.iter().cloned()))
-        .collect();
-    let mut closure = BTreeMap::new();
-    for cls in classes {
-        let mut seen = BTreeSet::new();
-        walk_ancestors(&cls, &direct, &mut seen);
-        closure.insert(cls, seen);
-    }
-    closure
-}
-
-fn walk_ancestors(
-    cls: &str,
-    direct: &BTreeMap<String, BTreeSet<String>>,
-    seen: &mut BTreeSet<String>,
-) {
-    if !seen.insert(cls.to_owned()) {
-        return;
-    }
-    if let Some(parents) = direct.get(cls) {
-        for parent in parents {
-            walk_ancestors(parent, direct, seen);
-        }
-    }
-}
-
-pub(crate) fn domain(quads: &[RdfQuad], iri: &str) -> Option<String> {
-    let s = RdfTerm::iri(iri);
-    let domains = objects(quads, &s, RDFS_DOMAIN)
-        .into_iter()
-        .filter_map(|term| match term {
-            RdfTerm::Iri(node) => Some(node),
-            _ => None,
-        })
-        .collect::<BTreeSet<_>>();
-    (domains.len() == 1).then(|| domains.into_iter().next().expect("one domain"))
 }
 
 pub(crate) fn object_properties(ontology_nt: &str) -> Result<BTreeSet<String>, String> {
@@ -822,26 +721,6 @@ pub(crate) fn template_atoms(quads: &[RdfQuad], binding: &RdfTerm) -> Vec<RdfTer
     out
 }
 
-pub(crate) fn pattern_atoms(
-    quads: &[RdfQuad],
-    node: Option<&RdfTerm>,
-    seen: &mut HashSet<String>,
-) -> Vec<RdfTerm> {
-    let mut out = Vec::new();
-    for atom in rdf_list(quads, node) {
-        let key = term_key(&atom);
-        if !seen.insert(key) {
-            continue;
-        }
-        if let Some(group) = value(quads, &atom, GM_OPTIONAL_GROUP) {
-            out.extend(pattern_atoms(quads, Some(&group), seen));
-        } else {
-            out.push(atom);
-        }
-    }
-    out
-}
-
 pub(crate) fn rdf_list(quads: &[RdfQuad], node: Option<&RdfTerm>) -> Vec<RdfTerm> {
     let mut out = Vec::new();
     let mut seen = HashSet::new();
@@ -867,10 +746,6 @@ pub(crate) fn rdf_list(quads: &[RdfQuad], node: Option<&RdfTerm>) -> Vec<RdfTerm
 /// `true` iff `term` can stand as a subject (an IRI or blank node).
 pub(crate) fn subject_addressable(term: &RdfTerm) -> bool {
     matches!(term, RdfTerm::Iri(_) | RdfTerm::BlankNode(_))
-}
-
-pub(crate) fn is_gmeow_ns(iri: &str) -> bool {
-    iri.starts_with(GM)
 }
 
 pub(crate) fn in_projection_ns(iri: &str) -> bool {
@@ -1008,15 +883,6 @@ impl PrefixMap {
         self.prefixes
             .get(pfx)
             .map_or_else(|| curie.to_owned(), |ns| format!("{ns}{local}"))
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct TermKey(String);
-
-impl TermKey {
-    pub(crate) fn from_subject(subject: &RdfTerm) -> Self {
-        Self(term_key(subject))
     }
 }
 
