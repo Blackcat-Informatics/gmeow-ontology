@@ -1076,8 +1076,7 @@ fn build_executable_docs_data(
     }
     let mut examples: Vec<ExampleAbox> = Vec::new();
     for ex in &model.examples {
-        let ds = parse_dataset(ex.text.as_bytes(), "text/turtle", None)
-            .map_err(|e| stage_err(&format!("example parse {}: {e}", ex.logical_path)))?;
+        let ds = parse_example(&ex.logical_path, &ex.text)?;
         let mut subjects = BTreeSet::new();
         let mut asserted = Vec::new();
         for q in ds.owned_quads() {
@@ -1171,80 +1170,65 @@ fn build_executable_docs_data(
         }
     }
 
-    // The playground asset: documentation graph ∪ the reasoned ontology (EDB asserted
-    // ∪ base closure), serialized to TriG (named graphs preserved).
-    let playground_trig = build_playground_trig(carrier, edb.as_ref(), &base_closure)?;
-
-    // Per-slice multi-format export: the slice's Symmetric-CBD (its owned terms + the
-    // slice itself) serialized to every RDF format. Language-independent, so computed
-    // ONCE here (not per-language). One Describer amortizes the adjacency index.
-    let slice_export = build_slice_export(edb.as_ref(), model)?;
+    // The playground asset: documentation graph ∪ the reasoned ontology closure,
+    // serialized to TriG. This is the "documentation + reasoned ontology" surface the
+    // playground queries AND the substrate term/slice `DESCRIBE` export reads — the
+    // closure carries the told-and-inferred ontology. The raw multi-graph EDB (with
+    // external imports and alignments) is deliberately EXCLUDED to keep the bundled
+    // asset bounded.
+    let playground_trig = build_playground_trig(carrier, &base_closure)?;
 
     Ok(gmeow_docs::ExecutableDocsData {
         example_inferences,
         cross_example,
         playground_trig,
-        slice_export,
     })
 }
 
-/// Serialize each slice's Symmetric-CBD to every RDF format, keyed by slice IRI.
-fn build_slice_export(
-    edb: &gmeow_rdf::RdfDataset,
-    model: &gmeow_docs::model::DocsModel,
-) -> Result<std::collections::BTreeMap<String, Vec<gmeow_docs::ExportFormat>>, PipelineError> {
-    // (short extension, media type) for the five `NativeRdfFormat`s; JSON-LD rides the
-    // separate native_codecs path below.
-    const FORMATS: &[(&str, &str)] = &[
-        ("ttl", "text/turtle"),
-        ("nt", "application/n-triples"),
-        ("nq", "application/n-quads"),
-        ("trig", "application/trig"),
-        ("rdf", "application/rdf+xml"),
-    ];
-    let describer = gmeow_rdf::describe::Describer::new(edb);
-    let mut out: std::collections::BTreeMap<String, Vec<gmeow_docs::ExportFormat>> =
-        std::collections::BTreeMap::new();
-    for slice in &model.slices {
-        // The slice's subjects: every term it owns, plus the slice IRI itself.
-        let mut subjects: Vec<&str> = model
-            .terms
-            .iter()
-            .filter(|t| t.owner_slice == slice.iri)
-            .map(|t| t.iri.as_str())
-            .collect();
-        subjects.push(slice.iri.as_str());
-        let scbd = describer
-            .describe_iris(subjects)
-            .map_err(|e| stage_err(&format!("describe slice {}: {e}", slice.iri)))?;
-        if scbd.quad_count() == 0 {
-            continue;
+/// Parse one worked example into a dataset, dispatching on its file extension —
+/// examples are authored in Turtle, but also JSON-LD-star and YAML-LD-star.
+fn parse_example(
+    logical_path: &str,
+    text: &str,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    let ext = logical_path
+        .rsplit('.')
+        .next()
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let media = match ext.as_str() {
+        "ttl" | "turtle" => "text/turtle",
+        "nt" | "ntriples" => "application/n-triples",
+        "nq" | "nquads" => "application/n-quads",
+        "trig" => "application/trig",
+        "rdf" | "xml" => "application/rdf+xml",
+        "jsonld" => {
+            return gmeow_rdf::native_codecs::jsonld::parse_jsonld(text.as_bytes())
+                .map_err(|e| stage_err(&format!("example jsonld parse {logical_path}: {e}")));
         }
-        let mut forms: Vec<gmeow_docs::ExportFormat> = Vec::new();
-        for (ext, media) in FORMATS {
-            let bytes = serialize_dataset(&scbd, media, SerializeGraph::Dataset).map_err(|e| {
-                stage_err(&format!("serialize slice {} as {media}: {e}", slice.iri))
-            })?;
-            forms.push(((*ext).to_string(), bytes));
+        "yamlld" | "yaml" | "yml" => {
+            let json = gmeow_rdf::native_codecs::jsonld::yamlld_to_jsonld(text.as_bytes())
+                .map_err(|e| stage_err(&format!("example yamlld convert {logical_path}: {e}")))?;
+            return gmeow_rdf::native_codecs::jsonld::parse_jsonld(json.as_bytes())
+                .map_err(|e| stage_err(&format!("example yamlld parse {logical_path}: {e}")));
         }
-        let jsonld = gmeow_rdf::native_codecs::jsonld::serialize_dataset_to_jsonld(&scbd)
-            .map_err(|e| stage_err(&format!("serialize slice {} as jsonld: {e}", slice.iri)))?;
-        forms.push(("jsonld".to_string(), jsonld.into_bytes()));
-        out.insert(slice.iri.clone(), forms);
-    }
-    Ok(out)
+        other => {
+            return Err(stage_err(&format!(
+                "example {logical_path}: unsupported format .{other}"
+            )))
+        }
+    };
+    parse_dataset(text.as_bytes(), media, None)
+        .map_err(|e| stage_err(&format!("example parse {logical_path}: {e}")))
 }
 
-/// Serialize `documentation graph ∪ ontology (EDB) ∪ reasoned closure` to TriG — the
-/// self-contained asset the offline SPARQL playground queries.
+/// Serialize `documentation graph ∪ reasoned closure` to TriG — the self-contained
+/// asset the offline SPARQL playground queries and the export `DESCRIBE` reads.
 fn build_playground_trig(
     carrier: &gmeow_rdf::RdfDataset,
-    edb: &gmeow_rdf::RdfDataset,
     base_closure: &gmeow_rdf::RdfDataset,
 ) -> Result<Vec<u8>, PipelineError> {
     let mut pg = RdfDatasetBuilder::new();
-    // The ontology axioms in their own graphs (blanks scoped apart).
-    pg.push_dataset(edb);
     // The documentation graph, routed back into its named graph.
     let docs_graph = carrier.project_named_graph(GRAPH_DOCUMENTATION);
     let docs_iri = RdfTerm::Iri(GRAPH_DOCUMENTATION.to_owned());

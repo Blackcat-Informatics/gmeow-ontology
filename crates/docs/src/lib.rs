@@ -34,7 +34,7 @@ pub mod svg;
 #[cfg(feature = "python")]
 pub mod py;
 
-pub use exec::{example_key, ExecutableDocsData, ExportFormat, InferenceDiff};
+pub use exec::{example_key, ExecutableDocsData, InferenceDiff};
 pub use i18n::{available_languages, ui_string, Translations, UiCatalog};
 pub use lint::lint;
 pub use llms::{GMEOW_SUMMARY, LLMS_NOTE_CAP};

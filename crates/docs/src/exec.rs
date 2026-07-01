@@ -14,10 +14,6 @@
 
 use std::collections::BTreeMap;
 
-/// One serialized form of a subgraph export: `(short extension, bytes)`, e.g.
-/// `("ttl", <turtle bytes>)`. The docs export surface links these directly.
-pub type ExportFormat = (String, Vec<u8>);
-
 /// The asserted-vs-inferred view of one worked example, computed at build time by
 /// running the native reasoner over `(ontology TBox ∪ example ABoxes)` and slicing the
 /// closure by the example's own subjects.
@@ -50,31 +46,17 @@ pub struct ExecutableDocsData {
     pub cross_example: Vec<String>,
     /// The RDF asset the offline SPARQL playground queries: the documentation graph
     /// plus the reasoned ontology closure, serialized to TriG. Empty ⇒ no playground.
+    /// Term/slice export both flow through the playground's `DESCRIBE` (client-side,
+    /// all RDF formats via purrdf), so this asset is the single export substrate too.
     pub playground_trig: Vec<u8>,
-    /// Per-slice multi-format export, keyed by slice IRI: the slice's Symmetric-CBD
-    /// serialized to each RDF format. Precomputed once (language-independent) by the
-    /// pipeline. Empty ⇒ no export surface. (Per-term export flows through the
-    /// playground's `DESCRIBE`, so it needs no static data here.)
-    pub slice_export: BTreeMap<String, Vec<ExportFormat>>,
 }
 
 impl ExecutableDocsData {
-    /// Whether the offline SPARQL playground can be rendered (its asset is present).
+    /// Whether the offline SPARQL playground (and thus the export surface) can be
+    /// rendered — i.e. the pipeline supplied the bundled query asset.
     #[must_use]
     pub fn has_playground(&self) -> bool {
         !self.playground_trig.is_empty()
-    }
-
-    /// Whether the per-slice export surface can be rendered.
-    #[must_use]
-    pub fn has_export(&self) -> bool {
-        !self.slice_export.is_empty()
-    }
-
-    /// The precomputed export formats for one slice IRI, if any.
-    #[must_use]
-    pub fn export_for(&self, slice_iri: &str) -> Option<&[ExportFormat]> {
-        self.slice_export.get(slice_iri).map(Vec::as_slice)
     }
 
     /// The inference diff for one example, if any was computed.

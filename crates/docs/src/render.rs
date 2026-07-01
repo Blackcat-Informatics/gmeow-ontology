@@ -63,6 +63,20 @@ const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
 /// playground is present.
 const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 
+/// The vendored purrdf wasm engine (the offline SPARQL runtime), emitted under
+/// `assets/purrdf/` when the playground is present. Pinned build inputs — see
+/// `crates/docs/assets/purrdf/PROVENANCE.md`.
+const PURRDF_ASSETS: &[(&str, &[u8])] = &[
+    (
+        "gmeow_rdf_wasm.js",
+        include_bytes!("../assets/purrdf/gmeow_rdf_wasm.js"),
+    ),
+    (
+        "gmeow_rdf_wasm_bg.wasm",
+        include_bytes!("../assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
+    ),
+];
+
 // ── Pages ──────────────────────────────────────────────────────────────────
 
 /// A single logical page in the site. Each page renders to both a `.md` and a
@@ -271,13 +285,23 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
 /// Render the full static-site tree for a target language, **with** the build-time
 /// executable-docs data.
 ///
-/// This is the render the pipeline uses: `exec` carries the reasoned "try it" diffs,
-/// the offline SPARQL playground asset, and the reasoned ontology handle used for
-/// per-term/-slice multi-format export. The executable surfaces are rendered **only
-/// when the corresponding `exec` field is present** — an [`ExecutableDocsData::default`]
-/// (the model-only render used by unit tests / the PyO3 preview) produces the complete
-/// base site without them. See [`render_site_lang`] for the model-only convenience.
+/// This is the render the pipeline uses: `exec` carries the reasoned "try it" diffs
+/// and the offline SPARQL playground asset (which also backs term/slice export via
+/// `DESCRIBE`). The executable surfaces are rendered **only when `exec` supplies data
+/// AND only in the English carrier tree** (their RDF/JS/wasm are language-independent,
+/// so duplicating them per locale would bloat the bundle) — an
+/// [`ExecutableDocsData::default`] (the model-only render used by unit tests / the
+/// PyO3 preview) produces the complete base site without them. See [`render_site_lang`]
+/// for the model-only convenience.
 pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDocsData) -> Site {
+    // The executable surfaces (playground, export links, wasm engine, query asset) are
+    // language-INDEPENDENT: their RDF/JS/wasm are identical across locales. Emitting
+    // them in every translated tree would triple the bundled asset. They therefore
+    // live ONLY in the English carrier tree; a non-English render behaves exactly like
+    // a model-only render (byte-identical base site).
+    let empty = ExecutableDocsData::default();
+    let exec: &ExecutableDocsData = if lang == ENGLISH { exec } else { &empty };
+
     // Build a localized copy of the model so the existing renderers (which read
     // label / definition / title directly) emit translated content with English
     // fallback. The English carrier needs no rewrite.
@@ -303,16 +327,20 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
 
-    // The offline SPARQL playground's bundled RDF asset (documentation graph + the
-    // reasoned ontology closure, TriG) + its page + the controller module. Emitted
-    // under language-neutral paths — the RDF/JS are language-independent — only when
-    // the pipeline supplied the asset (empty for a model-only render).
+    // The offline SPARQL playground: its bundled RDF asset (documentation graph + the
+    // reasoned ontology closure, TriG), the vendored purrdf wasm engine, the controller
+    // module, and the page itself. All language-independent, emitted only in the
+    // English tree (see the gate above). Term/slice export runs through this same
+    // engine + asset via `DESCRIBE`, so no static export files are needed.
     if exec.has_playground() {
         files.insert(
             PLAYGROUND_TRIG_PATH.to_string(),
             exec.playground_trig.clone(),
         );
         files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
+        for (name, bytes) in PURRDF_ASSETS {
+            files.insert(format!("assets/purrdf/{name}"), bytes.to_vec());
+        }
         let page = Page::SparqlPlayground;
         files.insert(
             page.md_path(),
@@ -322,18 +350,6 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
             page.html_path(),
             to_html_lang_exec(model, &page, lang, exec).into_bytes(),
         );
-    }
-
-    // Per-slice multi-format export files (language-neutral RDF), linked from each
-    // slice page's Export section. Emitted only when the pipeline precomputed them.
-    for (slice_iri, forms) in &exec.slice_export {
-        let Some(slice) = model.slices.iter().find(|s| &s.iri == slice_iri) else {
-            continue;
-        };
-        let slug = slice_slug(slice);
-        for (ext, bytes) in forms {
-            files.insert(format!("export/slices/{slug}.{ext}"), bytes.clone());
-        }
     }
 
     // Deterministic SVG diagrams (pure functions of the model).
@@ -542,18 +558,9 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
 
 // ── Executable-docs surfaces (rendered only when `exec` supplies data) ─────────
 
-/// Human labels for each export extension, in the display order shown on the page.
-const EXPORT_FORMAT_LABELS: &[(&str, &str)] = &[
-    ("ttl", "Turtle"),
-    ("nt", "N-Triples"),
-    ("nq", "N-Quads"),
-    ("trig", "TriG"),
-    ("rdf", "RDF/XML"),
-    ("jsonld", "JSON-LD"),
-];
-
-/// Append the per-slice export links and the reasoner "try it" inference blocks to a
-/// slice page's Markdown. No-op when `exec` carries no data for this slice.
+/// Append the per-slice export affordance (a `DESCRIBE` in the playground) and the
+/// reasoner "try it" inference blocks to a slice page's Markdown. No-op when `exec`
+/// carries no data.
 fn append_slice_executable_sections(
     out: &mut String,
     model: &DocsModel,
@@ -565,24 +572,20 @@ fn append_slice_executable_sections(
     };
     let root = root_href(&Page::Slice(slug.to_string()).dir());
 
-    // Export: direct download links to the pre-serialized per-format files.
-    if let Some(forms) = exec.export_for(&slice.iri) {
+    // Export: query this slice's vocabulary in the offline playground and copy the
+    // result in any RDF format (client-side, no static per-format files).
+    if exec.has_playground() {
         heading(out, 2, "Export");
+        let query = format!("DESCRIBE <{}>", slice.iri);
+        let encoded = url_query_encode(&query);
         line(
             out,
-            "Download this slice's vocabulary as RDF — its owned terms plus the slice \
-             resource, as a Symmetric Concise Bounded Description:",
+            &format!(
+                "[Explore this slice in the SPARQL playground]({root}sparql/index.html?q={encoded}) \
+                 — query its vocabulary offline and copy the result as Turtle / N-Triples / \
+                 N-Quads / TriG / RDF-XML / JSON-LD."
+            ),
         );
-        let links: Vec<String> = forms
-            .iter()
-            .filter_map(|(ext, _)| {
-                EXPORT_FORMAT_LABELS
-                    .iter()
-                    .find(|(e, _)| e == ext)
-                    .map(|(_, label)| format!("[{label}]({root}export/slices/{slug}.{ext})"))
-            })
-            .collect();
-        line(out, &links.join(" · "));
     }
 
     // Try it: the reasoner's inferences over each worked example.
@@ -3958,14 +3961,6 @@ mod tests {
             terms_referenced: vec!["gmeow:Foo".to_string()],
         });
 
-        let mut slice_export = std::collections::BTreeMap::new();
-        slice_export.insert(
-            slice_iri.clone(),
-            vec![
-                ("ttl".to_string(), b"<x> <y> <z> .\n".to_vec()),
-                ("jsonld".to_string(), b"{}\n".to_vec()),
-            ],
-        );
         let mut example_inferences = std::collections::BTreeMap::new();
         example_inferences.insert(
             crate::exec::example_key(&slice_iri, "examples/demo.ttl"),
@@ -3978,14 +3973,18 @@ mod tests {
             example_inferences,
             cross_example: vec!["ex:shared gmeow:derived ex:x".to_string()],
             playground_trig: b"@prefix ex: <https://e/> . ex:a ex:b ex:c .\n".to_vec(),
-            slice_export,
         };
 
         let site = render_site_lang_exec(&model, "english", &exec);
 
-        // Playground page + its assets are present.
+        // Playground page + its assets (incl. the vendored purrdf engine) are present.
         assert!(site.files.contains_key("sparql/index.html"));
         assert!(site.files.contains_key(DOCS_JS_PATH));
+        assert!(
+            site.files
+                .contains_key("assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
+            "the vendored wasm engine is emitted so the playground loads offline"
+        );
         let sparql = String::from_utf8(site.files["sparql/index.html"].clone()).unwrap();
         assert!(
             sparql.contains("id=\"gmeow-sparql\""),
@@ -4001,12 +4000,10 @@ mod tests {
             "the cross-example bucket is surfaced (no silent drop)"
         );
 
-        // Per-slice export files are emitted, and the slice page links them.
+        // No static per-format export files — export runs through the playground.
         assert!(
-            site.files
-                .keys()
-                .any(|k| k.starts_with("export/slices/") && k.ends_with(".ttl")),
-            "per-slice export files are emitted"
+            !site.files.keys().any(|k| k.starts_with("export/")),
+            "export is client-side via the playground; no static export files"
         );
         let slug = slice_slug(model.slices.iter().find(|s| s.iri == slice_iri).unwrap());
         let slice_md =
@@ -4016,12 +4013,24 @@ mod tests {
             "the slice page has an Export section"
         );
         assert!(
+            slice_md.contains("sparql/index.html?q="),
+            "the slice export links into the playground"
+        );
+        assert!(
             slice_md.contains("Try it"),
             "the slice page shows the reasoner try-it inferences"
         );
         assert!(
             slice_md.contains("owl:Thing"),
             "the inferred triple appears in the try-it block"
+        );
+
+        // Non-English trees carry NO executable surfaces (bundle-size gate).
+        let fr = render_site_lang_exec(&model, "fr", &exec);
+        assert!(
+            !fr.files.contains_key("sparql/index.html")
+                && !fr.files.contains_key(PLAYGROUND_TRIG_PATH),
+            "the executable surfaces live only in the English carrier tree"
         );
     }
 
