@@ -87,6 +87,26 @@ logic:FormalizationCandidateShape
         sh:class logic:SemanticRiskClass ;
         sh:severity sh:Violation ;
         sh:message "A FormalizationCandidate must have exactly one logic:candidateSemanticRisk from the closed logic:SemanticRiskClass value set." ;
+    ] ;
+    # The harvest back-link (logic:candidateFormalizes + logic:candidateSourceField)
+    # is OPTIONAL — present exactly when the candidate harvested a term's annotation
+    # field, absent when the source is a doc section (recorded in provenance alone).
+    # When present each is single-valued; the field is closed to logic:ProseField.
+    # Co-presence of the pair is enforced by verify.harvest-link-paired.
+    sh:property [
+        sh:path logic:candidateFormalizes ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate may carry at most one logic:candidateFormalizes (the prose-bearing term its harvested axiom formalizes)." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateSourceField ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:ProseField ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate may carry at most one logic:candidateSourceField from the closed logic:ProseField value set." ;
     ] .
 
 # =========================================================================== #

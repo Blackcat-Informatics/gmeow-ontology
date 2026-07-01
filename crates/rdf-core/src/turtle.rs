@@ -64,15 +64,28 @@ pub fn rule_iri(base: &str, rule_name: &str) -> String {
 /// Escape a string for embedding in a double-quoted Turtle literal.
 ///
 /// Backslash first (so later escapes are not doubled), then the quote and the
-/// control characters Turtle forbids raw in a quoted literal — newline, carriage
-/// return, tab. Mirrors the retired Python `_escape_literal`.
+/// readable ECHAR forms (`\n \r \t`). The remaining C0 control characters and
+/// DEL (`0x7F`) are escaped as `\uXXXX` — the N-Triples/N-Quads literal grammar
+/// forbids them raw. The C1 block (`0x80`-`0x9F`) is left **raw**: the
+/// N-Triples/N-Quads literal grammar permits it and the W3C RDFC-1.0 fixtures
+/// pin it passing through unescaped. Mirrors
+/// [`crate::ir::canon::write_literal_escaped`] exactly.
 fn escape_literal(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 || c as u32 == 0x7f => {
+                out.push_str(&format!("\\u{:04X}", c as u32))
+            }
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 /// Render an [`RdfLiteral`] as an N-Triples/Turtle literal token.
@@ -99,11 +112,33 @@ fn emit_literal(literal: &RdfLiteral) -> String {
     }
 }
 
+/// Escape a string for embedding in an IRIREF (`<…>`).
+///
+/// The IRIREF grammar forbids the reserved delimiter set (`< > " { } | ^ \``
+/// plus `\`) and the *entire* control range raw, so each of those — plus the
+/// space character — is escaped as `\uXXXX`. Unlike literals, the C1 block
+/// (`0x80`-`0x9F`) is escaped here too, since IRIREF has no carve-out for it.
+/// Mirrors [`crate`]'s sibling `escape_iri` in
+/// `gmeow-rdf::native_codecs::ser_model` exactly.
+fn escape_iri(iri: &str) -> String {
+    let mut out = String::with_capacity(iri.len());
+    for ch in iri.chars() {
+        match ch {
+            '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
+                out.push_str(&format!("\\u{:04X}", ch as u32));
+            }
+            c if c.is_control() || c == ' ' => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
 /// Serialize an [`RdfTerm`] to its Turtle form (full `<iri>`, `_:bnode`, literal,
 /// or the RDF 1.2 triple-term shorthand `<< <s> <p> <o> >>`).
 pub fn emit_term(term: &RdfTerm) -> String {
     match term {
-        RdfTerm::Iri(iri) => format!("<{iri}>"),
+        RdfTerm::Iri(iri) => format!("<{}>", escape_iri(iri)),
         RdfTerm::BlankNode(label) => format!("_:{label}"),
         RdfTerm::Literal(literal) => emit_literal(literal),
         RdfTerm::Triple(triple) => emit_triple_term(triple),
