@@ -2030,6 +2030,199 @@ const GATE_COMPENSATION: &str = "gateCompensation";
 const GATE_ADMITTED: &str = "GateAdmitted";
 /// `logic:GateDenied` — the deny verdict individual.
 const GATE_DENIED: &str = "GateDenied";
+/// `logic:GateUndetermined` — the stale-datum verdict individual (freshness gate).
+const GATE_UNDETERMINED: &str = "GateUndetermined";
+/// `logic:gateUndeterminedReason` — the reason on a freshness-undetermined probe.
+const GATE_UNDETERMINED_REASON: &str = "gateUndeterminedReason";
+/// `logic:decisionTime` — the "now" a gate probe measures datum freshness against.
+const DECISION_TIME: &str = "decisionTime";
+/// `logic:freshnessGuard` — a schema's valid-time currency guard on a precondition.
+const FRESHNESS_GUARD: &str = "freshnessGuard";
+/// `logic:guardsPrecondition` — the precondition situation a freshness guard governs.
+const GUARDS_PRECONDITION: &str = "guardsPrecondition";
+/// `logic:freshnessHorizon` — the maximum admissible datum age (an xsd:duration).
+const FRESHNESS_HORIZON: &str = "freshnessHorizon";
+/// `logic:datumRecordedAt` — when a guarded precondition's datum was recorded.
+const DATUM_RECORDED_AT: &str = "datumRecordedAt";
+
+/// The lexical value of an N3 literal (`"lex"^^<dt>` or `"lex"@lang` or `"lex"`).
+///
+/// Returns the text between the first unescaped quote pair with `\"`/`\\` unescaped,
+/// or `None` when `n3` is not a literal (e.g. an IRI form).  Used to read the
+/// xsd:dateTime / xsd:duration lexical forms the freshness gate compares.
+fn literal_lex(n3: &str) -> Option<String> {
+    let rest = n3.strip_prefix('"')?;
+    let mut lex = String::new();
+    let mut chars = rest.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' => match chars.next() {
+                Some('"') => lex.push('"'),
+                Some('\\') => lex.push('\\'),
+                Some(other) => {
+                    lex.push('\\');
+                    lex.push(other);
+                }
+                None => return None,
+            },
+            '"' => return Some(lex),
+            other => lex.push(other),
+        }
+    }
+    None
+}
+
+/// Parse an xsd:duration lexical form to a whole number of seconds.
+///
+/// Only FIXED-LENGTH designators are admissible: weeks (`W`), days (`D`), hours (`H`),
+/// minutes (`M`, in the time part after `T`), and seconds (`S`).  A nominal-length
+/// designator — years (`Y`) or months (`M`, in the date part) — is a hard error,
+/// because a currency window measured in nominal spans has no fixed second-count and
+/// the age comparison would be ill-defined.  A negative duration is also rejected.
+///
+/// # Errors
+///
+/// Returns `Err` for a malformed lexical form, a nominal designator, or a negative span.
+fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
+    let body = lex
+        .strip_prefix('P')
+        .ok_or_else(|| format!("xsd:duration {lex:?} must start with 'P'"))?;
+    if body.is_empty() {
+        return Err(format!("xsd:duration {lex:?} carries no components"));
+    }
+    let (date_part, time_part) = match body.split_once('T') {
+        Some((d, t)) => (d, Some(t)),
+        None => (body, None),
+    };
+    let mut total = 0f64;
+    // Accumulate a number/designator scan; `in_time` selects the M meaning.
+    let scan = |part: &str, in_time: bool, total: &mut f64| -> Result<(), String> {
+        let mut num = String::new();
+        for c in part.chars() {
+            if c.is_ascii_digit() || c == '.' {
+                num.push(c);
+                continue;
+            }
+            let value: f64 = num
+                .parse()
+                .map_err(|_| format!("xsd:duration {lex:?} has a malformed number {num:?}"))?;
+            if num.is_empty() {
+                return Err(format!(
+                    "xsd:duration {lex:?} has a designator with no number"
+                ));
+            }
+            let secs = match c {
+                'W' if !in_time => value * 604_800.0,
+                'D' if !in_time => value * 86_400.0,
+                'H' if in_time => value * 3_600.0,
+                'M' if in_time => value * 60.0,
+                'S' if in_time => value,
+                'Y' | 'M' => {
+                    return Err(format!(
+                        "xsd:duration {lex:?} uses a nominal-length designator ({c}); a freshness horizon must be a fixed span (weeks/days/hours/minutes/seconds)"
+                    ));
+                }
+                _ => {
+                    return Err(format!(
+                        "xsd:duration {lex:?} has an unexpected designator {c:?}"
+                    ))
+                }
+            };
+            *total += secs;
+            num.clear();
+        }
+        if !num.is_empty() {
+            return Err(format!(
+                "xsd:duration {lex:?} has a trailing number {num:?} with no designator"
+            ));
+        }
+        Ok(())
+    };
+    scan(date_part, false, &mut total)?;
+    if let Some(tp) = time_part {
+        if tp.is_empty() {
+            return Err(format!(
+                "xsd:duration {lex:?} has an empty time part after 'T'"
+            ));
+        }
+        scan(tp, true, &mut total)?;
+    }
+    if total < 0.0 {
+        return Err(format!(
+            "xsd:duration {lex:?} is negative; a freshness horizon must be non-negative"
+        ));
+    }
+    Ok(total.round() as i64)
+}
+
+/// Evaluate every `logic:freshnessGuard` on `schema` against `decision_time`.
+///
+/// For each guard, the guarded precondition's datum (`logic:datumRecordedAt`) is aged
+/// against the probe's `logic:decisionTime` and compared to the guard's
+/// `logic:freshnessHorizon`.  Returns `Ok(Some((sit, reason)))` for the FIRST guard
+/// whose datum is stale (age exceeds the horizon), `Ok(None)` when every guard is
+/// fresh (or the schema carries none).  A guard declared with no `logic:decisionTime`
+/// on the probe, or no `logic:datumRecordedAt` on the datum, is a HARD ERROR — the age
+/// comparison has no reference point and the evaluator refuses to guess (no silent pass).
+///
+/// # Errors
+///
+/// Returns `Err` for a missing decision-time / record-time under a declared guard, a
+/// malformed xsd:dateTime, or a malformed / nominal xsd:duration horizon.
+fn freshness_verdict(
+    facts: &WorldFacts,
+    schema: &str,
+    decision_time: Option<&str>,
+) -> Result<Option<(String, String)>, String> {
+    use chrono::DateTime;
+    let guards: Vec<String> = facts
+        .objects(schema, &logic(FRESHNESS_GUARD))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    for guard in &guards {
+        let sit = facts
+            .object(guard, &logic(GUARDS_PRECONDITION))
+            .ok_or_else(|| {
+                format!("logic:FreshnessGuard {guard:?} has no logic:guardsPrecondition")
+            })?
+            .to_owned();
+        let horizon_lex = facts
+            .object_n3(guard, &logic(FRESHNESS_HORIZON))
+            .and_then(literal_lex)
+            .ok_or_else(|| {
+                format!("logic:FreshnessGuard {guard:?} has no logic:freshnessHorizon")
+            })?;
+        let horizon_secs = parse_xsd_duration_seconds(&horizon_lex)?;
+        let decision_lex = decision_time.ok_or_else(|| {
+            format!(
+                "logic:GateProbe gates schema {schema:?} whose logic:FreshnessGuard {guard:?} requires a logic:decisionTime, but the probe declares none"
+            )
+        })?;
+        let recorded_lex = facts
+            .object_n3(&sit, &logic(DATUM_RECORDED_AT))
+            .and_then(literal_lex)
+            .ok_or_else(|| {
+                format!(
+                    "precondition {sit:?} guarded by logic:FreshnessGuard {guard:?} has no logic:datumRecordedAt"
+                )
+            })?;
+        let decision = DateTime::parse_from_rfc3339(decision_lex).map_err(|e| {
+            format!("logic:decisionTime {decision_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        let recorded = DateTime::parse_from_rfc3339(&recorded_lex).map_err(|e| {
+            format!("logic:datumRecordedAt {recorded_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        let age_secs = decision.signed_duration_since(recorded).num_seconds();
+        if age_secs > horizon_secs {
+            let reason = format!(
+                "precondition {sit:?} datum recorded at {recorded_lex} is {age_secs}s old at decision time {decision_lex}, exceeding the freshness horizon {horizon_lex} ({horizon_secs}s)"
+            );
+            return Ok(Some((sit, reason)));
+        }
+    }
+    Ok(None)
+}
 
 /// Emit the gate verdict for one `logic:GateProbe`, surfacing the invariant-breach and
 /// resource-exhaustion denials (and the precondition/capability ones) as materialized
@@ -2062,6 +2255,20 @@ fn emit_gate_probe(
         .map(|s| (*s).to_owned())
         .collect();
     let gate = gate_action(facts, &schema, &state, &caps);
+    // The freshness gate is a probe-level refinement layered atop the base gate: it
+    // needs the probe's logic:decisionTime, which gate_action (a pure precondition /
+    // capability / invariant / resource gate over a bare state) has no access to. Only
+    // when the base gate ADMITS do we ask whether a guarded precondition's datum is
+    // still current — a failing precondition already denies, so a stale-datum check on
+    // a denied gate would be moot. A stale datum flips the admit to logic:GateUndetermined.
+    let decision_time = facts
+        .object_n3(probe, &logic(DECISION_TIME))
+        .and_then(literal_lex);
+    let stale = if matches!(gate, ActionGate::Admit) {
+        freshness_verdict(facts, &schema, decision_time.as_deref())?
+    } else {
+        None
+    };
 
     let source = triple_reifier(probe, &logic(PROBES_SCHEMA), &schema)?;
     let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
@@ -2079,7 +2286,15 @@ fn emit_gate_probe(
     };
     match gate {
         ActionGate::Admit => {
-            push(&logic(GATE_VERDICT), n3(&logic(GATE_ADMITTED)));
+            if let Some((_, reason)) = stale {
+                push(&logic(GATE_VERDICT), n3(&logic(GATE_UNDETERMINED)));
+                push(
+                    &logic(GATE_UNDETERMINED_REASON),
+                    format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+                );
+            } else {
+                push(&logic(GATE_VERDICT), n3(&logic(GATE_ADMITTED)));
+            }
         }
         ActionGate::Deny {
             compensation,
