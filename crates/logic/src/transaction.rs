@@ -1527,6 +1527,11 @@ fn check_isolation_adequacy(
         | REPEATABLE_READ_ISOLATION
         | SNAPSHOT_ISOLATION => (true, None),
         // Stronger than snapshot: met iff conflict-serializable (no write-skew / cycle).
+        // Opacity is folded with serializable here because this engine produces only committed
+        // histories (monotonic, suppression-never-erasure): no aborted or in-flight transactions
+        // arise, so opacity's additional constraints are vacuously satisfied and opacity reduces
+        // to serializable by construction — both levels fail exactly when the schedule is not
+        // conflict-serializable.
         SERIALIZABLE_ISOLATION | OPACITY_ISOLATION => {
             if conflict_serializable {
                 (true, None)
