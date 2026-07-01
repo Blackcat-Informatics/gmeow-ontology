@@ -285,7 +285,7 @@ pub fn saturate_nt(
 ) -> Result<Vec<DerivedRowNative>, String> {
     let abox = parse_graph(abox_nt.as_bytes())?;
     let onto = parse_graph(ontology_nt.as_bytes())?;
-    let cells = convert_cells(cells);
+    let cells = convert_cells(cells)?;
     let denied = denied.iter().cloned().collect();
     let vocab = suppression_vocab(&onto)?;
     let derived = saturate_graph(&abox, &onto, &cells, &denied, &vocab)?;
@@ -302,7 +302,7 @@ pub fn transform_nt(
 ) -> Result<TransformReportNative, String> {
     let mut abox = skolemized_graph(raw_nt)?;
     let onto = parse_graph(ontology_nt.as_bytes())?;
-    let cells = convert_cells(cells);
+    let cells = convert_cells(cells)?;
     let denied = denied.iter().cloned().collect();
     let vocab = suppression_vocab(&onto)?;
     let suppressed = suppressed_nodes(&abox, &vocab)?;
@@ -332,15 +332,29 @@ pub fn transform_nt(
     })
 }
 
-fn convert_cells(inputs: &[CellInput]) -> Vec<Cell> {
+fn convert_cells(inputs: &[CellInput]) -> Result<Vec<Cell>, String> {
     inputs
         .iter()
-        .map(|cell| Cell {
-            iri: cell.iri.clone(),
-            subject: cell.subject.clone(),
-            predicate_curie: cell.predicate_curie.clone(),
-            object: cell.object.clone(),
-            confidence: cell.confidence.clone(),
+        .map(|cell| {
+            // A cell either records no confidence (legal — no annotation) or a
+            // well-formed probability. A malformed value is a HARD FAIL: an
+            // authored `gmeow:confidence` must be an `xsd:decimal` in [0.0, 1.0]
+            // — never emitted verbatim into the derived triple's provenance.
+            if !cell.confidence.is_empty()
+                && crate::up_projection::decimal_confidence(&cell.confidence).is_none()
+            {
+                return Err(format!(
+                    "cell {} carries a malformed gmeow:confidence {:?}: expected a decimal in [0.0, 1.0]",
+                    cell.iri, cell.confidence
+                ));
+            }
+            Ok(Cell {
+                iri: cell.iri.clone(),
+                subject: cell.subject.clone(),
+                predicate_curie: cell.predicate_curie.clone(),
+                object: cell.object.clone(),
+                confidence: cell.confidence.clone(),
+            })
         })
         .collect()
 }
@@ -1294,6 +1308,64 @@ mod tests {
             GM_CONFIDENCE.to_owned(),
             format!("\"0.9\"^^<{XSD_DECIMAL}>")
         )));
+    }
+
+    #[test]
+    fn saturate_allows_absent_confidence() {
+        // A cell may record no confidence — it still materializes, the
+        // gmeow:confidence annotation is simply omitted (not a default).
+        let cells = vec![cell(
+            PERSON_SCHEMA_CELL,
+            GM_PERSON,
+            "owl:equivalentClass",
+            SCHEMA_PERSON,
+            "",
+        )];
+        let rows = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap();
+        let schema_row = rows
+            .iter()
+            .find(|r| r.object == iri_token(SCHEMA_PERSON))
+            .expect("schema:Person row");
+        assert!(
+            schema_row
+                .annotations
+                .iter()
+                .all(|(k, _)| k != GM_CONFIDENCE),
+            "absent confidence must not be annotated: {:?}",
+            schema_row.annotations
+        );
+        assert!(schema_row
+            .annotations
+            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(PERSON_SCHEMA_CELL))));
+    }
+
+    #[test]
+    fn saturate_rejects_out_of_range_confidence() {
+        // A confidence outside [0.0, 1.0] is malformed — hard fail, never
+        // emitted verbatim as a bogus xsd:decimal into the provenance layer.
+        let cells = vec![cell(
+            PERSON_SCHEMA_CELL,
+            GM_PERSON,
+            "owl:equivalentClass",
+            SCHEMA_PERSON,
+            "1.5",
+        )];
+        let err = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap_err();
+        assert!(err.contains("malformed gmeow:confidence"), "{err}");
+    }
+
+    #[test]
+    fn saturate_rejects_non_numeric_confidence() {
+        // A non-numeric confidence is malformed — hard fail.
+        let cells = vec![cell(
+            PERSON_SCHEMA_CELL,
+            GM_PERSON,
+            "owl:equivalentClass",
+            SCHEMA_PERSON,
+            "abc",
+        )];
+        let err = saturate_nt(&person_abox(), &person_onto(), &cells, &[]).unwrap_err();
+        assert!(err.contains("malformed gmeow:confidence"), "{err}");
     }
 
     #[test]
