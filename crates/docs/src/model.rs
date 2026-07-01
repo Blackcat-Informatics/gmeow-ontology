@@ -644,6 +644,14 @@ pub struct DocsModel {
     /// serialization.
     #[serde(skip)]
     pub ui_catalog: UiCatalog,
+    /// The target render language for the body renderers: the English carrier
+    /// (`""` / `"english"`) or a BCP-47 code (`"fr"`, `"zh"`). Set by
+    /// `localize_model` on the cloned per-language model; the English carrier keeps
+    /// `""` (which resolves to the English UI-chrome defaults). Skipped from
+    /// serialization so the model JSON golden is unchanged (deserialize defaults to
+    /// `""`).
+    #[serde(skip)]
+    pub lang: String,
     /// The native reasoner's per-ontology consistency verdict, attached AFTER
     /// source discovery by the production build (the carrier render path and the
     /// docs-graph stage both consume `stage-reason`). `None` in source-only
@@ -683,6 +691,16 @@ impl DocsModel {
     /// verdict.
     pub fn attach_reasoning(&mut self, verdict: ReasoningVerdict) {
         self.reasoning = Some(verdict);
+    }
+
+    /// Resolve a UI-chrome string for `key` in this model's target [`lang`], using
+    /// the per-language override catalog when present and falling back to the
+    /// `'static` English default. Empty `lang` and `"english"` both resolve to the
+    /// English default (see [`i18n::ui_string`]).
+    ///
+    /// [`lang`]: DocsModel::lang
+    pub(crate) fn ui(&self, key: &str) -> &str {
+        i18n::ui_string(key, &self.lang, &self.ui_catalog)
     }
 }
 
@@ -960,6 +978,7 @@ impl DocsModel {
             translations,
             ui_catalog: UiCatalog::default(),
             reasoning: None,
+            lang: String::new(),
         }
     }
 

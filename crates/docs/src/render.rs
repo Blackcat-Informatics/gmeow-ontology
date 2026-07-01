@@ -447,10 +447,10 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
         Page::ExternalIndex => md_external_index(model),
         Page::IntegrityIndex => md_integrity_index(model),
         Page::Logic => md_logic_index(model),
-        Page::LogicCanonicalIr => md_logic_canonical_ir(),
-        Page::LogicLossLedger => md_logic_loss_ledger(),
-        Page::LogicDerivationGraph => md_logic_derivation_graph(),
-        Page::LogicDiagnostics => md_logic_diagnostics(),
+        Page::LogicCanonicalIr => md_logic_canonical_ir(model),
+        Page::LogicLossLedger => md_logic_loss_ledger(model),
+        Page::LogicDerivationGraph => md_logic_derivation_graph(model),
+        Page::LogicDiagnostics => md_logic_diagnostics(model),
         Page::RecipeIndex => md_recipe_index(model),
         Page::Recipe(slug) => md_recipe(model, slug),
         Page::LearningPathIndex => md_learning_path_index(model),
@@ -475,7 +475,7 @@ fn md_landing(model: &DocsModel) -> String {
         ),
     );
 
-    heading(&mut out, 2, "Vocabulary by category");
+    heading(&mut out, 2, model.ui("body_vocabulary_by_category"));
     push_line(&mut out, "| Category | Terms |");
     push_line(&mut out, "| --- | --- |");
     for category in [
@@ -505,7 +505,7 @@ fn md_landing(model: &DocsModel) -> String {
     }
     blank(&mut out);
 
-    heading(&mut out, 2, "Browse");
+    heading(&mut out, 2, model.ui("body_browse"));
     let from = Page::Landing.dir();
     push_line(
         &mut out,
@@ -607,7 +607,7 @@ fn md_landing(model: &DocsModel) -> String {
 /// `docs/missing-*` lint counts.
 fn md_health(model: &DocsModel) -> String {
     let mut out = String::new();
-    heading(&mut out, 1, "Documentation health");
+    heading(&mut out, 1, model.ui("body_documentation_health"));
     line(
         &mut out,
         &format!(
@@ -629,7 +629,7 @@ fn md_health(model: &DocsModel) -> String {
     let total = coverages.len();
 
     // Per-dimension coverage — covered count = total − (the docs/missing-* count).
-    heading(&mut out, 2, "Coverage by dimension");
+    heading(&mut out, 2, model.ui("body_coverage_by_dimension"));
     push_line(&mut out, "| Dimension | Covered | Total | % |");
     push_line(&mut out, "| --- | --- | --- | --- |");
     for (i, dim) in crate::coverage::DIMENSIONS.iter().enumerate() {
@@ -643,7 +643,7 @@ fn md_health(model: &DocsModel) -> String {
     blank(&mut out);
 
     // Completeness distribution: how many terms carry exactly k of the dimensions.
-    heading(&mut out, 2, "Completeness distribution");
+    heading(&mut out, 2, model.ui("body_completeness_distribution"));
     push_line(&mut out, "| Dimensions present | Terms |");
     push_line(&mut out, "| --- | --- |");
     let dims_total = crate::coverage::TermCoverage::TOTAL;
@@ -655,7 +655,7 @@ fn md_health(model: &DocsModel) -> String {
 
     // ── Reasoning (present only when the native-reasoner verdict is attached) ────
     if let Some(verdict) = &model.reasoning {
-        heading(&mut out, 2, "Reasoning");
+        heading(&mut out, 2, model.ui("body_reasoning"));
         let classes = model
             .terms
             .iter()
@@ -669,9 +669,9 @@ fn md_health(model: &DocsModel) -> String {
             })
             .count();
         let consistency = if verdict.is_consistent {
-            "consistent"
+            model.ui("body_reasoning_consistent")
         } else {
-            "**inconsistent**"
+            model.ui("body_reasoning_inconsistent")
         };
         push_line(
             &mut out,
@@ -684,11 +684,8 @@ fn md_health(model: &DocsModel) -> String {
     }
 
     // ── Coverage heatmap by slice (deterministic SVG, the shared color scale) ────
-    heading(&mut out, 2, "Coverage by slice");
-    line(
-        &mut out,
-        "Per-slice coverage of each documentation dimension — green ≥ 80%, amber ≥ 50%, red below.",
-    );
+    heading(&mut out, 2, model.ui("body_coverage_by_slice"));
+    line(&mut out, model.ui("body_health_heatmap_legend"));
     push_line(
         &mut out,
         &format!(
@@ -699,7 +696,7 @@ fn md_health(model: &DocsModel) -> String {
     blank(&mut out);
 
     // ── Linkage: alignment density + orphan terms ───────────────────────────────
-    heading(&mut out, 2, "Linkage");
+    heading(&mut out, 2, model.ui("body_linkage"));
     let aligned_count = aligned.len();
     let orphan_count = model
         .terms
@@ -711,15 +708,17 @@ fn md_health(model: &DocsModel) -> String {
     push_line(
         &mut out,
         &format!(
-            "- **Alignment density:** {aligned_count} of {total} terms ({}%) are the subject of at \
+            "- **{}:** {aligned_count} of {total} terms ({}%) are the subject of at \
              least one external alignment.",
+            model.ui("body_label_alignment_density"),
             (aligned_count * 100).checked_div(total).unwrap_or(0)
         ),
     );
     push_line(
         &mut out,
         &format!(
-            "- **Orphan terms:** {orphan_count} term(s) carry no parent, related term, or alignment."
+            "- **{}:** {orphan_count} term(s) carry no parent, related term, or alignment.",
+            model.ui("body_label_orphan_terms")
         ),
     );
     blank(&mut out);
@@ -733,7 +732,7 @@ fn md_health(model: &DocsModel) -> String {
         }
     }
     if !framework_counts.is_empty() {
-        heading(&mut out, 2, "Framework distribution");
+        heading(&mut out, 2, model.ui("body_framework_distribution"));
         push_line(&mut out, "| Framework | Terms |");
         push_line(&mut out, "| --- | --- |");
         for (framework, count) in &framework_counts {
@@ -746,7 +745,7 @@ fn md_health(model: &DocsModel) -> String {
     }
 
     // ── Badge legend (rendered from the single badge color authority) ───────────
-    heading(&mut out, 2, "Badge legend");
+    heading(&mut out, 2, model.ui("body_badge_legend"));
     push_line(&mut out, "| Family | What it encodes |");
     push_line(&mut out, "| --- | --- |");
     for family in &crate::badge::FAMILIES {
@@ -760,16 +759,16 @@ fn md_health(model: &DocsModel) -> String {
     out
 }
 
-fn md_getting_started(_model: &DocsModel) -> String {
+fn md_getting_started(model: &DocsModel) -> String {
     let mut out = String::new();
-    heading(&mut out, 1, "Getting started");
+    heading(&mut out, 1, model.ui("body_getting_started"));
     line(
         &mut out,
         "The GMEOW ontology is organized into self-contained *slices*. Each slice owns a \
          vocabulary module, optional SHACL shapes, mappings, queries, and tests, and declares \
          its manifest identity and dependencies.",
     );
-    heading(&mut out, 2, "Where to go next");
+    heading(&mut out, 2, model.ui("body_where_to_go_next"));
     let from = Page::GettingStarted.dir();
     push_line(
         &mut out,
@@ -792,7 +791,7 @@ fn md_getting_started(_model: &DocsModel) -> String {
 
 fn md_about(model: &DocsModel) -> String {
     let mut out = String::new();
-    heading(&mut out, 1, "About");
+    heading(&mut out, 1, model.ui("body_about"));
     line(
         &mut out,
         &format!(
@@ -802,7 +801,7 @@ fn md_about(model: &DocsModel) -> String {
             md_escape(&model.title)
         ),
     );
-    heading(&mut out, 2, "At a glance");
+    heading(&mut out, 2, model.ui("body_at_a_glance"));
     push_line(
         &mut out,
         &format!(
@@ -828,7 +827,7 @@ fn md_about(model: &DocsModel) -> String {
 
 fn md_changelog(model: &DocsModel) -> String {
     let mut out = String::new();
-    heading(&mut out, 1, "Changelog");
+    heading(&mut out, 1, model.ui("body_changelog"));
     line(
         &mut out,
         "This documentation surface is regenerated from the slice catalog on every build, so it \
@@ -888,7 +887,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     let Some(term) = model.terms.iter().find(|t| term_slug(t) == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
-        line(&mut out, "Term not found.");
+        line(&mut out, model.ui("body_term_not_found"));
         return out;
     };
     let from = Page::Term(slug.to_string()).dir();
@@ -953,7 +952,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     }
 
     if let Some(def) = &term.definition {
-        heading(&mut out, 2, "Definition");
+        heading(&mut out, 2, model.ui("body_definition"));
         line(&mut out, &md_escape(def));
     }
 
@@ -961,7 +960,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     // Gated on the identical predicate as the emission loop in `render_site_lang`
     // so the embedded path always resolves (preserves no-dangling-link).
     if svg::term_has_neighbourhood(term) {
-        heading(&mut out, 2, "Neighborhood");
+        heading(&mut out, 2, model.ui("body_neighborhood"));
         push_line(
             &mut out,
             &format!(
@@ -975,8 +974,8 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
 
     if !term.parents.is_empty() {
         let label = match term.category {
-            DocTermCategory::Property => "Super-properties",
-            _ => "Super-classes",
+            DocTermCategory::Property => model.ui("body_super_properties"),
+            _ => model.ui("body_super_classes"),
         };
         heading(&mut out, 2, label);
         for parent in &term.parents {
@@ -986,7 +985,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     }
 
     if !term.domain.is_empty() {
-        heading(&mut out, 2, "Domain");
+        heading(&mut out, 2, model.ui("body_domain"));
         for d in &term.domain {
             push_line(&mut out, &format!("- {}", term_link(model, &from, d)));
         }
@@ -994,7 +993,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     }
 
     if !term.range.is_empty() {
-        heading(&mut out, 2, "Range");
+        heading(&mut out, 2, model.ui("body_range"));
         for r in &term.range {
             push_line(&mut out, &format!("- {}", term_link(model, &from, r)));
         }
@@ -1005,20 +1004,26 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     // Field order mirrors the retired Python `_append_usage_advice`: prose first,
     // then consumer-profile guidance. The whole section is suppressed when empty.
     let advice_text: [(&str, &[String]); 5] = [
-        ("Scope", &term.scope_notes),
-        ("Example", &term.examples),
-        ("Use when", &term.use_when),
-        ("Avoid when", &term.avoid_when),
-        ("How to use", &term.how_to_use),
+        (model.ui("body_advice_scope"), &term.scope_notes),
+        (model.ui("body_advice_example"), &term.examples),
+        (model.ui("body_advice_use_when"), &term.use_when),
+        (model.ui("body_advice_avoid_when"), &term.avoid_when),
+        (model.ui("body_advice_how_to_use"), &term.how_to_use),
     ];
     let advice_consumer: [(&str, &[String]); 2] = [
-        ("Use for consumers", &term.use_for_consumer),
-        ("Avoid for consumers", &term.avoid_for_consumer),
+        (
+            model.ui("body_advice_use_for_consumers"),
+            &term.use_for_consumer,
+        ),
+        (
+            model.ui("body_advice_avoid_for_consumers"),
+            &term.avoid_for_consumer,
+        ),
     ];
     let has_advice = advice_text.iter().any(|(_, v)| !v.is_empty())
         || advice_consumer.iter().any(|(_, v)| !v.is_empty());
     if has_advice {
-        heading(&mut out, 2, "Usage Advice");
+        heading(&mut out, 2, model.ui("body_usage_advice"));
         for (label, values) in advice_text {
             if !values.is_empty() {
                 let joined = values
@@ -1054,12 +1059,12 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
             .then_with(|| a.object.cmp(&b.object))
     });
     if !aligns.is_empty() {
-        heading(&mut out, 2, "Alignments");
+        heading(&mut out, 2, model.ui("body_alignments"));
         let mut any_lossy = false;
         for link in aligns {
             let tag = code_escape(&align_tag(&link.predicate));
             let target = term_link(model, &from, &link.object);
-            match approximate_match_note(&link.predicate) {
+            match approximate_match_note(model, &link.predicate) {
                 Some(note) => {
                     any_lossy = true;
                     push_line(&mut out, &format!("- `{tag}` → {target} — *{note}.*"));
@@ -1069,15 +1074,16 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         }
         // One section-level disclosure when any crosswalk is an approximate
         // (lossy) SKOS match, cross-linking the preservation loss ledger that
-        // records the per-target structural drops.
+        // records the per-target structural drops. The prose halves resolve through
+        // the UI-chrome catalog; the link target is the language-independent path.
         if any_lossy {
             let ledger_href = rel(&from, &Page::LogicLossLedger.dir());
             push_line(
                 &mut out,
                 &format!(
-                    "- *An approximate match is a lossy projection — the external term is not an \
-                     exact equivalent. See the [preservation loss ledger]({ledger_href}index.md) \
-                     for the per-target structural drops.*"
+                    "- *{}({ledger_href}index.md) {}*",
+                    model.ui("body_caveat_disclosure_pre"),
+                    model.ui("body_caveat_disclosure_post"),
                 ),
             );
         }
@@ -1086,7 +1092,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
 
     // ── Logic stereotypes (lowered OntoUML/UFO discipline) ──────────────────────
     if !term.logic_stereotypes.is_empty() {
-        heading(&mut out, 2, "Logic stereotypes");
+        heading(&mut out, 2, model.ui("body_logic_stereotypes"));
         let badges = term
             .logic_stereotypes
             .iter()
@@ -1105,7 +1111,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     // per-term counterpart of the logic-stereotype chips (the framework individuals
     // live in the logic: vocabulary, which is documented via that index).
     if !term.frameworks.is_empty() {
-        heading(&mut out, 2, "Frameworks");
+        heading(&mut out, 2, model.ui("body_frameworks"));
         let chips = term
             .frameworks
             .iter()
@@ -1121,7 +1127,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
 
     // ── Box role badge (links the four-boxes doctrine when that page exists) ─────
     if let Some(role) = &term.box_role {
-        heading(&mut out, 2, "Box role");
+        heading(&mut out, 2, model.ui("body_box_role"));
         let label = box_role_label(role);
         if model.four_boxes.is_some() {
             let href = rel(&from, &Page::FourBoxes.dir());
@@ -1153,7 +1159,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     constraint_msgs.sort_unstable();
     constraint_msgs.dedup();
     if !constraint_msgs.is_empty() {
-        heading(&mut out, 2, "Constraints");
+        heading(&mut out, 2, model.ui("body_constraints"));
         for msg in constraint_msgs {
             push_line(&mut out, &format!("- {}", md_escape(msg)));
         }
@@ -1162,7 +1168,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
 
     // ── Related terms (bidirectional: skos:related / pairsWith / seeAlso) ────────
     if !term.related_terms.is_empty() {
-        heading(&mut out, 2, "Related terms");
+        heading(&mut out, 2, model.ui("body_related_terms"));
         for related in &term.related_terms {
             push_line(&mut out, &format!("- {}", term_link(model, &from, related)));
         }
@@ -1177,7 +1183,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         .collect();
     tested_by.sort_by(|a, b| a.iri.cmp(&b.iri));
     if !tested_by.is_empty() {
-        heading(&mut out, 2, "Tested by");
+        heading(&mut out, 2, model.ui("body_tested_by"));
         for cq in tested_by {
             let rationale = cq
                 .rationale
@@ -1207,7 +1213,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
             .then_with(|| a.logical_path.cmp(&b.logical_path))
     });
     if !term_examples.is_empty() {
-        heading(&mut out, 2, "Examples using this term");
+        heading(&mut out, 2, model.ui("body_examples_using_this_term"));
         for example in term_examples {
             let slice_href = model
                 .slices
@@ -1239,7 +1245,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
 
     // ── Formalized by (reverse logic:formalizes back-refs) ──────────────────────
     if !term.formalized_by.is_empty() {
-        heading(&mut out, 2, "Formalized by");
+        heading(&mut out, 2, model.ui("body_formalized_by"));
         for subject in &term.formalized_by {
             push_line(&mut out, &format!("- {}", term_link(model, &from, subject)));
         }
@@ -1247,10 +1253,14 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     }
 
     // ── Stability (#1026 — always present; tier-derived default or explicit) ─────
-    heading(&mut out, 2, "Stability");
+    heading(&mut out, 2, model.ui("body_stability"));
     push_line(
         &mut out,
-        &format!("- **Status:** {}", term.stability.label()),
+        &format!(
+            "- **{}:** {}",
+            model.ui("body_label_status"),
+            term.stability.label()
+        ),
     );
     blank(&mut out);
 
@@ -1260,15 +1270,15 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     // non-class term is not-evaluated (satisfiability is a class notion). Never
     // rendered for a source-only model, so no satisfiability claim is fabricated.
     if let Some(verdict) = &model.reasoning {
-        heading(&mut out, 2, "Reasoning status");
+        heading(&mut out, 2, model.ui("body_reasoning_status"));
         let status = if term.category == DocTermCategory::Class {
             if verdict.unsatisfiable.contains(&term.iri) {
-                "**Unsatisfiable** — the native DL reasoner proved this class necessarily empty (`rdfs:subClassOf owl:Nothing`)."
+                model.ui("body_reasoning_unsatisfiable")
             } else {
-                "**Satisfiable** — the native DL reasoner found this class consistent."
+                model.ui("body_reasoning_satisfiable")
             }
         } else {
-            "**Not evaluated** — satisfiability is a class notion; the reasoner decides none for this term."
+            model.ui("body_reasoning_not_evaluated")
         };
         push_line(&mut out, &format!("- {status}"));
         blank(&mut out);
@@ -1281,7 +1291,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     {
         let aligned = crate::coverage::alignment_subjects(model);
         let cov = crate::coverage::term_coverage(term, &aligned);
-        heading(&mut out, 2, "Documentation coverage");
+        heading(&mut out, 2, model.ui("body_documentation_coverage"));
         let badges = crate::coverage::DIMENSIONS
             .iter()
             .zip(cov.flags())
@@ -1309,7 +1319,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
 
     // ── Profiles (#1026 — named profiles whose membership includes this term) ────
     if !term.profiles.is_empty() {
-        heading(&mut out, 2, "Profiles");
+        heading(&mut out, 2, model.ui("body_profiles"));
         let chips = term
             .profiles
             .iter()
@@ -1322,9 +1332,16 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
 
     // ── Changelog (#1026 — added-in version + reified per-release entries) ───────
     if term.added_in_version.is_some() || !term.changelog.is_empty() {
-        heading(&mut out, 2, "Changelog");
+        heading(&mut out, 2, model.ui("body_changelog"));
         if let Some(version) = &term.added_in_version {
-            push_line(&mut out, &format!("- **Added in:** {}", md_escape(version)));
+            push_line(
+                &mut out,
+                &format!(
+                    "- **{}:** {}",
+                    model.ui("body_label_added_in"),
+                    md_escape(version)
+                ),
+            );
         }
         for entry in &term.changelog {
             match &entry.note {
@@ -1342,13 +1359,17 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     // The term IRI is the dereferenceable, content-addressed permalink; the
     // concept DOI (read from metadata/gmeow-self.ttl) cites the whole ontology;
     // the owner slice's identifier cites the slice when one is registered.
-    heading(&mut out, 2, "Citation");
-    push_line(&mut out, &format!("- **Permalink:** <{}>", term.iri));
+    heading(&mut out, 2, model.ui("body_citation"));
+    push_line(
+        &mut out,
+        &format!("- **{}:** <{}>", model.ui("body_label_permalink"), term.iri),
+    );
     if let Some(doi) = &model.concept_doi {
         push_line(
             &mut out,
             &format!(
-                "- **Cite the ontology:** [{}](https://doi.org/{})",
+                "- **{}:** [{}](https://doi.org/{})",
+                model.ui("body_label_cite_ontology"),
                 md_escape(doi),
                 doi
             ),
@@ -1362,7 +1383,11 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     {
         push_line(
             &mut out,
-            &format!("- **Cite the slice:** {}", md_escape(identifier)),
+            &format!(
+                "- **{}:** {}",
+                model.ui("body_label_cite_slice"),
+                md_escape(identifier)
+            ),
         );
     }
     blank(&mut out);
@@ -1384,7 +1409,7 @@ fn box_role_label(role: &str) -> String {
 fn md_logic_index(model: &DocsModel) -> String {
     let from = Page::Logic.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Logic & Reasoning");
+    heading(&mut out, 1, model.ui("body_logic_and_reasoning"));
     line(
         &mut out,
         "Terms grouped by their lowered OntoUML/UFO stereotype (the `logic:` discipline \
@@ -1398,7 +1423,7 @@ fn md_logic_index(model: &DocsModel) -> String {
     // preservation loss ledger, the derivation-graph explanations, and the
     // diagnostics. Links use the same `rel` helper the rest of the page does, so
     // they resolve cleanly under the anchor gate.
-    heading(&mut out, 2, "Compiler products");
+    heading(&mut out, 2, model.ui("body_compiler_products"));
     line(
         &mut out,
         "The `logic:` compiler emits four information products from one canonical \
@@ -1450,7 +1475,7 @@ fn md_logic_index(model: &DocsModel) -> String {
     }
 
     if by_stereotype.is_empty() {
-        line(&mut out, "No logic stereotypes are declared yet.");
+        line(&mut out, model.ui("body_no_logic_stereotypes"));
         return out;
     }
 
@@ -1483,10 +1508,10 @@ fn md_logic_index(model: &DocsModel) -> String {
 
 /// The canonical-IR product page: the one AST / RDF 1.2 identity serialization
 /// the compiler produces, and the projection targets it feeds.
-fn md_logic_canonical_ir() -> String {
+fn md_logic_canonical_ir(model: &DocsModel) -> String {
     let from = Page::LogicCanonicalIr.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Canonical IR");
+    heading(&mut out, 1, model.ui("body_canonical_ir"));
     line(
         &mut out,
         "The `logic:` compiler parses every source surface into a single canonical \
@@ -1504,7 +1529,7 @@ fn md_logic_canonical_ir() -> String {
          lossy view of it.",
     );
 
-    heading(&mut out, 2, "Projection surface");
+    heading(&mut out, 2, model.ui("body_projection_surface"));
     line(
         &mut out,
         "From the one IR the compiler runs every projection back-end. The standard \
@@ -1528,10 +1553,10 @@ fn md_logic_canonical_ir() -> String {
 
 /// The preservation loss-ledger product page: a table built from the public
 /// `projection_ledger_rows` accessor — one row per standard projection target.
-fn md_logic_loss_ledger() -> String {
+fn md_logic_loss_ledger(model: &DocsModel) -> String {
     let from = Page::LogicLossLedger.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Preservation loss ledger");
+    heading(&mut out, 1, model.ui("body_preservation_loss_ledger"));
     line(
         &mut out,
         "Every projection of the canonical IR declares **how much it preserves**. A \
@@ -1587,10 +1612,10 @@ fn md_logic_loss_ledger() -> String {
 
 /// The derivation-graph product page: the reasoning-provenance explanation
 /// skeletons (per-axiom proof skeletons) the reasoning channel ships.
-fn md_logic_derivation_graph() -> String {
+fn md_logic_derivation_graph(model: &DocsModel) -> String {
     let from = Page::LogicDerivationGraph.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Derivation graph");
+    heading(&mut out, 1, model.ui("body_derivation_graph"));
     line(
         &mut out,
         "Beyond the projected programs, the reasoning channel produces a **derivation \
@@ -1623,9 +1648,9 @@ fn md_logic_derivation_graph() -> String {
 
 /// The compiler-diagnostics product page: parse findings + lossy-drop notes,
 /// surfaced as SARIF.
-fn md_logic_diagnostics() -> String {
+fn md_logic_diagnostics(model: &DocsModel) -> String {
     let mut out = String::new();
-    heading(&mut out, 1, "Compiler diagnostics");
+    heading(&mut out, 1, model.ui("body_compiler_diagnostics"));
     line(
         &mut out,
         "Compiling a `logic:` program is also a **diagnostic pass**. The compiler \
@@ -1655,13 +1680,13 @@ fn md_logic_diagnostics() -> String {
 fn md_slice_index(model: &DocsModel) -> String {
     let from = Page::SliceIndex.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Slices");
+    heading(&mut out, 1, model.ui("body_slices"));
     line(
         &mut out,
         &format!("{} compilation unit(s).", model.slices.len()),
     );
 
-    heading(&mut out, 2, "Dependency graph");
+    heading(&mut out, 2, model.ui("body_dependency_graph"));
     push_line(
         &mut out,
         &format!(
@@ -1695,7 +1720,7 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
     let Some(slice) = model.slices.iter().find(|s| slice_slug(s) == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
-        line(&mut out, "Slice not found.");
+        line(&mut out, model.ui("body_slice_not_found"));
         return out;
     };
     let from = Page::Slice(slug.to_string()).dir();
@@ -1730,7 +1755,7 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
 
     // Artifact inventory grouped by role (by reference: path + media type + digest).
     if !slice.artifacts.is_empty() {
-        heading(&mut out, 2, "Artifacts");
+        heading(&mut out, 2, model.ui("body_artifacts"));
         // Group by role-name; both the group order and the within-group order are
         // sorted for determinism.
         let mut by_role: BTreeMap<String, Vec<&crate::model::DocArtifact>> = BTreeMap::new();
@@ -1845,7 +1870,7 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
 fn md_linkage_index(model: &DocsModel) -> String {
     let from = Page::LinkageIndex.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Linkages");
+    heading(&mut out, 1, model.ui("body_linkages"));
     line(
         &mut out,
         &format!(
@@ -1954,7 +1979,7 @@ fn md_linkage_index(model: &DocsModel) -> String {
             .then_with(|| a.object.cmp(&b.object))
     });
     if !orphans.is_empty() {
-        heading(&mut out, 2, "Other equivalences");
+        heading(&mut out, 2, model.ui("body_other_equivalences"));
         push_line(
             &mut out,
             "| Subject | Predicate | External object | Conf. |",
@@ -1982,7 +2007,7 @@ fn md_linkage_index(model: &DocsModel) -> String {
 fn md_example_index(model: &DocsModel) -> String {
     let from = Page::ExampleIndex.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Examples");
+    heading(&mut out, 1, model.ui("body_examples"));
     line(
         &mut out,
         &format!(
@@ -2037,7 +2062,7 @@ fn md_example_index(model: &DocsModel) -> String {
 fn md_concern_index(model: &DocsModel) -> String {
     let from = Page::ConcernIndex.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Concerns");
+    heading(&mut out, 1, model.ui("body_concerns"));
     line(
         &mut out,
         &format!(
@@ -2047,7 +2072,7 @@ fn md_concern_index(model: &DocsModel) -> String {
         ),
     );
 
-    heading(&mut out, 2, "By term count");
+    heading(&mut out, 2, model.ui("body_by_term_count"));
     push_line(
         &mut out,
         &format!(
@@ -2080,7 +2105,7 @@ fn md_concern(model: &DocsModel, slug: &str) -> String {
     let Some(concern) = model.concerns.iter().find(|c| concern_slug(c) == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
-        line(&mut out, "Concern not found.");
+        line(&mut out, model.ui("body_concern_not_found"));
         return out;
     };
     let from = Page::Concern(slug.to_string()).dir();
@@ -2090,7 +2115,7 @@ fn md_concern(model: &DocsModel, slug: &str) -> String {
     line(&mut out, &format!("`{}`", code_escape(&concern.curie)));
 
     if let Some(def) = &concern.definition {
-        heading(&mut out, 2, "Definition");
+        heading(&mut out, 2, model.ui("body_definition"));
         line(&mut out, &md_escape(def));
     }
 
@@ -2118,7 +2143,7 @@ fn md_concern(model: &DocsModel, slug: &str) -> String {
 fn md_external_index(model: &DocsModel) -> String {
     let from = Page::ExternalIndex.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "External ontologies");
+    heading(&mut out, 1, model.ui("body_external_ontologies"));
     line(
         &mut out,
         &format!(
@@ -2165,7 +2190,7 @@ fn md_external_index(model: &DocsModel) -> String {
 fn md_integrity_index(model: &DocsModel) -> String {
     let from = Page::IntegrityIndex.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Integrity constraints");
+    heading(&mut out, 1, model.ui("body_integrity_constraints"));
     line(
         &mut out,
         "Per-slice SPARQL verification queries. Each query asserts an integrity constraint the \
@@ -2203,10 +2228,7 @@ fn md_integrity_index(model: &DocsModel) -> String {
         }
     }
     if !any {
-        line(
-            &mut out,
-            "No verification queries are declared in any slice.",
-        );
+        line(&mut out, model.ui("body_no_verify_queries"));
     }
     out
 }
@@ -2216,7 +2238,7 @@ fn md_integrity_index(model: &DocsModel) -> String {
 fn md_recipe_index(model: &DocsModel) -> String {
     let from = Page::RecipeIndex.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Recipes");
+    heading(&mut out, 1, model.ui("body_recipes"));
     line(
         &mut out,
         &format!(
@@ -2227,7 +2249,7 @@ fn md_recipe_index(model: &DocsModel) -> String {
         ),
     );
     if model.recipes.is_empty() {
-        line(&mut out, "No recipes are declared in the guides slice.");
+        line(&mut out, model.ui("body_no_recipes"));
         return out;
     }
     push_line(&mut out, "| Recipe | Goal |");
@@ -2253,7 +2275,7 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
     let Some(recipe) = model.recipes.iter().find(|r| r.slug == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
-        line(&mut out, "Recipe not found.");
+        line(&mut out, model.ui("body_recipe_not_found"));
         return out;
     };
     let from = Page::Recipe(slug.to_string()).dir();
@@ -2264,11 +2286,11 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
         &format!("`{}` · recipe", code_escape(&recipe.slug)),
     );
 
-    heading(&mut out, 2, "Goal");
+    heading(&mut out, 2, model.ui("body_goal"));
     line(&mut out, &md_escape(&recipe.goal));
 
     if !recipe.term_curies.is_empty() {
-        heading(&mut out, 2, "Terms used");
+        heading(&mut out, 2, model.ui("body_terms_used"));
         for curie in &recipe.term_curies {
             push_line(&mut out, &format!("- {}", curie_link(model, &from, curie)));
         }
@@ -2276,7 +2298,7 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
     }
 
     if !recipe.example_paths.is_empty() {
-        heading(&mut out, 2, "Example files");
+        heading(&mut out, 2, model.ui("body_example_files"));
         for path in &recipe.example_paths {
             push_line(&mut out, &format!("- `{}`", code_escape(path)));
         }
@@ -2284,7 +2306,7 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
     }
 
     if !recipe.follow_pages.is_empty() {
-        heading(&mut out, 2, "Read next");
+        heading(&mut out, 2, model.ui("body_read_next"));
         for page in &recipe.follow_pages {
             push_line(&mut out, &format!("- `{}`", code_escape(page)));
         }
@@ -2299,7 +2321,7 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
         .collect();
     hosting.sort_by(|a, b| a.slug.cmp(&b.slug));
     if !hosting.is_empty() {
-        heading(&mut out, 2, "Part of");
+        heading(&mut out, 2, model.ui("body_part_of"));
         for path in hosting {
             let href = rel(&from, &Page::LearningPath(path.slug.clone()).dir());
             push_line(
@@ -2315,7 +2337,7 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
 fn md_learning_path_index(model: &DocsModel) -> String {
     let from = Page::LearningPathIndex.dir();
     let mut out = String::new();
-    heading(&mut out, 1, "Learning paths");
+    heading(&mut out, 1, model.ui("body_learning_paths"));
     line(
         &mut out,
         &format!(
@@ -2326,10 +2348,7 @@ fn md_learning_path_index(model: &DocsModel) -> String {
         ),
     );
     if model.learning_paths.is_empty() {
-        line(
-            &mut out,
-            "No learning paths are declared in the guides slice.",
-        );
+        line(&mut out, model.ui("body_no_learning_paths"));
         return out;
     }
     push_line(&mut out, "| Learning path | Audience | Goal |");
@@ -2356,7 +2375,7 @@ fn md_learning_path(model: &DocsModel, slug: &str) -> String {
     let Some(path) = model.learning_paths.iter().find(|p| p.slug == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
-        line(&mut out, "Learning path not found.");
+        line(&mut out, model.ui("body_learning_path_not_found"));
         return out;
     };
     let from = Page::LearningPath(slug.to_string()).dir();
@@ -2375,11 +2394,11 @@ fn md_learning_path(model: &DocsModel, slug: &str) -> String {
     );
     blank(&mut out);
 
-    heading(&mut out, 2, "Goal");
+    heading(&mut out, 2, model.ui("body_goal"));
     line(&mut out, &md_escape(&path.goal));
 
     if !path.recipe_slugs.is_empty() {
-        heading(&mut out, 2, "Recipes");
+        heading(&mut out, 2, model.ui("body_recipes"));
         for recipe_slug in &path.recipe_slugs {
             let title = model
                 .recipes
@@ -2402,7 +2421,7 @@ fn md_learning_path(model: &DocsModel, slug: &str) -> String {
     }
 
     if !path.term_curies.is_empty() {
-        heading(&mut out, 2, "Terms used");
+        heading(&mut out, 2, model.ui("body_terms_used"));
         for curie in &path.term_curies {
             push_line(&mut out, &format!("- {}", curie_link(model, &from, curie)));
         }
@@ -2410,7 +2429,7 @@ fn md_learning_path(model: &DocsModel, slug: &str) -> String {
     }
 
     if !path.example_paths.is_empty() {
-        heading(&mut out, 2, "Example files");
+        heading(&mut out, 2, model.ui("body_example_files"));
         for p in &path.example_paths {
             push_line(&mut out, &format!("- `{}`", code_escape(p)));
         }
@@ -2418,7 +2437,7 @@ fn md_learning_path(model: &DocsModel, slug: &str) -> String {
     }
 
     if !path.adoption_targets.is_empty() {
-        heading(&mut out, 2, "Projects toward");
+        heading(&mut out, 2, model.ui("body_projects_toward"));
         let cells: Vec<String> = path
             .adoption_targets
             .iter()
@@ -2442,7 +2461,7 @@ fn md_four_boxes(model: &DocsModel) -> String {
             }
         }
         None => {
-            heading(&mut out, 1, "What is this?");
+            heading(&mut out, 1, model.ui("body_what_is_this"));
             line(
                 &mut out,
                 "The four-boxes doctrine prose is not available in this build.",
@@ -2708,6 +2727,11 @@ fn localize_model(model: &DocsModel, lang: &str) -> DocsModel {
         }
     }
 
+    // Record the target language so the body renderers resolve UI-chrome strings
+    // through the override catalog (English fallback). The English carrier keeps
+    // its default empty `lang`, which also resolves to the English defaults.
+    out.lang = lang.to_string();
+
     out
 }
 
@@ -2809,14 +2833,15 @@ fn align_tag(predicate: &str) -> String {
 /// crosswalk read as an equivalence. An unrecognized predicate (e.g. an exact
 /// `owl:equivalentClass`) carries no caveat — only the declared-approximate SKOS
 /// predicates do.
-fn approximate_match_note(predicate: &str) -> Option<&'static str> {
-    match align_tag(predicate).as_str() {
-        "closeMatch" => Some("approximate match (close) — not an exact equivalence"),
-        "broadMatch" => Some("broader match — the external term is more general"),
-        "narrowMatch" => Some("narrower match — the external term is more specific"),
-        "relatedMatch" => Some("related match — associative, not an equivalence"),
-        _ => None,
-    }
+fn approximate_match_note(model: &DocsModel, predicate: &str) -> Option<String> {
+    let key = match align_tag(predicate).as_str() {
+        "closeMatch" => "body_caveat_close",
+        "broadMatch" => "body_caveat_broad",
+        "narrowMatch" => "body_caveat_narrow",
+        "relatedMatch" => "body_caveat_related",
+        _ => return None,
+    };
+    Some(model.ui(key).to_string())
 }
 
 fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
@@ -3806,6 +3831,7 @@ mod tests {
             translations,
             ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
+            lang: String::new(),
         }
     }
 
