@@ -510,6 +510,10 @@ fn residue_gate(executor: &put_executor::LiftedReport) -> GateResult {
         .insert("claimed".to_owned(), executor.claimed as f64);
     gate.metrics
         .insert("gap_terms".to_owned(), executor.gap_terms.len() as f64);
+    gate.metrics.insert(
+        "gap_occurrences".to_owned(),
+        executor.gap_terms.values().copied().sum::<usize>() as f64,
+    );
     gate.detail
         .push("Dropped heuristic categories (loss-ledger residue):".to_owned());
     gate.detail
@@ -531,7 +535,7 @@ fn draft_gates(
     inverse_tag_map: &HashMap<String, String>,
     graph_nt: &str,
     lifted: usize,
-    gap_count: usize,
+    gap_terms: &BTreeMap<String, usize>,
 ) -> Result<(Vec<GateResult>, usize), String> {
     let draft_nt = retag_nt_to_internal(graph_nt, inverse_tag_map)?;
     let draft_store = dataset_from_nt(&draft_nt)?;
@@ -549,7 +553,7 @@ fn draft_gates(
         gate_round_trip(source_store, &output_store, tag_map)?,
         gate_size_invariant(source_store, &output_store)?,
         gate_external_validator(root, &output_store, tag_map)?,
-        gate_coverage(source_store, &output_store, lifted, gap_count)?,
+        gate_coverage(source_store, &output_store, lifted, gap_terms)?,
     ];
     Ok((gates, store_len(&output_store)?))
 }
@@ -622,7 +626,7 @@ fn run_acceptance_with(
         inverse_tag_map,
         &executor.graph_nt,
         executor.lifted,
-        executor.gap_terms.len(),
+        &executor.gap_terms,
     )?;
     // Honest loss-ledger disclosure: the heuristic categories the lawful put leg drops
     // (context-descent, reverse-minting, value-transforms, ambiguous multi-candidate
@@ -712,6 +716,20 @@ pub fn aggregate_recall_gate(results: &[FileAcceptance], floor: f64) -> GateResu
         .insert("aggregate_recall".to_owned(), aggregate);
     gate.metrics.insert("floor".to_owned(), floor);
     gate
+}
+
+/// The corpus-level structured pass/fail verdict for a completed acceptance run.
+///
+/// A corpus PASSES only when BOTH hold: every per-file hard gate passes
+/// (`results.iter().all(FileAcceptance::passed)`) AND the HARD corpus-aggregate
+/// recall floor is cleared ([`aggregate_recall_gate`] passes at `floor`). The
+/// aggregate floor is a corpus-level gate with no per-file home, so without folding
+/// it in here the structured verdict could report `passed = true` while the hard
+/// aggregate gate FAILED — an internal inconsistency (GAP 3 / #1145 finding). The
+/// CLI hard-fails on the same aggregate check, so this only strengthens the
+/// structured API to match; it never weakens an existing gate.
+pub fn corpus_passed(results: &[FileAcceptance], floor: f64) -> bool {
+    results.iter().all(FileAcceptance::passed) && aggregate_recall_gate(results, floor).passed
 }
 
 pub fn corpus_recall_pct(results: &[FileAcceptance]) -> f64 {
@@ -1621,19 +1639,38 @@ fn gate_coverage(
     source: &RdfDataset,
     output: &RdfDataset,
     lifted: usize,
-    gap_terms: usize,
+    gap_terms: &BTreeMap<String, usize>,
 ) -> Result<GateResult, String> {
     let table = vocab_coverage(output, source)?;
+    // Report BOTH honest figures, never conflate them: `gap_terms.len()` is the count
+    // of DISTINCT uncovered projection terms, while `gap_terms.values().sum()` is the
+    // TRUE total occurrence volume of those terms in the source graph (one uncovered
+    // term appearing N times contributes N). Collapsing to distinct-term count would
+    // understate real gap volume (the executor contract in `put_executor.rs`).
+    let distinct_gap_terms = gap_terms.len();
+    let gap_occurrences: usize = gap_terms.values().copied().sum();
     let mut gate = GateResult::new(
         "honest-coverage",
         true,
         false,
-        format!("{lifted} triples lifted to GMEOW, {gap_terms} gap term(s)"),
+        format!(
+            "{lifted} triples lifted to GMEOW, {distinct_gap_terms} distinct gap term(s) \
+             ({gap_occurrences} gap occurrence(s))"
+        ),
     );
     gate.metrics.insert("lifted".to_owned(), lifted as f64);
     gate.metrics
-        .insert("gap_terms".to_owned(), gap_terms as f64);
-    gate.detail = table.lines().map(str::to_owned).collect();
+        .insert("gap_terms".to_owned(), distinct_gap_terms as f64);
+    gate.metrics
+        .insert("gap_occurrences".to_owned(), gap_occurrences as f64);
+    // Per-term occurrence detail — the true volume the round-trip gate cannot recover,
+    // sorted (BTreeMap) and deterministic.
+    let mut detail: Vec<String> = gap_terms
+        .iter()
+        .map(|(term, count)| format!("gap {term}: {count} occurrence(s)"))
+        .collect();
+    detail.extend(table.lines().map(str::to_owned));
+    gate.detail = detail;
     Ok(gate)
 }
 
@@ -2171,6 +2208,62 @@ mod tests {
         let fail = aggregate_recall_gate(&results, aggregate + 1.0);
         assert!(!fail.passed, "gate must fail when the floor exceeds recall");
         assert!(fail.hard);
+    }
+
+    #[test]
+    fn honest_coverage_reports_total_gap_occurrences_not_distinct_terms() {
+        // One uncovered term occurring 20 times, plus a second occurring once: the gate
+        // must report the TRUE occurrence volume (21) as `gap_occurrences`, keep the
+        // distinct-term count (2) as `gap_terms`, and NEVER collapse 21 down to 2.
+        let empty = dataset_from_nt("").expect("empty dataset");
+        let gap_terms = BTreeMap::from([
+            ("foaf:knows".to_owned(), 20usize),
+            ("foaf:homepage".to_owned(), 1usize),
+        ]);
+        let gate = gate_coverage(&empty, &empty, 0, &gap_terms).expect("coverage gate");
+
+        assert_eq!(
+            gate.metrics.get("gap_terms").copied(),
+            Some(2.0),
+            "distinct-term count must stay 2: {gate:#?}"
+        );
+        assert_eq!(
+            gate.metrics.get("gap_occurrences").copied(),
+            Some(21.0),
+            "total occurrence volume must be 20 + 1 = 21, not the distinct-term count: {gate:#?}"
+        );
+        assert!(
+            gate.summary.contains("2 distinct gap term(s)")
+                && gate.summary.contains("21 gap occurrence(s)"),
+            "summary must disclose BOTH distinct terms and total occurrences: {}",
+            gate.summary
+        );
+    }
+
+    #[test]
+    fn corpus_passed_is_false_when_the_aggregate_gate_fails() {
+        let root = root();
+        let results = run_acceptance_corpus(&root, None).expect("corpus acceptance");
+        let aggregate = corpus_recall_pct(&results);
+
+        // At the pinned floor the corpus passes: every per-file hard gate passes AND the
+        // aggregate floor clears.
+        assert!(
+            corpus_passed(&results, ACCEPTANCE_MIN_RECALL_PCT),
+            "corpus must pass at the pinned floor (aggregate {aggregate:.2}%)"
+        );
+
+        // Forcing the floor above the measured recall makes the HARD aggregate gate fail;
+        // the structured corpus verdict MUST turn false even though every per-file hard
+        // gate still passes (the integrity bug: `all(per-file)` alone reported true).
+        assert!(
+            results.iter().all(FileAcceptance::passed),
+            "per-file hard gates all pass, so only the aggregate gate can flip the verdict"
+        );
+        assert!(
+            !corpus_passed(&results, aggregate + 1.0),
+            "corpus verdict must be false when the aggregate floor exceeds measured recall"
+        );
     }
 
     #[test]

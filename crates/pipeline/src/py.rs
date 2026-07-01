@@ -736,9 +736,13 @@ fn acceptance(py: Python<'_>, root: String, source: Option<String>) -> PyResult<
 
     let out = PyDict::new(py);
     out.set_item("markdown", markdown)?;
+    // The structured corpus verdict folds in the HARD aggregate-recall floor so it can
+    // NEVER report `passed = true` while the aggregate gate failed (GAP 3 / #1145): it is
+    // `all(per-file hard gates) AND aggregate_recall_gate.passed`. Keep the per-file
+    // `Vec<FileAcceptance>` verdicts (see `results` below) unchanged.
     out.set_item(
         "passed",
-        results.iter().all(scoreboards::FileAcceptance::passed),
+        scoreboards::corpus_passed(&results, min_recall_floor),
     )?;
     out.set_item("aggregate_recall", aggregate_recall)?;
     out.set_item("recall_pct", aggregate_recall)?;
