@@ -597,7 +597,7 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Build purrdf + gmeow-logic-compile for wasm32 (engine + bindings + compiler purity gate)
+      - name: Build purrdf + gmeow-logic-compile + the Tier-1 validator for wasm32 (engine + bindings + purity gates)
         run: make wasm
 
       # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.125) byte
@@ -607,9 +607,26 @@ jobs:
         with:
           tool: wasm-bindgen-cli@0.2.125
 
-      # ubuntu-latest ships a current Node; `make wasm-pkg-test` builds the npm
-      # package and runs the Node round-trip suite against the real wasm.
-      - name: Build the npm package + Node real-execution round-trip
+      # wasm-opt (binaryen) is a REQUIRED build step: `make wasm-pkg` / `validate-wasm-pkg`
+      # hard-fail without it. Provision a PINNED official release explicitly so the hard
+      # dependency — and the optimized artifact bytes — are reproducible, rather than
+      # relying on whatever the runner image happens to preinstall.
+      - name: Install binaryen (wasm-opt) — pinned release
+        env:
+          BINARYEN_VER: version_119
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/binaryen.tar.gz \
+            "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN_VER}/binaryen-${BINARYEN_VER}-x86_64-linux.tar.gz"
+          mkdir -p /tmp/binaryen
+          tar xzf /tmp/binaryen.tar.gz -C /tmp/binaryen --strip-components=1
+          echo "/tmp/binaryen/bin" >> "$GITHUB_PATH"
+          /tmp/binaryen/bin/wasm-opt --version
+
+      # ubuntu-latest ships a current Node; `make wasm-pkg-test` builds the purrdf +
+      # validator npm packages and runs the Node round-trip suites against the real wasm
+      # (the validator lane validates a sample dataset against the committed gmeow.gts).
+      - name: Build the npm packages + Node real-execution round-trips
         run: make wasm-pkg-test
 
   # Aggregator gate. Branch protection requires the "quality" context; this job

@@ -1,6 +1,6 @@
 {
   "https://example.org/transaction/isolation-write-skew-serializable/world": {
-    "quads": 83,
+    "quads": 87,
     "status": "consistent"
   }
 }

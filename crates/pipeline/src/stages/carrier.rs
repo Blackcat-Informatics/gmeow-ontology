@@ -116,7 +116,22 @@ pub(crate) fn serialize_carrier_snapshot(
         .get("stage-compile-logic")
         .ok_or_else(|| stage_err("missing stage-compile-logic product"))?
         .artifacts();
-    let mut blobs = build_archive_blobs(root, &schema_json, &openapi_json, &compile_artifacts)?;
+    // THIS run's compiled SSSOM surface (REP_MAPPINGS), from the stage-mappings product
+    // so the archive never lags a mapping-source edit: the committed generated/mappings/
+    // files are not flushed until phase 1 returns, so reading them from disk here would
+    // tar the STALE committed set and a mapping edit could never reach the bundle without
+    // a manual disk write. Sourced from the product exactly as schemas / axioms are.
+    let mappings_artifacts = upstream
+        .get("stage-mappings")
+        .ok_or_else(|| stage_err("missing stage-mappings product"))?
+        .artifacts();
+    let mut blobs = build_archive_blobs(
+        root,
+        &schema_json,
+        &openapi_json,
+        &compile_artifacts,
+        &mappings_artifacts,
+    )?;
     blobs.extend(build_guide_blobs(root)?);
     // The rendered docs site embeds the per-term reasoning badge, so it carries the
     // SAME native-reasoner verdict the docs-graph stage projects — derived once from
@@ -740,9 +755,25 @@ fn build_archive_blobs(
     schema_json: &[u8],
     openapi_json: &[u8],
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
+    mappings_artifacts: &BTreeMap<String, Vec<u8>>,
 ) -> Result<Vec<BlobRow>, PipelineError> {
-    // mappings + queries: member = bare filename.
-    let mappings = members_basename(&list_files(&root.join("generated/mappings"), "sssom.tsv")?)?;
+    // mappings: member = bare filename, sourced from THIS run's stage-mappings product
+    // (not re-read from disk) so a mapping-source edit folds into the bundle in one
+    // regenerate — the committed generated/mappings/*.sssom.tsv are not written until
+    // phase 1 returns, so a disk read here would tar the stale committed set.
+    let mappings =
+        members_basename_from_artifacts(mappings_artifacts, "generated/mappings/", ".sssom.tsv");
+    // Fail closed, mirroring the axioms guard below: an empty match means the
+    // stage-mappings product keyed its SSSOM under an unexpected prefix (or emitted
+    // none), which would silently fold an EMPTY mappings archive into the bundle. A
+    // missing required surface is a hard error, never a degraded fallback.
+    if mappings.is_empty() {
+        return Err(stage_err(
+            "no generated/mappings/*.sssom.tsv artifacts in the stage-mappings product — \
+             the mappings archive would fold empty (fail-closed)",
+        ));
+    }
+    // queries: member = bare filename.
     let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?)?;
     // schemas: the SHACL-derived JSON Schema + OpenAPI (#700), member = bare
     // filename, taken from the in-memory stage product so the bundle never lags the
@@ -1635,6 +1666,28 @@ fn members_basename(files: &[PathBuf]) -> Result<Vec<(String, Vec<u8>)>, Pipelin
         out.push((name, data));
     }
     Ok(out)
+}
+
+/// `(filename, bytes)` archive members sourced from a STAGE PRODUCT's in-memory
+/// artifacts (not disk): every artifact whose path is under `dir` and ends with
+/// `suffix`, keyed by bare filename, sorted. Used for the mappings archive so the
+/// bundle carries THIS run's freshly-compiled SSSOM rather than the stale committed
+/// files (which are not flushed to disk until phase 1 returns).
+fn members_basename_from_artifacts(
+    artifacts: &BTreeMap<String, Vec<u8>>,
+    dir: &str,
+    suffix: &str,
+) -> Vec<(String, Vec<u8>)> {
+    let mut out: Vec<(String, Vec<u8>)> = artifacts
+        .iter()
+        .filter(|(path, _)| path.starts_with(dir) && path.ends_with(suffix))
+        .map(|(path, bytes)| {
+            let name = path.rsplit('/').next().unwrap_or(path).to_string();
+            (name, bytes.clone())
+        })
+        .collect();
+    out.sort_by(|a, b| a.0.cmp(&b.0));
+    out
 }
 
 /// `(repo-relative-path, bytes)` members — the path under `root` (cells / tests).
@@ -2959,6 +3012,21 @@ mod ustar_tests {
             .unwrap()
     }
 
+    /// Mirror the committed `generated/mappings/*.sssom.tsv` into an artifact map
+    /// keyed by repo-relative path — the stand-in for the stage-mappings product in
+    /// blob-archive unit tests (production sources these from the in-memory product).
+    fn mappings_artifacts_from_disk(root: &Path) -> BTreeMap<String, Vec<u8>> {
+        let mut out = BTreeMap::new();
+        for p in list_files(&root.join("generated/mappings"), "sssom.tsv").unwrap_or_default() {
+            let name = p.file_name().unwrap().to_string_lossy().into_owned();
+            out.insert(
+                format!("generated/mappings/{name}"),
+                std::fs::read(&p).unwrap_or_else(|_| panic!("read {}", p.display())),
+            );
+        }
+        out
+    }
+
     #[test]
     fn build_docs_archive_packs_the_rendered_site() {
         // The archive packing is exercised with a model-only render (empty executable
@@ -3034,7 +3102,14 @@ mod ustar_tests {
                 std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
             );
         }
-        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts).expect("archive blobs");
+        let blobs = build_archive_blobs(
+            &root,
+            b"",
+            b"",
+            &axiom_artifacts,
+            &mappings_artifacts_from_disk(&root),
+        )
+        .expect("archive blobs");
         let blob = blobs
             .iter()
             .find(|b| b.rep == REP_SHAPES)
@@ -3116,7 +3191,14 @@ mod ustar_tests {
                 std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
             );
         }
-        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts).expect("archive blobs");
+        let blobs = build_archive_blobs(
+            &root,
+            b"",
+            b"",
+            &axiom_artifacts,
+            &mappings_artifacts_from_disk(&root),
+        )
+        .expect("archive blobs");
         let blob = blobs
             .iter()
             .find(|b| b.rep == REP_AXIOMS)
@@ -3140,7 +3222,14 @@ mod ustar_tests {
             assert!(!names.contains(big), "{big} must NOT be in REP_AXIOMS");
         }
         // Determinism: rebuild and assert byte-equality.
-        let again = build_archive_blobs(&root, b"", b"", &axiom_artifacts).expect("archive blobs");
+        let again = build_archive_blobs(
+            &root,
+            b"",
+            b"",
+            &axiom_artifacts,
+            &mappings_artifacts_from_disk(&root),
+        )
+        .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
         assert_eq!(
             blob.data, blob2.data,

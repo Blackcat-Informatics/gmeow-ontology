@@ -3,6 +3,5 @@
 
 % === Ground facts (axioms) ===
 type("https://example.org/transaction/protocol-level-adequate-mvcc-snapshot/GoalExpression", "https://blackcatinformatics.ca/logic/GoalExpression", "default").
-type("https://example.org/transaction/protocol-level-adequate-mvcc-snapshot/TransactionContract", "https://blackcatinformatics.ca/logic/ReasoningContract", "default").
 
 % === Rules ===

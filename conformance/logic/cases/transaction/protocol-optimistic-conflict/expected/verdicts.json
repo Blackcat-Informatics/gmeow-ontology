@@ -1,6 +1,6 @@
 {
   "https://example.org/transaction/protocol-optimistic-conflict/world": {
-    "quads": 48,
+    "quads": 50,
     "status": "consistent"
   }
 }

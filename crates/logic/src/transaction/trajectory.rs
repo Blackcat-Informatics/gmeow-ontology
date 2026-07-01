@@ -394,7 +394,7 @@ fn goal_reachability(
     // end-state support whether the run commits its effects or discards them.
     let mut counter = StepCounter::new();
     let outcome = plan_path(facts, program, start, sits, anchor, &mut counter)?;
-    if !(outcome.succeeded() && outcome.sits_end.contains(goal_situation)) {
+    if !(outcome.succeeded() && outcome.sits_end().contains(goal_situation)) {
         return Ok(Vec::new());
     }
 
