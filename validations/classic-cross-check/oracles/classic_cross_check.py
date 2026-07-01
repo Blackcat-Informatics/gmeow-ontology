@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Enforced native↔oracle divergence cross-check (issue #666, Task 4).
+"""Enforced native↔oracle divergence cross-check (Task 4).
 
 This is the FINAL, ENFORCING step of the ``classic-cross-check`` lane — the sole
 Docker/Java surface (Principle 18). It is **never** part of ``make check`` or the
@@ -22,7 +22,7 @@ What it does
    module owns only the Docker orchestration, the timing, the SARIF emission, and
    the enforcement decision.
 4. Emits the agreement matrix + per-tool timing as SARIF + JSON via the
-   ``gmeow_diagnostics`` rail (the gate taxonomy #666 owns / #662 consumes).
+   ``gmeow_diagnostics`` rail (the shared gate taxonomy).
 5. ENFORCES strict-by-default (no knob): exits NON-ZERO if ANY ``NativeOnly``,
    ``OracleOnly``, or ``DlGap`` row exists. A native gap is a coverage defect.
 
@@ -62,7 +62,7 @@ OWL_NOTHING = "http://www.w3.org/2002/07/owl#Nothing"
 #: Diagnostics-artifact stem for the enforced cross-check (JSON / SARIF / HTML).
 CROSSCHECK_STEM = "gmeow-classic-cross-check"
 
-# Gate taxonomy rule-ids (#666 owns these; #662 consumes them).
+# Gate taxonomy rule-ids (shared across the cross-check gate taxonomy).
 RULE_SUBSUMPTION_DIVERGENCE = "classic-cross-check/subsumption-divergence"
 RULE_CONSISTENCY_DIVERGENCE = "classic-cross-check/consistency-divergence"
 RULE_DL_GAP = "classic-cross-check/dl-gap"
@@ -464,7 +464,8 @@ def enforce(ledger: dict[str, Any]) -> bool:
     Rust: :func:`gmeow_logic.build_divergence_ledger` computes it and stamps the
     ledger with a ``passed`` flag (and a ``reasons`` list). This wrapper is a thin
     surface that returns that flag verbatim; it performs NO arithmetic or decision
-    of its own (Python-retirement directive #933, #697 criterion 3).
+    of its own (per the Python-retirement directive and the native-DL conformance
+    honesty criterion).
     """
     return bool(ledger["passed"])
 

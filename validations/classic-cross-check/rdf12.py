@@ -14,16 +14,16 @@ image is a hard failure
 :class:`~gmeow_tools.runner.ToolUnavailableError`): there is no degraded / skip
 mode.
 
-Oracle-only note (#667 / Principle 18)
---------------------------------------
+Oracle-only note (Principle 18)
+-------------------------------
 This Jena codec is **not** the lead writer and **not** on the normal-use primary
-path. As of #667 the **lead** RDF 1.2 producer is the native ``gmeow-rdf`` Rust
+path. The **lead** RDF 1.2 producer is the native ``gmeow-rdf`` Rust
 codec (``gmeow_rdf.project_statements_rdf12`` / ``normalize_rdf12_to_owl``, driven
 by `crates/pipeline/src/stages/statements.rs`), so ``make check`` /
 ``check-generated`` / ``regenerate`` carry **zero Java and zero Docker**. This
 module survives **only**
 as the ``classic-cross-check`` Jena oracle
-(:mod:`gmeow_tools.oracles.statements_docker_check`): it re-reads the
+(:mod:`oracles.statements_docker_check`): it re-reads the
 native-written lead artifact and proves the two engines agree by RDF 1.2 graph
 isomorphism. It is never imported on the primary path.
 """

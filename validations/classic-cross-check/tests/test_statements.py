@@ -1,7 +1,7 @@
-"""Tests for the RDF-1.2-first statement-metadata pipeline (issues #28, #29).
+"""Tests for the RDF-1.2-first statement-metadata pipeline.
 
-The statement compiler is the native Rust `stage-statements` pipeline stage
-(#935). Compiler behavior is covered in the Rust test framework; pytest only
+The statement compiler is the native Rust `stage-statements` pipeline stage.
+Compiler behavior is covered in the Rust test framework; pytest only
 keeps Python wrapper/oracle scheduling checks here. The Apache Jena oracle
 (no-drift / isomorphism cross-check) runs through a repo-local script so Make/CI
 can schedule Docker outside pytest, in the non-required `classic-cross-check`
@@ -22,12 +22,12 @@ from gmeow_tools.config import (
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
-from gmeow_tools.oracles import statements_docker_check
-from gmeow_tools.rdf12 import project_owl_to_rdf12
+from oracles import statements_docker_check
+from rdf12 import project_owl_to_rdf12
 from gmeow_tools.runner import ToolUnavailableError
 
 # --------------------------------------------------------------------------- #
-# Pure-Python: the no-preview-language gate (#28.4, #29.4)
+# Pure-Python: the no-preview-language gate
 # --------------------------------------------------------------------------- #
 
 
@@ -40,7 +40,7 @@ def test_no_preview_language_remains() -> None:
         "canonical source of truth is the owl",
     )
     targets = [
-        PROJECT_ROOT / "src/gmeow_tools/rdf12.py",
+        PROJECT_ROOT / "validations/classic-cross-check/rdf12.py",
         PROJECT_ROOT / "queries/codecs/rdf12-project.rq",
         PROJECT_ROOT / "queries/codecs/rdf12-to-owl.rq",
         PROJECT_ROOT / "README.md",
@@ -58,14 +58,14 @@ def test_no_preview_language_remains() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Native lead codec: the RDF 1.2 writer runs with no Jena / no Docker (#667)
+# Native lead codec: the RDF 1.2 writer runs with no Jena / no Docker
 # --------------------------------------------------------------------------- #
 
 
 def test_native_statement_codec_round_trips_without_jena() -> None:
     """The native gmeow-rdf lead codec projects + normalizes losslessly, no Docker.
 
-    Proves the inversion (#667): the committed OWL downcast projects to the RDF 1.2
+    Proves the inversion: the committed OWL downcast projects to the RDF 1.2
     triple-term lead form and normalizes back isomorphic to the authored OWL — all
     via the native Rust codec, with neither Apache Jena nor Docker on the path.
     """
@@ -81,7 +81,7 @@ def test_native_statement_codec_round_trips_without_jena() -> None:
 
 # --------------------------------------------------------------------------- #
 # The Jena ORACLE codec stays hard-fail (no degraded mode) — classic-cross-check
-# only. After #667 this is the cross-check engine, not the lead writer.
+# only. This is the cross-check engine, not the lead writer.
 # --------------------------------------------------------------------------- #
 
 
