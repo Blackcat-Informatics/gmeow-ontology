@@ -9,8 +9,8 @@ use crate::clif::{parse_clif_str, project_clif};
 use crate::frontend::parse_logic_str;
 use crate::ir::{
     ContextualScope, Correspondence, CorrespondenceRelation, Formula, LegPath, LogicAxiom,
-    LogicProgram, LogicRule, MorphismClass, MorphismKind, PathBase, PathShapeIr, ReasoningContract,
-    SemanticProfileId, Term, TransactionProgramIr,
+    LogicModality, LogicProgram, LogicRule, MorphismClass, MorphismKind, PathBase, PathShapeIr,
+    ReasoningContract, SemanticProfileId, Term, TransactionProgramIr,
 };
 
 // The real `logic:` namespace (see `crate::ir::LOGIC_NAMESPACE`); a meta-channel triple
@@ -346,6 +346,148 @@ fn path_shape_round_trips_with_typed_integer_depths() {
     // Idempotent at the fixpoint.
     let clif2 = project_clif(&fp).expect("project_clif").content;
     assert_eq!(clif1, clif2, "path-shape CLIF emission is not idempotent");
+}
+
+#[test]
+fn cl_modules_and_importation_round_trip_at_fixpoint() {
+    // CL modules + importation + per-statement module membership survive CLIF at Exact.
+    // Module objects (`rdf:type logic:Module`) and the import graph (`logic:imports`) ride the
+    // axiom channel; per-statement membership rides the reifier-scope carrier (`logic:inModule`),
+    // exactly like `logic:standpoint`. Compared at the canonical FIXPOINT (the Exact reference:
+    // the frontend's flat extraction of a scoped reifier is idempotent but not identity on the
+    // raw program), mirroring `production_module_round_trip_is_isomorphic`.
+    // Module names are arbitrary IRIs (a CL module IRI is not `logic:`-namespaced — that
+    // namespace is the ontology's own vocabulary, whose type declarations the frontend skips).
+    let m1 = "https://example.org/module/geometry".to_owned();
+    let m2 = "https://example.org/module/algebra".to_owned();
+    let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+    let m1_is_module = LogicAxiom::ground(m1.clone(), rdf_type, iri("Module"), false).unwrap();
+    let m2_is_module = LogicAxiom::ground(m2.clone(), rdf_type, iri("Module"), false).unwrap();
+    let imports = LogicAxiom::ground(m1.clone(), iri("imports"), m2.clone(), false).unwrap();
+
+    let scope = ContextualScope::new(
+        None,
+        None,
+        None,
+        LogicModality::None,
+        None,
+        Some(m1.clone()),
+    )
+    .unwrap();
+    let scoped = LogicAxiom::new(
+        iri("point"),
+        iri("liesOn"),
+        iri("line"),
+        false,
+        false,
+        scope,
+    )
+    .unwrap();
+
+    let orig = LogicProgram::new(
+        vec![m1_is_module, m2_is_module, imports, scoped],
+        Vec::new(),
+        Vec::new(),
+        Some("urn:test:modules".to_owned()),
+    );
+    let src = Some("urn:test:modules".to_owned());
+
+    // Reach the canonical fixpoint.
+    let (fp, _d0) = parse_clif_str(
+        &project_clif(&orig).expect("project #0").content,
+        src.clone(),
+    )
+    .expect("parse #0");
+
+    // Module objects + the import edge survive (they ride the ordinary axiom channel).
+    assert!(
+        fp.axioms
+            .iter()
+            .any(|a| a.subject == m1 && a.predicate == iri("imports") && a.obj == m2),
+        "module import edge lost:\n{:#?}",
+        fp.axioms
+    );
+    assert!(
+        fp.axioms
+            .iter()
+            .any(|a| a.subject == m1 && a.predicate == rdf_type && a.obj == iri("Module")),
+        "logic:Module type declaration lost"
+    );
+    // Per-statement module membership survives on the scoped statement.
+    assert!(
+        fp.axioms
+            .iter()
+            .any(|a| a.predicate == iri("liesOn") && a.scope.module.as_deref() == Some(m1.as_str())),
+        "logic:inModule membership lost:\n{:#?}",
+        fp.axioms
+    );
+
+    // Idempotent + isomorphic at the fixpoint.
+    let clif1 = project_clif(&fp).expect("project #1").content;
+    let (fp2, _d) = parse_clif_str(&clif1, src).expect("parse #1");
+    let clif2 = project_clif(&fp2).expect("project #2").content;
+    assert_eq!(
+        clif1, clif2,
+        "module CLIF emission is not idempotent at the fixpoint"
+    );
+    assert_ir_isomorphic(&fp, &fp2)
+        .unwrap_or_else(|e| panic!("module round-trip not isomorphic: {e}"));
+}
+
+#[test]
+fn hilog_relation_as_individual_round_trips() {
+    // HiLog reflection: a relation is simultaneously an individual. `related` is used BOTH as an
+    // atom predicate (a related b) AND as the subject of a typing (logic:instanceOf logic:Type,
+    // logic:orderedType) — reusing logic:instanceOf / logic:orderedType / logic:Type, minting no
+    // new terms (P5/P17). Both readings must round-trip through CLIF.
+    let related = iri("related");
+    let ax_pred = LogicAxiom::ground(iri("a"), related.clone(), iri("b"), false).unwrap();
+    let ax_instanceof =
+        LogicAxiom::ground(related.clone(), iri("instanceOf"), iri("Type"), false).unwrap();
+    let ax_ordered = LogicAxiom::ground(
+        related.clone(),
+        iri("orderedType"),
+        iri("BinaryRelation"),
+        false,
+    )
+    .unwrap();
+
+    let orig = LogicProgram::new(
+        vec![ax_pred, ax_instanceof, ax_ordered],
+        Vec::new(),
+        Vec::new(),
+        Some("urn:test:hilog".to_owned()),
+    );
+    let src = Some("urn:test:hilog".to_owned());
+    let clif1 = project_clif(&orig).expect("project #1").content;
+    let (fp, _d) = parse_clif_str(&clif1, src.clone()).expect("parse");
+
+    // The relation survives BOTH as a predicate and as a typed individual.
+    assert!(
+        fp.axioms
+            .iter()
+            .any(|a| a.predicate == related && a.subject == iri("a") && a.obj == iri("b")),
+        "relation-as-predicate reading lost:\n{:#?}",
+        fp.axioms
+    );
+    assert!(
+        fp.axioms.iter().any(|a| a.subject == related
+            && a.predicate == iri("instanceOf")
+            && a.obj == iri("Type")),
+        "relation-as-individual (instanceOf Type) reading lost:\n{:#?}",
+        fp.axioms
+    );
+    assert!(
+        fp.axioms
+            .iter()
+            .any(|a| a.subject == related && a.predicate == iri("orderedType")),
+        "orderedType typing lost"
+    );
+
+    // Idempotent.
+    let clif2 = project_clif(&fp).expect("project #2").content;
+    assert_eq!(clif1, clif2, "HiLog CLIF emission is not idempotent");
 }
 
 #[test]

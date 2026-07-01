@@ -181,10 +181,13 @@ fn scope_from_node(
 
     let modality = modality_from_term(value(store, node, &nn(&logic_iri("modality"))).as_ref());
     let provenance = value(store, node, &nn(&logic_iri("provenance"))).map(|t| term_str(&t));
+    // `logic:inModule` — the Common Logic module (theory context) this statement is in.
+    let module = value(store, node, &nn(&logic_iri("inModule"))).map(|t| term_str(&t));
 
     // `ContextualScope::new` only fails on out-of-range confidence, which we have
     // already filtered to `None` above, so this never errors.
-    ContextualScope::new(standpoint, time, confidence, modality, provenance).unwrap_or_default()
+    ContextualScope::new(standpoint, time, confidence, modality, provenance, module)
+        .unwrap_or_default()
 }
 
 // --------------------------------------------------------------------------- //
@@ -1405,13 +1408,14 @@ fn content_dedup_key(ax: &LogicAxiom) -> String {
         })
         .unwrap_or_default();
     format!(
-        "{}\u{0}{}\u{0}{}\u{0}{}\u{0}{}\u{0}{}",
+        "{}\u{0}{}\u{0}{}\u{0}{}\u{0}{}\u{0}{}\u{0}{}",
         ax.sort_key(),
         ax.scope.standpoint.as_deref().unwrap_or(""),
         ax.scope.time.as_deref().unwrap_or(""),
         conf,
         ax.scope.modality.as_str(),
         ax.scope.provenance.as_deref().unwrap_or(""),
+        ax.scope.module.as_deref().unwrap_or(""),
     )
 }
 

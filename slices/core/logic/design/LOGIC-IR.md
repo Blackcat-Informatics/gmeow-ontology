@@ -118,6 +118,16 @@ Each is a declared property of the IR, never an unstated convention:
   chains stay coherent.
 - **Stratification of any truth or `holds` predicate** — a predicate that reflects truth of other
   statements is stratified so the IR cannot encode a self-referential paradox by accident.
+- **Module (theory) membership, orthogonal to world/standpoint** — which named theory a statement
+  belongs to is an explicit contextual-scope dimension (`logic:Module`, carried per statement by
+  `logic:inModule`, composed by `logic:imports`), distinct from the epistemic world/standpoint
+  dimension. A module says *where* a sentence lives; a world/standpoint says *under whose
+  perspective* it holds. Conflating the two is a category error, so they are separate axes of the
+  same multi-dimensional context facet (`logic:ModuleContextAxis` alongside the world, standpoint,
+  time, and path axes), never one slot. This is the construct the ingested and emitted Common Logic
+  dialects (CLIF, CGIF, XCL) map their `(module …)` / `(cl-imports …)` forms onto; because it rides
+  the ordinary reifier-scope carrier, it round-trips through the canonical RDF 1.2 serialization
+  (and thus every faithful dialect) at `exact` preservation.
 
 ## Lowering and the preservation judgment
 
