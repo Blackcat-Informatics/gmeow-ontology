@@ -1501,10 +1501,30 @@ mod tests {
 
     #[test]
     fn saturate_is_deterministic() {
-        // Two runs over the same A-Box derive identical rows, including reifiers.
-        let run_a = saturate_nt(&person_abox(), &person_onto(), &person_cells(), &[]).unwrap();
-        let run_b = saturate_nt(&person_abox(), &person_onto(), &person_cells(), &[]).unwrap();
+        // Two runs over a RICH A-Box — multiple subjects, class + property +
+        // sameAs edges, and a literal-bearing triple — derive byte-identical
+        // rows, including the content-addressed reifiers. Ordering/reifier
+        // nondeterminism only surfaces with many mixed rows, not the 2-row
+        // single-subject case.
+        let mut onto = person_onto();
+        onto.push_str(&knows_onto());
+        let mut cells = person_cells();
+        cells.extend(knows_cells());
+        let mut abox = String::new();
+        abox.push_str(&nt(EX_ME, RDF_TYPE, GM_PERSON));
+        abox.push_str(&nt(EX_CONTROL, RDF_TYPE, GM_PERSON));
+        abox.push_str(&nt(EX_A, GM_KNOWS, EX_B));
+        abox.push_str(&nt(EX_C, GM_KNOWS, EX_D));
+        abox.push_str(&nt(EX_ME, OWL_SAME_AS, WD_Q42));
+        abox.push_str(&format!("<{EX_ME}> <{GM}fullName> \"Ada\" .\n"));
+
+        let run_a = saturate_nt(&abox, &onto, &cells, &[]).unwrap();
+        let run_b = saturate_nt(&abox, &onto, &cells, &[]).unwrap();
         assert_eq!(run_a, run_b);
-        assert_eq!(run_a.len(), 2, "expected both strong edges (non-vacuous)");
+        assert_eq!(
+            run_a.len(),
+            7,
+            "2 Person subjects × 2 class edges + 2 property mirrors + 1 sameAs mirror: {run_a:?}"
+        );
     }
 }
