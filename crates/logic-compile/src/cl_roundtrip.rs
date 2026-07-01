@@ -36,8 +36,9 @@ use crate::xcl::{parse_xcl_str, project_xcl};
 /// each other's *serializers* byte-for-byte, but their reconstructed IR must agree — so the
 /// cross-dialect leg asserts `fp_clif ≡ fp_cgif ≡ fp_xcl` via **all three explicit edges**
 /// (`assert_ir_isomorphic` is a *directional* differ, so the third edge is checked outright
-/// rather than inferred by transitivity). This is the C6 acceptance: "IR → dialect → IR
-/// isomorphic" and "CLIF ≡ CGIF ≡ XCL for one IR (all three parse to the same program)".
+/// rather than inferred by transitivity). This is the CL round-trip acceptance: "IR →
+/// dialect → IR isomorphic" and "CLIF ≡ CGIF ≡ XCL for one IR (all three parse to the same
+/// program)".
 ///
 /// # Errors
 /// Returns a human-readable, dialect-prefixed error on a projection failure, a fatal
@@ -47,7 +48,8 @@ pub fn assert_all_dialects_isomorphic(program: &LogicProgram) -> Result<(), Stri
     let [clif, cgif, xcl] = dialect_fixpoints(program)?;
 
     // Cross-dialect equivalence — all three edges explicit (do NOT lean on transitivity
-    // of a directional differ). This is the C6 "CLIF ≡ CGIF ≡ XCL for one IR" acceptance.
+    // of a directional differ). This is the "CLIF ≡ CGIF ≡ XCL for one IR" cross-dialect
+    // acceptance.
     cross_edge(clif.0, &clif.1, cgif.0, &cgif.1)?;
     cross_edge(cgif.0, &cgif.1, xcl.0, &xcl.1)?;
     cross_edge(clif.0, &clif.1, xcl.0, &xcl.1)?;
