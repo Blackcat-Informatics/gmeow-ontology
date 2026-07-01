@@ -103,14 +103,19 @@ pub fn to_diagnostics_report(report: &RepoStaticReport) -> Report {
     let mut out = Report::new(TOOL);
     for message in &report.errors {
         out.add_finding(
-            Finding::new(Severity::Error, "repo-static.violation", message.clone()).with_tool(TOOL),
+            Finding::new(
+                Severity::Error,
+                crate::codes::REPO_STATIC_VIOLATION,
+                message.clone(),
+            )
+            .with_tool(TOOL),
         );
     }
     for message in &report.warnings {
         out.add_finding(
             Finding::new(
                 Severity::Warning,
-                "repo-static.observation",
+                crate::codes::REPO_STATIC_OBSERVATION,
                 message.clone(),
             )
             .with_tool(TOOL),

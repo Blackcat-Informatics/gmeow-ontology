@@ -316,15 +316,19 @@ pub fn to_diagnostics_report(report: &CrateLayeringReport) -> Report {
     let mut out = Report::new(TOOL);
     for message in &report.errors {
         out.add_finding(
-            Finding::new(Severity::Error, "crate-layering.violation", message.clone())
-                .with_tool(TOOL),
+            Finding::new(
+                Severity::Error,
+                crate::codes::CRATE_LAYERING_VIOLATION,
+                message.clone(),
+            )
+            .with_tool(TOOL),
         );
     }
     for message in &report.warnings {
         out.add_finding(
             Finding::new(
                 Severity::Warning,
-                "crate-layering.observation",
+                crate::codes::CRATE_LAYERING_OBSERVATION,
                 message.clone(),
             )
             .with_tool(TOOL),

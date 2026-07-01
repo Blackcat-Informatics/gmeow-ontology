@@ -24,6 +24,7 @@
 pub mod advisory;
 pub mod box_roles;
 pub mod cache;
+pub mod codes;
 pub mod constitution;
 pub mod coverage;
 pub mod crate_layering;
