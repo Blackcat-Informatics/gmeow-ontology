@@ -466,10 +466,14 @@ gmeow:stage-snapshot
         gmeow:stage-compile-logic ,
         gmeow:stage-conformance ,
         gmeow:stage-docs-render ,
+        gmeow:stage-export-evals ,
         gmeow:stage-export-json-schema ,
+        gmeow:stage-export-profiles ,
+        gmeow:stage-export-research-objects ,
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
+        gmeow:stage-source-load ,
         gmeow:stage-statements ,
         gmeow:stage-validate .
 
@@ -697,7 +701,7 @@ gmeow:stage-gts-sink
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "gts sink"@x-gmeow-english ;
-    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate)."@x-gmeow-english ;
+    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, apache config, matrix, eval/research-object sidecars, metadata void/dcat) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -705,7 +709,15 @@ gmeow:stage-gts-sink
     gmeow:hasCapability gmeow:sinkCapability ;
     gmeow:dataflowConsumes
         gmeow:stage-snapshot ,
+        gmeow:stage-source-load ,
+        gmeow:stage-export-apache ,
+        gmeow:stage-export-bench ,
+        gmeow:stage-export-evals ,
         gmeow:stage-export-json-schema ,
+        gmeow:stage-export-matrix ,
+        gmeow:stage-export-metadata ,
+        gmeow:stage-export-references ,
+        gmeow:stage-export-research-objects ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,

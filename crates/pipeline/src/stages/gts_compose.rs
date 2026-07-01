@@ -58,13 +58,6 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, 
         });
     }
 
-    // Collect the contributing datasets in a stable id order. The base graph leads;
-    // the statement layer, mappings, and reason closure fold in. `RdfDataset::union`
-    // is order-independent (it canonicalizes on freeze) — the order here is purely
-    // for deterministic accumulation.
-    let mut datasets: Vec<Arc<gmeow_rdf::PipelineBundle<crate::bundle::PipelineHandle>>> =
-        vec![base];
-
     // The RDF 1.2 statement layer — REQUIRED and non-empty. A declared upstream of
     // this stage; its absence is a HARD failure, never a silent skip that would
     // compose a statement-layer-less dataset (no-optionality).
@@ -84,25 +77,25 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, 
                 .to_string(),
         });
     }
-    datasets.push(statements);
 
-    // Mappings + reasoned closure fold in via their carried datasets. Each looped
-    // contributor's DEFAULT graph is its ontology contribution (the mappings axioms /
-    // the reasoned closure); the reason product ALSO carries a named `graph/reasoning`
-    // graph (the typed-handle's backing projection, #1132 C7) that is NOT an ontology
-    // fact, so the union takes the DEFAULT graph only — keeping the composed dataset
-    // exactly the base ∪ statements ∪ mappings ∪ closure it was, and excluding the
-    // reasoning projection by construction (the same discipline that keeps the
-    // explanations/ledger reports out: they ride the byte/handle lanes, not the union).
+    // Only the statement layer rides WHOLE (its RDF-1.2 reifier/annotation side-tables
+    // are standpoint-scoped, not graph-scoped, so they must survive the fold). EVERY
+    // other contributor — including the base graph — folds its DEFAULT graph only, so a
+    // producer that ALSO carries named sidecar graphs contributes only its ontology
+    // default graph to the composed EDB: `source_load` carries its self-description
+    // named graphs (imports/metadata/verify/…), `reason` carries `graph/reasoning`, and
+    // neither pollutes the composed base ∪ statements ∪ mappings ∪ closure. Taking the
+    // default graph of `source_load` is byte-identical to taking its whole dataset while
+    // it carries only a default graph, so this fold is unchanged for the current tree.
     let mut looped_defaults: Vec<Arc<RdfDataset>> = Vec::new();
     for (id, product) in upstream {
-        if id == "stage-source-load" || id == "stage-statements" {
+        if id == "stage-statements" {
             continue;
         }
         looped_defaults.push(default_graph_only(product.bundle().dataset())?);
     }
 
-    let mut refs: Vec<&RdfDataset> = datasets.iter().map(|b| b.dataset()).collect();
+    let mut refs: Vec<&RdfDataset> = vec![statements.dataset()];
     refs.extend(looped_defaults.iter().map(|d| d.as_ref()));
     Ok(RdfDataset::union(&refs))
 }

@@ -106,6 +106,18 @@ fn spine() -> PipelineSpec {
             // The external-corpus divergence grader the snapshot folds into
             // graph/conformance; a source-reading Transform that consumes nothing.
             spec("stage-conformance", "conformance", &[]),
+            // The fanout-member producers: the snapshot reads the profiles / evals /
+            // research-object RDF graphs off these products, and the sink reads their
+            // opaque members + references / bench / apache / matrix / metadata off theirs
+            // (the render runs once, in the leaf — never re-rendered in the terminal).
+            spec("stage-export-profiles", "profiles", &[]),
+            spec("stage-export-evals", "evals", &[]),
+            spec("stage-export-research-objects", "research-objects", &[]),
+            spec("stage-export-references", "references", &[]),
+            spec("stage-export-bench", "bench", &[]),
+            spec("stage-export-apache", "apache", &[]),
+            spec("stage-export-matrix", "matrix", &[]),
+            spec("stage-export-metadata", "metadata", &["stage-snapshot"]),
             spec(
                 "stage-snapshot",
                 "snapshot",
@@ -113,10 +125,14 @@ fn spine() -> PipelineSpec {
                     "stage-compile-logic",
                     "stage-conformance",
                     "stage-docs-render",
+                    "stage-export-evals",
                     "stage-export-json-schema",
+                    "stage-export-profiles",
+                    "stage-export-research-objects",
                     "stage-gts-compose",
                     "stage-mappings",
                     "stage-reason",
+                    "stage-source-load",
                     "stage-statements",
                     "stage-validate",
                 ],
@@ -126,10 +142,18 @@ fn spine() -> PipelineSpec {
                 "gts_sink",
                 &[
                     "stage-compile-logic",
+                    "stage-export-apache",
+                    "stage-export-bench",
+                    "stage-export-evals",
                     "stage-export-json-schema",
+                    "stage-export-matrix",
+                    "stage-export-metadata",
+                    "stage-export-references",
+                    "stage-export-research-objects",
                     "stage-mappings",
                     "stage-reason",
                     "stage-snapshot",
+                    "stage-source-load",
                     "stage-statements",
                     "stage-validate",
                 ],
