@@ -1066,6 +1066,17 @@ fn build_fanout_opaque_blob(
         .ok_or_else(|| stage_err("missing generated/cl/gmeow.clif in stage-compile-logic"))?;
     members.insert(crate::stages::compile_logic::CLIF_PATH.to_string(), clif);
 
+    // CGIF (the conceptual-graph dialect) rides in from the same sink-consumed
+    // stage-compile-logic product. It is a non-RDF text projection whose committed form carries
+    // generated `/* … */` comments and section markers, so it cannot reconstruct from a
+    // canonical named-graph fold; it is carried here as a committed byte projection.
+    let cgif = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::CGIF_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing generated/cl/gmeow.cgif in stage-compile-logic"))?;
+    members.insert(crate::stages::compile_logic::CGIF_PATH.to_string(), cgif);
+
     // The SHACL-AF rule (computation) surface rides in from the same sink-consumed
     // compile-logic product (byte-decorated Turtle with a GENERATED banner — not a plain
     // canonical fold), as a committed byte projection.
