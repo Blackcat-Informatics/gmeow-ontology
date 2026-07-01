@@ -20,7 +20,6 @@ use gmeow_diagnostics::py::PyReport;
 use crate::run::{run_full, RunMode};
 use crate::scoreboards;
 use crate::transform::{self, CellInput, DerivedRowNative, TransformReportNative};
-use crate::up_projection::{self, LiftMap, UpProjectionReport};
 
 /// Run the full dogfooded build single-pass.
 ///
@@ -485,7 +484,7 @@ fn up_projection_classify_sssom(
     predicate_id: String,
     object_id: String,
 ) -> PyResult<(String, String, String)> {
-    let class = up_projection::classify_sssom(&subject_id, &predicate_id, &object_id);
+    let class = crate::up_projection_corpus::classify_sssom(&subject_id, &predicate_id, &object_id);
     Ok((class.bucket, class.gmeow, class.target))
 }
 
@@ -497,47 +496,52 @@ fn up_projection_combined_class(
     sssom: std::collections::BTreeMap<String, String>,
     structural: std::collections::BTreeMap<String, String>,
 ) -> PyResult<String> {
-    Ok(up_projection::combined_class(&term, &sssom, &structural))
+    Ok(crate::up_projection_corpus::combined_class(
+        &term,
+        &sssom,
+        &structural,
+    ))
 }
 
-/// Build the native lift map from serialized SSSOM, projection TTL, and ontology NT.
+/// Execute every lawful put leg over the source N-Triples, lifting external-vocabulary
+/// triples up to GMEOW through the native SPARQL `CONSTRUCT` executor.
+///
+/// Returns a dict `{graph_nt, lifted, claimed, gap_terms, residue}`: `graph_nt` is the
+/// lifted GMEOW graph as N-Triples bytes; `lifted`/`claimed` count lawful facts and
+/// reified claim cells; `gap_terms` is a `dict[str, int]` mapping each projection-namespace
+/// source term with no lawful rule to its TRUE occurrence count in the source graph (never
+/// a fabricated constant); `residue` is the honest loss-ledger for the dropped heuristic
+/// categories.
 #[pyfunction]
-#[pyo3(signature = (sssom_texts, projection_ttls, ontology_nt))]
-fn up_projection_build_lift_map(
-    py: Python<'_>,
-    sssom_texts: Vec<String>,
-    projection_ttls: Vec<String>,
-    ontology_nt: String,
-) -> PyResult<Py<PyAny>> {
-    let lift = py
-        .detach(move || up_projection::build_lift_map(&sssom_texts, &projection_ttls, &ontology_nt))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
-    lift_map_to_py(py, &lift)
-}
-
-/// Up-project N-Triples through the native Rust kernel.
-#[pyfunction]
-#[pyo3(signature = (source_nt, sssom_texts, projection_ttls, ontology_nt, descend = false))]
-fn up_projection_project_nt(
+#[pyo3(signature = (source_nt, sssom_texts, projection_ttls, ontology_nt))]
+fn execute_put_legs(
     py: Python<'_>,
     source_nt: String,
     sssom_texts: Vec<String>,
     projection_ttls: Vec<String>,
     ontology_nt: String,
-    descend: bool,
 ) -> PyResult<Py<PyAny>> {
     let report = py
         .detach(move || {
-            up_projection::up_project_nt(
+            crate::put_executor::execute_put_legs(
                 &source_nt,
                 &sssom_texts,
                 &projection_ttls,
                 &ontology_nt,
-                descend,
             )
         })
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-    up_projection_report_to_py(py, &report)
+    let out = PyDict::new(py);
+    out.set_item("graph_nt", PyBytes::new(py, report.graph_nt.as_bytes()))?;
+    out.set_item("lifted", report.lifted)?;
+    out.set_item("claimed", report.claimed)?;
+    let gap_terms = PyDict::new(py);
+    for (term, count) in &report.gap_terms {
+        gap_terms.set_item(term, count)?;
+    }
+    out.set_item("gap_terms", gap_terms)?;
+    out.set_item("residue", PyList::new(py, report.residue.iter())?)?;
+    Ok(out.into_any().unbind())
 }
 
 /// Run the gate-derived up-projection invertibility audit over the corpus and render the
@@ -556,7 +560,7 @@ fn up_projection_gate_audit(
         .detach(move || {
             let mut corpus_nts = Vec::with_capacity(corpus_ttls.len());
             for (name, ttl) in &corpus_ttls {
-                let nt = up_projection::ttl_to_nt(ttl)
+                let nt = crate::up_projection_corpus::ttl_to_nt(ttl)
                     .map_err(|e| format!("corpus {name} ttl→nt: {e}"))?;
                 corpus_nts.push((name.clone(), nt));
             }
@@ -570,50 +574,6 @@ fn up_projection_gate_audit(
         })
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
     audit_ledger_to_py(py, &ledger, &markdown)
-}
-
-/// Resolve one context-aware up-projection candidate through the native descent index.
-#[pyfunction]
-#[pyo3(signature = (predicate, subject_types, sssom_texts, projection_ttls, ontology_nt))]
-fn up_projection_resolve_context(
-    py: Python<'_>,
-    predicate: String,
-    subject_types: Vec<String>,
-    sssom_texts: Vec<String>,
-    projection_ttls: Vec<String>,
-    ontology_nt: String,
-) -> PyResult<Py<PyAny>> {
-    let subject_types: std::collections::BTreeSet<String> = subject_types.into_iter().collect();
-    let resolved = py
-        .detach(move || {
-            up_projection::resolve_context_candidate(
-                &predicate,
-                &subject_types,
-                &sssom_texts,
-                &projection_ttls,
-                &ontology_nt,
-            )
-        })
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
-    let Some((gmeow, context_type, relation, confidence)) = resolved else {
-        return Ok(py.None());
-    };
-    let out = PyDict::new(py);
-    out.set_item("gmeow", gmeow)?;
-    out.set_item("context_type", context_type)?;
-    out.set_item("relation", relation)?;
-    out.set_item("confidence", confidence)?;
-    Ok(out.into_any().unbind())
-}
-
-/// Run only the hand-authored/native reverse-projection minting layer.
-#[pyfunction]
-#[pyo3(signature = (source_nt))]
-fn up_projection_reverse_nt(py: Python<'_>, source_nt: String) -> PyResult<Py<PyAny>> {
-    let graph_nt = py
-        .detach(move || up_projection::reverse_nt(&source_nt))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
-    Ok(PyBytes::new(py, graph_nt.as_bytes()).into_any().unbind())
 }
 
 /// Deterministically skolemize an N-Triples graph through the native transform core.
@@ -757,31 +717,38 @@ fn claim_audit_diagnostics_report(
 
 /// Run the native real-data acceptance scoreboard.
 #[pyfunction]
-#[pyo3(signature = (root, source = None, descend = true))]
-fn acceptance(
-    py: Python<'_>,
-    root: String,
-    source: Option<String>,
-    descend: bool,
-) -> PyResult<Py<PyAny>> {
+#[pyo3(signature = (root, source = None))]
+fn acceptance(py: Python<'_>, root: String, source: Option<String>) -> PyResult<Py<PyAny>> {
     let source_path = source.map(std::path::PathBuf::from);
     let results = py
         .detach(move || {
-            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref(), descend)
+            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref())
         })
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
     let markdown = scoreboards::render_acceptance_report(&results);
     let diagnostics = scoreboards::acceptance_diagnostics(&results);
     let aggregate_recall = scoreboards::corpus_recall_pct(&results);
+    // The HARD corpus-aggregate recall floor is owned in Rust (single source of truth,
+    // GAP 3 / #1145). Surface both the floor and the verdict so the Python CLI defaults
+    // its `--min-recall` to the native figure and hard-fails on the native verdict.
+    let min_recall_floor = scoreboards::ACCEPTANCE_MIN_RECALL_PCT;
+    let aggregate_gate = scoreboards::aggregate_recall_gate(&results, min_recall_floor);
 
     let out = PyDict::new(py);
     out.set_item("markdown", markdown)?;
+    // The structured corpus verdict folds in the HARD aggregate-recall floor so it can
+    // NEVER report `passed = true` while the aggregate gate failed (GAP 3 / #1145): it is
+    // `all(per-file hard gates) AND aggregate_recall_gate.passed`. Keep the per-file
+    // `Vec<FileAcceptance>` verdicts (see `results` below) unchanged.
     out.set_item(
         "passed",
-        results.iter().all(scoreboards::FileAcceptance::passed),
+        scoreboards::corpus_passed(&results, min_recall_floor),
     )?;
     out.set_item("aggregate_recall", aggregate_recall)?;
     out.set_item("recall_pct", aggregate_recall)?;
+    out.set_item("min_recall_floor", min_recall_floor)?;
+    out.set_item("aggregate_gate_passed", aggregate_gate.passed)?;
+    out.set_item("aggregate_gate_summary", &aggregate_gate.summary)?;
     out.set_item("results", file_acceptance_results_to_py(py, &results)?)?;
     out.set_item("report", Py::new(py, PyReport::from_engine(diagnostics))?)?;
     Ok(out.into_any().unbind())
@@ -789,17 +756,16 @@ fn acceptance(
 
 /// Run the native acceptance scoreboard and return only diagnostics.
 #[pyfunction]
-#[pyo3(signature = (root, source = None, descend = true))]
+#[pyo3(signature = (root, source = None))]
 fn acceptance_diagnostics_report(
     py: Python<'_>,
     root: String,
     source: Option<String>,
-    descend: bool,
 ) -> PyResult<Py<PyAny>> {
     let source_path = source.map(std::path::PathBuf::from);
     let results = py
         .detach(move || {
-            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref(), descend)
+            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref())
         })
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
     Ok(Py::new(
@@ -841,49 +807,6 @@ fn file_acceptance_results_to_py(
     Ok(out.into_any().unbind())
 }
 
-fn lift_map_to_py(py: Python<'_>, lift: &LiftMap) -> PyResult<Py<PyAny>> {
-    let out = PyDict::new(py);
-    out.set_item("rules", string_map(py, &lift.rules)?)?;
-    out.set_item("ambiguous", string_set_map(py, &lift.ambiguous)?)?;
-    out.set_item("inverse_rules", string_map(py, &lift.inverse_rules)?)?;
-    out.set_item("claim_rules", tuple_map(py, &lift.claim_rules)?)?;
-    out.set_item(
-        "object_properties",
-        PyList::new(py, lift.object_properties.iter())?,
-    )?;
-
-    let value_rules = PyList::empty(py);
-    for ((source_predicate, source_value), (gmeow_predicate, gmeow_value)) in &lift.value_rules {
-        let row = PyDict::new(py);
-        row.set_item("source_predicate", source_predicate)?;
-        row.set_item("source_value", source_value)?;
-        row.set_item("gmeow_predicate", gmeow_predicate)?;
-        row.set_item("gmeow_value", gmeow_value)?;
-        value_rules.append(row)?;
-    }
-    out.set_item("value_rules", value_rules)?;
-    Ok(out.into_any().unbind())
-}
-
-fn up_projection_report_to_py(py: Python<'_>, report: &UpProjectionReport) -> PyResult<Py<PyAny>> {
-    let out = PyDict::new(py);
-    out.set_item("graph_nt", &report.graph_nt)?;
-    out.set_item("lifted", report.lifted)?;
-    out.set_item("claimed", report.claimed)?;
-    out.set_item("gap_terms", usize_map(py, &report.gap_terms)?)?;
-    out.set_item("ambiguous_terms", usize_map(py, &report.ambiguous_terms)?)?;
-    out.set_item("claim_terms", usize_map(py, &report.claim_terms)?)?;
-    out.set_item("context_resolved", report.context_resolved)?;
-    out.set_item("context_terms", usize_map(py, &report.context_terms)?)?;
-    out.set_item("tag_resolved", report.tag_resolved)?;
-    out.set_item(
-        "tag_resolved_terms",
-        usize_map(py, &report.tag_resolved_terms)?,
-    )?;
-    out.set_item("minted", report.minted)?;
-    Ok(out.into_any().unbind())
-}
-
 fn audit_ledger_to_py(
     py: Python<'_>,
     ledger: &crate::up_projection_gates::AuditLedger,
@@ -915,50 +838,6 @@ fn audit_ledger_to_py(
     out.set_item("unsupported", ledger.totals.unsupported)?;
     out.set_item("liftable", ledger.liftable())?;
     out.set_item("total", ledger.total())?;
-    Ok(out.into_any().unbind())
-}
-
-fn string_map(
-    py: Python<'_>,
-    map: &std::collections::BTreeMap<String, String>,
-) -> PyResult<Py<PyAny>> {
-    let out = PyDict::new(py);
-    for (key, value) in map {
-        out.set_item(key, value)?;
-    }
-    Ok(out.into_any().unbind())
-}
-
-fn tuple_map(
-    py: Python<'_>,
-    map: &std::collections::BTreeMap<String, (String, String)>,
-) -> PyResult<Py<PyAny>> {
-    let out = PyDict::new(py);
-    for (key, (left, right)) in map {
-        out.set_item(key, (left, right))?;
-    }
-    Ok(out.into_any().unbind())
-}
-
-fn string_set_map(
-    py: Python<'_>,
-    map: &std::collections::BTreeMap<String, std::collections::BTreeSet<String>>,
-) -> PyResult<Py<PyAny>> {
-    let out = PyDict::new(py);
-    for (key, values) in map {
-        out.set_item(key, PyList::new(py, values.iter())?)?;
-    }
-    Ok(out.into_any().unbind())
-}
-
-fn usize_map(
-    py: Python<'_>,
-    map: &std::collections::BTreeMap<String, usize>,
-) -> PyResult<Py<PyAny>> {
-    let out = PyDict::new(py);
-    for (key, value) in map {
-        out.set_item(key, *value)?;
-    }
     Ok(out.into_any().unbind())
 }
 
@@ -1047,11 +926,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(verify_release_bundle_native, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_classify_sssom, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_combined_class, m)?)?;
-    m.add_function(wrap_pyfunction!(up_projection_build_lift_map, m)?)?;
-    m.add_function(wrap_pyfunction!(up_projection_project_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(execute_put_legs, m)?)?;
     m.add_function(wrap_pyfunction!(up_projection_gate_audit, m)?)?;
-    m.add_function(wrap_pyfunction!(up_projection_resolve_context, m)?)?;
-    m.add_function(wrap_pyfunction!(up_projection_reverse_nt, m)?)?;
     m.add_function(wrap_pyfunction!(transform_skolemize_nt, m)?)?;
     m.add_function(wrap_pyfunction!(transform_saturate_nt, m)?)?;
     m.add_function(wrap_pyfunction!(transform_project_nt, m)?)?;
