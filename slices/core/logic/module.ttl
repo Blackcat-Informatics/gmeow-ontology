@@ -5639,7 +5639,7 @@ logic:ConcurrencyControlProtocol
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Concurrency Control Protocol"@x-gmeow-english ;
-    skos:definition "The IMPLEMENTATION MECHANISM that enforces a chosen isolation level — HOW a guarantee is achieved, never the guarantee itself. The closed value class of concurrency-control protocols. Its individuals are logic:StrictTwoPhaseLocking, logic:StrongStrictTwoPhaseLocking, logic:TimestampOrdering, and logic:OptimisticValidation. The set is closed; a misspelt value is rejected. This is one of three distinct, separately-declared concurrency concerns that must NOT be conflated: a logic:ConcurrencyControlProtocol is a mechanism, a logic:SerializabilityCriterion is a property of a history, and a logic:IsolationLevel is a guarantee strength — a protocol is how a guarantee is achieved, it is never the guarantee itself."@x-gmeow-english ;
+    skos:definition "The IMPLEMENTATION MECHANISM that enforces a chosen isolation level — HOW a guarantee is achieved, never the guarantee itself. The closed value class of concurrency-control protocols. Its individuals are logic:StrictTwoPhaseLocking, logic:StrongStrictTwoPhaseLocking, logic:TimestampOrdering, logic:OptimisticValidation, and logic:MultiversionConcurrencyControl. The set is closed; a misspelt value is rejected. This is one of three distinct, separately-declared concurrency concerns that must NOT be conflated: a logic:ConcurrencyControlProtocol is a mechanism, a logic:SerializabilityCriterion is a property of a history, and a logic:IsolationLevel is a guarantee strength — a protocol is how a guarantee is achieved, it is never the guarantee itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:StrictTwoPhaseLocking
@@ -5669,6 +5669,13 @@ logic:OptimisticValidation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Optimistic Validation"@x-gmeow-english ;
     skos:definition "The logic:ConcurrencyControlProtocol that lets transactions run without locking and validates for conflicts at commit time, aborting and retrying on a detected conflict. A mechanism, not a guarantee."@x-gmeow-english .
+
+logic:MultiversionConcurrencyControl
+    a owl:NamedIndividual ,
+        logic:ConcurrencyControlProtocol ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Multiversion Concurrency Control"@x-gmeow-english ;
+    skos:definition "The logic:ConcurrencyControlProtocol under which each transaction reads from a consistent version snapshot taken at its start and writes new versions independently, so readers never block writers. Its strongest enforced guarantee is logic:SnapshotIsolation — it still admits WRITE SKEW and so does NOT enforce logic:SerializableIsolation, which is exactly why declaring it under a serializable-or-stronger level is inadequate. This engine realizes snapshot isolation by construction, so a multiversion run needs no lock or timestamp events. A mechanism, not a guarantee."@x-gmeow-english .
 
 # --- Serialization anomaly: a finding, never a contradiction witness ----------
 
@@ -5851,6 +5858,31 @@ logic:isolationInadequacyReason
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "isolation inadequacy reason"@x-gmeow-english ;
     skos:definition "A human-readable description of WHY a logic:ConcurrentHistory's witnessed schedule fails to meet its declared logic:IsolationLevel — present exactly when logic:isolationLevelAdequacy is false. Domain logic:ConcurrentHistory, range xsd:string (stated in prose). In the snapshot-isolation model this is the case of a schedule that is not conflict-serializable (a write-skew or lost-update cycle) declared under logic:SerializableIsolation or logic:OpacityIsolation, and the reason names that: the schedule is not conflict-serializable, so it does not meet the declared strength. It is a guarantee-level finding, never a claim of logical contradiction within a state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Protocol -> isolation-level adequacy: does the declared mechanism reach ---
+# the declared strength? A logic:ConcurrencyControlProtocol is a mechanism and a
+# logic:IsolationLevel a guarantee strength; a run declares each separately, so
+# it may pair them incoherently. Each protocol has a guaranteed CEILING (the
+# strongest level it enforces when respected): logic:MultiversionConcurrencyControl
+# reaches logic:SnapshotIsolation (write skew remains), while the four
+# serializability-strength protocols reach logic:SerializableIsolation (coincident
+# with logic:OpacityIsolation for committed-only histories). The pairing is
+# adequate iff the ceiling is at least the declared level. This is a consistency
+# cross-check between two declarations, never an inference of one from the other.
+
+logic:protocolLevelAdequacy
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "protocol level adequacy"@x-gmeow-english ;
+    skos:definition "The boolean verdict of classifying whether the logic:ConcurrencyControlProtocol a run declares (logic:declaredProtocol) is strong enough to guarantee the logic:IsolationLevel it also declares (logic:declaredIsolationLevel): true iff the protocol's guaranteed ceiling level is at least the declared level. Domain logic:ConcurrentHistory, range xsd:boolean (stated in prose); present only when a run declares BOTH a protocol and a level — otherwise there is no pairing to judge. The guaranteed ceilings are logic:SnapshotIsolation for logic:MultiversionConcurrencyControl and logic:SerializableIsolation (coincident with logic:OpacityIsolation for committed-only histories) for logic:StrictTwoPhaseLocking, logic:StrongStrictTwoPhaseLocking, logic:TimestampOrdering, and logic:OptimisticValidation. The one inadequate pairing this vocabulary admits is logic:MultiversionConcurrencyControl declared under logic:SerializableIsolation or logic:OpacityIsolation, since its snapshot ceiling still admits write skew; a false verdict carries a logic:protocolLevelInadequacyReason. It is a CONSISTENCY CROSS-CHECK between two declarations — kept distinct from logic:protocolEnforced (whether the witnessed schedule respects the mechanism) and logic:isolationLevelAdequacy (whether the witnessed schedule meets the strength) — and never infers the level from the protocol nor the protocol from the level."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:protocolLevelInadequacyReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "protocol level inadequacy reason"@x-gmeow-english ;
+    skos:definition "A human-readable description of WHY a run's declared logic:ConcurrencyControlProtocol cannot guarantee its declared logic:IsolationLevel — present exactly when logic:protocolLevelAdequacy is false. Domain logic:ConcurrentHistory, range xsd:string (stated in prose). In this vocabulary the case is logic:MultiversionConcurrencyControl declared under logic:SerializableIsolation or logic:OpacityIsolation, and the reason names it: the protocol's guaranteed ceiling is snapshot isolation, which admits write skew, so it does not reach the declared serializable-or-stronger level. It is a declaration-consistency finding, never a claim of logical contradiction within a state."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── The full first-order formula AST surface (TBox + RBox) ────────────────────
