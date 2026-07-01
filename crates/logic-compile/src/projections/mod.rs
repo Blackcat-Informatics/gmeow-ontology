@@ -395,11 +395,16 @@ fn dialect_target(dialect: &str) -> &str {
 /// per-instance, closed-tag form keeps the ledger informative and the goldens stable (no
 /// free text). Emitted only when the program carries formulas, so a formula-free program's
 /// ledger is byte-unchanged.
-pub(crate) fn formula_residue_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+pub(crate) fn formula_residue_notes(
+    program: &LogicProgram,
+    target_label: &str,
+    representable: &dyn Fn(&crate::ir::Formula) -> bool,
+) -> Vec<String> {
     program
         .formulas
         .iter()
         .enumerate()
+        .filter(|(_, f)| !representable(f))
         .map(|(i, f)| {
             let tags = f
                 .shape_tags()
@@ -807,7 +812,11 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
 /// drop rather than silently discarded.  The canonical RDF 1.2 target preserves
 /// contracts losslessly and must NOT call this; the Nemo target consumes the
 /// contract as the engine-selecting input (it is not encoded in the `.rls`).
-pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+pub(crate) fn contract_drop_notes(
+    program: &LogicProgram,
+    target_label: &str,
+    representable: &dyn Fn(&crate::ir::Formula) -> bool,
+) -> Vec<String> {
     let mut notes: Vec<String> = program
         .contracts
         .iter()
@@ -826,7 +835,7 @@ pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) ->
     // The full-FOL formula layer is beyond every Horn-fragment target; disclose each formula
     // as its own shape-tagged drop (take1 §10.1 legalization — carried+flagged, never
     // silent). A formula-free program adds nothing, so its ledger is byte-unchanged.
-    notes.extend(formula_residue_notes(program, target_label));
+    notes.extend(formula_residue_notes(program, target_label, representable));
     notes
 }
 
