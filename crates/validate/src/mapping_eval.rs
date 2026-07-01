@@ -26,6 +26,7 @@ use crate::store;
 const WD_NS: &str = "http://www.wikidata.org/entity/";
 const WDT_NS: &str = "http://www.wikidata.org/prop/direct/";
 const WD_HTTPS_NS: &str = "https://www.wikidata.org/entity/";
+const WDT_HTTPS_NS: &str = "https://www.wikidata.org/prop/direct/";
 const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
 const DC_NS: &str = "http://purl.org/dc/elements/1.1/";
 const DCMITYPE_NS: &str = "http://purl.org/dc/dcmitype/";
@@ -175,7 +176,7 @@ impl ExistenceStatus {
 }
 
 #[derive(Debug, Clone)]
-struct MappingRow {
+pub(crate) struct MappingRow {
     subject_id: String,
     predicate_id: String,
     object_id: String,
@@ -300,6 +301,21 @@ pub fn check_syntax_iri(iri: &str, in_object_position: bool) -> Vec<Misuse> {
                 local_id: local.to_owned(),
                 kind: NamespaceMisuse::HttpsUrlShouldBeCurie,
                 message: format!("{iri} should be written as wd:{local}"),
+            }];
+        }
+        return vec![Misuse {
+            local_id: local.to_owned(),
+            kind: NamespaceMisuse::BadSyntax,
+            message: format!("malformed identifier in HTTPS URL: {iri}"),
+        }];
+    }
+
+    if let Some(local) = iri.strip_prefix(WDT_HTTPS_NS) {
+        if is_valid_id(local) {
+            return vec![Misuse {
+                local_id: local.to_owned(),
+                kind: NamespaceMisuse::HttpsUrlShouldBeCurie,
+                message: format!("{iri} should be written as wdt:{local}"),
             }];
         }
         return vec![Misuse {
@@ -849,7 +865,7 @@ fn save_cached(project_root: &Path, key: &str, payload: &Value) -> Result<(), St
         .map_err(|e| format!("failed to write cache {}: {e}", path.display()))
 }
 
-fn load_mapping_rows(mappings_dir: &Path) -> Result<Vec<MappingRow>, String> {
+pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> Result<Vec<MappingRow>, String> {
     let mut paths = Vec::new();
     for entry in fs::read_dir(mappings_dir).map_err(|e| {
         format!(
@@ -935,6 +951,28 @@ fn collect_wikidata_ids_from_rows(rows: &[MappingRow]) -> Vec<String> {
 pub fn collect_wikidata_ids(mappings_dir: &Path) -> Result<Vec<String>, String> {
     let rows = load_mapping_rows(mappings_dir)?;
     Ok(collect_wikidata_ids_from_rows(&rows))
+}
+
+/// Every external IRI GMEOW aligns to, from the SSSOM mappings (mirrors
+/// `mappings.aligned_iris`).
+///
+/// Loads every `*.sssom.tsv` under `mappings_dir` via [`load_mapping_rows`] and
+/// collects every IRI mentioned as a mapping *subject* or *object* (never a
+/// predicate) into a sorted set, with CURIEs already expanded by `expand_entity`.
+/// This is the alignment-graph walk `coverage::run_coverage` classifies against.
+///
+/// # Errors
+///
+/// Returns `Err(message)` if the mappings dir cannot be read or a TSV fails to
+/// parse.
+pub(crate) fn aligned_iris(mappings_dir: &Path) -> Result<BTreeSet<String>, String> {
+    let rows = load_mapping_rows(mappings_dir)?;
+    let mut iris: BTreeSet<String> = BTreeSet::new();
+    for row in rows {
+        iris.insert(row.subject_iri);
+        iris.insert(row.object_iri);
+    }
+    Ok(iris)
 }
 
 fn collect_ontology_terms(root: &Path) -> Result<OntologyTerms, String> {
@@ -1173,6 +1211,21 @@ mod tests {
         );
         assert_eq!(
             check_syntax_iri("http://www.wikidata.org/entity/Q0", false)[0].kind,
+            NamespaceMisuse::BadSyntax
+        );
+        // HTTPS direct-property namespace: previously unrecognized (dropped); now flagged
+        // with the wdt: CURIE suggestion, mirroring the HTTPS-entity branch.
+        assert_eq!(
+            check_syntax_iri("https://www.wikidata.org/prop/direct/P31", false)[0].kind,
+            NamespaceMisuse::HttpsUrlShouldBeCurie
+        );
+        assert!(
+            check_syntax_iri("https://www.wikidata.org/prop/direct/P31", false)[0]
+                .message
+                .contains("wdt:P31")
+        );
+        assert_eq!(
+            check_syntax_iri("https://www.wikidata.org/prop/direct/P0", false)[0].kind,
             NamespaceMisuse::BadSyntax
         );
     }

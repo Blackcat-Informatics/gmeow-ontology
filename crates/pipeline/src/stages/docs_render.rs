@@ -9,11 +9,12 @@
 //! exact N-Quads the Python `DocSet.to_gmeow_rdf()` folds into `gmeow.gts`. The
 //! rendered HTML/Markdown site blobs (`render_site`) are folded by `gts_sink`.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_docs::model::DocsModel;
+use gmeow_docs::model::{DocsModel, ReasoningVerdict};
 use gmeow_docs::rdf::to_gmeow_rdf;
+use gmeow_rdf::RdfTerm;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -21,13 +22,75 @@ use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 /// Logical path of the documentation named graph (N-Quads, in-memory dataflow).
 pub const DOCS_GRAPH_PATH: &str = "pipeline/documentation.nq";
 
-/// Discover the docs model under `root` and project it to the documentation
-/// named graph (N-Quads).
-pub fn render_docs_graph(root: &Path) -> Result<String, PipelineError> {
-    let model = DocsModel::discover(root).map_err(|e| PipelineError::Stage {
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+
+/// Derive the docs [`ReasoningVerdict`] from the `stage-reason` product's inferred
+/// closure — the SOLE reasoning pass, never re-run here.
+///
+/// A class is unsatisfiable exactly when the native DL reasoner entailed
+/// `<class> rdfs:subClassOf owl:Nothing` (the same signal
+/// [`gmeow_logic::reason::dl::unsatisfiable_from_inferred`] keys on); the ontology
+/// is inconsistent exactly when some individual is entailed `rdf:type owl:Nothing`
+/// (a witnessed clash). Both are read off the already-carried closure, so no new
+/// reasoning runs and no `crates/logic` type grows a field. Shared by the
+/// docs-graph stage (here) and the rendered-site archive (`carrier`), so the two
+/// surfaces report the SAME verdict. Hard-fails if the closure is absent — never a
+/// silent "consistent" default.
+pub(crate) fn reasoning_verdict_from_reason(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<ReasoningVerdict, PipelineError> {
+    let closure = upstream
+        .get("stage-reason")
+        .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
+        .ok_or_else(|| PipelineError::Stage {
+            stage: "stage-docs-render".to_string(),
+            message: format!(
+                "missing stage-reason artifact {} for the reasoning verdict",
+                crate::stages::reason::CLOSURE_PATH
+            ),
+        })?;
+    let dataset = crate::stages::source_load::turtle_bytes_to_dataset(closure, "reason-closure")
+        .map_err(|e| PipelineError::Stage {
+            stage: "stage-docs-render".to_string(),
+            message: format!("parse reasoned closure for the reasoning verdict: {e}"),
+        })?;
+    let mut unsatisfiable: BTreeSet<String> = BTreeSet::new();
+    let mut is_consistent = true;
+    for q in dataset.owned_quads() {
+        let RdfTerm::Iri(object) = &q.object else {
+            continue;
+        };
+        if object != OWL_NOTHING {
+            continue;
+        }
+        if q.predicate == RDFS_SUBCLASSOF {
+            if let RdfTerm::Iri(subject) = &q.subject {
+                if subject != OWL_NOTHING {
+                    unsatisfiable.insert(subject.clone());
+                }
+            }
+        } else if q.predicate == RDF_TYPE {
+            is_consistent = false;
+        }
+    }
+    Ok(ReasoningVerdict {
+        is_consistent,
+        unsatisfiable,
+    })
+}
+
+/// Discover the docs model under `root`, attach the native-reasoner `verdict`, and
+/// project it to the documentation named graph (N-Quads). The verdict is required
+/// so the SPARQL surface always carries the per-term reasoning status (never a
+/// fabricated default).
+pub fn render_docs_graph(root: &Path, verdict: ReasoningVerdict) -> Result<String, PipelineError> {
+    let mut model = DocsModel::discover(root).map_err(|e| PipelineError::Stage {
         stage: "stage-docs-render".to_string(),
         message: format!("docs model discovery failed: {e}"),
     })?;
+    model.attach_reasoning(verdict);
     Ok(to_gmeow_rdf(&model))
 }
 
@@ -111,11 +174,12 @@ pub struct DocsRenderStage {
 }
 
 impl DocsRenderStage {
-    /// Construct the stage. It discovers the docs model from the slice catalog
-    /// at the root; the slice DAG edge (consumes gts-compose) is reconciled at P6.
+    /// Construct the stage. It discovers the docs model from the slice catalog at
+    /// the root and consumes `stage-reason` so the projected documentation graph
+    /// carries the per-term native-reasoner status (`gmeow:docReasoningStatus`).
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-gts-compose".to_string()],
+            consumes: vec!["stage-gts-compose".to_string(), "stage-reason".to_string()],
         }
     }
 }
@@ -134,7 +198,9 @@ impl Stage for DocsRenderStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "docs_render.v1"
+        // v2: the documentation graph now carries per-term `gmeow:docReasoningStatus`
+        // (the stage consumes stage-reason). Bumped so the cache re-derives it.
+        "docs_render.v2"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
@@ -144,7 +210,8 @@ impl Stage for DocsRenderStage {
         docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let graph = render_docs_graph(input.root)?;
+        let verdict = reasoning_verdict_from_reason(input.upstream)?;
+        let graph = render_docs_graph(input.root, verdict)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(DOCS_GRAPH_PATH.to_string(), graph.into_bytes());
         Ok(StageOutput {
@@ -204,7 +271,7 @@ mod tests {
     #[test]
     fn docs_graph_is_nonempty_and_parses() {
         let root = repo_root();
-        let nq = render_docs_graph(&root).expect("render docs graph");
+        let nq = render_docs_graph(&root, ReasoningVerdict::default()).expect("render docs graph");
         let dataset =
             rdf_bytes_to_dataset(nq.as_bytes(), "application/n-quads", "docs-graph").unwrap();
         let count = dataset.quad_count();
@@ -213,5 +280,43 @@ mod tests {
             count > 200,
             "docs named graph unexpectedly small: {count} quads"
         );
+        // With a verdict attached, every documented term carries a reasoning status.
+        assert!(
+            nq.contains("docReasoningStatus"),
+            "docs graph must carry per-term reasoning status when a verdict is attached"
+        );
+    }
+
+    #[test]
+    fn reasoning_verdict_reads_unsat_and_inconsistency_from_closure() {
+        // A closure with one unsat class and one Nothing-typed individual.
+        let closure = concat!(
+            "<https://x/Empty> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ",
+            "<http://www.w3.org/2002/07/owl#Nothing> .\n",
+            "<https://x/i> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
+            "<http://www.w3.org/2002/07/owl#Nothing> .\n",
+        );
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(
+            crate::stages::reason::CLOSURE_PATH.to_string(),
+            closure.as_bytes().to_vec(),
+        );
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-reason".to_string(),
+            StageProduct::from_artifacts("stage-reason", artifacts),
+        );
+        let verdict = reasoning_verdict_from_reason(&upstream).expect("verdict");
+        assert!(
+            !verdict.is_consistent,
+            "Nothing-typed individual ⇒ inconsistent"
+        );
+        assert!(verdict.unsatisfiable.contains("https://x/Empty"));
+        assert!(!verdict
+            .unsatisfiable
+            .contains("http://www.w3.org/2002/07/owl#Nothing"));
+
+        // A missing stage-reason product hard-fails (never a silent default).
+        assert!(reasoning_verdict_from_reason(&BTreeMap::new()).is_err());
     }
 }
