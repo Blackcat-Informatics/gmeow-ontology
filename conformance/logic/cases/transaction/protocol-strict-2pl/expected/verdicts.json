@@ -1,6 +1,6 @@
 {
   "https://example.org/transaction/protocol-strict-2pl/world": {
-    "quads": 51,
+    "quads": 53,
     "status": "consistent"
   }
 }

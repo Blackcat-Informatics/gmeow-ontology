@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/plan-instantiation-witness.
+#
+# A two-step serial plan (a logic:SerialConjunction program root — the plan the run
+# executes under) runs from the start state. Each executed occurrence is materialized as a
+# logic:TransactionStep carrying BOTH logic:instantiatesSchema (the reusable ActionSchema
+# it instantiates — Event to Schema) and logic:instantiatesPlan (the whole logic:Plan it
+# was executed under — Event to Plan). The pair is the in-band recovery witness the
+# correspondence put-leg needs to recover the planned skeleton from an execution record
+# (the openEHR Instruction to Activity to Action ISM linkage made canonical).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in input.nq).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/plan-instantiation-witness/> .
+
+ex:GoalExpression a logic:GoalExpression .

@@ -25,7 +25,7 @@ gmeow:mapsetProcedures a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-procedures.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/procedures" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Plan ⟂ execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, OBI, BPMN, RO-Crate, and the workflow engines Airflow / CWL / WDL / Temporal / Nextflow. gmeow:Procedure is a logic:Plan; every engine surface is a lossy by-reference lowering of that canonical process model (Principle 5)." .
+    gmeow:setComment "Plan ⟂ execution de-conflation alignments to P-Plan, PROV-O, schema.org HowTo/Recipe, OPMW, OBI, BPMN, RO-Crate, the workflow engines Airflow / CWL / WDL / Temporal / Nextflow, and openEHR Task Planning (PROC). gmeow:Procedure is a logic:Plan; every engine surface is a lossy by-reference lowering of that canonical process model (Principle 5). openEHR Task Planning is the higher-fidelity target — it carries loops and guarded branching — and its distinctive DLM constructs are subsumed natively (currency → logic:FreshnessGuard's logic:freshnessHorizon age axis AND time_window → its logic:freshnessWindow explicit valid-time-interval axis — both orthogonal axes of one guard, manual-notification → logic:NotificationWaitSchema, ISM linkage → logic:instantiatesPlan)." .
 
 # --------------------------------------------------------------------------- #
 # P-Plan — the closest peer model for plan / step / input / output / precedence
@@ -409,7 +409,8 @@ gmeow:eqProc036 a gmeow:TermEquivalence ;
 # --------------------------------------------------------------------------- #
 # Guard → structured-program combinator (the combinator TREE).                #
 #                                                                              #
-# W2 minted the flow-GRAPH layer: gmeow:ControlFlow ⊑ logic:ControlFlowEdge,  #
+# The DAG profile minted the flow-GRAPH layer:                                #
+# gmeow:ControlFlow ⊑ logic:ControlFlowEdge,                                  #
 # the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC  #
 # over. This block adds the COMPLEMENTARY layer the flow-graph alignment did   #
 # NOT carry: the correspondence from a control-flow edge's guard VALUE        #
@@ -480,4 +481,58 @@ gmeow:eqProc040 a gmeow:TermEquivalence ;
     gmeow:comment "An n-way switch guard on a gmeow:ControlFlow edge realizes the canonical choice combinator logic:Choice. logic:Choice is BINARY (logic:leftOperand / logic:rightOperand), so an n-way switch corresponds to a right-nested cascade of binary logic:Choice nodes; the single canonical combinator target is logic:Choice. Structural, not equivalent. The implicit default case corresponds to logic:Fallback." ;
     gmeow:lossyDrop "n-ary switch arity → right-nested binary logic:Choice cascade: the flat switch arity is not preserved by the binary combinator" ;
     gmeow:lossyDrop "implicit default case → logic:Fallback: the default arm is the un-guarded ControlFlow edge out of the branch step, not carried as a distinct guard value" ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+# --------------------------------------------------------------------------- #
+# openEHR Task Planning (PROC) — a HIGHER-fidelity by-reference bridge.        #
+#                                                                              #
+# openEHR PROC publishes no canonical RDF ontology with stable term IRIs, so   #
+# each alignment is a BY-REFERENCE bridge (logic:BridgeView, Principle 5):     #
+# skos:relatedMatch to a spec-anchored concept IRI, NOT an equivalence. Unlike #
+# the acyclic workflow engines above, openEHR TP-VML/DLM natively expresses    #
+# BOTH loops and guarded branching on real conditions, so — for a logic:Plan   #
+# carrying a logic:Iteration or a logic:Choice — this lowering is faithful     #
+# where the DAG engines must unroll or reject. It under-approximates only where #
+# TP-VML lacks logic:'s explicit concurrency-serializability guarantee and its  #
+# per-outcome logic:compensation. GMEOW moreover SUBSUMES the distinctive DLM   #
+# constructs natively rather than merely bridging them: DLM `currency`          #
+# (max datum age) is logic:FreshnessGuard's logic:freshnessHorizon axis and DLM #
+# `time_window` (an explicit named valid-time interval) is its orthogonal       #
+# logic:freshnessWindow axis; manual-notification /                             #
+# callback-driven completion is logic:NotificationWaitSchema; the Instruction-  #
+# State-Machine plan→execution linkage is the logic:instantiatesSchema +        #
+# logic:instantiatesPlan in-band witness. Each residual drop is a STRUCTURED    #
+# gmeow:lossyDrop the mappings stage folds into the per-correspondence residue  #
+# ledger in generated/logic/projection-report.                                #
+# --------------------------------------------------------------------------- #
+
+gmeow:eqProc041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Procedure ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#WORK_PLAN> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "openEHR Task Planning WORK_PLAN (by reference, no canonical RDF): a top-level procedure is an openEHR work plan. Higher fidelity than the acyclic engines — TP-VML/DLM carries loops and guarded branching, so a logic:Iteration or logic:Choice in the plan projects faithfully rather than unrolling. Lossy only where TP-VML lacks logic:'s concurrency-serializability and per-outcome compensation." ;
+    gmeow:lossyDrop "logic:ConcurrentComposition: under-approximated where TP-VML has no explicit concurrency-serializability guarantee (logic:ConcurrentHistory / logic:serializabilityCriterion are derived natively, not carried)" ;
+    gmeow:lossyDrop "per-outcome logic:compensation: omitted where TP-VML has no compensation primitive on a task outcome" ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Procedure ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK_PLAN> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.65 ;
+    gmeow:comment "openEHR Task Planning TASK_PLAN / SUB_PLAN (by reference): a constituent sub-procedure (gmeow:hasSubProcedure) is an openEHR task plan nested under a work plan. The sub-plan nesting round-trips; the same concurrency / compensation drops as the work-plan bridge apply." ;
+    gmeow:lossyDrop "per-outcome logic:compensation: omitted where TP-VML has no compensation primitive on a task outcome" ;
+    gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
+
+gmeow:eqProc043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ProcedureStep ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://specifications.openehr.org/releases/PROC/latest/task_planning.html#TASK> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "openEHR Task Planning TASK / TASK_ACTION (by reference): a procedure step is an openEHR task. A DLM-gated task maps to a guarded logic:Choice step (preserved, not unrolled); a manual-notification task maps to logic:NotificationWaitSchema (subsumed natively); a DLM currency-guarded task input maps to logic:FreshnessGuard (subsumed natively) — BOTH its axes: `currency` (max age) to logic:freshnessHorizon and `time_window` (an explicit valid-time interval) to logic:freshnessWindow / logic:freshnessWindowStart / logic:freshnessWindowEnd." ;
+    gmeow:lossyDrop "TP-VML task scheduling annotations (planned time / wait windows) are not carried by the flat gmeow:ProcedureStep; scheduling is a solver-layer concern (Principle 12)" ;
     gmeow:sssomFile "gmeow-procedures.sssom.tsv" .
