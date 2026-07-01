@@ -1,0 +1,12 @@
+{
+  "cgif": {
+    "round_trip": "pass"
+  },
+  "clif": {
+    "round_trip": "pass"
+  },
+  "cross_dialect": "pass",
+  "xcl": {
+    "round_trip": "pass"
+  }
+}

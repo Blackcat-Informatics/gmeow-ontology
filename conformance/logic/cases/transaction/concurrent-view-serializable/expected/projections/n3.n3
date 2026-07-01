@@ -10,6 +10,5 @@
 
 # === Axioms ===
 <https://example.org/transaction/concurrent-view-serializable/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
-<https://example.org/transaction/concurrent-view-serializable/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
 
 # === Rules ===
