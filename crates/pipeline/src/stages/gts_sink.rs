@@ -43,12 +43,26 @@ impl GtsSinkStage {
         Self {
             consumes: vec![
                 "stage-snapshot".to_string(),
+                // The executable-docs "try it" surface reasons over the object-level EDB,
+                // whose authored / imports / alignments graphs ride on the source-load
+                // product (read, not re-loaded from disk).
+                "stage-source-load".to_string(),
                 "stage-export-json-schema".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),
                 "stage-statements".to_string(),
                 "stage-validate".to_string(),
+                // The opaque fanout members ride in from their producing export leaves
+                // (each rendered once, in the leaf); `build_fanout_opaque_blob` reads them
+                // off these products instead of re-rendering from disk (§3.2/§4).
+                "stage-export-apache".to_string(),
+                "stage-export-bench".to_string(),
+                "stage-export-evals".to_string(),
+                "stage-export-matrix".to_string(),
+                "stage-export-metadata".to_string(),
+                "stage-export-references".to_string(),
+                "stage-export-research-objects".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
         }
@@ -72,7 +86,12 @@ impl Stage for GtsSinkStage {
         &self.capabilities
     }
     fn impl_version(&self) -> &str {
-        "gts_sink.v3-snapshot"
+        // v4: the opaque fanout members (references / bench / apache / matrix / eval +
+        // research-object sidecars / metadata) ride in from their producing export leaves;
+        // `build_fanout_opaque_blob` reads them off those products instead of re-rendering
+        // from disk, and statements / dsl-stats / context ride off the already-consumed
+        // stage-statements / stage-mappings products (§3.2 transform-once, §4 pure terminal).
+        "gts_sink.v4-fanout-presenter"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // The terminal gts ARCHIVE writer (#1132 Stage C): serialize THIS run's carrier
@@ -127,6 +146,16 @@ mod tests {
         let snapshot =
             StageProduct::from_artifacts_over("stage-snapshot", carrier, BTreeMap::new());
 
+        // A minimal source-load product: the executable-docs "try it" EDB reads the
+        // authored / imports / alignments graphs off it (empty here — this unit test
+        // pins the sink's fail-closed wiring, not a real reasoned closure).
+        let source_load = StageProduct::from_artifacts_over(
+            "stage-source-load",
+            gmeow_rdf::parse_dataset(b"", "application/n-quads", None)
+                .expect("empty source-load dataset"),
+            BTreeMap::new(),
+        );
+
         let mut compile_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         for path in [
             "generated/owl/gmeow-dl.ttl",
@@ -167,6 +196,15 @@ mod tests {
         mapping_artifacts.insert(
             crate::stages::compile_logic::PROJECTION_REPORT_PATH.to_string(),
             b"@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://example.org/projection-report> a owl:Ontology .\n".to_vec(),
+        );
+        // The fanout presenter reads dsl-stats + the JSON-LD context off this product.
+        mapping_artifacts.insert(
+            crate::stages::mappings::DSL_STATS_PATH.to_string(),
+            b"{}".to_vec(),
+        );
+        mapping_artifacts.insert(
+            crate::stages::mappings::JSONLD_CONTEXT_PATH.to_string(),
+            b"{}".to_vec(),
         );
         let mappings = StageProduct::from_artifacts("stage-mappings", mapping_artifacts);
 
@@ -215,14 +253,34 @@ mod tests {
         );
         let validate = StageProduct::from_artifacts("stage-validate", validate_artifacts);
 
+        // The opaque-fanout export leaves: the presenter reads their rendered members off
+        // these products (empty here — this unit test pins the sink's fail-closed wiring,
+        // not a real fanout; the superset gate is exercised end-to-end in fanout_parity).
+        let export_leaves: Vec<StageProduct> = [
+            "stage-export-references",
+            "stage-export-bench",
+            "stage-export-apache",
+            "stage-export-matrix",
+            "stage-export-evals",
+            "stage-export-research-objects",
+            "stage-export-metadata",
+        ]
+        .into_iter()
+        .map(|id| StageProduct::from_artifacts(id, BTreeMap::new()))
+        .collect();
+
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert("stage-compile-logic".to_string(), compile);
         upstream.insert("stage-export-json-schema".to_string(), json_schema);
         upstream.insert("stage-mappings".to_string(), mappings);
         upstream.insert("stage-reason".to_string(), reason);
         upstream.insert("stage-snapshot".to_string(), snapshot);
+        upstream.insert("stage-source-load".to_string(), source_load);
         upstream.insert("stage-statements".to_string(), statements);
         upstream.insert("stage-validate".to_string(), validate);
+        for product in export_leaves {
+            upstream.insert(product.stage_id.clone(), product);
+        }
         let out = GtsSinkStage::new()
             .run(StageInput {
                 root: &root,
