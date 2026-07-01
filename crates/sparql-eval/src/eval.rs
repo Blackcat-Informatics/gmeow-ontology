@@ -360,8 +360,8 @@ pub enum Outcome {
 
 /// Evaluate a top-level [`Query`] form over `ctx`'s dataset.
 ///
-/// `SELECT`/`ASK` walk the modifier-wrapped pattern; `CONSTRUCT` emits the IR
-/// dataset directly. `DESCRIBE` is out of S6 scope (a hard error).
+/// `SELECT`/`ASK` walk the modifier-wrapped pattern; `CONSTRUCT` and `DESCRIBE` emit
+/// the IR dataset directly (`DESCRIBE` via the canonical Symmetric CBD).
 pub fn evaluate_query(query: &Query, ctx: &mut EvalCtx<'_>) -> Result<Outcome, EvalError> {
     // Install the query's FROM / FROM NAMED active dataset (§13) before evaluating.
     ctx.active_dataset = ActiveDataset::from_query_dataset(query.dataset(), ctx.dataset);
@@ -373,9 +373,11 @@ pub fn evaluate_query(query: &Query, ctx: &mut EvalCtx<'_>) -> Result<Outcome, E
         } => Ok(Outcome::Graph(crate::construct::eval_construct(
             template, pattern, ctx,
         )?)),
-        Query::Describe { .. } => Err(EvalError::unsupported(
-            "DESCRIBE query form (out of S6 scope)",
-        )),
+        Query::Describe {
+            pattern, targets, ..
+        } => Ok(Outcome::Graph(crate::describe_query::eval_describe(
+            pattern, targets, ctx,
+        )?)),
     }
 }
 

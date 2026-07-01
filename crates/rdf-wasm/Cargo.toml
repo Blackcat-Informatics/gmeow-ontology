@@ -30,6 +30,17 @@ gmeow-rdf = { path = "../rdf", default-features = false, features = ["gts"] }
 # The permissive zero-dep RDF 1.2 ingestion protocol (purrdf P6 #840): the seam
 # the RDF/JS Sink maps onto.
 gmeow-rdf-events = { path = "../rdf-events" }
+# The IR kernel + `SparqlEngine` seam (SparqlRequest / SparqlResult), in interned
+# TermId space. default-features = false drops the GTS/Ed25519 signer surface to keep
+# the wasm dependency tree minimal — the query binding only needs the query seam.
+gmeow-rdf-core = { path = "../rdf-core", default-features = false }
+# The native, oxigraph-free multiset SPARQL evaluator that powers the offline
+# in-browser `Dataset.query`. wasm-clean: its only non-portable edge (the `ureq`
+# SERVICE transport) is `cfg(not(wasm32))`-gated off, so it never enters this build.
+gmeow-sparql-eval = { path = "../sparql-eval" }
+# Serializes the SELECT/ASK result model to W3C SPARQL Results JSON. wasm-clean leaf
+# (replaces the oxigraph-family `sparesults`).
+gmeow-sparql-results = { path = "../sparql-results" }
 # EXACT pin: the `wasm-bindgen` CLI that generates the JS bindings must match the
 # library version byte-for-byte or it refuses to run. `make wasm-pkg` and the CI
 # Node lane install `wasm-bindgen-cli@0.2.125` to match this.
