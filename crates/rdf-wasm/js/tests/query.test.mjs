@@ -73,3 +73,13 @@ test("a SERVICE clause hard-fails offline (no resolver in the browser)", () => {
     ),
   );
 });
+
+test("serialize supports JSON-LD (the docs 'copy as' transcode surface)", () => {
+  const ds = Dataset.parse('@prefix ex: <https://e/> . ex:a ex:p ex:o .', "turtle");
+  const jsonld = ds.serialize("jsonld");
+  const doc = JSON.parse(jsonld); // must be valid JSON
+  assert.ok(
+    JSON.stringify(doc).includes("https://e/"),
+    "the JSON-LD document must carry the term IRIs",
+  );
+});
