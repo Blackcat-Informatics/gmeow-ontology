@@ -339,15 +339,38 @@ impl Stage for SourceLoadStage {
         &self.capabilities
     }
     fn impl_version(&self) -> &str {
-        "source_load.v1"
+        // v2: attach the self-description named graphs (authored-default / imports /
+        // metadata / alignments / slice-analysis / verify / provenance) so the presenter
+        // reads them instead of re-loading + re-canonicalizing the sources on the serial
+        // snapshot node (PIPELINE_SPINE §3.2/§4). The BASE_GRAPH_PATH byte lane and the
+        // default-graph fold `gts_compose` takes are unchanged.
+        "source_load.v2-self-description"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+        // The self-description graphs read authored sources beyond the base authored
+        // files: imports, self-description metadata, SSSOM alignments, slice manifests +
+        // shapes (slice-analysis / verify), translation catalogs + docs guides (the
+        // translated authored default). Declare them ALL so any of these busting the
+        // cache re-runs the loader (cache soundness — a stale self-description graph would
+        // ship a stale bundle). `build_self_description_dataset` is the single authority
+        // for what is read; this mirrors its source closure.
+        let mut files = crate::stages::carrier::self_description_source_files(root)?;
+        files.sort();
+        files.dedup();
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // Carry the authored base graph as the bundle's frozen dataset (the native
-        // contribution `gts_compose` unions), and keep emitting the BASE_GRAPH_PATH
-        // N-Quads byte lane for the pre-C3 byte readers. Both come from the SAME
-        // native dataset — no oxigraph store, no extra serialize→parse round-trip.
-        let dataset = load_authored_dataset(input.root)?;
-        let nq = dataset_to_sorted_nquads(&dataset)?;
+        // Carry the authored base graph as the bundle's DEFAULT graph (the native
+        // contribution `gts_compose`'s default-graph fold unions), and keep emitting the
+        // BASE_GRAPH_PATH N-Quads byte lane for the byte readers — BOTH from the base
+        // dataset alone, so neither changes as the self-description graphs are added.
+        let base = load_authored_dataset(input.root)?;
+        let nq = dataset_to_sorted_nquads(&base)?;
+        // Attach the self-description named graphs alongside the base default graph — the
+        // load + canonicalize the presenter used to do on the serial snapshot node, done
+        // ONCE here at the parallel DAG root.
+        let self_desc = crate::stages::carrier::build_self_description_dataset(input.root)?;
+        let dataset = Arc::new(RdfDataset::union(&[base.as_ref(), self_desc.as_ref()]));
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
         Ok(StageOutput {

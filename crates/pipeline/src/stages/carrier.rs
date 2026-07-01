@@ -57,6 +57,13 @@ const GRAPH_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/graph/conf
 /// structural lossy drops without re-running the compiler.
 const GRAPH_PROJECTION_LEDGER: &str =
     "https://blackcatinformatics.ca/gmeow/graph/projection-ledger";
+/// The authored default graph (root ontology + slice modules + translations + guide
+/// anchors, NO imports) carried as a named graph on the `stage-source-load` product so
+/// the presenter reads it instead of re-loading the sources. It is an INTERNAL transport
+/// graph: the presenter re-roots it into the carrier's DEFAULT graph, so it never appears
+/// as a named graph in the emitted bundle (never a committed-file reconstruction rep).
+pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/authored-default";
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
@@ -154,24 +161,126 @@ pub(crate) fn serialize_carrier_snapshot(
 /// projection-ledger, provenance) are parsed and re-rooted here. This carrier is the
 /// single internal transport — it is BOTH serialized to gts and carried as the snapshot
 /// product's bundle, so the snapshot is assembled ONCE.
-fn assemble_carrier(
+/// Every authored source [`build_self_description_dataset`] reads, so the
+/// `stage-source-load` cache busts when any of them changes (cache soundness — a stale
+/// self-description graph would ship a stale bundle). Over-covers rather than under: the
+/// authored ontology + modules + imports (base / provenance), the self-description
+/// metadata, the slice manifests (slice-analysis), the full SHACL shape surface (verify),
+/// and the docs sources (translations + guides folded into the authored default). The
+/// generated SSSOM alignments (`generated/mappings/`) are a produced artifact, not an
+/// authored source, so they are covered by the producing stage's own cache, not here.
+pub(crate) fn self_description_source_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    let mut files = crate::stages::source_load::authored_files(root)?;
+    files.extend(crate::stages::source_load::manifest_files(root)?);
+    files.extend(crate::stages::docs_render::docs_source_files(root)?);
+    let metadata = root.join("metadata").join("gmeow-self.ttl");
+    if metadata.is_file() {
+        files.push(metadata);
+    }
+    files.extend(list_files(&root.join("shapes"), "ttl")?);
+    files.extend(list_files(&root.join("generated/shapes"), "ttl")?);
+    files.extend(slice_named_files(root, "shapes.ttl")?);
+    files.sort();
+    files.dedup();
+    Ok(files)
+}
+
+/// Build the self-description named graphs from the authored sources — the graphs the
+/// presenter used to re-load and re-canonicalize on the serial snapshot node. The
+/// `stage-source-load` stage attaches this to its product so the LOAD and CANONICALIZE
+/// happen ONCE, at the parallel DAG root, and the presenter merely reads and folds them
+/// (PIPELINE_SPINE §3.2/§4 — the terminal assembles nothing).
+///
+/// The returned dataset carries, each in its final named graph: the authored default
+/// ([`GRAPH_AUTHORED_DEFAULT`], re-rooted into the carrier's default graph by the
+/// presenter), the import closure ([`GRAPH_IMPORTS`]), self-description metadata
+/// ([`GRAPH_METADATA`]), SSSOM alignment axioms ([`GRAPH_ALIGNMENTS`]), the slice-analysis
+/// graph ([`GRAPH_SLICE_ANALYSIS`]), the native verify attestation ([`GRAPH_VERIFY`], over
+/// the authored ∪ imports EDB), and the occurrence-based provenance projection
+/// ([`crate::stages::provenance_graph::GRAPH_PROVENANCE`]). Byte-identical to the former
+/// in-snapshot construction — the SAME loaders and canonicalizers, relocated verbatim.
+pub(crate) fn build_self_description_dataset(
     root: &Path,
-    upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    // ── the authored default graph (ontology + slice modules; NO imports) ──────
     let authored = load_authored_default(root)?;
     let authored_canon = canonicalize_nq(&authored, "base")?;
-    // Reject quoted triples in the authored default graph (it carries none); the
-    // default graph is NOT re-rooted.
     reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
+    // The authored default rides its own named graph (re-rooted to default by the
+    // presenter); base ∪ imports is the EDB the verify attestation runs over.
     let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err(&format!("base parse: {e}")))?;
 
-    // ── the snapshot-owned named-graph sources ─────────────────────────────────
     let imports = load_imports(root)?;
     let metadata = load_metadata(root)?;
     let alignments = load_alignments(root)?;
     let slice_analysis = build_slice_analysis(root, &authored)?;
+    let verify_attestation = {
+        let imports_ds = parse_dataset(&imports, "text/turtle", None)
+            .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
+        let edb = gmeow_rdf::RdfDataset::union(&[base.as_ref(), imports_ds.as_ref()]);
+        run_verify_attestation(root, &edb)?
+    };
+    let provenance_nt = build_provenance_projection(root)?;
+
+    let datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
+        rooted_in_graph(&base, GRAPH_AUTHORED_DEFAULT)?,
+        parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
+        parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
+        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
+        parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
+        parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
+        parse_into_graph(
+            provenance_nt.as_bytes(),
+            "application/n-triples",
+            crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        )?,
+    ];
+    let refs: Vec<&gmeow_rdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
+    Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
+}
+
+/// The `stage-source-load` product's carrier dataset (the authored base default graph
+/// plus the self-description named graphs it attaches). HARD-fails if the edge is missing.
+fn source_load_dataset(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    Ok(upstream
+        .get("stage-source-load")
+        .ok_or_else(|| {
+            stage_err("missing stage-source-load product for the self-description graphs")
+        })?
+        .bundle()
+        .dataset_arc())
+}
+
+/// Read one self-description graph off the `stage-source-load` product, re-rooted into
+/// `graph_iri` (the presenter's read half of [`build_self_description_dataset`]). The
+/// producer attached it canonical and rooted; this is a pure projection — no load, no
+/// canonicalize.
+fn source_load_graph(
+    upstream: &BTreeMap<String, StageProduct>,
+    graph_iri: &str,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    rooted_in_graph(
+        &source_load_dataset(upstream)?.project_named_graph(graph_iri),
+        graph_iri,
+    )
+}
+
+fn assemble_carrier(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+    // ── the self-description graphs ride in from stage-source-load's carrier ────
+    // The presenter no longer loads or canonicalizes any source: the authored default,
+    // imports, metadata, alignments, slice-analysis, verify attestation, and provenance
+    // were all built ONCE at the parallel DAG root (`build_self_description_dataset`) and
+    // are read here as pure projections. The authored default rides its own named graph;
+    // re-rooting it with `project_named_graph` lands it back in the carrier's DEFAULT
+    // graph (label dropped).
+    let base = std::sync::Arc::new(
+        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    );
     let rdf12 = upstream
         .get("stage-statements")
         .and_then(|p| p.artifact(RDF12_PATH))
@@ -208,16 +317,6 @@ fn assemble_carrier(
             .ok_or_else(|| stage_err("missing mappings projection-report loss ledger"))?;
         turtle_to_nquads(report_ttl)?
     };
-    // graph/verify ← native attestation over the authored ∪ imports EDB (the verify
-    // graph is never its own input — #695).
-    let verify_attestation = {
-        let imports_ds = parse_dataset(&imports, "text/turtle", None)
-            .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
-        let edb = gmeow_rdf::RdfDataset::union(&[base.as_ref(), imports_ds.as_ref()]);
-        run_verify_attestation(root, &edb)?
-    };
-    // graph/provenance ← the gated public provenance projection (S0.5).
-    let provenance_nt = build_provenance_projection(root)?;
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let compile = upstream
@@ -235,22 +334,19 @@ fn assemble_carrier(
     let mut datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
-        parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
-        parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
-        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
-        parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
-        parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
+        // The self-description graphs are read (not re-loaded) off stage-source-load.
+        source_load_graph(upstream, GRAPH_IMPORTS)?,
+        source_load_graph(upstream, GRAPH_METADATA)?,
+        source_load_graph(upstream, GRAPH_ALIGNMENTS)?,
+        source_load_graph(upstream, GRAPH_SLICE_ANALYSIS)?,
+        source_load_graph(upstream, GRAPH_VERIFY)?,
+        source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
         parse_into_graph(&documentation, "application/n-quads", GRAPH_DOCUMENTATION)?,
         parse_into_graph(&diagnostics, "application/n-quads", GRAPH_DIAGNOSTICS)?,
         parse_into_graph(
             &projection_ledger,
             "application/n-quads",
             GRAPH_PROJECTION_LEDGER,
-        )?,
-        parse_into_graph(
-            provenance_nt.as_bytes(),
-            "application/n-triples",
-            crate::stages::provenance_graph::GRAPH_PROVENANCE,
         )?,
         rooted_in_graph(
             &compile.bundle().dataset().project_named_graph(logic_iri),
@@ -394,21 +490,18 @@ fn rdf_fanout_members(
 /// Skolem witnesses. Excluding them makes the closure (and its witness IRIs) a
 /// function of the ontology alone, not of its self-description. This is the single
 /// EDB the sole `stage-reason` pass reasons over; it depends only on the
-/// `stage-statements` and `stage-compile-logic` products plus the on-disk authored /
-/// imports / alignments sources — never on the snapshot, so reasoning need not wait
-/// on carrier assembly.
+/// `stage-statements`, `stage-compile-logic`, and `stage-source-load` products (the
+/// authored / imports / alignments self-description graphs) — never on the snapshot, so
+/// reasoning need not wait on carrier assembly.
 pub(crate) fn assemble_object_level_edb(
-    root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    let authored = load_authored_default(root)?;
-    let authored_canon = canonicalize_nq(&authored, "base")?;
-    reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
-    let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
-        .map_err(|e| stage_err(&format!("base parse: {e}")))?;
-
-    let imports = load_imports(root)?;
-    let alignments = load_alignments(root)?;
+    // The authored default, imports, and alignments are read (not re-loaded) off
+    // stage-source-load — the same self-description graphs the presenter folds — so the
+    // reasoned closure's worlds match the bundle's by construction, with ONE load.
+    let base = std::sync::Arc::new(
+        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    );
     let rdf12 = upstream
         .get("stage-statements")
         .and_then(|p| p.artifact(RDF12_PATH))
@@ -424,8 +517,8 @@ pub(crate) fn assemble_object_level_edb(
     let datasets: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = vec![
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
-        parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
-        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
+        source_load_graph(upstream, GRAPH_IMPORTS)?,
+        source_load_graph(upstream, GRAPH_ALIGNMENTS)?,
         rooted_in_graph(
             &compile.bundle().dataset().project_named_graph(logic_iri),
             logic_iri,
@@ -1260,6 +1353,11 @@ impl SnapshotStage {
                 "stage-export-json-schema".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
+                // The self-description named graphs (authored default / imports / metadata
+                // / alignments / slice-analysis / verify / provenance) are attached by
+                // stage-source-load; the presenter reads them off this product instead of
+                // re-loading + re-canonicalizing the sources (PIPELINE_SPINE §3.2/§4).
+                "stage-source-load".to_string(),
                 "stage-statements".to_string(),
                 "stage-validate".to_string(),
             ],
@@ -1308,8 +1406,10 @@ impl Stage for SnapshotStage {
         // REP_GENERATED so the superset gate can reconstruct every committed
         // generated file without re-reading disk. v15 folds the CLIF projection
         // (generated/cl/gmeow.clif) into REP_GENERATED as a committed byte projection
-        // (a non-RDF text dialect with generated comments / section markers).
-        "snapshot.v15-clif-projection"
+        // (a non-RDF text dialect with generated comments / section markers). v16: the
+        // presenter reads the self-description graphs off stage-source-load (no in-snapshot
+        // source load or canonicalize) — PIPELINE_SPINE §3.2/§4.
+        "snapshot.v16-presenter-self-description"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from

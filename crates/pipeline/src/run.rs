@@ -162,6 +162,10 @@ pub fn full_spec() -> PipelineSpec {
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
                 "stage-reason",
+                // The self-description named graphs (authored default / imports / metadata
+                // / alignments / slice-analysis / verify / provenance): the presenter reads
+                // them off this product instead of re-loading + re-canonicalizing sources.
+                "stage-source-load",
                 "stage-statements",
                 "stage-validate",
             ],
