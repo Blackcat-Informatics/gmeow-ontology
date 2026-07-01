@@ -198,6 +198,17 @@ guarded precondition with no `logic:datumRecordedAt`, or a probe with no `logic:
 hard, surfaced error — never a silent pass. It is GMEOW's native generalization of a decision-rule
 *currency* annotation (a measurement relied upon only if recorded within N of the decision).
 
+A schema whose completion the engine can learn of **only by being externally told** is a
+`logic:NotificationWaitSchema` — a manual-notification or callback-driven completion. It
+`logic:awaitsSignal` a `logic:ExternalSignal`, a situation the engine never computes from the state
+but only receives. At the gate a wait whose signal has not obtained is `logic:GateUndetermined` —
+the *same* withheld-judgment value a stale datum yields, carrying a distinct `logic:awaitingSignal`
+witness rather than a `logic:gateUndeterminedReason` — because the wait is **pending**, not denied:
+the signal may still arrive. In a plan a wait step is not executable until its signal obtains, so the
+transaction path **halts at the wait** rather than fabricating an un-signalled completion. This is the
+prescriptive↔descriptive epistemic boundary made canonical: what the engine knows of the world is
+limited to what it is told, and a wait names exactly which external fact it is still waiting for.
+
 ## Plans and nondeterministic outcomes
 
 A **plan** (`logic:Plan`) is a transaction program whose primitive operations invoke action schemas

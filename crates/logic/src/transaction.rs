@@ -101,6 +101,10 @@ const TRANSITION_FROM_STATE: &str = "transitionFromState";
 const TRANSITION_TO_STATE: &str = "transitionToState";
 const SITUATION_OBTAINS: &str = "situationObtains";
 const PRECONDITION: &str = "precondition";
+/// `logic:awaitsSignal` — the external signal a notification-wait schema blocks on: a
+/// wait primitive does not fire until this signal obtains in the current support (the
+/// engine has been told), so a plan halts at an un-signalled wait rather than executing it.
+const AWAITS_SIGNAL: &str = "awaitsSignal";
 const EFFECT: &str = "effect";
 // Effect-footprint local names (the situations an elementary step writes).
 const INS: &str = "ins";
@@ -424,6 +428,18 @@ fn preconditions_hold(facts: &WorldFacts, schema: &str, sits: &BTreeSet<String>)
         .all(|p| sits.contains(p))
 }
 
+/// Whether every external signal a notification-wait schema `logic:awaitsSignal` has
+/// obtained in the current support set. A schema that awaits no signal is trivially
+/// received (an ordinary action). An un-received signal makes the wait NOT executable, so
+/// a plan step blocks at it rather than firing — the engine never fabricates an
+/// un-signalled completion (the prescriptive↔descriptive epistemic boundary).
+fn signals_received(facts: &WorldFacts, schema: &str, sits: &BTreeSet<String>) -> bool {
+    facts
+        .objects(schema, &logic(AWAITS_SIGNAL))
+        .into_iter()
+        .all(|s| sits.contains(s))
+}
+
 /// Execute `program` from `state` (with support `sits`) under executional entailment.
 ///
 /// Returns an [`ExecOutcome`]; an empty `path` means the program failed from here. Pure:
@@ -446,8 +462,11 @@ pub(crate) fn plan_path(
 ) -> Result<ExecOutcome, String> {
     match program {
         TransactionProgram::Primitive { node, schema } => {
-            // Executability gate: every precondition must hold in the current support.
-            if !preconditions_hold(facts, schema, sits) {
+            // Executability gate: every precondition must hold in the current support, and
+            // — for a notification-wait schema — every awaited external signal must have
+            // obtained (been told). An un-signalled wait is not executable: the path halts
+            // pending rather than fabricating the completion.
+            if !preconditions_hold(facts, schema, sits) || !signals_received(facts, schema, sits) {
                 return Ok(ExecOutcome::failure());
             }
             counter.tick()?;

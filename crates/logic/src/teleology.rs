@@ -2044,6 +2044,10 @@ const GUARDS_PRECONDITION: &str = "guardsPrecondition";
 const FRESHNESS_HORIZON: &str = "freshnessHorizon";
 /// `logic:datumRecordedAt` — when a guarded precondition's datum was recorded.
 const DATUM_RECORDED_AT: &str = "datumRecordedAt";
+/// `logic:awaitsSignal` — the external signal a notification-wait schema waits on.
+const AWAITS_SIGNAL: &str = "awaitsSignal";
+/// `logic:awaitingSignal` — the witness that a wait probe is still pending its signal.
+const AWAITING_SIGNAL: &str = "awaitingSignal";
 
 /// The lexical value of an N3 literal (`"lex"^^<dt>` or `"lex"@lang` or `"lex"`).
 ///
@@ -2224,6 +2228,26 @@ fn freshness_verdict(
     Ok(None)
 }
 
+/// Whether a notification-wait schema is still awaiting an external signal at `state`.
+///
+/// A `logic:NotificationWaitSchema` fires only once each `logic:ExternalSignal` it
+/// `logic:awaitsSignal` obtains in the state (the engine has been told). Returns
+/// `Some((signal, reason))` for the FIRST awaited signal that does NOT obtain — the wait
+/// is pending — and `None` when the schema awaits no signal or every awaited signal has
+/// arrived. Pure classification over the given structure (P12); the engine never
+/// synthesizes an un-signalled completion.
+fn wait_verdict(facts: &WorldFacts, schema: &str, state: &str) -> Option<(String, String)> {
+    for signal in facts.objects(schema, &logic(AWAITS_SIGNAL)) {
+        if !obtains_at(facts, state, signal) {
+            let reason = format!(
+                "notification-wait schema {schema:?} is pending external signal {signal:?}, which has not obtained at state {state:?}"
+            );
+            return Some((signal.to_owned(), reason));
+        }
+    }
+    None
+}
+
 /// Emit the gate verdict for one `logic:GateProbe`, surfacing the invariant-breach and
 /// resource-exhaustion denials (and the precondition/capability ones) as materialized
 /// quads with provenance.
@@ -2269,6 +2293,14 @@ fn emit_gate_probe(
     } else {
         None
     };
+    // A notification-wait schema whose external signal has not obtained is pending — the
+    // same withheld-judgment value as a stale datum (logic:GateUndetermined), carrying a
+    // distinct witness (logic:awaitingSignal). Only meaningful when the base gate admits.
+    let awaiting = if matches!(gate, ActionGate::Admit) {
+        wait_verdict(facts, &schema, &state)
+    } else {
+        None
+    };
 
     let source = triple_reifier(probe, &logic(PROBES_SCHEMA), &schema)?;
     let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
@@ -2286,7 +2318,17 @@ fn emit_gate_probe(
     };
     match gate {
         ActionGate::Admit => {
-            if let Some((_, reason)) = stale {
+            // A pending wait and a stale datum are the same withheld-judgment verdict
+            // (logic:GateUndetermined) with distinct witnesses. The wait takes precedence:
+            // an un-signalled wait blocks regardless of a datum's freshness.
+            if let Some((signal, reason)) = awaiting {
+                push(&logic(GATE_VERDICT), n3(&logic(GATE_UNDETERMINED)));
+                push(&logic(AWAITING_SIGNAL), n3(&signal));
+                push(
+                    &logic(GATE_UNDETERMINED_REASON),
+                    format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+                );
+            } else if let Some((_, reason)) = stale {
                 push(&logic(GATE_VERDICT), n3(&logic(GATE_UNDETERMINED)));
                 push(
                     &logic(GATE_UNDETERMINED_REASON),
