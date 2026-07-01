@@ -1,6 +1,6 @@
 {
   "https://example.org/transaction/trajectory-audit-concurrent/world": {
-    "quads": 82,
+    "quads": 86,
     "status": "consistent"
   }
 }
