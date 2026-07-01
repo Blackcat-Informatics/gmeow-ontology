@@ -470,6 +470,7 @@ gmeow:stage-snapshot
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
+        gmeow:stage-source-load ,
         gmeow:stage-statements ,
         gmeow:stage-validate .
 
