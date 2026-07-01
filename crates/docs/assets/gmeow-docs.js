@@ -137,10 +137,29 @@ function copyAs(turtle, fmt, label) {
     setStatus(`Cannot serialize as ${label}: ${err.message ?? err}`);
     return;
   }
-  navigator.clipboard?.writeText(text).then(
+  // The Clipboard API is undefined in non-secure contexts (file://, plain http) —
+  // exactly where an offline docs bundle is opened. `navigator.clipboard?.writeText`
+  // would then short-circuit to `undefined` and calling `.then()` on it would throw,
+  // so guard explicitly and fall through to showing the serialization inline.
+  if (!navigator.clipboard) {
+    showSerialization(text);
+    setStatus(`Clipboard unavailable; ${label} shown below.`);
+    return;
+  }
+  navigator.clipboard.writeText(text).then(
     () => setStatus(`Copied as ${label}.`),
-    () => setStatus(`Clipboard unavailable; ${label} shown below.`),
+    () => {
+      showSerialization(text);
+      setStatus(`Clipboard unavailable; ${label} shown below.`);
+    },
   );
+}
+
+function showSerialization(text) {
+  const pre = document.createElement("pre");
+  pre.className = "gmeow-sparql-graph";
+  pre.textContent = text;
+  resultsEl.append(pre);
 }
 
 function setStatus(text) {
