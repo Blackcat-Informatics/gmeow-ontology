@@ -418,6 +418,7 @@ logic:Endurant
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Endurant"@x-gmeow-english ;
     skos:definition "A continuant: an individual that persists through time and is wholly present at each moment of its existence, enduring through change rather than unfolding through it. The counterpart of gufo:Endurant and the bearer side of the endurant/perdurant divide; contrast logic:Perdurant, which has temporal parts. Substantials and aspects are both endurants."@x-gmeow-english ;
+    owl:disjointWith logic:Perdurant ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:EndurantType
@@ -446,6 +447,7 @@ logic:Event
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Event"@x-gmeow-english ;
     skos:definition "A perdurant occurrence that happens in time and is composed of temporal parts: an action, a process, a happening that unfolds and is complete once it has occurred. Tokens it as an occurrence rather than an endurant; in the type-level world strata (risk, teleology, norms) the no-occurrence gate keeps reasoning over Event *types* without entailing any Event instance. Unitary: a proper temporal part of an event is not itself that event, and a completed (logic:Closed) event cannot vary — it bears no time-varying logic:Fluent (the change-asymmetry, logic:OccurrentChangeAsymmetry). An event is constituted by the process it is made of (logic:occurrentConstituent)."@x-gmeow-english ;
+    owl:disjointWith logic:Situation ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:EvolutionMode
@@ -6281,3 +6283,119 @@ vann:preferredNamespacePrefix
 
 vann:preferredNamespaceUri
     a owl:AnnotationProperty .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Foundational class-coverings (H2). Each is a full-FOL logic:Formula disjunction
+# ∀x. Whole(x) → (S₁(x) ∨ … ∨ Sₙ(x)); the canonical RDF 1.2 projection carries it
+# exact, and the OWL projection lowers it to owl:unionOf (an exhaustive cover). The
+# member disjointness is the separate owl:disjointWith axioms, never folded into the
+# formula. Governance for each is the logic:FormalizationCandidate block below.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Covering: every gmeow:Entity is one of the four top sortals (Agent, InformationObject,
+# PhysicalObject, SocialObject). A non-disjoint cover — the SocialObject ∩ InformationObject
+# overlap is preserved, so this projects to owl:unionOf (not owl:disjointUnionOf).
+logic:coverEntitySortals
+    a logic:Formula ;
+    logic:forall logic:coverEntitySortalsBody ;
+    logic:quantifiedVariable logic:coverEntitySortalsVar .
+logic:coverEntitySortalsVar
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsBody
+    a logic:Formula ;
+    logic:antecedent logic:coverEntitySortalsAnte ;
+    logic:consequent logic:coverEntitySortalsCons .
+logic:coverEntitySortalsAnte
+    a logic:Formula ;
+    logic:relation gmeow:Entity ;
+    logic:argument logic:coverEntitySortalsAnteArg .
+logic:coverEntitySortalsAnteArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsCons
+    a logic:Formula ;
+    logic:or logic:coverEntitySortalsAgent ,
+        logic:coverEntitySortalsInfo ,
+        logic:coverEntitySortalsPhysical ,
+        logic:coverEntitySortalsSocial .
+logic:coverEntitySortalsAgent
+    a logic:Formula ;
+    logic:relation gmeow:Agent ;
+    logic:argument logic:coverEntitySortalsAgentArg .
+logic:coverEntitySortalsAgentArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsInfo
+    a logic:Formula ;
+    logic:relation gmeow:InformationObject ;
+    logic:argument logic:coverEntitySortalsInfoArg .
+logic:coverEntitySortalsInfoArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsPhysical
+    a logic:Formula ;
+    logic:relation gmeow:PhysicalObject ;
+    logic:argument logic:coverEntitySortalsPhysicalArg .
+logic:coverEntitySortalsPhysicalArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsSocial
+    a logic:Formula ;
+    logic:relation gmeow:SocialObject ;
+    logic:argument logic:coverEntitySortalsSocialArg .
+logic:coverEntitySortalsSocialArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+
+# Covering: every logic:Object is individuated as exactly one of the three individuation
+# kinds (Collection, Quantity, FunctionalComplex). The pairwise disjointness of the three
+# is already asserted (their owl:disjointWith axioms); this covering supplies the
+# exhaustiveness, completing the individuation partition of Objects. The stereotype
+# meta-class partition (Kind/SubKind/Role/Phase/Category/Mixin/Relator) is a DISTINCT,
+# meta-level partition owned by the logic:StereotypeCardinality discipline (foundation
+# rules); this covering deliberately does not restate it, to avoid double-encoding.
+logic:coverObjectIndividuation
+    a logic:Formula ;
+    logic:forall logic:coverObjectIndividuationBody ;
+    logic:quantifiedVariable logic:coverObjectIndividuationVar .
+logic:coverObjectIndividuationVar
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverObjectIndividuationBody
+    a logic:Formula ;
+    logic:antecedent logic:coverObjectIndividuationAnte ;
+    logic:consequent logic:coverObjectIndividuationCons .
+logic:coverObjectIndividuationAnte
+    a logic:Formula ;
+    logic:relation logic:Object ;
+    logic:argument logic:coverObjectIndividuationAnteArg .
+logic:coverObjectIndividuationAnteArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverObjectIndividuationCons
+    a logic:Formula ;
+    logic:or logic:coverObjectIndividuationCollection ,
+        logic:coverObjectIndividuationQuantity ,
+        logic:coverObjectIndividuationFunctionalComplex .
+logic:coverObjectIndividuationCollection
+    a logic:Formula ;
+    logic:relation logic:Collection ;
+    logic:argument logic:coverObjectIndividuationCollectionArg .
+logic:coverObjectIndividuationCollectionArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverObjectIndividuationQuantity
+    a logic:Formula ;
+    logic:relation logic:Quantity ;
+    logic:argument logic:coverObjectIndividuationQuantityArg .
+logic:coverObjectIndividuationQuantityArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverObjectIndividuationFunctionalComplex
+    a logic:Formula ;
+    logic:relation logic:FunctionalComplex ;
+    logic:argument logic:coverObjectIndividuationFunctionalComplexArg .
+logic:coverObjectIndividuationFunctionalComplexArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .

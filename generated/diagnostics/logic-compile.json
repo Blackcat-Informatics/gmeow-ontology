@@ -15,6 +15,28 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection datalog drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection datalog drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection datalog drops: actual: reasoning contract (an anonymous faceted contract) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)",
       "tool": "logic-compile",
       "locations": [
@@ -104,6 +126,28 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection datalog drops: no existential rule heads (skolemisation not emitted)",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -2270,6 +2314,28 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection n3 drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection n3 drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection n3 drops: actual: reasoning contract (an anonymous faceted contract) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)",
       "tool": "logic-compile",
       "locations": [
@@ -2359,6 +2425,28 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection n3 drops: negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection nemo drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection nemo drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -4427,6 +4515,28 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: transaction-path evolution has no faithful OWL DL projection: serial conjunction, executional entailment over a path of states, elementary update as supersession, the hypothetical-execution sandbox and its discarded-run witness, and concurrent composition with conflict-serializability have no OWL axiom form and are dropped — OWL describes a single static state, not a transaction path",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {
@@ -8387,6 +8497,28 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/wfResolveThenBuild> <https://blackcatinformatics.ca/logic/rightOperand> <https://blackcatinformatics.ca/logic/wfConstructModel> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [
         {

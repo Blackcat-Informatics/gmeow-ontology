@@ -41,6 +41,44 @@
             }
           ],
           "message": {
+            "text": "projection datalog drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "95ec61811e9fb9f9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection datalog drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "aef898369958bb4c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection datalog drops: actual: reasoning contract (an anonymous faceted contract) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
           },
           "partialFingerprints": {
@@ -197,6 +235,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "b8c6427d9820482b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4f41954668754603"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2dfdf3ca6d1dd216"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -3936,6 +4012,44 @@
             }
           ],
           "message": {
+            "text": "projection n3 drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b5ffa0cc398f20f1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection n3 drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cad5e5b071a71ff6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection n3 drops: actual: reasoning contract (an anonymous faceted contract) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)"
           },
           "partialFingerprints": {
@@ -4092,6 +4206,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "7b0f4f7ea57503f5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection nemo drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "58d6e43adb5c872d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection nemo drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ce587bf647299c3e"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -7664,6 +7816,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "35638e93313643f2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "571f194bb07e4368"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3432c2354d627f67"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -14504,6 +14694,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "126d914504d1cc58"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "83e7fb52f3449f2d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "569cc694c718fbd6"
           },
           "ruleId": "logic-compile.lossy-drop"
         },

@@ -24,6 +24,8 @@
     a logic:ProjectionTarget ;
     rdfs:label "datalog" ;
     gmeow:lossyDrop "OWL class expressions not representable as Datalog atoms are dropped" ,
+        "actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Datalog; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: reasoning contract (an anonymous faceted contract) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:PositiveHornProfile) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:ProbabilisticProfile) is not representable in Datalog; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
@@ -6785,7 +6787,9 @@
 <https://blackcatinformatics.ca/logic/target/gufo>
     a logic:ProjectionTarget ;
     rdfs:label "gufo" ;
-    gmeow:lossyDrop "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent" ,
+    gmeow:lossyDrop "actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in the gUFO bridge; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no gUFO bridge equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no gUFO bridge equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no gUFO bridge equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no gUFO bridge equivalent" ,
@@ -6930,6 +6934,8 @@
     a logic:ProjectionTarget ;
     rdfs:label "n3" ;
     gmeow:lossyDrop "N3 builtins used for arithmetic/string predicates where available" ,
+        "actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in N3; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: reasoning contract (an anonymous faceted contract) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:PositiveHornProfile) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:ProbabilisticProfile) is not representable in N3; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
@@ -6945,8 +6951,10 @@
 <https://blackcatinformatics.ca/logic/target/nemo>
     a logic:ProjectionTarget ;
     rdfs:label "nemo" ;
+    gmeow:lossyDrop "actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ;
     logic:complexityClass "PTIME/datalog" ;
-    logic:preservationKind logic:ExactPreservation .
+    logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/owl-dl>
     a logic:ProjectionTarget ;
@@ -7091,7 +7099,9 @@
 <https://blackcatinformatics.ca/logic/target/owl-el>
     a logic:ProjectionTarget ;
     rdfs:label "owl-el" ;
-    gmeow:lossyDrop "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent" ,
+    gmeow:lossyDrop "actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in OWL 2 EL; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectHasMastered> has no EL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf> has no EL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout> has no EL equivalent" ,
         "actual: logic:body on <https://blackcatinformatics.ca/logic/ruleProjectUnderstands> has no EL equivalent" ,
@@ -7400,6 +7410,8 @@
         "actual: ground axiom <https://blackcatinformatics.ca/logic/wfResolveLoop> <https://blackcatinformatics.ca/logic/iterationCondition> <https://blackcatinformatics.ca/logic/wfFixpointNotReached> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/wfResolveThenBuild> <https://blackcatinformatics.ca/logic/leftOperand> <https://blackcatinformatics.ca/logic/wfResolveLoop> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/wfResolveThenBuild> <https://blackcatinformatics.ca/logic/rightOperand> <https://blackcatinformatics.ca/logic/wfConstructModel> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: logic:Formula #0 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
+        "actual: logic:Formula #1 [Disjunctive+Nested+Quantified+Variadic] (full first-order quantifier / connective tree) is not representable in SHACL-AF; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
         "actual: reasoning contract (an anonymous faceted contract) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:PositiveHornProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
         "actual: reasoning contract (preset logic:ProbabilisticProfile) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" ,
@@ -32709,6 +32721,7 @@ logic:projection-report
     logic:axiomCount 172 ;
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
+    logic:formulaCount 2 ;
     logic:hasProjection <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
         <https://blackcatinformatics.ca/logic/target/cgif> ,
         <https://blackcatinformatics.ca/logic/target/clif> ,
