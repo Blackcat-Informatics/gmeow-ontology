@@ -106,11 +106,18 @@ All by reference (Principle 5) — GMEOW never imports an external axiom. Compil
 `mappings/gmeow-procedures.sssom.tsv`. The set holds the external/peer-model
 alignments below, the five workflow-engine by-reference bridges (Airflow / CWL / WDL
 / Temporal / Nextflow, each a lossy `logic:BridgeView` lowering of `logic:Plan` with
-structured `gmeow:lossyDrop` residues), and the internal guard → combinator
-structural correspondences (see *Guard → structured-program combinator* below).
+structured `gmeow:lossyDrop` residues), the openEHR Task Planning (PROC) bridge —
+the higher-fidelity target that natively carries loops and guarded branching, whose
+distinctive DLM constructs GMEOW subsumes natively (`currency` → `logic:FreshnessGuard`,
+manual-notification → `logic:NotificationWaitSchema`, the Instruction-State-Machine
+plan→execution linkage → `logic:instantiatesSchema` + `logic:instantiatesPlan`) — and the
+internal guard → combinator structural correspondences (see *Guard → structured-program
+combinator* below).
 
 | GMEOW | predicate | external target |
 |---|---|---|
+| `gmeow:Procedure` | relatedMatch | openEHR PROC `WORK_PLAN`, `TASK_PLAN` (by reference) |
+| `gmeow:ProcedureStep` | relatedMatch | openEHR PROC `TASK` / `TASK_ACTION` (by reference) |
 | `gmeow:Procedure` | closeMatch | `pplan:Plan`, `prov:Plan`, `schema:HowTo`, `schema:Recipe`, `opmw:WorkflowTemplate`, `obi:OBI_0000272` (protocol) |
 | `gmeow:ProcedureStep` | closeMatch | `pplan:Step`, `schema:HowToStep`, `opmw:WorkflowTemplateProcess` |
 | `gmeow:Execution` | closeMatch | `pplan:Activity`, `prov:Activity`, `opmw:WorkflowExecution`, `obi:OBI_0000011` (planned process) |
