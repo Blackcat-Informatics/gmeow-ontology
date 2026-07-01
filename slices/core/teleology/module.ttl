@@ -12,6 +12,9 @@ gmeow:Commitment
     rdfs:label "Commitment"@x-gmeow-english ;
     rdfs:subClassOf logic:Relator ,
         gmeow:IntentionalMoment ;
+    logic:mediates gmeow:committedAgent ,
+        gmeow:commitmentBeneficiary ,
+        gmeow:intentionGoal ;
     skos:definition "A social commitment — an agent committed toward at least one other agent to bring about a goal (UFO-C: social moment). A relator, not a mode: it mediates the committed agent (gmeow:committedAgent) and the beneficiaries (gmeow:commitmentBeneficiary), who must be distinct (SHACL). A covenant, a contract promise, and a service-level agreement are Commitments; the agreements and contracts modules carry the document and the legal wrapper, this class carries the teleological bond itself."@x-gmeow-english ;
     skos:example "ex:slaPromise a gmeow:Commitment ; gmeow:committedAgent ex:vendor ; gmeow:commitmentBeneficiary ex:client ; gmeow:intentionGoal ex:ninetyNinePercentUptime ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for intrinsic modes that hold no one accountable (use gmeow:Desire or gmeow:Intention) and for the document or legal wrapper (those live in the agreements and contracts modules); the beneficiary must be distinct from the committed agent."@x-gmeow-english ;
