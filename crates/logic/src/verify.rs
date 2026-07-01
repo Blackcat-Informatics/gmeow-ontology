@@ -257,6 +257,12 @@ pub fn verify_with_reasoning_result(
     for finding in crate::obligations::formalization_coverage(&reasoned)? {
         report.add_finding(finding);
     }
+    // Recompute-and-enforce logic:candidateSourceHash drift: gives the "a later prose
+    // edit surfaces as drift" governance claim executable teeth the presence-only SHACL
+    // shape cannot express — a stale hash on a harvested candidate is a hard error.
+    for finding in crate::obligations::check_candidate_source_hash_drift(&reasoned)? {
+        report.add_finding(finding);
+    }
 
     report.add_finding(
         Finding::new(
