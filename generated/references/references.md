@@ -855,6 +855,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.iptc.org/std/NewsML-G2/2.31/specification/NewsML-G2-2.31-specification.html | [link](https://www.iptc.org/std/NewsML-G2/2.31/specification/NewsML-G2-2.31-specification.html) | 1 |
 | www.iptc.org/std/NewsML-G2/2.34/specification/NewsML-G2-2.34-specification.html | [link](https://www.iptc.org/std/NewsML-G2/2.34/specification/NewsML-G2-2.34-specification.html) | 1 |
 | www.iso.org/standard/52161.html | [link](https://www.iso.org/standard/52161.html) | 1 |
+| ISO/IEC 24707:2018 — Information technology — Common Logic (CL) | [link](https://www.iso.org/standard/66249.html) | 2 |
 | www.loc.gov/bibframe/docs/bibframe2-model.html | [link](https://www.loc.gov/bibframe/docs/bibframe2-model.html) | 1 |
 | www.npmjs.com/package/@blackcatinformatics/gmeow-gts | [link](https://www.npmjs.com/package/@blackcatinformatics/gmeow-gts) | 1 |
 | www.ogc.org/standard/geosparql | [link](https://www.ogc.org/standard/geosparql/) | 1 |
