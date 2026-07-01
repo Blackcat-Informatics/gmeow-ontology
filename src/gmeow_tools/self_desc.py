@@ -6,6 +6,8 @@ loader that parses the canonical RDF self-description.
 
 from __future__ import annotations
 
+import datetime as _datetime
+import json
 import re
 from dataclasses import dataclass
 from datetime import datetime
@@ -13,6 +15,19 @@ from pathlib import Path
 
 from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
 from gmeow_rdf.compat.rdflib.namespace import DCTERMS, RDFS, SKOS
+
+from gmeow_tools.config import (
+    ALIGNMENT_TARGETS,
+    CROSSMARK_ENABLED,
+    CROSSMARK_POLICY_DOI,
+    DATASET_SLUG,
+    DEPOSIT_FORMAT,
+    ONTOLOGY_FILE,
+    ONTOLOGY_IRI,
+    PROJECT_ROOT,
+    REGISTRANT_ACRONYM,
+    REGISTRANT_PLACE,
+)
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
@@ -327,3 +342,109 @@ def load_self_description_from_graph(g: Graph) -> SelfDescription:
 def full_doi() -> str:
     """Return the preferred citable GMEOW DOI (version DOI if minted, else concept)."""
     return load_self_description().doi
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CrossRef deposit marshalling (relocated from crossref.py).
+#
+# These thin functions serialise a SelfDescription + runtime config to the JSON
+# the Rust backend (gmeow_validate.build_deposit_xml_native /
+# lint_deposit_native) consumes. The XML/lint logic itself lives in Rust
+# (crates/validate/src/crossref.rs); this is pure FFI marshalling.
+# ─────────────────────────────────────────────────────────────────────────────
+
+#: CITATION.cff — checked for DOI consistency by doi-lint.
+_CITATION_CFF = PROJECT_ROOT / "CITATION.cff"
+
+
+def live_stamp(description: SelfDescription) -> tuple[str, str]:
+    """Return a (timestamp, batch_id) pair for a fresh submission.
+
+    The deposit is a transient submission document, not a committed artifact, so
+    the timestamp is the current UTC time: CrossRef uses it to order (re)submissions
+    of the same DOI, and a correction must out-rank the previous deposit. The batch
+    id embeds it so each generated deposit is uniquely identifiable.
+    """
+    timestamp = _datetime.datetime.now(_datetime.UTC).strftime("%Y%m%d%H%M%S")
+    batch_id = f"gmeow-{description.version}-{timestamp}"
+    return timestamp, batch_id
+
+
+def deposit_input_json(description: SelfDescription) -> str:
+    """Serialise a ``SelfDescription`` and runtime config to JSON for the Rust backend.
+
+    The returned JSON encodes a ``DepositInput`` struct understood by
+    ``gmeow_validate.build_deposit_xml_native``.
+    """
+    contributors = [
+        {
+            "kind": c.kind,
+            "name": c.name,
+            "orcid": c.orcid,
+            "sequence": c.sequence,
+            "role": c.role,
+        }
+        for c in description.contributors
+    ]
+    alignment_targets = [
+        {
+            "key": key,
+            "name": target.name,
+            "namespace": target.namespace,
+            "kind": target.kind,
+            "doi": target.doi,
+            "related_identifier": target.related_identifier,
+        }
+        for key, target in sorted(ALIGNMENT_TARGETS.items())
+    ]
+    payload = {
+        "self_description": {
+            "title": description.title,
+            "version": description.version,
+            "release_date": description.release_date,
+            "concept_doi": description.concept_doi,
+            "version_doi": description.version_doi,
+            "version_iri": description.version_iri,
+            "depositor_name": description.depositor_name,
+            "depositor_email": description.depositor_email,
+            "registrant": description.registrant,
+            "registrant_wikidata": description.registrant_wikidata,
+            "license_uri": description.license_uri,
+            "homepage": description.homepage,
+            "description": description.description,
+            "repo_url": description.repo_url,
+            "contributors": contributors,
+        },
+        "config": {
+            "ontology_iri": ONTOLOGY_IRI,
+            "dataset_slug": DATASET_SLUG,
+            "deposit_format": DEPOSIT_FORMAT,
+            "registrant_place": REGISTRANT_PLACE,
+            "registrant_acronym": REGISTRANT_ACRONYM,
+            "crossmark_enabled": CROSSMARK_ENABLED,
+            "crossmark_policy_doi": CROSSMARK_POLICY_DOI,
+            "alignment_targets": alignment_targets,
+        },
+    }
+    return json.dumps(payload)
+
+
+def lint_input_json(description: SelfDescription) -> str:
+    """Serialise the full lint context to JSON for the Rust backend.
+
+    The returned JSON encodes a ``LintInput`` struct understood by
+    ``gmeow_validate.lint_deposit_native``. The Rust linter renders its own XML
+    from the supplied self-description and config, so no pre-rendered XML is
+    passed.
+    """
+    base = json.loads(deposit_input_json(description))
+    # Read optional file contents — lint checks their text, never resolves over network.
+    citation_cff: str | None = None
+    if _CITATION_CFF.exists():
+        citation_cff = _CITATION_CFF.read_text(encoding="utf-8")
+    ontology_ttl: str | None = None
+    if ONTOLOGY_FILE.exists():
+        ontology_ttl = ONTOLOGY_FILE.read_text(encoding="utf-8")
+    base["citation_cff"] = citation_cff
+    base["ontology_ttl"] = ontology_ttl
+    return json.dumps(base)

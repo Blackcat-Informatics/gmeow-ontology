@@ -722,9 +722,11 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
         return diagnostics.report_from_findings(tool="alignment", findings=items)
 
     def _coverage() -> DiagnosticsReport:
-        from gmeow_tools import coverage
+        from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 
-        return coverage.to_diagnostics_report(coverage.run_coverage())
+        return gmeow_validate.coverage_diagnostics_report(
+            str(FIXTURES_DIR), str(MAPPINGS_DIR), str(NAMESPACE)
+        )
 
     def _acceptance() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
@@ -750,9 +752,14 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
         return gmeow_validate.repo_static_diagnostics_report(str(PROJECT_ROOT))
 
     def _box_roles() -> DiagnosticsReport:
-        from gmeow_tools import box_roles
+        from gmeow_tools import graph
+        from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 
-        return box_roles.to_diagnostics_report(box_roles.audit_box_roles())
+        return gmeow_validate.box_roles_diagnostics_report(
+            [str(p) for p in graph.default_audit_paths()],
+            ONTOLOGY_IRI,
+            NAMESPACE,
+        )
 
     def _audit() -> DiagnosticsReport:
         import gmeow_native.pipeline as _pipeline
@@ -1125,13 +1132,19 @@ def box_roles_audit(
     ),
 ) -> None:
     """Audit explicit ABox/TBox/RBox/CBox/ConfigBox role coverage."""
-    from gmeow_tools.box_roles import audit_box_roles, render_json, render_text
+    from gmeow_tools import graph
+    from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 
-    report = audit_box_roles()
-    console.print(render_json(report) if json_out else render_text(report))
-    if not report.ok:
+    report = gmeow_validate.audit_box_roles(
+        [str(p) for p in graph.default_audit_paths()],
+        ONTOLOGY_IRI,
+        NAMESPACE,
+    )
+    console.print(report["json"] if json_out else report["text"])
+    if not report["ok"]:
         raise _fail(
-            f"✗ {len(report.missing)} missing, {len(report.invalid)} invalid role(s)"
+            f"✗ {len(report['missing'])} missing, "
+            f"{len(report['invalid'])} invalid role(s)"
         )
 
 
@@ -1681,8 +1694,11 @@ def extract(
     Refuses (exit 1) for reference-only targets — the license guard that
     prevents copying NC/ND/copyleft axioms into CC BY 4.0 GMEOW.
     """
-    from gmeow_tools.config import ALIGNMENT_TARGETS
-    from gmeow_tools.extract import LicensePolicyError, guard_importable
+    from gmeow_tools.config import (
+        ALIGNMENT_TARGETS,
+        LicensePolicyError,
+        guard_importable,
+    )
 
     try:
         guard_importable(target)
@@ -1818,8 +1834,12 @@ def refresh_target_axioms(
     """
     import httpx
 
-    from gmeow_tools.config import ALIGNMENT_TARGETS, PROJECT_ROOT, LinkPolicy
-    from gmeow_tools.extract import LicensePolicyError
+    from gmeow_tools.config import (
+        ALIGNMENT_TARGETS,
+        PROJECT_ROOT,
+        LicensePolicyError,
+        LinkPolicy,
+    )
     from gmeow_tools.target_axioms import TARGET_SOURCES, refresh_snapshot
 
     prefixes = list(TARGET_SOURCES) if target == "all" else [target]
@@ -1893,19 +1913,22 @@ def wikidata(
     ),
 ) -> None:
     """Validate Wikidata QIDs/PIDs used in the mappings (syntax; optional live)."""
-    from gmeow_tools.wikidata_audit import audit_all, render_audit
-
     if fixtures:
-        report = audit_all(fixtures_dir=Path("tests/fixtures"))
-        text = render_audit(report)
-        for line in text.splitlines():
+        from gmeow_tools.graph import iter_module_files
+
+        paths = sorted(Path("tests/fixtures").rglob("*.ttl")) + list(
+            iter_module_files()
+        )
+        report = gmeow_validate.wikidata_audit_files([str(p) for p in paths])
+        for line in report["text"].splitlines():
             if line.startswith("[yellow]") or line.startswith("[red]"):
                 err_console.print(line)
             else:
                 console.print(line)
-        if not report.ok:
+        if not report["ok"]:
             raise _fail(
-                f"✗ {len(report.errors)} error(s), {len(report.warnings)} warning(s)"
+                f"✗ {report['error_count']} error(s), "
+                f"{report['warning_count']} warning(s)"
             )
         console.print("[green]✓ fixture audit passed[/green]")
         return
@@ -2041,33 +2064,37 @@ def coverage(
     are the project's vendored-entity coverage contract — the Makefile passes the
     current measured values so any regression below them fails the build.
     """
-    from gmeow_tools.coverage import run_coverage
+    from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 
-    report = run_coverage()
+    report = gmeow_validate.run_coverage(
+        str(FIXTURES_DIR), str(MAPPINGS_DIR), str(NAMESPACE)
+    )
+    class_coverage = report["class_coverage"]
+    predicate_coverage = report["predicate_coverage"]
     console.print(
-        f"[green]classes[/green]   {len(report.covered_classes)} covered / "
-        f"{len(report.gap_classes)} gap "
-        f"({report.class_coverage:.0%})"
+        f"[green]classes[/green]   {len(report['covered_classes'])} covered / "
+        f"{len(report['gap_classes'])} gap "
+        f"({class_coverage:.0%})"
     )
     console.print(
-        f"[green]predicates[/green] {len(report.covered_predicates)} covered / "
-        f"{len(report.gap_predicates)} gap "
-        f"({report.predicate_coverage:.0%})"
+        f"[green]predicates[/green] {len(report['covered_predicates'])} covered / "
+        f"{len(report['gap_predicates'])} gap "
+        f"({predicate_coverage:.0%})"
     )
     if show_gaps:
-        for iri in sorted(report.gap_classes):
+        for iri in sorted(report["gap_classes"]):
             err_console.print(f"[yellow]gap class[/yellow] {iri}")
-        for iri in sorted(report.gap_predicates):
+        for iri in sorted(report["gap_predicates"]):
             err_console.print(f"[yellow]gap predicate[/yellow] {iri}")
 
-    if min_class is not None and report.class_coverage < min_class:
+    if min_class is not None and class_coverage < min_class:
         raise _fail(
-            f"✗ class coverage {report.class_coverage:.4f} is below the "
+            f"✗ class coverage {class_coverage:.4f} is below the "
             f"required floor {min_class:.4f}"
         )
-    if min_predicate is not None and report.predicate_coverage < min_predicate:
+    if min_predicate is not None and predicate_coverage < min_predicate:
         raise _fail(
-            f"✗ predicate coverage {report.predicate_coverage:.4f} is below the "
+            f"✗ predicate coverage {predicate_coverage:.4f} is below the "
             f"required floor {min_predicate:.4f}"
         )
 
@@ -2080,7 +2107,10 @@ def crossref() -> None:
     committed artifact): doi-lint runs first so an inconsistent deposit is never
     produced, then the registrant hand-verifies and submits it to CrossRef.
     """
-    from gmeow_tools.crossref import lint_deposit, write_deposit
+    import gmeow_validate
+
+    from gmeow_tools import self_desc
+    from gmeow_tools.config import DIST_DIR
     from gmeow_tools.self_desc import load_self_description
 
     try:
@@ -2088,7 +2118,7 @@ def crossref() -> None:
     except (FileNotFoundError, ValueError) as exc:
         raise _fail(f"✗ self-description unavailable: {exc}") from exc
 
-    problems = lint_deposit(meta)
+    problems = gmeow_validate.lint_deposit_native(self_desc.lint_input_json(meta))
     if problems:
         for problem in problems:
             err_console.print(f"[red]doi-lint[/red] {problem}")
@@ -2096,7 +2126,13 @@ def crossref() -> None:
             f"✗ {len(problems)} doi-lint problem(s) — fix metadata/gmeow-self.ttl"
         )
 
-    path = write_deposit(meta=meta)
+    ts, batch = self_desc.live_stamp(meta)
+    xml = gmeow_validate.build_deposit_xml_native(
+        self_desc.deposit_input_json(meta), ts, batch
+    )
+    path = DIST_DIR / "crossref-deposit.xml"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(xml + "\n", encoding="utf-8")
     note = "concept-only" if meta.version_doi is None else "concept + version"
     console.print(f"[green]✓ {path} (DOI {meta.doi}, {note})[/green]")
     console.print(

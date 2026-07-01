@@ -30,11 +30,11 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import TYPE_CHECKING, cast
 
+from gmeow_native.pipeline import compact_curie as curie
 from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.config import MAPPING_DSL_DIR, NAMESPACE
-from gmeow_tools.export import curie
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

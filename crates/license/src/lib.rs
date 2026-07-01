@@ -1,32 +1,34 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native (Rust) license/vendoring policy for external corpora (#753).
+//! GMEOW license-token policy classifier — the RUST-FIRST single source of truth.
 //!
-//! A renamed Rust **subsumption** of the Python `gmeow_tools.config.LinkPolicy` /
-//! `policy_for_license` classifier: the project is RUST-FIRST and adding a Python
-//! dependency to the conformance crate is a `.goals` violation, so the IMPORT_OK /
-//! REFERENCE_ONLY sets and the conservative matcher are re-implemented here. The
-//! intent differs from the Python original (which governs *axiom copying into the
-//! CC-BY ontology*): here it governs *whether a third-party test corpus may be
-//! vendored* into `cases/external/`. Same algorithm, different consumer.
+//! A pure, dependency-free classifier over SPDX-ish license identifiers. One algorithm,
+//! two named consumers:
+//!   * `gmeow-conformance` — whether a third-party test corpus may be *vendored* into
+//!     `cases/external/`.
+//!   * the Python `gmeow_tools.config.LinkPolicy` surface — whether an external
+//!     vocabulary's *axioms may be copied* into the CC-BY-published GMEOW ontology.
 //!
-//! The classifier is conservative: a restrictive marker (NC/ND/SA/GPL/…) anywhere
-//! in the token forces [`LicensePolicy::ReferenceOnly`], even if a permissive
-//! substring is present (e.g. `CC-BY-NC-SA`). An unknown license defaults to
-//! `ReferenceOnly` so a mistake fails safe (vendoring refused).
+//! Same algorithm, two named consumers; the Python side is a thin marshalling shim over
+//! the PyO3 `license_policy_for` entrypoint (in `gmeow-validate`), which delegates here.
+//!
+//! The classifier is conservative: a restrictive marker (NC/ND/SA/GPL/…) anywhere in the
+//! token forces [`LicensePolicy::ReferenceOnly`], even if a permissive substring is
+//! present (e.g. `CC-BY-NC-SA`). An unknown license defaults to `ReferenceOnly` so a
+//! mistake fails safe (vendoring refused / axiom-copying refused, linking still allowed).
 
-/// Whether a third-party corpus may be vendored into the repository.
+/// Whether a license clears content reuse (vendoring / axiom copying).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LicensePolicy {
-    /// Compatibly licensed — the corpus may be vendored under `cases/external/`.
+    /// Compatibly licensed — the content may be reused (vendored / axioms copied).
     ImportOk,
-    /// Restrictive / unknown — vendoring is refused; the corpus may only be fetched
-    /// live in the Lane-B (non-required, Docker) lane and never committed.
+    /// Restrictive / unknown — content reuse is refused; the source may still be
+    /// referenced by IRI (which copies nothing).
     ReferenceOnly,
 }
 
-/// License-id tokens (uppercased) that block vendoring into the repository.
+/// License-id tokens (uppercased) that block content reuse.
 /// Non-commercial, no-derivatives, share-alike, and copyleft software licenses.
 const REFERENCE_ONLY_MARKERS: [&str; 8] = [
     "NC",          // non-commercial
@@ -39,7 +41,7 @@ const REFERENCE_ONLY_MARKERS: [&str; 8] = [
     "ACADEMIC",    //
 ];
 
-/// License-id tokens (uppercased) explicitly cleared for vendoring.
+/// License-id tokens (uppercased) explicitly cleared for content reuse.
 const IMPORT_OK_LICENSES: [&str; 22] = [
     "CC0",
     "CC0-1.0",
@@ -65,12 +67,11 @@ const IMPORT_OK_LICENSES: [&str; 22] = [
     "UNLICENSE",
 ];
 
-/// Classify a license identifier into a vendoring policy.
+/// Classify a license identifier into a reuse policy.
 ///
-/// Faithful port of `gmeow_tools.config.policy_for_license`: restrictive markers
-/// win over any permissive substring; the bare `CC-BY-<version>` family is cleared
-/// when it carries no `SA`/`NC`; everything unrecognised fails safe to
-/// [`LicensePolicy::ReferenceOnly`].
+/// Restrictive markers win over any permissive substring; the bare `CC-BY-<version>`
+/// family is cleared when it carries no `SA`/`NC`; everything unrecognised fails safe
+/// to [`LicensePolicy::ReferenceOnly`].
 pub fn policy_for_license(license_id: &str) -> LicensePolicy {
     let token = license_id.trim().to_uppercase();
     // Restrictive markers win, regardless of any permissive substring.
@@ -83,7 +84,7 @@ pub fn policy_for_license(license_id: &str) -> LicensePolicy {
         return LicensePolicy::ImportOk;
     }
     // Bare "CC-BY" with a version suffix not already listed (substring `SA`/`NC`
-    // check mirrors the Python belt-and-suspenders guard).
+    // check mirrors the belt-and-suspenders guard).
     if token.starts_with("CC-BY-") && !token.contains("SA") && !token.contains("NC") {
         return LicensePolicy::ImportOk;
     }

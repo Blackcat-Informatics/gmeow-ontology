@@ -22,15 +22,6 @@ use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
-const EXPORTER_MODULES: &[&str] = &["export.py"];
-const EXPORTER_BANNED_IMPORTS: &[&str] = &["rdflib", "gmeow_rdf"];
-const FORBIDDEN_LOADERS: &[&str] = &[
-    "load_merged_graph",
-    "shared_merged_graph",
-    "load_mappings",
-    "load_self_description",
-    "load_tag_map",
-];
 const GTS_APP: &str = "gts_app";
 const GTS_SUBCOMMANDS: &[&str] = &[
     "gts_info",
@@ -130,36 +121,10 @@ pub fn to_diagnostics_report(report: &RepoStaticReport) -> Report {
 
 fn check_narrow_waist(root: &Path, report: &mut RepoStaticReport) {
     let src = root.join("src").join("gmeow_tools");
-    for module in EXPORTER_MODULES {
-        let rel = format!("src/gmeow_tools/{module}");
-        let Some(text) = read_required(root, &rel, report) else {
-            continue;
-        };
-        let code = strip_python_non_code(&text);
-        let imported = python_imported_top_modules(&code);
-        let offending = EXPORTER_BANNED_IMPORTS
-            .iter()
-            .filter(|name| imported.contains(**name))
-            .copied()
-            .collect::<Vec<_>>();
-        if !offending.is_empty() {
-            report.error(format!("{rel} imports {}", offending.join(", ")));
-        }
-
-        let referenced = python_identifiers(&code);
-        let loaders = FORBIDDEN_LOADERS
-            .iter()
-            .filter(|name| referenced.contains(**name))
-            .copied()
-            .collect::<Vec<_>>();
-        if !loaders.is_empty() {
-            report.error(format!(
-                "{rel} references canonical-source loader(s): {}",
-                loaders.join(", ")
-            ));
-        }
-    }
-
+    // The flat-export narrow waist is now structurally guaranteed: the exporter
+    // is native Rust (`crates/pipeline/src/stages/export.rs`), which reads only
+    // the GTS bundle and cannot import rdflib. The retired Python exporter guard
+    // is gone with the module.
     let cli_path = src.join("cli.py");
     let rel = "src/gmeow_tools/cli.py";
     let text = match fs::read_to_string(&cli_path) {
@@ -758,11 +723,6 @@ fn python_imported_top_modules(code: &str) -> BTreeSet<String> {
     out
 }
 
-fn python_identifiers(code: &str) -> BTreeSet<String> {
-    let re = Regex::new(r"[A-Za-z_][A-Za-z0-9_]*").expect("static regex");
-    re.find_iter(code).map(|m| m.as_str().to_owned()).collect()
-}
-
 fn python_assigned_names(code: &str) -> BTreeSet<String> {
     let re = Regex::new(r"(?m)^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=!+\-*/%^&<>\n]+)?=\s*[^=\n]")
         .expect("static regex");
@@ -902,10 +862,6 @@ mod tests {
 
     fn write_minimal_repo(root: &Path) {
         write(
-            &root.join("src/gmeow_tools/export.py"),
-            "from __future__ import annotations\n\nVALUE = 1\n",
-        );
-        write(
             &root.join("src/gmeow_tools/cli.py"),
             "from __future__ import annotations\n\ndef main() -> None:\n    pass\n",
         );
@@ -937,10 +893,8 @@ mod tests {
             "import os\n# import rdflib\nTEXT = \"import gmeow_rdf\"\n'''load_merged_graph'''\n",
         );
         let imports = python_imported_top_modules(&code);
-        let names = python_identifiers(&code);
         assert!(imports.contains("os"));
         assert!(!imports.contains("rdflib"));
-        assert!(!names.contains("load_merged_graph"));
     }
 
     #[test]
@@ -1124,22 +1078,6 @@ mod tests {
         write_minimal_repo(temp.path());
         let report = check_repo_static(temp.path());
         assert!(report.ok(), "{:?}", report.errors);
-    }
-
-    #[test]
-    fn narrow_waist_flags_exporter_imports_and_loader_names() {
-        let temp = tempfile::tempdir().unwrap();
-        write_minimal_repo(temp.path());
-        write(
-            &temp.path().join("src/gmeow_tools/export.py"),
-            "import rdflib\n\ndef f(graph_mod):\n    return graph_mod.load_merged_graph()\n",
-        );
-        let report = check_repo_static(temp.path());
-        assert!(report.errors.iter().any(|e| e.contains("imports rdflib")));
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("load_merged_graph")));
     }
 
     #[test]
