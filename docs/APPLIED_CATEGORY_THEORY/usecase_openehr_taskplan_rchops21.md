@@ -3,7 +3,7 @@
 
 # Grounded use case — the process axis: openEHR PROC (RCHOPS21) ⇄ `logic:Plan`
 
-> **Grounds:** `take1.md` §13.5 and META-EPIC #1054 (W1 #1055 / W2 #1056 / W3 #1057) against the
+> **Grounds:** `take1.md` §13.5 and the canonical process model (W1/W2/W3) against the
 > openEHR **PROC 1.6.0** process examples — specifically the **RCHOPS21** chemotherapy Task Plan
 > (`process_examples.html`). Companion: `usecase_openehr_bloodpressure.md` (the data axis).
 >
@@ -90,9 +90,9 @@ two-tier projection W2 makes explicit:
   fixed cycle count (with the unroll recorded in the loss ledger) or an honest `unsupported`. The
   plan is still valid canonically — never silently truncated.
 
-This is the whole point of META-EPIC #1054: RCHOPS21 exhibits **iteration, guarded branching on
-real conditions, and per-branch compensation** — exactly the four things #1054 says "a pure DAG
-cannot express." It is the worked proof that DAG must be a *profile of* the superset, not the core.
+This is the whole point of the canonical process model: RCHOPS21 exhibits **iteration, guarded
+branching on real conditions, and per-branch compensation** — exactly the constructs a pure DAG
+cannot express. It is the worked proof that DAG must be a *profile of* the superset, not the core.
 
 ---
 
@@ -176,14 +176,19 @@ general**:
   property of the world (events happen off-engine). The honest move is to *name* it: the
   plan→record correspondence sits on the lossy-lens rung, recoverable only to the extent the ISM
   witness is present. Do **not** claim section/retraction for the process execution lens.
-- **Caveat (grounding) — partially closed.** A machine-readable RCHOPS21 now exists as
-  `fixtures/rchops21.plan.ttl` — GMEOW's own `logic:Plan` rendering, derived from the PROC 1.6.0
-  source (`openEHR/specifications-PROC : docs/process_examples/master05-chemo.adoc`, DLM
-  "RCHOPS21"), with the loop / patient-fit guard / nondeterministic-outcome+compensation /
-  high-IPI conditional-addition / tracked-state currencies all expressed canonically. The openEHR
-  DLM/TP-VML is **not** vendored (specifications-PROC license is "Other"/NOASSERTION) — only cited.
-  The remaining step is mechanizing the lowering `logic:Plan → TP-VML/DLM` and its inverse once the
-  calculus is implemented; flag for the breakout.
+- **Grounding — closed.** A machine-readable RCHOPS21 exists as `fixtures/rchops21.plan.ttl` —
+  GMEOW's own `logic:Plan` rendering, derived from the PROC 1.6.0 source
+  (`openEHR/specifications-PROC : docs/process_examples/master05-chemo.adoc`, DLM "RCHOPS21"), with
+  the loop / patient-fit guard / nondeterministic-outcome+compensation / high-IPI
+  conditional-addition / tracked-state currencies all expressed canonically. The openEHR DLM/TP-VML
+  is **not** vendored (specifications-PROC license is "Other"/NOASSERTION) — only cited. The
+  distinctive DLM constructs are now realized natively: `currency`/time-window staleness is
+  `logic:FreshnessGuard` (an out-of-window datum gates the action `logic:GateUndetermined`);
+  manual-notification / callback completion is `logic:NotificationWaitSchema` (an un-signalled wait
+  is pending, carrying a `logic:awaitingSignal` witness); and the Instruction-State-Machine
+  plan→execution linkage is the `logic:instantiatesSchema` + `logic:instantiatesPlan` in-band
+  witness. The lowering `logic:Plan → openEHR Task Planning` is wired as a by-reference projection in
+  `slices/extensions/procedures/mappings/` with its preservation judgment in the loss ledger.
 - **The two axes together** complete the openEHR subsumption picture (`take1.md` §13 table): the
   **data axis** reaches the section/retraction rung (perfect replacement of the RM data, with the
   in-band complement); the **process axis** reaches the lossy-lens rung for execution and a faithful

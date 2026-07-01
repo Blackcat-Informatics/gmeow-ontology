@@ -8,9 +8,9 @@
 # author Thomas Beale, openEHR Foundation). The openEHR DLM/TP-VML text is NOT vendored
 # (specifications-PROC license: "Other"/NOASSERTION); only short excerpts are cited for
 # grounding, and the structure is re-expressed in logic: terms. It exercises exactly the
-# constructs META-EPIC #1054 (W1 #1055) says a pure DAG cannot hold: a loop, guarded branches
-# on real conditions, nondeterministic outcomes, and per-branch compensation — proving the W2
-# DAG must be a *profile* of this superset, not the core.
+# constructs the canonical process model (W1) says a pure DAG cannot hold: a loop, guarded
+# branches on real conditions, nondeterministic outcomes, and per-branch compensation — proving
+# the W2 DAG must be a *profile* of this superset, not the core.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

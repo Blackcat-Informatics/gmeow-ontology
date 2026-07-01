@@ -673,8 +673,8 @@ indices, the four axes, RDF-1.2 reifier identities, multi-vantage claims.
 ### 13.5 The process axis: openEHR PROC ↔ `logic:Plan` (W1 / W2 / W3)
 
 OpenEHR's Task-Planning (PROC 1.6.0) is a *process* model, and it is a subsumption target for
-the canonical process model META-EPIC — `logic:Plan` (W1), the certified acyclic DAG profile (W2),
-and the dogfooded executor (W3). The two epics are the *same*
+the canonical process model — `logic:Plan` (W1), the certified acyclic DAG profile (W2),
+and the dogfooded executor (W3). The process model and the correspondence calculus are the *same*
 projection doctrine applied to two cores (alignment and process); they meet here, because W2
 *already* generates workflow surfaces "Airflow/CWL/WDL/Temporal added by reference
 (SSSOM/EDOAL/FnO)". **The correspondence calculus is W2's mechanism, and openEHR Task Planning is
@@ -851,8 +851,8 @@ subsumption — and naming it honestly is worth more than papering over it.
 - OpenEHR treated as a **six-layer** subsumption (data, constraints, process, decision-logic,
   query, terminology), grounded in real GECCO data: the **data axis** (`DV_QUANTITY` section/
   retraction via the in-band complement) and the **process axis** (PROC ↔ `logic:Plan`, the
-  prescriptive↔descriptive lossy lens, joined to META-EPIC #1054 / W1–W3), with the four genuine
-  unknowns flagged rather than smoothed over.
+  prescriptive↔descriptive lossy lens, joined to the canonical process model W1–W3), with the four
+  genuine unknowns flagged rather than smoothed over.
 - **YAMATO** (Mizoguchi 2010) adopted by-reference as a bridge view (P5), canonical in `logic:`
   (P17): the quality stratification (persistent `Quality` identity, generic-quality→role ladder,
   unit-independent true quantity) grounds the data axis; the event refinements (process ≠ event,
