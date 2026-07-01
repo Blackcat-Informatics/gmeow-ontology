@@ -138,6 +138,7 @@ mod tests {
             // from the compile-logic product (design/LOGIC-SHACL-AF.md).
             crate::stages::compile_logic::SHACL_AF_PATH,
             crate::stages::compile_logic::N3_PATH,
+            crate::stages::compile_logic::CLIF_PATH,
             crate::stages::compile_logic::GUFO_PATH,
             crate::stages::compile_logic::RELATIONAL_CORE_PATH,
             crate::stages::compile_logic::CORRESPONDENCE_PATH,
