@@ -9,7 +9,7 @@ reasoned rdflib graph per pytest. See ``dsl/tests/MIGRATION-LEDGER.md``.
 
 What remains here is the **reasoning-case orchestration** layer: the live
 HermiT/ROBOT inconsistency and fixture-coherence cases run through a dev-only
-oracle module (``gmeow_tools.oracles.reasoning_cases``) so Make/CI can schedule
+oracle module (``oracles.reasoning_cases``) so Make/CI can schedule
 Docker outside pytest. These tests exercise that Python orchestration (call
 order, monkeypatched reasoner) — an independent live Python impl with no Rust
 twin, so they are retained-with-reason rather than migrated.
@@ -20,7 +20,7 @@ from __future__ import annotations
 import pytest
 from gmeow_rdf.compat.rdflib import RDF, Graph
 
-from gmeow_tools.oracles import reasoning_cases
+from oracles import reasoning_cases
 
 
 def test_two_axis_case_expects_inconsistency(
