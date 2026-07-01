@@ -35,7 +35,7 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # ledger (`projection_ledger_rows`), surfaced verbatim on the compiler-products
 # documentation pages. Pure-Rust: it carries no reasoning-runtime dependencies.
 gmeow-logic-compile = { path = "../logic-compile" }
-# Single source of the rule-code → in-page-slug transform (#751): the constraint
+# Single source of the rule-code → in-page-slug transform: the constraint
 # catalog page anchors each `gmeow:ValidationRule` by
 # `gmeow_validate::rule_catalog::slugify(code)` — the identical slug the validator
 # stamps into a finding's `helpUri` fragment — so a finding's help link resolves to

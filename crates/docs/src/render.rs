@@ -118,7 +118,7 @@ pub enum Page {
     IntegrityIndex,
     /// The constraint catalog (`enforced-constraints/index`) — every
     /// `gmeow:ValidationRule` the validator enforces, grouped by category and
-    /// anchored by the same slug the validator's `helpUri` uses (#751).
+    /// anchored by the same slug the validator's `helpUri` uses.
     ConstraintCatalog,
     /// The logic-stereotypes index (`logic/index`) — terms grouped by their
     /// lowered OntoUML/UFO stereotype. Resolves the `nav_logic` chrome string.
@@ -2512,7 +2512,7 @@ fn md_integrity_index(model: &DocsModel) -> String {
     out
 }
 
-/// The "What GMEOW enforces" page (#751): the constraint catalog — every
+/// The "What GMEOW enforces" page: the constraint catalog — every
 /// `gmeow:ValidationRule` the toolchain enforces — grouped by finding category
 /// and, within each category, sorted by rule code. Each rule entry carries an
 /// explicit `<a id="{slug}">` anchor whose id is
@@ -3309,7 +3309,7 @@ fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
 /// term is not documented.
 /// The compact CURIE for an IRI: `gmeow:Local` / `logic:Local` for the two
 /// GMEOW-family namespaces, otherwise the IRI unchanged. Used by the constraint
-/// catalog to abbreviate a rule's applies-to terms and formalized axiom (#751).
+/// catalog to abbreviate a rule's applies-to terms and formalized axiom.
 fn to_curie(iri: &str) -> String {
     const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
     const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
