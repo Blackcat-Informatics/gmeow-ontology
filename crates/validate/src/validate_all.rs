@@ -246,11 +246,13 @@ impl ValidationRun {
         }
 
         if signature_hard_failures {
+            let mut report = build_report(Vec::new(), Vec::new(), signature_findings);
+            crate::rule_catalog::populate_rules(&mut report);
             return Ok(Self {
                 dataset,
                 shapes,
                 timings,
-                report: build_report(Vec::new(), Vec::new(), signature_findings),
+                report,
                 declared_terms: Vec::new(),
                 advisory_claims: Vec::new(),
             });
@@ -280,11 +282,13 @@ impl ValidationRun {
 
         // Python short-circuits if syntax or sameAs failed — no merged graph work.
         if !errors.is_empty() {
+            let mut report = build_report(errors, warnings, shacl_findings);
+            crate::rule_catalog::populate_rules(&mut report);
             return Ok(Self {
                 dataset,
                 shapes,
                 timings,
-                report: build_report(errors, warnings, shacl_findings),
+                report,
                 declared_terms: Vec::new(),
                 advisory_claims: Vec::new(),
             });
@@ -574,6 +578,12 @@ impl ValidationRun {
                 );
             }
         }
+
+        // Resolve every emitted finding code to its constraint-catalog entry:
+        // populate `report.rules` so each code carries a rule whose `helpUri`
+        // anchors the "what GMEOW enforces" catalog page. Idempotent — the
+        // advisory demonstrator's own rule (with its help URI) is left intact.
+        crate::rule_catalog::populate_rules(&mut report);
 
         Ok(Self {
             dataset,

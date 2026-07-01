@@ -36,6 +36,7 @@ pub mod lint;
 pub mod mapping_eval;
 pub mod model;
 pub mod repo_static;
+pub mod rule_catalog;
 pub mod signature;
 pub mod slice_ownership;
 pub mod statement;
