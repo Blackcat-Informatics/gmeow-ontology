@@ -240,10 +240,16 @@ fn validate_fol_form(form: &SExpr) -> Result<(), String> {
     parse_formula(form).map(|_| ())
 }
 
-/// Recognize and validate the rule shape `(forall (vars) (if BODY HEAD))` (or a degenerate
-/// `(forall (vars) HEAD)` fact). Returns `Ok(true)` when the form IS the rule shape and is
-/// well-formed, `Ok(false)` when it is not the rule shape (so the caller falls through to the
-/// formula parser), and `Err(msg)` when it is the rule shape but malformed.
+/// Recognize and validate the Horn rule shape `(forall (vars) (if BODY HEAD))` (or a
+/// degenerate `(forall (vars) HEAD)` fact). Returns `Ok(true)` only when the form IS a
+/// well-formed HORN rule, and `Ok(false)` when it is not — either because it is not the
+/// `(forall …)` shape at all, or because it is a universally-quantified formula whose head
+/// or body is NOT Horn-shaped (e.g. a class-covering `(forall (?x) (if (C ?x) (or …)))`
+/// whose head is a disjunction). In every `Ok(false)` case the caller falls through to the
+/// full-FOL [`parse_formula`], which validates the general quantified formula (and reports
+/// `Err` there if it is neither a Horn rule nor a well-formed FOL sentence). This never
+/// returns `Err`: a `(forall …)` whose Horn parse fails is a legitimate full-FOL formula,
+/// not a malformed Horn rule, so it must not be rejected as one.
 fn validate_rule(items: &[SExpr]) -> Result<bool, String> {
     let Some(head_sym) = items.first().and_then(symbol_of) else {
         return Ok(false);
@@ -260,15 +266,16 @@ fn validate_rule(items: &[SExpr]) -> Result<bool, String> {
     };
     match inner_items.first().and_then(symbol_of) {
         Some("if") if inner_items.len() == 3 => {
-            parse_horn_atom(&inner_items[2])?; // head
-            parse_rule_body(&inner_items[1])?; // body + distinct pairs
-            Ok(true)
+            // A Horn rule iff BOTH the head is a Horn atom AND the body is a Horn body.
+            // Otherwise (a disjunctive/negated/nested head or body — e.g. a class covering)
+            // it is a full-FOL formula: fall through rather than reject it as a bad rule.
+            let is_horn = parse_horn_atom(&inner_items[2]).is_ok()
+                && parse_rule_body(&inner_items[1]).is_ok();
+            Ok(is_horn)
         }
-        // A `(forall (vars) HEAD)` fact (degenerate, empty body).
-        _ => {
-            parse_horn_atom(inner)?;
-            Ok(true)
-        }
+        // A `(forall (vars) HEAD)` fact: a Horn rule iff HEAD is a Horn atom; otherwise
+        // (a quantified non-atomic formula) fall through to the full-FOL parser.
+        _ => Ok(parse_horn_atom(inner).is_ok()),
     }
 }
 

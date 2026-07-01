@@ -3,6 +3,5 @@
 
 % === Ground facts (axioms) ===
 type("https://example.org/transaction/concurrent-view-serializable/GoalExpression", "https://blackcatinformatics.ca/logic/GoalExpression", "default").
-type("https://example.org/transaction/concurrent-view-serializable/TransactionContract", "https://blackcatinformatics.ca/logic/ReasoningContract", "default").
 
 % === Rules ===

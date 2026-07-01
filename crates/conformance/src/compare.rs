@@ -41,7 +41,7 @@ const NTRIPLES: &str = "application/n-triples";
 const NQUADS: &str = "application/n-quads";
 
 /// Parse serialized RDF `text` of `media_type` into the frozen [`RdfDataset`] IR via
-/// the native, oxigraph-free codecs (`gmeow_rdf::parse_dataset`, #909).
+/// the native, oxigraph-free codecs (`gmeow_rdf::parse_dataset`).
 fn parse_native_dataset(
     text: &str,
     media_type: &str,
@@ -58,9 +58,9 @@ fn parse_native_dataset(
 /// RDF documents are graph-isomorphic iff their canonical quad lists are equal — the
 /// rdflib-free replacement for `rdflib.compare.isomorphic`.
 fn canonical_quads(text: &str, media_type: &str) -> Result<Vec<String>, String> {
-    // Native text ingress (#909): parse via the gmeow-gts codecs, not oxigraph::io.
+    // Native text ingress: parse via the gmeow-gts codecs, not oxigraph::io.
     let dataset = parse_native_dataset(text, media_type)?;
-    // Native flat RDFC-1.0 (#910): the oxigraph-free canonical N-Quads document. This
+    // Native flat RDFC-1.0: the oxigraph-free canonical N-Quads document. This
     // is byte-identical to the prior oxigraph flat-canonical path (proven by the
     // `canonical_flat_nquads_byte_matches_oxigraph_path` gate in gmeow-rdf), so the
     // graph-isomorphism verdict is unchanged. Splitting into lines and sorting yields
@@ -237,7 +237,7 @@ pub fn parse_explanation_reifier(text: &str) -> String {
 /// Buckets every quad by its named-graph IRI and re-serializes each world's
 /// triples as an N-Triples string. Default-graph (and blank-node-graph) triples
 /// are dropped — the materialized-corpus comparison asserts only over named
-/// worlds (issue #501 AC(a)/(b)).
+/// worlds.
 pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, String>, String> {
     if nquads_text.trim().is_empty() {
         return Ok(BTreeMap::new());
@@ -245,8 +245,8 @@ pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, Strin
     let dataset = parse_native_dataset(nquads_text, NQUADS)?;
 
     // Collect the set of named-graph IRIs. Default-graph (graph_name == None) and
-    // blank-node-graph triples are NOT part of the world-indexed comparison surface
-    // (issue #501 AC(a)/(b)), so only IRI-named graphs are bucketed.
+    // blank-node-graph triples are NOT part of the world-indexed comparison surface,
+    // so only IRI-named graphs are bucketed.
     let mut graph_iris: BTreeSet<String> = BTreeSet::new();
     for quad in dataset.owned_quads() {
         if let Some(RdfTerm::Iri(iri)) = &quad.graph_name {
@@ -325,8 +325,8 @@ fn truncate_chars(s: &str, n: usize) -> String {
 /// matches all of its goldens.
 ///
 /// `witnesses.json` is intentionally NOT compared (it is a bless-only side file).
-/// The retired Python `logic_runner.diff_case` that this replaced was removed in
-/// #727.
+/// The retired Python `logic_runner.diff_case` that this replaced has since been
+/// removed.
 pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
     let case_id = &out.case_id;
     let mut diffs: Vec<String> = Vec::new();
@@ -452,6 +452,42 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
                 (_, Err(e)) => diffs.push(format!("[{case_id}] {target}: {e}")),
             }
         }
+
+        // ── CL dialect projections (cl-roundtrip cases only) ───────────────────
+        // A `cl-roundtrip` case pins the three ISO 24707 dialect renderings
+        // (`gmeow.{clif,cgif,xcl}`) byte-exactly. Opt-in like certification: compared
+        // only when the golden exists — a non-`cl-roundtrip` case produces none and
+        // pins none, so `!exists && !produced` is correctly a no-op.
+        const DIALECTS: [(&str, &str); 3] = [
+            ("clif", "gmeow.clif"),
+            ("cgif", "gmeow.cgif"),
+            ("xcl", "gmeow.xcl"),
+        ];
+        for (target, filename) in DIALECTS {
+            let expected_path = proj.join(filename);
+            let produced = out.projections.text.get(target);
+            if !expected_path.exists() {
+                if produced.is_some() {
+                    diffs.push(format!(
+                        "[{case_id}] projection {target}: golden {filename} is missing from \
+                         expected/projections/ — run the bless mode to generate it"
+                    ));
+                }
+                continue;
+            }
+            match (produced, read_text(&expected_path)) {
+                (Some(content), Ok(expected_text)) => {
+                    for d in compare_text(content, &expected_text) {
+                        diffs.push(format!("[{case_id}] {target}: {d}"));
+                    }
+                }
+                (None, _) => diffs.push(format!(
+                    "[{case_id}] projection {target}: golden {filename} exists but no dialect \
+                     text produced (is this a cl-roundtrip case?)"
+                )),
+                (_, Err(e)) => diffs.push(format!("[{case_id}] {target}: {e}")),
+            }
+        }
     }
 
     // ── Verdicts (canonical JSON) ─────────────────────────────────────────────
@@ -515,6 +551,22 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
                 "[{case_id}] correspondence-gates: golden correspondence-gates.json is missing \
                  from expected/ but the program authors logic:Correspondence individuals — run \
                  the bless mode to generate it"
+            ));
+        }
+    }
+
+    // ── Common Logic round-trip verdict (cl-roundtrip ⇒ require-golden) ────────
+    // A `cl-roundtrip` case MUST commit the `cl-dialects.json` golden — the per-dialect
+    // round-trip + cross-dialect verdict. A missing golden is a hard failure, never a
+    // silent pass.
+    if let Some(actual_cl) = &out.cl_dialects {
+        let cl_path = expected.join("cl-dialects.json");
+        if cl_path.exists() {
+            diff_json_golden(&cl_path, actual_cl, case_id, "cl-dialects", &mut diffs);
+        } else {
+            diffs.push(format!(
+                "[{case_id}] cl-dialects: golden cl-dialects.json is missing from expected/ but \
+                 this is a cl-roundtrip case — run the bless mode to generate it"
             ));
         }
     }
@@ -612,7 +664,7 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
         }
     }
 
-    // ── Answers (#504 backward goals) ─────────────────────────────────────────
+    // ── Answers (backward goals) ──────────────────────────────────────────────
     let queries_dir = case_dir.join("queries");
     let answers_dir = expected.join("answers");
     if queries_dir.is_dir() {
