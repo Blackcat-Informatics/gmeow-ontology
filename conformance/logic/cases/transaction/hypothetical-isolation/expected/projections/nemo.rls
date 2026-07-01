@@ -3,7 +3,6 @@
 
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/transaction/hypothetical-isolation/GoalExpression>, <https://blackcatinformatics.ca/logic/GoalExpression>, "default").
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/transaction/hypothetical-isolation/TransactionContract>, <https://blackcatinformatics.ca/logic/ReasoningContract>, "default").
 <https://blackcatinformatics.ca/logic/executionMode>(<https://example.org/transaction/hypothetical-isolation/TransactionContract>, <https://blackcatinformatics.ca/logic/HypotheticalExecution>, "default").
 
 % === Rules ===
