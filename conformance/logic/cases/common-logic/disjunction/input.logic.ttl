@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: common-logic/disjunction.
+#
+# ISO 24707 (Common Logic) example — a disjunction of two ground predications:
+#   CLIF:  (or (Raining today) (Sunny today))
+# "It is raining today or it is sunny today." Encoded as the canonical logic: full-FOL
+# Formula AST (an Or of two unary atoms). Gates the CLIF/CGIF/XCL Exact projections:
+# IR round-trip isomorphism + cross-dialect equivalence.
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <https://blackcatinformatics.ca/logic/hasFormula> <https://blackcatinformatics.ca/logic/formula/_000001> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/or> <https://blackcatinformatics.ca/logic/formula/_000001/or/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/or> <https://blackcatinformatics.ca/logic/formula/_000001/or/0001> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0000> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0000> <https://blackcatinformatics.ca/logic/relation> <https://example.org/common-logic/Raining> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0000> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/or/0000/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0000/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0000/arg/0000> <https://blackcatinformatics.ca/logic/termIri> <https://example.org/common-logic/today> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0001> <https://blackcatinformatics.ca/logic/relation> <https://example.org/common-logic/Sunny> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0001> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/or/0001/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0001/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/or/0001/arg/0000> <https://blackcatinformatics.ca/logic/termIri> <https://example.org/common-logic/today> .

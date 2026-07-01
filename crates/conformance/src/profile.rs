@@ -3,8 +3,8 @@
 
 //! `profile.json` parsing and validation.
 //!
-//! A case's `profile.json` declares the reasoning preset to evaluate under (since
-//! #767, nested under `reasoning_contract.preset`), plus optional governor /
+//! A case's `profile.json` declares the reasoning preset to evaluate under
+//! (nested under `reasoning_contract.preset`), plus optional governor /
 //! foundation / counterfactual / certification knobs. This module parses it into a
 //! typed [`Profile`] with **strict, hard-fail** validation (no-optionality
 //! doctrine): an unknown preset, a malformed `budget_params`, a non-object profile,
@@ -30,10 +30,10 @@ pub const DEFAULT_SEMANTIC_PROFILE: &str = "PositiveHornProfile";
 /// The default anti-rigidity policy for the foundation-lowering path.
 pub const DEFAULT_ANTI_RIGIDITY_POLICY: &str = "witness-obligation";
 
-/// The verdict-production mode (#753).
+/// The verdict-production mode.
 ///
 /// `Materialization` (the default) runs the profile-routed chase and counts the
-/// materialized worlds — the pre-#753 behavior. `Consistency` reasons over the
+/// materialized worlds — the original behavior. `Consistency` reasons over the
 /// case's RDF EDB (world-scoped N-Quads in `input.nq`) through the native DL
 /// consistency path ([`gmeow_logic::reason::reason_all`]) and emits a per-world
 /// `consistent`/`inconsistent` verdict. This is **modal-by-test-intent** —
@@ -45,11 +45,17 @@ pub enum VerdictMode {
     #[default]
     Materialization,
     Consistency,
+    /// The Common Logic round-trip mode: gates the CLIF/CGIF/XCL Exact projections
+    /// (IR round-trip isomorphism + cross-dialect equivalence) and pins their canonical
+    /// rendering. Like `Consistency` it is modal-by-test-intent — a genuinely different
+    /// engine operation (project/parse/isomorphism, no materialize chase), not a quality
+    /// knob.
+    CommonLogic,
 }
 
-/// Optional budget governor ceilings (issue #502). Each is an optional positive
+/// Optional budget governor ceilings. Each is an optional positive
 /// integer; absence ⇒ unbounded. This struct is the sole authority for the
-/// budget ceilings (the former Python `logic_seam.BudgetParams` was culled in #932).
+/// budget ceilings (the former Python `logic_seam.BudgetParams` has since been removed).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct BudgetParams {
     pub time_ms: Option<u64>,
@@ -79,18 +85,18 @@ pub struct Profile {
     /// The foundation anti-rigidity policy (default
     /// [`DEFAULT_ANTI_RIGIDITY_POLICY`]).
     pub anti_rigidity_policy: String,
-    /// The optional query-resolution profile override (#505): when present it is
+    /// The optional query-resolution profile override: when present it is
     /// used for `gmeow_logic.query` instead of `semantic_profile`.
     pub counterfactual_profile: Option<String>,
     /// Whether certification is required/compared (`"certify": true`).
     pub certify: bool,
     /// Whether the case asserts the contract is an UNSUPPORTED facet combination
-    /// (`"expect_unsupported": true`, #767 Gap 2). When set, the runner requires
+    /// (`"expect_unsupported": true`). When set, the runner requires
     /// the compile to emit an `UNSUPPORTED_CONTRACT` `Severity::Error` diagnostic
     /// and short-circuits BEFORE evaluating/certifying/materializing — the
     /// "unsupported is a hard stop" guarantee, pinned at the corpus level.
     pub expect_unsupported: bool,
-    /// The verdict-production mode (#753, default [`VerdictMode::Materialization`]).
+    /// The verdict-production mode (default [`VerdictMode::Materialization`]).
     pub verdict_mode: VerdictMode,
     /// Declared correspondence compositions to gate (`(left, right, optional composite)`):
     /// each is a 2- or 3-element array of correspondence IRIs in `profile.json`'s
@@ -117,14 +123,14 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         .as_object()
         .ok_or_else(|| format!("case {case_id}: profile.json must be a JSON object"))?;
 
-    // Greenfield #767 (no shim): the preset is carried under the nested
+    // Greenfield (no shim): the preset is carried under the nested
     // `reasoning_contract` object as `preset`. A surviving top-level
     // `semantic_profile` key is the retired surface and is a HARD failure — never
     // a silent fallback or dual-read.
     if obj.contains_key("semantic_profile") {
         return Err(format!(
             "case {case_id}: profile.json uses the retired top-level semantic_profile key; \
-             migrate to reasoning_contract.preset (#767)"
+             migrate to reasoning_contract.preset"
         ));
     }
 
@@ -225,24 +231,25 @@ fn parse_compositions(
     Ok(out)
 }
 
-/// Parse the optional `verdict_mode` field (#753).
+/// Parse the optional `verdict_mode` field.
 ///
 /// Absent ⇒ [`VerdictMode::Materialization`]. The only accepted values are the
-/// strings `"materialization"` and `"consistency"`; any other value (including a
-/// non-string) is a hard error — no silent coercion to the default.
+/// strings `"materialization"`, `"consistency"`, and `"cl-roundtrip"`; any other
+/// value (including a non-string) is a hard error — no silent coercion to the default.
 fn parse_verdict_mode(case_id: &str, obj: &Map<String, Value>) -> Result<VerdictMode, String> {
     match obj.get("verdict_mode") {
         None | Some(Value::Null) => Ok(VerdictMode::Materialization),
         Some(Value::String(s)) if s == "materialization" => Ok(VerdictMode::Materialization),
         Some(Value::String(s)) if s == "consistency" => Ok(VerdictMode::Consistency),
+        Some(Value::String(s)) if s == "cl-roundtrip" => Ok(VerdictMode::CommonLogic),
         Some(other) => Err(format!(
-            "case {case_id}: profile.json verdict_mode must be \"materialization\" or \
-             \"consistency\", got {other}"
+            "case {case_id}: profile.json verdict_mode must be \"materialization\", \
+             \"consistency\", or \"cl-roundtrip\", got {other}"
         )),
     }
 }
 
-/// Parse and validate the nested `reasoning_contract` object (#767), returning its
+/// Parse and validate the nested `reasoning_contract` object, returning its
 /// `preset` local name (the value the runner uses as the profile name).
 ///
 /// Hard-fail (no-optionality discipline): `reasoning_contract` MUST be a JSON object
@@ -371,7 +378,7 @@ mod tests {
 
     #[test]
     fn verdict_mode_parses_and_defaults() {
-        // Absent ⇒ materialization (the pre-#753 behavior).
+        // Absent ⇒ materialization (the default behavior).
         assert_eq!(
             parse_profile("c", &json!({})).unwrap().verdict_mode,
             VerdictMode::Materialization
@@ -388,6 +395,12 @@ mod tests {
                 .verdict_mode,
             VerdictMode::Consistency
         );
+        assert_eq!(
+            parse_profile("c", &json!({ "verdict_mode": "cl-roundtrip" }))
+                .unwrap()
+                .verdict_mode,
+            VerdictMode::CommonLogic
+        );
     }
 
     #[test]
@@ -401,7 +414,7 @@ mod tests {
 
     #[test]
     fn expect_unsupported_round_trips() {
-        // #767 Gap 2: an `expect_unsupported: true` case opts into the unsupported
+        // An `expect_unsupported: true` case opts into the unsupported
         // short-circuit; a strict bool `true` is required (parallel to
         // foundation_lowering).
         assert!(
@@ -445,7 +458,7 @@ mod tests {
 
     #[test]
     fn legacy_top_level_semantic_profile_is_a_hard_error() {
-        // Greenfield #767 (no shim): the retired top-level key is rejected outright,
+        // Greenfield (no shim): the retired top-level key is rejected outright,
         // even when its value would otherwise be a valid preset.
         let err =
             parse_profile("c", &json!({ "semantic_profile": "PositiveHornProfile" })).unwrap_err();

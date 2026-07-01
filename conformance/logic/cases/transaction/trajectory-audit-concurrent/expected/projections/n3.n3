@@ -9,6 +9,5 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
-<https://example.org/transaction/trajectory-audit-concurrent/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
 
 # === Rules ===

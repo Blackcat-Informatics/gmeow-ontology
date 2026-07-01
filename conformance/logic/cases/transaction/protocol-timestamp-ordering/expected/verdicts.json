@@ -1,6 +1,6 @@
 {
   "https://example.org/transaction/protocol-timestamp-ordering/world": {
-    "quads": 49,
+    "quads": 51,
     "status": "consistent"
   }
 }

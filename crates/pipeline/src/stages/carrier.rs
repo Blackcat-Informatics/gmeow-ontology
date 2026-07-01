@@ -116,9 +116,11 @@ pub(crate) fn serialize_carrier_snapshot(
         .get("stage-compile-logic")
         .ok_or_else(|| stage_err("missing stage-compile-logic product"))?
         .artifacts();
-    // THIS run's fresh alignment surface (REP_MAPPINGS + REP_QUERIES bytes), from the
-    // stage-mappings product so the bundle never lags a regenerate (the disk files are
-    // not written until phase 1 returns).
+    // THIS run's compiled SSSOM surface (REP_MAPPINGS), from the stage-mappings product
+    // so the archive never lags a mapping-source edit: the committed generated/mappings/
+    // files are not flushed until phase 1 returns, so reading them from disk here would
+    // tar the STALE committed set and a mapping edit could never reach the bundle without
+    // a manual disk write. Sourced from the product exactly as schemas / axioms are.
     let mappings_artifacts = upstream
         .get("stage-mappings")
         .ok_or_else(|| stage_err("missing stage-mappings product"))?
@@ -755,20 +757,28 @@ fn build_archive_blobs(
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
 ) -> Result<Vec<BlobRow>, PipelineError> {
-    // mappings + queries: member = bare filename. Sourced from THIS run's
-    // `stage-mappings` product (not re-read from disk) so a single regenerate folds
-    // the fresh alignment output — the committed `generated/mappings/*.sssom.tsv` and
-    // `generated/queries/*.rq` are not flushed until phase 1 returns, so a disk read
-    // here would carry the PRIOR bytes and the fanout (which projects the bundle back
-    // to disk) would reproduce them, silently ignoring any slice-cell edit. Mirrors
-    // the schema/axiom freshness path below.
+    // mappings: member = bare filename, sourced from THIS run's stage-mappings product
+    // (not re-read from disk) so a mapping-source edit folds into the bundle in one
+    // regenerate — the committed generated/mappings/*.sssom.tsv are not written until
+    // phase 1 returns, so a disk read here would tar the stale committed set.
     let mappings =
-        product_members_basename(mappings_artifacts, "generated/mappings/", ".sssom.tsv");
-    let queries = product_members_basename(mappings_artifacts, "generated/queries/", ".rq");
+        members_basename_from_artifacts(mappings_artifacts, "generated/mappings/", ".sssom.tsv");
+    // Fail closed, mirroring the axioms guard below: an empty match means the
+    // stage-mappings product keyed its SSSOM under an unexpected prefix (or emitted
+    // none), which would silently fold an EMPTY mappings archive into the bundle. A
+    // missing required surface is a hard error, never a degraded fallback.
+    if mappings.is_empty() {
+        return Err(stage_err(
+            "no generated/mappings/*.sssom.tsv artifacts in the stage-mappings product — \
+             the mappings archive would fold empty (fail-closed)",
+        ));
+    }
+    // queries: member = bare filename.
+    let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?)?;
     // schemas: the SHACL-derived JSON Schema + OpenAPI (#700), member = bare
     // filename, taken from the in-memory stage product so the bundle never lags the
-    // committed files by a regenerate. Byte-identical to the bare-filename member
-    // names (`gmeow.schema.json` / `gmeow.openapi.json`), so the fold is stable.
+    // committed files by a regenerate. Byte-identical to the prior `members_basename`
+    // member names (`gmeow.schema.json` / `gmeow.openapi.json`), so the fold is stable.
     let schemas = vec![
         ("gmeow.schema.json".to_string(), schema_json.to_vec()),
         ("gmeow.openapi.json".to_string(), openapi_json.to_vec()),
@@ -893,7 +903,7 @@ pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
 /// this stage's member-naming conventions, so the superset gate and the fanout
 /// projection resolve a blob member to its `generated/` path without guessing. The
 /// basename-keyed reps (`REP_MAPPINGS`/`REP_QUERIES`/`REP_SCHEMAS`, keyed by bare
-/// filename in their single directory via `product_members_basename`) get their directory
+/// filename in their single directory via `members_basename`) get their directory
 /// prefix restored here; the repo-relative reps (`REP_AXIOMS`/`REP_SHAPES`/
 /// `REP_GENERATED`, keyed by `members_relpath`) pass through unchanged. One authority:
 /// carrier.rs owns both the forward member naming and this inverse. Returns `None`
@@ -1643,21 +1653,36 @@ fn slice_named_files(root: &Path, file: &str) -> Result<Vec<PathBuf>, PipelineEr
 /// A read error HARD-FAILS rather than silently dropping the file: an incomplete
 /// archive would silently break the wheel-mode consumers (no-optionality, the
 /// no-silent-caps doctrine — the same as [`members_relpath`]).
-/// The basename→bytes members of a stage `product` under `dir_prefix` with `ext`,
-/// taken from THIS run's in-memory product (not re-read from disk). Each member is the
-/// bare filename in its single directory (the naming `committed_path_for_archive_member`
-/// inverts for `REP_MAPPINGS`/`REP_QUERIES`), and the result is sorted by member so the
-/// archive blob is deterministic regardless of the product map's iteration order.
-fn product_members_basename(
-    product: &BTreeMap<String, Vec<u8>>,
-    dir_prefix: &str,
-    ext: &str,
+fn members_basename(files: &[PathBuf]) -> Result<Vec<(String, Vec<u8>)>, PipelineError> {
+    let mut out: Vec<(String, Vec<u8>)> = Vec::with_capacity(files.len());
+    for p in files {
+        let name = p
+            .file_name()
+            .ok_or_else(|| stage_err(&format!("archive member has no file name: {}", p.display())))?
+            .to_string_lossy()
+            .into_owned();
+        let data =
+            std::fs::read(p).map_err(|e| stage_err(&format!("read {}: {e}", p.display())))?;
+        out.push((name, data));
+    }
+    Ok(out)
+}
+
+/// `(filename, bytes)` archive members sourced from a STAGE PRODUCT's in-memory
+/// artifacts (not disk): every artifact whose path is under `dir` and ends with
+/// `suffix`, keyed by bare filename, sorted. Used for the mappings archive so the
+/// bundle carries THIS run's freshly-compiled SSSOM rather than the stale committed
+/// files (which are not flushed to disk until phase 1 returns).
+fn members_basename_from_artifacts(
+    artifacts: &BTreeMap<String, Vec<u8>>,
+    dir: &str,
+    suffix: &str,
 ) -> Vec<(String, Vec<u8>)> {
-    let mut out: Vec<(String, Vec<u8>)> = product
+    let mut out: Vec<(String, Vec<u8>)> = artifacts
         .iter()
-        .filter(|(path, _)| path.starts_with(dir_prefix) && path.ends_with(ext))
+        .filter(|(path, _)| path.starts_with(dir) && path.ends_with(suffix))
         .map(|(path, bytes)| {
-            let name = path.rsplit('/').next().unwrap_or(path).to_owned();
+            let name = path.rsplit('/').next().unwrap_or(path).to_string();
             (name, bytes.clone())
         })
         .collect();
@@ -2987,6 +3012,21 @@ mod ustar_tests {
             .unwrap()
     }
 
+    /// Mirror the committed `generated/mappings/*.sssom.tsv` into an artifact map
+    /// keyed by repo-relative path — the stand-in for the stage-mappings product in
+    /// blob-archive unit tests (production sources these from the in-memory product).
+    fn mappings_artifacts_from_disk(root: &Path) -> BTreeMap<String, Vec<u8>> {
+        let mut out = BTreeMap::new();
+        for p in list_files(&root.join("generated/mappings"), "sssom.tsv").unwrap_or_default() {
+            let name = p.file_name().unwrap().to_string_lossy().into_owned();
+            out.insert(
+                format!("generated/mappings/{name}"),
+                std::fs::read(&p).unwrap_or_else(|_| panic!("read {}", p.display())),
+            );
+        }
+        out
+    }
+
     #[test]
     fn build_docs_archive_packs_the_rendered_site() {
         // The archive packing is exercised with a model-only render (empty executable
@@ -3062,8 +3102,14 @@ mod ustar_tests {
                 std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
             );
         }
-        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &BTreeMap::new())
-            .expect("archive blobs");
+        let blobs = build_archive_blobs(
+            &root,
+            b"",
+            b"",
+            &axiom_artifacts,
+            &mappings_artifacts_from_disk(&root),
+        )
+        .expect("archive blobs");
         let blob = blobs
             .iter()
             .find(|b| b.rep == REP_SHAPES)
@@ -3145,8 +3191,14 @@ mod ustar_tests {
                 std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
             );
         }
-        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &BTreeMap::new())
-            .expect("archive blobs");
+        let blobs = build_archive_blobs(
+            &root,
+            b"",
+            b"",
+            &axiom_artifacts,
+            &mappings_artifacts_from_disk(&root),
+        )
+        .expect("archive blobs");
         let blob = blobs
             .iter()
             .find(|b| b.rep == REP_AXIOMS)
@@ -3170,8 +3222,14 @@ mod ustar_tests {
             assert!(!names.contains(big), "{big} must NOT be in REP_AXIOMS");
         }
         // Determinism: rebuild and assert byte-equality.
-        let again = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &BTreeMap::new())
-            .expect("archive blobs");
+        let again = build_archive_blobs(
+            &root,
+            b"",
+            b"",
+            &axiom_artifacts,
+            &mappings_artifacts_from_disk(&root),
+        )
+        .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
         assert_eq!(
             blob.data, blob2.data,

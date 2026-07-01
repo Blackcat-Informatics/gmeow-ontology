@@ -1772,6 +1772,7 @@ name = "gmeow-logic"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "chrono",
  "criterion",
  "gmeow-diagnostics",
  "gmeow-logic-compile",
@@ -2081,6 +2082,14 @@ dependencies = [
  "tempfile",
  "toml",
  "ureq",
+]
+
+[[package]]
+name = "gmeow-validate-wasm"
+version = "0.1.0"
+dependencies = [
+ "gmeow-validate",
+ "wasm-bindgen",
 ]
 
 [[package]]
