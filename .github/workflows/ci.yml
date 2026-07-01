@@ -564,14 +564,15 @@ jobs:
       - name: Compliance report (per-principle gate evidence)
         run: make compliance-report
 
-  # === CLASSIC-CROSS-CHECK LANE (#666/#695, Principle 18) ===
-  # The Java+Docker oracle lane (ELK/HermiT/ROBOT/Jena/rdflib + native-vs-ROBOT
-  # cross-check) lives in its OWN workflow — `.github/workflows/classic-cross-check.yml`
-  # — and runs ONLY on a schedule, via workflow_dispatch, or when the
-  # `classic-cross-check` label is applied to a PR. It is never part of branch
-  # protection, so Docker/Java never executes on a normal PR. The authoritative
-  # gate is the native, Docker-free reasoning lane in the required `quality`
-  # aggregator below.
+  # === CLASSIC-CROSS-CHECK LANE (#666/#695, Principle 18; relocated by #1087) ===
+  # The Java+Docker classic oracle lane (ELK/HermiT/ROBOT/Jena/owlrl) has been
+  # relocated OUT of CI entirely into the standalone `validations/classic-cross-check/`
+  # validator-zoo suite — run on demand with `make -C validations/classic-cross-check`,
+  # never on a schedule, a PR label, or branch protection. The authoritative gate
+  # is the native, Docker-free reasoning lane in the required `quality` aggregator
+  # below; Principle 18 is proven natively by the divergence-ledger enforcer and
+  # the frozen oracle-gold conformance case (in `make conformance`). (The rdflib
+  # query cross-check — the #906 lane — stays in `gmeow-dev crosscheck-queries`.)
 
   # purrdf wasm build + Node real-execution lane (P10, #846). The in-memory RDF/JS
   # engine MUST compile to wasm32-unknown-unknown (`make wasm` hard-fails if the
@@ -616,13 +617,13 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   #
-  # The classic-cross-check lane is DELIBERATELY in its own workflow
-  # (.github/workflows/classic-cross-check.yml), NOT in this aggregator's `needs:`
-  # (#666/#695, Principle 18): the Docker/Java oracle lane is a separately-observed
-  # cross-check, never a requirement to merge or to use the repo. The required
-  # gate stays Docker-free and Java-free. Statements now run natively via the
-  # gmeow-rdf codec inside the `ontology` job's `check-generated` (#667) — there
-  # is no separate statements lane.
+  # The classic-cross-check lane is DELIBERATELY outside CI — relocated to the
+  # standalone `validations/classic-cross-check/` suite (#1087), NOT in this
+  # aggregator's `needs:` (#666/#695, Principle 18): the Docker/Java oracle lane
+  # is a separately-observed, run-on-demand cross-check, never a requirement to
+  # merge or to use the repo. The required gate stays Docker-free and Java-free.
+  # Statements now run natively via the gmeow-rdf codec inside the `ontology`
+  # job's `check-generated` (#667) — there is no separate statements lane.
   quality:
     needs: [native-build, lint, python, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()

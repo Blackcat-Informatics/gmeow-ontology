@@ -87,8 +87,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
-	maint-classic-cross-check maint-reason-hermit maint-explain maint-697-oracle-gold maint-verify-docker \
-	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
+	maint-reason-hermit maint-explain maint-verify-docker maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-test-network-rust maint-pull-images maint-quality maint-evals-score \
@@ -223,7 +222,6 @@ full-release: native-py ## Signed release-as-evidence: gate + oracle lane + conf
 		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
 	fi
 	$(MAKE) check
-	$(MAKE) maint-classic-cross-check
 	$(MAKE) conformance
 	$(MAKE) conformance-report
 	$(MAKE) bench-compare
@@ -633,37 +631,15 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 
 ##@ Maintainer Tasks
 
-maint-classic-cross-check: maint-pull-images native-py ## Run the full non-required Docker/Java oracle lane.
-	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
-	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
-	$(GMEOW_DEV) reason --mode docker --reasoner hermit
-	uv run python scripts/reasoning_cases.py
-	uv run python scripts/statements_docker_check.py
-	uv run python scripts/slme_cross_check.py
-	$(GMEOW_DEV) crosscheck-queries
-	$(GMEOW_DEV) classic-cross-check
-	$(GMEOW_DEV) classic-cross-check-rl
-	uv run pytest -n auto --dist loadscope -m "classic_cross_check" -q
-	@echo "classic cross-check oracle lane passed"
-
 maint-reason-hermit: maint-pull-images native-py ## Run HermiT complete consistency check.
 	$(GMEOW_DEV) reason --mode docker --reasoner hermit
 
 maint-explain: maint-pull-images native-py ## Explain unsatisfiable classes with HermiT.
 	$(GMEOW_DEV) explain
 
-maint-697-oracle-gold: maint-pull-images ## (Re)freeze #697 curated-DL oracle gold via HermiT/ELK (Docker).
-	uv run --package gmeow-dev python scripts/gen_dl_oracle_gold.py
-
 maint-verify-docker: maint-pull-images native-py ## Run ROBOT/ELK reasoned-graph verification.
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
-
-maint-reasoning-cases: maint-pull-images ## Run Docker-backed reasoning fixture cases.
-	uv run python scripts/reasoning_cases.py
-
-maint-statements-docker-check: maint-pull-images native-py ## Run Jena/ROBOT statement artifact oracle checks.
-	uv run python scripts/statements_docker_check.py
 
 maint-crosscheck: native-py ## Cross-check rdflib and native gmeow_rdf query answers.
 	$(GMEOW_DEV) crosscheck-queries
