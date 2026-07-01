@@ -38,6 +38,11 @@ regex = "1"
 serde_json = "1"
 # Shared PyO3-free RDF 1.2 kernel and native GTS/text-codec boundary (#648).
 gmeow-rdf = { path = "../rdf", features = ["gts"] }
+# Native DOM parser for reading vendored openEHR OPT XML directly (openehr_opt
+# module): navigates the OPT's C_DV_QUANTITY magnitude interval structurally
+# rather than transcribing bounds by hand. Same version pin as crates/rdf and
+# crates/music.
+roxmltree = "0.20"
 
 # pyo3 native-only: cannot link into wasm. The engine core is PyO3-free; only
 # py.rs uses it, so the rlib links into the future Rust compiler without Python.
