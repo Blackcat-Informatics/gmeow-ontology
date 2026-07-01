@@ -70,6 +70,7 @@ fn real_opt_round_trips_u_after_d_is_identity() {
             assert_eq!(interval.upper_included, raw.upper_included);
             assert_eq!(units, raw.units);
         }
+        other => panic!("expected a Quantity constraint from a quantity node, got {other:?}"),
     }
 }
 

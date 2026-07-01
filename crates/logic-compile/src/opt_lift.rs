@@ -10,12 +10,14 @@
 //! XML dependency — is what lets `crates/logic-compile` stay wasm-clean (the reusable-crate
 //! ring-fence) while still owning the canonical lowering.
 //!
-//! The quantity family is the **exactly-invertible** keystone: a magnitude interval
-//! (`lower`/`upper`/`lower_included`/`upper_included`) plus a `units` value round-trips
-//! through the shape with zero lossy fields, so [`recover_opt_from_shape`] ∘
-//! [`lift_opt_to_validation_shape`] is the identity (the `u∘d=id` section/retraction law the
-//! conformance gate pins). Later families (patterns, terminology bindings) round-trip only
-//! up to the loss ledger; those are added as further [`OptConstraintKind`] variants.
+//! **The round-trip law.** The OPT↔`logic:` leg is *structurally exact for every family*:
+//! [`recover_opt_from_shape`] ∘ [`lift_opt_to_validation_shape`] is the identity (the
+//! section/retraction `u∘d=id` law the conformance gate pins). Loss enters only downstream,
+//! at the `logic:`→SHACL/ShEx projection — a `C_STRING` regex dialect and an external
+//! terminology binding have no faithful shape form, so their fidelity is carried and flagged
+//! in the loss ledger ([`crate::projections::shapes::shacl_residue`]), never dropped in
+//! silence. The IR round-trip preserves them exactly; the *shape surface* is where they are
+//! declared lossy.
 
 use crate::ir::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShapeTarget, ShapeValue,
@@ -41,6 +43,19 @@ pub struct OptInterval {
     pub upper_included: bool,
 }
 
+/// A half-open-capable `xsd:dateTime` interval parsed from an OPT `C_DATE_TIME` range.
+#[derive(Debug, Clone, PartialEq)]
+pub struct OptDateTimeRange {
+    /// The lower bound lexical (`None` ⇒ unbounded below).
+    pub lower: Option<String>,
+    /// The upper bound lexical (`None` ⇒ unbounded above).
+    pub upper: Option<String>,
+    /// Whether `lower` is admitted.
+    pub lower_included: bool,
+    /// Whether `upper` is admitted.
+    pub upper_included: bool,
+}
+
 /// A parsed openEHR OPT constraint for one archetype `ELEMENT` node — the pure, XML-free
 /// carrier the shape surfaces lower from.
 #[derive(Debug, Clone, PartialEq)]
@@ -53,9 +68,9 @@ pub struct OptConstraintIr {
     pub kind: OptConstraintKind,
 }
 
-/// The OPT constraint node-kind families. The quantity family is exactly invertible; further
-/// variants (ordinal/coded-text value sets, string patterns, datetime, terminology bindings)
-/// extend this sum as they are added.
+/// The OPT constraint node-kind families. Every variant is structurally exactly invertible
+/// through the shape IR; the `StringPattern` and `TerminologyBinding` variants are lossy only
+/// under the *SHACL/ShEx projection* (recorded in the loss ledger), not under the IR lift.
 #[derive(Debug, Clone, PartialEq)]
 pub enum OptConstraintKind {
     /// `C_DV_QUANTITY`: a magnitude interval on `magnitude_path` and a `units` value on
@@ -70,16 +85,60 @@ pub enum OptConstraintKind {
         /// The unit string (e.g. `mm[Hg]`).
         units: String,
     },
+    /// `occurrences` / `existence` / cardinality: a closed-world count bound on `path`.
+    Cardinality {
+        /// The predicate the count bound applies to.
+        path: String,
+        /// Minimum occurrences (`sh:minCount`; `None` ⇒ unbounded below).
+        min: Option<u32>,
+        /// Maximum occurrences (`sh:maxCount`; `None` ⇒ unbounded above).
+        max: Option<u32>,
+    },
+    /// `C_DV_ORDINAL` / `C_DV_CODED_TEXT`: an inline value set of coded terms (IRIs) on `path`.
+    ValueSet {
+        /// The predicate the value set applies to.
+        path: String,
+        /// The admitted coded-term IRIs.
+        codes: Vec<String>,
+    },
+    /// `C_DATE_TIME`: an `xsd:dateTime` interval on `path`.
+    DateTime {
+        /// The predicate the datetime range applies to.
+        path: String,
+        /// The datetime interval.
+        range: OptDateTimeRange,
+    },
+    /// `C_STRING`: a regular-expression pattern on `path`. Lossy under projection (the SHACL
+    /// regex dialect differs from the source), but the regex string round-trips exactly here.
+    StringPattern {
+        /// The predicate the pattern applies to.
+        path: String,
+        /// The regular expression.
+        regex: String,
+        /// Optional SHACL `sh:flags`.
+        flags: Option<String>,
+    },
+    /// A `term_binding` / `C_TERMINOLOGY_CODE`: an external terminology reference on `path`.
+    /// Lossy under projection (no faithful closed shape form), but the id + codes round-trip
+    /// exactly here.
+    TerminologyBinding {
+        /// The predicate the binding applies to.
+        path: String,
+        /// The terminology identifier (e.g. `SNOMED-CT`, `openehr`).
+        terminology_id: String,
+        /// The bound codes.
+        codes: Vec<String>,
+    },
 }
 
 /// Lift an [`OptConstraintIr`] to the canonical [`ValidationShapeIr`] (the `d`/down leg).
 ///
-/// Quantity: the magnitude path carries the interval as a
-/// [`ConstraintComponent::NumericRange`] plus an `xsd:decimal` datatype; the units path
-/// carries the unit as a singleton [`ConstraintComponent::In`] with an exactly-one
-/// cardinality (a natively closed-world OPT constraint, so [`ConstraintProvenance::OptNative`]).
+/// Every family lowers to one target class with one or two property shapes carrying the
+/// corresponding [`ConstraintComponent`]s. OPT-native cardinality is
+/// [`ConstraintProvenance::OptNative`] (closed-world by construction).
 pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationShapeIr, String> {
-    match &c.kind {
+    let target = ShapeTarget::Class(c.target_class.clone());
+    let properties = match &c.kind {
         OptConstraintKind::Quantity {
             magnitude_path,
             interval,
@@ -112,36 +171,80 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
                     lang: None,
                 }])],
             )?;
-            ValidationShapeIr::new(
-                &c.shape_iri,
-                ShapeTarget::Class(c.target_class.clone()),
-                vec![magnitude, unit],
-                None,
-                None,
-                false,
-            )
+            vec![magnitude, unit]
         }
-    }
+        OptConstraintKind::Cardinality { path, min, max } => vec![PropertyConstraintIr::new(
+            path,
+            *min,
+            *max,
+            Some(ConstraintProvenance::OptNative),
+            vec![],
+        )?],
+        OptConstraintKind::ValueSet { path, codes } => vec![PropertyConstraintIr::new(
+            path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::In(
+                codes.iter().map(|c| ShapeValue::Iri(c.clone())).collect(),
+            )],
+        )?],
+        OptConstraintKind::DateTime { path, range } => vec![PropertyConstraintIr::new(
+            path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::DateTimeRange {
+                min: range.lower.clone(),
+                max: range.upper.clone(),
+                min_inclusive: range.lower_included,
+                max_inclusive: range.upper_included,
+            }],
+        )?],
+        OptConstraintKind::StringPattern { path, regex, flags } => vec![PropertyConstraintIr::new(
+            path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::Pattern {
+                regex: regex.clone(),
+                flags: flags.clone(),
+            }],
+        )?],
+        OptConstraintKind::TerminologyBinding {
+            path,
+            terminology_id,
+            codes,
+        } => vec![PropertyConstraintIr::new(
+            path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::TerminologyBinding {
+                terminology_id: terminology_id.clone(),
+                codes: codes.clone(),
+            }],
+        )?],
+    };
+    ValidationShapeIr::new(&c.shape_iri, target, properties, None, None, false)
 }
 
-/// Recover an [`OptConstraintIr`] from a lifted [`ValidationShapeIr`] (the `u`/up leg) for
-/// the exactly-invertible quantity family. This is the structural inverse of
-/// [`lift_opt_to_validation_shape`]: it reads the `NumericRange` back to an interval and the
-/// singleton units value-set back to a unit string. Hard-fails if the shape is not a
-/// well-formed lifted quantity constraint (no silent defaulting).
+/// Recover an [`OptConstraintIr`] from a lifted [`ValidationShapeIr`] (the `u`/up leg). This
+/// is the structural inverse of [`lift_opt_to_validation_shape`] across every family: it
+/// detects the family from the discriminating component and reconstructs the OPT constraint.
+/// Hard-fails if the shape is not a well-formed lifted OPT constraint (no silent defaulting).
 pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraintIr, String> {
     let target_class = match &shape.target {
         ShapeTarget::Class(c) => c.clone(),
         ShapeTarget::ValueKeyed { .. } => {
             return Err(
-                "recover_opt_from_shape: a value-keyed target is not a quantity shape".into(),
+                "recover_opt_from_shape: a value-keyed target is not an OPT constraint".into(),
             )
         }
     };
-    let mut interval: Option<OptInterval> = None;
-    let mut magnitude_path: Option<String> = None;
-    let mut units: Option<String> = None;
-    let mut units_path: Option<String> = None;
+    // Scan for each family's discriminating component, in an unambiguous priority order (each
+    // family emits exactly one such component; Quantity's units is an In-of-Literal, a value
+    // set is an In-of-IRI, so the two In shapes never collide).
     for p in &shape.properties {
         for comp in &p.components {
             match comp {
@@ -151,42 +254,135 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                     min_inclusive,
                     max_inclusive,
                 } => {
-                    interval = Some(OptInterval {
-                        lower: *min,
-                        upper: *max,
-                        lower_included: *min_inclusive,
-                        upper_included: *max_inclusive,
-                    });
-                    magnitude_path = Some(p.path.clone());
+                    let (units_path, units) = recover_units(shape)?;
+                    return Ok(mk(
+                        shape,
+                        target_class,
+                        OptConstraintKind::Quantity {
+                            magnitude_path: p.path.clone(),
+                            interval: OptInterval {
+                                lower: *min,
+                                upper: *max,
+                                lower_included: *min_inclusive,
+                                upper_included: *max_inclusive,
+                            },
+                            units_path,
+                            units,
+                        },
+                    ));
                 }
-                ConstraintComponent::In(vs) => {
-                    if let [ShapeValue::Literal { lexical, .. }] = vs.as_slice() {
-                        units = Some(lexical.clone());
-                        units_path = Some(p.path.clone());
-                    }
+                ConstraintComponent::DateTimeRange {
+                    min,
+                    max,
+                    min_inclusive,
+                    max_inclusive,
+                } => {
+                    return Ok(mk(
+                        shape,
+                        target_class,
+                        OptConstraintKind::DateTime {
+                            path: p.path.clone(),
+                            range: OptDateTimeRange {
+                                lower: min.clone(),
+                                upper: max.clone(),
+                                lower_included: *min_inclusive,
+                                upper_included: *max_inclusive,
+                            },
+                        },
+                    ));
+                }
+                ConstraintComponent::Pattern { regex, flags } => {
+                    return Ok(mk(
+                        shape,
+                        target_class,
+                        OptConstraintKind::StringPattern {
+                            path: p.path.clone(),
+                            regex: regex.clone(),
+                            flags: flags.clone(),
+                        },
+                    ));
+                }
+                ConstraintComponent::TerminologyBinding {
+                    terminology_id,
+                    codes,
+                } => {
+                    return Ok(mk(
+                        shape,
+                        target_class,
+                        OptConstraintKind::TerminologyBinding {
+                            path: p.path.clone(),
+                            terminology_id: terminology_id.clone(),
+                            codes: codes.clone(),
+                        },
+                    ));
+                }
+                ConstraintComponent::In(vs)
+                    if vs.iter().all(|v| matches!(v, ShapeValue::Iri(_))) =>
+                {
+                    let codes = vs
+                        .iter()
+                        .map(|v| match v {
+                            ShapeValue::Iri(i) => i.clone(),
+                            _ => unreachable!("guarded to all-IRI above"),
+                        })
+                        .collect();
+                    return Ok(mk(
+                        shape,
+                        target_class,
+                        OptConstraintKind::ValueSet {
+                            path: p.path.clone(),
+                            codes,
+                        },
+                    ));
                 }
                 _ => {}
             }
         }
     }
-    Ok(OptConstraintIr {
+    // No value component matched: a bare cardinality (occurrences/existence) constraint.
+    for p in &shape.properties {
+        if (p.min_count.is_some() || p.max_count.is_some()) && p.components.is_empty() {
+            return Ok(mk(
+                shape,
+                target_class,
+                OptConstraintKind::Cardinality {
+                    path: p.path.clone(),
+                    min: p.min_count,
+                    max: p.max_count,
+                },
+            ));
+        }
+    }
+    Err("recover_opt_from_shape: shape is not a recognizable lifted OPT constraint".into())
+}
+
+/// Reconstruct the shape's `iri`/`target_class` envelope around a recovered kind.
+fn mk(shape: &ValidationShapeIr, target_class: String, kind: OptConstraintKind) -> OptConstraintIr {
+    OptConstraintIr {
         shape_iri: shape.iri.clone(),
         target_class,
-        kind: OptConstraintKind::Quantity {
-            magnitude_path: magnitude_path
-                .ok_or("recover_opt_from_shape: no magnitude (NumericRange) property")?,
-            interval: interval.ok_or("recover_opt_from_shape: no interval")?,
-            units_path: units_path
-                .ok_or("recover_opt_from_shape: no units (singleton sh:in) property")?,
-            units: units.ok_or("recover_opt_from_shape: no units value")?,
-        },
-    })
+        kind,
+    }
+}
+
+/// Recover a quantity shape's `units_path`/`units` (the singleton `In`-of-literal property).
+fn recover_units(shape: &ValidationShapeIr) -> Result<(String, String), String> {
+    for p in &shape.properties {
+        for comp in &p.components {
+            if let ConstraintComponent::In(vs) = comp {
+                if let [ShapeValue::Literal { lexical, .. }] = vs.as_slice() {
+                    return Ok((p.path.clone(), lexical.clone()));
+                }
+            }
+        }
+    }
+    Err("recover_opt_from_shape: quantity shape has no units (singleton sh:in literal)".into())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::projections::shapes::project_validation_shape_shacl;
+    use crate::projections::shapes::{project_validation_shape_shacl, shacl_residue};
 
     /// The vendored GECCO blood-pressure systolic constraint: half-open [0, 1000) mm[Hg].
     fn systolic() -> OptConstraintIr {
@@ -207,54 +403,141 @@ mod tests {
         }
     }
 
+    /// Round-trip an OPT constraint through the shape IR and assert the identity.
+    fn assert_u_after_d_is_identity(c: &OptConstraintIr) {
+        let shape = lift_opt_to_validation_shape(c).unwrap();
+        let recovered = recover_opt_from_shape(&shape).unwrap();
+        assert_eq!(&recovered, c, "u∘d must be the identity");
+    }
+
     #[test]
-    fn lift_quantity_produces_a_targeted_shape_with_interval_and_units() {
-        let shape = lift_opt_to_validation_shape(&systolic()).unwrap();
-        assert_eq!(shape.node_kind, crate::ir::NodeKind::ValidationShape);
-        assert_eq!(shape.properties.len(), 2);
-        // The lifted shape, projected to SHACL, is the half-open interval.
-        let ttl = project_validation_shape_shacl(&shape);
+    fn quantity_round_trips_and_projects_half_open() {
+        let c = systolic();
+        assert_u_after_d_is_identity(&c);
+        let ttl = project_validation_shape_shacl(&lift_opt_to_validation_shape(&c).unwrap());
         assert!(ttl.contains("sh:minInclusive 0"), "{ttl}");
         assert!(ttl.contains("sh:maxExclusive 1000"), "{ttl}");
-        assert!(
-            !ttl.contains("sh:maxInclusive"),
-            "half-open upper must be exclusive: {ttl}"
-        );
-        assert!(ttl.contains("mm[Hg]"), "units must survive the lift: {ttl}");
+        assert!(ttl.contains("mm[Hg]"), "{ttl}");
     }
 
     #[test]
-    fn u_after_d_is_identity_on_the_quantity_family() {
-        // The section/retraction law: recover ∘ lift = id on the exactly-invertible family.
-        let original = systolic();
-        let shape = lift_opt_to_validation_shape(&original).unwrap();
-        let recovered = recover_opt_from_shape(&shape).unwrap();
-        assert_eq!(
-            recovered, original,
-            "u∘d must be the identity on a quantity constraint"
-        );
-    }
-
-    #[test]
-    fn u_after_d_is_identity_across_inclusivity_combinations() {
+    fn quantity_round_trips_across_inclusivity() {
         for (li, ui) in [(true, false), (false, true), (true, true), (false, false)] {
             let mut c = systolic();
-            // Irrefutable while Quantity is the only variant; a `match` keeps this honest
-            // (it must gain arms when new OptConstraintKind families land).
             match &mut c.kind {
                 OptConstraintKind::Quantity { interval, .. } => {
                     interval.lower_included = li;
                     interval.upper_included = ui;
                 }
+                _ => unreachable!(),
             }
-            let shape = lift_opt_to_validation_shape(&c).unwrap();
-            let recovered = recover_opt_from_shape(&shape).unwrap();
-            assert_eq!(recovered, c, "u∘d must hold for inclusivity ({li},{ui})");
+            assert_u_after_d_is_identity(&c);
         }
     }
 
     #[test]
-    fn recover_hard_fails_on_a_non_quantity_shape() {
+    fn cardinality_round_trips() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::Cardinality {
+                path: "https://ex/items".into(),
+                min: Some(1),
+                max: Some(3),
+            },
+        };
+        assert_u_after_d_is_identity(&c);
+        let ttl = project_validation_shape_shacl(&lift_opt_to_validation_shape(&c).unwrap());
+        assert!(
+            ttl.contains("sh:minCount 1") && ttl.contains("sh:maxCount 3"),
+            "{ttl}"
+        );
+    }
+
+    #[test]
+    fn value_set_round_trips() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::ValueSet {
+                path: "https://ex/code".into(),
+                codes: vec!["https://ex/at0004".into(), "https://ex/at0005".into()],
+            },
+        };
+        assert_u_after_d_is_identity(&c);
+        let ttl = project_validation_shape_shacl(&lift_opt_to_validation_shape(&c).unwrap());
+        assert!(
+            ttl.contains("sh:in ( <https://ex/at0004> <https://ex/at0005> )"),
+            "{ttl}"
+        );
+    }
+
+    #[test]
+    fn datetime_round_trips() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::DateTime {
+                path: "https://ex/when".into(),
+                range: OptDateTimeRange {
+                    lower: Some("2020-01-01T00:00:00Z".into()),
+                    upper: Some("2030-01-01T00:00:00Z".into()),
+                    lower_included: true,
+                    upper_included: false,
+                },
+            },
+        };
+        assert_u_after_d_is_identity(&c);
+        let ttl = project_validation_shape_shacl(&lift_opt_to_validation_shape(&c).unwrap());
+        assert!(
+            ttl.contains("\"2020-01-01T00:00:00Z\"^^xsd:dateTime"),
+            "{ttl}"
+        );
+    }
+
+    #[test]
+    fn string_pattern_round_trips_exactly_but_is_ledgered_lossy() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::StringPattern {
+                path: "https://ex/name".into(),
+                regex: "^[A-Z][a-z]+$".into(),
+                flags: None,
+            },
+        };
+        // Exact at the IR level ...
+        assert_u_after_d_is_identity(&c);
+        // ... but the SHACL projection declares the regex-dialect loss.
+        let shape = lift_opt_to_validation_shape(&c).unwrap();
+        assert_eq!(shacl_residue(&shape).len(), 1, "pattern must be ledgered");
+    }
+
+    #[test]
+    fn terminology_binding_round_trips_exactly_but_is_ledgered_lossy() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::TerminologyBinding {
+                path: "https://ex/code".into(),
+                terminology_id: "SNOMED-CT".into(),
+                codes: vec!["271649006".into()],
+            },
+        };
+        assert_u_after_d_is_identity(&c);
+        let shape = lift_opt_to_validation_shape(&c).unwrap();
+        // The external terminology is not emitted into SHACL, but is ledgered.
+        let ttl = project_validation_shape_shacl(&shape);
+        assert!(!ttl.contains("SNOMED"), "{ttl}");
+        assert_eq!(
+            shacl_residue(&shape).len(),
+            1,
+            "terminology must be ledgered"
+        );
+    }
+
+    #[test]
+    fn recover_hard_fails_on_a_non_opt_shape() {
         let empty = ValidationShapeIr::new(
             "https://ex/S",
             ShapeTarget::Class("https://ex/C".into()),
