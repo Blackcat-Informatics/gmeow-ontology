@@ -1708,6 +1708,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-rdf",
  "gmeow-slice",
+ "gmeow-validate",
  "insta",
  "minijinja",
  "pretty_assertions",

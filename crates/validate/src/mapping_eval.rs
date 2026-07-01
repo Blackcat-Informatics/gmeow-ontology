@@ -386,15 +386,18 @@ pub fn wikidata_diagnostics(mappings_dir: &Path) -> Result<Report, String> {
     for identifier in syntax.invalid {
         let mut finding = Finding::new(
             Severity::Error,
-            "wikidata.qid-syntax",
+            crate::codes::WIKIDATA_QID_SYNTAX,
             format!("invalid Wikidata identifier: {identifier}"),
         );
         finding.add_location(Location::new(None, None, None, Some(identifier)));
         report.add_finding(finding);
     }
     for misuse in syntax.misuses {
-        let mut finding =
-            Finding::new(Severity::Error, "wikidata.namespace-misuse", misuse.message);
+        let mut finding = Finding::new(
+            Severity::Error,
+            crate::codes::WIKIDATA_NAMESPACE_MISUSE,
+            misuse.message,
+        );
         finding.tags.push(misuse.kind.as_str().to_owned());
         finding.add_location(Location::new(None, None, None, Some(misuse.local_id)));
         report.add_finding(finding);

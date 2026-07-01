@@ -116,6 +116,10 @@ pub enum Page {
     /// The integrity-constraints (verify queries) index
     /// (`integrity-constraints/index`).
     IntegrityIndex,
+    /// The constraint catalog (`enforced-constraints/index`) — every
+    /// `gmeow:ValidationRule` the validator enforces, grouped by category and
+    /// anchored by the same slug the validator's `helpUri` uses.
+    ConstraintCatalog,
     /// The logic-stereotypes index (`logic/index`) — terms grouped by their
     /// lowered OntoUML/UFO stereotype. Resolves the `nav_logic` chrome string.
     Logic,
@@ -168,6 +172,7 @@ impl Page {
             Page::Concern(slug) => format!("concerns/{slug}"),
             Page::ExternalIndex => "external-ontologies".to_string(),
             Page::IntegrityIndex => "integrity-constraints".to_string(),
+            Page::ConstraintCatalog => "enforced-constraints".to_string(),
             Page::Logic => "logic".to_string(),
             Page::LogicCanonicalIr => "logic/canonical-ir".to_string(),
             Page::LogicLossLedger => "logic/loss-ledger".to_string(),
@@ -225,6 +230,7 @@ impl Page {
                 .unwrap_or_else(|| slug.clone()),
             Page::ExternalIndex => "External ontologies".to_string(),
             Page::IntegrityIndex => "Integrity constraints".to_string(),
+            Page::ConstraintCatalog => "What GMEOW enforces".to_string(),
             Page::Logic => "Logic & Reasoning".to_string(),
             Page::LogicCanonicalIr => "Canonical IR".to_string(),
             Page::LogicLossLedger => "Preservation loss ledger".to_string(),
@@ -463,6 +469,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::ConcernIndex,
         Page::ExternalIndex,
         Page::IntegrityIndex,
+        Page::ConstraintCatalog,
         Page::Logic,
         Page::LogicCanonicalIr,
         Page::LogicLossLedger,
@@ -554,6 +561,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::Concern(slug) => md_concern(model, slug),
         Page::ExternalIndex => md_external_index(model),
         Page::IntegrityIndex => md_integrity_index(model),
+        Page::ConstraintCatalog => md_constraint_catalog(model),
         Page::Logic => md_logic_index(model),
         Page::LogicCanonicalIr => md_logic_canonical_ir(model),
         Page::LogicLossLedger => md_logic_loss_ledger(model),
@@ -815,6 +823,14 @@ fn md_landing(model: &DocsModel) -> String {
         &format!(
             "- [Integrity constraints]({}index.md)",
             rel(&from, &Page::IntegrityIndex.dir())
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [What GMEOW enforces]({}index.md) — {} validation rules the toolchain enforces.",
+            rel(&from, &Page::ConstraintCatalog.dir()),
+            model.constraint_rules.len()
         ),
     );
     push_line(
@@ -2496,6 +2512,148 @@ fn md_integrity_index(model: &DocsModel) -> String {
     out
 }
 
+/// The "What GMEOW enforces" page: the constraint catalog — every
+/// `gmeow:ValidationRule` the toolchain enforces — grouped by finding category
+/// and, within each category, sorted by rule code. Each rule entry carries an
+/// explicit `<a id="{slug}">` anchor whose id is
+/// `gmeow_validate::rule_catalog::slugify(code)` — the identical slug the
+/// validator stamps into a finding's `helpUri` fragment — so a finding's help
+/// link deep-links straight to its rule. Deterministic: categories, rules, and
+/// applies-to terms are all sorted.
+fn md_constraint_catalog(model: &DocsModel) -> String {
+    let from = Page::ConstraintCatalog.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, model.ui("body_enforced_constraints"));
+    line(
+        &mut out,
+        &format!(
+            "The **{}** validation rules the GMEOW toolchain enforces, grouped by finding \
+             category. Each rule is a `gmeow:ValidationRule` individual from the constraint \
+             catalog; a finding's `helpUri` deep-links to its entry here. **Binding** rules fail \
+             the gate; **advisory** rules report without failing.",
+            model.constraint_rules.len()
+        ),
+    );
+
+    if model.constraint_rules.is_empty() {
+        line(&mut out, model.ui("body_no_enforced_constraints"));
+        return out;
+    }
+
+    // Group by category IRI (rules are already sorted by code); the category map
+    // is a BTreeMap so category headings emit in sorted IRI order.
+    let mut by_category: std::collections::BTreeMap<&str, Vec<&crate::model::ConstraintRule>> =
+        std::collections::BTreeMap::new();
+    for rule in &model.constraint_rules {
+        by_category
+            .entry(rule.category.as_str())
+            .or_default()
+            .push(rule);
+    }
+
+    for (category, rules) in &by_category {
+        heading(&mut out, 2, &finding_category_display(category));
+        for rule in rules {
+            // Explicit anchor so the finding helpUri fragment (`#{slug}`) resolves
+            // regardless of the Markdown heading-id derivation. The slug is
+            // `[a-z0-9-]` only (the validator's transform), so it is inert inside the
+            // HTML `id` attribute — never md-escape it, or the id would gain
+            // backslashes and stop matching the helpUri fragment.
+            push_line(&mut out, &format!("<a id=\"{}\"></a>", rule.slug));
+            blank(&mut out);
+            heading(&mut out, 3, &rule.code);
+
+            let severity = if rule.severity.is_empty() {
+                "—".to_string()
+            } else {
+                rule.severity.clone()
+            };
+            push_line(
+                &mut out,
+                &format!(
+                    "- {}: **{}**",
+                    model.ui("body_label_severity"),
+                    md_escape(&severity)
+                ),
+            );
+            push_line(
+                &mut out,
+                &format!(
+                    "- {}: `{}`",
+                    model.ui("body_label_rule_code"),
+                    code_escape(&rule.code)
+                ),
+            );
+            if !rule.help_uri.is_empty() {
+                // The display text is md-escaped; the link *target* is the raw URL
+                // (escaping a target corrupts the href).
+                push_line(
+                    &mut out,
+                    &format!(
+                        "- {}: [{}]({})",
+                        model.ui("body_label_help_link"),
+                        md_escape(&rule.help_uri),
+                        rule.help_uri,
+                    ),
+                );
+            }
+            if let Some(formalizes) = &rule.formalizes {
+                push_line(
+                    &mut out,
+                    &format!(
+                        "- {}: {}",
+                        model.ui("body_formalized_by"),
+                        curie_link(model, &from, &to_curie(formalizes)),
+                    ),
+                );
+            }
+            blank(&mut out);
+
+            if let Some(definition) = &rule.definition {
+                line(&mut out, &md_escape(definition));
+            } else if let Some(label) = &rule.label {
+                line(&mut out, &md_escape(label));
+            }
+
+            if !rule.applies_to_terms.is_empty() {
+                push_line(&mut out, &format!("**{}**", model.ui("body_applies_to")));
+                blank(&mut out);
+                // applies_to_terms is already sorted by the model reader.
+                for term in &rule.applies_to_terms {
+                    push_line(
+                        &mut out,
+                        &format!("- {}", curie_link(model, &from, &to_curie(term))),
+                    );
+                }
+                blank(&mut out);
+            }
+        }
+    }
+    out
+}
+
+/// A human-readable display name for a `logic:FindingCategory` IRI (e.g.
+/// `…/logic/FindingPolicyWarning` → `Finding: Policy Warning`). Falls back to the
+/// raw IRI's local name when it is not a recognized `Finding…` class.
+fn finding_category_display(iri: &str) -> String {
+    let local = iri.rsplit(['/', '#']).next().unwrap_or(iri);
+    let stem = local.strip_prefix("Finding").unwrap_or(local);
+    // Split the CamelCase stem into spaced words.
+    let mut words = String::new();
+    for (i, ch) in stem.char_indices() {
+        if i > 0 && ch.is_ascii_uppercase() {
+            words.push(' ');
+        }
+        words.push(ch);
+    }
+    if stem == local {
+        // Not a `Finding…` class — surface the local name verbatim.
+        words
+    } else {
+        format!("Finding: {words}")
+    }
+}
+
 // ── Guides: recipes / learning paths / four boxes (#853 T3b) ──────────────────
 
 fn md_recipe_index(model: &DocsModel) -> String {
@@ -3149,6 +3307,21 @@ fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
 
 /// A link from a term CURIE to its term page, or a plain `code` CURIE when the
 /// term is not documented.
+/// The compact CURIE for an IRI: `gmeow:Local` / `logic:Local` for the two
+/// GMEOW-family namespaces, otherwise the IRI unchanged. Used by the constraint
+/// catalog to abbreviate a rule's applies-to terms and formalized axiom.
+fn to_curie(iri: &str) -> String {
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    if let Some(local) = iri.strip_prefix(GMEOW_NS) {
+        format!("gmeow:{local}")
+    } else if let Some(local) = iri.strip_prefix(LOGIC_NS) {
+        format!("logic:{local}")
+    } else {
+        iri.to_string()
+    }
+}
+
 fn curie_link(model: &DocsModel, from: &str, curie: &str) -> String {
     if let Some(term) = model.terms.iter().find(|t| t.curie == curie) {
         let href = rel(from, &Page::Term(term_slug(term)).dir());
@@ -4120,6 +4293,7 @@ mod tests {
             external_terms: Vec::new(),
             recipes: Vec::new(),
             learning_paths: Vec::new(),
+            constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
             available_languages: vec!["english".to_string(), "fr".to_string()],
@@ -4398,5 +4572,79 @@ mod tests {
         // The default (no override, core-tier) resolves to `stable` and still
         // renders unconditionally — assert via the variant label directly.
         assert_eq!(DocTermStability::Stable.label(), "stable");
+    }
+
+    #[test]
+    fn finding_category_display_humanizes_finding_classes() {
+        assert_eq!(
+            finding_category_display("https://blackcatinformatics.ca/logic/FindingPolicyWarning"),
+            "Finding: Policy Warning"
+        );
+        assert_eq!(
+            finding_category_display(
+                "https://blackcatinformatics.ca/logic/FindingDataShapeViolation"
+            ),
+            "Finding: Data Shape Violation"
+        );
+        // A non-Finding IRI degrades to its local name verbatim.
+        assert_eq!(
+            finding_category_display("https://example.org/vocab/SomethingElse"),
+            "Something Else"
+        );
+    }
+
+    #[test]
+    fn constraint_catalog_anchors_rule_by_helpuri_slug() {
+        use crate::model::ConstraintRule;
+
+        let mut model = tiny_model();
+        // `box-roles.invalid` → slug `box-roles-invalid` (the validator's transform:
+        // `.`/`/` → `-`), which is the fragment of the rule's helpUri.
+        let rule = ConstraintRule {
+            code: "box-roles.invalid".to_string(),
+            slug: gmeow_validate::rule_catalog::slugify("box-roles.invalid"),
+            category: "https://blackcatinformatics.ca/logic/FindingPolicyWarning".to_string(),
+            severity: "binding".to_string(),
+            help_uri:
+                "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#box-roles-invalid"
+                    .to_string(),
+            label: Some("box-roles.invalid".to_string()),
+            definition: Some("Every box declares exactly one valid box role.".to_string()),
+            applies_to_terms: vec![format!("{GMEOW_NS}Foo")],
+            formalizes: None,
+        };
+        // The rendered anchor id MUST equal the helpUri fragment so a finding's
+        // help link resolves to its rule entry.
+        let fragment = rule.help_uri.rsplit('#').next().unwrap().to_string();
+        assert_eq!(rule.slug, fragment, "anchor slug == helpUri fragment");
+        model.constraint_rules = vec![rule];
+
+        let md = to_markdown(&model, &Page::ConstraintCatalog);
+        assert!(
+            md.contains(&format!("<a id=\"{fragment}\"></a>")),
+            "explicit anchor emitted: {md}"
+        );
+        assert!(md.contains("Finding: Policy Warning"), "category heading");
+        assert!(md.contains("**binding**"), "severity rendered");
+        // The definition is md-escaped (`.` → `\.`), so match a bare substring.
+        assert!(
+            md.contains("Every box declares exactly one valid box role"),
+            "definition rendered: {md}"
+        );
+        // The applies-to term links internally to the documented gmeow:Foo term.
+        assert!(
+            md.contains("[`gmeow:Foo`]"),
+            "applies-to term is a curie link: {md}"
+        );
+    }
+
+    #[test]
+    fn constraint_catalog_empty_renders_empty_state() {
+        let model = tiny_model(); // constraint_rules empty
+        let md = to_markdown(&model, &Page::ConstraintCatalog);
+        assert!(
+            md.contains("No validation rules are declared in the constraint catalog."),
+            "empty-state line renders: {md}"
+        );
     }
 }

@@ -13,6 +13,7 @@ use gmeow_diagnostics::{Finding, FindingCategory, Severity};
 use gmeow_gts::policy::TrustPolicy;
 use gmeow_gts::verify::{verify_file_with_options, VerifyOptions};
 
+use crate::codes;
 use crate::validate_all::SignatureConfig;
 
 /// Verify a GTS byte bundle's embedded signatures and optional trust policy.
@@ -53,9 +54,9 @@ pub fn verify_gts_bundle(
             || error.starts_with("cannot load embedded transport key")
             || error.contains("transportKey")
         {
-            "signature.invalid"
+            codes::SIGNATURE_INVALID
         } else {
-            "signature.verify"
+            codes::SIGNATURE_VERIFY
         };
         findings.push(Finding::new(Severity::Error, code, error.clone()).with_tool("gts-verify"));
     }
@@ -70,7 +71,7 @@ pub fn verify_gts_bundle(
         findings.push(
             Finding::new(
                 severity,
-                "signature.missing",
+                codes::SIGNATURE_MISSING,
                 "no signed frames found in GTS bundle",
             )
             .with_tool("gts-verify"),
@@ -86,7 +87,7 @@ pub fn verify_gts_bundle(
         findings.push(
             Finding::new(
                 Severity::Error,
-                "signature.invalid",
+                codes::SIGNATURE_INVALID,
                 format!("{} signature(s) cryptographically invalid", result.invalid),
             )
             .with_tool("gts-verify"),
@@ -99,7 +100,7 @@ pub fn verify_gts_bundle(
         findings.push(
             Finding::new(
                 Severity::Error,
-                "signature.unverified",
+                codes::SIGNATURE_UNVERIFIED,
                 format!(
                     "{} signature(s) unverified (key unavailable)",
                     result.unverified
@@ -121,7 +122,7 @@ pub fn verify_gts_bundle(
         findings.push(
             Finding::new(
                 severity,
-                "signature.untrusted",
+                codes::SIGNATURE_UNTRUSTED,
                 "no cryptographically valid signature from a deployment-trusted signer",
             )
             .with_tool("gts-verify"),
@@ -141,7 +142,7 @@ pub fn verify_gts_bundle(
         findings.push(
             Finding::new(
                 severity,
-                format!("signature.{}", finding.code),
+                format!("{}{}", codes::SIGNATURE_FAMILY, finding.code),
                 finding.detail.clone(),
             )
             .with_tool("gts-verify"),
@@ -156,7 +157,7 @@ pub fn verify_gts_bundle(
         findings.push(
             Finding::new(
                 severity,
-                format!("gts.{}", diagnostic.code),
+                format!("{}{}", codes::GTS_FAMILY, diagnostic.code),
                 format!("{} (frame {:?})", diagnostic.detail, diagnostic.frame_index),
             )
             .with_tool("gts-verify"),
@@ -169,7 +170,7 @@ pub fn verify_gts_bundle(
         findings.push(
             Finding::new(
                 Severity::Info,
-                "signature.key",
+                codes::SIGNATURE_KEY,
                 format!(
                     "resolved transport key kid={kid} fingerprint={}",
                     gmeow_gts::verify::format_fingerprint(fingerprint)
