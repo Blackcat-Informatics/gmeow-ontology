@@ -44,6 +44,10 @@ pub mod cgif;
 // The CLIF (Common Logic Interchange Format) text dialect: a bidirectional,
 // PreservationKind::Exact s-expression FOL surface (writer + reader).
 pub mod clif;
+// The Common Logic round-trip isomorphism authority: proves a program round-trips
+// through every CL dialect (clif/cgif/xcl) with IR isomorphism and that the three
+// reconstructions are cross-dialect equivalent. Reused by the conformance harness.
+pub mod cl_roundtrip;
 pub mod compat;
 pub mod frontend;
 pub mod graphutil;
