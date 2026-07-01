@@ -54,9 +54,9 @@ use gmeow_logic_compile::projections::correspondence_gates::{
 };
 
 use crate::up_projection_corpus::{
-    canon_qname, combined_class, edoalpath_pairs, prefix, run_audit_nt, sssom_best_buckets_pub,
-    sssom_clean_pairs, sssom_closematch_pairs, structural_best_classes_pub, structural_pairs,
-    AuditReport,
+    canon_qname, combined_class, decimal_confidence, edoalpath_pairs, prefix, run_audit_nt,
+    sssom_best_buckets_pub, sssom_clean_pairs, sssom_closematch_pairs, structural_best_classes_pub,
+    structural_pairs, AuditReport,
 };
 
 /// The `logic:` namespace the minted audit-correspondence and leg IRIs live under.
@@ -698,7 +698,14 @@ fn candidate_lifts(
                 .extend(gmeows.iter().cloned());
         }
     }
+    // A target dropped as ambiguous at any layer must stay honest residue: a lower-priority
+    // layer may never recover it. `direct_ambiguous` blocks both the inverse and the claim
+    // layers; `inverse_ambiguous` blocks the claim layer. Each ambiguous target is counted in
+    // `ambiguous_dropped` exactly once (at the highest-priority layer that saw it), because the
+    // block short-circuits before the later layer can re-count it.
     let mut direct: BTreeMap<String, CandidateLift> = BTreeMap::new();
+    let mut direct_ambiguous: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
     for (target, gmeows) in direct_union {
         match unique_of(&gmeows) {
             Some(gmeow) => {
@@ -710,14 +717,20 @@ fn candidate_lifts(
                     },
                 );
             }
-            None => ambiguous_dropped += 1,
+            None => {
+                ambiguous_dropped += 1;
+                direct_ambiguous.insert(target);
+            }
         }
     }
 
-    // Inverse rename target: inverse EDOAL path only, and only when no direct rename exists.
+    // Inverse rename target: inverse EDOAL path only, and only when no direct rename (lawful or
+    // ambiguous) covers the term.
     let mut inverse: BTreeMap<String, CandidateLift> = BTreeMap::new();
+    let mut inverse_ambiguous: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
     for (target, gmeows) in inverse_edoal {
-        if direct.contains_key(target) {
+        if direct.contains_key(target) || direct_ambiguous.contains(target) {
             continue;
         }
         match unique_of(gmeows) {
@@ -730,33 +743,85 @@ fn candidate_lifts(
                     },
                 );
             }
-            None => ambiguous_dropped += 1,
+            None => {
+                ambiguous_dropped += 1;
+                inverse_ambiguous.insert(target.clone());
+            }
         }
     }
 
-    // Claim target: generalizing structural ∪ SSSOM closeMatch, only when neither a direct nor an
-    // inverse rename covers the term. Each carries its confidence lexeme.
+    // Claim target: generalizing structural + SSSOM closeMatch, only when neither a direct nor an
+    // inverse rename (lawful or ambiguous) covers the term.
+    //
+    // Each of the two claim layers first resolves to its OWN unique winner (a layer that is
+    // internally ambiguous — more than one distinct gmeow target — contributes no winner, exactly
+    // as the retired resolver treated a multi-candidate cell). The per-target claim is then the
+    // union of those per-layer winners, decided ONCE:
+    //   * a single agreed winner (one layer, or both layers naming the same gmeow) → a claim lift;
+    //   * two clean layers whose unique winners DISAGREE → a cross-layer conflict → ambiguous
+    //     (the guard the retired shared `ambiguous` set enforced — a first-layer-wins accept here
+    //     would silently pick one honest disagreement over the other);
+    //   * no winner at all, yet the target had candidates in some layer → ambiguous residue.
+    // `ambiguous_dropped` counts each such target ONCE (never the retired code's per-layer
+    // double-count of a target internally ambiguous in both layers).
+    let mut claim_targets: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    claim_targets.extend(generalizing_struct.keys().cloned());
+    claim_targets.extend(closematch.keys().cloned());
+
     let mut claim: BTreeMap<String, CandidateLift> = BTreeMap::new();
-    for layer in [&generalizing_struct, &closematch] {
-        for (target, cands) in layer {
-            if direct.contains_key(target)
-                || inverse.contains_key(target)
-                || claim.contains_key(target)
-            {
-                continue;
+    for target in claim_targets {
+        if direct.contains_key(&target)
+            || direct_ambiguous.contains(&target)
+            || inverse.contains_key(&target)
+            || inverse_ambiguous.contains(&target)
+        {
+            continue;
+        }
+        // The per-layer unique winners: (gmeow, confidence-lexeme). A layer with != 1 distinct
+        // gmeow target has no unique winner and contributes nothing to the union.
+        let gen_win = generalizing_struct
+            .get(&target)
+            .filter(|cands| cands.len() == 1)
+            .and_then(|cands| cands.iter().next());
+        let cm_win = closematch
+            .get(&target)
+            .filter(|cands| cands.len() == 1)
+            .and_then(|cands| cands.iter().next());
+        match (gen_win, cm_win) {
+            // Both layers name a unique winner: agree → lift; disagree → cross-layer conflict.
+            (Some((g_gmeow, g_conf)), Some((c_gmeow, c_conf))) => {
+                if g_gmeow == c_gmeow {
+                    // Same gmeow: keep the higher-confidence lexeme (the closeMatch producer's
+                    // own dedup rule), so the reified claim carries the strongest evidence.
+                    let (gmeow, conf) = if decimal_confidence(c_conf) > decimal_confidence(g_conf) {
+                        (c_gmeow, c_conf)
+                    } else {
+                        (g_gmeow, g_conf)
+                    };
+                    claim.insert(
+                        target,
+                        CandidateLift {
+                            gmeow: gmeow.clone(),
+                            confidence: Some(conf.clone()),
+                        },
+                    );
+                } else {
+                    ambiguous_dropped += 1;
+                }
             }
-            if cands.len() == 1 {
-                let (gmeow, conf) = cands.iter().next().expect("one claim candidate");
+            // Exactly one layer names a unique winner → the generalizing/closeMatch pick stands.
+            (Some((gmeow, conf)), None) | (None, Some((gmeow, conf))) => {
                 claim.insert(
-                    target.clone(),
+                    target,
                     CandidateLift {
                         gmeow: gmeow.clone(),
                         confidence: Some(conf.clone()),
                     },
                 );
-            } else if cands.len() > 1 {
-                ambiguous_dropped += 1;
             }
+            // No unique winner in either layer, yet the target appeared with candidates → the
+            // internally-ambiguous residue, counted once.
+            (None, None) => ambiguous_dropped += 1,
         }
     }
 
