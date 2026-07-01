@@ -811,6 +811,49 @@ ASK {
 }""" ;
     gmeow:saRationale "A logic:Plan MUST reach its reified flow graph (its logic:ControlFlowEdge / logic:DataFlowEdge members) through logic:planFlowEdge — the canonical-plan counterpart of the build pipeline's gmeow:hasStage stage-membership. Without it a plan's flow edges are free-standing individuals unreachable from the plan, so the DAG-workflow certifier has no graph to run over and a cyclic plan could never disclose its logic:dagCycleWitness. The companion logic:planCertification relates the plan to the logic:ReasoningResult the certifier emits, so the `unsupported` verdict (logic:EvaluationUnsupported) and its logic:dagCycleWitness are reachable from the plan rather than computed and discarded. This is the membership-plus-verdict pair the teleology evaluator produces: it gathers planFlowEdge to map an acyclic closure to logic:CompleteForFragment and a cyclic one to the unsupported verdict, linked back by planCertification." .
 
+# --- 44. The logic:LogicalFramework vocabulary surface exists (MUST) ----------
+ex:saLogicalFrameworkVocabExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    logic:LogicalFramework a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    logic:instantiatesFramework a owl:ObjectProperty ; rdfs:range logic:LogicalFramework .
+}""" ;
+    gmeow:saRationale "The per-term reasoning-discipline surface MUST exist: logic:LogicalFramework (a boxTBox owl:Class — the closed class of reasoning disciplines the logic: core formalizes) and the selector logic:instantiatesFramework (an owl:ObjectProperty whose rdfs:range is that closed class). The value names WHICH reasoning machinery a term belongs to, orthogonal to the logic:ReasoningContract facets that configure a particular evaluation." .
+
+# --- 45. All nine logical frameworks are declared (MUST, closed set) ----------
+ex:saNineLogicalFrameworksDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    logic:HolonicFramework        a logic:LogicalFramework .
+    logic:MereologicalFramework   a logic:LogicalFramework .
+    logic:DeonticFramework        a logic:LogicalFramework .
+    logic:TeleologicalFramework   a logic:LogicalFramework .
+    logic:TemporalFramework       a logic:LogicalFramework .
+    logic:ModalFramework          a logic:LogicalFramework .
+    logic:EpistemicFramework      a logic:LogicalFramework .
+    logic:ProbabilisticFramework  a logic:LogicalFramework .
+    logic:ParaconsistentFramework a logic:LogicalFramework .
+}""" ;
+    gmeow:saRationale "All nine design-grounded frameworks MUST be declared logic:LogicalFramework individuals: holonic, mereological, deontic, teleological, temporal, modal, epistemic, probabilistic, and paraconsistent — each a distinct reasoning discipline the canonical logic: core formalizes (design/LOGIC-FOUNDATION.md, design/LOGIC-SEMANTICS.md, design/LOGIC-TELEOLOGY.md, design/LOGIC-CONTRACT.md). The set is closed, mirroring logic:AgencyVerdict; a misspelt framework names no declared value." .
+
+# --- 46. instantiatesFramework objects are declared frameworks (MUST-NOT) -----
+ex:saInstantiatesFrameworkRangeClosed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    ?term logic:instantiatesFramework ?framework .
+    FILTER NOT EXISTS { ?framework a logic:LogicalFramework . }
+}""" ;
+    gmeow:saRationale "No logic:instantiatesFramework object MUST be anything other than a declared logic:LogicalFramework individual — the closed-set guard. A term may traffic in several frameworks or none, but every value it names MUST be one of the nine declared disciplines, so a misspelt or undeclared framework is rejected rather than silently minting an open value (the same closed-vocabulary discipline as the typed-verdict classes)." .
+
 ex:saQualityStratificationTerms a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;

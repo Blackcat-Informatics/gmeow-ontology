@@ -191,14 +191,15 @@ def info(
         err_console.print(f"[yellow]{diag.code}[/yellow]: {diag.detail}")
 
 
-def _bundle_checks(graph: gts.Graph) -> list[tuple[str, bool, str]]:
+def _bundle_checks(graph: gts.Graph, gts_bytes: bytes) -> list[tuple[str, bool, str]]:
     """Run Docker-free, source-free checks over a folded GTS snapshot."""
-    from gmeow_tools.export import collect_terms
+    import gmeow_native.pipeline as _pipeline
 
-    view = FoldView(graph)
-    terms = collect_terms(view)
-    missing_label = [t.curie for t in terms if not t.label]
-    missing_definition = [t.curie for t in terms if not t.definition]
+    terms = _pipeline.bundle_term_summaries(gts_bytes)
+    missing_label = [curie for curie, label, _definition in terms if not label]
+    missing_definition = [
+        curie for curie, _label, definition in terms if not definition
+    ]
     has_namespace = any(
         term.value and term.value.startswith(NAMESPACE)
         for term in graph.terms
@@ -258,7 +259,7 @@ def verify(
     except Exception as exc:
         raise _fail(f"verification failed: {exc}") from exc
     graph = _read_gts_or_fail(path)
-    checks = _bundle_checks(graph)
+    checks = _bundle_checks(graph, data)
 
     sig_table = Table.grid(padding=(0, 2))
     sig_table.add_column(style="bold")
@@ -787,42 +788,15 @@ def export(
     lang: str | None = _lang_option(),
 ) -> None:
     """Export flat consumer views from a GTS snapshot."""
-    from gmeow_tools.export import (
-        collect_terms,
-        fold_meta,
-        write_csvs,
-        write_csvw,
-        write_jsonl,
-        write_llms_txt,
-        write_markdown,
-        write_nquads,
-        write_obographs,
-        write_shex,
-        write_skos,
-        write_statements_jsonl,
-        write_trig,
-    )
+    import gmeow_native.pipeline as _pipeline
 
-    view = _bundle_view(file)
-    selector = _resolve_lang(lang, view)
-    title, version = fold_meta(view)
-    terms = collect_terms(view, selector=selector)
-    out.mkdir(parents=True, exist_ok=True)
-    written = [
-        *write_csvs(terms, out, selector=selector),
-        write_csvw(out, title=title, selector=selector),
-        write_jsonl(terms, out),
-        write_markdown(terms, out, title=title, version=version),
-        write_llms_txt(terms, out, title=title, version=version),
-        write_nquads(view, out),
-        write_trig(view, out, selector=selector),
-        write_statements_jsonl(view, out),
-        write_skos(view, out, title=title, version=version, selector=selector),
-        write_obographs(view, out, version=version, selector=selector),
-        write_shex(view, out),
-    ]
-    for path in written:
-        console.print(f"[green]wrote[/green] {path}")
+    path = file or _default_gts_file()
+    # The view drives only the language resolution (the writers are native).
+    selector = _resolve_lang(lang, _bundle_view(file))
+    gts_bytes = _read_bytes_or_fail(path)
+    written = _pipeline.export_views(gts_bytes, str(out), list(selector.requested))
+    for written_path in written:
+        console.print(f"[green]wrote[/green] {written_path}")
 
 
 @app.command()
@@ -937,7 +911,9 @@ def crossref(
     ),
 ) -> None:
     """Generate CrossRef DOI deposit XML from bundled self-description data."""
-    from gmeow_tools.crossref import lint_deposit, write_deposit
+    import gmeow_validate
+
+    from gmeow_tools import self_desc
     from gmeow_tools.describe import load_graph_from_gts
     from gmeow_tools.self_desc import load_self_description_from_graph
 
@@ -949,7 +925,7 @@ def crossref(
     except ValueError as exc:
         raise _fail(f"self-description unavailable in GTS snapshot: {exc}") from exc
 
-    problems = lint_deposit(meta)
+    problems = gmeow_validate.lint_deposit_native(self_desc.lint_input_json(meta))
     if problems:
         for problem in problems:
             err_console.print(f"[red]doi-lint[/red] {problem}")
@@ -957,8 +933,13 @@ def crossref(
             f"✗ {len(problems)} doi-lint problem(s) — fix metadata/gmeow-self.ttl"
         )
 
-    path = write_deposit(path=out, meta=meta)
-    console.print(f"[green]wrote[/green] {path} (DOI {meta.doi})")
+    ts, batch = self_desc.live_stamp(meta)
+    xml = gmeow_validate.build_deposit_xml_native(
+        self_desc.deposit_input_json(meta), ts, batch
+    )
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(xml + "\n", encoding="utf-8")
+    console.print(f"[green]wrote[/green] {out} (DOI {meta.doi})")
 
 
 @app.command(name="mcp")

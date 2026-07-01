@@ -1625,11 +1625,14 @@ fn verify_native(
 /// - `ontology_ttl` — the source ontology as Turtle text.
 /// - `terms` — the seed term IRIs (the signature Σ).
 /// - `method` — `"STAR"` (default/unknown), `"BOT"`, or `"TOP"` (case-insensitive).
+/// - `namespace` — the GMEOW namespace used by the appended provenance triples.
+/// - `source_iri` — the source ontology's namespace IRI (`gmeow:wasDerivedFrom`).
 ///
 /// # Returns
 ///
 /// A dict with keys:
-/// - `module_ttl` (str) — the extracted module, deterministic Turtle.
+/// - `module_ttl` (str) — the extracted module WITH its extraction provenance appended,
+///   deterministic Turtle (module + provenance as one artifact).
 /// - `selected_axiom_count` (int) — number of top-level (named-subject) kept triples.
 /// - `method` (str) — the normalized method actually used.
 /// - `warnings` (`list[dict]`) — each `{code, message}` from the conservative-keep /
@@ -1645,14 +1648,18 @@ fn extract_module(
     ontology_ttl: &str,
     terms: Vec<String>,
     method: &str,
+    namespace: &str,
+    source_iri: &str,
 ) -> PyResult<Py<PyAny>> {
     // Run the parse + extract with the GIL released; the closure returns the plain
     // data needed to build the Python dict afterwards (no Python objects cross the
     // detach boundary, mirroring reason_native).
     let ttl = ontology_ttl.to_owned();
     let method_owned = method.to_owned();
+    let ns = namespace.to_owned();
+    let src = source_iri.to_owned();
     let result = py
-        .detach(move || crate::slme::extract_module(&ttl, &terms, &method_owned))
+        .detach(move || crate::slme::extract_module(&ttl, &terms, &method_owned, &ns, &src))
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
 
     let warnings = PyList::empty(py);
