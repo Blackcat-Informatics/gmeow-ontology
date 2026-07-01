@@ -32,6 +32,11 @@ ex:sysBP a logic:Quality ;
     gmeow:bearer         ex:patientP ;
     gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0004]" .
 
+# The diastolic role is retained on purpose: S is the two-role BP quality ladder, so
+# the source object must carry BOTH arterial roles even though this structural case
+# routes its get-leg witness through the systolic role (at0004). The diastolic role is
+# exercised end-to-end by the data reconstruction test
+# (crates/logic-compile/tests/openehr_bloodpressure_roundtrip.rs, at0005).
 ex:diaBP a logic:Quality ;
     logic:genericQuality gmeow:pressure ;
     logic:qualityRole    gmeow:diastolicRole ;       # == archetype node at0005 "Diastolisch"
