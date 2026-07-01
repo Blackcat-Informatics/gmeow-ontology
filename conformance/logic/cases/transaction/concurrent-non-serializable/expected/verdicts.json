@@ -1,6 +1,6 @@
 {
   "https://example.org/transaction/concurrent-non-serializable/world": {
-    "quads": 71,
+    "quads": 73,
     "status": "consistent"
   }
 }
