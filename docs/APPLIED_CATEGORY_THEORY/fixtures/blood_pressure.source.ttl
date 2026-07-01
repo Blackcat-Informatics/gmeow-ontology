@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# The GMEOW in-band complement for the openEHR Blutdruck composition (S ∖ im(get)).
-# This is the payload that rides inside blood_pressure.augmented.json as
-# feeder_audit.original_content (DV_PARSABLE, formalism "text/turtle"). It carries
-# exactly what the openEHR RM slice cannot hold; `u` (up-projection) reads it to make
-# u(d(g)) = id_GMEOW hold. Complement nodes link back to RM nodes by archetype path
-# (gmeow:rmPath) — the mnemomorphic witness.
+# The reconstructed canonical GMEOW source object S = the in-band complement
+# (blood_pressure.complement.ttl, i.e. S ∖ im(get)) UNIONED with the two asserted
+# `gmeow:measuredValue` leaves that only `get` can recover, by walking each
+# `logic:Quality`'s `gmeow:rmPath` archetype-node witness (at0004 / at0005) into the
+# matching `items[…].value` DV_QUANTITY of blood_pressure.augmented.json. This is
+# the golden for `u(d(S)) = S`: reconstruction that actually re-lifts the RM slice,
+# not a copy-equality check.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -18,13 +19,15 @@
     logic:genericQuality gmeow:pressure ;            # == OPT property openehr::pressure
     logic:qualityRole    gmeow:systolicRole ;        # == archetype node at0004 "Systolisch"
     gmeow:bearer         <urn:openehr:subject:PARTY_SELF> ;
-    gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0004]" .
+    gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0004]" ;
+    gmeow:measuredValue  "1.0 mm[Hg]" .
 
 <urn:gmeow:quality:diaBP> a logic:Quality ;
     logic:genericQuality gmeow:pressure ;
     logic:qualityRole    gmeow:diastolicRole ;       # == archetype node at0005 "Diastolisch"
     gmeow:bearer         <urn:openehr:subject:PARTY_SELF> ;
-    gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0005]" .
+    gmeow:rmPath "/content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data/events/data/items[at0005]" ;
+    gmeow:measuredValue  "60.0 mm[Hg]" .
 
 # --- The observations as attributed, dated, standpoint-indexed claims (the four axes + ---
 # --- determinacy; none of which has an RM slot) ---

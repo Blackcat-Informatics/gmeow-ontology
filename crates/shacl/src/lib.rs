@@ -16,6 +16,7 @@ pub mod engine;
 pub mod instance;
 pub mod json_schema;
 pub mod model;
+pub mod openehr_opt;
 pub mod path;
 pub mod report;
 pub mod shape_union;
