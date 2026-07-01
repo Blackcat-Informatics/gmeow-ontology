@@ -153,7 +153,13 @@ pub fn slme_provenance_ttl(
 
 // ── Public entry ────────────────────────────────────────────────────────────────
 
-/// Extract a syntactic-locality module from `ontology_ttl` around the seed `terms`.
+/// Extract a syntactic-locality module from `ontology_ttl` around the seed `terms`,
+/// emitting the module **with its extraction provenance appended** — a single artifact
+/// carrying both (MAXIMAL INFORMATION FLOW). `namespace` is the GMEOW namespace used by
+/// the provenance triples; `source_iri` is the source ontology's namespace IRI recorded
+/// as `gmeow:wasDerivedFrom`. The appended block reuses provenance vocabulary only and is
+/// timestamp-free, so the whole output is a pure function of the inputs (determinism,
+/// Principle 4).
 ///
 /// # Errors
 ///
@@ -163,6 +169,8 @@ pub fn extract_module(
     ontology_ttl: &str,
     terms: &[String],
     method: &str,
+    namespace: &str,
+    source_iri: &str,
 ) -> Result<ModuleResult, String> {
     let (method, unknown_method) = Method::parse(method);
     let mut findings: Vec<Finding> = Vec::new();
@@ -270,7 +278,16 @@ pub fn extract_module(
         collect_bnode_closure(&t.object, &bnode_index, &mut module, &mut module_quads);
     }
 
-    let module_ttl = serialize_turtle(module_quads)?;
+    let mut module_ttl = serialize_turtle(module_quads)?;
+    // Append the extraction provenance so the extraction emits module + provenance as a
+    // single artifact. The block is timestamp-free, so the combined output stays a pure
+    // function of the inputs (determinism, Principle 4).
+    module_ttl.push_str(&slme_provenance_ttl(
+        namespace,
+        source_iri,
+        method.as_str(),
+        selected_axiom_count,
+    ));
 
     Ok(ModuleResult {
         module_ttl,

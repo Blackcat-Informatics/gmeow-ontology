@@ -6,15 +6,16 @@
 use super::*;
 
 const EX: &str = "http://example.org/";
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 fn iri(local: &str) -> String {
     format!("{EX}{local}")
 }
 
-/// Run an extraction and return the module Turtle string.
+/// Run an extraction and return the module (with provenance appended) as a `ModuleResult`.
 fn run(ttl: &str, seeds: &[&str], method: &str) -> ModuleResult {
     let terms: Vec<String> = seeds.iter().map(|s| iri(s)).collect();
-    extract_module(ttl, &terms, method).expect("extraction must not fail")
+    extract_module(ttl, &terms, method, GMEOW_NS, EX).expect("extraction must not fail")
 }
 
 /// True iff the module Turtle contains a `<local-s> <pred> <local-o>` edge. We test
@@ -285,7 +286,6 @@ fn slme_provenance_block_is_deterministic_and_complete() {
     // UMBEL namespace = config PREFIXES["umbel"] (http://umbel.org/umbel#), an
     // IMPORT_OK (CC-BY-3.0) target. Both literals are hardcoded here to match the
     // retired tests/test_extract.py::test_extract_emits_slme_provenance.
-    const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
     const UMBEL_NS: &str = "http://umbel.org/umbel#";
 
     // A tiny UMBEL module: two owl:Classes, Dog ⊑ Animal, seeded on Dog (method STAR).
@@ -298,16 +298,10 @@ fn slme_provenance_block_is_deterministic_and_complete() {
     );
     let dog = format!("{UMBEL_NS}Dog");
 
-    let result =
-        extract_module(&ttl, std::slice::from_ref(&dog), "STAR").expect("extraction must not fail");
-
-    let provenance = slme_provenance_ttl(
-        NAMESPACE,
-        UMBEL_NS,
-        result.method.as_str(),
-        result.selected_axiom_count,
-    );
-    let text = format!("{}{provenance}", result.module_ttl);
+    // extract_module emits the module WITH provenance appended (one artifact).
+    let result = extract_module(&ttl, std::slice::from_ref(&dog), "STAR", GMEOW_NS, UMBEL_NS)
+        .expect("extraction must not fail");
+    let text = &result.module_ttl;
 
     // The extracted module is present.
     assert!(text.contains(&dog), "Dog must be in the module: {text}");
@@ -339,16 +333,12 @@ fn slme_provenance_block_is_deterministic_and_complete() {
     );
 
     // Re-running yields byte-identical output (pure function of inputs).
-    let result2 =
-        extract_module(&ttl, std::slice::from_ref(&dog), "STAR").expect("extraction must not fail");
-    let provenance2 = slme_provenance_ttl(
-        NAMESPACE,
-        UMBEL_NS,
-        result2.method.as_str(),
-        result2.selected_axiom_count,
+    let result2 = extract_module(&ttl, std::slice::from_ref(&dog), "STAR", GMEOW_NS, UMBEL_NS)
+        .expect("extraction must not fail");
+    assert_eq!(
+        result2.module_ttl, result.module_ttl,
+        "re-run must be byte-identical"
     );
-    let text2 = format!("{}{provenance2}", result2.module_ttl);
-    assert_eq!(text2, text, "re-run must be byte-identical");
 }
 
 // ── Test 8: bnode predicate collected into Σ (bug A regression) ──────────────────
