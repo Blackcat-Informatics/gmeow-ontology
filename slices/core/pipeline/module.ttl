@@ -319,6 +319,7 @@ gmeow:pipeline-build
         gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
         gmeow:stage-conformance ,
+        gmeow:stage-constraint-catalog ,
         gmeow:stage-docs-render ,
         gmeow:stage-snapshot ,
         gmeow:stage-export-schemas ,
@@ -451,6 +452,17 @@ gmeow:stage-docs-render
     gmeow:dataflowConsumes gmeow:stage-gts-compose ,
         gmeow:stage-reason .
 
+gmeow:stage-constraint-catalog
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "constraint catalog"@x-gmeow-english ;
+    skos:definition "Generate the machine-readable constraint catalog: one gmeow:ValidationRule individual per finding code the validator can emit, carrying the code, its default grade, a logic:FindingCategory derived from the enforcement kind, and its stable catalog help URI, enriched for the frame-completeness and relator-mediation disciplines with the governed terms and formalizing axiom resolved from the reasoned graph. Consumes gmeow:stage-reason so the catalog is a projection of the axioms — the 'what GMEOW enforces' surface — rather than a hand-maintained list."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "constraint_catalog" ;
+    gmeow:dataflowConsumes gmeow:stage-reason .
+
 # ── Snapshot assembly (structured multi-named-graph dist bundle) ──
 
 gmeow:stage-snapshot
@@ -465,6 +477,7 @@ gmeow:stage-snapshot
     gmeow:dataflowConsumes
         gmeow:stage-compile-logic ,
         gmeow:stage-conformance ,
+        gmeow:stage-constraint-catalog ,
         gmeow:stage-docs-render ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-gts-compose ,

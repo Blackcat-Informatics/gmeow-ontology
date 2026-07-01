@@ -4183,6 +4183,14 @@ classes:
     is_a: Measurement
     slots:
     - utilizationOf
+  ValidationRule:
+    class_uri: https://blackcatinformatics.ca/gmeow/ValidationRule
+    title: Validation Rule
+    is_a: InformationObject
+    slots:
+    - ruleCategory
+    - ruleCode
+    - ruleHelpUri
   VectorIndex:
     class_uri: https://blackcatinformatics.ca/gmeow/VectorIndex
     title: Vector Index
@@ -4640,6 +4648,10 @@ slots:
     range: MusicalSegment
     domain: OrnamentProfile
     multivalued: true
+  appliesToTerm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/appliesToTerm
+    title: applies to term
+    range: string
   appliesToTimeFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/appliesToTimeFrame
     title: applies to time frame
@@ -6731,6 +6743,10 @@ slots:
     range: Agent
     domain: Agent
     multivalued: true
+  enforcedByShape:
+    slot_uri: https://blackcatinformatics.ca/gmeow/enforcedByShape
+    title: enforced by shape
+    range: string
   entryNote:
     slot_uri: https://blackcatinformatics.ca/gmeow/entryNote
     title: entry note
@@ -11758,6 +11774,18 @@ slots:
     range: Agent
     domain: Rule
     multivalued: true
+  ruleCategory:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ruleCategory
+    title: rule category
+    range: string
+    domain: ValidationRule
+    multivalued: true
+  ruleCode:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ruleCode
+    title: rule code
+    range: string
+    domain: ValidationRule
+    multivalued: true
   ruleConsequence:
     slot_uri: https://blackcatinformatics.ca/gmeow/ruleConsequence
     title: rule consequence
@@ -11769,6 +11797,12 @@ slots:
     title: rule constraint
     range: Constraint
     domain: Rule
+    multivalued: true
+  ruleHelpUri:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ruleHelpUri
+    title: rule help URI
+    range: uri
+    domain: ValidationRule
     multivalued: true
   ruleSeverity:
     slot_uri: https://blackcatinformatics.ca/gmeow/ruleSeverity
@@ -18662,6 +18696,9 @@ enums:
       stage-conformance:
         meaning: https://blackcatinformatics.ca/gmeow/stage-conformance
         title: conformance
+      stage-constraint-catalog:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-constraint-catalog
+        title: constraint catalog
       stage-docs-render:
         meaning: https://blackcatinformatics.ca/gmeow/stage-docs-render
         title: docs render
