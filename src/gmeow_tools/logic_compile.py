@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Registered generator: logic: source → IR → 8 committed generated artifacts.
+"""Registered generator: logic: source → IR → 9 committed generated artifacts.
 
 ``gmeow logic compile`` (or ``gmeow regenerate logic``) renders, from the
 canonical ``logic:`` vocabulary source at ``slices/core/logic/module.ttl``:
@@ -45,7 +45,7 @@ TOOL = "logic-compile"
 #: The single authoritative logic: source for the GMEOW vocabulary.
 LOGIC_SOURCE_FILE = SLICES_DIR / "core" / "logic" / "module.ttl"
 
-#: The 8 committed outputs, in declaration order.
+#: The 9 committed outputs, in declaration order.
 LOGIC_OWL_DL_FILE = GENERATED_DIR / "owl" / "gmeow-dl.ttl"
 LOGIC_OWL_EL_FILE = GENERATED_DIR / "owl" / "gmeow-el.ttl"
 LOGIC_DATALOG_FILE = GENERATED_DIR / "datalog" / "gmeow.dl"
@@ -53,6 +53,8 @@ LOGIC_N3_FILE = GENERATED_DIR / "n3" / "gmeow.n3"
 LOGIC_GUFO_FILE = GENERATED_DIR / "foundation" / "gufo.ttl"
 LOGIC_RDF12_FILE = GENERATED_DIR / "logic" / "gmeow.logic.rdf12.ttl"
 LOGIC_NEMO_FILE = GENERATED_DIR / "logic" / "gmeow.rls"
+#: The bidirectional CLIF (Common Logic Interchange Format) projection.
+LOGIC_CLIF_FILE = GENERATED_DIR / "cl" / "gmeow.clif"
 LOGIC_REPORT_FILE = GENERATED_DIR / "logic" / "projection-report.ttl"
 
 

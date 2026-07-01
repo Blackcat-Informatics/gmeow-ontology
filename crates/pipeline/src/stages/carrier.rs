@@ -896,6 +896,17 @@ fn build_fanout_opaque_blob(
         .ok_or_else(|| stage_err("missing generated/n3/gmeow.n3 in stage-compile-logic"))?;
     members.insert(crate::stages::compile_logic::N3_PATH.to_string(), n3);
 
+    // CLIF rides in from the sink-consumed stage-compile-logic product. It is a
+    // non-RDF text projection whose committed form carries generated `;;` comments and
+    // `;; ===` section markers, so it cannot reconstruct from a canonical named-graph
+    // fold; it is carried here as a committed byte projection (byte-identical to the file).
+    let clif = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::CLIF_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing generated/cl/gmeow.clif in stage-compile-logic"))?;
+    members.insert(crate::stages::compile_logic::CLIF_PATH.to_string(), clif);
+
     // The SHACL-AF rule (computation) surface rides in from the same sink-consumed
     // compile-logic product (byte-decorated Turtle with a GENERATED banner — not a plain
     // canonical fold), as a committed byte projection.
@@ -1552,11 +1563,13 @@ impl Stage for SnapshotStage {
         // generated metadata, statement, reasoning, and preservation projections into
         // REP_GENERATED so the superset gate can reconstruct every committed
         // generated file without re-reading disk.
-        // v15 embeds the executable-docs surfaces in the ontology-docs site: the
+        // v15 embeds the executable-docs surfaces in the ontology-docs site — the
         // offline SPARQL playground asset and the reasoner "try it"
         // asserted-vs-inferred diffs (a docs-only side computation that never folds
-        // into the reasoned production graphs).
-        "snapshot.v15-executable-docs-surfaces"
+        // into the reasoned production graphs) — and folds the CLIF projection
+        // (generated/cl/gmeow.clif) into REP_GENERATED as a committed byte projection
+        // (a non-RDF text dialect with generated comments / section markers).
+        "snapshot.v15-executable-docs-and-clif"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
