@@ -184,6 +184,7 @@ expression: summary
       "logic_stereotypes": [
         "logic:AbstractIndividualType"
       ],
+      "frameworks": [],
       "related_terms": [],
       "box_role": "gmeow:boxTBox",
       "box_roles": [
@@ -232,6 +233,7 @@ expression: summary
       "use_for_consumer": [],
       "avoid_for_consumer": [],
       "logic_stereotypes": [],
+      "frameworks": [],
       "related_terms": [],
       "box_role": "gmeow:boxRBox",
       "box_roles": [
@@ -268,6 +270,7 @@ expression: summary
       "use_for_consumer": [],
       "avoid_for_consumer": [],
       "logic_stereotypes": [],
+      "frameworks": [],
       "related_terms": [],
       "box_role": "gmeow:boxABox",
       "box_roles": [
