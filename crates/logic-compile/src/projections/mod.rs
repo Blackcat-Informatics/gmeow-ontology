@@ -509,6 +509,15 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             "full first-order (semi-decidable)",
             vec![],
         ),
+        // CGIF: a bidirectional conceptual-graph FOL dialect. ExactPreservation —
+        // the idiomatic conceptual-graph channel (rules + formulas) round-trips verbatim and
+        // the RDF/predication channel rides the lossless canonical-RDF-1.2 leg, so nothing is
+        // dropped (the production round-trip test pins this, as for its CLIF sibling).
+        "cgif" => (
+            PreservationKind::Exact,
+            "full first-order (semi-decidable)",
+            vec![],
+        ),
         "shacl-af" => (
             PreservationKind::SoundUnder,
             "terminating/PTIME-data",
