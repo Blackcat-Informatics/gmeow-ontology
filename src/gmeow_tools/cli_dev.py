@@ -800,17 +800,6 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
         ]
         return diagnostics.report_from_findings(tool="generated", findings=items)
 
-    def _classic_cross_check() -> DiagnosticsReport:
-        # The native↔oracle (ELK/HermiT/ROBOT) divergence ledger is already a
-        # Rust-backed DiagnosticsReport (gmeow_logic.build_divergence_ledger →
-        # classic_cross_check.build_report). Folding it carries the classic-oracle
-        # cross-check findings into the bundle. Guarded: it needs the Docker/Java
-        # lane, so on a Docker-less host the fold loop records a visible skip.
-        from gmeow_tools.oracles import classic_cross_check as crosscheck
-
-        _passed, _ledger, report = crosscheck.run()
-        return report
-
     def _engine_cross_check() -> DiagnosticsReport:
         from gmeow_tools.oracles import engine_crosscheck
 
@@ -847,7 +836,6 @@ def _surface_reports() -> list[tuple[str, Callable[[], DiagnosticsReport]]]:
         ("box-roles", _box_roles),
         ("audit", _audit),
         ("generated", _generated),
-        ("classic-cross-check", _classic_cross_check),
         ("engine-cross-check", _engine_cross_check),
         ("logic-compile", _logic_compile),
         ("statement-compile", _statement_compile),
@@ -1230,89 +1218,6 @@ def crosscheck_queries() -> None:
     console.print(
         f"[green]✓ {len(checked)} queries agree across rdflib + gmeow_rdf"
         f" ({len(skipped)} skipped)[/green]"
-    )
-
-
-@app.command(name="classic-cross-check")
-def classic_cross_check() -> None:
-    """Enforced native↔oracle divergence cross-check (#666 — Docker/Java lane).
-
-    The FINAL, ENFORCING step of ``make maint-classic-cross-check`` (the sole
-    Docker/Java surface, Principle 18). It reasons the bundle natively
-    (authority), runs the classic ELK + HermiT oracles (timing each), calls the
-    authoritative Rust
-    comparator, writes the agreement matrix + per-tool timing as SARIF/JSON, and
-    fails NON-ZERO on any real divergence (``NativeOnly`` / ``OracleOnly``) or
-    native coverage defect (``DlGap``). NEVER part of ``make check`` or the
-    required ``quality`` gate.
-    """
-    from gmeow_tools.oracles import classic_cross_check as crosscheck
-    from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
-
-    try:
-        passed, ledger, _report = crosscheck.run()
-    except ToolUnavailableError as exc:
-        raise _fail(f"tool unavailable: {exc}", code=2) from exc
-    except ToolExecutionError as exc:
-        raise _fail(f"classic cross-check oracle failed:\n{exc.output}") from exc
-
-    console.print(
-        "[bold]classic cross-check[/bold] — agreement matrix: "
-        f"agree={ledger['agree']} native_only={ledger['native_only']} "
-        f"oracle_only={ledger['oracle_only']} dl_gap={ledger['dl_gap']}"
-    )
-    if passed:
-        console.print(
-            "[green]✓ native ≡ oracle (ELK/HermiT) with zero native DL gaps — "
-            "enforced cross-check passed[/green]"
-        )
-        return
-    for row in ledger["rows"]:
-        if row["kind"] in ("NativeOnly", "OracleOnly", "DlGap"):
-            err_console.print(f"[red]{row['kind']}[/red] {row['detail']}")
-    raise _fail(
-        f"✗ native↔oracle divergence: {ledger['native_only']} native-only + "
-        f"{ledger['oracle_only']} oracle-only + {ledger['dl_gap']} dl-gap row(s)"
-    )
-
-
-@app.command(name="classic-cross-check-rl")
-def classic_cross_check_rl() -> None:
-    """Enforced native-RL ≡ owlrl-RL agreement axis (#666 Task 5 — lane only).
-
-    The native OWL 2 RL engine is the primary Docker-free entailment authority (the
-    8 converted conformance suites run on it); ``owlrl`` lives ONLY here, in the
-    lane, as the agreement ORACLE. This reasons the told facts under BOTH RL
-    closures, compares the canonicalized named-vocabulary closures, writes the
-    agreement matrix + per-engine timing as SARIF/JSON, and fails NON-ZERO on any
-    real RL divergence. NEVER part of ``make check`` or the required gate.
-    """
-    from gmeow_tools.oracles import rl_agreement
-
-    passed, result, _report = rl_agreement.run()
-
-    native_only = result["native_only"]
-    oracle_only = result["oracle_only"]
-    assert isinstance(native_only, list)
-    assert isinstance(oracle_only, list)
-    console.print(
-        "[bold]RL cross-check[/bold] — agreement: "
-        f"agree={result['agree']} native_only={len(native_only)} "
-        f"oracle_only={len(oracle_only)}"
-    )
-    if passed:
-        console.print(
-            "[green]✓ native RL ≡ owlrl RL (named-vocabulary closure) — "
-            "enforced RL agreement passed[/green]"
-        )
-        return
-    for row in native_only:
-        err_console.print(f"[red]NativeOnly[/red] {row}")
-    for row in oracle_only:
-        err_console.print(f"[red]OracleOnly[/red] {row}")
-    raise _fail(
-        f"✗ native↔owlrl RL divergence: {len(native_only)} native-only + "
-        f"{len(oracle_only)} oracle-only row(s)"
     )
 
 
