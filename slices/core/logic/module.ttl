@@ -5606,6 +5606,38 @@ logic:anomalyCycle
     skos:definition "The detected dependency cycle of a logic:SerializationAnomaly, rendered as the canonical sequence of transaction IRIs joined by ' -> ' (rotated to start at the lexicographically smallest member and closed back to it, so the same history always yields the same description). Domain logic:SerializationAnomaly, range xsd:string (stated in prose). It is a human-readable DESCRIPTION of the history-level finding — the conflict-graph cycle that has no equivalent serial order — never a claim of ⊥ within a state; a non-serializable schedule is surfaced with its cycle described here, never silently linearized."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- View-serializability: the read-from / final-write history surface ---------
+# The native concurrent evaluator classifies the witnessed binary interleaving
+# against logic:ViewSerializability as well as logic:ConflictSerializability, and
+# DERIVES the read-from and happens-before edges that classification rests on.
+# View-equivalence compares, across the witnessed schedule and the two serial
+# orders of its two legs, which write each read observed (logic:readsFrom) and
+# which transaction wrote each situation last. A conflict-serializable schedule is
+# always view-serializable; a conflict-CYCLIC schedule may still be view-
+# serializable (a blind-write history), so the two criteria are recorded
+# independently through logic:satisfiesCriterion.
+
+logic:readsFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reads from"@x-gmeow-english ;
+    skos:definition "A read-dependency edge of a logic:ConcurrentHistory: 'reader readsFrom writer' records that the reading logic:TransactionStep observed, for a situation in its read set (its schema's logic:precondition), the value written by the writer logic:TransactionStep — the last step to write that situation before the reader in the witnessed interleaving. Domain and range logic:TransactionStep (stated in prose). Emitted only for CROSS-transaction read dependencies (a step reading from the OTHER leg's write), which is where the read-from relation can differ from a serial order and therefore where it carries view-serializability information; intra-leg read dependencies are fixed by the leg's own order and carry none. Together with logic:happensBefore it is the view-serializability surface, kept DISTINCT from logic:precedes, which is the transaction-level conflict edge over which conflict-serializability is decided."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:happensBefore
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "happens before"@x-gmeow-english ;
+    skos:definition "A schedule-order edge of a logic:ConcurrentHistory: 'earlier happensBefore later' records that the earlier logic:TransactionStep is scheduled before the later one in the witnessed index-order interleaving AND the two conflict (they share a situation that at least one writes). Domain and range logic:TransactionStep (stated in prose). Emitted only for CROSS-transaction conflicting pairs — the schedule order between the two legs' operations that view- and conflict-serializability both read. It is the step-level witnessed-order companion to logic:readsFrom; it is kept DISTINCT from logic:precedes, which lifts conflict order to the TRANSACTION level for cycle detection, and from logic:temporallySucceeds, which orders the states of a single executed path rather than operations across legs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:satisfiesCriterion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "satisfies criterion"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConcurrentHistory to each logic:SerializabilityCriterion its witnessed schedule actually SATISFIES — the classification RESULT, as opposed to logic:serializabilityCriterion, which names the criterion the history is judged against. The native evaluator emits logic:ConflictSerializability when the logic:precedes conflict graph is acyclic and logic:ViewSerializability when the witnessed interleaving is view-equivalent to one of the two serial orders of its legs. Domain logic:ConcurrentHistory, range logic:SerializabilityCriterion (stated in prose); multi-valued. Because conflict-serializability is strictly stronger, a history that satisfies logic:ConflictSerializability always also satisfies logic:ViewSerializability; a conflict-CYCLIC history may satisfy logic:ViewSerializability alone. Absence of a criterion here is the honest record that the schedule does not satisfy it — the corresponding logic:SerializationAnomaly finding carries the violated criterion — never a silent linearization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # ── The full first-order formula AST surface (TBox + RBox) ────────────────────
 # The reified vocabulary the typed full-FOL formula core serializes into: a
 # logic:Formula tree of quantifiers (logic:forall / logic:exists), connectives

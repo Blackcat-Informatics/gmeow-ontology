@@ -1122,3 +1122,127 @@ fn concurrent_fails_when_either_leg_fails() {
         "no committed substrate on failure"
     );
 }
+
+// ── View-serializability: the second criterion + read-from / happens-before ──────
+
+/// Whether the history satisfies the given serializability criterion (logic:satisfiesCriterion).
+fn satisfies(quads: &[crate::teleology::TeleologyQuad], criterion_local: &str) -> bool {
+    quads.iter().any(|q| {
+        q.predicate.ends_with("satisfiesCriterion")
+            && q.object.ends_with(&format!("{criterion_local}>"))
+    })
+}
+
+#[test]
+fn concurrent_serializable_satisfies_view_and_conflict() {
+    // Disjoint legs → conflict-serializable. A conflict-serializable schedule is ALWAYS
+    // view-serializable, so the derived history satisfies BOTH criteria via satisfiesCriterion.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pb")),
+        ]
+        .concat(),
+        [
+            primitive("pa", &[], &["sitA"], &[]),
+            primitive("pb", &[], &["sitB"], &[]),
+        ]
+        .concat(),
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert!(
+        satisfies(&quads, "ConflictSerializability"),
+        "acyclic conflict graph → conflict-serializable"
+    );
+    assert!(
+        satisfies(&quads, "ViewSerializability"),
+        "conflict-serializable ⟹ view-serializable"
+    );
+}
+
+#[test]
+fn concurrent_read_dependency_emits_view_surface() {
+    // left writes sitA; right reads sitA (present at the shared start, so the leg succeeds
+    // independently) then writes sitB. In the witnessed interleaving [l0, r0] the right leg's
+    // read observes the left leg's write → a cross-leg logic:readsFrom edge (r0 → l0) and a
+    // logic:happensBefore edge (l0 → r0). One-directional conflict → serializable (both criteria).
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &["sitA"]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("l0")),
+            q(&e("cc"), &l("rightOperand"), &e("r0")),
+        ]
+        .concat(),
+        [
+            primitive("l0", &[], &["sitA"], &[]),
+            primitive("r0", &["sitA"], &["sitB"], &[]),
+        ]
+        .concat(),
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert!(
+        quads.iter().any(|q| q.predicate.ends_with("/readsFrom")),
+        "the cross-leg read must materialize a readsFrom edge"
+    );
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("/happensBefore")),
+        "the cross-leg conflict must materialize a happensBefore edge"
+    );
+    assert!(
+        satisfies(&quads, "ConflictSerializability") && satisfies(&quads, "ViewSerializability"),
+        "a one-directional read dependency is serializable under both criteria"
+    );
+}
+
+#[test]
+fn concurrent_non_serializable_satisfies_neither_criterion() {
+    // The cross-dependency world is conflict-CYCLIC. For two transactions view-serializability
+    // coincides with conflict-serializability, so it satisfies NEITHER criterion — and its
+    // cross-leg reads still materialize readsFrom edges for audit.
+    let quads = outcome_quads(&cross_dependency_world(), "cc");
+    assert!(
+        !satisfies(&quads, "ConflictSerializability"),
+        "a conflict cycle is not conflict-serializable"
+    );
+    assert!(
+        !satisfies(&quads, "ViewSerializability"),
+        "for two transactions a conflict cycle is not view-serializable either"
+    );
+    assert!(
+        quads.iter().any(|q| q.predicate.ends_with("/readsFrom")),
+        "cross-leg reads (r1 reads sitX from l0; l1 reads sitY from r0) materialize readsFrom"
+    );
+}
+
+#[test]
+fn concurrent_self_composition_is_hard_error() {
+    // Composing a program with ITSELF (both operands the same node) is malformed for
+    // serializability analysis — a hard error, never a silent self-conflict.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pa")),
+        ]
+        .concat(),
+        primitive("pa", &[], &["sitA"], &[]),
+    );
+    let facts = facts_of(&nq);
+    let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
+    assert!(err.contains("composes a program with itself"), "{err}");
+}
