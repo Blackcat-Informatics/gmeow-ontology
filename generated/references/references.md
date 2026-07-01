@@ -690,7 +690,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | schema.org/CreativeWork | [link](https://schema.org/CreativeWork) | 1 |
 | schema.org/DataDownload | [link](https://schema.org/DataDownload) | 1 |
 | schema.org/DataFeedItem | [link](https://schema.org/DataFeedItem) | 1 |
-| schema.org/Dataset | [link](https://schema.org/Dataset) | 1 |
 | schema.org/EducationalOccupationalCredential | [link](https://schema.org/EducationalOccupationalCredential) | 1 |
 | schema.org/EmailMessage | [link](https://schema.org/EmailMessage) | 1 |
 | schema.org/HowTo | [link](https://schema.org/HowTo) | 1 |

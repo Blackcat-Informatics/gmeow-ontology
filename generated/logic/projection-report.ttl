@@ -8,6 +8,12 @@
     logic:complexityClass "N/A (identity serialization)" ;
     logic:preservationKind logic:ExactPreservation .
 
+<https://blackcatinformatics.ca/logic/target/cgif>
+    a logic:ProjectionTarget ;
+    rdfs:label "cgif" ;
+    logic:complexityClass "full first-order (semi-decidable)" ;
+    logic:preservationKind logic:ExactPreservation .
+
 <https://blackcatinformatics.ca/logic/target/clif>
     a logic:ProjectionTarget ;
     rdfs:label "clif" ;
@@ -32582,6 +32588,7 @@ logic:projection-report
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:hasProjection <https://blackcatinformatics.ca/logic/target/canonical-rdf12> ,
+        <https://blackcatinformatics.ca/logic/target/cgif> ,
         <https://blackcatinformatics.ca/logic/target/clif> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
         <https://blackcatinformatics.ca/logic/target/edoal:0051d4462bb2a37f> ,

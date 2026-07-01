@@ -19,9 +19,6 @@ use gmeow_rdf::{parse_dataset, RdfDataset, TermRef};
 /// distinguishes a plain `(lit "x")` from a typed `(lit "x" 'dt')` by suppressing this
 /// datatype (so the round-trip reconstructs the plain literal).
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
-/// `rdf:langString` — the datatype of a language-tagged literal; emitted as
-/// `(lit "x" @lang)`, the datatype itself suppressed (it is implied by the tag).
-const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 /// `xsd:integer` — the datatype emitted for a path shape's integer min/max depths.
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
@@ -614,11 +611,10 @@ fn term_ref_to_clif(ds: &RdfDataset, term: TermRef<'_>) -> String {
                 };
                 if dt == XSD_STRING {
                     format!("(lit {})", quote_string(lexical))
-                } else if dt == RDF_LANG_STRING {
-                    // A langString with no language is malformed; carry it as typed so the
-                    // round-trip is total rather than silently dropping the datatype.
-                    format!("(lit {} {})", quote_string(lexical), name_term(dt))
                 } else {
+                    // Any non-string datatype is carried as `(lit "lex" dt)` — including a
+                    // langString with no language (malformed RDF the parser never produces), so
+                    // the round-trip stays total rather than silently dropping the datatype.
                     format!("(lit {} {})", quote_string(lexical), name_term(dt))
                 }
             }

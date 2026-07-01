@@ -1703,6 +1703,7 @@ dependencies = [
 name = "gmeow-docs"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "gmeow-diagnostics",
  "gmeow-logic-compile",
  "gmeow-rdf",
@@ -1941,7 +1942,10 @@ name = "gmeow-rdf-wasm"
 version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
+ "gmeow-rdf-core",
  "gmeow-rdf-events",
+ "gmeow-sparql-eval",
+ "gmeow-sparql-results",
  "pretty_assertions",
  "wasm-bindgen",
 ]

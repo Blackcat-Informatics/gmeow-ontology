@@ -82,12 +82,24 @@ impl Dataset {
 
     /// `serialize(format)` → the dataset rendered in `format` (a UTF-8 string).
     ///
-    /// Note: a quoted-triple term appearing as a quad object currently round-trips
-    /// only through N-Quads (a gmeow-gts serializer limitation for the other formats).
+    /// Formats: `turtle` / `ntriples` / `nquads` / `trig` / `rdfxml` (their media types
+    /// too) plus `jsonld` (JSON-LD-star). Note: a quoted-triple term appearing as a quad
+    /// object currently round-trips only through N-Quads (a serializer limitation for
+    /// the other text formats).
     #[wasm_bindgen(js_name = serialize)]
     pub fn serialize(&self, format: &str) -> Result<String, JsError> {
-        let media_type = resolve_media_type(format).map_err(|e| JsError::new(&e))?;
         let frozen = self.inner.freeze().map_err(diag_to_err)?;
+        // JSON-LD rides the separate first-party codec path (it is not a
+        // `NativeRdfFormat`), so route it before the media-type resolution.
+        let normalized = format.trim().to_ascii_lowercase();
+        if matches!(
+            normalized.as_str(),
+            "jsonld" | "json-ld" | "application/ld+json"
+        ) {
+            return gmeow_rdf::native_codecs::jsonld::serialize_dataset_to_jsonld(&frozen)
+                .map_err(diag_to_err);
+        }
+        let media_type = resolve_media_type(format).map_err(|e| JsError::new(&e))?;
         let bytes =
             serialize_dataset(&frozen, media_type, SerializeGraph::Dataset).map_err(diag_to_err)?;
         String::from_utf8(bytes)
