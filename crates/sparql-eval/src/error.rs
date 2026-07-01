@@ -20,10 +20,11 @@ pub enum EvalError {
 
     /// A well-formed but out-of-scope algebra node, query form, or builtin.
     ///
-    /// This is the hard-fail boundary: `SERVICE`, `LATERAL`, `DESCRIBE`, SPARQL
-    /// `UPDATE`, and not-yet-implemented builtins all surface here rather than being
-    /// partially evaluated. The string names the unsupported construct. (Property
-    /// paths are now evaluated in-engine — S8 #914 — so they are no longer here.)
+    /// This is the hard-fail boundary: `SERVICE`, `LATERAL`, SPARQL `UPDATE`, and
+    /// not-yet-implemented builtins all surface here rather than being partially
+    /// evaluated. The string names the unsupported construct. (Property paths are now
+    /// evaluated in-engine — S8 #914 — and `DESCRIBE` now evaluates via the canonical
+    /// Symmetric CBD, so neither is here.)
     Unsupported(String),
 
     /// An internal invariant was violated — e.g. a solution row whose width does
