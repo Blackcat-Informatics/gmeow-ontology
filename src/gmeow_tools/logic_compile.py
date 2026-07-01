@@ -57,6 +57,8 @@ LOGIC_NEMO_FILE = GENERATED_DIR / "logic" / "gmeow.rls"
 LOGIC_CLIF_FILE = GENERATED_DIR / "cl" / "gmeow.clif"
 #: The bidirectional CGIF (Conceptual Graph Interchange Format) projection.
 LOGIC_CGIF_FILE = GENERATED_DIR / "cl" / "gmeow.cgif"
+#: The bidirectional XCL (eXtended Common Logic Markup Language, XML) projection.
+LOGIC_XCL_FILE = GENERATED_DIR / "cl" / "gmeow.xcl"
 LOGIC_REPORT_FILE = GENERATED_DIR / "logic" / "projection-report.ttl"
 
 

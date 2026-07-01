@@ -236,6 +236,7 @@
 <https://blackcatinformatics.ca/gmeow/verify-attestation/class-in-two-disjoint-axes> <http://purl.org/dc/elements/1.1/publisher> <https://blackcatinformatics.ca/gmeow/agent/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/class-without-stereotype> <http://purl.org/dc/elements/1.1/publisher> <https://blackcatinformatics.ca/gmeow/agent/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/credence-out-of-range> <http://purl.org/dc/elements/1.1/publisher> <https://blackcatinformatics.ca/gmeow/agent/native-verify> .
+<https://blackcatinformatics.ca/gmeow/verify-attestation/harvest-link-paired> <http://purl.org/dc/elements/1.1/publisher> <https://blackcatinformatics.ca/gmeow/agent/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/hasskill-not-strict-subproperty-of-knowsabout> <http://purl.org/dc/elements/1.1/publisher> <https://blackcatinformatics.ca/gmeow/agent/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/knowsabout-not-materialized-from-hasskill> <http://purl.org/dc/elements/1.1/publisher> <https://blackcatinformatics.ca/gmeow/agent/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/no-doxastic-state-without-agent> <http://purl.org/dc/elements/1.1/publisher> <https://blackcatinformatics.ca/gmeow/agent/native-verify> .
