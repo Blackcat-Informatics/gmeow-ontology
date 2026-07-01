@@ -4,7 +4,7 @@
 //! Projection back-ends: [`LogicProgram`] → each target format.
 //!
 //! The projection phase of the GMEOW Logic compiler; the Python duplicate
-//! (`logic_projections.py`) has been retired.  Nine whole-program targets:
+//! (`logic_projections.py`) has been retired.  Ten whole-program targets:
 //!
 //! * [`text::project_datalog`], [`text::project_n3`], [`text::project_nemo`] —
 //!   **byte-identical** text targets (the conformance goldens compare bytes).
@@ -12,6 +12,8 @@
 //!   [`rdf::project_canonical_rdf12`] — **RDF-isomorphic** targets (serialized via
 //!   oxigraph; the goldens compare by graph isomorphism).
 //! * [`crate::clif::project_clif`] — the bidirectional **CLIF** s-expression FOL
+//!   dialect, `PreservationKind::Exact` in both directions.
+//! * [`crate::cgif::project_cgif`] — the bidirectional **CGIF** conceptual-graph FOL
 //!   dialect, `PreservationKind::Exact` in both directions.
 //! * [`shacl_af::project_shacl_af`] — the SHACL-AF `sh:SPARQLRule` **computation**
 //!   surface (a byte-stable text target; the canon's derivation rules projected to a
@@ -81,6 +83,8 @@ pub struct CompiledArtifacts {
     pub nemo: String,
     /// `generated/cl/gmeow.clif`.
     pub clif: String,
+    /// `generated/cl/gmeow.cgif`.
+    pub cgif: String,
     /// `generated/shacl-af/gmeow.shacl-af.ttl` — the SHACL-AF rule (computation) surface.
     pub shacl_af: String,
     /// `generated/logic/projection-report.ttl`.
@@ -148,6 +152,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| e.to_string())?;
     let nemo = text::project_nemo(program)?;
     let clif = crate::clif::project_clif(program)?;
+    let cgif = crate::cgif::project_cgif(program)?;
     let shacl_af = shacl_af::project_shacl_af(program);
 
     let results = [
@@ -159,6 +164,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         &canonical_rdf12,
         &nemo,
         &clif,
+        &cgif,
         &shacl_af,
     ];
     let mut owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
@@ -277,6 +283,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         canonical_rdf12: canonical_rdf12.content,
         nemo: nemo.content,
         clif: clif.content,
+        cgif: cgif.content,
         shacl_af: shacl_af.content,
         report,
         nemo_rules,
@@ -598,7 +605,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 14] = [
+const LEDGER_TARGETS: [&str; 15] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -607,6 +614,7 @@ const LEDGER_TARGETS: [&str; 14] = [
     "canonical-rdf12",
     "nemo",
     "clif",
+    "cgif",
     "shacl-af",
     "property-path",
     // The correspondence-calculus alignment lowerings: each carries its own

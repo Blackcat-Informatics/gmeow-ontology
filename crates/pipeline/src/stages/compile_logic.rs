@@ -12,8 +12,9 @@
 //! projection back-end once, and emits — as committed artifacts the single-pass
 //! regenerate/drift gate owns —
 //!
-//! * the nine projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
-//!   Datalog, N3, gUFO, Nemo and CLIF projections, and the projection-report loss ledger), and
+//! * the ten projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
+//!   Datalog, N3, gUFO, Nemo, CLIF and CGIF projections, and the projection-report loss
+//!   ledger), and
 //! * the compile diagnostics rendered to the four canonical projections (JSON, SARIF,
 //!   HTML, and `gmeow:Finding` N-Quads) — each below-`Exact` projection's structural
 //!   drops surfaced as a `logic-compile.lossy-drop` note finding.
@@ -105,6 +106,9 @@ pub const RULES_PATH: &str = "generated/logic/gmeow.rls";
 /// Committed CLIF (Common Logic Interchange Format) projection: the bidirectional,
 /// `PreservationKind::Exact` s-expression FOL dialect.
 pub const CLIF_PATH: &str = "generated/cl/gmeow.clif";
+/// Committed CGIF (Conceptual Graph Interchange Format) projection: the bidirectional,
+/// `PreservationKind::Exact` conceptual-graph FOL dialect (sibling of CLIF, same `generated/cl/`).
+pub const CGIF_PATH: &str = "generated/cl/gmeow.cgif";
 /// Committed SHACL-AF rule (computation) projection: the canon's derivation rules
 /// projected to a `sh:SPARQLRule` surface. Lives under its own `generated/shacl-af/`
 /// directory (NOT `generated/shapes/`) so the SHACL constraint validator never ingests
@@ -135,7 +139,7 @@ pub const CORRESPONDENCE_PATH: &str = "generated/logic/gmeow.correspondence.nt";
 pub const LOGIC_PROJECTIONS_CHANNEL: &str = "pipeline/logic-projections.json";
 
 /// The payload of [`LOGIC_PROJECTIONS_CHANNEL`]: the logic program's projection rows
-/// (the seven whole-program targets + the per-shape `property-path:<iri>` rows) and the
+/// (the eight whole-program targets + the per-shape `property-path:<iri>` rows) and the
 /// three report-header counts, so the mappings stage can re-serialize the report over
 /// the union without re-running the logic compiler.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -236,7 +240,7 @@ impl Stage for CompileLogicStage {
         arts.report_header.lawful_uplift_count = lift.lawful;
 
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        // The eight projection serializations, byte-for-byte as the compiler produced
+        // The nine projection serializations, byte-for-byte as the compiler produced
         // them (RDF targets are reconciled by graph isomorphism, text targets by bytes).
         artifacts.insert(OWL_DL_PATH.to_string(), arts.owl_dl.into_bytes());
         artifacts.insert(OWL_EL_PATH.to_string(), arts.owl_el.into_bytes());
@@ -265,6 +269,7 @@ impl Stage for CompileLogicStage {
         );
         artifacts.insert(RULES_PATH.to_string(), arts.nemo.into_bytes());
         artifacts.insert(CLIF_PATH.to_string(), arts.clif.into_bytes());
+        artifacts.insert(CGIF_PATH.to_string(), arts.cgif.into_bytes());
         // The SHACL-AF rule (computation) surface: the canon's derivation rules projected to
         // sh:SPARQLRule. A byte-decorated text artifact (carries a GENERATED banner), so it
         // rides the generated-fanout archive (REP_GENERATED) as a committed byte projection.
@@ -520,7 +525,7 @@ mod tests {
             .unwrap()
     }
 
-    /// The stage emits all eight projection artifacts plus the four diagnostics
+    /// The stage emits all nine projection artifacts plus the four diagnostics
     /// projections, and the loss ledger surfaces as `logic-compile.lossy-drop`
     /// findings in the SARIF projection.
     #[test]
@@ -543,6 +548,7 @@ mod tests {
             CANONICAL_RDF12_PATH,
             RULES_PATH,
             CLIF_PATH,
+            CGIF_PATH,
             SHACL_AF_PATH,
             // The in-memory channel that hands the logic projection rows + header
             // counts to stage-mappings (which assembles the committed report).
