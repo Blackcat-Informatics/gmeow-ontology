@@ -35,9 +35,38 @@ instantiatesFramework("https://blackcatinformatics.ca/logic/PossibleWorld", "htt
 formalizes("https://blackcatinformatics.ca/logic/PreferredArgumentation", "https://blackcatinformatics.ca/gmeow/ArgumentEvaluation", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/ProbabilisticMeasure", "https://blackcatinformatics.ca/logic/ProbabilisticFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/ProbabilityModel", "https://blackcatinformatics.ca/logic/ProbabilisticFramework", "default").
+proseFieldProperty("https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen", "https://blackcatinformatics.ca/gmeow/avoidWhen", "default").
+proseFieldProperty("https://blackcatinformatics.ca/logic/ProseFieldDefinition", "http://www.w3.org/2004/02/skos/core#definition", "default").
+proseFieldProperty("https://blackcatinformatics.ca/logic/ProseFieldUseWhen", "https://blackcatinformatics.ca/gmeow/useWhen", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/TransactionStep", "https://blackcatinformatics.ca/logic/TemporalFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/TruthAlgebra", "https://blackcatinformatics.ca/logic/ParaconsistentFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/World", "https://blackcatinformatics.ca/logic/ModalFramework", "default").
+candidateCategory("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
+candidateContract("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", 'hand-harvested from the logic:FunctionalComplex skos:definition, which contrasts it against logic:Collection and logic:Quantity (design/LOGIC-FOUNDATION.md, §Typed formalization governance)', "default").
+candidateFormalizes("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/FunctionalComplex", "default").
+candidateLifecycle("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
+candidateNegativeCase("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/cqFunctionalComplexKindDisjointOverlapRejected", "default").
+candidatePositiveCase("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/cqFunctionalComplexKindDisjointHolds", "default").
+candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/SoundUnderApproximation", "default").
+candidateScope("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", 'pairwise owl:disjointWith over the three mereological individuation kinds logic:Collection, logic:FunctionalComplex and logic:Quantity', "default").
+candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/RiskCoreContaminating", "default").
+candidateSourceField("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", 'sha256:ae6ffde78c8d4cd93cdb0d06ee67fd15ab46573e7aa4f1fe5f2ee2dd209cb529', "default").
+reviewedBy("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
+candidateCategory("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
+candidateContract("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", 'hand-harvested from the logic:properPartOf skos:definition (design/LOGIC-FOUNDATION.md, §Typed formalization governance)', "default").
+candidateFormalizes("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/properPartOf", "default").
+candidateLifecycle("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
+candidateNegativeCase("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/cqProperPartAsymmetrySymmetricPairRejected", "default").
+candidatePositiveCase("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/cqProperPartAsymmetryHolds", "default").
+candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/SoundUnderApproximation", "default").
+candidateScope("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", 'logic:properPartOf asymmetry over the endurant strict-parthood spine', "default").
+candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/RiskCoreContaminating", "default").
+candidateSourceField("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", 'sha256:0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621', "default").
+reviewedBy("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 hasThresholdRow("https://blackcatinformatics.ca/logic/defaultLadderProfile", "https://blackcatinformatics.ca/logic/ladderRowAwareness", "default").
 hasThresholdRow("https://blackcatinformatics.ca/logic/defaultLadderProfile", "https://blackcatinformatics.ca/logic/ladderRowConceptual", "default").
 hasThresholdRow("https://blackcatinformatics.ca/logic/defaultLadderProfile", "https://blackcatinformatics.ca/logic/ladderRowDeclarative", "default").

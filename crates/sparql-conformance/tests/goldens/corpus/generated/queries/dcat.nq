@@ -38,6 +38,7 @@
 <https://blackcatinformatics.ca/gmeow/verify-attestation/class-in-two-disjoint-axes> <http://www.w3.org/ns/prov#wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/activity/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/class-without-stereotype> <http://www.w3.org/ns/prov#wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/activity/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/credence-out-of-range> <http://www.w3.org/ns/prov#wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/activity/native-verify> .
+<https://blackcatinformatics.ca/gmeow/verify-attestation/harvest-link-paired> <http://www.w3.org/ns/prov#wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/activity/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/hasskill-not-strict-subproperty-of-knowsabout> <http://www.w3.org/ns/prov#wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/activity/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/knowsabout-not-materialized-from-hasskill> <http://www.w3.org/ns/prov#wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/activity/native-verify> .
 <https://blackcatinformatics.ca/gmeow/verify-attestation/no-doxastic-state-without-agent> <http://www.w3.org/ns/prov#wasGeneratedBy> <https://blackcatinformatics.ca/gmeow/activity/native-verify> .
