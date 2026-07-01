@@ -124,3 +124,9 @@ gmeow:mapsetWikidata a gmeow:MappingSet ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/wikidata" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "GMEOW term to Wikidata Q-item alignments (concept-scheme layer; QIDs validated)." .
+
+gmeow:mapsetFoundational a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/foundational" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "gUFO↔BFO foundational-spine alignments (by reference; closeMatch — UFO and BFO build their categories on different bases). BFO IRIs verified against the vendored snapshot." .
