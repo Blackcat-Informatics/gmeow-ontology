@@ -17,6 +17,7 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/owl-dl> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/owl-el> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/shacl-af> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/xcl> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/2000/01/rdf-schema#label> "canonical-rdf12" .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
@@ -112,3 +113,7 @@
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleSkillDefeasiblyKnowsAbout> <https://blackcatinformatics.ca/logic/head> <c14n1> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleSkillDefeasiblyKnowsAbout> <https://blackcatinformatics.ca/logic/negatedBody> <c14n2> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: ground axiom <https://blackcatinformatics.ca/logic/ruleSkillDefeasiblyKnowsAbout> <https://blackcatinformatics.ca/logic/provenance> <https://blackcatinformatics.ca/logic/ruleSkillDefeasiblyKnowsAbout> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" .
+<https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/2000/01/rdf-schema#label> "xcl" .
+<https://blackcatinformatics.ca/logic/target/xcl> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/logic/target/xcl> <https://blackcatinformatics.ca/logic/complexityClass> "full first-order (semi-decidable)" .
