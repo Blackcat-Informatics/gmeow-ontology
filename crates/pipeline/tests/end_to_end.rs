@@ -173,6 +173,12 @@ fn spine() -> PipelineSpec {
             // The external-corpus divergence grader the snapshot folds into
             // graph/conformance; a source-reading Transform that consumes nothing.
             spec("stage-conformance", "conformance", &[]),
+            // The snapshot reads the RDF fanout members (profiles / evals scores /
+            // research-object graphs) off these producing leaves — rendered once, in the
+            // leaf, never re-rendered in the presenter (the transform-once razor).
+            spec("stage-export-profiles", "profiles", &[]),
+            spec("stage-export-evals", "evals", &[]),
+            spec("stage-export-research-objects", "research-objects", &[]),
             spec(
                 "stage-snapshot",
                 "snapshot",
@@ -180,10 +186,14 @@ fn spine() -> PipelineSpec {
                     "stage-compile-logic",
                     "stage-conformance",
                     "stage-docs-render",
+                    "stage-export-evals",
                     "stage-export-json-schema",
+                    "stage-export-profiles",
+                    "stage-export-research-objects",
                     "stage-gts-compose",
                     "stage-mappings",
                     "stage-reason",
+                    "stage-source-load",
                     "stage-statements",
                     "stage-validate",
                 ],
@@ -203,7 +213,7 @@ fn executor_runs_the_spine_end_to_end() {
     // registry.
     let graph = spec.validate().expect("spine DAG validates");
     let bound = bind(&spec, &graph, &registry()).expect("every spine stage binds");
-    assert_eq!(bound.len(), 12, "all 12 snapshot-spine stages bound");
+    assert_eq!(bound.len(), 15, "all 15 snapshot-spine stages bound");
 
     // Run over a temp cache so the test never writes into the repo tree.
     let cache_dir = tempfile::tempdir().unwrap();
@@ -211,7 +221,7 @@ fn executor_runs_the_spine_end_to_end() {
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
-    assert_eq!(result.products.len(), 12);
+    assert_eq!(result.products.len(), 15);
 
     // The snapshot stage produced the terminal carrier dataset.
     let snapshot = result
