@@ -3910,6 +3910,257 @@ logic:candidateFunctionalComplexKindDisjoint
     logic:candidateFormalizes logic:FunctionalComplex ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# THE FOUNDATIONAL PARTITION — governance for the top-class + occurrent + covering
+# axioms
+# ───────────────────────────────────────────────────────────────────────────────
+# The foundational-partition axioms asserted above (top-sortal pairwise
+# owl:disjointWith in the kernel; logic:Endurant ⊥ logic:Perdurant and
+# logic:Event ⊥ logic:Situation here; the two class-covering logic:Formula
+# disjunctions over gmeow:Entity and logic:Object) are each governed by a
+# logic:FormalizationCandidate below, mirroring the H1 harvest pattern
+# (logic:candidateProperPartOfAsymmetric, logic:candidateFunctionalComplexKindDisjoint).
+#
+# Each candidate is accepted through review (logic:reviewedBy
+# logic:reviewerLogicFoundation) and carries a positive/negative case pair. The
+# harvest-linked ones (top-sortal disjointness, endurant/perdurant, and the
+# deliberate social∩information overlap) tie back to the exact prose field they
+# formalize via logic:candidateFormalizes + logic:candidateSourceField, and every
+# logic:candidateSourceHash is the real sha256 of that source literal so a later
+# prose edit surfaces as drift. Two candidates are NECESSARY-CONDITION coverings
+# realized only in the OWL projection (owl:unionOf), disclosed in the loss ledger
+# and NOT natively enforced (the monotone chase does not entail disjunctive
+# covering); one candidate is a deliberate, reviewed NON-assertion of disjointness
+# (logic:CategoryDeliberateOverlap) whose negative case is the countermodel that
+# explains why the overlap must be preserved.
+
+# ── 1. Top-sortal pairwise disjointness (net-new enforcement) ────────────────────
+# The four kernel top sortals (gmeow:Agent, gmeow:InformationObject,
+# gmeow:PhysicalObject, gmeow:SocialObject) are pairwise owl:disjointWith EXCEPT
+# the deliberately-preserved SocialObject∩InformationObject overlap. gmeow:Agent ⊥
+# gmeow:SocialObject is NET-NEW on this branch. The native DL coherence gate reads
+# the owl:disjointWith directly: an individual typed into two disjoint top sortals
+# is forced to owl:Nothing.
+
+logic:cqTopSortalDisjointHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "top-sortal disjointness holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the top-sortal disjointness axioms must satisfy: an individual typed into exactly one of the four kernel top sortals (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) stays coherent — it is not forced to owl:Nothing — because each thing is individuated under a single top sortal (save the deliberately-preserved social∩information overlap)."@x-gmeow-english .
+
+logic:cqTopSortalDisjointClashRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "top-sortal clash is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the top-sortal disjointness axioms must respect: an individual typed BOTH gmeow:Agent and gmeow:SocialObject is a violation — the native DL coherence gate forces it to owl:Nothing, because gmeow:Agent owl:disjointWith gmeow:SocialObject is asserted (net-new on this branch). A thing that both acts and bears responsibility yet exists purely by social convention is not an admissible model. The boundary the disjointness enforces."@x-gmeow-english .
+
+logic:candidateTopSortalDisjoint
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "top sortals are pairwise disjoint"@x-gmeow-english ;
+    skos:definition "The formalization candidate that harvests the pairwise disjointness of the four kernel top sortals from gmeow:PhysicalObject's gmeow:avoidWhen prose (which states the three others are disjoint with PhysicalObject by design) into the enforced owl:disjointWith integrity constraints asserted in the kernel: gmeow:Agent, gmeow:PhysicalObject, gmeow:InformationObject and gmeow:SocialObject are pairwise disjoint EXCEPT the deliberately-preserved SocialObject∩InformationObject overlap. The gmeow:Agent ⊥ gmeow:SocialObject edge is net-new on this branch. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqTopSortalDisjointHolds) and a negative countermodel (logic:cqTopSortalDisjointClashRejected); its harvest back-link (logic:candidateFormalizes gmeow:PhysicalObject, logic:candidateSourceField logic:ProseFieldAvoidWhen) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that gmeow:avoidWhen text so a later edit surfaces as drift. The native DL coherence gate reads the owl:disjointWith directly, forcing a two-sortal individual to owl:Nothing."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:82ff1dac761cc77e2acb02a0a81e079ba64bebc2337f4e190489a9c074b1af35"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the gmeow:PhysicalObject gmeow:avoidWhen annotation, which states the three other sortals are disjoint with PhysicalObject by design (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "pairwise owl:disjointWith among the four top sortals gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject and gmeow:SocialObject, except the preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqTopSortalDisjointHolds ;
+    logic:candidateNegativeCase logic:cqTopSortalDisjointClashRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:PhysicalObject ;
+    logic:candidateSourceField logic:ProseFieldAvoidWhen .
+
+# ── 2. Endurant ⊥ Perdurant (the continuant/occurrent divide) ────────────────────
+# logic:Endurant's skos:definition contrasts logic:Perdurant, which has temporal
+# parts. This candidate harvests that contrast into logic:Endurant owl:disjointWith
+# logic:Perdurant, enforced by the native DL coherence gate.
+
+logic:cqEndurantPerdurantDisjointHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "endurant/perdurant disjointness holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the endurant/perdurant disjointness axiom must satisfy: an individual typed logic:Endurant and NOT logic:Perdurant (a continuant wholly present at each moment) stays coherent — it is not forced to owl:Nothing — because a thing either endures through change or unfolds through it, not both."@x-gmeow-english .
+
+logic:cqEndurantPerdurantClashRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "endurant/perdurant clash is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the endurant/perdurant disjointness axiom must respect: an individual typed BOTH logic:Endurant and logic:Perdurant is a violation — the native DL coherence gate forces it to owl:Nothing, because logic:Endurant owl:disjointWith logic:Perdurant is asserted. A thing that is at once wholly present at every moment and composed of temporal parts is not an admissible model. The boundary the continuant/occurrent divide enforces."@x-gmeow-english .
+
+logic:candidateEndurantPerdurantDisjoint
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "endurant and perdurant are disjoint"@x-gmeow-english ;
+    skos:definition "The formalization candidate that harvests the continuant/occurrent divide from logic:Endurant's skos:definition (which contrasts logic:Perdurant, which has temporal parts) into the enforced logic:Endurant owl:disjointWith logic:Perdurant integrity constraint asserted above. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqEndurantPerdurantDisjointHolds) and a negative countermodel (logic:cqEndurantPerdurantClashRejected); its harvest back-link (logic:candidateFormalizes logic:Endurant, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift. The native DL coherence gate reads the owl:disjointWith directly, forcing a both-endurant-and-perdurant individual to owl:Nothing."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:38eeca57276fd0bd982db498a305d97aa9a19f4549a1b9f5e292136a6cf282ab"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:Endurant skos:definition, which contrasts logic:Perdurant, which has temporal parts (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "logic:Endurant owl:disjointWith logic:Perdurant — the continuant/occurrent divide at the top of the foundation"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqEndurantPerdurantDisjointHolds ;
+    logic:candidateNegativeCase logic:cqEndurantPerdurantClashRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:Endurant ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── 3. Event ⊥ Situation (occurrent vs configuration; NO single-field harvest) ───
+# The Event/Situation contrast is not stated in a single harvestable annotation
+# field; it is a doc-section/foundation harvest over the occurrent structure. This
+# candidate therefore omits BOTH logic:candidateFormalizes and
+# logic:candidateSourceField (never a half-link). Its sourceHash is the sha256 of
+# logic:Event's skos:definition. Enforced by the native DL coherence gate.
+
+logic:cqEventSituationDisjointHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "event/situation disjointness holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the event/situation disjointness axiom must satisfy: an individual typed logic:Event and NOT logic:Situation (a perdurant occurrence composed of temporal parts) stays coherent — it is not forced to owl:Nothing — because an occurrence that unfolds in time is not the static configuration a situation records."@x-gmeow-english .
+
+logic:cqEventSituationClashRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "event/situation clash is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the event/situation disjointness axiom must respect: an individual typed BOTH logic:Event and logic:Situation is a violation — the native DL coherence gate forces it to owl:Nothing, because logic:Event owl:disjointWith logic:Situation is asserted. A thing that is at once an unfolding occurrence and the static configuration a situation records is not an admissible model. The boundary the occurrent/configuration distinction enforces."@x-gmeow-english .
+
+logic:candidateEventSituationDisjoint
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "event and situation are disjoint"@x-gmeow-english ;
+    skos:definition "The formalization candidate governing the logic:Event owl:disjointWith logic:Situation integrity constraint asserted above: an occurrence that unfolds in time is disjoint from the static configuration a situation records. Unlike the other partition axioms this contrast is NOT stated in a single harvestable annotation field, so the candidate carries NO harvest back-link (neither logic:candidateFormalizes nor logic:candidateSourceField — never a half-link); its provenance records a doc-section/foundation harvest over the occurrent structure instead. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqEventSituationDisjointHolds) and a negative countermodel (logic:cqEventSituationClashRejected); logic:candidateSourceHash is the sha256 of logic:Event's skos:definition so an edit to that anchor prose surfaces as drift. The native DL coherence gate reads the owl:disjointWith directly, forcing a both-event-and-situation individual to owl:Nothing."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b9c5746f9d224a4dad32653671549671d5daec63b28758a89151e13fbff3a479"^^xsd:string ;
+    logic:candidateExtractionProvenance "doc-section/foundation harvest over the occurrent structure (design/LOGIC-FOUNDATION.md, the occurrent section), NOT a single annotation-field harvest — the Event/Situation contrast is spread across the occurrent design prose; anchored to logic:Event's skos:definition for drift detection"^^xsd:string ;
+    logic:candidateScope "logic:Event owl:disjointWith logic:Situation — the occurrence/configuration distinction within the occurrent branch"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqEventSituationDisjointHolds ;
+    logic:candidateNegativeCase logic:cqEventSituationClashRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating .
+
+# ── 4. Entity sortal covering (OWL-projection-only, NON-monotone) ────────────────
+# Every gmeow:Entity is one of {Agent, InformationObject, PhysicalObject,
+# SocialObject}. This covering is realized only in the OWL projection as an
+# owl:unionOf and is DISCLOSED in the loss ledger; the native monotone chase does
+# NOT enforce disjunctive covering. NO harvest back-link (the covering is not a
+# single-field annotation). Category: necessary condition; risk: projection-only.
+
+logic:cqEntitySortalCoveringHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "entity sortal covering holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the entity-sortal covering must satisfy: a gmeow:Entity that is one of the four sortals (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) is covered by the owl:unionOf — no gap. Realized in the OWL-DL projection; it is the well-formed case the covering disjunction admits."@x-gmeow-english .
+
+logic:cqEntitySortalCoveringGapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "entity sortal covering gap is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the entity-sortal covering must respect: a gmeow:Entity typed into NONE of the four sortals violates the owl:unionOf covering in the OWL-DL projection — an OWL reasoner rejects the class-covering gap. HONEST SCOPE: the native monotone StratifiedNAF gate does NOT enforce this disjunctive covering (a disjunction in the head is non-Horn), so this rejection is realized only in the OWL projection, not in the native chase, and is disclosed in the loss ledger accordingly."@x-gmeow-english .
+
+logic:candidateEntitySortalCovering
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "every entity is one of the four sortals"@x-gmeow-english ;
+    skos:definition "The necessary-condition formalization candidate governing the class covering that every gmeow:Entity is one of {gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject}. Its source is gmeow:Entity's gmeow:howToUse prose, which enumerates the four sortals. The covering is realized ONLY in the OWL projection as an owl:unionOf (a class-covering disjunction); it is NON-monotone and is disclosed in the loss ledger — the native monotone StratifiedNAF chase does NOT enforce a disjunctive head, so this is projection-only, not natively enforced. It carries NO harvest back-link (the covering is a doc-level enumeration, not a single harvestable axiom field). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqEntitySortalCoveringHolds) and a negative case (logic:cqEntitySortalCoveringGapRejected); logic:candidateSourceHash is the sha256 of that gmeow:howToUse text for drift detection."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:349511ccdf3a10b7ce908e62ee66b4102b0469b4b54b191148d817380a8b96ae"^^xsd:string ;
+    logic:candidateExtractionProvenance "read from gmeow:Entity's gmeow:howToUse annotation, which enumerates the four sortals (Agent, InformationObject, PhysicalObject, SocialObject); the covering is realized in the OWL projection (owl:unionOf), is non-monotone, and is disclosed in the loss ledger — NOT natively enforced (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "covering: every gmeow:Entity is one of {Agent, InformationObject, PhysicalObject, SocialObject}"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNecessaryCondition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqEntitySortalCoveringHolds ;
+    logic:candidateNegativeCase logic:cqEntitySortalCoveringGapRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly .
+
+# ── 5. Object individuation covering (OWL-projection-only, NON-monotone) ─────────
+# Every logic:Object is one of {Collection, Quantity, FunctionalComplex}. This
+# completes the existing individuation-kind pairwise disjointness (governed by
+# logic:candidateFunctionalComplexKindDisjoint) into a partition. Realized in the
+# OWL projection as owl:unionOf, disclosed in the loss ledger; NO harvest
+# back-link. Category: necessary condition; risk: projection-only.
+
+logic:cqObjectIndividuationCoveringHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "object individuation covering holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the object-individuation covering must satisfy: a logic:Object that is one of the three individuation kinds (logic:Collection, logic:Quantity, logic:FunctionalComplex) is covered by the owl:unionOf — no gap. Realized in the OWL-DL projection; the well-formed case the covering disjunction admits, completing the individuation-kind pairwise disjointness into a partition."@x-gmeow-english .
+
+logic:cqObjectIndividuationCoveringGapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "object individuation covering gap is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the object-individuation covering must respect: a logic:Object typed into NONE of the three individuation kinds violates the owl:unionOf covering in the OWL-DL projection — an OWL reasoner rejects the class-covering gap. HONEST SCOPE: the native monotone StratifiedNAF gate does NOT enforce this disjunctive covering, so this rejection is realized only in the OWL projection and is disclosed in the loss ledger."@x-gmeow-english .
+
+logic:candidateObjectIndividuationCovering
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "every object is one of the three individuation kinds"@x-gmeow-english ;
+    skos:definition "The necessary-condition formalization candidate governing the class covering that every logic:Object is one of {logic:Collection, logic:Quantity, logic:FunctionalComplex}. It completes the existing individuation-kind pairwise disjointness (logic:candidateFunctionalComplexKindDisjoint) into a full partition. The covering is realized ONLY in the OWL projection as an owl:unionOf; it is NON-monotone and disclosed in the loss ledger — the native monotone StratifiedNAF chase does NOT enforce a disjunctive head, so this is projection-only, not natively enforced. It carries NO harvest back-link. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqObjectIndividuationCoveringHolds) and a negative case (logic:cqObjectIndividuationCoveringGapRejected); logic:candidateSourceHash is the sha256 of logic:Object's skos:definition for drift detection."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:38a90c195ba1d756389d6ba561031830dbcfdfb0b56297023db5bf719bd2f7d2"^^xsd:string ;
+    logic:candidateExtractionProvenance "anchored to logic:Object's skos:definition; completes the individuation-kind pairwise disjointness (logic:candidateFunctionalComplexKindDisjoint) into a partition, realized in the OWL projection (owl:unionOf), non-monotone, disclosed in the loss ledger — NOT natively enforced (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "covering: every logic:Object is one of {Collection, Quantity, FunctionalComplex}"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNecessaryCondition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqObjectIndividuationCoveringHolds ;
+    logic:candidateNegativeCase logic:cqObjectIndividuationCoveringGapRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly .
+
+# ── 6. Deliberate SocialObject ∩ InformationObject overlap (reviewed non-assertion) ─
+# The one preserved overlap: gmeow:SocialObject and gmeow:InformationObject are
+# deliberately NOT asserted disjoint (a myth is legitimately both social and
+# informational). This candidate governs that explicit, reviewed non-assertion.
+# Category: deliberate overlap; risk: advisory. Its negative case is the
+# countermodel showing why the overlap must be preserved.
+
+logic:cqSocialInformationOverlapHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "social/information overlap holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the deliberate social/information overlap must satisfy: an individual typed BOTH gmeow:SocialObject and gmeow:InformationObject — a founding myth that is at once socially sustained and information-bearing — stays coherent and is NOT forced to owl:Nothing, precisely because no disjointness between the two is asserted. The overlap the top-sortal partition deliberately preserves."@x-gmeow-english .
+
+logic:cqSocialInformationOverlapDisjointRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "social/information disjointness is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel that explains WHY the social/information overlap must be preserved: IF gmeow:SocialObject were wrongly asserted owl:disjointWith gmeow:InformationObject, then a founding myth typed as both would be forced to owl:Nothing by the coherence gate — collapsing a legitimate model. The rejected disjointness is the mistake this deliberate non-assertion guards against; asserting it is the boundary the partition must NOT cross."@x-gmeow-english .
+
+logic:candidateSocialInformationOverlap
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "social and information objects deliberately overlap"@x-gmeow-english ;
+    skos:definition "The deliberate-overlap formalization candidate governing the explicit, reviewed NON-assertion of disjointness between gmeow:SocialObject and gmeow:InformationObject: the one overlap the top-sortal partition preserves so that socially-sustained narratives may carry information content without identity clash (a founding myth is both). Its source is gmeow:SocialObject's skos:definition, which states that no disjointness with InformationObject is asserted for exactly this reason. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqSocialInformationOverlapHolds — a myth typed as both stays coherent) and a negative countermodel (logic:cqSocialInformationOverlapDisjointRejected — asserting the disjointness would force the myth to owl:Nothing, which is why the overlap must be preserved). Its harvest back-link (logic:candidateFormalizes gmeow:SocialObject, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text for drift detection. The risk is advisory: this is a non-assertion, so it contaminates nothing — it records a reviewed decision NOT to constrain."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:d1c66e293aa207e3e28455c2ebeb59705c8656ee088e85cd5b7d858eb09f1b36"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the gmeow:SocialObject skos:definition, which states no disjointness with InformationObject is asserted so that socially-sustained narratives may carry information content without identity clash (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "the deliberately-preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap: an explicit, reviewed non-assertion of disjointness"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDeliberateOverlap ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqSocialInformationOverlapHolds ;
+    logic:candidateNegativeCase logic:cqSocialInformationOverlapDisjointRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskAdvisory ;
+    logic:candidateFormalizes gmeow:SocialObject ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
 # ── Closed value class: the eleven formalization categories ──────────────────────
 
 logic:FormalizationCategory

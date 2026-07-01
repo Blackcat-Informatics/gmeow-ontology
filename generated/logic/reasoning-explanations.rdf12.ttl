@@ -38547,7 +38547,7 @@
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningContract> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/logic/candidateContract> <http://www.w3.org/2000/01/rdf-schema#range> <https://blackcatinformatics.ca/logic/ReasoningContract> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Arange> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
