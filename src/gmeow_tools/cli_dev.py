@@ -2783,6 +2783,7 @@ _LOGIC_MODES = (
     "canonical-rdf12",
     "clif",
     "cgif",
+    "xcl",
     "report",
 )
 
@@ -2922,6 +2923,7 @@ def logic_compile(
         LOGIC_RDF12_FILE,
         LOGIC_REPORT_FILE,
         LOGIC_SOURCE_FILE,
+        LOGIC_XCL_FILE,
     )
 
     if mode is not None and mode not in _LOGIC_MODES:
@@ -2974,6 +2976,7 @@ def logic_compile(
             "canonical-rdf12": LOGIC_RDF12_FILE,
             "clif": LOGIC_CLIF_FILE,
             "cgif": LOGIC_CGIF_FILE,
+            "xcl": LOGIC_XCL_FILE,
             "report": LOGIC_REPORT_FILE,
         }
         # Projection target short-name → compile_logic dict key.
@@ -2986,6 +2989,7 @@ def logic_compile(
             "canonical-rdf12": "canonical_rdf12",
             "clif": "clif",
             "cgif": "cgif",
+            "xcl": "xcl",
             "report": "report",
         }
 
@@ -3014,7 +3018,11 @@ def logic_compile(
         # mapping (the key comes from the validated _mode_to_key table).
         _artifacts = cast("dict[str, object]", compiled)
         content = str(_artifacts[_mode_to_key[mode]])
-        _sfx = ".ttl" if mode not in ("datalog", "n3", "clif", "cgif") else f".{mode}"
+        _sfx = (
+            ".ttl"
+            if mode not in ("datalog", "n3", "clif", "cgif", "xcl")
+            else f".{mode}"
+        )
 
         if check:
             import tempfile

@@ -862,6 +862,7 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     out.set_item("nemo", arts.nemo)?;
     out.set_item("clif", arts.clif)?;
     out.set_item("cgif", arts.cgif)?;
+    out.set_item("xcl", arts.xcl)?;
     out.set_item("report", arts.report)?;
     // The reasoning-engine rule surface (the `% === Rules ===` section of the nemo
     // projection) — so the runner stops re-extracting it from `nemo` in Python.

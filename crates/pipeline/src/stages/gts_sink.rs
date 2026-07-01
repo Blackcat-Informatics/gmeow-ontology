@@ -140,6 +140,7 @@ mod tests {
             crate::stages::compile_logic::N3_PATH,
             crate::stages::compile_logic::CLIF_PATH,
             crate::stages::compile_logic::CGIF_PATH,
+            crate::stages::compile_logic::XCL_PATH,
             crate::stages::compile_logic::GUFO_PATH,
             crate::stages::compile_logic::RELATIONAL_CORE_PATH,
             crate::stages::compile_logic::CORRESPONDENCE_PATH,
