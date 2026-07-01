@@ -1281,24 +1281,23 @@ fn format_triple(q: &RdfQuad) -> String {
     )
 }
 
-/// A compact CURIE for a full IRI, or `<iri>` when no known prefix matches.
+// The canonical prefix registry (generated from the ontology's prefix config,
+// longest-namespace-first). Shared verbatim with the LPG/JSON-LD projections rather
+// than hand-maintaining a second, divergent table for the try-it display lines.
+include!("lpg_prefixes.rs");
+
+/// A compact CURIE for a full IRI, or `<iri>` when no known prefix matches. Drawing
+/// from the full canonical registry means every external ontology GMEOW links to
+/// compacts on the try-it surface, not just the handful of core namespaces.
 fn compact_iri(iri: &str) -> String {
-    const PREFIXES: &[(&str, &str)] = &[
-        ("gmeow:", "https://blackcatinformatics.ca/gmeow/"),
-        ("logic:", "https://blackcatinformatics.ca/gmeow/logic/"),
-        ("rdf:", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
-        ("rdfs:", "http://www.w3.org/2000/01/rdf-schema#"),
-        ("owl:", "http://www.w3.org/2002/07/owl#"),
-        ("xsd:", "http://www.w3.org/2001/XMLSchema#"),
-        ("skos:", "http://www.w3.org/2004/02/skos/core#"),
-        ("dcterms:", "http://purl.org/dc/terms/"),
-    ];
-    for (curie, ns) in PREFIXES {
+    // `PREFIXES_BY_LEN` is longest-namespace-first, so the first namespace the IRI
+    // starts with is the most specific prefix.
+    for (prefix, ns) in PREFIXES_BY_LEN {
         if let Some(local) = iri.strip_prefix(ns) {
-            // Only compact when the local part is a simple name (no slash), so a longer
-            // prefix wins and we never mangle a nested path IRI.
+            // Only compact when the local part is a simple name (no slash), so a
+            // nested-path IRI is never mangled into a misleading CURIE.
             if !local.contains('/') {
-                return format!("{curie}{local}");
+                return format!("{prefix}:{local}");
             }
         }
     }
