@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The native logic-conformance harness entry point (#785).
+//! The native logic-conformance harness entry point.
 //!
 //! `datatest-stable` discovers every `profile.json` sentinel under
 //! `conformance/logic/cases/` and emits one nextest case PER FILE (i.e. per case
 //! directory), run in parallel. Because the glob is on `profile.json` and the
 //! case directory is its parent, discovery is category-agnostic: any future
-//! `cases/external/<corpus>/<case>/` group (the #753 scope) is picked up
+//! `cases/external/<corpus>/<case>/` group is picked up
 //! automatically once it adopts the same per-case anatomy.
 //!
 //! Each case runs the native engine ([`gmeow_conformance::run`]) and diffs the
@@ -36,7 +36,7 @@ fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     discover::validate_case(&case_dir)?;
 
     // Lane routing: a Lane-B external corpus is heavy / oracle-backed and runs
-    // ONLY in the non-required `make maint-classic-cross-check` lane. A
+    // ONLY in the non-required `make -C validations/classic-cross-check validate` lane. A
     // Divergence-lane corpus is the named honest-DlGap quarantine — those cases
     // are UNDECIDED by the native path (a gapped verdict the zero-defer
     // consistency runner refuses), so they are pinned exactly by the dedicated

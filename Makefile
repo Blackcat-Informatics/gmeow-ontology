@@ -87,8 +87,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
-	maint-classic-cross-check maint-reason-hermit maint-explain maint-697-oracle-gold maint-verify-docker \
-	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
+	maint-reason-hermit maint-explain maint-verify-docker maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-test-network-rust maint-pull-images maint-quality maint-evals-score \
@@ -223,7 +222,6 @@ full-release: native-py ## Signed release-as-evidence: gate + oracle lane + conf
 		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
 	fi
 	$(MAKE) check
-	$(MAKE) maint-classic-cross-check
 	$(MAKE) conformance
 	$(MAKE) conformance-report
 	$(MAKE) bench-compare
@@ -264,7 +262,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	gh release create "$(RELEASE_TAG)" \
 		"$(GTS_OUT)" "$(GTS_OUT).sha256" dist/crossref-deposit.xml \
 		--title "GMEOW $(RELEASE_TAG) — signed release-as-evidence bundle" \
-		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gts heads\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design, #44)."
+		--notes "Signed, content-addressed release bundle (§18). Verify with \`make verify-release\` or \`gts verify gmeow.gts\`; download integrity via the .sha256 sidecar; native content address via \`gts heads\`. The attached Crossref deposit is over the always-latest concept DOI (version-agnostic by design)."
 	@if [ -n "$(CROSSREF_USER)" ] && [ -n "$(CROSSREF_PASS)" ]; then \
 		echo "submitting Crossref deposit as $(CROSSREF_USER) ..."; \
 		curl -fsS -F 'operation=doMDUpload' -F 'login_id=$(CROSSREF_USER)' \
@@ -323,7 +321,7 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 coherence-gate-teeth: rust-build ## Run the whole-ontology coherence-gate teeth proof on-gate (budget-exempt, ~95s).
 	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_coherence_gate/)'
 
-sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate (EPIC #906 Task 4).
+sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate.
 	@# Replays every captured query through NativeSparqlEngine over the merged ontology,
 	@# loaded oxigraph-free + flattened identically to the capture, and asserts equality
 	@# vs the frozen oxigraph goldens. Default nextest profile excludes the off-gate-heavy
@@ -342,7 +340,7 @@ sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPA
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
 
-carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport path uses no oxigraph Store accumulation (#1132 C11).
+carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport path uses no oxigraph Store accumulation (C11).
 	@# STRUCTURAL gate: the composed value rides the native RdfDataset/PipelineBundle
 	@# carrier (RdfDataset::union), and `snapshot`'s named-graph assembly + the SOLE
 	@# `emit_gts` byte emitter create no oxigraph `Store` to accumulate/union/round-trip
@@ -380,25 +378,25 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	else \
 		echo "OK: gmeow-rdf-core has no oxigraph normal dependency"; \
 	fi
-	@# [purrdf S2/#908] The native gmeow-iri leaf REPLACES `oxiri`; assert it pulls
+	@# [purrdf S2] The native gmeow-iri leaf REPLACES `oxiri`; assert it pulls
 	@# NO oxigraph-family crate (umbrella + any ox*/spar* leaf) into its normal tree.
 	@itree=$$(cargo tree -p gmeow-iri --edges normal -f "{p}") || { echo "FAIL: cargo tree errored for gmeow-iri"; exit 1; }; \
 	if echo "$$itree" | grep -Eq '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; then \
 		echo "FAIL: gmeow-iri pulls an oxigraph-family crate — the S2 zero-dep replacement is BROKEN"; \
 		echo "$$itree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
 	else \
-		echo "OK: gmeow-iri has NO oxigraph-family crate in its normal dependency tree (the #908 oxiri replacement is clean)"; \
+		echo "OK: gmeow-iri has NO oxigraph-family crate in its normal dependency tree (the oxiri replacement is clean)"; \
 	fi
-	@# [purrdf S5/#911] The native gmeow-sparql-algebra leaf REPLACES `spargebra`;
+	@# [purrdf S5] The native gmeow-sparql-algebra leaf REPLACES `spargebra`;
 	@# assert it pulls NO oxigraph-family crate into its normal tree.
 	@stree=$$(cargo tree -p gmeow-sparql-algebra --edges normal -f "{p}") || { echo "FAIL: cargo tree errored for gmeow-sparql-algebra"; exit 1; }; \
 	if echo "$$stree" | grep -Eq '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; then \
 		echo "FAIL: gmeow-sparql-algebra pulls an oxigraph-family crate — the S5 spargebra replacement is BROKEN"; \
 		echo "$$stree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
 	else \
-		echo "OK: gmeow-sparql-algebra has NO oxigraph-family crate in its normal dependency tree (the #911 spargebra replacement is clean)"; \
+		echo "OK: gmeow-sparql-algebra has NO oxigraph-family crate in its normal dependency tree (the spargebra replacement is clean)"; \
 	fi
-	@# [purrdf S6/#912] The native gmeow-sparql-eval evaluator REPLACES `spareval`;
+	@# [purrdf S6] The native gmeow-sparql-eval evaluator REPLACES `spareval`;
 	@# assert it pulls NO oxigraph-family crate into its normal OR dev tree. The
 	@# dev-tree check is stronger than the sibling leaves': this is the wasm query
 	@# path and its differential parity goldens are checked-in DATA (the oxigraph
@@ -409,9 +407,9 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 		echo "FAIL: gmeow-sparql-eval pulls an oxigraph-family crate — the S6 spareval replacement is BROKEN"; \
 		echo "$$etree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
 	else \
-		echo "OK: gmeow-sparql-eval has NO oxigraph-family crate in its normal/dev dependency tree (the #912 spareval replacement is clean)"; \
+		echo "OK: gmeow-sparql-eval has NO oxigraph-family crate in its normal/dev dependency tree (the spareval replacement is clean)"; \
 	fi
-	@# [purrdf S9/#915] The native gmeow-sparql-results serializer REPLACES
+	@# [purrdf S9] The native gmeow-sparql-results serializer REPLACES
 	@# `sparesults`; assert it pulls NO oxigraph-family crate into its normal OR
 	@# dev tree (it carries checked-in golden DATA and is on the wasm-first path).
 	@rtree=$$(cargo tree -p gmeow-sparql-results --edges normal,dev -f "{p}") || { echo "FAIL: cargo tree errored for gmeow-sparql-results"; exit 1; }; \
@@ -419,9 +417,9 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 		echo "FAIL: gmeow-sparql-results pulls an oxigraph-family crate — the S9 sparesults replacement is BROKEN"; \
 		echo "$$rtree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
 	else \
-		echo "OK: gmeow-sparql-results has NO oxigraph-family crate in its normal/dev dependency tree (the #915 sparesults replacement is clean)"; \
+		echo "OK: gmeow-sparql-results has NO oxigraph-family crate in its normal/dev dependency tree (the sparesults replacement is clean)"; \
 	fi
-	@# [purrdf S5/#911 + S6/#912] EPIC #906 is wasm-first: the SPARQL leaves MUST
+	@# [purrdf S5 + S6] The purrdf EPIC is wasm-first: the SPARQL leaves MUST
 	@# compile to wasm32. The target's absence is a SKIP locally but a hard FAIL in
 	@# CI, so the wasm-clean criterion is never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then \
@@ -432,11 +430,11 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 		$(WASM_CARGO) build -p gmeow-sparql-results --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-results does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "OK: gmeow-sparql-results builds for wasm32-unknown-unknown (wasm-clean)"; \
 	elif [ -n "$${CI:-}" ]; then \
-		echo "FAIL: wasm32-unknown-unknown target absent in CI — the wasm-first criterion (#906) cannot be verified; CI must install it"; exit 1; \
+		echo "FAIL: wasm32-unknown-unknown target absent in CI — the wasm-first criterion cannot be verified; CI must install it"; exit 1; \
 	else \
 		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the wasm-clean check"; \
 	fi
-	@# [EPIC #906] No FIRST-PARTY crate may name oxigraph or any oxigraph-family crate
+	@# No FIRST-PARTY crate may name oxigraph or any oxigraph-family crate
 	@# as a DIRECT dependency. The oxigraph umbrella is fully removed; the residual
 	@# ox*-family sub-crates (oxrdf/oxttl/oxiri/spargebra/oxsdatatypes/…) survive ONLY
 	@# transitively through two EXTERNAL crates — nemo (the Datalog chase engine) and
@@ -452,8 +450,8 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 	else \
 		echo "OK: no first-party crate has a direct oxigraph-family dependency (umbrella removed; residual ox* is external nemo/gmeow-gts only)"; \
 	fi
-	@# [EPIC #906 / S14 #919] Whole-workspace cargo-tree PROOF (the `cargo tree proof
-	@# in CI` #919 asks for). Every oxigraph-family crate that survives in the NORMAL
+	@# [S14] Whole-workspace cargo-tree PROOF (the `cargo tree proof
+	@# in CI` asks for). Every oxigraph-family crate that survives in the NORMAL
 	@# dependency tree must be INTRODUCED ONLY by a sanctioned external carrier — nemo
 	@# (+ its nemo-physical sub-crate) or gmeow-gts — or by another ox*-family sibling
 	@# (the ox* crates depend on each other: oxrdfio→oxrdf, oxttl→oxrdfio, …). NO
@@ -483,7 +481,7 @@ rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
 		fi; \
 	done; \
 	if [ "$$fail" = 1 ]; then \
-		echo "The ONLY sanctioned transitive carriers for oxigraph-family crates are the external 'nemo' chase engine and 'gmeow-gts' (EPIC #906 / S14 #919)."; \
+		echo "The ONLY sanctioned transitive carriers for oxigraph-family crates are the external 'nemo' chase engine and 'gmeow-gts' (S14)."; \
 		exit 1; \
 	fi; \
 	echo "OK: every residual oxigraph-family crate roots only in the sanctioned external nemo/gmeow-gts (no first-party transitive introduction)"
@@ -515,8 +513,8 @@ capi-check: ## Verify the committed purrdf.h is current + the C smoke links and 
 capi-install: ## Install libpurrdf + purrdf.pc + header to PREFIX (default /usr/local).
 	cargo capi install -p gmeow-rdf-capi --prefix="$(if $(PREFIX),$(PREFIX),/usr/local)"
 
-wasm: ## Build the purrdf wasm engine (P10, #846) for wasm32-unknown-unknown.
-	@# EPIC #832 P10 is wasm-first: the in-memory RDF/JS engine MUST compile to
+wasm: ## Build the purrdf wasm engine (P10) for wasm32-unknown-unknown.
+	@# purrdf P10 is wasm-first: the in-memory RDF/JS engine MUST compile to
 	@# wasm32. The target's absence is a SKIP locally but a hard FAIL in CI, so the
 	@# wasm-clean criterion is never silently unverified on the gating path (same
 	@# idiom as `rdf-core-hygiene`'s sparql-algebra wasm check).
@@ -525,7 +523,7 @@ wasm: ## Build the purrdf wasm engine (P10, #846) for wasm32-unknown-unknown.
 		$(WASM_CARGO) build -p gmeow-rdf --no-default-features --features gts --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== binding proof: the purrdf cdylib builds for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-rdf-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf-wasm (purrdf) does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "== compiler proof: gmeow-logic-compile (pure parse->IR->project) builds for wasm32 (#664/#732) =="; \
+		echo "== compiler proof: gmeow-logic-compile (pure parse->IR->project) builds for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-logic-compile --target wasm32-unknown-unknown || { echo "FAIL: gmeow-logic-compile does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== purity gate: no reasoning-runtime crate may appear in the gmeow-logic-compile wasm dep tree =="; \
 		for forbidden in oxigraph oxrocksdb nemo scryer-prolog tokio pyo3; do \
@@ -550,7 +548,7 @@ wasm: ## Build the purrdf wasm engine (P10, #846) for wasm32-unknown-unknown.
 		done; \
 		echo "OK: purrdf + gmeow-logic-compile + the wasm Tier-1 validator build for wasm32 (dep trees are reasoning-runtime-free)"; \
 	elif [ -n "$${CI:-}" ]; then \
-		echo "FAIL: wasm32-unknown-unknown target absent in CI — the P10 wasm-first criterion (#846) cannot be verified; CI must install it"; exit 1; \
+		echo "FAIL: wasm32-unknown-unknown target absent in CI — the P10 wasm-first criterion cannot be verified; CI must install it"; exit 1; \
 	else \
 		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the purrdf wasm build"; \
 	fi
@@ -605,7 +603,7 @@ maint-refresh-purrdf-asset: wasm-pkg ## Refresh the vendored purrdf wasm engine 
 	@echo "OK: vendored purrdf wasm engine refreshed + digest manifest rewritten (crates/docs/assets/purrdf/)"
 	@echo "    run 'make check' + 'make wasm-pkg-test' to re-verify the anti-rot gates"
 
-maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (#1045 maint-heavy profile).
+maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
 
@@ -658,37 +656,15 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 
 ##@ Maintainer Tasks
 
-maint-classic-cross-check: maint-pull-images native-py ## Run the full non-required Docker/Java oracle lane.
-	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
-	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
-	$(GMEOW_DEV) reason --mode docker --reasoner hermit
-	uv run python scripts/reasoning_cases.py
-	uv run python scripts/statements_docker_check.py
-	uv run python scripts/slme_cross_check.py
-	$(GMEOW_DEV) crosscheck-queries
-	$(GMEOW_DEV) classic-cross-check
-	$(GMEOW_DEV) classic-cross-check-rl
-	uv run pytest -n auto --dist loadscope -m "classic_cross_check" -q
-	@echo "classic cross-check oracle lane passed"
-
 maint-reason-hermit: maint-pull-images native-py ## Run HermiT complete consistency check.
 	$(GMEOW_DEV) reason --mode docker --reasoner hermit
 
 maint-explain: maint-pull-images native-py ## Explain unsatisfiable classes with HermiT.
 	$(GMEOW_DEV) explain
 
-maint-697-oracle-gold: maint-pull-images ## (Re)freeze #697 curated-DL oracle gold via HermiT/ELK (Docker).
-	uv run --package gmeow-dev python scripts/gen_dl_oracle_gold.py
-
 maint-verify-docker: maint-pull-images native-py ## Run ROBOT/ELK reasoned-graph verification.
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
-
-maint-reasoning-cases: maint-pull-images ## Run Docker-backed reasoning fixture cases.
-	uv run python scripts/reasoning_cases.py
-
-maint-statements-docker-check: maint-pull-images native-py ## Run Jena/ROBOT statement artifact oracle checks.
-	uv run python scripts/statements_docker_check.py
 
 maint-crosscheck: native-py ## Cross-check rdflib and native gmeow_rdf query answers.
 	$(GMEOW_DEV) crosscheck-queries
@@ -734,7 +710,7 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
 
-maint-capture-sparql-goldens: ## (maintainer) Freeze the native SPARQL engine as committed goldens (EPIC #906 Task 2/8; native-vs-native regression gate).
+maint-capture-sparql-goldens: ## (maintainer) Freeze the native SPARQL engine as committed goldens (native-vs-native regression gate).
 	cargo run -q -p gmeow-rdf --features gts --bin capture_sparql_goldens
 	@echo "wrote goldens under crates/sparql-conformance/tests/goldens/ — verify byte-stable (re-run = no diff), then commit"
 

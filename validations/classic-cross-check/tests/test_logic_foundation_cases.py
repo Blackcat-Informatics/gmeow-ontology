@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Correctness tests for the foundation-lowering conformance cases (issue #503, Task 5).
+"""Correctness tests for the foundation-lowering conformance cases (Task 5).
 
 These tests are independent of the conformance gate's diff-against-golden machinery.
 The native gate (the ``gmeow-conformance`` datatest harness) runs the engine and
@@ -29,21 +29,19 @@ The runner-vs-golden diff that formerly lived here is now enforced natively by t
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
+
+from gmeow_tools.config import PROJECT_ROOT
 
 # --------------------------------------------------------------------------- #
 # Constants
 # --------------------------------------------------------------------------- #
 
-_FOUNDATION_ROOT = (
-    Path(__file__).resolve().parents[1]
-    / "conformance"
-    / "logic"
-    / "cases"
-    / "foundation"
-)
+# Anchored on the repository root (PROJECT_ROOT), not this file's location: the
+# conformance goldens live at the repo root, and this test was relocated to the
+# validations/ lane where a __file__-relative parents[] index no longer
+# reaches the repo root.
+_FOUNDATION_ROOT = PROJECT_ROOT / "conformance" / "logic" / "cases" / "foundation"
 
 _LOGIC = "https://blackcatinformatics.ca/logic/"
 _P_VIOLATION = _LOGIC + "violation"
