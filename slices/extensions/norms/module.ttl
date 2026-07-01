@@ -155,6 +155,7 @@ gmeow:DeonticModality
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Deontic Modality"@x-gmeow-english ;
+    logic:instantiatesFramework logic:DeonticFramework ;
     rdfs:subClassOf logic:QualityValue ;
     skos:definition "The deontic force of a norm — an OPEN value vocabulary (individuals, never subclasses) seeded with obligation (must), prohibition (must not), permission (may), and recommendation (should). Open so that supererogation, exemption, and other forces can join without schema change (Principle 9). Distinct from gmeow:standpointModality (doxastic — what a frame believes) and from gmeow:hasDeterminacy (ontic): deontic modality is what an issuer demands."@x-gmeow-english ;
     skos:example "ex:supererogation a gmeow:DeonticModality ; rdfs:label \"supererogation\"@en ."@x-gmeow-english ;
@@ -233,6 +234,7 @@ gmeow:Norm
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Norm"@x-gmeow-english ;
+    logic:instantiatesFramework logic:DeonticFramework ;
     rdfs:subClassOf gmeow:Entity ;
     skos:definition "A prescription existing by social convention — an obligation, prohibition, permission, or recommendation issued by an agent or standpoint over some conduct. A norm asserts nothing about the world: it records that an issuer prescribes. Whether anything complies is a vantage-indexed ComplianceAssessment; what wins when norms conflict is solver work over the recorded precedence claims (Principle 12). Every modality-bearing norm must name its issuer (SHACL): there is no ought, only ought-according-to (Principles 1, 9). GROUNDING: a gufo:Category at Entity level — the IntentionalMoment precedent — because the rights graft places gmeow:Rule (⊑ gufo:Relator) beneath it while plain standalone norms are object-like social descriptions; committing Norm to gufo:Object OR gufo:Relator would make one branch inconsistent (Object ⟂ Aspect), and a Kind would stack identities under the rights trio (OntoUML MixIden). The social-convention reading lives on the concrete classes: NormativeSystem ⊑ SocialObject, the trio ⊑ Relator."@x-gmeow-english ;
     skos:example "ex:n1 a gmeow:Norm ; gmeow:deonticModality gmeow:deonticObligation ; gmeow:normIssuer ex:gdpr ; gmeow:prescribedConduct ex:eraseOnRequest ."@x-gmeow-english ;

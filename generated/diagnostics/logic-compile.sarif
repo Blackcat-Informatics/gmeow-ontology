@@ -1561,6 +1561,462 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ActionSchema> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "287eaded2145d1b1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/AdmissibleValuationPolicy> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "46799fd9149c0584"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/AgencyAssessment> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e10c98a67571c0d9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5b8d3684fdb66e9d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/BelnapBilattice> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5252f8bdb1655cdb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/EmergenceAssessment> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6db5ad87b40141bb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/GoalEvaluation> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "10fa3f29ba185fd5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/GoalExpression> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6f8b212c0f3cafa1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/Holon> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "856dacd3b0c1a3ac"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/HolonicPosition> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "947ea958349ad471"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/MereologyProfile> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3c1ac8361aefa854"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/Path> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a352bcb7bb520607"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/PossibleWorld> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a8fa0b3adc051939"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ProbabilisticMeasure> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "11f35e680addb1d5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ProbabilityModel> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "aa8af49849f62226"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/TransactionStep> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a5189848c3a2d2b0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/TruthAlgebra> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3608c8d4d408b40b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/World> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ba11d4ada2185686"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/deonticallyIdeal> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d2b87b2aa5bfba49"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/doxasticallyAccessible> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2e1fb61f240bc7ad"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/evidenceStrength> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "67c1b9d842254272"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/probability> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "79196d7962c3fda7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/properPartOf> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0dac419130d57ec4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/rigidlyAppliesTo> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7556313953707389"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:iterationBody on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -4449,6 +4905,462 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ActionSchema> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6890df2bed4e5cb1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/AdmissibleValuationPolicy> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "82de4e971abae472"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/AgencyAssessment> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "34a89306bcc655d5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "13dcd1eba392c72d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/BelnapBilattice> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "046a765628d0c7ef"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/EmergenceAssessment> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7464b98a7840f4f3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/GoalEvaluation> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d4896a110488436d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/GoalExpression> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fa50a0d7b85043c9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/Holon> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "042d27c5f8ff0426"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/HolonicPosition> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ffc30fed9551fe49"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/MereologyProfile> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "21efe00d60ac715a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/Path> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "558e9bf9af0b753f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/PossibleWorld> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "595b3e3b7ee9a405"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ProbabilisticMeasure> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7b39d9406fba0d81"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ProbabilityModel> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6790802f559d8b88"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/TransactionStep> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2902e39c112bd01a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/TruthAlgebra> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d85126d021bd6aa3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/World> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "235ea5b7d0ee355c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/deonticallyIdeal> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a663e322bb7c7c41"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/doxasticallyAccessible> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9da70061e7082281"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/evidenceStrength> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c69e421b77bb9344"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/probability> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0858537b526b85f3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/properPartOf> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3261ccec9b36387e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/rigidlyAppliesTo> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5318cf55b9ba0ddd"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:iterationBody on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -7014,6 +7926,462 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ActionSchema> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5c63c55c3fc9c1df"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/AdmissibleValuationPolicy> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fe726ffd57087cc2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/AgencyAssessment> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9b3d78ceefff9517"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ArgumentationSemantics> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7ea9b3f93998064b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/BelnapBilattice> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "26137f1772f2fefb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/EmergenceAssessment> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "54d82522d16ee8fb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/GoalEvaluation> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fad8b2decbb4855b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/GoalExpression> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "177723c1f31fb253"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/Holon> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "57f0558956379c46"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/HolonicPosition> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "79622ff06b22e9b1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/MereologyProfile> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "16e8efbbbf4eba84"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/Path> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ca286b85d84960ad"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/PossibleWorld> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b98695c49f8596fd"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ProbabilisticMeasure> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "64e20539ea505973"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ProbabilityModel> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "947ee3049c0c132a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/TransactionStep> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4e1481cedc69a7f2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/TruthAlgebra> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c98e7855c5ff21a5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/World> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "27bc6603e2941dd4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/deonticallyIdeal> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0abbd5401b7900bf"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/doxasticallyAccessible> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7373fbc8b05fde3f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/evidenceStrength> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "94bcfa7a638e601e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/probability> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cfd68050c081523b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/properPartOf> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a0e4f9f2321e7894"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/rigidlyAppliesTo> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ed6417cfbe2ee74f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:iterationBody on <https://blackcatinformatics.ca/logic/wfResolveLoop> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -8230,6 +9598,63 @@
             }
           ],
           "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ActionSchema> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TeleologicalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "19248ab8a138df6e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/AdmissibleValuationPolicy> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ParaconsistentFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2015ab4b2be145ab"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/AgencyAssessment> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/HolonicFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bbf483293789dd22"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Argument> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
@@ -8272,6 +9697,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "20a845a5b16d5f03"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/EpistemicFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d1df21c912552665"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/BelnapBilattice> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ParaconsistentFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9f1a151118b769a0"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -8344,10 +9807,105 @@
             }
           ],
           "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/EmergenceAssessment> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/MereologicalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "71578c7900481949"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/GoalEvaluation> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TeleologicalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c80cce02cfb3d392"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/GoalExpression> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TeleologicalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "be8f928612b3bec2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/GroundedArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "d14de40d95af1a78"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/Holon> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/HolonicFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2b0af1292a166a0b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/HolonicPosition> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/HolonicFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d072e9b83cfdc61c"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -8515,10 +10073,48 @@
             }
           ],
           "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/MereologyProfile> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/MereologicalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0bd8ac8696ec2f38"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/NoArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "51b8d8d0018b0bd1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/Path> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TemporalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8043ebe687c4e7d2"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -8553,10 +10149,124 @@
             }
           ],
           "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/PossibleWorld> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "142b270049c1b0f3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/PreferredArgumentation> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "bc2c2a8080bc5f5d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ProbabilisticMeasure> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ProbabilisticFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c47cd7f046ebafb3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ProbabilityModel> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ProbabilisticFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a81ac7780c5c4a4a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/TransactionStep> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TemporalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "452dc6c33fbf9fdf"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/TruthAlgebra> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ParaconsistentFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "056c037ffb7a15a2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/World> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "947809511b2802d2"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -8652,6 +10362,63 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "17a4699e5b7a2225"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/deonticallyIdeal> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/DeonticFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0a04c379b818541a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/doxasticallyAccessible> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/EpistemicFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "206295feae564c51"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/evidenceStrength> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/EpistemicFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f224732db7cb90e0"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -9127,6 +10894,63 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "3c2e98adc924cfa5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/probability> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ProbabilisticFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "962686dd89134f93"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/properPartOf> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/MereologicalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "92826d51c9ef2748"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/rigidlyAppliesTo> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3f280db73c1f49e9"
           },
           "ruleId": "logic-compile.lossy-drop"
         },

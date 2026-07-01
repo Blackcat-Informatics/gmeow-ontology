@@ -228,6 +228,7 @@ gmeow:Permission
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Permission"@x-gmeow-english ;
+    logic:instantiatesFramework logic:DeonticFramework ;
     rdfs:subClassOf gmeow:Rule ;
     skos:definition "A rule that grants the ability to exercise a gmeow:RightsAction over the governed asset (odrl:Permission). Its required duties ride gmeow:hasDuty."@x-gmeow-english ;
     skos:example "ex:mayReproduce a gmeow:Permission ; gmeow:ruleAction gmeow:actionReproduce ; gmeow:hasDuty ex:mustAttribute ."@x-gmeow-english ;

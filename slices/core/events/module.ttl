@@ -25,6 +25,7 @@ gmeow:Event
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Event"@x-gmeow-english ;
+    logic:instantiatesFramework logic:TemporalFramework ;
     rdfs:subClassOf logic:Event ;
     skos:definition "A temporal occurrence in which entities participate in roles, over possibly fuzzy time, at possibly several locations, asserted by possibly conflicting sources. The universal event of the model: gmeow:Activity (provenance) and gmeow:LifeEvent re-parent onto it. The kind of occurrence is a gmeow:eventType value, never a subclass."@x-gmeow-english ;
     skos:example "ex:wedding a gmeow:Event ; gmeow:eventType gmeow:eventTypeMarriage ; gmeow:eventTime \"1947-06-14T11:00:00Z\"^^xsd:dateTime ; gmeow:eventLocation ex:church ."@x-gmeow-english ;
