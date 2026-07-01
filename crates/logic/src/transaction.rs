@@ -1620,7 +1620,8 @@ fn protocol_ceiling(protocol_local: &str) -> &'static str {
 /// # Errors
 ///
 /// Propagates a malformed declared protocol/level (a value outside its closed set) from the
-/// underlying `root_declared_*` readers.
+/// underlying `root_declared_*` readers, or a declared protocol/level value that is not a
+/// `logic:`-namespaced IRI.
 fn check_protocol_level_adequacy(
     facts: &WorldFacts,
     world: &str,
@@ -1639,10 +1640,10 @@ fn check_protocol_level_adequacy(
     };
     let protocol_local = protocol
         .strip_prefix(LOGIC_NAMESPACE)
-        .expect("declared protocol is a logic: IRI");
+        .ok_or_else(|| format!("declared protocol {protocol:?} is not a logic: IRI"))?;
     let level_local = level
         .strip_prefix(LOGIC_NAMESPACE)
-        .expect("declared isolation level is a logic: IRI");
+        .ok_or_else(|| format!("declared isolation level {level:?} is not a logic: IRI"))?;
 
     let ceiling = protocol_ceiling(protocol_local);
     let adequate = isolation_rank(ceiling) >= isolation_rank(level_local);
