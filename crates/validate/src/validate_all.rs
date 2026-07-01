@@ -18,7 +18,7 @@ use std::time::Instant;
 
 use std::sync::Arc;
 
-use gmeow_diagnostics::{Finding, FindingCategory, Location, Report, Severity};
+use gmeow_diagnostics::{Finding, FindingCategory, Report, Severity};
 use gmeow_gts::model::Graph;
 use gmeow_logic::certificate::ContradictionPolicy;
 use gmeow_rdf::{
@@ -34,10 +34,10 @@ use gmeow_slice::{product_unit_key, Phase, ToolchainContext};
 
 use crate::advisory::Advisory;
 use crate::cache::{CachedResult, ValidationCache};
-use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig};
 use crate::model::{owl, rdf, rdfs};
+use crate::report_bridge::{build_report, shacl_findings_from_report};
 use crate::signature;
 use crate::slice_ownership;
 use crate::store;
@@ -627,23 +627,6 @@ impl ValidationRun {
     }
 }
 
-/// Fold the cheap-lint string scratch plus the structured SHACL findings into
-/// ONE canonical [`Report`] (#654). `from_legacy` turns each error/warning
-/// string into a finding, so `report.legacy_errors()/legacy_warnings()`
-/// reproduce the original strings exactly; the SHACL findings add focus-node
-/// locations on top.
-pub(crate) fn build_report(
-    errors: Vec<String>,
-    warnings: Vec<String>,
-    shacl_findings: Vec<Finding>,
-) -> Report {
-    let mut report = Report::from_legacy("validate", errors, warnings);
-    for finding in shacl_findings {
-        report.add_finding(finding);
-    }
-    report
-}
-
 /// The native semantic (`--deep`) pass (#768 ME2): reason over the GTS bundle and
 /// read the shared `logic:ReasoningResult`, folding its verdict into `report`.
 ///
@@ -879,59 +862,6 @@ pub(crate) fn fold_reasoning_result(
             .with_tool("validate"),
         );
     }
-}
-
-/// Convert a SHACL [`ValidationReport`] into structured findings via the
-/// [`finding_from_shacl`] bridge, optionally tagging each with the example/DSL
-/// source (`origin`) as the finding's primary path so SARIF and the `gmeow:`
-/// RDF projection can attribute it.
-pub(crate) fn shacl_findings_from_report(
-    report: &gmeow_shacl::report::ValidationReport,
-    origin: Option<&str>,
-) -> Vec<Finding> {
-    let mut findings: Vec<Finding> = report
-        .results
-        .iter()
-        .map(|result| {
-            let mut finding =
-                finding_from_shacl(result).with_category(FindingCategory::DataShapeViolation);
-            // Attribute the example/DSL source file as the finding's PRIMARY
-            // physical location (a repo-relative path), keeping the focus-node
-            // IRI as that location's logical anchor. SARIF `artifactLocation.uri`
-            // must be repo-relative — an absolute IRI is rejected by GitHub
-            // code-scanning — so the file, not the IRI, is the physical artifact.
-            if let Some(origin) = origin {
-                if let Some(primary) = finding.locations.first_mut() {
-                    primary.path = Some(origin.to_owned());
-                } else {
-                    finding.add_location(Location {
-                        path: Some(origin.to_owned()),
-                        ..Location::default()
-                    });
-                }
-            }
-            finding
-        })
-        .collect();
-    // Preserve the original "non-conforming with no results" guard so a failed
-    // graph never validates silently when the engine reports zero results.
-    if findings.is_empty() && !report.conforms {
-        let mut finding = Finding::new(
-            Severity::Error,
-            crate::codes::SHACL_NONCONFORMING,
-            "SHACL validation failed: non-conforming with no results",
-        )
-        .with_tool("shacl")
-        .with_category(FindingCategory::DataShapeViolation);
-        if let Some(origin) = origin {
-            finding.add_location(Location {
-                path: Some(origin.to_owned()),
-                ..Location::default()
-            });
-        }
-        findings.push(finding);
-    }
-    findings
 }
 
 /// Run `closure` and, if timings are enabled, record how long it took.

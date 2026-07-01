@@ -3,8 +3,8 @@
 
 //! Front-end parser: a `logic:` RDF 1.2 source graph → [`LogicProgram`].
 //!
-//! The `logic:` front-end parser (#664); the Python duplicate
-//! (`logic_frontend.py`) was retired in #727.  It parses a `logic:`-vocabulary
+//! The `logic:` front-end parser; the Python duplicate
+//! (`logic_frontend.py`) has since been retired.  It parses a `logic:`-vocabulary
 //! RDF graph (Turtle text or a parsed wasm-clean `RdfDataset`) into a typed
 //! [`LogicProgram`] plus a list of [`Diagnostic`] messages.
 //!
@@ -26,7 +26,7 @@
 //! 3. **Reasoning contracts** — `rdf:type logic:ReasoningContract` /
 //!    `logic:ReasoningPreset` declarations, with their facet selection.
 //! 4. **Rules** — `logic:Rule` nodes with `logic:head` / `logic:body` /
-//!    `logic:negatedBody` (#502) / `logic:distinctBody` (#503) links.
+//!    `logic:negatedBody` / `logic:distinctBody` links.
 
 use std::collections::HashSet;
 use std::fmt;
@@ -201,7 +201,7 @@ fn scope_from_node(
 // --------------------------------------------------------------------------- //
 
 /// The set of `logic:` predicate-local names that carry reasoning-contract /
-/// preset / closure *meta-configuration* (#767, Gap 1).  When such a predicate's
+/// preset / closure *meta-configuration*.  When such a predicate's
 /// subject is a `logic:ReasoningContract` / `logic:ReasoningPreset` /
 /// `logic:ClosureEntry` node, the triple is contract configuration consumed by
 /// [`extract_contracts`] — NOT a domain fact — and must NOT leak into `prog.axioms`
@@ -214,8 +214,8 @@ fn is_facet_config_predicate(prop_local: &str) -> bool {
         )
 }
 
-/// The reserved `logic:` predicate-local names that build the full-FOL formula AST
-/// (#719).  Like the rule-structural predicates, these are consumed by
+/// The reserved `logic:` predicate-local names that build the full-FOL formula AST.
+/// Like the rule-structural predicates, these are consumed by
 /// [`extract_formulas`] to reconstruct [`Formula`] trees and must NOT leak into
 /// `prog.axioms` (where they would pollute the Datalog / N3 / ledger projections and
 /// break the canonical round-trip).
@@ -296,7 +296,7 @@ fn aggregation_from_node(
 /// Collect the IRIs / blank-node ids of every subject typed
 /// `logic:ReasoningContract`, `logic:ReasoningPreset`, OR `logic:ClosureEntry`.
 /// These are the meta-configuration nodes whose facet-config triples must be kept
-/// out of the domain axiom set (#767, Gap 1).
+/// out of the domain axiom set.
 fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
     let mut subjects: HashSet<String> = HashSet::new();
     for class_local in ["ReasoningContract", "ReasoningPreset", "ClosureEntry"] {
@@ -312,7 +312,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
-    // triples on these are contract configuration, not domain facts (#767, Gap 1).
+    // triples on these are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
 
     // 1. Triples with a logic: predicate (excluding rdf:type).
@@ -333,7 +333,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
             continue;
         }
         // Formula-AST structural triples are consumed by extract_formulas; they are
-        // never domain facts (#719).
+        // never domain facts.
         if is_formula_structural_predicate(p_local) {
             continue;
         }
@@ -367,6 +367,20 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         }
         let o_str = term_str(&quad.object);
         if !o_str.starts_with(LOGIC_NAMESPACE) {
+            continue;
+        }
+        // Skip the type triple that DEFINES a contract-config subject
+        // (`?s rdf:type logic:{ReasoningContract,ReasoningPreset,ClosureEntry}`): it is
+        // consumed by extract_contracts, exactly like the facet-config predicates in
+        // step 1. Retaining it (for a non-`logic:` subject, whose type triple step 1's
+        // predicate filter never reaches) re-extracts as a spurious empty contract on
+        // every round-trip — a canonical-RDF-1.2 non-idempotence.
+        let o_local = &o_str[LOGIC_NAMESPACE.len()..];
+        if matches!(
+            o_local,
+            "ReasoningContract" | "ReasoningPreset" | "ClosureEntry"
+        ) && config_subjects.contains(&subject_str(&quad.subject))
+        {
             continue;
         }
         if subject_str(&quad.subject).starts_with(LOGIC_NAMESPACE) {
@@ -463,7 +477,7 @@ fn extract_scoped_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) 
 }
 
 // --------------------------------------------------------------------------- //
-// Reasoning-contract extraction (#767)
+// Reasoning-contract extraction
 // --------------------------------------------------------------------------- //
 
 /// The direct facet properties whose object is a single facet value individual.
@@ -505,7 +519,7 @@ fn facet_class_of(store: &RdfDataset, value_iri: &str) -> Option<String> {
 }
 
 /// The facet value-class a DIRECT facet property routes to, independent of the
-/// value individual's `rdf:type`.  This is the round-trip path (#767, Task 6): the
+/// value individual's `rdf:type`.  This is the round-trip path: the
 /// canonical RDF12 projection emits facet selections as bare
 /// `logic:<facetProp> logic:<Value>` triples WITHOUT re-typing each value
 /// individual, so the parser routes by the property name itself.  `expandsToFacet`
@@ -591,7 +605,7 @@ fn route_facet_value(contract: &mut ReasoningContract, facet_class: &str, value_
 
 /// Whether the source graph declares a probability model: either a triple with
 /// predicate `logic:probabilityModel`, or any individual typed
-/// `logic:ProbabilityModel` (reviewer C4 — probabilistic inference must never
+/// `logic:ProbabilityModel` (probabilistic inference must never
 /// silently assume independence over un-modelled confidence metadata).
 fn graph_declares_probability_model(store: &RdfDataset) -> bool {
     // Any triple whose predicate is logic:probabilityModel.
@@ -644,7 +658,7 @@ fn extract_contracts(
             match preset {
                 Some(p) => contract.preset = Some(p),
                 None => {
-                    // Greenfield (reviewer C3): an unrecognised preset reference is
+                    // Greenfield: an unrecognised preset reference is
                     // a hard error, not a silent approximation to a nearby preset.
                     diagnostics.push(Diagnostic::error(
                         "UNKNOWN_PROFILE",
@@ -693,7 +707,7 @@ fn extract_contracts(
         // Closure entries: logic:closureEntry → ClosureEntry node with
         // logic:closureKey (string) + logic:closureValue (ClosureValue individual).
         for entry_term in objects(store, &individual, &nn(&logic_iri("closureEntry"))) {
-            // HARD verdict (#767, Gap 4): a malformed closure entry — a non-node
+            // HARD verdict: a malformed closure entry — a non-node
             // object, or a node missing logic:closureKey / logic:closureValue — is a
             // Severity::Error (consistent with UNSUPPORTED_CONTRACT above), never a
             // silent skip, so the compile Report is not ok.
@@ -758,8 +772,8 @@ fn extract_contracts(
             }
         }
 
-        // ── Compatibility feature model (#767, Task 3) ──────────────────────
-        // HARD verdict (reviewer C3): an unsupported contract is a Severity::Error
+        // ── Compatibility feature model ─────────────────────────────────────
+        // HARD verdict: an unsupported contract is a Severity::Error
         // finding, so the compile Report is not ok and the program is never
         // silently approximated to a nearby semantics.
         if let compat::ContractVerdict::Unsupported(reasons) = compat::check(&contract) {
@@ -773,7 +787,7 @@ fn extract_contracts(
             ));
         }
 
-        // Graph-dependent RuleProbabilisticRequiresModel (reviewer C4): a
+        // Graph-dependent RuleProbabilisticRequiresModel: a
         // probabilistic measure demands a declared logic:ProbabilityModel; absent
         // one, refuse rather than silently assume independence.
         if contract
@@ -906,7 +920,7 @@ fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<L
             }
         }
 
-        // Inequality guards (#503): logic:distinctBody nodes carry rdf:subject /
+        // Inequality guards: logic:distinctBody nodes carry rdf:subject /
         // rdf:object variable Literals and NO rdf:predicate.
         let mut distinct_pairs: Vec<(String, String)> = Vec::new();
         for distinct_term in objects(store, &rule_node, &logic_distinct_body) {
@@ -952,7 +966,7 @@ fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<L
 }
 
 // --------------------------------------------------------------------------- //
-// Path-shape extraction (#1010; absent logic:PathShape → empty list)
+// Path-shape extraction (absent logic:PathShape → empty list)
 // --------------------------------------------------------------------------- //
 
 /// Parse a positive-integer literal's lexical value (`xsd:positiveInteger`),
@@ -964,7 +978,7 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
     }
 }
 
-/// Read `logic:PathShape` individuals (#1010) into [`PathShapeIr`]s.
+/// Read `logic:PathShape` individuals into [`PathShapeIr`]s.
 ///
 /// Fail-soft, like the rest of the front-end: a malformed shape (a step that is
 /// both named and wildcard, neither named nor wildcard, a non-positive-integer
@@ -1113,7 +1127,7 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
 // --------------------------------------------------------------------------- //
 
 // --------------------------------------------------------------------------- //
-// Full first-order formula extraction (#719; absent logic:Formula → empty list)
+// Full first-order formula extraction (absent logic:Formula → empty list)
 // --------------------------------------------------------------------------- //
 
 /// The sub-formula link predicates: a `logic:Formula` reached through any of these is a
@@ -1374,7 +1388,7 @@ pub fn parse_logic_str(
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
     // Native codec parse → frozen wasm-clean IR dataset, straight into the parser
-    // (no oxigraph Store hop, #909/#732).
+    // (no oxigraph Store hop).
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
     parse_logic_dataset(dataset.as_ref(), source_iri)

@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/currency-freshness-window/world": {
+    "quads": 21,
+    "status": "consistent"
+  }
+}

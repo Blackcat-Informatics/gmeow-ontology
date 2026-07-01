@@ -10,7 +10,6 @@
 
 # === Axioms ===
 <https://example.org/transaction/hypothetical-isolation/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
-<https://example.org/transaction/hypothetical-isolation/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
 <https://example.org/transaction/hypothetical-isolation/TransactionContract> <https://blackcatinformatics.ca/logic/executionMode> <https://blackcatinformatics.ca/logic/HypotheticalExecution> .
 
 # === Rules ===
