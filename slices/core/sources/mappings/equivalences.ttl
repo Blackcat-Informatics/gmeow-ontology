@@ -22,5 +22,5 @@ gmeow:eqProperties079 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:contentUrl ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a source/distribution's resolvable location IS schema:contentUrl on the DataDownload (#410)" ;
+    gmeow:comment "a source/distribution's resolvable location IS schema:contentUrl on the DataDownload" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .

@@ -19,22 +19,22 @@ gmeow:mapsetAgentic a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-agentic.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/agentic" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Agentic tool-call alignments (consumer: Project Lillith's agentic mode, #390).
+    gmeow:setComment """Agentic tool-call alignments (consumer: Project Lillith's agentic mode).
         ToolCall is prov:Activity by inheritance (provenance set); only the agentic seams are added here.
         Wikidata has no entity for LLM tool calling as of 2026-06-12 — the nearest stable entity names the MECHANISM (remote procedure call), so the cell is relatedMatch, not equivalence.""" ;
-    gmeow:setTrailer "# REFUSED (Principle 5 — no stable RDF namespace): OpenAI function-calling, Anthropic tool_use, and MCP tool schemas describe calls as JSON specs, not RDF vocabularies; bridging is a projection concern (#58 Workflow Run Crate — the OpenLineage precedent from the graphrag set), not a term alignment.\n# REFUSED (Principle 5 — the genuine gap): toolArguments/toolResult verbatim-payload properties have no external RDF counterpart — PROV-O stops at prov:used/prov:generated entity links and has no byte-faithful payload convention. Recorded rather than papered over." .
+    gmeow:setTrailer "# REFUSED (Principle 5 — no stable RDF namespace): OpenAI function-calling, Anthropic tool_use, and MCP tool schemas describe calls as JSON specs, not RDF vocabularies; bridging is a projection concern (the Workflow Run Crate — the OpenLineage precedent from the graphrag set), not a term alignment.\n# REFUSED (Principle 5 — the genuine gap): toolArguments/toolResult verbatim-payload properties have no external RDF counterpart — PROV-O stops at prov:used/prov:generated entity links and has no byte-faithful payload convention. Recorded rather than papered over." .
 
 gmeow:mapsetAi a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/ai" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """AI claim-layer alignments (#54).
+    gmeow:setComment """AI claim-layer alignments.
         THE CLAIM PATTERN: the generated claim is the EXISTING gmeow:StandpointClaim (unified observation stance, P9) — its external bridges (schema:Claim, CRMinf I2 Belief, nanopublication assertion) are cellled here because the AI layer is why they matter, with the subject term owned by the standpoint slice.
         PROV-O: ModelInvocation/RetrievalEvent are prov:Activity by inheritance through gmeow:Activity (already aligned in the provenance set) — only the AI-specific seams are added here.
         ML-Schema: mls:Run is the W3C member-submission counterpart of a model invocation; mls:Model the trained-model artifact a ModelCard describes.
         Web Annotation: a groundedIn evidence span is near-isomorphic to an oa:Annotation (body = claim node, target = chunk with position selector); the generated projection carries it (P4).
         CiTO: supportPolarity's supports/refutes mirror cito:supports/cito:disputes at the citation-act level — relatedMatch (different carrier: span-to-claim stance vs work-to-work intent).""" ;
-    gmeow:setTrailer "# REFUSED (Principles 5/9 — verdict semantics): schema:ClaimReview. Its single reviewRating adjudicates a winner; GMEOW contradictions coexist standpoint-indexed, surfaced by gmeow:Contradiction and never resolved by rank.\n# REFUSED (Principle 5 — scope mismatch): C2PA Content Credentials sign MEDIA provenance at the container level, not statement-level claims; the attestation slice owns that seam.\n# REFUSED (Principle 5 — no RDF vocabulary): Model Cards (the Mitchell et al. practice) and FAIR4ML have no stable RDF namespace to cell against; mls:Model is the nearest stable term and is cellled. Revisit when a W3C/community namespace stabilizes.\n# REFUSED (Principle 15 — instance data, not TBox): RAGAS/ARES/AIS/RAGTruth metric vocabularies land as Criterion individuals in the #298 published rubric, not as term alignments." .
+    gmeow:setTrailer "# REFUSED (Principles 5/9 — verdict semantics): schema:ClaimReview. Its single reviewRating adjudicates a winner; GMEOW contradictions coexist standpoint-indexed, surfaced by gmeow:Contradiction and never resolved by rank.\n# REFUSED (Principle 5 — scope mismatch): C2PA Content Credentials sign MEDIA provenance at the container level, not statement-level claims; the attestation slice owns that seam.\n# REFUSED (Principle 5 — no RDF vocabulary): Model Cards (the Mitchell et al. practice) and FAIR4ML have no stable RDF namespace to cell against; mls:Model is the nearest stable term and is cellled. Revisit when a W3C/community namespace stabilizes.\n# REFUSED (Principle 15 — instance data, not TBox): RAGAS/ARES/AIS/RAGTruth metric vocabularies land as Criterion individuals in the published rubric, not as term alignments." .
 
 gmeow:mapsetClaims a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-claims.sssom.tsv" ;
@@ -56,7 +56,7 @@ gmeow:mapsetDeterminacy a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/determinacy" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Universal determinacy alignments (#71).
+    gmeow:setComment """Universal determinacy alignments.
         FORMAL GROUNDING: gmeow:Determinacy is an owl:Class (a gUFO AbstractIndividualType / QualityValue type), and its instances (crisp, vague, fuzzy, probabilistic, disputed) are first-class, referenceable, and co-equal value individuals. There is no 'preferred' determinacy (Principle 9).
         ONTOLOGICAL STATUS: gmeow:hasDeterminacy is an ObjectProperty (not an AnnotationProperty), because determinacy is a facet of the VALUE, not metadata ABOUT the claim. It is orthogonal to gmeow:confidence (epistemic) and to gmeow:standpointModality (belief force).
         SCOPE: Applies universally — a gender may be fuzzy, a date vague, a boundary probabilistic, a SLAM cell probabilistic, a contested fact disputed.""" ;
@@ -66,7 +66,7 @@ gmeow:mapsetDublinCore a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/dublin-core" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Dublin Core maximal alignment (issue #60). DCMI Terms properties and DCMI Type classes mapped to GMEOW canonical terms. dc: element alignments are derived via the dumb-down principle (dcterms:X rdfs:subPropertyOf dc:X), not hand-authored here." .
+    gmeow:setComment "Dublin Core maximal alignment. DCMI Terms properties and DCMI Type classes mapped to GMEOW canonical terms. dc: element alignments are derived via the dumb-down principle (dcterms:X rdfs:subPropertyOf dc:X), not hand-authored here." .
 
 gmeow:mapsetFibo a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
@@ -80,9 +80,9 @@ gmeow:mapsetGraphrag a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment """GraphRAG pipeline alignments (consumer: Project Lillith).
         The pipeline activities are prov:Activity by inheritance (provenance set); cells here cover the artifacts.
-        schema.org: the corpus is the working dataset surface (#58's Croissant profile builds on this cell).
+        schema.org: the corpus is the working dataset surface (the Croissant profile builds on this cell).
         Wikidata: hub identifiers for the technique family — several cells are relatedMatch because Wikidata names the TECHNIQUE (community detection, summarization) where GMEOW names the derived ARTIFACT.""" ;
-    gmeow:setTrailer "# REFUSED (Principle 5 — the genuine gap, #54): gmeow:Embedding / gmeow:VectorIndex have no external RDF vocabulary to cell against — model, dimensionality, metric, and index parameters have no agreed semantic representation anywhere. Recorded rather than papered over; revisit when a standard emerges.\n# REFUSED (Principle 5 — no stable RDF namespace): OpenLineage and MLflow describe runs/lineage as JSON specs, not RDF vocabularies; bridging is a projection concern (#58 Workflow Run Crate), not a term alignment.\n# REFUSED (Principle 5 — instance-level): Leiden/Louvain algorithm identities belong on the clustering Activity as instance data, not as TBox alignments.\n# REFUSED (Principles 5/9 — the description/entity boundary): ExtractedEntity aligns to NOTHING entity-shaped (schema:Thing included): a description is not the thing it describes, and a mapping-layer bridge would invite consumers to skip the curation act that promotes one." .
+    gmeow:setTrailer "# REFUSED (Principle 5 — the genuine gap): gmeow:Embedding / gmeow:VectorIndex have no external RDF vocabulary to cell against — model, dimensionality, metric, and index parameters have no agreed semantic representation anywhere. Recorded rather than papered over; revisit when a standard emerges.\n# REFUSED (Principle 5 — no stable RDF namespace): OpenLineage and MLflow describe runs/lineage as JSON specs, not RDF vocabularies; bridging is a projection concern (the Workflow Run Crate), not a term alignment.\n# REFUSED (Principle 5 — instance-level): Leiden/Louvain algorithm identities belong on the clustering Activity as instance data, not as TBox alignments.\n# REFUSED (Principles 5/9 — the description/entity boundary): ExtractedEntity aligns to NOTHING entity-shaped (schema:Thing included): a description is not the thing it describes, and a mapping-layer bridge would invite consumers to skip the curation act that promotes one." .
 
 gmeow:mapsetIso4217 a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
@@ -94,11 +94,11 @@ gmeow:mapsetPrivacy a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/privacy" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """Privacy / consent / redaction alignments (#73, PRIV-GEN).
+    gmeow:setComment """Privacy / consent / redaction alignments (PRIV-GEN).
         DPV: the primary external vocabulary for privacy concepts. GMEOW's sensitivity level, data-subject / data-controller roles, privacy notice, and process-personal-data action are aligned to DPV by reference (Principle 5). DPV is a W3C Community Group deliverable, not a W3C Recommendation; alignments use skos:closeMatch rather than owl:equivalentClass.
-        ODRL: consent is modelled as a Permission / Prohibition / Duty over actionProcessPersonalData with purpose/recipient constraints — the existing deontic trio (#21), not a parallel consent relator.
+        ODRL: consent is modelled as a Permission / Prohibition / Duty over actionProcessPersonalData with purpose/recipient constraints — the existing deontic trio, not a parallel consent relator.
         Schema.org: PrivacyNotice projects to schema:PrivacyPolicy; hasPrivacyNotice projects to schema:publishingPrinciples.
-        REDACTION = GENERALISATION: the actual redaction mechanism is the existing coarsenTo / displayable projection-time directive (#72). Sensitivity metadata drives the trigger; the solver evaluates consent + sensitivity at emit time (P12).""" ;
+        REDACTION = GENERALISATION: the actual redaction mechanism is the existing coarsenTo / displayable projection-time directive. Sensitivity metadata drives the trigger; the solver evaluates consent + sensitivity at emit time (P12).""" ;
     gmeow:setTrailer "# REFUSED (Principle 5 — no faithful external term): gmeow:hasSensitivity has no exact DPV counterpart. DPV's hasSensitivityLevel is scoped to processes/entities within DPV's data-handling model; GMEOW's hasSensitivity is a universal domain-free facet (like hasGranularity, hasDeterminacy). A closeMatch is warranted but not exact.\n# REFUSED (Principle 5): the sensitivity-to-coarsen trigger (a value with hasSensitivity sensitivePersonal SHOULD also carry coarsenTo or displayable false) is a GMEOW-specific projection-layer contract, not an external vocabulary concept.\n# REFUSED (Principle 5): no faithful external term for hasPrivacyNotice as a domain-free property. DPV has hasNotice (on Process), schema.org has publishingPrinciples (on Organization/CreativeWork); neither covers the full domain-free usage." .
 
 gmeow:mapsetProperties a gmeow:MappingSet ;

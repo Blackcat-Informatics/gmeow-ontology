@@ -4,7 +4,6 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix bf: <http://id.loc.gov/ontologies/bibframe/> .
-@prefix bibframe: <http://id.loc.gov/ontologies/bibframe/> .
 @prefix bibo: <http://purl.org/ontology/bibo/> .
 @prefix dcmitype: <http://purl.org/dc/dcmitype/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -120,7 +119,7 @@ gmeow:eqClasses027 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
 
 gmeow:eqClasses028 a gmeow:TermEquivalence ;
-    gmeow:alignSubject bibframe:Work ;
+    gmeow:alignSubject bf:Work ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject gmeow:CreativeWork ;
     gmeow:justification semapv:ManualMappingCuration ;
@@ -133,7 +132,7 @@ gmeow:eqClasses056 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:DataFeed ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a published ordered item stream IS schema:DataFeed (#412)" ;
+    gmeow:comment "a published ordered item stream IS schema:DataFeed" ;
     gmeow:sssomFile "gmeow-classes.sssom.tsv" .
 
 gmeow:eqDcType001 a gmeow:TermEquivalence ;
@@ -346,7 +345,7 @@ gmeow:eqProperties077 a gmeow:TermEquivalence ;
     gmeow:alignObject bf:Title ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "both reify a work's title as a first-class node carrying its text and metadata (#34 phase 3)" ;
+    gmeow:comment "both reify a work's title as a first-class node carrying its text and metadata" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
 
 gmeow:eqProperties081 a gmeow:TermEquivalence ;
@@ -355,7 +354,7 @@ gmeow:eqProperties081 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:image ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "the inverse of depicts: an entity's image is the MediaObject depicting it → schema:image (#410)" ;
+    gmeow:comment "the inverse of depicts: an entity's image is the MediaObject depicting it → schema:image" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
 
 gmeow:eqProperties082 a gmeow:TermEquivalence ;
@@ -364,7 +363,7 @@ gmeow:eqProperties082 a gmeow:TermEquivalence ;
     gmeow:alignObject schema:mainEntity ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85 ;
-    gmeow:comment "a page's principal subject IS schema:mainEntity; its inverse on the subject is schema:mainEntityOfPage (#410)" ;
+    gmeow:comment "a page's principal subject IS schema:mainEntity; its inverse on the subject is schema:mainEntityOfPage" ;
     gmeow:sssomFile "gmeow-properties.sssom.tsv" .
 
 gmeow:eqWikidata030 a gmeow:TermEquivalence ;
