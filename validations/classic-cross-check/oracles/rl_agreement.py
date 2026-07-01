@@ -163,7 +163,7 @@ def _told_graph(gts: Path) -> Graph:
     axioms, the SAME facts both RL closures are computed over (so any divergence
     is a reasoner disagreement, not an input mismatch).
     """
-    from oracles import classic_cross_check as crosscheck
+    from . import classic_cross_check as crosscheck
 
     native = crosscheck.reason_native(gts)
     told_facts = crosscheck.write_told_facts(native)
