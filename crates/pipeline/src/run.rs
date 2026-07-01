@@ -41,8 +41,8 @@ use crate::scheduler::{run, RunContext};
 const SCHEMAS_STAGE: &str = "stage-export-schemas";
 /// The sole serialization exit; its product carries the `gmeow.gts` bytes.
 const SINK_STAGE: &str = "stage-gts-sink";
-/// The committed fold path the sink writes / schemas project.
-const GTS_PATH: &str = "generated/dist/gmeow.gts";
+/// The committed fold path the sink writes / schemas project / fanout reads.
+pub(crate) const GTS_PATH: &str = "generated/dist/gmeow.gts";
 /// The DAG-workflow contract identity the build plan executes under — the
 /// `gmeow:pipeline-build` `logic:Plan` is certified under `logic:DagWorkflowResource`.
 const BUILD_DAG_CONTRACT: &str = "contract:gmeow:pipeline-build:dag-workflow";
@@ -165,12 +165,22 @@ pub fn full_spec() -> PipelineSpec {
                 // Fold the generated constraint catalog into graph/fanout/catalog.
                 "stage-constraint-catalog",
                 "stage-docs-render",
+                // The RDF fanout members ride in from their producing export leaves (the
+                // render ran once, in the leaf): profiles / evals scores / research-object
+                // graphs. The presenter reads them off these products, never re-rendered.
+                "stage-export-evals",
                 // #700: fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
+                "stage-export-profiles",
+                "stage-export-research-objects",
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
                 "stage-reason",
+                // The self-description named graphs (authored default / imports / metadata
+                // / alignments / slice-analysis / verify / provenance): the presenter reads
+                // them off this product instead of re-loading + re-canonicalizing sources.
+                "stage-source-load",
                 "stage-statements",
                 "stage-validate",
             ],
@@ -223,10 +233,21 @@ pub fn full_spec() -> PipelineSpec {
         "gts_sink",
         &[
             "stage-compile-logic",
+            // The opaque fanout members ride in from their producing export leaves (each
+            // rendered once, in the leaf); `build_fanout_opaque_blob` reads them off these
+            // products instead of re-rendering from disk (PIPELINE_SPINE §3.2/§4).
+            "stage-export-apache",
+            "stage-export-bench",
+            "stage-export-evals",
             "stage-export-json-schema",
+            "stage-export-matrix",
+            "stage-export-metadata",
+            "stage-export-references",
+            "stage-export-research-objects",
             "stage-mappings",
             "stage-reason",
             "stage-snapshot",
+            "stage-source-load",
             "stage-statements",
             "stage-validate",
         ],
@@ -458,11 +479,20 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             }
 
             if mode == RunMode::Regenerate {
-                // Phase-1 products were handled above; write only changed artifacts.
-                if write_artifact(root, path, bytes)? {
-                    written += 1;
-                } else {
-                    skipped_writes += 1;
+                // A stage's only output is its carrier contribution (PIPELINE_SPINE
+                // §3.1): a committed `generated/` file is NOT written here — it is
+                // projected from the bundle by the post-pipeline fanout phase (§6),
+                // which runs after this loop writes `gmeow.gts`. Retiring the direct
+                // write leaves the terminal `gmeow.gts` (and gitignored `dist/*`) as
+                // the pipeline's only disk output. Paths OUTSIDE `generated/` (e.g. the
+                // root OASIS catalog) are out of the superset law's scope (§5 governs
+                // `generated/`), so their producing stage still writes them directly.
+                if !path.starts_with("generated/") {
+                    if write_artifact(root, path, bytes)? {
+                        written += 1;
+                    } else {
+                        skipped_writes += 1;
+                    }
                 }
                 reproduced += 1;
                 continue;
@@ -517,6 +547,27 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
         elapsed_ms: reconcile_started.elapsed().as_millis(),
         metadata: Some(format!("produced={produced};reproduced={reproduced}")),
     });
+
+    // ── Fanout (PIPELINE_SPINE §6): the separate post-pipeline projection phase. ──
+    // The pipeline has now written `gmeow.gts`; project every committed `generated/`
+    // file back out of it (pure reconstruction, no compute). This is the only writer
+    // of the `generated/` tree — the stages contributed to the carrier, the terminal
+    // presented it, and fanout unpacks it. Check mode does NOT fan out: the superset
+    // gate above already proved every committed path is reconstructible.
+    if mode == RunMode::Regenerate {
+        let fanout_started = Instant::now();
+        let report = crate::fanout::fanout(root)?;
+        timings.push(TimingRecord {
+            phase: "fanout".to_string(),
+            elapsed_ms: fanout_started.elapsed().as_millis(),
+            metadata: Some(format!(
+                "produced={};written={};skipped={}",
+                report.produced, report.written, report.skipped
+            )),
+        });
+        written += report.written;
+        skipped_writes += report.skipped;
+    }
 
     drifted.sort();
     drifted.dedup();
@@ -643,7 +694,7 @@ fn certify_build_plan(spec: &PipelineSpec) -> Result<ReasoningResult, PipelineEr
 ///
 /// Returns `true` when the file was rewritten and `false` when the existing bytes
 /// already matched.
-fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bool, PipelineError> {
+pub(crate) fn write_artifact(root: &Path, path: &str, bytes: &[u8]) -> Result<bool, PipelineError> {
     let target = root.join(path);
     match std::fs::read(&target) {
         Ok(existing) if existing == bytes => return Ok(false),
