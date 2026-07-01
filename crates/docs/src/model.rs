@@ -94,6 +94,11 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 /// values under it are surfaced as the term's logic stereotypes.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// `logic:instantiatesFramework` — the per-term reasoning-discipline selector;
+/// its objects (closed `logic:LogicalFramework` individuals) surface as the
+/// term's frameworks.
+const LOGIC_INSTANTIATES_FRAMEWORK: &str =
+    "https://blackcatinformatics.ca/logic/instantiatesFramework";
 
 const SKOS_RELATED: &str = "http://www.w3.org/2004/02/skos/core#related";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
@@ -353,6 +358,12 @@ pub struct DocTerm {
     /// as `logic:`-prefixed CURIEs, sorted/deduped. The lowered OntoUML/UFO
     /// discipline of the term (see `slices/core/logic`).
     pub logic_stereotypes: Vec<String>,
+    /// `logic:instantiatesFramework` — the closed `logic:LogicalFramework`
+    /// reasoning discipline(s) the term traffics in (`logic:HolonicFramework`,
+    /// `logic:DeonticFramework`, …), rendered as `logic:`-prefixed CURIEs,
+    /// sorted/deduped. Empty when the term traffics in no special discipline
+    /// (honest absence — not every term inhabits a framework).
+    pub frameworks: Vec<String>,
     /// Related-term IRIs: the union of `skos:related`, `gmeow:pairsWith`, and
     /// `rdfs:seeAlso` objects, resolved BIDIRECTIONALLY in `from_catalog`
     /// (sorted/deduped).
@@ -633,6 +644,64 @@ pub struct DocsModel {
     /// serialization.
     #[serde(skip)]
     pub ui_catalog: UiCatalog,
+    /// The target render language for the body renderers: the English carrier
+    /// (`""` / `"english"`) or a BCP-47 code (`"fr"`, `"zh"`). Set by
+    /// `localize_model` on the cloned per-language model; the English carrier keeps
+    /// `""` (which resolves to the English UI-chrome defaults). Skipped from
+    /// serialization so the model JSON golden is unchanged (deserialize defaults to
+    /// `""`).
+    #[serde(skip)]
+    pub lang: String,
+    /// The native reasoner's per-ontology consistency verdict, attached AFTER
+    /// source discovery by the production build (the carrier render path and the
+    /// docs-graph stage both consume `stage-reason`). `None` in source-only
+    /// contexts (unit tests, a bare `discover`): the per-term reasoning badge and
+    /// the reasoning-status RDF projection render ONLY when a verdict is present,
+    /// so an unevaluated model never fabricates a "satisfiable" claim. The
+    /// production path attaches it (or hard-fails), never silently skips it.
+    /// `#[serde(skip)]` so the source-model JSON golden is unaffected.
+    #[serde(skip)]
+    pub reasoning: Option<ReasoningVerdict>,
+}
+
+/// The native reasoner's consistency verdict, attached to a [`DocsModel`] by the
+/// production build so the docs can surface a per-term reasoning-status badge.
+///
+/// Carries the global consistency flag and the set of class IRIs the native DL
+/// reasoner proved unsatisfiable (each entailed `rdfs:subClassOf owl:Nothing` in
+/// the inferred closure). A term's three-state status is derived honestly:
+/// satisfiability is a CLASS notion, so a documented class is *evaluated* —
+/// satisfiable unless its IRI is in [`unsatisfiable`](Self::unsatisfiable) — while
+/// a property, individual, or datatype is *not-evaluated* (the reasoner decides no
+/// satisfiability for it). The not-evaluated state never collapses into
+/// satisfiable.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct ReasoningVerdict {
+    /// The global native-reasoner consistency flag (`ReasoningResult::is_consistent`).
+    pub is_consistent: bool,
+    /// The class IRIs proven unsatisfiable (entailed `rdfs:subClassOf owl:Nothing`).
+    /// Empty for a healthy ontology; a non-empty set lights the affected class
+    /// pages red.
+    pub unsatisfiable: std::collections::BTreeSet<String>,
+}
+
+impl DocsModel {
+    /// Attach the native reasoner's consistency verdict to this model (the
+    /// production build's post-discovery step). Idempotent: overwrites any prior
+    /// verdict.
+    pub fn attach_reasoning(&mut self, verdict: ReasoningVerdict) {
+        self.reasoning = Some(verdict);
+    }
+
+    /// Resolve a UI-chrome string for `key` in this model's target [`lang`], using
+    /// the per-language override catalog when present and falling back to the
+    /// `'static` English default. Empty `lang` and `"english"` both resolve to the
+    /// English default (see [`i18n::ui_string`]).
+    ///
+    /// [`lang`]: DocsModel::lang
+    pub(crate) fn ui(&self, key: &str) -> &str {
+        i18n::ui_string(key, &self.lang, &self.ui_catalog)
+    }
 }
 
 impl DocsModel {
@@ -908,6 +977,8 @@ impl DocsModel {
             available_languages,
             translations,
             ui_catalog: UiCatalog::default(),
+            reasoning: None,
+            lang: String::new(),
         }
     }
 
@@ -1018,6 +1089,20 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
         // Logic stereotypes: co-asserted `rdf:type` values under the logic NS.
         let logic_stereotypes = logic_stereotypes(store, &iri);
 
+        // Logical frameworks: the closed logic:LogicalFramework discipline(s) the
+        // term declares via logic:instantiatesFramework, rendered as `logic:`-prefixed
+        // CURIEs (mirroring logic_stereotypes — `to_curie` only abbreviates gmeow:),
+        // sorted/deduped.
+        let mut frameworks: Vec<String> = named_objects(store, &iri, LOGIC_INSTANTIATES_FRAMEWORK)
+            .iter()
+            .filter_map(|o| {
+                o.strip_prefix(LOGIC_NS)
+                    .map(|local| format!("logic:{local}"))
+            })
+            .collect();
+        frameworks.sort();
+        frameworks.dedup();
+
         // Related terms: union of skos:related + gmeow:pairsWith + rdfs:seeAlso
         // (IRIs; resolved bidirectionally in `from_catalog`).
         let mut related_terms = named_objects(store, &iri, SKOS_RELATED);
@@ -1058,6 +1143,7 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
             use_for_consumer,
             avoid_for_consumer,
             logic_stereotypes,
+            frameworks,
             related_terms,
             box_role,
             box_roles,
