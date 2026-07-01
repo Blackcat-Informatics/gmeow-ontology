@@ -1136,6 +1136,13 @@ mod tests {
     const EX_CONTROL: &str = "https://example.org/sat/control";
     const PERSON_SCHEMA_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/person-schema";
     const PERSON_FOAF_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/person-foaf";
+    const GM_KNOWS: &str = "https://blackcatinformatics.ca/gmeow/knows";
+    const FOAF_KNOWS: &str = "http://xmlns.com/foaf/0.1/knows";
+    const KNOWS_FOAF_CELL: &str = "https://blackcatinformatics.ca/gmeow/te/knows-foaf";
+    const EX_A: &str = "https://example.org/sat/a";
+    const EX_B: &str = "https://example.org/sat/b";
+    const EX_C: &str = "https://example.org/sat/c";
+    const EX_D: &str = "https://example.org/sat/d";
 
     fn cell(
         iri: &str,
@@ -1187,6 +1194,22 @@ mod tests {
                 "0.8",
             ),
         ]
+    }
+
+    /// The minimal ontology a property-edge scenario needs: `gmeow:knows a owl:ObjectProperty`.
+    fn knows_onto() -> String {
+        nt(GM_KNOWS, RDF_TYPE, OWL_OBJECT_PROPERTY)
+    }
+
+    /// One strong property edge: `gmeow:knows owl:equivalentProperty foaf:knows`.
+    fn knows_cells() -> Vec<CellInput> {
+        vec![cell(
+            KNOWS_FOAF_CELL,
+            GM_KNOWS,
+            "owl:equivalentProperty",
+            FOAF_KNOWS,
+            "0.9",
+        )]
     }
 
     fn iri_token(iri: &str) -> String {
@@ -1290,6 +1313,77 @@ mod tests {
         assert!(mirrors[0]
             .annotations
             .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(SAME_AS_MIRROR_RULE))));
+    }
+
+    #[test]
+    fn saturate_mirrors_strong_property_edge() {
+        // A strong equivalentProperty cell mirrors <a> gmeow:knows <b> to
+        // <a> foaf:knows <b>, carrying the object through, cell-attributed.
+        let abox = nt(EX_A, GM_KNOWS, EX_B);
+        let rows = saturate_nt(&abox, &knows_onto(), &knows_cells(), &[]).unwrap();
+        assert_eq!(rows.len(), 1, "exactly the one mirrored edge: {rows:?}");
+        let mirror = &rows[0];
+        assert_eq!(mirror.predicate, FOAF_KNOWS);
+        assert_eq!(mirror.subject, iri_token(EX_A));
+        assert_eq!(mirror.object, iri_token(EX_B));
+        assert!(mirror
+            .annotations
+            .contains(&(GM_MAPPED_FROM.to_owned(), iri_token(KNOWS_FOAF_CELL))));
+    }
+
+    #[test]
+    fn saturate_drops_property_edge_with_suppressed_object() {
+        // The property branch skips an edge whose OBJECT is suppressed (the
+        // class-edge test only covers subject suppression); a control edge to a
+        // visible object still mirrors — non-vacuous.
+        let mut abox = String::new();
+        abox.push_str(&nt(EX_A, GM_KNOWS, EX_SUPPRESSED));
+        abox.push_str(&format!(
+            "<{EX_SUPPRESSED}> <{GM_DISPLAYABLE}> \"false\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n"
+        ));
+        abox.push_str(&nt(EX_C, GM_KNOWS, EX_B));
+        let rows = saturate_nt(&abox, &knows_onto(), &knows_cells(), &[]).unwrap();
+        let edges: BTreeSet<(String, String)> = rows
+            .iter()
+            .filter(|r| r.predicate == FOAF_KNOWS)
+            .map(|r| (r.subject.clone(), r.object.clone()))
+            .collect();
+        assert!(
+            !edges.contains(&(iri_token(EX_A), iri_token(EX_SUPPRESSED))),
+            "suppressed-object edge leaked"
+        );
+        assert!(
+            edges.contains(&(iri_token(EX_C), iri_token(EX_B))),
+            "control edge lost"
+        );
+    }
+
+    #[test]
+    fn saturate_coarsen_guard_skips_edge_when_coarsen_to_present() {
+        // A coarsen-guarded property whose subject carries gmeow:coarsenTo is
+        // skipped; an unguarded subject still mirrors (positive control).
+        let mut onto = knows_onto();
+        onto.push_str(&format!(
+            "<{GM_KNOWS}> <{GM_COARSEN_GUARDED}> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n"
+        ));
+        let mut abox = String::new();
+        abox.push_str(&nt(EX_A, GM_KNOWS, EX_B));
+        abox.push_str(&nt(EX_A, GM_COARSEN_TO, EX_D)); // guard trips for EX_A
+        abox.push_str(&nt(EX_C, GM_KNOWS, EX_B)); // no coarsenTo → control mirrors
+        let rows = saturate_nt(&abox, &onto, &knows_cells(), &[]).unwrap();
+        let subjects: BTreeSet<String> = rows
+            .iter()
+            .filter(|r| r.predicate == FOAF_KNOWS)
+            .map(|r| r.subject.clone())
+            .collect();
+        assert!(
+            !subjects.contains(&iri_token(EX_A)),
+            "coarsen-guarded edge leaked"
+        );
+        assert!(
+            subjects.contains(&iri_token(EX_C)),
+            "unguarded control edge lost"
+        );
     }
 
     #[test]
