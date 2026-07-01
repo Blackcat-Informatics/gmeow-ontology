@@ -1,76 +1,16 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: CC-BY-4.0
-
-@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
-@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
-@prefix prov:   <http://www.w3.org/ns/prov#> .
-@prefix mls:    <http://www.w3.org/ns/mls#> .
+@prefix cito: <http://purl.org/spar/cito/> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix schema: <https://schema.org/> .
-@prefix oa:     <http://www.w3.org/ns/oa#> .
-@prefix cito:   <http://purl.org/spar/cito/> .
-@prefix crminf: <http://www.ics.forth.gr/isl/CRMinf/> .
-@prefix np:     <http://www.nanopub.org/nschema#> .
-@prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 
-# Term equivalences for the AI claim layer (#54) — GMEOW authoring source.
-# Maximal bridging BY REFERENCE (Principle 5): the literature's own verdict —
-# a combined claim-provenance schema is "an emerging intersection, not an
-# established specification" — is why most cells are closeMatch/relatedMatch:
-# each external vocabulary owns one slice of the picture. All QIDs were
-# curl-validated against the Wikidata API on 2026-06-12.
-
-gmeow:mapsetAi a gmeow:MappingSet ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
-    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/ai" ;
-    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment """AI claim-layer alignments (#54).
-        THE CLAIM PATTERN: the generated claim is the EXISTING gmeow:StandpointClaim (unified observation stance, P9) — its external bridges (schema:Claim, CRMinf I2 Belief, nanopublication assertion) are cellled here because the AI layer is why they matter, with the subject term owned by the standpoint slice.
-        PROV-O: ModelInvocation/RetrievalEvent are prov:Activity by inheritance through gmeow:Activity (already aligned in the provenance set) — only the AI-specific seams are added here.
-        ML-Schema: mls:Run is the W3C member-submission counterpart of a model invocation; mls:Model the trained-model artifact a ModelCard describes.
-        Web Annotation: a groundedIn evidence span is near-isomorphic to an oa:Annotation (body = claim node, target = chunk with position selector); the generated projection carries it (P4).
-        CiTO: supportPolarity's supports/refutes mirror cito:supports/cito:disputes at the citation-act level — relatedMatch (different carrier: span-to-claim stance vs work-to-work intent).""" ;
-    gmeow:setTrailer "# REFUSED (Principles 5/9 — verdict semantics): schema:ClaimReview. Its single reviewRating adjudicates a winner; GMEOW contradictions coexist standpoint-indexed, surfaced by gmeow:Contradiction and never resolved by rank.\n# REFUSED (Principle 5 — scope mismatch): C2PA Content Credentials sign MEDIA provenance at the container level, not statement-level claims; the attestation slice owns that seam.\n# REFUSED (Principle 5 — no RDF vocabulary): Model Cards (the Mitchell et al. practice) and FAIR4ML have no stable RDF namespace to cell against; mls:Model is the nearest stable term and is cellled. Revisit when a W3C/community namespace stabilizes.\n# REFUSED (Principle 15 — instance data, not TBox): RAGAS/ARES/AIS/RAGTruth metric vocabularies land as Criterion individuals in the #298 published rubric, not as term alignments." .
-
-# --- The claim pattern (subjects owned by the standpoint slice; bridged here).
-
-gmeow:eqAi001 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject schema:Claim ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "schema:Claim is the fact-check-markup claim; a StandpointClaim carries vantage/modality/confidence the schema.org term lacks — the projection emits text + appearance and NO reviewRating" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
-
-gmeow:eqAi002 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject crminf:I2_Belief ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "CRMinf's belief (a proposition held by an agent) is the heritage-argumentation cousin of the standpoint-indexed claim; CRMinf adds inference-making machinery GMEOW keeps in the solver layer" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
-
-gmeow:eqAi003 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject np:Assertion ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.6 ;
-    gmeow:comment "a nanopublication's assertion graph plays the claim-content role; nanopubs package assertion+provenance+pubinfo as named graphs where GMEOW uses RDF 1.2 statement annotations" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
-
-gmeow:eqAi004 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:closeMatch ;
-    gmeow:alignObject wd:Q2684591 ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7 ;
-    gmeow:comment "Wikidata 'statement' — that which a true-or-false sentence asserts; curl-validated 2026-06-12" ;
-    gmeow:sssomFile "gmeow-ai.sssom.tsv" .
-
-# --- Invocation, prompt, model identity.
+# Term equivalences (authored in-slice; source of alignment linkage).
 
 gmeow:eqAi005 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:ModelInvocation ;
@@ -107,8 +47,6 @@ gmeow:eqAi008 a gmeow:TermEquivalence ;
     gmeow:confidence 0.55 ;
     gmeow:comment "Wikidata 'prompt engineering' — the practice around the artifact (no artifact-level QID exists); curl-validated 2026-06-12" ;
     gmeow:sssomFile "gmeow-ai.sssom.tsv" .
-
-# --- Evidence seam.
 
 gmeow:eqAi009 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:groundedIn ;
@@ -155,8 +93,6 @@ gmeow:eqAi013 a gmeow:TermEquivalence ;
     gmeow:comment "CiTO's disputes, at the span-to-claim level" ;
     gmeow:sssomFile "gmeow-ai.sssom.tsv" .
 
-# --- Contradiction and chunking.
-
 gmeow:eqAi014 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Contradiction ;
     gmeow:alignPredicate skos:closeMatch ;
@@ -174,9 +110,6 @@ gmeow:eqAi015 a gmeow:TermEquivalence ;
     gmeow:confidence 0.5 ;
     gmeow:comment "a chunk IS located the way a position selector locates (start/end into a source); the selector is the locator, the chunk the located segment — relatedMatch, not equivalence" ;
     gmeow:sssomFile "gmeow-ai.sssom.tsv" .
-
-# --- Declarations for the projection executor (projection_spec_drift):
-# every emitted target property is declared here or in EDOAL.
 
 gmeow:eqAi016 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:groundedIn ;

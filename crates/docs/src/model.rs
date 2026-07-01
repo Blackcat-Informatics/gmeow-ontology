@@ -706,11 +706,19 @@ impl DocsModel {
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "5";
+    pub const VERSION: &'static str = "6";
 
     /// Build the documentation model from a discovered catalog and a computed
-    /// ownership report.
-    pub fn from_catalog(catalog: &SliceCatalog, ownership: &OwnershipReport) -> Self {
+    /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
+    /// `gmeow:MappingSet` publication headers (one per external vocabulary — they
+    /// aggregate cells authored across many slices, so they belong to no single
+    /// slice); they resolve each slice-authored linkage's `sssom_file` to its set
+    /// IRI and are documented alongside the slice-owned sets.
+    pub fn from_catalog(
+        catalog: &SliceCatalog,
+        ownership: &OwnershipReport,
+        central_mapping_sets: &[DocMappingSet],
+    ) -> Self {
         // ── Slices ──────────────────────────────────────────────────────────
         let mut slices: Vec<DocSlice> = catalog
             .records()
@@ -864,6 +872,10 @@ impl DocsModel {
                 linkages.extend(links);
             }
         }
+        // Cross-slice SSSOM publication headers (per external vocabulary): the
+        // linkage cells live in their owning slices, but the set-level metadata
+        // (setId/license/setComment) is shared, so it is authored centrally.
+        mapping_sets.extend(central_mapping_sets.iter().cloned());
         // Resolve each linkage's mapping_set IRI from its sssom_file, then count.
         let set_by_file: BTreeMap<String, String> = mapping_sets
             .iter()
@@ -988,7 +1000,8 @@ impl DocsModel {
     pub fn discover(root: &Path) -> Result<Self, DocsError> {
         let catalog = SliceCatalog::discover(&root.join("slices"))?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
-        let mut model = Self::from_catalog(&catalog, &ownership);
+        let central_sets = read_central_mapping_sets(root);
+        let mut model = Self::from_catalog(&catalog, &ownership, &central_sets);
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
         // Concept DOI for the per-term citation block (#1026): the
         // `dcterms:identifier` on the `gmeow:Work` subject of the self-description.
@@ -1018,6 +1031,24 @@ fn read_concept_doi(root: &Path) -> Option<String> {
         .subjects_of_type(GMEOW_WORK)
         .into_iter()
         .find_map(|work| store.first_literal(&work, DCTERMS_IDENTIFIER))
+}
+
+/// Read the cross-slice SSSOM `gmeow:MappingSet` publication headers from
+/// `<root>/dsl/mappings/mapping-sets.ttl`. Each set aggregates linkage cells
+/// authored across many slices (one set per external vocabulary), so it has no
+/// single owning slice — it is marked with the ontology-root owner. Absent file
+/// ⇒ no central sets (slices carry their own). Only the `gmeow:MappingSet`
+/// headers are read; the file carries no `gmeow:TermEquivalence` cells.
+fn read_central_mapping_sets(root: &Path) -> Vec<DocMappingSet> {
+    const CROSS_SLICE_OWNER: &str = "https://blackcatinformatics.ca/gmeow/";
+    let Ok(bytes) = std::fs::read(root.join("dsl/mappings/mapping-sets.ttl")) else {
+        return Vec::new();
+    };
+    let Ok(store) = parse_turtle_lenient(&bytes) else {
+        return Vec::new();
+    };
+    let (sets, _links) = extract_mappings(&store, CROSS_SLICE_OWNER);
+    sets
 }
 
 // ── Turtle parsing + term extraction ──────────────────────────────────────────

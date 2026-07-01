@@ -6,6 +6,7 @@
 @prefix cito: <http://purl.org/spar/cito/> .
 @prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 
 # Citation, credit, and attribution alignments.
 # Compiled to mappings/gmeow-citations.sssom.tsv by `gmeow compile-mappings`.
@@ -144,3 +145,23 @@ gmeow:eqCit013 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "PROV-O agent within an Attribution; GMEOW contributor is the relator player. Lossy." ;
     gmeow:sssomFile "gmeow-citations.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqDcTerms015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:references ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:references ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms references — a related resource that is referenced by the described resource. GMEOW references is general (formerly message-scoped, now Entity-scoped)." ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:isReferencedBy ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isReferencedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms isReferencedBy — a related resource that references the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
