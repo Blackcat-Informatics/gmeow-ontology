@@ -70,5 +70,22 @@ Removed because a Rust artifact already asserts the same behavior:
   remains only as the PyO3 surface adapter its consumers (`transform.py`,
   `gts_producer.py`) call.
 
+Relocated out of the mainline test tree (dossier removed with the test):
+
+- Classic-cross-check oracle lane (8): `test_reasoning_entailments`,
+  `test_rl_agreement`, `test_classic_cross_check`, `test_reason_verify_chain`,
+  `test_reason_native`, `test_logic_foundation_cases`, `test_statements`,
+  `test_runner` → relocated to the standalone `validations/classic-cross-check/`
+  validator-zoo suite (#1087). These drove the ELK/HermiT/ROBOT/Jena/owlrl
+  oracle cross-check (the "Oracle / Docker orchestration" retention category) —
+  retired *with* the classic-cross-check lane per that category's migration.
+  The lane now lives outside `make check` / `maint-*` / CI, run on demand via
+  `make -C validations/classic-cross-check`; the native authorities that made
+  the relocation lossless are already in `make check` (native EL/DL reasoning +
+  RL closure in `crates/logic`, the RDF-1.2 statement round-trip in
+  `crates/pipeline`, and the foundation-discipline goldens hand-verified in
+  `crates/logic/src/foundation`). A retention dossier justifies a *kept mainline*
+  pytest, so it does not outlive the test's departure from the mainline tree.
+
 Constitution `meta:artifact` citations of deleted tests were redirected to the
 Rust artifact that now proves the principle.
