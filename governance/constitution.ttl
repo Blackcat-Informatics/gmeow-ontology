@@ -201,6 +201,12 @@ meta:gate-crate-layering a meta:Gate ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 
+meta:gate-rdf-core-hygiene a meta:Gate ;
+    rdfs:label "reusable RDF-1.2 crate suite: gmeow-rdf-core keeps no oxigraph normal dependency"@x-gmeow-english ;
+    meta:artifact "crates/rdf-core/README.md" ;
+    meta:symbol "rdf-core-hygiene" ;
+    meta:makeTarget "rdf-core-hygiene" .
+
 meta:lint-coequal-facet a meta:Lint ;
     rdfs:label "annotation-driven identity-axis orthogonality"@x-gmeow-english ;
     meta:artifact "crates/validate/src/gufo.rs" ;
@@ -494,5 +500,6 @@ meta:Principle18 a meta:Principle ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
         meta:gate-classic-cross-check, meta:gate-native-oracle-superset,
-        meta:tests-lane-purity, meta:gate-release-evidence ;
+        meta:tests-lane-purity, meta:gate-release-evidence,
+        meta:gate-rdf-core-hygiene ;
     meta:extends meta:Principle17, meta:Principle13 .
