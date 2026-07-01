@@ -106,6 +106,8 @@ fn small_model() -> DocsModel {
         available_languages: vec!["english".to_string()],
         translations: Translations::default(),
         ui_catalog: UiCatalog::default(),
+        reasoning: None,
+        lang: String::new(),
     }
 }
 

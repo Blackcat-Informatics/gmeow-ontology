@@ -30,6 +30,7 @@ gmeow:Argument
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Argument"@x-gmeow-english ;
+    logic:instantiatesFramework logic:EpistemicFramework ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A node in an argumentation framework — the attackable, supportable unit a named acceptability semantics is evaluated over (Dung / ASPIC+). An Argument wraps at most one Toulmin step (gmeow:argumentInferenceStep -> gmeow:InferenceCommitment), rests on the premises it actually uses (gmeow:hasPremiseUse) via the rule it applies (gmeow:hasInferenceApplication), and establishes a conclusion (gmeow:argumentConclusion). It bears the typed gmeow:Attack and the accruing gmeow:Support relations toward other arguments, and is the proper domain the epistemics gmeow:attacksClaim / gmeow:supportsClaim hooks pair with. A relator, not a process (the gmeow:Commitment idiom); whether it survives is the solver-layer gmeow:ArgumentEvaluation, never an asserted accepted bit (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .

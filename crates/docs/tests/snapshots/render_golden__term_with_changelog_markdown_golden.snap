@@ -13,6 +13,8 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Class |
 | Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
 
+![completeness: Docs 4/6](../../badges/completeness/4.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+
 ## Definition
 
 A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
