@@ -5633,7 +5633,7 @@ logic:OpacityIsolation
         logic:IsolationLevel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Opacity Isolation"@x-gmeow-english ;
-    skos:definition "The logic:IsolationLevel guarantee under which even aborted or in-flight transactions never observe an inconsistent state — the strongest level, STRICTLY STRONGER than serializability (logic:SerializableIsolation), which constrains only committed transactions."@x-gmeow-english .
+    skos:definition "The logic:IsolationLevel guarantee under which even aborted or in-flight transactions never observe an inconsistent state — the strongest level, STRICTLY STRONGER than serializability (logic:SerializableIsolation), which constrains only committed transactions. Engine note: under the committed-only, snapshot-isolation execution model of the native evaluator, no aborted or in-flight transactions arise; opacity's additional constraints are therefore vacuously satisfied, and the isolation-adequacy verdict for logic:OpacityIsolation coincides with that of logic:SerializableIsolation by construction — both are met exactly when the witnessed schedule is conflict-serializable."@x-gmeow-english .
 
 logic:ConcurrencyControlProtocol
     a owl:Class ;
@@ -5734,6 +5734,123 @@ logic:anomalyCycle
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "anomaly cycle"@x-gmeow-english ;
     skos:definition "The detected dependency cycle of a logic:SerializationAnomaly, rendered as the canonical sequence of transaction IRIs joined by ' -> ' (rotated to start at the lexicographically smallest member and closed back to it, so the same history always yields the same description). Domain logic:SerializationAnomaly, range xsd:string (stated in prose). It is a human-readable DESCRIPTION of the history-level finding — the conflict-graph cycle that has no equivalent serial order — never a claim of ⊥ within a state; a non-serializable schedule is surfaced with its cycle described here, never silently linearized."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- View-serializability: the read-from / final-write history surface ---------
+# The native concurrent evaluator classifies the witnessed binary interleaving
+# against logic:ViewSerializability as well as logic:ConflictSerializability, and
+# DERIVES the read-from and happens-before edges that classification rests on.
+# View-equivalence compares, across the witnessed schedule and the two serial
+# orders of its two legs, which write each read observed (logic:readsFrom) and
+# which transaction wrote each situation last. A conflict-serializable schedule is
+# always view-serializable; a conflict-CYCLIC schedule may still be view-
+# serializable (a blind-write history), so the two criteria are recorded
+# independently through logic:satisfiesCriterion.
+
+logic:readsFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "reads from"@x-gmeow-english ;
+    skos:definition "A read-dependency edge of a logic:ConcurrentHistory: 'reader readsFrom writer' records that the reading logic:TransactionStep observed, for a situation in its read set (its schema's logic:precondition), the value written by the writer logic:TransactionStep — the last step to write that situation before the reader in the witnessed interleaving. Domain and range logic:TransactionStep (stated in prose). Emitted only for CROSS-transaction read dependencies (a step reading from the OTHER leg's write), which is where the read-from relation can differ from a serial order and therefore where it carries view-serializability information; intra-leg read dependencies are fixed by the leg's own order and carry none. Together with logic:happensBefore it is the view-serializability surface, kept DISTINCT from logic:precedes, which is the transaction-level conflict edge over which conflict-serializability is decided."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:happensBefore
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "happens before"@x-gmeow-english ;
+    skos:definition "A schedule-order edge of a logic:ConcurrentHistory: 'earlier happensBefore later' records that the earlier logic:TransactionStep is scheduled before the later one in the witnessed index-order interleaving AND the two conflict (they share a situation that at least one writes). Domain and range logic:TransactionStep (stated in prose). Emitted only for CROSS-transaction conflicting pairs — the schedule order between the two legs' operations that view- and conflict-serializability both read. It is the step-level witnessed-order companion to logic:readsFrom; it is kept DISTINCT from logic:precedes, which lifts conflict order to the TRANSACTION level for cycle detection, and from logic:temporallySucceeds, which orders the states of a single executed path rather than operations across legs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:satisfiesCriterion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "satisfies criterion"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConcurrentHistory to each logic:SerializabilityCriterion its witnessed schedule actually SATISFIES — the classification RESULT, as opposed to logic:serializabilityCriterion, which names the criterion the history is judged against. The native evaluator emits logic:ConflictSerializability when the logic:precedes conflict graph is acyclic and logic:ViewSerializability when the witnessed interleaving is view-equivalent to one of the two serial orders of its legs. Domain logic:ConcurrentHistory, range logic:SerializabilityCriterion (stated in prose); multi-valued. Because conflict-serializability is strictly stronger, a history that satisfies logic:ConflictSerializability always also satisfies logic:ViewSerializability; a conflict-CYCLIC history may satisfy logic:ViewSerializability alone. Absence of a criterion here is the honest record that the schedule does not satisfy it — the corresponding logic:SerializationAnomaly finding carries the violated criterion — never a silent linearization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Protocol soundness: the isolation guarantee + control mechanism surface ---
+# A logic:ConcurrencyControlProtocol is enforced by the protocol's OWN events —
+# per-transaction timestamps and per-action lock acquire/release — which a run
+# records so that "does this witnessed schedule respect the declared protocol?"
+# is a polynomial WELL-FORMEDNESS classification of the schedule (Principle 12),
+# never a search for a legal schedule (which would be NP-hard). The protocol is
+# declared on the reasoning contract (logic:declaredProtocol); the verdict is
+# recorded on the derived history (logic:protocolEnforced). A declared protocol
+# whose required events are absent from the run is a HARD ERROR, never a silent
+# pass — the run must carry the events its protocol is verified against.
+
+logic:declaredProtocol
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "declared protocol"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:ConcurrencyControlProtocol its concurrent transactions are to be enforced under — the IMPLEMENTATION MECHANISM (strict / strong-strict two-phase locking, timestamp ordering, or optimistic validation) declared for the run. Domain logic:ReasoningContract, range logic:ConcurrencyControlProtocol (stated in prose); at most one per contract, from the closed protocol set (a value outside it is a hard error). It is kept DISTINCT from the guarantee strength the mechanism is meant to achieve (logic:declaredIsolationLevel) and from the history property it produces (logic:serializabilityCriterion): a protocol is HOW a guarantee is enforced, never the guarantee itself. The native evaluator classifies whether the witnessed schedule respects this protocol's discipline over the run's recorded protocol events and records the verdict as logic:protocolEnforced."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:transactionTimestamp
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "transaction timestamp"@x-gmeow-english ;
+    skos:definition "The start-order timestamp assigned to a transaction (a concurrent-composition leg) under a timestamp-ordering protocol — the recorded event a logic:TimestampOrdering verification classifies the witnessed schedule against. Domain a transaction-program node (a logic:ConcurrentComposition leg), range xsd:integer (stated in prose); single-valued. Under logic:TimestampOrdering the schedule is well-formed iff every logic:precedes conflict edge runs from the earlier timestamp to the later one; a run declaring logic:TimestampOrdering that omits a leg's timestamp is a hard error. It is a recorded protocol EVENT — an input the classifier reads — not a derived verdict, and it is distinct from logic:temporallySucceeds, which orders the STATES of an executed path rather than the transactions of a schedule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lockAcquired
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lock acquired"@x-gmeow-english ;
+    skos:definition "Records that the action a transaction step performs ACQUIRES an exclusive lock on a situation — a recorded event of a two-phase-locking protocol. Declared on the action schema (logic:ActionSchema) a step instantiates, range the locked situation (stated in prose); the native evaluator reads the acquire/release events in each leg's step order to classify the lock discipline. Under logic:StrictTwoPhaseLocking the schedule is well-formed iff each leg is two-phase (no acquire follows any release within the leg); under logic:StrongStrictTwoPhaseLocking, additionally, no lock is released before the leg's final (commit) step. It is a recorded protocol EVENT the classifier reads, kept distinct from logic:lockReleased (its releasing counterpart) and from the situation-validity vocabulary (logic:situationObtains), which is about what holds, not what is locked."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:lockReleased
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lock released"@x-gmeow-english ;
+    skos:definition "Records that the action a transaction step performs RELEASES its exclusive lock on a situation — the releasing counterpart of logic:lockAcquired and a recorded event of a two-phase-locking protocol. Declared on the action schema (logic:ActionSchema) a step instantiates, range the released situation (stated in prose). The native evaluator reads releases in each leg's step order: a release before any remaining acquire breaks the two-phase discipline (logic:StrictTwoPhaseLocking), and a release before the leg's final step breaks the held-to-commit discipline (logic:StrongStrictTwoPhaseLocking). It is a recorded protocol EVENT the classifier reads, never a derived verdict."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:protocolEnforced
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "protocol enforced"@x-gmeow-english ;
+    skos:definition "The boolean verdict of classifying a logic:ConcurrentHistory's witnessed schedule against the logic:ConcurrencyControlProtocol its run declared (logic:declaredProtocol): true iff the schedule respects that protocol's discipline over the run's recorded protocol events (timestamps for logic:TimestampOrdering; lock acquire/release events for the two-phase-locking protocols; cross-leg read-write disjointness for logic:OptimisticValidation). Domain logic:ConcurrentHistory, range xsd:boolean (stated in prose); present only when a protocol is declared. A false verdict carries a human-readable logic:protocolViolationReason. This is HOW-a-guarantee-is-enforced verification, kept distinct from logic:satisfiesCriterion (the history property the schedule satisfies) and logic:isolationLevelAdequacy (whether the schedule meets a declared guarantee strength); a declared protocol whose required events are absent is a hard error, never a false-by-default."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:protocolViolationReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "protocol violation reason"@x-gmeow-english ;
+    skos:definition "A human-readable description of WHY a logic:ConcurrentHistory's witnessed schedule fails the concurrency-control protocol its run declared — present exactly when logic:protocolEnforced is false. Domain logic:ConcurrentHistory, range xsd:string (stated in prose). It names the discipline the schedule breaks (a non-two-phase lock order, a lock released before commit, a conflict edge against timestamp order, or a cross-leg read-write conflict that optimistic validation would abort), so a protocol failure is surfaced with its cause rather than as a bare boolean. It is a description of a mechanism-level finding, never a claim of logical contradiction within a state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Isolation-level adequacy: does the schedule meet the declared strength? ---
+# A logic:IsolationLevel is a declared GUARANTEE STRENGTH; the native evaluator
+# classifies whether a run's witnessed schedule MEETS it. The concurrent engine
+# realizes snapshot isolation (each leg reads a consistent start snapshot and
+# writes independently), so every level up to and including logic:SnapshotIsolation
+# is met by construction; logic:SerializableIsolation and logic:OpacityIsolation
+# are met only when the schedule is conflict-serializable (a write-skew cycle,
+# which snapshot admits, fails them). The level is declared on the contract
+# (logic:declaredIsolationLevel); the verdict is recorded on the history
+# (logic:isolationLevelAdequacy).
+
+logic:declaredIsolationLevel
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "declared isolation level"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:IsolationLevel guarantee strength its concurrent transactions must meet. Domain logic:ReasoningContract, range logic:IsolationLevel (stated in prose); at most one per contract, from the closed isolation-level set (a value outside it is a hard error). It is kept DISTINCT from logic:declaredProtocol (the mechanism that would enforce the level) and from logic:serializabilityCriterion (a history property): an isolation level is the guarantee STRENGTH required, neither the mechanism that achieves it nor the property a particular history happens to have. The native evaluator classifies whether the witnessed schedule meets this declared strength and records the result as logic:isolationLevelAdequacy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:isolationLevelAdequacy
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "isolation level adequacy"@x-gmeow-english ;
+    skos:definition "The boolean verdict of classifying a logic:ConcurrentHistory's witnessed schedule against the logic:IsolationLevel its run declared (logic:declaredIsolationLevel): true iff the schedule meets that declared guarantee strength. Domain logic:ConcurrentHistory, range xsd:boolean (stated in prose); present only when a level is declared. Because the concurrent evaluator realizes snapshot isolation, every level up to logic:SnapshotIsolation is adequate by construction; logic:SerializableIsolation and logic:OpacityIsolation are adequate iff the schedule is conflict-serializable — a write-skew cycle (which snapshot admits) is adequate for snapshot yet INADEQUATE for serializability. A false verdict carries a logic:isolationInadequacyReason. It is guarantee-strength adequacy, kept distinct from logic:protocolEnforced (mechanism soundness) and logic:satisfiesCriterion (the history property)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:isolationInadequacyReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "isolation inadequacy reason"@x-gmeow-english ;
+    skos:definition "A human-readable description of WHY a logic:ConcurrentHistory's witnessed schedule fails to meet its declared logic:IsolationLevel — present exactly when logic:isolationLevelAdequacy is false. Domain logic:ConcurrentHistory, range xsd:string (stated in prose). In the snapshot-isolation model this is the case of a schedule that is not conflict-serializable (a write-skew or lost-update cycle) declared under logic:SerializableIsolation or logic:OpacityIsolation, and the reason names that: the schedule is not conflict-serializable, so it does not meet the declared strength. It is a guarantee-level finding, never a claim of logical contradiction within a state."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── The full first-order formula AST surface (TBox + RBox) ────────────────────

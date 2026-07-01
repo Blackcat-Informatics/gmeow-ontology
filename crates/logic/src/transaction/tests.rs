@@ -1122,3 +1122,447 @@ fn concurrent_fails_when_either_leg_fails() {
         "no committed substrate on failure"
     );
 }
+
+// ── View-serializability: the second criterion + read-from / happens-before ──────
+
+/// Whether the history satisfies the given serializability criterion (logic:satisfiesCriterion).
+fn satisfies(quads: &[crate::teleology::TeleologyQuad], criterion_local: &str) -> bool {
+    quads.iter().any(|q| {
+        q.predicate.ends_with("satisfiesCriterion")
+            && q.object.ends_with(&format!("{criterion_local}>"))
+    })
+}
+
+#[test]
+fn concurrent_serializable_satisfies_view_and_conflict() {
+    // Disjoint legs → conflict-serializable. A conflict-serializable schedule is ALWAYS
+    // view-serializable, so the derived history satisfies BOTH criteria via satisfiesCriterion.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pb")),
+        ]
+        .concat(),
+        [
+            primitive("pa", &[], &["sitA"], &[]),
+            primitive("pb", &[], &["sitB"], &[]),
+        ]
+        .concat(),
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert!(
+        satisfies(&quads, "ConflictSerializability"),
+        "acyclic conflict graph → conflict-serializable"
+    );
+    assert!(
+        satisfies(&quads, "ViewSerializability"),
+        "conflict-serializable ⟹ view-serializable"
+    );
+}
+
+#[test]
+fn concurrent_read_dependency_emits_view_surface() {
+    // left writes sitA; right reads sitA (present at the shared start, so the leg succeeds
+    // independently) then writes sitB. In the witnessed interleaving [l0, r0] the right leg's
+    // read observes the left leg's write → a cross-leg logic:readsFrom edge (r0 → l0) and a
+    // logic:happensBefore edge (l0 → r0). One-directional conflict → serializable (both criteria).
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &["sitA"]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("l0")),
+            q(&e("cc"), &l("rightOperand"), &e("r0")),
+        ]
+        .concat(),
+        [
+            primitive("l0", &[], &["sitA"], &[]),
+            primitive("r0", &["sitA"], &["sitB"], &[]),
+        ]
+        .concat(),
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert!(
+        quads.iter().any(|q| q.predicate.ends_with("/readsFrom")),
+        "the cross-leg read must materialize a readsFrom edge"
+    );
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("/happensBefore")),
+        "the cross-leg conflict must materialize a happensBefore edge"
+    );
+    assert!(
+        satisfies(&quads, "ConflictSerializability") && satisfies(&quads, "ViewSerializability"),
+        "a one-directional read dependency is serializable under both criteria"
+    );
+}
+
+#[test]
+fn concurrent_non_serializable_satisfies_neither_criterion() {
+    // The cross-dependency world is conflict-CYCLIC. For two transactions view-serializability
+    // coincides with conflict-serializability, so it satisfies NEITHER criterion — and its
+    // cross-leg reads still materialize readsFrom edges for audit.
+    let quads = outcome_quads(&cross_dependency_world(), "cc");
+    assert!(
+        !satisfies(&quads, "ConflictSerializability"),
+        "a conflict cycle is not conflict-serializable"
+    );
+    assert!(
+        !satisfies(&quads, "ViewSerializability"),
+        "for two transactions a conflict cycle is not view-serializable either"
+    );
+    assert!(
+        quads.iter().any(|q| q.predicate.ends_with("/readsFrom")),
+        "cross-leg reads (r1 reads sitX from l0; l1 reads sitY from r0) materialize readsFrom"
+    );
+}
+
+#[test]
+fn concurrent_self_composition_is_hard_error() {
+    // Composing a program with ITSELF (both operands the same node) is malformed for
+    // serializability analysis — a hard error, never a silent self-conflict.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pa")),
+        ]
+        .concat(),
+        primitive("pa", &[], &["sitA"], &[]),
+    );
+    let facts = facts_of(&nq);
+    let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
+    assert!(err.contains("composes a program with itself"), "{err}");
+}
+
+// ── Protocol soundness: the declared control mechanism verified over recorded events ──
+
+/// An `xsd:integer` N3 literal.
+fn int_lit(n: i64) -> String {
+    format!("\"{n}\"^^<http://www.w3.org/2001/XMLSchema#integer>")
+}
+
+/// Wire the concurrent root `cc` to a logic:ReasoningContract declaring `protocol_local`.
+fn declares_protocol(protocol_local: &str) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    format!(
+        "{}{}{}",
+        q(&e("contract"), ty, &l("ReasoningContract")),
+        q(&e("cc"), &l("executedUnderContract"), &e("contract")),
+        q(&e("contract"), &l("declaredProtocol"), &l(protocol_local)),
+    )
+}
+
+/// A per-leg `logic:transactionTimestamp`.
+fn timestamp(node: &str, n: i64) -> String {
+    q(&e(node), &l("transactionTimestamp"), &int_lit(n))
+}
+
+/// Declare lock acquire/release events on a primitive's action schema (`{node}Schema`).
+fn locks(node: &str, acquired: &[&str], released: &[&str]) -> String {
+    let schema = format!("{node}Schema");
+    let mut s = String::new();
+    for a in acquired {
+        s.push_str(&q(&e(&schema), &l("lockAcquired"), &e(a)));
+    }
+    for r in released {
+        s.push_str(&q(&e(&schema), &l("lockReleased"), &e(r)));
+    }
+    s
+}
+
+/// The boolean logic:protocolEnforced verdict on the history, if present.
+fn protocol_enforced(quads: &[crate::teleology::TeleologyQuad]) -> Option<bool> {
+    quads
+        .iter()
+        .find(|q| q.predicate.ends_with("protocolEnforced"))
+        .map(|q| q.object.starts_with("\"true\""))
+}
+
+#[test]
+fn no_declared_protocol_emits_no_protocol_verdict() {
+    // The existing serializable world declares no contract → no protocol claim → no verdict.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let nq = format!(
+        "{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pb")),
+        ]
+        .concat(),
+        [
+            primitive("pa", &[], &["sitA"], &[]),
+            primitive("pb", &[], &["sitB"], &[]),
+        ]
+        .concat(),
+    );
+    assert_eq!(protocol_enforced(&outcome_quads(&nq, "cc")), None);
+}
+
+/// A read-dependency concurrent world (left writes sitA, right reads sitA then writes sitB;
+/// sitA obtains at the shared start) with an optional trailer declaring a protocol + events.
+fn protocol_world(trailer: &str) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    format!(
+        "{}{}{}{}{}",
+        start_state("s0", &["sitA"]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("l0")),
+            q(&e("cc"), &l("rightOperand"), &e("r0")),
+        ]
+        .concat(),
+        [
+            primitive("l0", &[], &["sitA"], &[]),
+            primitive("r0", &["sitA"], &["sitB"], &[]),
+        ]
+        .concat(),
+        trailer,
+    )
+}
+
+#[test]
+fn timestamp_ordering_enforced_when_edge_respects_timestamps() {
+    // One conflict edge l0 → r0 (left writes what right reads); timestamps 1 < 2 respect it.
+    let nq = protocol_world(&format!(
+        "{}{}{}",
+        declares_protocol("TimestampOrdering"),
+        timestamp("l0", 1),
+        timestamp("r0", 2),
+    ));
+    assert_eq!(protocol_enforced(&outcome_quads(&nq, "cc")), Some(true));
+}
+
+#[test]
+fn timestamp_ordering_violated_by_a_conflict_cycle() {
+    // The cross-dependency world is conflict-CYCLIC: with timestamps 1,2 one of the opposing
+    // edges runs against timestamp order → not enforced, with a reason.
+    let stamps = [timestamp("leftSer", 1), timestamp("rightSer", 2)].concat();
+    let nq = format!(
+        "{}{}{}",
+        cross_dependency_world(),
+        declares_protocol("TimestampOrdering"),
+        stamps,
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert_eq!(protocol_enforced(&quads), Some(false));
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("protocolViolationReason")),
+        "a protocol failure carries its reason"
+    );
+}
+
+#[test]
+fn timestamp_ordering_missing_timestamp_is_hard_error() {
+    // Declaring timestamp ordering without a leg timestamp is a hard error, never a silent pass.
+    let nq = protocol_world(&declares_protocol("TimestampOrdering"));
+    let facts = facts_of(&nq);
+    let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
+    assert!(err.contains("logic:transactionTimestamp"), "{err}");
+}
+
+#[test]
+fn strict_two_phase_locking_enforced_and_no_lock_events_is_hard_error() {
+    // Each schema acquires then releases its lock within its step → two-phase holds → enforced.
+    let nq = protocol_world(&format!(
+        "{}{}{}",
+        declares_protocol("StrictTwoPhaseLocking"),
+        locks("l0", &["sitA"], &["sitA"]),
+        locks("r0", &["sitA"], &["sitA"]),
+    ));
+    assert_eq!(protocol_enforced(&outcome_quads(&nq, "cc")), Some(true));
+
+    // The SAME declaration with NO recorded lock events is a hard error.
+    let bare = protocol_world(&declares_protocol("StrictTwoPhaseLocking"));
+    let facts = facts_of(&bare);
+    let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
+    assert!(err.contains("no logic:lockAcquired"), "{err}");
+}
+
+#[test]
+fn strong_strict_two_phase_locking_requires_holding_locks_to_commit() {
+    // A two-step left leg that RELEASES its lock at the first (non-final) step breaks the
+    // held-to-commit discipline of strong-strict 2PL, but still satisfies plain strict 2PL.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let world = |protocol: &str| {
+        format!(
+            "{}{}{}{}{}{}{}",
+            start_state("s0", &[]),
+            q(&e("cc"), ty, &l("ConcurrentComposition")),
+            [
+                q(&e("cc"), &l("transitionFromState"), &e("s0")),
+                q(&e("cc"), &l("leftOperand"), &e("leftSer")),
+                q(&e("cc"), &l("rightOperand"), &e("pb")),
+            ]
+            .concat(),
+            serial2("leftSer", "l0", "l1"),
+            [
+                primitive("l0", &[], &["sitA"], &[]),
+                primitive("l1", &[], &["sitC"], &[]),
+                primitive("pb", &[], &["sitB"], &[]),
+            ]
+            .concat(),
+            // l0 (the FIRST, non-final step of leftSer) acquires AND releases → released before commit.
+            locks("l0", &["sitA"], &["sitA"]),
+            declares_protocol(protocol),
+        )
+    };
+    assert_eq!(
+        protocol_enforced(&outcome_quads(&world("StrongStrictTwoPhaseLocking"), "cc")),
+        Some(false),
+        "strong-strict forbids releasing a lock before the commit step"
+    );
+    assert_eq!(
+        protocol_enforced(&outcome_quads(&world("StrictTwoPhaseLocking"), "cc")),
+        Some(true),
+        "plain strict two-phase locking only requires the two-phase order"
+    );
+}
+
+#[test]
+fn optimistic_validation_enforced_iff_no_cross_leg_read_write_conflict() {
+    // Disjoint legs → no cross-leg read-write conflict → optimistic validation passes.
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    let disjoint = format!(
+        "{}{}{}{}{}",
+        start_state("s0", &[]),
+        q(&e("cc"), ty, &l("ConcurrentComposition")),
+        [
+            q(&e("cc"), &l("transitionFromState"), &e("s0")),
+            q(&e("cc"), &l("leftOperand"), &e("pa")),
+            q(&e("cc"), &l("rightOperand"), &e("pb")),
+        ]
+        .concat(),
+        [
+            primitive("pa", &[], &["sitA"], &[]),
+            primitive("pb", &[], &["sitB"], &[]),
+        ]
+        .concat(),
+        declares_protocol("OptimisticValidation"),
+    );
+    assert_eq!(
+        protocol_enforced(&outcome_quads(&disjoint, "cc")),
+        Some(true)
+    );
+
+    // The read-dependency world: right READS what left WRITES → a cross-leg read-write
+    // conflict → optimistic validation would abort → not enforced.
+    let conflicting = protocol_world(&declares_protocol("OptimisticValidation"));
+    assert_eq!(
+        protocol_enforced(&outcome_quads(&conflicting, "cc")),
+        Some(false)
+    );
+}
+
+// ── Isolation-level adequacy: does the schedule meet the declared strength? ──────
+
+/// Wire the concurrent root `cc` to a contract declaring `level_local`.
+fn declares_isolation(level_local: &str) -> String {
+    let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    format!(
+        "{}{}{}",
+        q(&e("contract"), ty, &l("ReasoningContract")),
+        q(&e("cc"), &l("executedUnderContract"), &e("contract")),
+        q(
+            &e("contract"),
+            &l("declaredIsolationLevel"),
+            &l(level_local)
+        ),
+    )
+}
+
+/// The boolean logic:isolationLevelAdequacy verdict on the history, if present.
+fn isolation_adequate(quads: &[crate::teleology::TeleologyQuad]) -> Option<bool> {
+    quads
+        .iter()
+        .find(|q| q.predicate.ends_with("isolationLevelAdequacy"))
+        .map(|q| q.object.starts_with("\"true\""))
+}
+
+#[test]
+fn no_declared_isolation_level_emits_no_adequacy_verdict() {
+    // The read-dependency world with no isolation declaration → no adequacy verdict.
+    let nq = protocol_world("");
+    assert_eq!(isolation_adequate(&outcome_quads(&nq, "cc")), None);
+}
+
+#[test]
+fn snapshot_and_weaker_levels_are_always_adequate_even_on_a_cycle() {
+    // The cross-dependency world is conflict-CYCLIC (a write-skew). The engine realizes snapshot
+    // isolation, so every level up to snapshot is met by construction — snapshot ADMITS write skew.
+    for level in [
+        "ReadUncommittedIsolation",
+        "ReadCommittedIsolation",
+        "RepeatableReadIsolation",
+        "SnapshotIsolation",
+    ] {
+        let nq = format!("{}{}", cross_dependency_world(), declares_isolation(level));
+        assert_eq!(
+            isolation_adequate(&outcome_quads(&nq, "cc")),
+            Some(true),
+            "{level} must be adequate under the snapshot-isolation model even on a cycle"
+        );
+    }
+}
+
+#[test]
+fn serializable_isolation_is_inadequate_on_a_cycle_with_reason() {
+    // Declared serializable over a conflict-cyclic (write-skew) schedule → inadequate + reason.
+    let nq = format!(
+        "{}{}",
+        cross_dependency_world(),
+        declares_isolation("SerializableIsolation")
+    );
+    let quads = outcome_quads(&nq, "cc");
+    assert_eq!(isolation_adequate(&quads), Some(false));
+    assert!(
+        quads
+            .iter()
+            .any(|q| q.predicate.ends_with("isolationInadequacyReason")),
+        "an inadequate level carries its reason"
+    );
+}
+
+#[test]
+fn serializable_and_opacity_are_adequate_on_a_serializable_schedule() {
+    // The read-dependency world is conflict-serializable (one acyclic edge), so BOTH the
+    // serializable and opacity strengths are met (opacity coincides with serializable here —
+    // there are no aborted/in-flight transactions, only committed runs produce a history).
+    for level in ["SerializableIsolation", "OpacityIsolation"] {
+        let nq = protocol_world(&declares_isolation(level));
+        assert_eq!(
+            isolation_adequate(&outcome_quads(&nq, "cc")),
+            Some(true),
+            "{level} must be adequate for a conflict-serializable schedule"
+        );
+    }
+}
+
+#[test]
+fn opacity_is_inadequate_on_a_cycle() {
+    // Opacity coincides with serializable in this model: a cycle fails it.
+    let nq = format!(
+        "{}{}",
+        cross_dependency_world(),
+        declares_isolation("OpacityIsolation")
+    );
+    assert_eq!(isolation_adequate(&outcome_quads(&nq, "cc")), Some(false));
+}

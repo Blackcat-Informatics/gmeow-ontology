@@ -1,0 +1,7 @@
+{
+  "certified": true,
+  "decidability_class": "terminating/PTIME-data",
+  "evolution_class": "static/single-state",
+  "profile_id": "PositiveHornProfile",
+  "violations": []
+}
