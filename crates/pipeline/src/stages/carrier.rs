@@ -1175,12 +1175,64 @@ fn build_executable_docs_data(
     // ∪ base closure), serialized to TriG (named graphs preserved).
     let playground_trig = build_playground_trig(carrier, edb.as_ref(), &base_closure)?;
 
+    // Per-slice multi-format export: the slice's Symmetric-CBD (its owned terms + the
+    // slice itself) serialized to every RDF format. Language-independent, so computed
+    // ONCE here (not per-language). One Describer amortizes the adjacency index.
+    let slice_export = build_slice_export(edb.as_ref(), model)?;
+
     Ok(gmeow_docs::ExecutableDocsData {
         example_inferences,
         cross_example,
         playground_trig,
-        ontology: Some(edb),
+        slice_export,
     })
+}
+
+/// Serialize each slice's Symmetric-CBD to every RDF format, keyed by slice IRI.
+fn build_slice_export(
+    edb: &gmeow_rdf::RdfDataset,
+    model: &gmeow_docs::model::DocsModel,
+) -> Result<std::collections::BTreeMap<String, Vec<gmeow_docs::ExportFormat>>, PipelineError> {
+    // (short extension, media type) for the five `NativeRdfFormat`s; JSON-LD rides the
+    // separate native_codecs path below.
+    const FORMATS: &[(&str, &str)] = &[
+        ("ttl", "text/turtle"),
+        ("nt", "application/n-triples"),
+        ("nq", "application/n-quads"),
+        ("trig", "application/trig"),
+        ("rdf", "application/rdf+xml"),
+    ];
+    let describer = gmeow_rdf::describe::Describer::new(edb);
+    let mut out: std::collections::BTreeMap<String, Vec<gmeow_docs::ExportFormat>> =
+        std::collections::BTreeMap::new();
+    for slice in &model.slices {
+        // The slice's subjects: every term it owns, plus the slice IRI itself.
+        let mut subjects: Vec<&str> = model
+            .terms
+            .iter()
+            .filter(|t| t.owner_slice == slice.iri)
+            .map(|t| t.iri.as_str())
+            .collect();
+        subjects.push(slice.iri.as_str());
+        let scbd = describer
+            .describe_iris(subjects)
+            .map_err(|e| stage_err(&format!("describe slice {}: {e}", slice.iri)))?;
+        if scbd.quad_count() == 0 {
+            continue;
+        }
+        let mut forms: Vec<gmeow_docs::ExportFormat> = Vec::new();
+        for (ext, media) in FORMATS {
+            let bytes = serialize_dataset(&scbd, media, SerializeGraph::Dataset).map_err(|e| {
+                stage_err(&format!("serialize slice {} as {media}: {e}", slice.iri))
+            })?;
+            forms.push(((*ext).to_string(), bytes));
+        }
+        let jsonld = gmeow_rdf::native_codecs::jsonld::serialize_dataset_to_jsonld(&scbd)
+            .map_err(|e| stage_err(&format!("serialize slice {} as jsonld: {e}", slice.iri)))?;
+        forms.push(("jsonld".to_string(), jsonld.into_bytes()));
+        out.insert(slice.iri.clone(), forms);
+    }
+    Ok(out)
 }
 
 /// Serialize `documentation graph ∪ ontology (EDB) ∪ reasoned closure` to TriG — the

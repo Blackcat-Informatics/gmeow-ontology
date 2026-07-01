@@ -55,6 +55,14 @@ const CSS_PATH: &str = "assets/gmeow.css";
 /// is emitted to. Language-neutral: the RDF is language-independent.
 const PLAYGROUND_TRIG_PATH: &str = "assets/playground.trig";
 
+/// The site-relative path of the docs controller module (SPARQL playground query
+/// execution + result transcoding). A self-contained ES module.
+const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
+
+/// The embedded docs controller module, emitted to [`DOCS_JS_PATH`] when the
+/// playground is present.
+const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
+
 // ── Pages ──────────────────────────────────────────────────────────────────
 
 /// A single logical page in the site. Each page renders to both a `.md` and a
@@ -120,6 +128,9 @@ pub enum Page {
     LearningPath(String),
     /// The "four boxes" doctrine page (`four-boxes/index`).
     FourBoxes,
+    /// The offline SPARQL playground (`sparql/index`). Emitted only when the pipeline
+    /// supplies a bundled query asset (never in a model-only render).
+    SparqlPlayground,
 }
 
 impl Page {
@@ -152,6 +163,7 @@ impl Page {
             Page::LearningPathIndex => "learning-paths".to_string(),
             Page::LearningPath(slug) => format!("learning-paths/{slug}"),
             Page::FourBoxes => "four-boxes".to_string(),
+            Page::SparqlPlayground => "sparql".to_string(),
         }
     }
 
@@ -218,6 +230,7 @@ impl Page {
                 .map(|p| p.title.clone())
                 .unwrap_or_else(|| slug.clone()),
             Page::FourBoxes => "What is this?".to_string(),
+            Page::SparqlPlayground => "SPARQL playground".to_string(),
         }
     }
 }
@@ -279,23 +292,48 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     for page in pages(model) {
-        files.insert(page.md_path(), to_markdown(model, &page).into_bytes());
+        files.insert(
+            page.md_path(),
+            to_markdown_exec(model, &page, exec).into_bytes(),
+        );
         files.insert(
             page.html_path(),
-            to_html_lang(model, &page, lang).into_bytes(),
+            to_html_lang_exec(model, &page, lang, exec).into_bytes(),
         );
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
 
     // The offline SPARQL playground's bundled RDF asset (documentation graph + the
-    // reasoned ontology closure, TriG). Emitted once under a language-neutral path —
-    // the RDF is language-independent, so it is never duplicated per locale. Present
-    // only when the pipeline supplied it (empty for a model-only render).
+    // reasoned ontology closure, TriG) + its page + the controller module. Emitted
+    // under language-neutral paths — the RDF/JS are language-independent — only when
+    // the pipeline supplied the asset (empty for a model-only render).
     if exec.has_playground() {
         files.insert(
             PLAYGROUND_TRIG_PATH.to_string(),
             exec.playground_trig.clone(),
         );
+        files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
+        let page = Page::SparqlPlayground;
+        files.insert(
+            page.md_path(),
+            to_markdown_exec(model, &page, exec).into_bytes(),
+        );
+        files.insert(
+            page.html_path(),
+            to_html_lang_exec(model, &page, lang, exec).into_bytes(),
+        );
+    }
+
+    // Per-slice multi-format export files (language-neutral RDF), linked from each
+    // slice page's Export section. Emitted only when the pipeline precomputed them.
+    for (slice_iri, forms) in &exec.slice_export {
+        let Some(slice) = model.slices.iter().find(|s| &s.iri == slice_iri) else {
+            continue;
+        };
+        let slug = slice_slug(slice);
+        for (ext, bytes) in forms {
+            files.insert(format!("export/slices/{slug}.{ext}"), bytes.clone());
+        }
     }
 
     // Deterministic SVG diagrams (pure functions of the model).
@@ -446,6 +484,31 @@ fn pages(model: &DocsModel) -> Vec<Page> {
 
 /// Render a page to a Markdown document (the page body, no HTML shell).
 pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
+    to_markdown_exec(model, page, &ExecutableDocsData::default())
+}
+
+/// Render a page's Markdown body, appending the build-time executable-docs sections
+/// (per-slice export links, reasoner "try it" diffs) when `exec` supplies them. With
+/// an empty `exec` this is byte-identical to the base render (the executable surfaces
+/// simply do not appear), so the model-only goldens are unaffected.
+pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsData) -> String {
+    match page {
+        Page::Term(slug) => {
+            let mut md = md_term(model, slug);
+            append_term_export_section(&mut md, model, slug, exec);
+            md
+        }
+        Page::Slice(slug) => {
+            let mut md = md_slice(model, slug);
+            append_slice_executable_sections(&mut md, model, slug, exec);
+            md
+        }
+        Page::SparqlPlayground => md_playground(model, exec),
+        _ => to_markdown_base(model, page),
+    }
+}
+
+fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
     match page {
         Page::Landing => md_landing(model),
         Page::GettingStarted => md_getting_started(model),
@@ -472,7 +535,167 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
         Page::LearningPathIndex => md_learning_path_index(model),
         Page::LearningPath(slug) => md_learning_path(model, slug),
         Page::FourBoxes => md_four_boxes(model),
+        // Routed through `to_markdown_exec`; this arm keeps the match exhaustive.
+        Page::SparqlPlayground => md_playground(model, &ExecutableDocsData::default()),
     }
+}
+
+// ── Executable-docs surfaces (rendered only when `exec` supplies data) ─────────
+
+/// Human labels for each export extension, in the display order shown on the page.
+const EXPORT_FORMAT_LABELS: &[(&str, &str)] = &[
+    ("ttl", "Turtle"),
+    ("nt", "N-Triples"),
+    ("nq", "N-Quads"),
+    ("trig", "TriG"),
+    ("rdf", "RDF/XML"),
+    ("jsonld", "JSON-LD"),
+];
+
+/// Append the per-slice export links and the reasoner "try it" inference blocks to a
+/// slice page's Markdown. No-op when `exec` carries no data for this slice.
+fn append_slice_executable_sections(
+    out: &mut String,
+    model: &DocsModel,
+    slug: &str,
+    exec: &ExecutableDocsData,
+) {
+    let Some(slice) = model.slices.iter().find(|s| slice_slug(s) == slug) else {
+        return;
+    };
+    let root = root_href(&Page::Slice(slug.to_string()).dir());
+
+    // Export: direct download links to the pre-serialized per-format files.
+    if let Some(forms) = exec.export_for(&slice.iri) {
+        heading(out, 2, "Export");
+        line(
+            out,
+            "Download this slice's vocabulary as RDF — its owned terms plus the slice \
+             resource, as a Symmetric Concise Bounded Description:",
+        );
+        let links: Vec<String> = forms
+            .iter()
+            .filter_map(|(ext, _)| {
+                EXPORT_FORMAT_LABELS
+                    .iter()
+                    .find(|(e, _)| e == ext)
+                    .map(|(_, label)| format!("[{label}]({root}export/slices/{slug}.{ext})"))
+            })
+            .collect();
+        line(out, &links.join(" · "));
+    }
+
+    // Try it: the reasoner's inferences over each worked example.
+    let mut wrote_heading = false;
+    for example in model.examples.iter().filter(|e| e.slice == slice.iri) {
+        let Some(diff) = exec.inference_for(&slice.iri, &example.logical_path) else {
+            continue;
+        };
+        if diff.inferred.is_empty() {
+            continue;
+        }
+        if !wrote_heading {
+            heading(out, 2, "Try it — reasoner inferences");
+            line(
+                out,
+                "Fed through the native reasoner, each worked example yields these \
+                 additional triples beyond what it asserts:",
+            );
+            wrote_heading = true;
+        }
+        heading(out, 3, &example.title);
+        fenced(out, "turtle", &diff.inferred.join("\n"));
+    }
+}
+
+/// Append the per-term export affordance (a `DESCRIBE` in the playground + the
+/// prompt-ready card) to a term page's Markdown. No-op without a playground.
+fn append_term_export_section(
+    out: &mut String,
+    model: &DocsModel,
+    slug: &str,
+    exec: &ExecutableDocsData,
+) {
+    if !exec.has_playground() {
+        return;
+    }
+    let Some(term) = model.terms.iter().find(|t| term_slug(t) == slug) else {
+        return;
+    };
+    let root = root_href(&Page::Term(slug.to_string()).dir());
+    heading(out, 2, "Export");
+    // A DESCRIBE prefilled into the offline playground: the reader runs it in-browser
+    // and copies the result in any RDF format. The card is the prompt-ready projection.
+    let query = format!("DESCRIBE <{}>", term.iri);
+    let encoded = url_query_encode(&query);
+    line(
+        out,
+        &format!(
+            "[Describe this term in the SPARQL playground]({root}sparql/index.html?q={encoded}) \
+             (run offline, copy as Turtle / N-Triples / N-Quads / TriG / RDF-XML / JSON-LD) · \
+             [prompt-ready card]({root}terms/{slug}/card.md)"
+        ),
+    );
+}
+
+/// The offline SPARQL playground page.
+fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, "SPARQL playground");
+    line(
+        &mut out,
+        "Query the bundled ontology and its documentation **entirely in your browser** — \
+         no server, no network. The query runs against a self-contained RDF asset via the \
+         native `purrdf` engine compiled to WebAssembly.",
+    );
+    // The interactive form (raw HTML passes through the Markdown → HTML step). The
+    // controller script is injected per page by the HTML shell, not embedded here.
+    out.push_str(
+        "<form id=\"gmeow-sparql\" class=\"gmeow-sparql\">\n\
+         <label for=\"gmeow-sparql-query\">SPARQL query</label>\n\
+         <textarea id=\"gmeow-sparql-query\" rows=\"8\" spellcheck=\"false\">\
+         SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 20</textarea>\n\
+         <div class=\"gmeow-sparql-controls\">\n\
+         <button type=\"submit\">Run</button>\n\
+         <span id=\"gmeow-sparql-status\" role=\"status\"></span>\n\
+         </div>\n\
+         </form>\n\
+         <div id=\"gmeow-sparql-results\"></div>\n\n",
+    );
+    line(
+        &mut out,
+        "SELECT and ASK return a results table; CONSTRUCT and DESCRIBE return a graph you \
+         can copy in any RDF serialization. A `SERVICE` or `LOAD` clause fails offline — \
+         there is no remote endpoint to reach.",
+    );
+
+    // Surface any reasoner inferences that could not be attributed to a single worked
+    // example (shared / Skolem witnesses) — never silently dropped.
+    if !exec.cross_example.is_empty() {
+        heading(&mut out, 2, "Cross-example inferences");
+        line(
+            &mut out,
+            "The reasoner derived these triples from the union of all worked examples; they \
+             are not attributable to any single example:",
+        );
+        fenced(&mut out, "turtle", &exec.cross_example.join("\n"));
+    }
+    let _ = model;
+    out
+}
+
+/// Percent-encode a string for use in a URL query value (RFC 3986 unreserved kept).
+fn url_query_encode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for b in s.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(b as char)
+            }
+            _ => out.push_str(&format!("%{b:02X}")),
+        }
+    }
+    out
 }
 
 fn md_landing(model: &DocsModel) -> String {
@@ -2314,7 +2537,20 @@ fn shell_env() -> &'static Environment<'static> {
 /// passed in is already localized by [`render_site_lang`], so the body content
 /// is in the target language.
 pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
-    let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown(model, page)));
+    to_html_lang_exec(model, page, lang, &ExecutableDocsData::default())
+}
+
+/// Render a page to a complete HTML document with the executable-docs data: appends
+/// the reasoner/export sections to the body, a SPARQL nav entry, and the playground
+/// controller script — all only when `exec` supplies data (byte-identical to
+/// [`to_html_lang`] otherwise).
+pub fn to_html_lang_exec(
+    model: &DocsModel,
+    page: &Page,
+    lang: &str,
+    exec: &ExecutableDocsData,
+) -> String {
+    let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown_exec(model, page, exec)));
     let root = root_href(&page.dir());
 
     let ui = &model.ui_catalog;
@@ -2340,7 +2576,7 @@ pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
 
     // Nav items are a fixed, pre-sorted Vec (never a map) for determinism. Labels
     // resolve through the UI-chrome table (English fallback).
-    let nav = vec![
+    let mut nav = vec![
         nav_item(&root, &Page::Landing.dir(), &label("nav_home", "Home")),
         nav_item(
             &root,
@@ -2399,8 +2635,26 @@ pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
         ),
         nav_item(&root, &Page::About.dir(), &label("page_about", "About")),
     ];
+    // The offline SPARQL playground joins the nav only when the pipeline shipped its
+    // bundled query asset (never in a model-only render, so the goldens are stable).
+    if exec.has_playground() {
+        nav.push(nav_item(
+            &root,
+            &Page::SparqlPlayground.dir(),
+            &label("nav_sparql", "SPARQL"),
+        ));
+    }
 
     let page_lang = if lang == ENGLISH { "en" } else { lang };
+
+    // The playground page loads the controller module (query execution + result
+    // transcoding). Empty for every other page and every model-only render, so the
+    // shell's `body_scripts` slot is byte-neutral there.
+    let body_scripts = if matches!(page, Page::SparqlPlayground) && exec.has_playground() {
+        format!("<script type=\"module\" src=\"{root}{DOCS_JS_PATH}\"></script>\n")
+    } else {
+        String::new()
+    };
 
     let tmpl = shell_env()
         .get_template("shell")
@@ -2414,6 +2668,7 @@ pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
         nav => nav,
         body => body_html,
         page_lang => page_lang,
+        body_scripts => body_scripts,
     })
     .expect("shell template renders")
 }
@@ -3673,6 +3928,100 @@ mod tests {
             live.files.get(PLAYGROUND_TRIG_PATH).map(Vec::as_slice),
             Some(exec.playground_trig.as_slice()),
             "the playground asset must be emitted verbatim when supplied"
+        );
+    }
+
+    #[test]
+    fn executable_surfaces_render_with_exec() {
+        let mut model = tiny_model();
+        let slice_iri = format!("{GMEOW_NS}slices/demo");
+        // tiny_model has no slice; add the one its terms are owned by so the slice
+        // page (and its executable sections) render.
+        model.slices.push(crate::model::DocSlice {
+            iri: slice_iri.clone(),
+            label: Some("Demo".to_string()),
+            title: None,
+            tier: None,
+            identifier: None,
+            creators: Vec::new(),
+            consumers: Vec::new(),
+            profiles: Vec::new(),
+            depends_on: Vec::new(),
+            artifacts: Vec::new(),
+        });
+        // Add a worked example so the "try it" surface has something to render.
+        model.examples.push(crate::model::DocExample {
+            slice: slice_iri.clone(),
+            logical_path: "examples/demo.ttl".to_string(),
+            title: "Demo example".to_string(),
+            text: "ex:a a gmeow:Foo .".to_string(),
+            terms_referenced: vec!["gmeow:Foo".to_string()],
+        });
+
+        let mut slice_export = std::collections::BTreeMap::new();
+        slice_export.insert(
+            slice_iri.clone(),
+            vec![
+                ("ttl".to_string(), b"<x> <y> <z> .\n".to_vec()),
+                ("jsonld".to_string(), b"{}\n".to_vec()),
+            ],
+        );
+        let mut example_inferences = std::collections::BTreeMap::new();
+        example_inferences.insert(
+            crate::exec::example_key(&slice_iri, "examples/demo.ttl"),
+            crate::exec::InferenceDiff {
+                asserted: vec!["ex:a rdf:type gmeow:Foo".to_string()],
+                inferred: vec!["ex:a rdf:type owl:Thing".to_string()],
+            },
+        );
+        let exec = ExecutableDocsData {
+            example_inferences,
+            cross_example: vec!["ex:shared gmeow:derived ex:x".to_string()],
+            playground_trig: b"@prefix ex: <https://e/> . ex:a ex:b ex:c .\n".to_vec(),
+            slice_export,
+        };
+
+        let site = render_site_lang_exec(&model, "english", &exec);
+
+        // Playground page + its assets are present.
+        assert!(site.files.contains_key("sparql/index.html"));
+        assert!(site.files.contains_key(DOCS_JS_PATH));
+        let sparql = String::from_utf8(site.files["sparql/index.html"].clone()).unwrap();
+        assert!(
+            sparql.contains("id=\"gmeow-sparql\""),
+            "the query form renders"
+        );
+        assert!(
+            sparql.contains(DOCS_JS_PATH),
+            "the playground page loads the controller module"
+        );
+        assert!(sparql.contains("SPARQL"), "the SPARQL nav entry is present");
+        assert!(
+            sparql.contains("Cross-example inferences"),
+            "the cross-example bucket is surfaced (no silent drop)"
+        );
+
+        // Per-slice export files are emitted, and the slice page links them.
+        assert!(
+            site.files
+                .keys()
+                .any(|k| k.starts_with("export/slices/") && k.ends_with(".ttl")),
+            "per-slice export files are emitted"
+        );
+        let slug = slice_slug(model.slices.iter().find(|s| s.iri == slice_iri).unwrap());
+        let slice_md =
+            String::from_utf8(site.files[&format!("slices/{slug}/index.md")].clone()).unwrap();
+        assert!(
+            slice_md.contains("## Export"),
+            "the slice page has an Export section"
+        );
+        assert!(
+            slice_md.contains("Try it"),
+            "the slice page shows the reasoner try-it inferences"
+        );
+        assert!(
+            slice_md.contains("owl:Thing"),
+            "the inferred triple appears in the try-it block"
         );
     }
 
