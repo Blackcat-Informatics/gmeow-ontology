@@ -6,7 +6,7 @@
 //! Every vendored external corpus carries a `corpus.json` at
 //! `conformance/logic/cases/external/<corpus>/corpus.json` declaring its SPDX
 //! license, upstream source, pinned version/commit, refresh command, and lane. The
-//! license is audited against the native [`crate::license`] policy BEFORE a corpus is
+//! license is audited against the native [`gmeow_license`] policy BEFORE a corpus is
 //! vendored: an IMPORT_OK license may be committed under `cases/external/`; a
 //! REFERENCE_ONLY (or unknown) license is a hard error — such corpora may only be
 //! fetched live in the Lane-B (`make maint-classic-cross-check`) lane.
@@ -17,7 +17,7 @@
 
 use serde_json::{Map, Value};
 
-use crate::license::{policy_for_license, LicensePolicy};
+use gmeow_license::{policy_for_license, LicensePolicy};
 
 /// Which run lane a corpus targets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

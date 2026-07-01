@@ -18,6 +18,9 @@ members = [
     # reference resolution, syntax normalization, CURIE/prefix expansion): the
     # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).
     "crates/iri",
+    # Dependency-free license-token policy classifier (RUST-FIRST single source of
+    # truth) shared by the conformance vendoring gate and the Python LinkPolicy shim.
+    "crates/license",
     "crates/logic",
     # The pure, wasm-able logic compiler (#664/#732): the parse(RDF 1.2)→IR→project
     # half of the logic stack, split out of crates/logic with zero reasoning-runtime
