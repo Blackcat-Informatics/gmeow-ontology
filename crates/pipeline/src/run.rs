@@ -156,8 +156,14 @@ pub fn full_spec() -> PipelineSpec {
                 // Fold the external-corpus divergence Findings into graph/conformance.
                 "stage-conformance",
                 "stage-docs-render",
+                // The RDF fanout members ride in from their producing export leaves (the
+                // render ran once, in the leaf): profiles / evals scores / research-object
+                // graphs. The presenter reads them off these products, never re-rendered.
+                "stage-export-evals",
                 // #700: fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
+                "stage-export-profiles",
+                "stage-export-research-objects",
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
                 "stage-mappings",
@@ -218,7 +224,17 @@ pub fn full_spec() -> PipelineSpec {
         "gts_sink",
         &[
             "stage-compile-logic",
+            // The opaque fanout members ride in from their producing export leaves (each
+            // rendered once, in the leaf); `build_fanout_opaque_blob` reads them off these
+            // products instead of re-rendering from disk (PIPELINE_SPINE §3.2/§4).
+            "stage-export-apache",
+            "stage-export-bench",
+            "stage-export-evals",
             "stage-export-json-schema",
+            "stage-export-matrix",
+            "stage-export-metadata",
+            "stage-export-references",
+            "stage-export-research-objects",
             "stage-mappings",
             "stage-reason",
             "stage-snapshot",
