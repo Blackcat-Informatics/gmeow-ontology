@@ -145,7 +145,7 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
         })?;
     }
 
-    // Common Logic round-trip verdict (C6): write the `cl-dialects.json` report for a
+    // Common Logic round-trip verdict: write the `cl-dialects.json` report for a
     // `cl-roundtrip` case (refresh an existing golden or seed in init mode).
     if let Some(cl) = &out.cl_dialects {
         write_if(init, &expected.join("cl-dialects.json"), |p| {
@@ -153,7 +153,7 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
         })?;
     }
 
-    // Answers (#504).
+    // Answers.
     if !out.answers.is_empty() {
         let answers_dir = expected.join("answers");
         mkdirs(&answers_dir)?;
