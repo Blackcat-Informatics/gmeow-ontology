@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Equivalence saturation — the E(G) of the transpiler (#34).
+"""Equivalence saturation — the E(G) of the transpiler.
 
 For every instance triple whose GMEOW term carries a *strong* equivalence to
 an external term, emit the parallel cross-vocabulary triple: ``:me a
@@ -14,7 +14,7 @@ The correctness keystone: only STRONG predicates materialize —
 source of truth, so linter and saturator agree by construction.
 ``skos:closeMatch`` (a hint), ``broadMatch``/``narrowMatch`` (hierarchy), and
 any cell the direction lint rates ERROR never materialize. Suppression is
-honored fail-closed (#282): a node carrying ``gmeow:displayable false`` (or
+honored fail-closed: a node carrying ``gmeow:displayable false`` (or
 an appellation whose bearer does) contributes no derived triple — a deadname
 must not leak into five vocabularies at once.
 
@@ -98,10 +98,10 @@ class Cell:
 def load_cells(dsl_dir: Path | None = None) -> list[Cell]:
     """Read every authored TermEquivalence cell from the mapping DSL.
 
-    Cells live in TWO authoring locations (the compiler reads both): the
+    Cells live in TWO authoring locations, and the compiler reads both: the
     shared ``dsl/mappings/equivalences/`` directory and the slice-owned
-    ``slices/*/*/mappings/*.ttl`` files (#287). Phase 1 read only the
-    former — slice-owned strong cells were invisible to saturation.
+    ``slices/*/*/mappings/*.ttl`` files. Both are read so slice-owned strong
+    cells are visible to saturation.
     """
     from gmeow_tools.slices import iter_slice_mapping_files
 

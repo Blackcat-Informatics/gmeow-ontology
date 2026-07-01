@@ -5051,13 +5051,6 @@
     gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/issues/58> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/b5ff9d7bfc71b516> .
 
-<https://blackcatinformatics.ca/gmeow/references/citation/b6602c42eaac91e4> a gmeow:CitationAct ;
-    rdfs:label "tests/test_saturate.py"@en ;
-    gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity schema:Dataset ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/tests/test_saturate.py> ;
-    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/b6602c42eaac91e4> .
-
 <https://blackcatinformatics.ca/gmeow/references/citation/b6c007b23469c54d> a gmeow:CitationAct ;
     rdfs:label "GitHub issue or PR #263: feat(expertise): deepen the Skill/Credential stub — SkillProficiency (generalizing the languages rating pattern), temporal + endorsement standpoint, credential issuance via attestation"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
@@ -10470,9 +10463,6 @@ foaf:homepage a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/references/selector/b5ff9d7bfc71b516> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/58:79" .
 
-<https://blackcatinformatics.ca/gmeow/references/selector/b6602c42eaac91e4> a gmeow:Selector ;
-    gmeow:selectorLocator "tests/test_saturate.py:31" .
-
 <https://blackcatinformatics.ca/gmeow/references/selector/b6c007b23469c54d> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/263:121" .
 
@@ -11523,10 +11513,6 @@ repo:CITATION.cff a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/repo/tests/test_notes.py> a gmeow:CreativeWork ;
     rdfs:label "tests/test_notes.py"@en ;
     gmeow:sourceLocation "tests/test_notes.py" .
-
-<https://blackcatinformatics.ca/gmeow/repo/tests/test_saturate.py> a gmeow:CreativeWork ;
-    rdfs:label "tests/test_saturate.py"@en ;
-    gmeow:sourceLocation "tests/test_saturate.py" .
 
 <https://blackcatinformatics.ca/gmeow/repo/tests/test_slices.py> a gmeow:CreativeWork ;
     rdfs:label "tests/test_slices.py"@en ;
