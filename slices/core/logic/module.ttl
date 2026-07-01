@@ -5605,7 +5605,7 @@ logic:OpacityIsolation
         logic:IsolationLevel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Opacity Isolation"@x-gmeow-english ;
-    skos:definition "The logic:IsolationLevel guarantee under which even aborted or in-flight transactions never observe an inconsistent state — the strongest level, STRICTLY STRONGER than serializability (logic:SerializableIsolation), which constrains only committed transactions."@x-gmeow-english .
+    skos:definition "The logic:IsolationLevel guarantee under which even aborted or in-flight transactions never observe an inconsistent state — the strongest level, STRICTLY STRONGER than serializability (logic:SerializableIsolation), which constrains only committed transactions. Engine note: under the committed-only, snapshot-isolation execution model of the native evaluator, no aborted or in-flight transactions arise; opacity's additional constraints are therefore vacuously satisfied, and the isolation-adequacy verdict for logic:OpacityIsolation coincides with that of logic:SerializableIsolation by construction — both are met exactly when the witnessed schedule is conflict-serializable."@x-gmeow-english .
 
 logic:ConcurrencyControlProtocol
     a owl:Class ;
