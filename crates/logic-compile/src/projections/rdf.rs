@@ -11,7 +11,7 @@
 
 use gmeow_rdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
 
-use super::super::ir::{Formula, LogicModality, LogicProgram, Term};
+use super::super::ir::{Formula, LogicAxiom, LogicModality, LogicProgram, Term};
 use super::{
     assert_no_overclaim, contract_drop_notes, generated_banner, is_modal_or_scoped, target_meta,
     OverclaimError, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
@@ -357,7 +357,11 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         ));
     }
 
-    actual_drops.extend(contract_drop_notes(program, "OWL 2 DL"));
+    project_formulas_owl_dl(&mut g, program);
+
+    actual_drops.extend(contract_drop_notes(program, "OWL 2 DL", &|f| {
+        recognize_covering(f).is_some()
+    }));
     rdf_result("owl-dl", g, "OWL 2 DL", actual_drops)
 }
 
@@ -469,7 +473,7 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         ));
     }
 
-    actual_drops.extend(contract_drop_notes(program, "OWL 2 EL"));
+    actual_drops.extend(contract_drop_notes(program, "OWL 2 EL", &|_| false));
     rdf_result("owl-el", g, "OWL 2 EL", actual_drops)
 }
 
@@ -525,7 +529,7 @@ pub fn project_gufo(program: &LogicProgram) -> Result<ProjectionResult, Overclai
         ));
     }
 
-    actual_drops.extend(contract_drop_notes(program, "the gUFO bridge"));
+    actual_drops.extend(contract_drop_notes(program, "the gUFO bridge", &|_| false));
     rdf_result("gufo", g, "gUFO bridge", actual_drops)
 }
 
@@ -824,6 +828,137 @@ fn emit_term_value(g: &mut TripleSink, node: &str, term: &Term) {
         }
         Term::SequenceMarker(name) => {
             g.add_lit(node, &logic("termSequenceMarker"), RdfLiteral::simple(name))
+        }
+    }
+}
+
+// --------------------------------------------------------------------------- //
+// Class-covering formulas → OWL union / disjoint-union
+// --------------------------------------------------------------------------- //
+
+/// A recognized class-covering: `whole ⊑ ⊔ members`, lifted from a covering-shaped
+/// `logic:Formula` `∀v. whole(v) → (m₁(v) ∨ … ∨ mₙ(v))`. `members` is sorted and
+/// deduped so the emitted OWL list is a deterministic function of the covered SET
+/// (independent of authored disjunct order — `logic:or` is commutative anyway).
+struct Covering {
+    whole: String,
+    members: Vec<String>,
+}
+
+/// If `f` is a unary class-membership predication `Class(Var(v))`, return `Class`'s IRI.
+/// This is the atom shape both the antecedent `whole(v)` and each disjunct `mᵢ(v)` take.
+fn unary_membership(f: &Formula, v: &str) -> Option<String> {
+    let Formula::Atom { relation, args } = f else {
+        return None;
+    };
+    let Term::Iri(cls) = relation else {
+        return None;
+    };
+    match args.as_slice() {
+        [Term::Var(arg)] if arg == v => Some(cls.clone()),
+        _ => None,
+    }
+}
+
+/// Recognize the covering shape `∀v. whole(v) → (m₁(v) ∨ … ∨ mₙ(v))` (n ≥ 2, all
+/// disjuncts sharing the single bound variable `v`). Returns `None` for any other
+/// formula — the recognizer is exact, so a non-covering formula is disclosed as
+/// residue rather than silently mis-emitted.
+fn recognize_covering(formula: &Formula) -> Option<Covering> {
+    let Formula::Forall { vars, body } = formula else {
+        return None;
+    };
+    let [v] = vars.as_slice() else {
+        return None;
+    };
+    let Formula::Implies(antecedent, consequent) = body.as_ref() else {
+        return None;
+    };
+    let whole = unary_membership(antecedent, v)?;
+    let Formula::Or(disjuncts) = consequent.as_ref() else {
+        return None;
+    };
+    let mut members = disjuncts
+        .iter()
+        .map(|d| unary_membership(d, v))
+        .collect::<Option<Vec<String>>>()?;
+    if members.len() < 2 {
+        return None;
+    }
+    members.sort();
+    members.dedup();
+    Some(Covering { whole, members })
+}
+
+/// The byte-stable content key of a covering — the covered class plus its sorted
+/// member set. Feeds the minted list/union-class IRIs so the OWL serialization is
+/// identical across regenerate runs.
+fn covering_key(cov: &Covering) -> String {
+    format!("{}|{}", cov.whole, cov.members.join(","))
+}
+
+/// `true` iff every unordered pair of `members` is asserted disjoint in `axioms`
+/// (either direction, `logic:disjointWith` or `owl:disjointWith`). A fully-disjoint
+/// covering lowers to `owl:disjointUnionOf` (a partition); otherwise to a plain
+/// `owl:unionOf` cover, so a deliberate overlap is never over-claimed as a partition.
+fn all_pairwise_disjoint(members: &[String], axioms: &[LogicAxiom]) -> bool {
+    let disjoint = logic("disjointWith");
+    let disjoint_owl = owl("disjointWith");
+    let pair_disjoint = |a: &str, b: &str| {
+        axioms.iter().any(|ax| {
+            (ax.predicate == disjoint || ax.predicate == disjoint_owl)
+                && !ax.obj_is_literal
+                && ((ax.subject == a && ax.obj == b) || (ax.subject == b && ax.obj == a))
+        })
+    };
+    (0..members.len())
+        .flat_map(|i| ((i + 1)..members.len()).map(move |j| (i, j)))
+        .all(|(i, j)| pair_disjoint(&members[i], &members[j]))
+}
+
+/// Emit an `rdf:List` of member class IRIs (built tail-to-head so each cell's
+/// `rdf:rest` points at the already-emitted remainder) and return the head node —
+/// a minted, content-derived IRI (never a blank node, so the deterministic-IRI codec
+/// keeps the list byte-stable). An empty member set yields `rdf:nil`.
+fn emit_class_list(g: &mut TripleSink, base: &str, members: &[String]) -> String {
+    let mut rest = format!("{RDF_NS}nil");
+    for (i, member) in members.iter().enumerate().rev() {
+        let cell = format!("{base}/cell/{i:04}");
+        g.add_iri(&cell, &format!("{RDF_NS}first"), member);
+        g.add_iri(&cell, &format!("{RDF_NS}rest"), &rest);
+        rest = cell;
+    }
+    rest
+}
+
+/// Lower a recognized covering to OWL 2 DL. A fully-disjoint covering becomes
+/// `whole owl:disjointUnionOf ( … )` (a partition); a covering with a deliberate
+/// overlap becomes `whole rdfs:subClassOf [ owl:Class ; owl:unionOf ( … ) ]` — the
+/// covering (exhaustiveness) without the disjointness the members do not all carry.
+/// Both are faithful OWL 2 DL, so a recognized covering is NOT a lossy drop.
+fn emit_covering_owl_dl(g: &mut TripleSink, cov: &Covering, disjoint: bool) {
+    let base = format!("{GMEOW_NS}owl/covering/{}", sha256_12(&covering_key(cov)));
+    let list_head = emit_class_list(g, &base, &cov.members);
+    if disjoint {
+        g.add_iri(&cov.whole, &owl("disjointUnionOf"), &list_head);
+    } else {
+        let union_cls = format!("{base}/union");
+        g.add_iri(&union_cls, RDF_TYPE, &owl("Class"));
+        g.add_iri(&union_cls, &owl("unionOf"), &list_head);
+        g.add_iri(&cov.whole, &rdfs("subClassOf"), &union_cls);
+    }
+}
+
+/// Project every recognized class-covering `logic:Formula` into OWL 2 DL: a covering
+/// lowers to `owl:unionOf` / `owl:disjointUnionOf` (faithful — NOT a lossy drop). A
+/// non-covering formula is disclosed as residue by `formula_residue_notes` (via
+/// `contract_drop_notes`), which is told coverings ARE representable here so an emitted
+/// covering is never also double-counted as a drop.
+fn project_formulas_owl_dl(g: &mut TripleSink, program: &LogicProgram) {
+    for formula in &program.formulas {
+        if let Some(cov) = recognize_covering(formula) {
+            let disjoint = all_pairwise_disjoint(&cov.members, &program.axioms);
+            emit_covering_owl_dl(g, &cov, disjoint);
         }
     }
 }
