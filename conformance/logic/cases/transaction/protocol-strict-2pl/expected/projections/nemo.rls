@@ -3,6 +3,5 @@
 
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/transaction/protocol-strict-2pl/GoalExpression>, <https://blackcatinformatics.ca/logic/GoalExpression>, "default").
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/transaction/protocol-strict-2pl/TransactionContract>, <https://blackcatinformatics.ca/logic/ReasoningContract>, "default").
 
 % === Rules ===

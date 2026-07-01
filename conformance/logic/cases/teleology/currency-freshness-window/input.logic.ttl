@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: teleology/currency-freshness-window.
+#
+# An action schema carries a logic:FreshnessGuard whose currency is an EXPLICIT
+# valid-time window (logic:freshnessWindow) rather than a max-age horizon: the datum
+# backing the precondition is authoritative only while a probe's logic:decisionTime
+# falls inside the closed [logic:freshnessWindowStart, logic:freshnessWindowEnd]
+# interval (here 2026-06-16 .. 2026-06-18). This is the second, orthogonal freshness
+# axis — GMEOW's native subsumption of an openEHR decision-rule time_window (a named
+# bounding interval such as "the current episode"), DISTINCT from the age horizon
+# (currency-freshness-guard exercises that axis). Two gate probes share the same schema,
+# state, datum, and guard but differ in decision time: probeInWindow decides at
+# 2026-06-17 (inside the window → logic:GateAdmitted) and probeOffWindow decides at
+# 2026-06-20 (after the window closes → logic:GateUndetermined, NOT admitted on an
+# off-episode datum and NOT denied — the evaluator declines to gate outside the
+# declared validity interval).
+#
+# CRITICAL: the teleology evaluator seeds ONLY from input.nq world facts; this
+# input.logic.ttl carries the minimal, clean-compiling, certifiable program axiom the
+# projections need (no asserted teleology triples here — the world facts live in
+# input.nq, exactly as the foundation conformance cases keep theirs).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/teleology/currency-freshness-window/> .
+
+ex:GoalExpression a logic:GoalExpression .
