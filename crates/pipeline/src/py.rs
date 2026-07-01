@@ -717,17 +717,12 @@ fn claim_audit_diagnostics_report(
 
 /// Run the native real-data acceptance scoreboard.
 #[pyfunction]
-#[pyo3(signature = (root, source = None, descend = true))]
-fn acceptance(
-    py: Python<'_>,
-    root: String,
-    source: Option<String>,
-    descend: bool,
-) -> PyResult<Py<PyAny>> {
+#[pyo3(signature = (root, source = None))]
+fn acceptance(py: Python<'_>, root: String, source: Option<String>) -> PyResult<Py<PyAny>> {
     let source_path = source.map(std::path::PathBuf::from);
     let results = py
         .detach(move || {
-            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref(), descend)
+            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref())
         })
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
     let markdown = scoreboards::render_acceptance_report(&results);
@@ -749,17 +744,16 @@ fn acceptance(
 
 /// Run the native acceptance scoreboard and return only diagnostics.
 #[pyfunction]
-#[pyo3(signature = (root, source = None, descend = true))]
+#[pyo3(signature = (root, source = None))]
 fn acceptance_diagnostics_report(
     py: Python<'_>,
     root: String,
     source: Option<String>,
-    descend: bool,
 ) -> PyResult<Py<PyAny>> {
     let source_path = source.map(std::path::PathBuf::from);
     let results = py
         .detach(move || {
-            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref(), descend)
+            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref())
         })
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
     Ok(Py::new(

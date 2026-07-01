@@ -91,16 +91,6 @@ def up_project(source: Graph) -> UpProjection:
     )
 
 
-def up_project_descend(source: Graph) -> UpProjection:
-    """Lift a consumer graph to GMEOW.
-
-    The lawful put executor has no context-descent mode — the graph-descent
-    ``--floor``/``--descend`` flag is inert — so this is an alias for
-    :func:`up_project`.
-    """
-    return up_project(source)
-
-
 def _graph_from_native_nt(graph_nt: str | bytes) -> Graph:
     """Parse native N-Triples without rdflib parse-scope blank-node rewriting."""
     import gmeow_rdf

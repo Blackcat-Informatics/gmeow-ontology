@@ -22,7 +22,7 @@ maximally** across everything GMEOW can reach.
 
 | Half | What it does | Doctrine |
 |---|---|---|
-| **Up-projection** | Lift the source to pure GMEOW. Mechanically-invertible terms become **facts**; non-equivalences become provenance-stamped **claims** (`gmeow:StatementMetadata` carrying `gmeow:confidence` + `gmeow:mappedFrom`). Each edge is resolved by its **position in the graph** — the same consumer predicate maps to different GMEOW terms by the subject's type (`schema:about` on a `MediaObject` → `gmeow:depicts`, on a document → `gmeow:isAbout`). Nothing is guessed: an unresolvable term is reported, never invented. | [up-projection audit](./up-projection-audit.md) |
+| **Up-projection** | Lift the source to pure GMEOW through the lawful native put-leg executor. Mechanically-invertible terms become **facts**; non-equivalences become provenance-stamped **claims** (`gmeow:StatementMetadata` carrying `gmeow:confidence` + `gmeow:mappedFrom`). Nothing is guessed: an unresolvable term is reported, never invented. | [up-projection audit](./up-projection-audit.md) |
 | **Maximal down-projection** | Run `MAXIMAL(G) = G + E(G) + P(G)` over the draft — the canonical base `G`, its strong-equivalence saturation `E(G)`, and every projection profile `P(G)`. | [projections](./projections.md) |
 
 The two outputs of the lift compose cleanly with the maximal pass: **facts**
@@ -51,7 +51,6 @@ maximal family — it is not a throwaway temp file. It is:
 gmeow transpile source.ttl                    # → dist/transpile/source/
 gmeow transpile source.ttl -o out/            # choose the output directory
 gmeow transpile source.ttl --profiles schema-org,foaf   # a subset of the maximal pass
-gmeow transpile source.ttl --floor            # use the per-term floor, not the descent
 ```
 
 The output directory receives:
@@ -113,7 +112,7 @@ Every stage reads `-` from stdin, so the halves compose in a pipe:
 
 ```sh
 cat source.ttl | gmeow transpile -                    # one-shot, source on stdin
-cat source.ttl | gmeow up-project - --descend | gmeow transform -   # the two halves, explicit
+cat source.ttl | gmeow up-project - | gmeow transform -   # the two halves, explicit
 ```
 
 `gmeow up-project` writes the pure-GMEOW draft to stdout; `gmeow transform -`
@@ -122,19 +121,17 @@ two-stage form lets you inspect or post-process the draft mid-pipeline.
 
 ## Scope — what the up-projection does and does not resolve
 
-The descent resolves a term by the **subject's own type** and by the
-**structural legs** of multi-atom cells (so a blank-node `schema:PropertyValue`
-identifier recovers its `gmeow:identifierUrl` / `identifierValue` / `scheme`).
-Terms it cannot resolve from that context fall through to the per-term floor, and
-a genuinely ambiguous many-to-one term (`dc:relation`, peer-ambiguous terms on
-typed subjects) is **held out and reported**, never guessed.
+The lawful `put` leg lifts a term by the alignment alone — the per-term floor,
+not a context-resolution mode. A genuinely ambiguous many-to-one term
+(`dc:relation`, peer-ambiguous terms on typed subjects) is **held out and
+reported**, never guessed.
 
 **Measured non-goal:** typing an *untyped* node from the `rdfs:range` of its
 incoming edge ("path context") was prototyped and resolved **zero** extra edges
 on the real corpus — the untyped nodes' own predicates are mostly gaps, so an
 inferred type buys nothing. The context-aware descent it belonged to has since
-been retired: the lawful `put` leg lifts by the alignment alone, so any
-context-descent coverage is honest loss-ledger residue, not a silent guess.
+been retired entirely: any context-descent coverage is honest loss-ledger
+residue, not a silent guess.
 
 ## Acceptance — the honest, real-data scoreboard
 

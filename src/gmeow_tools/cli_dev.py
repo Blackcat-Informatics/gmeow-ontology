@@ -2340,12 +2340,6 @@ def up_project_cmd(
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Write the GMEOW lift here (default: stdout Turtle)."
     ),
-    descend: bool = typer.Option(
-        False,
-        "--descend",
-        help="Use the context-aware graph-descent resolver (resolves a term by "
-        "the subject's type) over the per-term floor.",
-    ),
 ) -> None:
     """Lift a consumer-vocabulary RDF file UP into pure GMEOW (#451).
 
@@ -2355,17 +2349,14 @@ def up_project_cmd(
     than a bare fact. Terms with no rule, or whose reverse is ambiguous (a
     many-to-one down-image), are reported and left out — never guessed.
 
-    With ``--descend``, an ambiguous or inferred term is resolved by the
-    subject's type — ``schema:about`` on a ``MediaObject`` becomes ``gmeow:depicts``
-    but on any other entity ``gmeow:isAbout`` — falling through to the per-term
-    floor when the type adds no signal. Reads from stdin and writes Turtle to
-    stdout, so ``cat src | gmeow up-project - | gmeow transform -`` streams.
+    Reads from stdin and writes Turtle to stdout, so
+    ``cat src | gmeow up-project - | gmeow transform -`` streams.
     """
-    from gmeow_tools.up_projection import up_project, up_project_descend
+    from gmeow_tools.up_projection import up_project
 
     src, _stem = _read_turtle(source)
     try:
-        result = up_project_descend(src) if descend else up_project(src)
+        result = up_project(src)
     except ValueError as exc:
         raise _fail(str(exc)) from exc
     if out is not None:
@@ -2381,11 +2372,6 @@ def up_project_cmd(
     err_console.print(
         f"[green]lifted[/green] {result.lifted} facts · "
         f"[cyan]claimed[/cyan] {result.claimed} inferred · "
-        + (
-            f"[magenta]context[/magenta] {result.context_resolved} by-type · "
-            if descend
-            else ""
-        )
         + (
             f"[blue]bridged[/blue] {result.tag_resolved} QID-tag · "
             if result.tag_resolved
@@ -2408,11 +2394,6 @@ def acceptance(
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Write the Markdown scoreboard here (else stdout)."
-    ),
-    floor: bool = typer.Option(
-        False,
-        "--floor",
-        help="Use the per-term floor instead of the context-aware descent.",
     ),
     min_recall: float | None = typer.Option(
         None,
@@ -2444,7 +2425,6 @@ def acceptance(
             _pipeline.acceptance(
                 str(PROJECT_ROOT),
                 None if source is None else str(source),
-                not floor,
             ),
         )
     except (ImportError, OSError, RuntimeError, ValueError) as exc:

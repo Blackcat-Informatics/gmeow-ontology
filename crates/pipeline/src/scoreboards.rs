@@ -584,9 +584,9 @@ impl AcceptanceContext {
     }
 }
 
-pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileAcceptance, String> {
+pub fn run_acceptance(root: &Path, source: &Path) -> Result<FileAcceptance, String> {
     let ctx = AcceptanceContext::load(root)?;
-    run_acceptance_with(root, source, descend, &ctx)
+    run_acceptance_with(root, source, &ctx)
 }
 
 /// Run acceptance for one source file against a pre-loaded corpus context (ontology + gate-verified
@@ -594,7 +594,6 @@ pub fn run_acceptance(root: &Path, source: &Path, descend: bool) -> Result<FileA
 fn run_acceptance_with(
     root: &Path,
     source: &Path,
-    descend: bool,
     ctx: &AcceptanceContext,
 ) -> Result<FileAcceptance, String> {
     let source_store = dataset_from_files(&[source.to_path_buf()])?;
@@ -604,11 +603,7 @@ fn run_acceptance_with(
     let tag_map = &ctx.tag_map;
     let inverse_tag_map = &ctx.inverse_tag_map;
 
-    // The lawful native put-leg executor is the sole draft source. The retired
-    // heuristic engine had a `descend` context-resolution mode; the lawful put leg has
-    // no such mode — context-descent is dropped heuristic residue — so the flag is
-    // inert here and retained only for CLI signature stability.
-    let _ = descend;
+    // The lawful native put-leg executor is the sole draft source.
     let executor = put_executor::execute_put_legs_with(&source_nt, &ctx.put_program)?;
     if executor.graph_nt.trim().is_empty() {
         return Err(format!(
@@ -649,7 +644,6 @@ fn run_acceptance_with(
 pub fn run_acceptance_corpus(
     root: &Path,
     source: Option<&Path>,
-    descend: bool,
 ) -> Result<Vec<FileAcceptance>, String> {
     let sources = match source {
         Some(path) => vec![path.to_path_buf()],
@@ -663,7 +657,7 @@ pub fn run_acceptance_corpus(
     let ctx = AcceptanceContext::load(root)?;
     sources
         .iter()
-        .map(|path| run_acceptance_with(root, path, descend, &ctx))
+        .map(|path| run_acceptance_with(root, path, &ctx))
         .collect()
 }
 
@@ -2102,7 +2096,6 @@ mod tests {
         let result = run_acceptance(
             &root,
             &root.join("tests/fixtures/coverage/external/bii.ttl"),
-            true,
         )
         .expect("native acceptance report");
 

@@ -6,8 +6,7 @@ The two halves, chained end to end:
 
 1. **Up-projection** (the front half, #451): lift a non-GMEOW source graph up
    into pure GMEOW — facts for the mechanically-invertible terms, provenance-
-   stamped claims for the inferred ones — resolving each edge by its position in
-   the graph (the context-aware descent) over the per-term floor.
+   stamped claims for the inferred ones — via the lawful native put-leg executor.
 2. **Maximal down-projection** (the back half, #34): run ``MAXIMAL(G) = G + E(G)
    + P(G)`` over that pure-GMEOW draft — the canonical base, its strong-
    equivalence saturation, and every projection profile — into one fat,
@@ -30,7 +29,7 @@ from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
 from gmeow_tools.config import DIST_DIR
 from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.transform import TransformReport, transform_graph
-from gmeow_tools.up_projection import UpProjection, up_project, up_project_descend
+from gmeow_tools.up_projection import UpProjection, up_project
 from gmeow_tools.up_projection_audit import _canon_qname
 
 if TYPE_CHECKING:
@@ -118,7 +117,6 @@ def transpile(
     *,
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
-    descend: bool = True,
     selector: LangSelector | None = None,
 ) -> TranspileReport:
     """Transpile a consumer-vocabulary source *file* to MAXIMAL GMEOW.
@@ -128,8 +126,6 @@ def transpile(
         out_dir: Output directory (default ``dist/transpile/<stem>/``); receives
             the ``<stem>.gmeow.ttl`` draft and the maximal file family.
         profiles: Projection profiles for the maximal pass (default: all).
-        descend: Use the context-aware graph-descent up-projection (default) over
-            the per-term floor.
         selector: Optional language selector for projected/consumer labels.
 
     Returns:
@@ -142,7 +138,6 @@ def transpile(
         source_path.stem,
         out_dir=out_dir,
         profiles=profiles,
-        descend=descend,
         selector=selector,
     )
 
@@ -153,7 +148,6 @@ def transpile_graph(
     *,
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
-    descend: bool = True,
     selector: LangSelector | None = None,
 ) -> TranspileReport:
     """Transpile an in-memory consumer-vocabulary graph to MAXIMAL GMEOW.
@@ -166,7 +160,6 @@ def transpile_graph(
         stem: The output basename (the draft, ``.gts`` file, default sub-dir).
         out_dir: Output directory (default ``dist/transpile/<stem>/``).
         profiles: Projection profiles for the maximal pass (default: all).
-        descend: Use the context-aware graph-descent up-projection (default).
         selector: Optional language selector for projected/consumer labels.
 
     Returns:
@@ -181,7 +174,7 @@ def transpile_graph(
         raise ValueError("transpile_graph: stem must be a non-empty string")
     target = out_dir if out_dir is not None else DIST_DIR / "transpile" / stem
 
-    lift = up_project_descend(source) if descend else up_project(source)
+    lift = up_project(source)
     if len(lift.graph) == 0:
         msg = f"transpile: nothing lifted to GMEOW from {stem} — empty draft"
         raise ValueError(msg)
