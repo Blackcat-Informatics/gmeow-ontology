@@ -1,0 +1,2 @@
+<https://example.org/deception/held-projected-no-intent/coverStory> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/deception/held-projected-no-intent/Deception> <https://example.org/deception/held-projected-no-intent/world> .
+<https://example.org/deception/held-projected-no-intent/coverStory> <https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim> <https://example.org/deception/held-projected-no-intent/intentAssessment> <https://example.org/deception/held-projected-no-intent/world> .
