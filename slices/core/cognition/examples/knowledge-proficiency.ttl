@@ -17,6 +17,12 @@ ex:ada a gmeow:Person ;
     gmeow:name "Ada"@x-gmeow-english ;
     gmeow:hasMastered wd:Q28865 .   # Python — the flat 80% surface
 
+# The subjects known — external Wikidata topics grounded locally as gmeow:Concept
+# (a field/topic of knowledge), so each KnowledgeProficiency relator's subject player
+# is a well-typed gmeow:Entity (Concept ⊑ SocialObject ⊑ Entity).
+wd:Q28865  a gmeow:Concept ; gmeow:name "Python"@x-gmeow-english .
+wd:Q189436 a gmeow:Concept ; gmeow:name "bioinformatics"@x-gmeow-english .
+
 # --- Promote to a reified proficiency: depth read on an explicit named SCALE,
 #     over a temporal interval. The flat hasMastered above and this relator
 #     coexist; gmeow:pairsWith links the two forms.
