@@ -14,7 +14,7 @@ use crate::projections::{rdf, target_meta, ProjectionResult};
 
 use super::{xml_escape_attr, xml_escape_text, RDF_META_ELEMENT, ROOT_ELEMENT};
 
-use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
+use purrdf::{parse_dataset, serialize_dataset, SerializeGraph};
 
 /// `xsd:integer` — the datatype emitted for a path shape's integer min/max depths.
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";

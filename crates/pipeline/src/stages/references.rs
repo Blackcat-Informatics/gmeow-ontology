@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+use purrdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;

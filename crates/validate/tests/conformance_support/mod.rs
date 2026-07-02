@@ -19,13 +19,13 @@ use std::sync::OnceLock;
 
 use std::sync::Arc;
 
-use gmeow_rdf::{
+use purrdf::shapes::engine::{parse_shapes, validate_dataset};
+use purrdf::shapes::report::{Severity, ValidationReport};
+use purrdf::shapes::shapes::Shapes;
+use purrdf::{
     flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
     RdfDataset, SerializeGraph,
 };
-use gmeow_shacl::engine::{parse_shapes, validate_dataset};
-use gmeow_shacl::report::{Severity, ValidationReport};
-use gmeow_shacl::shapes::Shapes;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
@@ -55,7 +55,7 @@ pub const DSL_SHAPE_FILENAMES: &[&str] = &[
     // The derived validation-shape surface is a DECLARED ValidationOnly projection (the OPT
     // constraint axis + the OWL-restriction reading), carried in gmeow.gts but NOT
     // enforced against the corpus — an open-world someValuesFrom reading over-flags valid
-    // data. Excluded here exactly as `gmeow_shacl::shape_union::EXCLUDED` excludes it.
+    // data. Excluded here exactly as `purrdf::shapes::shape_union::EXCLUDED` excludes it.
     "validation-shapes.ttl",
 ];
 
@@ -231,7 +231,7 @@ pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
 
         // Accumulate every module's flat quads (graph component re-homed to the
         // default graph) into one frozen native dataset.
-        let mut merged: Vec<gmeow_rdf::RdfQuad> = Vec::new();
+        let mut merged: Vec<purrdf::RdfQuad> = Vec::new();
         for path in &module_paths {
             let ttl = std::fs::read_to_string(path)
                 .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
@@ -258,7 +258,7 @@ pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
 
 /// Parsed SHACL shape model for the whole conformance corpus.
 ///
-/// `gmeow_shacl::engine::validate_graphs` parses shapes on every call. These
+/// `purrdf::shapes::engine::validate_graphs` parses shapes on every call. These
 /// tests repeatedly validate small fixture graphs against the same shape model,
 /// so cache the parsed `Shapes` inside each test process.
 pub fn whole_shapes() -> &'static Shapes {
@@ -278,7 +278,7 @@ fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
 /// Use this variant when the fixture triples rely on class/property declarations
 /// from the merged ontology to pass SHACL class-constraint checks.
 pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
-    let mut merged: Vec<gmeow_rdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+    let mut merged: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
     let fixture = nt_to_dataset(fixture_nt);
     merged.extend(flat_rdf_quads_from_dataset(&fixture));
     let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
@@ -313,7 +313,7 @@ pub fn ttl_file_to_nt(path: &Path) -> String {
 /// Parse an inline Turtle string into the native IR (flattening every named graph
 /// into the default graph) and emit as N-Triples.
 ///
-/// Uses the native codec parser (same as `gmeow_shacl::engine::validate_graphs`) so
+/// Uses the native codec parser (same as `purrdf::shapes::engine::validate_graphs`) so
 /// private-use `@x-gmeow-*` language tags are accepted.
 pub fn ttl_str_to_nt(ttl: &str) -> String {
     let dataset = parse_dataset(ttl.as_bytes(), "text/turtle", None)

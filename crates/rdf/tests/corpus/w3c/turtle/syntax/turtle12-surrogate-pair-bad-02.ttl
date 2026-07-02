@@ -1,2 +1,0 @@
-PREFIX : <http://example/>
-:s :p 'Ace of spades : \uD83C\uDCA1' .

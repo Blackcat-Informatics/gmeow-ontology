@@ -24,8 +24,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import URIRef
-from gmeow_rdf.compat.rdflib.namespace import RDF
+from purrdf.compat.rdflib import URIRef
+from purrdf.compat.rdflib.namespace import RDF
 
 from gmeow_tools.graph import load_merged_graph
 

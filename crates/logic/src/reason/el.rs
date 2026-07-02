@@ -18,7 +18,7 @@
 //! cannot express entailments that quantify over the predicate position
 //! (domain/range, property chains) — see the [`ElClosure::gaps`] surface.
 
-use gmeow_rdf::RdfDataset;
+use purrdf::RdfDataset;
 
 /// The fixed OWL-2-EL/RL class-level entailment rule set, in the world-scoped
 /// ternary gmeow encoding. Full IRIs in angle brackets; `?w` threads the world.
@@ -121,7 +121,7 @@ pub fn el_closure(edb: &RdfDataset) -> Result<ElClosure, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+    use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";

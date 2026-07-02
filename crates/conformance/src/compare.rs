@@ -29,7 +29,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use gmeow_rdf::{RdfTerm, SerializeGraph};
+use purrdf::{RdfTerm, SerializeGraph};
 
 use crate::run::CaseOutputs;
 
@@ -41,12 +41,12 @@ const NTRIPLES: &str = "application/n-triples";
 const NQUADS: &str = "application/n-quads";
 
 /// Parse serialized RDF `text` of `media_type` into the frozen [`RdfDataset`] IR via
-/// the native, oxigraph-free codecs (`gmeow_rdf::parse_dataset`).
+/// the native, oxigraph-free codecs (`purrdf::parse_dataset`).
 fn parse_native_dataset(
     text: &str,
     media_type: &str,
-) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, String> {
-    gmeow_rdf::parse_dataset(text.as_bytes(), media_type, None)
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, String> {
+    purrdf::parse_dataset(text.as_bytes(), media_type, None)
         .map_err(|e| format!("RDF parse error: {e}"))
 }
 
@@ -65,7 +65,7 @@ fn canonical_quads(text: &str, media_type: &str) -> Result<Vec<String>, String> 
     // `canonical_flat_nquads_byte_matches_oxigraph_path` gate in gmeow-rdf), so the
     // graph-isomorphism verdict is unchanged. Splitting into lines and sorting yields
     // the same canonical quad set the comparator compared before.
-    let canonical = gmeow_rdf::canonical_flat_nquads(&dataset)
+    let canonical = purrdf::canonical_flat_nquads(&dataset)
         .map_err(|e| format!("RDF canonicalization error: {e}"))?;
     let mut quads: Vec<String> = canonical
         .lines()
@@ -261,9 +261,8 @@ pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, Strin
         // is re-parsed downstream by `compare_rdf`, so any valid N-Triples document of
         // the graph's content suffices.
         let projected = dataset.project_named_graph(&iri);
-        let bytes =
-            gmeow_rdf::serialize_dataset(&projected, NTRIPLES, SerializeGraph::DefaultGraph)
-                .map_err(|e| format!("named graph <{iri}> N-Triples serialize error: {e}"))?;
+        let bytes = purrdf::serialize_dataset(&projected, NTRIPLES, SerializeGraph::DefaultGraph)
+            .map_err(|e| format!("named graph <{iri}> N-Triples serialize error: {e}"))?;
         let doc = String::from_utf8(bytes)
             .map_err(|e| format!("named graph <{iri}> N-Triples not UTF-8: {e}"))?;
         by_graph.insert(iri, doc);

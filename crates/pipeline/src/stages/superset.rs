@@ -20,7 +20,7 @@
 //! one-directional superset: it sweeps both `generated/ -> bundle` (missing /
 //! mismatch) and `bundle -> generated/` (orphan).
 //!
-//! Reconstruction reads the bundle back through [`gmeow_rdf::import_gts_events`]
+//! Reconstruction reads the bundle back through [`purrdf::import_gts_events`]
 //! and the GTS blob reader, closing the serialize -> parse loop, so it proves
 //! byte-reconstructibility from the emitted bundle rather than from in-memory
 //! carrier state.
@@ -28,7 +28,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_rdf::RdfDataset;
+use purrdf::RdfDataset;
 
 use crate::error::PipelineError;
 
@@ -284,7 +284,7 @@ fn reconstruction_graph_iris(dataset: &RdfDataset) -> BTreeSet<String> {
     let projections = format!("{GRAPH_NS}projections/");
     let mut out = BTreeSet::new();
     for quad in dataset.owned_quads() {
-        if let Some(gmeow_rdf::RdfTerm::Iri(iri)) = &quad.graph_name {
+        if let Some(purrdf::RdfTerm::Iri(iri)) = &quad.graph_name {
             if iri.starts_with(&projections) || iri.starts_with(RDF_FANOUT_NS) {
                 out.insert(iri.clone());
             }
@@ -368,7 +368,7 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
     }
     match rep.form {
         GraphForm::Turtle => {
-            Some(gmeow_rdf::turtle_normalize::render(&projected, &rdf_prefixes()).into_bytes())
+            Some(purrdf::turtle_normalize::render(&projected, &rdf_prefixes()).into_bytes())
         }
         GraphForm::NTriples => canonical_ntriples(&projected).ok(),
         GraphForm::NQuads(label) => {
@@ -403,14 +403,14 @@ pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> Result<Vec<u8>, String
     // re-materialized to plain `rdf:reifies`/annotation triples before canonicalizing.
     // Format-adaptive: a default-graph dataset yields N-Triples lines, a graph-labelled
     // one N-Quads — byte-identical to the prior oxigraph-flat path.
-    gmeow_rdf::canonical_flat_nquads(dataset)
+    purrdf::canonical_flat_nquads(dataset)
         .map(String::into_bytes)
         .map_err(|e| format!("RDFC-1.0 canonicalize: {e}"))
 }
 
 /// Parse the emitted bundle back into a native dataset (closes serialize -> parse).
 fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
-    let bundle = gmeow_rdf::import_gts_events(gts_bytes)
+    let bundle = purrdf::import_gts_events(gts_bytes)
         .map_err(|e| stage_err(&format!("re-import gmeow.gts: {e}")))?;
     Ok(bundle.dataset)
 }
@@ -424,9 +424,9 @@ fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, Pipeline
 /// rep's member-naming convention), so the caller resolves a member to its
 /// `generated/` path with no basename guessing.
 fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
-    let graph = gmeow_rdf::gts::read_graph(gts_bytes, true)
+    let graph = purrdf::gts::read_graph(gts_bytes, true)
         .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
-    let lookaside = gmeow_rdf::gts::lookaside_from_graph(&graph);
+    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
 
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for record in &lookaside.blobs {
@@ -450,7 +450,7 @@ fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, Pipe
         let bytes = entry
             .decoded_vec()
             .map_err(|e| stage_err(&format!("decode blob {}: {e:?}", record.digest)))?;
-        for (name, member_bytes) in gmeow_rdf::ustar::read_archive(&bytes)
+        for (name, member_bytes) in purrdf::ustar::read_archive(&bytes)
             .map_err(|e| stage_err(&format!("unpack archive {}: {e}", record.digest)))?
         {
             let Some(committed) =
@@ -532,15 +532,15 @@ mod tests {
             std::fs::read(root.join("generated/logic/inferred-closure.rdf12.ttl")).unwrap();
         let prefixes = rdf_prefixes();
         // canonical_turtle must be idempotent on RDF-1.2 reifiers.
-        let c1 = gmeow_rdf::turtle_normalize::canonical_turtle(&committed, &prefixes).unwrap();
-        let c2 = gmeow_rdf::turtle_normalize::canonical_turtle(c1.as_bytes(), &prefixes).unwrap();
+        let c1 = purrdf::turtle_normalize::canonical_turtle(&committed, &prefixes).unwrap();
+        let c2 = purrdf::turtle_normalize::canonical_turtle(c1.as_bytes(), &prefixes).unwrap();
         assert_eq!(
             c1, c2,
             "canonical_turtle must be idempotent on the RDF-1.2 closure"
         );
         // Full carrier fold: attach in a named graph, project (keeping reifiers by
         // reified-statement subject), render — must reproduce the canonical bytes.
-        let ds = gmeow_rdf::parse_dataset(c1.as_bytes(), "text/turtle", None).unwrap();
+        let ds = purrdf::parse_dataset(c1.as_bytes(), "text/turtle", None).unwrap();
         assert!(
             ds.annotations().count() > 0,
             "anonymous-reifier annotations must fold (not become base quads)"
@@ -549,7 +549,7 @@ mod tests {
             "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/inferred-closure.rdf12.ttl";
         let rooted = crate::stages::carrier::rooted_in_graph(&ds, iri).unwrap();
         let folded =
-            gmeow_rdf::turtle_normalize::render(&rooted.project_named_graph_full(iri), &prefixes);
+            purrdf::turtle_normalize::render(&rooted.project_named_graph_full(iri), &prefixes);
         assert_eq!(
             folded, c1,
             "the RDF-star carrier fold must reproduce the canonical bytes"
@@ -618,7 +618,7 @@ mod tests {
 
     #[test]
     fn reconstruct_graph_folds_turtle_without_the_graph_label() {
-        use gmeow_rdf::RdfDatasetBuilder;
+        use purrdf::RdfDatasetBuilder;
 
         const G: &str = "https://blackcatinformatics.ca/gmeow/graph/projections/sample.edoal";
         const S: &str = "https://blackcatinformatics.ca/gmeow/projections/sample";
@@ -626,10 +626,10 @@ mod tests {
         const O: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#Alignment";
 
         let mut b = RdfDatasetBuilder::new();
-        let g = b.intern_iri(G.to_string());
-        let s = b.intern_iri(S.to_string());
-        let p = b.intern_iri(P.to_string());
-        let o = b.intern_iri(O.to_string());
+        let g = b.intern_iri(G);
+        let s = b.intern_iri(S);
+        let p = b.intern_iri(P);
+        let o = b.intern_iri(O);
         b.push_quad(s, p, o, Some(g));
         let dataset = b.freeze().expect("freeze");
 

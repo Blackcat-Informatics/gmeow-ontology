@@ -25,7 +25,7 @@
 //! `"world_iri"`.  Nemo's display form for a string datavalue is `"value"`, so
 //! the decode strips the outer double quotes.
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 use sha1::{Digest, Sha1};
 
 // ── Skolem prefix ─────────────────────────────────────────────────────────────

@@ -23,7 +23,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use crate::encode::skolem_iri;
 use crate::reason::el::EL_RULES;
 use crate::reason::InferredAxiom;
-use gmeow_rdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm};
 
 // ── OWL/RDF IRI constants ──────────────────────────────────────────────────────
 
@@ -2507,7 +2507,7 @@ fn all_cardinality_instances_decidable(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+    use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = RDFS_SUBCLASSOF;

@@ -31,7 +31,7 @@ from gmeow_tools.projections import PROFILES as _PROFILES
 if TYPE_CHECKING:
     from typing import TypedDict
 
-    from gmeow_rdf.compat.rdflib import Graph
+    from purrdf.compat.rdflib import Graph
 
     from gmeow_tools.diagnostics import DiagnosticsReport
     from gmeow_tools.language_tags import LangSelector
@@ -341,7 +341,7 @@ def _read_turtle(source: Path) -> tuple[Graph, str]:
     """
     import sys
 
-    from gmeow_rdf.compat.rdflib import Graph
+    from purrdf.compat.rdflib import Graph
 
     graph = Graph()
     stdin = str(source) == "-"
@@ -1279,9 +1279,9 @@ def compliance_report_cmd(
 
 @app.command(name="crosscheck-queries")
 def crosscheck_queries() -> None:
-    """Prove rdflib and gmeow_rdf answer every committed query identically.
+    """Prove rdflib and purrdf answer every committed query identically.
 
-    The trust anchor that licenses the test suite to run on the fast gmeow_rdf
+    The trust anchor that licenses the test suite to run on the fast purrdf
     engine: each query under ``queries/`` is executed on the same merged graph
     under both engines and the answers compared by value. Any divergence fails.
     The agreement matrix is also written as JSON/SARIF/HTML via the diagnostics
@@ -1299,10 +1299,10 @@ def crosscheck_queries() -> None:
         err_console.print(f"[red]diverge[/red] [{r.form}] {r.name}: {r.detail}")
     if diverged:
         raise _fail(
-            f"✗ {len(diverged)} query/queries diverge between rdflib and gmeow_rdf"
+            f"✗ {len(diverged)} query/queries diverge between rdflib and purrdf"
         )
     console.print(
-        f"[green]✓ {len(checked)} queries agree across rdflib + gmeow_rdf"
+        f"[green]✓ {len(checked)} queries agree across rdflib + purrdf"
         f" ({len(skipped)} skipped)[/green]"
     )
 
@@ -1635,9 +1635,9 @@ def temporal(
     timeline, interval overlap, and the bitemporal four-clocks query. Parameters
     are bound safely (rdflib initBindings), never interpolated.
     """
-    from gmeow_rdf.compat.rdflib import Literal, URIRef
-    from gmeow_rdf.compat.rdflib.namespace import XSD
-    from gmeow_rdf.compat.rdflib.util import guess_format
+    from purrdf.compat.rdflib import Literal, URIRef
+    from purrdf.compat.rdflib.namespace import XSD
+    from purrdf.compat.rdflib.util import guess_format
 
     from gmeow_tools.graph import load_merged_graph
     from gmeow_tools.temporal_query import TEMPORAL_QUERIES, run_temporal_query
@@ -1881,8 +1881,8 @@ def mappings() -> None:
     alignments.serialize(destination=DIST_DIR / "gmeow-alignments.ttl", format="turtle")
     linksets = build_linksets(loaded)
     linksets.serialize(destination=DIST_DIR / "gmeow-linksets.ttl", format="turtle")
-    from gmeow_rdf.compat.rdflib import RDF
-    from gmeow_rdf.compat.rdflib.namespace import VOID
+    from purrdf.compat.rdflib import RDF
+    from purrdf.compat.rdflib.namespace import VOID
 
     n_links = len(set(linksets.subjects(RDF.type, VOID.Linkset)))
     console.print(
@@ -2153,7 +2153,7 @@ def build() -> None:
     ``generated/context.jsonld`` (and folded into ``gmeow.gts``), retiring the
     orphaned Python ``jsonld_context`` builder.
     """
-    from gmeow_rdf.compat.rdflib import Graph
+    from purrdf.compat.rdflib import Graph
 
     from gmeow_tools import reason as reasoning
     from gmeow_tools.runner import ToolUnavailableError
@@ -2278,7 +2278,7 @@ def transform(
     stdin when <abox> is '-', so ``gmeow up-project src | gmeow transform -``
     streams the two halves.
     """
-    from gmeow_rdf.compat.rdflib import Graph
+    from purrdf.compat.rdflib import Graph
 
     from gmeow_tools.transform import (
         TransformAbortedError,

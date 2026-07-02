@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import RDF, Graph
-from gmeow_rdf.compat.rdflib.compare import graph_diff, isomorphic
-from gmeow_rdf.compat.rdflib.namespace import OWL
+from purrdf.compat.rdflib import RDF, Graph
+from purrdf.compat.rdflib.compare import graph_diff, isomorphic
+from purrdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import PROJECT_ROOT, STATEMENT_RDF12_FILE
 from rdf12 import normalize_rdf12_to_owl

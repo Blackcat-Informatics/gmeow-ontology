@@ -33,8 +33,8 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use gmeow_logic_compile::ir::LegPath;
 use gmeow_logic_compile::projections::paths::lower_leg_path;
-use gmeow_rdf::{RdfQuad, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult};
-use gmeow_sparql_eval::NativeSparqlEngine;
+use purrdf::sparql::NativeSparqlEngine;
+use purrdf::{RdfQuad, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult};
 
 use crate::up_projection_corpus::{
     canon_qname, dump_nt, in_projection_ns, object_properties, Graph, ADOPTED_PREDICATES,
@@ -412,7 +412,7 @@ fn step_path(ext: &str) -> String {
 /// Any engine failure or a non-graph result is a HARD error.
 fn run_construct(
     engine: &NativeSparqlEngine,
-    dataset: &std::sync::Arc<gmeow_rdf::RdfDataset>,
+    dataset: &std::sync::Arc<purrdf::RdfDataset>,
     query: &str,
 ) -> Result<Vec<RdfQuad>, String> {
     let result = engine
@@ -430,7 +430,7 @@ fn run_construct(
             "put-leg CONSTRUCT did not return a graph\nquery: {query}"
         ));
     };
-    Ok(gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(&ds)
+    Ok(purrdf::native_quads::flat_rdf_quads_from_dataset(&ds)
         .into_iter()
         .filter(|q| q.graph_name.is_none())
         .collect())
@@ -507,7 +507,7 @@ mod tests {
 
     fn run_one(
         engine: &NativeSparqlEngine,
-        dataset: &std::sync::Arc<gmeow_rdf::RdfDataset>,
+        dataset: &std::sync::Arc<purrdf::RdfDataset>,
         q: &str,
     ) -> Vec<RdfQuad> {
         run_construct(engine, dataset, q).expect("construct ok")

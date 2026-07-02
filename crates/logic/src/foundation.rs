@@ -48,7 +48,7 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 use rayon::prelude::*;
 
 use crate::provenance::{mint_derivation_id, mint_reifier};

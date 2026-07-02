@@ -158,14 +158,14 @@ meta:tests-reasoning a meta:TestSuite ;
 
 meta:gate-products a meta:Gate ;
     rdfs:label "the product surfaces: pip client, MCP memory triad, GTS engine"@x-gmeow-english ;
-    meta:artifact "crates/rdf/src/gts_compose.rs", "crates/rdf/src/gts_view.rs",
+    meta:artifact "crates/pipeline/src/stages/gts_sink.rs",
         "crates/pipeline/src/mcp.rs", "docs/mcp-server.md" ;
     meta:symbol "store_claim" ;
     meta:cliCommand "mcp" .
 
 meta:tests-products a meta:TestSuite ;
     rdfs:label "client / MCP memory / GTS engine tests"@x-gmeow-english ;
-    meta:artifact "crates/rdf/src/gts_compose.rs", "crates/rdf/src/gts_view.rs",
+    meta:artifact "crates/pipeline/src/stages/gts_sink.rs",
         "crates/pipeline/src/mcp.rs" .
 
 meta:tests-claim-spine a meta:TestSuite ;
@@ -191,17 +191,16 @@ meta:tests-slices a meta:TestSuite ;
     meta:artifact "tests/test_slices.py", "crates/validate/tests/conformance_profiles.rs" .
 
 meta:gate-crate-layering a meta:Gate ;
-    rdfs:label "Rust crate layering: gmeow-rdf-core purity + acyclic crate DAG"@x-gmeow-english ;
+    rdfs:label "Rust crate layering: acyclic first-party crate DAG"@x-gmeow-english ;
     meta:artifact "crates/validate/src/crate_layering.rs" ;
     meta:symbol "check_crate_layering" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 
-meta:gate-rdf-core-hygiene a meta:Gate ;
-    rdfs:label "reusable RDF-1.2 crate suite: gmeow-rdf-core keeps no oxigraph normal dependency"@x-gmeow-english ;
-    meta:artifact "crates/rdf-core/README.md" ;
-    meta:symbol "rdf-core-hygiene" ;
-    meta:makeTarget "rdf-core-hygiene" .
+# There is no `gate-rdf-core-hygiene` (an oxigraph-free `gmeow-rdf-core` crate
+# check): the RDF-1.2 kernel is the sibling `purrdf` package (GMEOW family), which
+# owns and gates that oxigraph ring-fence internally. gmeow consumes it through the
+# single `purrdf` umbrella.
 
 meta:lint-coequal-facet a meta:Lint ;
     rdfs:label "annotation-driven identity-axis orthogonality"@x-gmeow-english ;
@@ -495,6 +494,5 @@ meta:Principle18 a meta:Principle ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
         meta:gate-classic-cross-check, meta:gate-native-oracle-superset,
-        meta:tests-lane-purity, meta:gate-release-evidence,
-        meta:gate-rdf-core-hygiene ;
+        meta:tests-lane-purity, meta:gate-release-evidence ;
     meta:extends meta:Principle17, meta:Principle13 .

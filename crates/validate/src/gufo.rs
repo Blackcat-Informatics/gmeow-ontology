@@ -5,9 +5,9 @@
 //!
 //! The OntoUML anti-pattern checks (`exactly_one_stereotype`, `identity_overlap`,
 //! `anti_rigidity_discipline`, `relator_mediation`, `coequal_facet_orthogonality`,
-//! `frame_declaration_completeness`) run over a native [`gmeow_rdf::RdfDataset`]
+//! `frame_declaration_completeness`) run over a native [`purrdf::RdfDataset`]
 //! built from the merged ontology sources, querying through the indexed
-//! [`gmeow_rdf::DatasetView::quads_for_pattern`]. The aggregator
+//! [`purrdf::DatasetView::quads_for_pattern`]. The aggregator
 //! [`reasoning_invariants`] runs the five PRODUCTION checks and flattens their errors.
 //! `relator_mediation` (RelComp) is now enforced natively over the whole ontology by the
 //! foundation lowering and is retained here only as the regression oracle that native
@@ -24,7 +24,7 @@
 //!   [`coequal_facet_orthogonality`].
 //!
 //! Graph handling: the legacy pipeline flattened named graphs into the default
-//! graph, so these read across all graphs with [`gmeow_rdf::GraphMatch::Any`].
+//! graph, so these read across all graphs with [`purrdf::GraphMatch::Any`].
 //!
 //! Determinism: wherever the Python sorts (by `str`), this sorts the same way;
 //! wherever the Python relied on graph-iteration order, the emitted output is
@@ -37,7 +37,7 @@
 use std::collections::{BTreeSet, HashSet, VecDeque};
 
 use gmeow_diagnostics::model::{Finding, Location, Severity};
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use crate::model::{owl, rdf, rdfs};
 
@@ -996,7 +996,7 @@ pub fn reasoning_invariants(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::parse_dataset;
+    use purrdf::parse_dataset;
     use std::sync::Arc;
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";

@@ -19,11 +19,9 @@ use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
 use gmeow_logic_compile::projections::{edoal, fno, sparql, sssom, ProjectionResult};
-use gmeow_rdf::dataset_view::{DatasetView, GraphMatch};
-use gmeow_rdf::{
-    parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue,
-};
-use gmeow_slice::{ArtifactRole, SliceCatalog, SliceError};
+use purrdf::dataset_view::{DatasetView, GraphMatch};
+use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
+use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
 
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 const GM_DATE_PUBLISHED: &str = "https://blackcatinformatics.ca/gmeow/datePublished";
@@ -65,7 +63,10 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
     // rescanning the `slices/` tree per role.
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
-        Some(SliceCatalog::discover(&slices_dir)?)
+        Some(SliceCatalog::discover(
+            &slices_dir,
+            crate::gmeow_ns::gmeow_slice_vocab(),
+        )?)
     } else {
         None
     };

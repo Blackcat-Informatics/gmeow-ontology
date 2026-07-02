@@ -18,7 +18,7 @@
 //! task. This module produces only the in-memory structured ledger.
 
 use gmeow_diagnostics::{Finding, Severity};
-use gmeow_rdf::RdfLoss;
+use purrdf::RdfLoss;
 use std::collections::BTreeSet;
 
 /// How a single compared tuple relates between the native engine and an oracle.

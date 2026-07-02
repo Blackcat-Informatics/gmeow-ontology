@@ -28,7 +28,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_rdf::{RdfDataset, TermValue};
+use purrdf::{RdfDataset, TermValue};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -369,7 +369,7 @@ mod tests {
         // Prove the projection is NOT vacuous: the generated SHACL must FAIL a row
         // that binds the wrong term-kind and PASS a conforming row. We synthesise a
         // tiny shape + two rows and validate them with the native engine.
-        use gmeow_shacl::engine::{parse_shapes, validate_dataset};
+        use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 
         let shapes_ttl = "\
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -414,7 +414,7 @@ mod tests {
     /// projection was designed to provide.
     #[test]
     fn generated_shapes_conform_to_every_authored_row() {
-        use gmeow_shacl::engine::{parse_shapes, validate_dataset};
+        use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 
         let root = repo_root();
         let shapes_ttl = render_result_shapes(&root).expect("render_result_shapes");
@@ -452,7 +452,7 @@ mod tests {
     /// diagnostic rather than silently vacuously passing.
     #[test]
     fn generated_shapes_flag_a_planted_wrong_kind_row() {
-        use gmeow_shacl::engine::{parse_shapes, validate_dataset};
+        use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 
         let root = repo_root();
         let shapes_ttl = render_result_shapes(&root).expect("render_result_shapes");
@@ -518,7 +518,7 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
         // A literal column with logic:columnDatatype xsd:string must:
         //   - FAIL a row whose cell binds a literal with a different datatype (xsd:integer)
         //   - PASS a row whose cell binds a literal of exactly the pinned datatype
-        use gmeow_shacl::engine::{parse_shapes, validate_dataset};
+        use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 
         // Hand-built projection for a single literal column "tag" pinned to xsd:string.
         let xsd_string = "http://www.w3.org/2001/XMLSchema#string";

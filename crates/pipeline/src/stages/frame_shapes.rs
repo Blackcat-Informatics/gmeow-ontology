@@ -11,7 +11,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use gmeow_slice::rdf_query::{Dataset, DatasetAccumulator, Object};
+use purrdf::slice::rdf_query::{Dataset, DatasetAccumulator, Object};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};

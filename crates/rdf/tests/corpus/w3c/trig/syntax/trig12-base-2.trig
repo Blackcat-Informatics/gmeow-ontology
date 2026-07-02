@@ -1,3 +1,0 @@
-PREFIX : <http://example/>
-
-:G { :a :b "Hello"@en--rtl }

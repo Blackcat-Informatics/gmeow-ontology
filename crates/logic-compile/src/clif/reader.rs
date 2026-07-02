@@ -24,7 +24,7 @@ use super::{parse_sexprs, split_on_sentinel, Atom, SExpr};
 /// variable pairs.
 type RuleBody = (Vec<LogicAxiom>, Vec<(String, String)>);
 
-use gmeow_rdf::parse_dataset;
+use purrdf::parse_dataset;
 
 /// Parse CLIF source text into a [`LogicProgram`] + diagnostics.
 ///

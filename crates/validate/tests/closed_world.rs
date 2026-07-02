@@ -8,7 +8,7 @@
 //! incomplete instance node that the old open-world LinkML schema accepted.
 //!
 //! We build a one-class shapes graph (`gmeow:Thing` requiring `gmeow:req`),
-//! compile it to a JSON Schema with [`gmeow_shacl::json_schema::compile`], and
+//! compile it to a JSON Schema with [`purrdf::shapes::json_schema::compile`], and
 //! validate two instance nodes of the SAME `@type` through
 //! [`gmeow_validate::instance::validate_instance`]:
 //!
@@ -20,8 +20,8 @@
 //! sees `@type: "gmeow:Thing"` and therefore enforces `#/$defs/Thing`'s
 //! `required` list, which an open-world schema would not.
 
-use gmeow_shacl::{engine, json_schema};
 use gmeow_validate::instance::{validate_instance, InstanceFormat};
+use purrdf::shapes::{engine, json_schema};
 
 /// A shapes graph with one class `gmeow:Thing` requiring `gmeow:req`.
 const SHAPES_TTL: &str = r#"
@@ -42,8 +42,25 @@ gmeow:ThingShape a sh:NodeShape ;
 /// Compile [`SHAPES_TTL`] into the closed-world JSON Schema bytes.
 fn schema_bytes() -> Vec<u8> {
     let shapes = engine::parse_shapes(SHAPES_TTL).expect("parse shapes");
-    let compiled = json_schema::compile(&shapes);
+    let compiled = json_schema::compile(&shapes, &gmeow_namespaces());
     compiled.schema_json.into_bytes()
+}
+
+fn gmeow_namespaces() -> json_schema::Namespaces {
+    json_schema::Namespaces::new(
+        "gmeow",
+        &[
+            (
+                "gmeow".to_owned(),
+                "https://blackcatinformatics.ca/gmeow/".to_owned(),
+            ),
+            (
+                "logic".to_owned(),
+                "https://blackcatinformatics.ca/logic/".to_owned(),
+            ),
+        ],
+    )
+    .expect("gmeow namespaces")
 }
 
 #[test]

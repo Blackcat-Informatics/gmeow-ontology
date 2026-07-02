@@ -7,7 +7,7 @@
 //! translations in per-slice gettext catalogs `slices/<g>/<slice>/i18n/<lang>.po`.
 //! The slice catalog classifies those files as
 //! [`ArtifactRole::TranslationCatalog`], so their bytes are already available
-//! on each [`gmeow_slice::SliceRecord`]. This module
+//! on each [`purrdf::slice::SliceRecord`]. This module
 //! parses them into a [`Translations`] index and resolves per-language label /
 //! definition values at render time, falling back to the English carrier.
 //!
@@ -34,7 +34,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use gmeow_slice::{ArtifactRole, SliceCatalog};
+use purrdf::slice::{ArtifactRole, SliceCatalog};
 
 /// The English authoring carrier key (the model's own values).
 pub const ENGLISH: &str = "english";

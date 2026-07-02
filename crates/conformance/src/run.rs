@@ -522,7 +522,7 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
     }
     let bytes =
         std::fs::read(&input_nq_path).map_err(|e| prefix(format!("cannot read input.nq: {e}")))?;
-    let dataset = gmeow_rdf::dataset_from_bytes(&bytes, gmeow_rdf::NativeRdfFormat::NQuads)
+    let dataset = purrdf::dataset_from_bytes(&bytes, purrdf::NativeRdfFormat::NQuads)
         .map_err(|e| prefix(format!("input.nq parse failed: {e}")))?;
 
     let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())

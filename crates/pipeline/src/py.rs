@@ -186,9 +186,8 @@ fn compile_mappings_report(py: Python<'_>, root: String) -> PyResult<Py<PyAny>> 
 #[pyfunction]
 #[pyo3(signature = (nquads_bytes, format = "jsonld"))]
 fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
-    let dataset =
-        gmeow_rdf::dataset_from_bytes(nquads_bytes, gmeow_rdf::NativeRdfFormat::NQuads)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("parse N-Quads: {e}")))?;
+    let dataset = purrdf::dataset_from_bytes(nquads_bytes, purrdf::NativeRdfFormat::NQuads)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("parse N-Quads: {e}")))?;
     let text = match format {
         "jsonld" => crate::stages::yaml_ld::serialize_graph(&dataset)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
@@ -347,8 +346,8 @@ fn fold_release_bundle_native(
 
     // Load the Ed25519 signing material from the armored secret key in Rust
     // (no key handling in Python beyond reading the file bytes).
-    let signer =
-        gmeow_gts::openpgp::parse_secret_signing_key(&signer_secret_armor, None).map_err(|e| {
+    let signer = purrdf::gts::openpgp::parse_secret_signing_key(&signer_secret_armor, None)
+        .map_err(|e| {
             pyo3::exceptions::PyValueError::new_err(format!("parsing signing secret key: {e}"))
         })?;
     let (signing_key, kid) = signer.into_parts();
@@ -884,7 +883,7 @@ fn export_views(
     out_dir: String,
     languages: Vec<String>,
 ) -> PyResult<Vec<String>> {
-    let dataset = gmeow_rdf::gts::flattened_dataset_from_bytes(&gts_bytes)
+    let dataset = purrdf::gts::flattened_dataset_from_bytes(&gts_bytes)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let artifacts = crate::stages::export::render_all_with_languages(&dataset, &languages)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
@@ -912,7 +911,7 @@ fn export_views(
 /// Serves the source-free bundle checks (`label`/`definition` empty → missing).
 #[pyfunction]
 fn bundle_term_summaries(gts_bytes: Vec<u8>) -> PyResult<Vec<(String, String, String)>> {
-    let dataset = gmeow_rdf::gts::flattened_dataset_from_bytes(&gts_bytes)
+    let dataset = purrdf::gts::flattened_dataset_from_bytes(&gts_bytes)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let view = crate::stages::export::FoldView::new(&dataset);
     let terms = crate::stages::export::collect_terms(&view);

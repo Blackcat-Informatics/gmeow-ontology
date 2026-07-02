@@ -7,14 +7,14 @@ dictionary:
 
 * **rdflib** ``Graph``/``Dataset`` — the RDF 1.1 base graph (IRIs, blank nodes,
   literals, named-graph quads).
-* **gmeow_rdf** over an RDF 1.2 artifact (``statements/gmeow.rdf12.ttl``) — the
+* **purrdf** over an RDF 1.2 artifact (``statements/gmeow.rdf12.ttl``) — the
   statement layer: ``reifier rdf:reifies <<( s p o )>>`` becomes a GTS ``reifies``
   binding and the reifier's other triples become ``annot`` rows (§7.3). rdflib 7.6
-  has no triple-term API, so the RDF-star source must be read with gmeow_rdf.
+  has no triple-term API, so the RDF-star source must be read with purrdf.
 
 The GTS BYTES are produced in Rust (#819 Task 8): :class:`_Builder` is a thin
-glue layer that lowers rdflib sources to ``gmeow_rdf.Quad`` lists and hands them
-to the native ``gmeow_rdf`` producer (``compile_gts_native`` /
+glue layer that lowers rdflib sources to ``purrdf.Quad`` lists and hands them
+to the native ``purrdf`` producer (``compile_gts_native`` /
 ``gts_from_*_native``), which authors the single ``dist``-profile ``snapshot``
 frame (§10). The snapshot payload is byte-identical to the historical Python
 encoder; only the zstd codec differs (codec-skew), so the committed ``gmeow.gts``
@@ -25,15 +25,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import gmeow_rdf as ox
-from gmeow_rdf.compat.rdflib import Dataset, Graph, URIRef
+import purrdf as ox
+from purrdf.compat.rdflib import Dataset, Graph, URIRef
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    from gmeow_rdf.compat.rdflib.term import Node
     from gts import Signer
+    from purrdf.compat.rdflib.term import Node
 
     from gmeow_tools.saturate import DerivedTriple
 
@@ -43,8 +43,8 @@ _RDF_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 def _nquads_bytes(graph: Graph) -> bytes:
     """Serialize an rdflib ``Graph``/``Dataset`` to N-Quads bytes for native ingest.
 
-    Lowering to text (not ``gmeow_rdf.Quad`` objects) is deliberate: the strict
-    ``gmeow_rdf.Literal`` constructor rejects the ontology's private-use language
+    Lowering to text (not ``purrdf.Quad`` objects) is deliberate: the strict
+    ``purrdf.Literal`` constructor rejects the ontology's private-use language
     tags (``@x-gmeow-*``), whereas the native producer parses these bytes with the
     LENIENT oxigraph parser — preserving every tag verbatim, exactly as the prior
     rdflib→``gts.model.Term`` ingest did. Quoted-triple components in the base
@@ -92,7 +92,7 @@ class _Builder:
     """Glue that accumulates rdflib sources and emits GTS bytes via Rust.
 
     Each rdflib source is serialized to N-Quads bytes and handed to the native
-    ``gmeow_rdf`` producer, which parses leniently, interns, content-sorts, and
+    ``purrdf`` producer, which parses leniently, interns, content-sorts, and
     authors the snapshot frame. This class holds NO encoding logic of its own.
     """
 
@@ -151,7 +151,7 @@ class _Builder:
                 f"{_nt_term(reifier)} {_nt_term(ann_p)} {_nt_term(ann_v)} ."
             )
 
-    # -- gmeow_rdf (RDF 1.2 statement layer) ---------------------------------
+    # -- purrdf (RDF 1.2 statement layer) ---------------------------------
 
     def add_rdf12(
         self,
@@ -275,7 +275,7 @@ def gts_from_rdf12(
     profile: str = "dist",
     transform: list[str] | None = None,
 ) -> bytes:
-    """Produce a GTS snapshot from an RDF 1.2 artifact (statement layer; gmeow_rdf)."""
+    """Produce a GTS snapshot from an RDF 1.2 artifact (statement layer; purrdf)."""
     return ox.gts_from_rdf12_bytes(
         path.read_bytes(),
         format=ox.RdfFormat.TURTLE,
@@ -340,7 +340,7 @@ def compile_gts(
         FileNotFoundError: if ``rdf12_path`` is given but does not exist (a missing
             statement layer is an error, not a silent RDF-1.1-only fallback).
     """
-    from gmeow_rdf.compat.rdflib.compare import to_canonical_graph
+    from purrdf.compat.rdflib.compare import to_canonical_graph
 
     from gmeow_tools.config import GTS_GRAPH_ALIGNMENTS, GTS_GRAPH_STATEMENTS
 

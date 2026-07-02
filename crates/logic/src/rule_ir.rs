@@ -50,7 +50,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 use crate::provenance::{
     mint_derivation_id, mint_reifier, term_display, ASSERT_RULE_IRI, LOGIC_NAMESPACE,

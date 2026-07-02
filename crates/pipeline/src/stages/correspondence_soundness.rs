@@ -35,9 +35,9 @@ use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence_soundness::{
     self as soundness, expand_curie, parse_sssom_tsv, prefix_of, Mapping, ProjectionDiagnostic,
 };
-use gmeow_rdf::dataset_view::{DatasetView, GraphMatch};
-use gmeow_rdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef};
-use gmeow_slice::{ArtifactRole, SliceCatalog, SliceError};
+use purrdf::dataset_view::{DatasetView, GraphMatch};
+use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
+use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef};
 
 const GMEOW_PREFIX: &str = "gmeow:";
 
@@ -396,8 +396,8 @@ fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, SliceError> {
         // Re-intern this quad into the filtered dataset (subject is an IRI; predicate an
         // IRI; object an IRI or literal — the structural axioms only carry IRI objects,
         // but a permissive re-intern keeps any object kind).
-        let s = b.intern_iri(subj.to_owned());
-        let p = b.intern_iri(pred.to_owned());
+        let s = b.intern_iri(subj);
+        let p = b.intern_iri(pred);
         let o = intern_object(&mut b, &parsed, q.o);
         b.push_quad(s, p, o, None);
     }
@@ -408,11 +408,11 @@ fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, SliceError> {
 fn intern_object(
     b: &mut RdfDatasetBuilder,
     ds: &RdfDataset,
-    obj: gmeow_rdf::TermId,
-) -> gmeow_rdf::TermId {
+    obj: purrdf::TermId,
+) -> purrdf::TermId {
     match ds.resolve(obj) {
-        TermRef::Iri(iri) => b.intern_iri(iri.to_owned()),
-        TermRef::Blank { label, scope } => b.intern_blank(label.to_owned(), scope),
+        TermRef::Iri(iri) => b.intern_iri(iri),
+        TermRef::Blank { label, scope } => b.intern_blank(label, scope),
         TermRef::Literal {
             lexical,
             datatype,
@@ -421,18 +421,18 @@ fn intern_object(
         } => {
             let lit = match language {
                 Some(lang) => {
-                    gmeow_rdf::RdfLiteral::language_tagged(lexical.to_owned(), lang.to_owned())
+                    purrdf::RdfLiteral::language_tagged(lexical.to_owned(), lang.to_owned())
                 }
                 None => match ds.resolve(datatype) {
                     TermRef::Iri(dt) => {
-                        gmeow_rdf::RdfLiteral::typed(lexical.to_owned(), dt.to_owned())
+                        purrdf::RdfLiteral::typed(lexical.to_owned(), dt.to_owned())
                     }
-                    _ => gmeow_rdf::RdfLiteral::simple(lexical.to_owned()),
+                    _ => purrdf::RdfLiteral::simple(lexical.to_owned()),
                 },
             };
             b.intern_literal(lit)
         }
-        TermRef::Triple { .. } => b.intern_iri(String::from("urn:gmeow:unsupported-triple-term")),
+        TermRef::Triple { .. } => b.intern_iri("urn:gmeow:unsupported-triple-term"),
     }
 }
 
@@ -517,7 +517,10 @@ pub fn lint_correspondence_soundness(
 ) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
-        Some(SliceCatalog::discover(&slices_dir)?)
+        Some(SliceCatalog::discover(
+            &slices_dir,
+            crate::gmeow_ns::gmeow_slice_vocab(),
+        )?)
     } else {
         None
     };

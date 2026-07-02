@@ -33,8 +33,8 @@ use std::sync::Arc;
 
 use gmeow_diagnostics::model::Location;
 use gmeow_diagnostics::Report;
-use gmeow_rdf::RdfDataset;
-use gmeow_shacl::shape_union::EXCLUDED;
+use purrdf::shapes::shape_union::EXCLUDED;
+use purrdf::RdfDataset;
 
 use crate::gufo::{self, GufoConfig};
 use crate::report_bridge::{build_report, shacl_findings_from_report};
@@ -82,7 +82,7 @@ const REP_SHAPES: &str = "shapes-archive";
 /// sole validation surface exposed at the wasm/CLI boundary (see [`validate_json`]).
 ///
 /// `data_format` is a media type or short format id understood by
-/// [`gmeow_rdf::parse_dataset`] (`turtle`/`ttl`, `trig`, `n-triples`/`nt`,
+/// [`purrdf::parse_dataset`] (`turtle`/`ttl`, `trig`, `n-triples`/`nt`,
 /// `n-quads`/`nq`, `rdf+xml`) or the JSON-LD ids `json-ld`/`jsonld`. `namespace`
 /// is the GMEOW IRI prefix the discipline checks key on. `origin` is the data
 /// file's display path, recorded as each SHACL finding's physical location so
@@ -108,7 +108,7 @@ pub fn run_tier1(
     let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
     let dataset = data_dataset_flat(data_bytes, data_format)?;
 
-    let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl)
+    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)
         .map_err(|e| format!("bundled SHACL shapes failed to parse: {e}"))?;
     let shacl_report = store::shacl_validate_dataset(&dataset, &shapes);
     let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
@@ -292,7 +292,7 @@ fn deep_consistency_findings(
     data_format: &str,
     report: &mut Report,
 ) -> Result<(), DeepPassError> {
-    let bundle = gmeow_rdf::import_gts_events(gts_bytes)
+    let bundle = purrdf::import_gts_events(gts_bytes)
         .map_err(|e| DeepPassError::Unavailable(format!("GTS read error: {e}")))?;
     let user = data_dataset(data_bytes, data_format).map_err(DeepPassError::Unavailable)?;
     let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
@@ -326,10 +326,10 @@ fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>,
         // native JSON-LD-star codec, which folds the RDF 1.2 statement layer and
         // PRESERVES named graphs — the graph-preserving shape this Tier-2 path needs
         // (no longer the external gmeow-gts JSON-LD codec).
-        return gmeow_rdf::native_codecs::jsonld::parse_jsonld(data_bytes)
+        return purrdf::native_codecs::jsonld::parse_jsonld(data_bytes)
             .map_err(|e| format!("JSON-LD parse error: {e}"));
     }
-    gmeow_rdf::parse_dataset(data_bytes, data_format, None)
+    purrdf::parse_dataset(data_bytes, data_format, None)
         .map_err(|e| format!("data graph parse error: {e}"))
 }
 
@@ -343,14 +343,14 @@ fn data_dataset_flat(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfData
         // native JSON-LD-star codec, then re-home every named graph to the default graph
         // (the Tier-1 SHACL path needs the whole graph flat). This matches the prior
         // gmeow-gts → `dataset_from_gts` flattening behavior.
-        let dataset = gmeow_rdf::native_codecs::jsonld::parse_jsonld(data_bytes)
+        let dataset = purrdf::native_codecs::jsonld::parse_jsonld(data_bytes)
             .map_err(|e| format!("JSON-LD parse error: {e}"))?;
         return flatten_to_default_graph(&dataset);
     }
 
     // Parse to the native IR, then re-home every named graph to the default graph so
     // the flattened graph matches the old `FlattenToDefaultGraph` store.
-    let dataset = gmeow_rdf::parse_dataset(data_bytes, data_format, None)
+    let dataset = purrdf::parse_dataset(data_bytes, data_format, None)
         .map_err(|e| format!("data graph parse error: {e}"))?;
     flatten_to_default_graph(&dataset)
 }
@@ -358,7 +358,7 @@ fn data_dataset_flat(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfData
 /// Re-home every quad of `dataset` to the default graph (the native twin of
 /// `GraphPolicy::FlattenToDefaultGraph`), returning a fresh frozen dataset.
 fn flatten_to_default_graph(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
-    use gmeow_rdf::RdfDatasetBuilder;
+    use purrdf::RdfDatasetBuilder;
     let mut builder = RdfDatasetBuilder::new();
     for mut quad in dataset.owned_quads() {
         quad.graph_name = None;
@@ -407,7 +407,7 @@ fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> Result<String, String> {
         .map_err(|e| format!("`{REP_SHAPES}` blob decode error: {e}"))?
         .to_vec();
 
-    let mut members = gmeow_rdf::ustar::read_archive(&tar)?;
+    let mut members = purrdf::ustar::read_archive(&tar)?;
     // Deterministic concatenation order regardless of archive member order.
     members.sort_by(|a, b| a.0.cmp(&b.0));
 
@@ -530,11 +530,11 @@ mod tests {
     /// Build canonical GTS bytes from an arbitrary Turtle string for use in
     /// deep-pass tests. Mirrors the same helper in `validate_all` tests.
     fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
-        let dataset = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-            .expect("parse test turtle");
-        gmeow_rdf::gts_write::to_gts(
+        let dataset =
+            purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse test turtle");
+        purrdf::gts_write::to_gts(
             &dataset,
-            &gmeow_rdf::RdfLookaside::default(),
+            &purrdf::RdfLookaside::default(),
             "gmeow-validate-data-deep-test",
         )
         .expect("encode GTS bytes")

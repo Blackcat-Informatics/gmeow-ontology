@@ -31,7 +31,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
-from gmeow_rdf.compat.rdflib import Graph
+from purrdf.compat.rdflib import Graph
 
 from gmeow_tools.config import PROJECT_ROOT
 from gmeow_tools.rdf_canonical import graphs_isomorphic

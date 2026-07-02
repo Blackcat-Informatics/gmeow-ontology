@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 import gmeow_validate
-from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
+from purrdf.compat.rdflib import Graph, Literal, URIRef
 
 from gmeow_tools.config import NAMESPACE
 

@@ -19,9 +19,9 @@ mod shacl_support;
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_rdf::parse_dataset;
-use gmeow_rdf_core::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
-use gmeow_sparql_eval::NativeSparqlEngine;
+use purrdf::parse_dataset;
+use purrdf::sparql::NativeSparqlEngine;
+use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
 
 use gmeow_foundation_corpus::run_import;
 use shacl_support::{ok, validate_with_ontology, violations};

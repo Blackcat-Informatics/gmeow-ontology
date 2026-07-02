@@ -10,13 +10,13 @@
 //! the SPARQL lowering uses.
 //! The triples are built as N-Triples with a deterministic first-seen blank order and
 //! rendered through the **wasm-clean** canonical-Turtle serializer
-//! ([`gmeow_rdf::turtle_render`]) — no oxigraph: the serializer's object ordering is a
+//! ([`purrdf::turtle_render`]) — no oxigraph: the serializer's object ordering is a
 //! pure function of subtree content (every EDOAL blank inlines), so building the graph
 //! and rendering reproduces the committed bytes byte-for-byte.
 
 use std::collections::BTreeMap;
 
-use gmeow_rdf::{parse_dataset, NativeRdfFormat};
+use purrdf::{parse_dataset, NativeRdfFormat};
 
 use crate::ingest::prefixes::registry_pairs;
 use crate::ingest::DslView;
@@ -82,7 +82,7 @@ pub fn lower_edoal(
             None,
         )
         .map_err(|e| format!("EDOAL NT parse error: {e}"))?;
-        let body = gmeow_rdf::turtle_render::render(&dataset, &prefixes);
+        let body = purrdf::turtle_render::render(&dataset, &prefixes);
         let text = format!("{}\n", body.trim_end_matches('\n'));
         alignments.insert(format!("{profile}.edoal.ttl"), text);
         ledger.extend(emitted.ledger);

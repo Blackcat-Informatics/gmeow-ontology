@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import DCTERMS, RDFS, SKOS
+from purrdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib.namespace import DCTERMS, RDFS, SKOS
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,

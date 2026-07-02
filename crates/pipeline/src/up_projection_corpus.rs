@@ -13,7 +13,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::sync::{Arc, OnceLock};
 
-use gmeow_rdf::{RdfDataset, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfQuad, RdfTerm};
 
 pub(crate) const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -288,10 +288,10 @@ pub fn run_audit_nt(
 
 pub(crate) fn sssom_records(
     sssom_texts: &[String],
-) -> Result<Vec<(gmeow_rdf::SssomMapping, PrefixMap)>, String> {
+) -> Result<Vec<(purrdf::SssomMapping, PrefixMap)>, String> {
     let mut rows = Vec::new();
     for text in sssom_texts {
-        let set = gmeow_rdf::sssom::parse_tsv(text).map_err(|e| e.to_string())?;
+        let set = purrdf::sssom::parse_tsv(text).map_err(|e| e.to_string())?;
         let prefixes = PrefixMap::from_sssom(&set.meta.curie_map);
         for row in set.mappings {
             rows.push((row, prefixes.clone()));
@@ -659,12 +659,12 @@ pub(crate) fn used_target_terms(quads: &[RdfQuad]) -> BTreeSet<String> {
 
 /// Serialize the accumulator to N-Triples via the native writer.
 pub(crate) fn dump_nt(quads: &[RdfQuad]) -> Result<String, String> {
-    let dataset = gmeow_rdf::native_quads::flat_dataset_from_quads(quads)
+    let dataset = purrdf::native_quads::flat_dataset_from_quads(quads)
         .map_err(|e| format!("re-freeze accumulated quads: {e}"))?;
-    let bytes = gmeow_rdf::serialize_dataset(
+    let bytes = purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
-        gmeow_rdf::SerializeGraph::Dataset,
+        purrdf::SerializeGraph::Dataset,
     )
     .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
     String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
@@ -698,12 +698,12 @@ pub(crate) fn value(quads: &[RdfQuad], subject: &RdfTerm, pred: &str) -> Option<
 /// Parse a Turtle document and re-serialize it as N-Triples — the Rust-native TTL→NT
 /// conversion the gate-derived audit uses so corpus reading never re-enters Python (rdflib).
 pub(crate) fn ttl_to_nt(ttl: &str) -> Result<String, String> {
-    let dataset = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+    let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
         .map_err(|e| format!("TTL parse failed: {e}"))?;
-    let bytes = gmeow_rdf::serialize_dataset(
+    let bytes = purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
-        gmeow_rdf::SerializeGraph::Dataset,
+        purrdf::SerializeGraph::Dataset,
     )
     .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
     String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
@@ -859,9 +859,9 @@ pub(crate) struct Graph {
 
 impl Graph {
     pub(crate) fn parse(data: &[u8], media_type: &str) -> Result<Self, String> {
-        let dataset = gmeow_rdf::parse_dataset(data, media_type, None)
+        let dataset = purrdf::parse_dataset(data, media_type, None)
             .map_err(|e| format!("RDF parse failed: {e}"))?;
-        let quads = gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(&dataset)
+        let quads = purrdf::native_quads::flat_rdf_quads_from_dataset(&dataset)
             .into_iter()
             .filter(|q| q.graph_name.is_none())
             .collect();

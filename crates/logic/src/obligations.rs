@@ -44,8 +44,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::sync::Arc;
 
-use gmeow_rdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
-use gmeow_sparql_eval::NativeSparqlEngine;
+use purrdf::sparql::NativeSparqlEngine;
+use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
 use sha2::{Digest, Sha256};
 
 use gmeow_diagnostics::{Finding, Severity};
@@ -897,7 +897,7 @@ mod tests {
 
     /// Build a minimal in-memory dataset from N-Triples for query tests.
     fn store_from_ntriples(ntriples: &str) -> Arc<RdfDataset> {
-        gmeow_rdf::parse_dataset(ntriples.as_bytes(), "application/n-triples", None)
+        purrdf::parse_dataset(ntriples.as_bytes(), "application/n-triples", None)
             .expect("load N-Triples")
     }
 

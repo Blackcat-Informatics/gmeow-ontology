@@ -7,7 +7,7 @@
 //! Schema projection over the WHOLE example corpus: for every `slices/*/*/
 //! examples/*.ttl` data graph, the projected JSON-LD `@graph` instance form
 //! validates against the JSON Schema the emitter derives from the SAME merged
-//! shapes the live validator uses ([`gmeow_shacl::shape_union::load_shapes`]).
+//! shapes the live validator uses ([`purrdf::shapes::shape_union::load_shapes`]).
 //!
 //! # Soundness contract
 //!
@@ -28,12 +28,12 @@ use std::path::{Path, PathBuf};
 
 use std::sync::Arc;
 
-use gmeow_shacl::shapes::Shapes;
-use gmeow_shacl::{engine, instance, json_schema, shape_union};
 use gmeow_validate::instance::{validate_instance, InstanceFormat};
+use purrdf::shapes::shapes::Shapes;
+use purrdf::shapes::{engine, instance, json_schema, shape_union};
 
-use gmeow_rdf::parse_dataset;
-use gmeow_rdf::RdfDataset;
+use purrdf::parse_dataset;
+use purrdf::RdfDataset;
 
 /// Examples that do NOT conform to the merged SHACL shapes and are therefore
 /// out of scope for the JSON-schema sweep (illustrative, not valid instance
@@ -169,6 +169,23 @@ fn conforms_to_shacl(dataset: &Arc<RdfDataset>, shapes: &Shapes) -> bool {
         .conforms
 }
 
+fn gmeow_namespaces() -> json_schema::Namespaces {
+    json_schema::Namespaces::new(
+        "gmeow",
+        &[
+            (
+                "gmeow".to_owned(),
+                "https://blackcatinformatics.ca/gmeow/".to_owned(),
+            ),
+            (
+                "logic".to_owned(),
+                "https://blackcatinformatics.ca/logic/".to_owned(),
+            ),
+        ],
+    )
+    .expect("gmeow namespaces")
+}
+
 #[test]
 fn example_corpus_validates_against_closed_world_schema() {
     let repo = repo_root();
@@ -176,7 +193,7 @@ fn example_corpus_validates_against_closed_world_schema() {
     // The merged shape union + the JSON Schema derived from those same shapes.
     let (_shapes_store, shapes) =
         shape_union::load_shapes(&repo).expect("load merged SHACL shapes");
-    let compiled = json_schema::compile(&shapes);
+    let compiled = json_schema::compile(&shapes, &gmeow_namespaces());
     let schema_bytes = compiled.schema_json.as_bytes();
 
     let non_conformant: std::collections::BTreeSet<&str> = NON_CONFORMANT.iter().copied().collect();
@@ -210,7 +227,7 @@ fn example_corpus_validates_against_closed_world_schema() {
         }
 
         // (B) Project to JSON-LD and validate against the closed-world schema.
-        let instance_value = instance::project_graph(&store);
+        let instance_value = instance::project_graph(&store, &gmeow_namespaces());
         let instance_bytes = serde_json::to_vec(&instance_value).expect("serialize instance");
         let violations = validate_instance(&instance_bytes, InstanceFormat::Json, schema_bytes)
             .unwrap_or_else(|e| panic!("validate_instance hard error for {relpath}: {e}"));

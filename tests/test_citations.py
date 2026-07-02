@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import re
 
-from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/test/")
@@ -104,7 +104,7 @@ def test_canonical_description_is_standardized() -> None:
     added; the manifest tier is the sole source of slice truth.
     """
     import yaml
-    from gmeow_rdf.compat.rdflib.namespace import DCTERMS
+    from purrdf.compat.rdflib.namespace import DCTERMS
 
     from gmeow_tools.config import (
         ALIGNMENT_TARGETS,

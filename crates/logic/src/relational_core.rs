@@ -23,7 +23,7 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 use gmeow_logic_compile::ir::{LogicProgram, LOGIC_NAMESPACE};
 use gmeow_logic_compile::relational_core::{RcAtom, RcRule, RcTerm};

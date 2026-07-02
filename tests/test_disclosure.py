@@ -13,8 +13,8 @@ from itertools import combinations
 from pathlib import Path
 
 import pytest
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef, Variable
-from gmeow_rdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef, Variable
+from purrdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph

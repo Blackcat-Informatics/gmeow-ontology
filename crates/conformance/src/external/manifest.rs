@@ -3,7 +3,7 @@
 
 //! W3C test-manifest ingestion.
 //!
-//! Reads a W3C test `manifest.ttl` (dogfooding the native `gmeow_rdf::parse_dataset`
+//! Reads a W3C test `manifest.ttl` (dogfooding the native `purrdf::parse_dataset`
 //! Turtle codec — never a second parser) and extracts test entries from BOTH the
 //! DAWG `mf:` vocabulary and the OWL 2 `otest:` vocabulary. Each kind maps to a
 //! normalized [`ExternalOutcome`] via the shared [`crate::external::status`] table.
@@ -25,7 +25,7 @@
 //! job is solely to read the manifest and report the declared outcome (the external
 //! ground truth the soundness gate cross-checks the engine against).
 
-use gmeow_rdf::{parse_dataset, TermRef};
+use purrdf::{parse_dataset, TermRef};
 
 use crate::external::status::ExternalOutcome;
 
@@ -74,7 +74,7 @@ pub enum OntologyDoc {
     /// `mf:action` / `mf:result` — an IRI reference to a sibling document.
     Reference(String),
     /// `otest:rdfXmlPremiseOntology` / `otest:rdfXmlConclusionOntology` — inline
-    /// RDF/XML literal content (parseable by gmeow_rdf via `application/rdf+xml`).
+    /// RDF/XML literal content (parseable by purrdf via `application/rdf+xml`).
     InlineRdfXml(String),
 }
 
@@ -151,7 +151,7 @@ pub fn parse_test_manifest_rdfxml(
         .collect())
 }
 
-/// Extract manifest entries from an already-parsed [`gmeow_rdf::RdfDataset`].
+/// Extract manifest entries from an already-parsed [`purrdf::RdfDataset`].
 ///
 /// This is the shared quad-walk logic used by both [`parse_test_manifest`] (Turtle
 /// input) and [`parse_test_manifest_rdfxml`] (RDF/XML input). Returns entries sorted
@@ -163,7 +163,7 @@ pub fn parse_test_manifest_rdfxml(
 /// returned with `action = None`; the caller decides whether to hard-fail or skip
 /// them. [`parse_test_manifest`] hard-fails on such entries; [`parse_test_manifest_rdfxml`]
 /// silently drops them.
-pub fn manifest_entries(ds: &gmeow_rdf::RdfDataset) -> Result<Vec<ManifestEntry>, String> {
+pub fn manifest_entries(ds: &purrdf::RdfDataset) -> Result<Vec<ManifestEntry>, String> {
     #[derive(Default)]
     struct Row {
         kind: Option<ManifestTestKind>,

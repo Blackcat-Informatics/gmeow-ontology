@@ -2481,7 +2481,7 @@ fn md_integrity_index(model: &DocsModel) -> String {
         let mut queries: Vec<&crate::model::DocArtifact> = slice
             .artifacts
             .iter()
-            .filter(|a| a.role == gmeow_slice::ArtifactRole::VerifyQuery)
+            .filter(|a| a.role == purrdf::slice::ArtifactRole::VerifyQuery)
             .collect();
         queries.sort_by(|a, b| a.logical_path.cmp(&b.logical_path));
         if queries.is_empty() {
@@ -3442,7 +3442,7 @@ fn namespace_count(model: &DocsModel) -> usize {
 
 /// The slice tier as a stable name.
 fn tier_name(slice: &DocSlice) -> String {
-    use gmeow_slice::SliceTier;
+    use purrdf::slice::SliceTier;
     match &slice.tier {
         Some(SliceTier::Core) => "Core".to_string(),
         Some(SliceTier::Extension) => "Extension".to_string(),
@@ -3453,8 +3453,8 @@ fn tier_name(slice: &DocSlice) -> String {
 }
 
 /// A stable, human role name for an artifact role.
-fn role_name(role: &gmeow_slice::ArtifactRole) -> String {
-    use gmeow_slice::ArtifactRole;
+fn role_name(role: &purrdf::slice::ArtifactRole) -> String {
+    use purrdf::slice::ArtifactRole;
     match role {
         ArtifactRole::Manifest => "Manifest".to_string(),
         ArtifactRole::Module => "Module".to_string(),

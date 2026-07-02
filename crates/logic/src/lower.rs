@@ -27,7 +27,7 @@
 //! (the same phased-development posture as [`crate::rule_ir`]).
 #![allow(dead_code)]
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 use gmeow_logic_compile::ir::{LogicAxiom, LogicProgram, LogicRule, LOGIC_NAMESPACE};

@@ -1,5 +1,0 @@
-term
-[Some(Iri("https://blackcatinformatics.ca/gmeow/coverageDepthSignificantCoverage"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/sourceTierSecondary"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/supportsNotability"))]

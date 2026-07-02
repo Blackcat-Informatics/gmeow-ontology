@@ -130,8 +130,8 @@ impl ValidationCache {
     /// `CARGO_PKG_VERSION` is used instead of Python `importlib.metadata.version`.
     pub fn toolchain_salt() -> String {
         let validate_version = env!("CARGO_PKG_VERSION");
-        let shacl_version = gmeow_shacl::VERSION;
-        let gts_version = gmeow_gts::wire::VERSION;
+        let shacl_version = purrdf::shapes::VERSION;
+        let gts_version = purrdf::gts::wire::VERSION;
         Self::cache_key(&[
             format!("gmeow-validate={validate_version}").as_bytes(),
             format!("gmeow-shacl={shacl_version}").as_bytes(),

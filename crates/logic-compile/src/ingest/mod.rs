@@ -11,7 +11,7 @@
 //! stage, which hands in already-parsed datasets); nothing here touches the
 //! filesystem.
 //!
-//! [`DatasetView`]: gmeow_rdf::dataset_view::DatasetView
+//! [`DatasetView`]: purrdf::dataset_view::DatasetView
 
 pub mod dataset;
 pub mod prefixes;

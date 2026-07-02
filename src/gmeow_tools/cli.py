@@ -31,7 +31,7 @@ from gmeow_tools.config import (
 from gmeow_tools.gts_views import FoldView
 
 if TYPE_CHECKING:
-    from gmeow_rdf.compat.rdflib import Graph
+    from purrdf.compat.rdflib import Graph
 
     from gmeow_tools.language_tags import LangSelector
 
@@ -140,7 +140,7 @@ def _read_turtle(source: Path) -> tuple[Graph, str]:
     """
     import sys
 
-    from gmeow_rdf.compat.rdflib import Graph
+    from purrdf.compat.rdflib import Graph
 
     graph = Graph()
     stdin = str(source) == "-"

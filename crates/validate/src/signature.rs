@@ -3,15 +3,15 @@
 
 //! GTS bundle signature and trust verification pre-gate (#646).
 //!
-//! This module wraps [`gmeow_gts::verify::verify_file_with_options`] and maps the
+//! This module wraps [`purrdf::gts::verify::verify_file_with_options`] and maps the
 //! cryptographic and policy-layer outcomes into canonical
 //! [`gmeow_diagnostics::Finding`] values. When the returned hard-failure flag is
 //! true, [`ValidationRun::run`](crate::validate_all::ValidationRun::run) aborts
 //! before the ontology validation phases.
 
 use gmeow_diagnostics::{Finding, FindingCategory, Severity};
-use gmeow_gts::policy::TrustPolicy;
-use gmeow_gts::verify::{verify_file_with_options, VerifyOptions};
+use purrdf::gts::policy::TrustPolicy;
+use purrdf::gts::verify::{verify_file_with_options, VerifyOptions};
 
 use crate::codes;
 use crate::validate_all::SignatureConfig;
@@ -47,7 +47,7 @@ pub fn verify_gts_bundle(
     let result = verify_file_with_options(bytes, &options);
     let mut findings = Vec::new();
 
-    // Top-level verification errors from gmeow_gts. These cover conditions not
+    // Top-level verification errors from purrdf::gts. These cover conditions not
     // captured by the count-based fields below, especially key-loading failures.
     for error in &result.errors {
         let code = if error.starts_with("cannot load trusted key")
@@ -112,7 +112,7 @@ pub fn verify_gts_bundle(
 
     // Deployment-trust evaluation for the bundle as a whole. This covers
     // generic bundles that do not declare an evidence/opaque profile, where
-    // gmeow_gts's profile policy evaluation does not run signature_trust.
+    // purrdf::gts's profile policy evaluation does not run signature_trust.
     if result.signed > 0 && result.valid > 0 && result.trusted == 0 {
         let severity = if config.require_trusted_signer {
             Severity::Error
@@ -129,15 +129,15 @@ pub fn verify_gts_bundle(
         );
     }
 
-    // Profile and trust-policy findings from gmeow_gts. These cover
+    // Profile and trust-policy findings from purrdf::gts. These cover
     // profile-specific rules (evidence/opaque) and may duplicate the generic
     // trust check above; duplicates are harmless because the canonical report
     // is normalized at serialization time.
     for finding in &result.profile_findings {
         let severity = match finding.severity {
-            gmeow_gts::policy::Severity::Error => Severity::Error,
-            gmeow_gts::policy::Severity::Warning => Severity::Warning,
-            gmeow_gts::policy::Severity::Info => Severity::Info,
+            purrdf::gts::policy::Severity::Error => Severity::Error,
+            purrdf::gts::policy::Severity::Warning => Severity::Warning,
+            purrdf::gts::policy::Severity::Info => Severity::Info,
         };
         findings.push(
             Finding::new(
@@ -173,7 +173,7 @@ pub fn verify_gts_bundle(
                 codes::SIGNATURE_KEY,
                 format!(
                     "resolved transport key kid={kid} fingerprint={}",
-                    gmeow_gts::verify::format_fingerprint(fingerprint)
+                    purrdf::gts::verify::format_fingerprint(fingerprint)
                 ),
             )
             .with_tool("gts-verify"),
@@ -188,7 +188,7 @@ pub fn verify_gts_bundle(
         .map(|f| f.with_category(FindingCategory::PolicyWarning))
         .collect();
 
-    // The gmeow_gts `ok` flag encodes cryptographic short-circuit rules, but
+    // The purrdf::gts `ok` flag encodes cryptographic short-circuit rules, but
     // deployment-trust errors (e.g. an untrusted signer when one is required)
     // are surfaced as Error-level findings above. Abort the validation run
     // whenever any Error-level signature/trust finding is present.
@@ -200,7 +200,7 @@ pub fn verify_gts_bundle(
     Ok((findings, hard_failures))
 }
 
-/// Map a `gmeow_gts` reader diagnostic code to a canonical [`Severity`].
+/// Map a `purrdf::gts` reader diagnostic code to a canonical [`Severity`].
 ///
 /// The reader does not attach severity to its diagnostics; the design doc
 /// (#646) requires us to classify them. Structural integrity failures
@@ -244,10 +244,10 @@ fn read_armored_key(path: &str) -> Result<String, String> {
 mod tests {
     use super::*;
     use ed25519_dalek::SigningKey;
-    use gmeow_gts::model::{Term, TermKind};
+    use purrdf::gts::model::{Term, TermKind};
 
     fn minimal_unsigned_gts_bytes() -> Vec<u8> {
-        let mut graph = gmeow_gts::model::Graph::default();
+        let mut graph = purrdf::gts::model::Graph::default();
         graph.terms.push(Term {
             kind: TermKind::Iri,
             value: Some("https://example.org/a".to_string()),
@@ -274,7 +274,7 @@ mod tests {
         });
         graph.quads.push((0, 1, 2, None));
 
-        let writer = gmeow_gts::writer::Writer::deterministic(&graph, "gmeow-validate-test")
+        let writer = purrdf::gts::writer::Writer::deterministic(&graph, "gmeow-validate-test")
             .expect("deterministic GTS writer must succeed");
         writer.to_bytes()
     }
@@ -315,7 +315,7 @@ mod tests {
 
     /// Build a minimal ASCII-armored OpenPGP v4 Ed25519 public-key certificate
     /// from a raw 32-byte public key. The format matches the one GPG emits and
-    /// `gmeow_gts::openpgp::parse_transport_key` accepts.
+    /// `purrdf::gts::openpgp::parse_transport_key` accepts.
     fn ed25519_public_key_armor(raw_public: &[u8; 32]) -> String {
         const ED25519_ALGO: u8 = 22;
         const ED25519_OID: &[u8] = &[0x2b, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01];
@@ -349,7 +349,7 @@ mod tests {
     }
 
     fn minimal_signed_gts_bytes(signing_key: &SigningKey, kid: &str) -> Vec<u8> {
-        let mut writer = gmeow_gts::writer::Writer::new("gmeow-validate-test");
+        let mut writer = purrdf::gts::writer::Writer::new("gmeow-validate-test");
         writer.sign_with(signing_key.clone(), kid);
         writer.add_terms(&[
             Term {
@@ -415,7 +415,7 @@ mod tests {
         let signer = deterministic_signing_key(1);
         let armor = ed25519_public_key_armor(&signer.verifying_key().to_bytes());
         let transport =
-            gmeow_gts::openpgp::parse_transport_key(&armor).expect("test armor must parse");
+            purrdf::gts::openpgp::parse_transport_key(&armor).expect("test armor must parse");
         let bytes = minimal_signed_gts_bytes(&signer, &transport.fingerprint);
 
         // The signer is cryptographically valid, but the policy trusts a different fingerprint.
@@ -443,7 +443,7 @@ mod tests {
         let signer = deterministic_signing_key(2);
         let armor = ed25519_public_key_armor(&signer.verifying_key().to_bytes());
         let transport =
-            gmeow_gts::openpgp::parse_transport_key(&armor).expect("test armor must parse");
+            purrdf::gts::openpgp::parse_transport_key(&armor).expect("test armor must parse");
         let bytes = minimal_signed_gts_bytes(&signer, &transport.fingerprint);
 
         let config = SignatureConfig {

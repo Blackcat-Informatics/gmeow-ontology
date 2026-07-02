@@ -9,7 +9,7 @@
 //! execution, provenance merge, and GTS byte emission.
 //!
 //! Oxigraph-free (EPIC #906): the transient triple stores are flat
-//! [`gmeow_rdf::RdfDataset`]s built from owned [`RdfQuad`] streams and pattern-queried
+//! [`purrdf::RdfDataset`]s built from owned [`RdfQuad`] streams and pattern-queried
 //! through the native [`DatasetView`]; the projection CONSTRUCT runs through
 //! [`NativeSparqlEngine`]. The deterministic Skolem IRI minting, the content-addressed
 //! reifier hash, and every committed N-Triples / GTS byte are preserved exactly: the
@@ -20,11 +20,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, OnceLock};
 
-use gmeow_rdf::{
+use purrdf::sparql::NativeSparqlEngine;
+use purrdf::{
     DatasetView, GraphMatch, NativeRdfFormat, RdfDataset, RdfLiteral, RdfQuad, RdfTerm,
     SparqlEngine, SparqlRequest, SparqlResult, TermId, TermRef, TermValue,
 };
-use gmeow_sparql_eval::NativeSparqlEngine;
 use sha2::{Digest, Sha256};
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -170,7 +170,7 @@ struct SuppressionVocab {
 /// [`RdfDataset`] index over it for pattern queries. The oxigraph-free twin of the
 /// transform's transient `oxigraph::store::Store`. Built once, then queried read-only.
 ///
-/// The dataset is built with the FLAT codec ([`gmeow_rdf::flat_dataset_from_quads`]):
+/// The dataset is built with the FLAT codec ([`purrdf::flat_dataset_from_quads`]):
 /// `rdf:reifies` / quoted-triple rows stay plain quads (no RDF 1.2 fold), exactly as
 /// oxigraph's `Store` held them. The final GTS path re-folds via `parse_dataset`.
 struct Graph {
@@ -180,7 +180,7 @@ struct Graph {
 
 impl Graph {
     fn from_quads(quads: Vec<RdfQuad>) -> Result<Self, String> {
-        let ds = gmeow_rdf::flat_dataset_from_quads(&quads)
+        let ds = purrdf::flat_dataset_from_quads(&quads)
             .map_err(|e| format!("flat dataset build failed: {e}"))?;
         Ok(Self { quads, ds })
     }
@@ -265,7 +265,7 @@ fn resolve_term(ds: &RdfDataset, id: TermId) -> RdfTerm {
                 RdfTerm::Iri(iri) => iri,
                 other => other.to_string(),
             };
-            RdfTerm::triple(gmeow_rdf::RdfTriple::new(st, predicate, ot)) // codespell:ignore ot
+            RdfTerm::triple(purrdf::RdfTriple::new(st, predicate, ot)) // codespell:ignore ot
         }
     }
 }
@@ -363,22 +363,22 @@ fn skolemized_graph(raw_nt: &str) -> Result<Graph, String> {
     // Native full RDFC-1.0 (SHA-256) canonical N-Quads — the canonical `_:c14nN`
     // labels (hence the persisted skolem IRIs) are stable. We canonicalize the parsed
     // input then map each canonical blank to its deterministic skolem IRI.
-    let parsed = gmeow_rdf::parse_dataset(
+    let parsed = purrdf::parse_dataset(
         raw_nt.as_bytes(),
         NativeRdfFormat::NTriples.media_type(),
         None,
     )
     .map_err(|e| format!("skolem input parse failed: {e}"))?;
-    let canon_nq = gmeow_rdf::canonical_flat_nquads(parsed.as_ref())
+    let canon_nq = purrdf::canonical_flat_nquads(parsed.as_ref())
         .map_err(|e| format!("canonicalization failed: {e}"))?;
-    let canon = gmeow_rdf::parse_dataset(
+    let canon = purrdf::parse_dataset(
         canon_nq.as_bytes(),
         NativeRdfFormat::NQuads.media_type(),
         None,
     )
     .map_err(|e| format!("canonical re-parse failed: {e}"))?;
 
-    let flat = gmeow_rdf::flat_rdf_quads_from_dataset(canon.as_ref());
+    let flat = purrdf::flat_rdf_quads_from_dataset(canon.as_ref());
     let mut out: Vec<RdfQuad> = Vec::with_capacity(flat.len());
     for quad in &flat {
         let subject = skolem_term(&quad.subject)?;
@@ -407,7 +407,7 @@ fn skolem_term(term: &RdfTerm) -> Result<RdfTerm, String> {
         RdfTerm::Iri(iri) => RdfTerm::iri(iri.clone()),
         RdfTerm::BlankNode(label) => RdfTerm::iri(format!("{SKOLEM_BASE}{label}")),
         RdfTerm::Literal(lit) => RdfTerm::literal(lit.clone()),
-        RdfTerm::Triple(triple) => RdfTerm::triple(gmeow_rdf::RdfTriple::new(
+        RdfTerm::Triple(triple) => RdfTerm::triple(purrdf::RdfTriple::new(
             skolem_term(&triple.subject)?,
             triple.predicate.clone(),
             skolem_term(&triple.object)?,
@@ -708,23 +708,23 @@ fn gts_from_maximal(
     base_plus_derived: &Graph,
     derived: &BTreeMap<TripleKey, DerivedTriple>,
 ) -> Result<Vec<u8>, String> {
-    let mut builder = gmeow_rdf::gts_compose::SnapshotBuilder::new();
+    let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
     // Native carrier ingestion (#909): serialize the default graph to N-Triples and
     // parse it into a frozen dataset, then fold it in. The native parse folds any RDF
     // 1.2 statement layer into the dataset's reifier/annotation side-tables, so a
     // single `add_dataset` reproduces the old `add_quads` + `add_rdf12` split.
     let base_nt = dump_nt(base_plus_derived)?;
-    let base_dataset = gmeow_rdf::parse_dataset(base_nt.as_bytes(), "application/n-triples", None)
+    let base_dataset = purrdf::parse_dataset(base_nt.as_bytes(), "application/n-triples", None)
         .map_err(|e| e.to_string())?;
     builder.add_dataset(&base_dataset)?;
     let statement_nt = statement_layer_nt(derived);
     if !statement_nt.trim().is_empty() {
         let statement_dataset =
-            gmeow_rdf::parse_dataset(statement_nt.as_bytes(), "application/n-triples", None)
+            purrdf::parse_dataset(statement_nt.as_bytes(), "application/n-triples", None)
                 .map_err(|e| e.to_string())?;
         builder.add_dataset(&statement_dataset)?;
     }
-    gmeow_rdf::gts_compose::emit_gts(
+    purrdf::gts_compose::emit_gts(
         &builder,
         "dist",
         None,
@@ -733,7 +733,7 @@ fn gts_from_maximal(
         None,
         None,
         None,
-        gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
     )
 }
 
@@ -972,12 +972,12 @@ fn dump_nt(graph: &Graph) -> Result<String, String> {
     // Serialize the FLAT default graph to N-Triples, matching oxigraph's
     // `dump_graph_to_writer(DefaultGraph, NTriples)`: every default-graph quad as a
     // single `s p o .` line, in canonical dataset order.
-    let flat = gmeow_rdf::flat_dataset_from_quads(&default_quads(graph))
+    let flat = purrdf::flat_dataset_from_quads(&default_quads(graph))
         .map_err(|e| format!("N-Triples flatten failed: {e}"))?;
-    let bytes = gmeow_rdf::serialize_dataset(
+    let bytes = purrdf::serialize_dataset(
         flat.as_ref(),
         NativeRdfFormat::NTriples.media_type(),
-        gmeow_rdf::SerializeGraph::DefaultGraph,
+        purrdf::SerializeGraph::DefaultGraph,
     )
     .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
     String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
@@ -1029,7 +1029,7 @@ fn literal_value(lit: &RdfLiteral) -> TermValue {
 
 /// The N-Triples token of a term — `<iri>` / `_:label` / a typed/lang literal —
 /// byte-identical to oxigraph's `Term::to_string()` for the terms this kernel handles
-/// (the native renderer is the single source of truth, [`gmeow_rdf::RdfTerm`]'s
+/// (the native renderer is the single source of truth, [`purrdf::RdfTerm`]'s
 /// `Display`). This feeds the content-addressed reifier hash and the statement-layer
 /// N-Triples, so its byte stability is reasoning-critical.
 fn term_token(term: &RdfTerm) -> String {
@@ -1086,11 +1086,11 @@ fn iri_from_token(token: &str) -> Result<String, String> {
 }
 
 fn parse_graph(data: &[u8]) -> Result<Graph, String> {
-    let parsed = gmeow_rdf::parse_dataset(data, NativeRdfFormat::NTriples.media_type(), None)
+    let parsed = purrdf::parse_dataset(data, NativeRdfFormat::NTriples.media_type(), None)
         .map_err(|e| format!("RDF parse failed: {e}"))?;
     // Un-fold to the flat quad stream so `rdf:reifies` / quoted-triple rows stay plain
     // quads (the old oxigraph `Store` held them flat), then re-freeze flat.
-    let flat = gmeow_rdf::flat_rdf_quads_from_dataset(parsed.as_ref());
+    let flat = purrdf::flat_rdf_quads_from_dataset(parsed.as_ref());
     Graph::from_quads(flat)
 }
 
