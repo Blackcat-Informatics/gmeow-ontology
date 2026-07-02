@@ -12,6 +12,8 @@ gmeow:Annotation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "Annotation"@x-gmeow-english ;
+    logic:mediates gmeow:annotationTarget ,
+        gmeow:annotationBody ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
