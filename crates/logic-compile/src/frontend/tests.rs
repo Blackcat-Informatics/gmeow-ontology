@@ -918,6 +918,33 @@ fn derive_class_target_stays_sh_class() {
 }
 
 #[test]
+fn derive_owl_thing_target_lowers_to_node_kind_not_sh_class() {
+    // A someValuesFrom owl:Thing is an intentionally-open range ("any individual"). Under
+    // spec-conformant SHACL, sh:class owl:Thing would demand a never-materialized rdf:type
+    // owl:Thing edge and flag every value; the faithful projection is sh:nodeKind
+    // sh:BlankNodeOrIRI (any resource, not a literal).
+    let ds = shape_dataset(
+        "g:Observation a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:observedFeature ; owl:someValuesFrom owl:Thing ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::BlankNodeOrIri)
+        )),
+        "an owl:Thing target must emit sh:nodeKind sh:BlankNodeOrIRI: {comps:?}"
+    );
+    assert!(
+        !comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(_))),
+        "an owl:Thing target must never emit sh:class: {comps:?}"
+    );
+}
+
+#[test]
 fn derive_owl_cardinality_lifts_with_owl_provenance() {
     // Unqualified owl:min/maxCardinality lower to sh:minCount/sh:maxCount tagged as
     // OwlRestriction provenance — the open-world axiom read closed-world (ValidationOnly).
