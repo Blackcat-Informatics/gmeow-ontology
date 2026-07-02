@@ -156,6 +156,31 @@ reasoned bundle as `gmeow:Finding` individuals, dogfooding the divergence ledger
 This gate validates the EL/DL-expressible fragment of the full-FOL IR against SZS ground truth; the
 first-order-beyond-DL boundary is a declared, ledgered limitation, not an implicit gap.
 
+**The external foundation-discipline soundness oracle.** For the OntoUML foundation disciplines, the
+external correctness corpus is instantiated by models authored in the OntoUML metamodel vocabulary
+(the serialization the FAIR OntoUML/UFO model catalog uses), each carrying a community-decided
+anti-pattern verdict as engine-agnostic ground truth. A model is parsed natively, lowered to the
+world-scoped stereotype ABox (stereotype puns, subclass edges, mediation roles), and decided by the
+same native disciplines that run over the whole ontology. The fired discipline set is compared to the
+model's documented anti-pattern; the specific label is preserved verbatim as provenance (maximal
+information flow) and projected to the coarse pass/gap comparison only at the gate. A clean model that
+fires any discipline is a soundness-breaking false positive (a hard fail); a documented anti-pattern
+the native disciplines cannot reproduce — an out-of-fragment stereotype (a capability gap) or a
+pattern no discipline checks (a coverage gap) — is recorded as an honest gap row, never a wrong
+verdict, and feeds the harvested-axiom formalization backlog. Divergences fold into the reasoned
+bundle as `gmeow:Finding` individuals. The OntoUML metamodel stereotype vocabulary is itself subsumed
+by reference through the alignment stack (`skos:exactMatch` stereotype puns lowered to SSSOM/EDOAL),
+dogfooding the catalog vocabulary as aligned individuals rather than a mere fixture set.
+
+The native reader accepts both the FAIR catalog's own mediation serialization — relation ends as
+`ontouml:Property` nodes whose functionality is read from `ontouml:cardinality`/`ontouml:upperBound`
+(a mediated end of upper bound 1 is the RelComp shape) — and the self-authored
+`ontouml:functionalMediation` convenience form; the two are covered by sibling Lane-A cases. The
+documented anti-pattern label travels on the carrier the case type affords: a graded Lane-A case
+carries it as `documented_antipattern` in `profile.json`, while a source-only `-divergence` case
+(which has no verdict to freeze) carries it in a `# documented-antipattern:` model-header comment. Both
+are the same verbatim provenance; only the carrier differs.
+
 ## Common-Logic round-trip as a faithfulness gate
 
 One projection the canonical IR supports is emission to a Common Logic dialect. One ingestion path

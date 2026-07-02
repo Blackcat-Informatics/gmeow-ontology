@@ -657,6 +657,16 @@ describe — five violation labels from four checks: `logic:StereotypeCardinalit
 `logic:StratifiedNAFProfile`. The discipline checks are the regression specification of the lowering;
 the lowering is the enforcement mechanism.
 
+Beyond that endogenous regression specification, the disciplines are graded against an *external*,
+independently-authored corpus of models in the OntoUML metamodel vocabulary, each carrying the
+community's documented anti-pattern verdict as engine-agnostic ground truth (the external
+foundation-discipline soundness oracle in the conformance design). Agreement establishes soundness,
+not merely stability; a clean model that fires any discipline is a false positive; and a documented
+anti-pattern the disciplines cannot yet reproduce is an honest gap that feeds this section's
+formalization backlog rather than a silent pass. The OntoUML stereotype vocabulary is subsumed by
+reference through the alignment stack (`skos:exactMatch` puns between the `logic:` stereotypes and
+their `ontouml:` counterparts), so the catalog vocabulary is dogfooded as aligned individuals.
+
 Profiled-mereology constraints are a *second* violation family, kept deliberately separate from the
 OntoUML disciplines. Weak supplementation — a whole with a proper part has another proper part
 disjoint from the first — is not a foundation-wide structural anti-pattern but an axiom that holds only
