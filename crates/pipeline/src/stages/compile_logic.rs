@@ -127,6 +127,10 @@ pub const VALIDATION_SHAPES_TTL_PATH: &str = "generated/shapes/validation-shapes
 pub const VALIDATION_SHAPES_SHEX_PATH: &str = "generated/shapes/validation-shapes.shex";
 /// The vendored openEHR OPT the constraint axis lifts (GECCO blood pressure).
 pub const OPT_SOURCE_PATH: &str = "validations/openehr-bloodpressure/Blutdruck.opt";
+/// A second vendored openEHR OPT — the CaboLabs "Test all datatypes" template, the one real OPT
+/// that carries `C_DV_ORDINAL` and `C_DATE_TIME` constraints. Lifting it is what makes the
+/// ordinal / datetime constraint families flow slices → gmeow.gts (not just prove in unit tests).
+pub const OPT_TEST_DATATYPES_PATH: &str = "validations/openehr-test-datatypes/TestAllDatatypes.opt";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
@@ -211,20 +215,17 @@ impl Default for CompileLogicStage {
 }
 
 /// Lift EVERY constraint the vendored openEHR OPT walker recognizes — not just the curated
-/// blood-pressure quantity pair — to `logic:ValidationShape`s. `naming` pins the two production
-/// data-value constraints (systolic at0004, diastolic at0005) to their established shape/target
-/// identity; every other recognized constraint is named from its own enclosing at-code (see
-/// [`gmeow_logic_compile::openehr_opt::read_all_opt_constraints`]). Hard-fails on any read/lift
-/// error (no optional path).
+/// blood-pressure quantity pair — to `logic:ValidationShape`s under `base_iri`. `naming` pins
+/// named at-codes (e.g. the production systolic at0004 / diastolic at0005 pair) to their
+/// established shape/target identity; every other recognized constraint is named from its own
+/// enclosing at-code (see [`gmeow_logic_compile::openehr_opt::read_all_opt_constraints`]).
+/// Hard-fails on any read/lift error (no optional path).
 fn lift_opt_constraints(
     opt_xml: &str,
+    base_iri: &str,
+    naming: &BTreeMap<String, String>,
 ) -> Result<Vec<gmeow_logic_compile::ir::ValidationShapeIr>, PipelineError> {
-    const BP: &str = "https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/";
-    let naming = BTreeMap::from([
-        ("at0004".to_string(), "Systolic".to_string()),
-        ("at0005".to_string(), "Diastolic".to_string()),
-    ]);
-    let constraints = read_all_opt_constraints(opt_xml, BP, &naming)
+    let constraints = read_all_opt_constraints(opt_xml, base_iri, naming)
         .map_err(|e| stage_err(format!("OPT walk: {e}")))?;
     constraints
         .iter()
@@ -249,7 +250,11 @@ impl Stage for CompileLogicStage {
         // The compiler parses the logic: source and the vendored OPT, and derives validation
         // shapes from the whole authored ontology's OWL restrictions — so a change to ANY authored file
         // must bust this stage's cache.
-        let mut files = vec![root.join(SOURCE_PATH), root.join(OPT_SOURCE_PATH)];
+        let mut files = vec![
+            root.join(SOURCE_PATH),
+            root.join(OPT_SOURCE_PATH),
+            root.join(OPT_TEST_DATATYPES_PATH),
+        ];
         files.extend(crate::stages::source_load::authored_files(root)?);
         Ok(files)
     }
@@ -258,13 +263,33 @@ impl Stage for CompileLogicStage {
             .map_err(|e| stage_err(format!("read {SOURCE_PATH}: {e}")))?;
         let (program, diagnostics) = parse_logic_str(&source, Some(SOURCE_PATH.to_string()))
             .map_err(|e| stage_err(format!("parse {SOURCE_PATH}: {}", e.0)))?;
-        // Constraints axis: lift the vendored openEHR OPT C_DV_QUANTITY constraints to
-        // logic:ValidationShapes and attach them, so the SHACL Core + ShEx shape surfaces flow
-        // into gmeow.gts as generated projections (DATA FLOWS TO gmeow.gts; maximal dogfooding).
-        // A hard fail if the committed OPT is unreadable (no optional path).
+        // Constraints axis: lift the vendored openEHR OPTs' constraints to logic:ValidationShapes
+        // and attach them, so the SHACL Core + ShEx shape surfaces flow into gmeow.gts as
+        // generated projections (DATA FLOWS TO gmeow.gts; maximal dogfooding). A hard fail if
+        // either committed OPT is unreadable (no optional path).
+        //
+        // Two OPTs under distinct base IRIs (no cross-collision): the GECCO blood-pressure
+        // template pins its production systolic/diastolic pair by at-code; the CaboLabs
+        // "Test all datatypes" template is the one real OPT carrying C_DV_ORDINAL and C_DATE_TIME,
+        // so lifting it is what carries the ordinal / datetime families into gmeow.gts.
+        const BP_BASE: &str = "https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/";
+        let bp_naming = BTreeMap::from([
+            ("at0004".to_string(), "Systolic".to_string()),
+            ("at0005".to_string(), "Diastolic".to_string()),
+        ]);
         let opt_xml = std::fs::read_to_string(input.root.join(OPT_SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {OPT_SOURCE_PATH}: {e}")))?;
-        let mut validation_shapes = lift_opt_constraints(&opt_xml)?;
+        let mut validation_shapes = lift_opt_constraints(&opt_xml, BP_BASE, &bp_naming)?;
+
+        const TEST_DATATYPES_BASE: &str =
+            "https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/";
+        let td_xml = std::fs::read_to_string(input.root.join(OPT_TEST_DATATYPES_PATH))
+            .map_err(|e| stage_err(format!("read {OPT_TEST_DATATYPES_PATH}: {e}")))?;
+        validation_shapes.extend(lift_opt_constraints(
+            &td_xml,
+            TEST_DATATYPES_BASE,
+            &BTreeMap::new(),
+        )?);
         // Derive closed-world validation shapes from the merged authored ontology's OWL
         // restrictions (someValuesFrom → sh:class), where the DOMAIN restrictions live (the
         // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
@@ -688,6 +713,41 @@ mod tests {
         assert!(
             channel.header.axiom_count > 0,
             "report header axiom count must be populated"
+        );
+    }
+
+    /// The CaboLabs "Test all datatypes" OPT is wired as a second constraint source, so its
+    /// `C_DV_ORDINAL` and `C_DATE_TIME` families reach the generated shape surface (the axis is
+    /// delivered into gmeow.gts, not merely proven in a unit test). The datetime validity pattern
+    /// must NOT leak into the shapes as an inverted regex — it is ledger-only.
+    #[test]
+    fn test_datatypes_opt_ordinal_and_datetime_flow_into_shape_surface() {
+        let root = repo_root();
+        let upstream = BTreeMap::new();
+        let out = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("compile-logic stage");
+        let arts = out.product.artifacts();
+        let ttl = std::str::from_utf8(&arts[VALIDATION_SHAPES_TTL_PATH]).expect("shapes ttl utf8");
+        // The second OPT's shapes reached the surface (its distinct base IRI).
+        assert!(
+            ttl.contains("openehr/testdatatypes/"),
+            "the test-datatypes OPT shapes must flow into the validation-shape surface"
+        );
+        // The ordinal value set projects its coded symbols as sh:in (C_DV_ORDINAL only exists in
+        // the test-datatypes OPT, so this proves the ordinal family flowed in).
+        assert!(
+            ttl.contains("openehr/testdatatypes/") && ttl.contains("sh:in ("),
+            "the ordinal family must project an sh:in value set into the shapes"
+        );
+        // The datetime validity pattern is a format template, not an XPath regex; it must never be
+        // emitted as an sh:pattern (which would reject every valid datetime). It is ledger-only.
+        assert!(
+            !ttl.contains("sh:pattern \"yyyy") && !ttl.contains("yyyy-mm-dd"),
+            "an openEHR datetime validity pattern must not leak into the SHACL shapes as a regex"
         );
     }
 
