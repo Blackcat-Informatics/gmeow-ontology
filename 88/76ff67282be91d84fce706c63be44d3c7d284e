@@ -1,0 +1,17 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: e3fbf806ee47d2fe1c039750ca49a9a1714bb96b
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1244
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1244
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 7002e3bd291e98222e6afadf6c0d7e1789b7a1ab
+GhpRsq-Head-Ref: paudley/739-deception-definitional-axioms
+GhpRsq-Head-OID: e3fbf806ee47d2fe1c039750ca49a9a1714bb96b
+GhpRsq-Result-Tree: f1d94b182dd83fc7f27e0177721aa2d4b3779080
+GhpRsq-Result-Commit: 8876ff67282be91d84fce706c63be44d3c7d284e
+GhpRsq-Parent-Hashes: e3fbf806ee47d2fe1c039750ca49a9a1714bb96b
+GhpRsq-Squash-Notes-SHA256: d4c8739379f5e9a0e88b83aa212d15a7eaa39c2eb0c8967580f7d536c33846de
