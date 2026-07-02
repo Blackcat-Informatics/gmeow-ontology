@@ -1326,27 +1326,37 @@ fn build_docs_archive(
 }
 
 /// Compute the build-time [`gmeow_docs::ExecutableDocsData`] the "live" docs surfaces
-/// need — from the carrier, the reasoning EDB, and the on-disk worked examples.
+/// need — from the carrier, the authored ontology, and the on-disk worked examples.
 ///
-/// - **Try it:** reason ONCE over `(ontology EDB ∪ all example ABoxes)` and slice the
-///   resulting closure by each example's own subjects, diffed against the base
-///   ontology closure (`stage-reason`'s committed closure) and the example's asserted
-///   triples. Inferences not attributable to a single example (shared / Skolem
-///   witnesses) go to a `cross_example` bucket — never silently dropped.
+/// - **Try it:** reason over `(authored default-world ontology ∪ all example ABoxes)` and
+///   slice the resulting closure by each example's own subjects, diffed (witness-
+///   insensitively) against `stage-reason`'s committed base closure and the example's
+///   asserted triples. Inferences not attributable to a single example go to a
+///   `cross_example` bucket — never silently dropped. This does NOT re-derive the full
+///   ontology closure: that runs ONCE, in stage-reason (reason-once, project-many); the
+///   examples can only propagate through the authored default-world axioms (the calculus
+///   is same-world and imports ride named worlds), so the small seed is sufficient.
 /// - **Playground asset:** `documentation graph ∪ reasoned ontology closure`, TriG.
-/// - **Export handle:** the asserted ontology EDB (for `purrdf::describe`).
 fn build_executable_docs_data(
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
     model: &gmeow_docs::model::DocsModel,
 ) -> Result<gmeow_docs::ExecutableDocsData, PipelineError> {
-    // The exact object-level EDB the reason stage reasons over — also the export handle.
-    // The EDB reads its authored / imports / alignments graphs off the stage-source-load
-    // product (not from disk), so neither it nor this computation needs `root`.
-    let edb = assemble_object_level_edb(upstream)?;
-    // The base ontology-only closure the reason stage already committed: the try-it core
-    // subtracts it so only EXAMPLE-INDUCED inferences remain (reuse, not a second
-    // authority).
+    // The reasoning seed for the "try it" hypothetical is the AUTHORED default-world
+    // ontology ALONE — NOT the full object-level EDB. Reason-once, project-many
+    // (PIPELINE_SPINE §3.2/§8): the expensive full-EDB closure is computed exactly ONCE, in
+    // stage-reason. The try-it must not re-derive it. It can't: worked examples parse into
+    // the DEFAULT world and the EL/RL calculus is same-world (`?w`), while imports /
+    // statements / alignments / logic ride NAMED worlds — so an example can ONLY propagate
+    // through the authored default-world axioms. Reasoning that small seed (instead of the
+    // full EDB with its import bulk) yields byte-identical attributed inferences at a
+    // fraction of the cost (verified against the full EDB over the real ontology).
+    let base_seed = std::sync::Arc::new(
+        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    );
+    // The base ontology closure stage-reason already committed: the core subtracts it
+    // (witness-insensitively) so only EXAMPLE-INDUCED inferences remain — reuse, not a
+    // second authority.
     let base_bytes = upstream
         .get("stage-reason")
         .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
@@ -1362,7 +1372,7 @@ fn build_executable_docs_data(
             text: ex.text.clone(),
         })
         .collect();
-    executable_docs_from_sources(edb.as_ref(), base_bytes, &sources, carrier)
+    executable_docs_from_sources(base_seed.as_ref(), base_bytes, &sources, carrier)
 }
 
 /// One worked example's authored source — its slice IRI, logical path (extension drives
@@ -1378,13 +1388,18 @@ pub(crate) struct ExampleSource {
 /// The reason-and-attribute core of the executable "try it" docs (see
 /// [`build_executable_docs_data`] for how the pipeline gathers the inputs).
 ///
-/// Reason ONCE over `(edb ∪ every example ABox)`, subtract the committed `base_closure`
-/// and each example's own assertions, and attribute every remaining (example-induced)
-/// inference to the example that owns its subject. Inferences with no owning example
-/// subject (shared / Skolem witnesses) go to the `cross_example` bucket — never silently
-/// dropped. The playground asset is `documentation graph ∪ base_closure`, TriG.
+/// Reason over `(reason_seed ∪ every example ABox)`, subtract the committed `base_closure`
+/// (witness-insensitively) and each example's own assertions, and attribute every
+/// remaining (example-induced) inference to the example that owns its subject. Inferences
+/// with no owning example subject (shared / Skolem witnesses) go to the `cross_example`
+/// bucket — never silently dropped. The playground asset is
+/// `documentation graph ∪ base_closure`, TriG.
+///
+/// `reason_seed` is the authored default-world ontology (not the full object-level EDB):
+/// the examples can only propagate through the same-world authored axioms, so this small
+/// seed reproduces the full-EDB attribution exactly without re-deriving the base closure.
 pub(crate) fn executable_docs_from_sources(
-    edb: &purrdf::RdfDataset,
+    reason_seed: &purrdf::RdfDataset,
     base_closure_bytes: &[u8],
     examples: &[ExampleSource],
     carrier: &purrdf::RdfDataset,
@@ -1419,10 +1434,10 @@ pub(crate) fn executable_docs_from_sources(
         });
     }
 
-    // Reason ONCE over (EDB ∪ every example ABox). push_dataset standardizes blanks
+    // Reason over (reason_seed ∪ every example ABox). push_dataset standardizes blanks
     // apart per merged dataset, so example blanks never collide.
     let mut union = RdfDatasetBuilder::new();
-    union.push_dataset(edb);
+    union.push_dataset(reason_seed);
     for ex in &parsed {
         union.push_dataset(ex.dataset.as_ref());
     }
@@ -1435,11 +1450,29 @@ pub(crate) fn executable_docs_from_sources(
 
     // The base ontology-only closure (already committed by the reason stage): subtract
     // it so only EXAMPLE-INDUCED inferences remain (reuse, not a second authority).
+    //
+    // Witness-insensitive: a Skolem witness edge (an `X ⊑ ∃r.C` restriction materialized
+    // as `X ⊑ <skolem>`) carries a content-addressed IRI that depends on the reasoning
+    // context, so raw-IRI matching would leak the ontology-level edge into `cross_example`.
+    // Normalizing the witness object lets an ontology edge cancel against the base
+    // regardless of context, while example-SUBJECT facts (absent from the base) are kept.
+    let witness_norm = |line: &str| -> String {
+        line.split(' ')
+            .map(|t| {
+                if t.starts_with("_:") || t.contains("blackcatinformatics.ca/gmeow/skolem/") {
+                    "<skolem>".to_string()
+                } else {
+                    t.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
     let base_closure = parse_dataset(base_closure_bytes, "text/turtle", None)
         .map_err(|e| stage_err(&format!("base closure parse: {e}")))?;
     let base_set: HashSet<String> = base_closure
         .owned_quads()
-        .map(|q| format_triple(&q))
+        .map(|q| witness_norm(&format_triple(&q)))
         .collect();
     let asserted_set: HashSet<String> = parsed
         .iter()
@@ -1460,7 +1493,7 @@ pub(crate) fn executable_docs_from_sources(
     let mut cross_example: Vec<String> = Vec::new();
     for q in union_closure.owned_quads() {
         let line = format_triple(&q);
-        if base_set.contains(&line) || asserted_set.contains(&line) {
+        if base_set.contains(&witness_norm(&line)) || asserted_set.contains(&line) {
             continue; // ontology-only inference or the example's own assertion.
         }
         let subject_iri = match &q.subject {
@@ -4423,6 +4456,68 @@ ex:felix a ex:Animal .
         assert_eq!(
             data.playground_trig, again.playground_trig,
             "playground asset must be byte-deterministic"
+        );
+    }
+
+    /// The witness-insensitive subtraction: an ONTOLOGY-level Skolem-witness edge whose
+    /// content-addressed IRI differs between the reduced-seed reasoning context and the
+    /// committed base closure must still cancel against the base (never leak into
+    /// `cross_example`), while an example-SUBJECT fact (absent from the base) survives.
+    /// Without normalization the context-shifted witness IRI fails to match and pollutes
+    /// the bucket — the exact divergence the full-EDB-vs-reduced-seed validation surfaced
+    /// on the real ontology.
+    #[test]
+    fn ontology_witness_cancels_across_skolem_iri_shift() {
+        // Seed: C ⊑ Mid ⊑ <skolem/aaa> — transitivity DERIVES `C ⊑ <skolem/aaa>`, a
+        // non-example-subject witness edge (a cross_example candidate).
+        let seed_ttl = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:C rdfs:subClassOf ex:Mid .
+ex:Mid rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/skolem/aaa> .
+";
+        let seed = parse_dataset(seed_ttl.as_bytes(), "text/turtle", None).expect("parse seed");
+        // The committed base closure carries the SAME edge under a DIFFERENT skolem IRI.
+        let base_ttl = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:C rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/skolem/bbb> .
+";
+        let sources = vec![ExampleSource {
+            slice: SLICE.to_string(),
+            logical_path: "examples/probe.ttl".to_string(),
+            text: "@prefix ex: <https://example.org/gmeow-try-it/> .\nex:x a ex:C .\n".to_string(),
+        }];
+        let data = executable_docs_from_sources(
+            seed.as_ref(),
+            base_ttl.as_bytes(),
+            &sources,
+            seed.as_ref(),
+        )
+        .expect("executable docs");
+
+        // The ontology witness edge (C ⊑ <skolem/aaa>) is SUBTRACTED despite the base
+        // carrying it under <skolem/bbb> — so it never reaches cross_example.
+        assert!(
+            !data
+                .cross_example
+                .iter()
+                .any(|l| l.contains("/C>") && l.contains("skolem")),
+            "context-shifted ontology witness leaked into cross_example: {:?}",
+            data.cross_example
+        );
+        // The example subject still receives its derived type (x a C told; x a Mid derived).
+        let probe = data
+            .example_inferences
+            .get(&gmeow_docs::example_key(SLICE, "examples/probe.ttl"))
+            .expect("probe example diff");
+        assert!(
+            probe
+                .inferred
+                .iter()
+                .any(|l| l.contains("/x>") && l.contains("/Mid>")),
+            "example subject must still receive its derived type: {:?}",
+            probe.inferred
         );
     }
 }
