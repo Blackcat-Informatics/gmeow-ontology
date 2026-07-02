@@ -172,6 +172,15 @@ bundle as `gmeow:Finding` individuals. The OntoUML metamodel stereotype vocabula
 by reference through the alignment stack (`skos:exactMatch` stereotype puns lowered to SSSOM/EDOAL),
 dogfooding the catalog vocabulary as aligned individuals rather than a mere fixture set.
 
+The native reader accepts both the FAIR catalog's own mediation serialization — relation ends as
+`ontouml:Property` nodes whose functionality is read from `ontouml:cardinality`/`ontouml:upperBound`
+(a mediated end of upper bound 1 is the RelComp shape) — and the self-authored
+`ontouml:functionalMediation` convenience form; the two are covered by sibling Lane-A cases. The
+documented anti-pattern label travels on the carrier the case type affords: a graded Lane-A case
+carries it as `documented_antipattern` in `profile.json`, while a source-only `-divergence` case
+(which has no verdict to freeze) carries it in a `# documented-antipattern:` model-header comment. Both
+are the same verbatim provenance; only the carrier differs.
+
 ## Common-Logic round-trip as a faithfulness gate
 
 One projection the canonical IR supports is emission to a Common Logic dialect. One ingestion path
