@@ -13,6 +13,7 @@ use super::*;
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE_P: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 
 /// Build a `WorldStore` from N-Quads text.
 fn store_from(nquads: &str) -> WorldStore {
@@ -313,22 +314,114 @@ fn mixrig_full_quad_set_matches_golden() {
 fn relcomp_under_mediated() {
     let base = "https://example.org/foundation/relcomp-under-mediated";
     let nq = format!(
+        // Employment mediates two distinct roles → two ends → well-formed.
         "<{base}/Employment> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
-         <{base}/Employment> <{LOGIC}mediates> <{base}/Employee> <{base}/schema> .\n\
-         <{base}/Employment> <{LOGIC}mediates> <{base}/Employer> <{base}/schema> .\n\
+         <{base}/Employment> <{LOGIC}mediates> <{base}/employee> <{base}/schema> .\n\
+         <{base}/Employment> <{LOGIC}mediates> <{base}/employer> <{base}/schema> .\n\
+         \
          <{base}/Marriage> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
-         <{base}/Marriage> <{LOGIC}mediates> <{base}/Spouse1> <{base}/schema> .\n"
+         <{base}/Marriage> <{LOGIC}mediates> <{base}/spouse> <{base}/schema> .\n\
+         <{base}/spouse> <{RDF_TYPE_P}> <{OWL_FUNCTIONAL}> <{base}/schema> .\n\
+         \
+         <{base}/Partnership> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Partnership> <{LOGIC}mediates> <{base}/partner> <{base}/schema> .\n"
     );
     let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
-    // Marriage mediates only one relatum → RelComp.
+    // Marriage mediates a single FUNCTIONAL role → one end → RelComp.
     assert!(
         has_violation(&quads, &format!("{base}/Marriage"), "RelComp"),
-        "Marriage (one relatum) must fire RelComp"
+        "Marriage (one functional role → one end) must fire RelComp"
     );
-    // Employment mediates two distinct relata → no RelComp.
+    // Employment mediates two distinct roles → two ends → no RelComp.
     assert!(
         !has_violation(&quads, &format!("{base}/Employment"), "RelComp"),
-        "Employment (two relata) must NOT fire RelComp"
+        "Employment (two distinct roles) must NOT fire RelComp"
+    );
+    // Partnership mediates a single NON-functional role → two ends → no RelComp.
+    // The entity-count reading: one non-functional role already reaches two entities.
+    assert!(
+        !has_violation(&quads, &format!("{base}/Partnership"), "RelComp"),
+        "Partnership (one non-functional role → two ends) must NOT fire RelComp"
+    );
+}
+
+// ── Discipline: RelComp on production `subClassOf logic:Relator` relators ────────
+
+/// Production relators are typed `a logic:Kind ; rdfs:subClassOf logic:Relator` (a
+/// class-edge to the meta-class), NOT the direct `a logic:Relator` the base
+/// [`relcomp_under_mediated`] case uses.  These assertions pin that the discipline is
+/// live on that production shape (previously it was wholly dormant on it): it fires on
+/// an under-mediated subclass relator, clears on a well-mediated one, and never fires
+/// on the `logic:Relator` meta-class itself.
+#[test]
+fn relcomp_on_subclass_relator() {
+    let base = "https://example.org/foundation/relcomp-subclass-relator";
+    let nq = format!(
+        // Enrollment: a Kind subClassOf logic:Relator mediating two distinct roles.
+        "<{base}/Enrollment> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}subClassOf> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}mediates> <{base}/student> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}mediates> <{base}/course> <{base}/schema> .\n\
+         \
+         <{base}/Devotion> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Devotion> <{LOGIC}subClassOf> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Devotion> <{LOGIC}mediates> <{base}/devotee> <{base}/schema> .\n\
+         <{base}/devotee> <{RDF_TYPE_P}> <{OWL_FUNCTIONAL}> <{base}/schema> .\n\
+         \
+         <{base}/Membership> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Membership> <{LOGIC}subClassOf> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Membership> <{LOGIC}mediates> <{base}/memberParty> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    // Under-mediated subclass relator (single functional role) fires RelComp — the
+    // discipline now reaches the production `subClassOf logic:Relator` shape.
+    assert!(
+        has_violation(&quads, &format!("{base}/Devotion"), "RelComp"),
+        "Devotion (subClassOf logic:Relator, one functional role) must fire RelComp"
+    );
+    // Well-mediated subclass relator (two distinct roles) does NOT fire.
+    assert!(
+        !has_violation(&quads, &format!("{base}/Enrollment"), "RelComp"),
+        "Enrollment (subClassOf logic:Relator, two distinct roles) must NOT fire RelComp"
+    );
+    // A subclass relator mediating a single NON-functional role reaches two entities →
+    // no RelComp (the symmetric-relator case, e.g. an agreement bound by its parties).
+    assert!(
+        !has_violation(&quads, &format!("{base}/Membership"), "RelComp"),
+        "Membership (one non-functional role → two ends) must NOT fire RelComp"
+    );
+    // The Relator meta-class itself is never a concreteRelator (its subclasses make
+    // hasLogicSubclass hold, suppressing it), so it never fires RelComp.
+    assert!(
+        !has_violation(&quads, &format!("{LOGIC}Relator"), "RelComp"),
+        "logic:Relator (the meta-class) must never fire RelComp"
+    );
+}
+
+/// A concrete relator that SPECIALISES a mediated relator inherits its ancestor's
+/// mediation roles (mediation propagates down subClassOf), so it does NOT trip
+/// RelComp even though it declares no logic:mediates of its own.  Here the inherited
+/// role is a single NON-functional party role — the symmetric-relator pattern (a
+/// contract bound by its parties) — which reaches two entities on its own.
+#[test]
+fn relcomp_mediation_propagates_to_subclass() {
+    let base = "https://example.org/foundation/relcomp-propagation";
+    let nq = format!(
+        // Agreement: an abstract relator mediating a single non-functional party role.
+        "<{base}/Agreement> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Agreement> <{LOGIC}mediates> <{base}/hasParty> <{base}/schema> .\n\
+         <{base}/Contract> <{LOGIC}subClassOf> <{base}/Agreement> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &format!("{base}/Contract"), "RelComp"),
+        "Contract (⊑ Agreement) must inherit its ancestor's non-functional party role \
+         (two ends) and NOT fire RelComp"
+    );
+    // Agreement itself is abstract here (Contract is its subclass) → not concrete → exempt.
+    assert!(
+        !has_violation(&quads, &format!("{base}/Agreement"), "RelComp"),
+        "Agreement (non-leaf) is not a concreteRelator and must not fire RelComp"
     );
 }
 
@@ -698,10 +791,11 @@ fn golden_quad_sets_match_for_single_world_cases() {
             "relcomp-under-mediated",
             RELCOMP_GOLDEN,
             "<https://example.org/foundation/relcomp-under-mediated/Employment> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
-             <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Employee> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
-             <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Employer> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
+             <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/employee> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
+             <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/employer> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
              <https://example.org/foundation/relcomp-under-mediated/Marriage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
-             <https://example.org/foundation/relcomp-under-mediated/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Spouse1> <https://example.org/foundation/relcomp-under-mediated/schema> .\n",
+             <https://example.org/foundation/relcomp-under-mediated/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/spouse> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
+             <https://example.org/foundation/relcomp-under-mediated/spouse> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://example.org/foundation/relcomp-under-mediated/schema> .\n",
         ),
         (
             "holonic-emergence",

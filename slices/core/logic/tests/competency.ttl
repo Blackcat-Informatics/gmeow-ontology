@@ -23,6 +23,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 ex:cqNamedParametricPaths a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/logic/queries/competency/named-parametric-paths.rq" ;
@@ -94,21 +95,27 @@ ex:rowOrgC2 a gmeow:ExpectedRow ;
 # ── Typed formalization governance ──────────────────────────────────────────────
 #
 # Does GMEOW record, per formalization candidate, the CATEGORY of force its prose
-# carried — and does the dogfood candidate population span several of the eleven
-# closed categories? Over the governance example data the candidates use five
-# distinct categories; cqExactRows pins that closed set, proving the per-category
+# carried — and does the candidate population span several of the eleven closed
+# categories? The query runs over the merged ontology (every production candidate)
+# unioned with the governance example data. The governance-example candidates
+# contribute derivation-rule, documentation-only, integrity-constraint,
+# non-entailment-obligation and typicality; the production foundational-partition
+# candidates additionally contribute necessary-condition (the two class coverings)
+# and deliberate-overlap (the preserved social∩information non-assertion). Seven
+# distinct categories in all; cqExactRows pins that set, proving the per-category
 # coverage surface (the supersession of a single global %) is queryable.
 
 ex:cqFormalizationCandidateCategories a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/logic/queries/competency/formalization-candidate-categories.rq" ;
     gmeow:cqDataFile  "examples/formalization-governance.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Every logic:FormalizationCandidate records its logic:candidateCategory; coverage is reported per category, never as one global %. The six dogfood candidates span exactly five distinct categories — derivation-rule, documentation-only, integrity-constraint, non-entailment-obligation, and typicality — so a SELECT DISTINCT over the candidate categories must return exactly those five." ;
+    gmeow:cqRationale "Every logic:FormalizationCandidate records its logic:candidateCategory; coverage is reported per category, never as one global %. Over the merged ontology plus the governance example data the candidate population spans exactly seven distinct categories — derivation-rule, documentation-only, integrity-constraint, non-entailment-obligation, typicality, necessary-condition (the foundational-partition class coverings) and deliberate-overlap (the preserved social∩information overlap) — so a SELECT DISTINCT over the candidate categories must return exactly those seven." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqFormalizationCandidateCategoriesShape ;
     gmeow:cqExpectRow
         ex:rowCatDerivationRule, ex:rowCatDocumentationOnly, ex:rowCatIntegrityConstraint,
-        ex:rowCatNonEntailmentObligation, ex:rowCatTypicality .
+        ex:rowCatNonEntailmentObligation, ex:rowCatTypicality,
+        ex:rowCatNecessaryCondition, ex:rowCatDeliberateOverlap .
 
 ex:cqFormalizationCandidateCategoriesShape a logic:ResultShape ;
     logic:declaresColumn
@@ -129,6 +136,12 @@ ex:rowCatNonEntailmentObligation a gmeow:ExpectedRow ;
 
 ex:rowCatTypicality a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryTypicality ] .
+
+ex:rowCatNecessaryCondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryNecessaryCondition ] .
+
+ex:rowCatDeliberateOverlap a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryDeliberateOverlap ] .
 
 # ── Keystone invariant: the bare superproperty yields no cross-type inference ─────
 #
@@ -160,3 +173,84 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
         [ logic:columnVariable "typed" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 .
+
+# ── Harvest coverage ──────────────────────────────────────────────────────────
+#
+# Is bidirectional prose→axiom harvest coverage actually QUERYABLE, not just
+# authored? Each accepted logic:FormalizationCandidate that carries a harvest
+# back-link (logic:candidateFormalizes + logic:candidateSourceField) ties a
+# harvested axiom to the exact prose it formalized: the term, the prose field
+# kind, and the annotation property that field stands for. Over the production
+# ontology (the merged logic module, no synthetic data file) exactly six accepted
+# candidates carry the full back-link:
+#   - logic:candidateProperPartOfAsymmetric   (formalizing logic:properPartOf,   skos:definition)
+#   - logic:candidateFunctionalComplexKindDisjoint (formalizing logic:FunctionalComplex, skos:definition)
+#   - logic:candidateEndurantPerdurantDisjoint (formalizing logic:Endurant,       skos:definition)
+#   - logic:candidateSocialInformationOverlap  (formalizing gmeow:SocialObject,    skos:definition)
+#   - logic:candidateRelatorMediation          (formalizing logic:Relator,        skos:definition)
+#   - logic:candidateTopSortalDisjoint         (formalizing gmeow:PhysicalObject,  gmeow:avoidWhen)
+# The foundational-partition candidates for Event/Situation and the two class
+# coverings (Entity, Object) carry NO harvest back-link and therefore do not appear
+# here. This candidate demonstrates both prose-field kinds: five sourced from a
+# logic:ProseFieldDefinition (skos:definition) and one from a logic:ProseFieldAvoidWhen
+# (gmeow:avoidWhen).
+
+ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/logic/queries/competency/harvest-coverage.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly six accepted candidates carry the full harvest back-link — five sourced from a term's skos:definition and one from a term's gmeow:avoidWhen." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqHarvestCoverageShape ;
+    gmeow:cqExpectRow ex:rowHarvestProperPart, ex:rowHarvestFunctionalComplex,
+        ex:rowHarvestEndurantPerdurant, ex:rowHarvestSocialInformation,
+        ex:rowHarvestRelatorMediation, ex:rowHarvestTopSortal .
+
+ex:cqHarvestCoverageShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "candidate" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "field" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "fieldProperty" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHarvestProperPart a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateProperPartOfAsymmetric ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:properPartOf ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestFunctionalComplex a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFunctionalComplexKindDisjoint ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:FunctionalComplex ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestEndurantPerdurant a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateEndurantPerdurantDisjoint ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:Endurant ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestSocialInformation a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateSocialInformationOverlap ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:SocialObject ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestRelatorMediation a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateRelatorMediation ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:Relator ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestTopSortal a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateTopSortalDisjoint ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:PhysicalObject ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldAvoidWhen ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri gmeow:avoidWhen ] .

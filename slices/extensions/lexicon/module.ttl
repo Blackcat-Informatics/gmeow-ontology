@@ -24,6 +24,8 @@ gmeow:EtymologicalDerivation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Etymological Derivation"@x-gmeow-english ;
+    logic:mediates gmeow:etymonSource ,
+        gmeow:derivationTarget ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
@@ -92,6 +94,8 @@ gmeow:UsageAttestation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Usage Attestation"@x-gmeow-english ;
+    logic:mediates gmeow:attestedForm ,
+        gmeow:attestedInSource ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [

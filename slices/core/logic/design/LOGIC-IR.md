@@ -153,6 +153,30 @@ downstream of a lowering discloses which formulas the target did not evaluate (s
 judgments is the loss ledger that accompanies the generated artifacts (see
 [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)).
 
+### Class coverings and partitions
+
+A **class covering** — "every `Whole` is one of `S₁ … Sₙ`" — is not a new node kind or a bespoke
+axiom vocabulary. It is an ordinary object-level `logic:Formula`: the disjunction
+`∀x. Whole(x) → (S₁(x) ∨ … ∨ Sₙ(x))`. Because a disjunction genuinely exceeds the Horn+NAF fragment
+it is carried as a `logic:Formula` (never promoted from, nor duplicated as, a binary axiom), so a
+covering has exactly one canonical identity. Disjointness among the members stays the separate,
+trivially-binary `owl:disjointWith` axiom, kept out of the formula.
+
+Lowering follows the preservation judgments above:
+
+- **canonical RDF 1.2** carries the covering formula *exact*;
+- **OWL 2 DL** recognizes the covering shape and lowers it faithfully — `owl:disjointUnionOf` when
+  every member pair is asserted disjoint (a partition), otherwise `rdfs:subClassOf` an `owl:unionOf`
+  class (an exhaustive cover that leaves a deliberate overlap intact). The union list and union
+  class are minted, content-derived IRIs (never blank nodes), so the serialization is byte-stable
+  across regeneration;
+- **OWL 2 EL, the gUFO bridge, Datalog, N3, Nemo** cannot express a disjunction, so the covering is
+  carried-and-flagged as `unsupported` residue (tagged `Disjunctive`), never silently dropped.
+
+A covering states only exhaustiveness; it does not re-encode any membership discipline the
+foundation already enforces (for example the sort partition's mutual exclusivity, which the
+OntoUML stereotype-cardinality discipline owns).
+
 ## IR commitments — legalization, load-bearing annotations, the relational core
 
 Three commitments shape the IR so that lowering and execution have a sound target. They are cheap to

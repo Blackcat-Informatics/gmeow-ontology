@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! External-corpus ingestion adapter (#753, X1 keystone of epic #752).
+//! External-corpus ingestion adapter (X1 keystone of the epic).
 //!
 //! Lowers third-party standard correctness suites — TPTP SZS problems and W3C
 //! `manifest.ttl` entailment tests — into the runner's verdict schema and per-case
@@ -22,7 +22,7 @@
 //!
 //! Zero-defer: lowered Lane-A cases are decided by the native engine (the
 //! consistency path's `gaps`-empty guard enforces it); heavy third-party corpora
-//! that exceed the native fragment are the Lane-B (`make maint-classic-cross-check`)
+//! that exceed the native fragment are the Lane-B (`make -C validations/classic-cross-check validate`)
 //! destination, vendored by X2–X5 on top of the convention established here.
 
 pub mod corpus;

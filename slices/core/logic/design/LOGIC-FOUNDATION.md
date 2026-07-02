@@ -515,6 +515,16 @@ an executable obligation the foundation is held to, with a declared discharge co
 *absence* of an inference is as machine-checked as its presence — within the stated fragment or
 bound, and carried as `unknown` everywhere else.
 
+This machinery **is** the foundation's guard against over-typing (Principle 9's refusal to
+over-assert). A candidate whose formalization would entail a deliberately withheld conclusion —
+one touching a `NonEntailmentObligation`'s forbidden predicate — is surfaced as
+`logic:ObligationViolated` and returned to review, never silently asserted into the reasoned core
+nor silently skipped. The review of an over-typing collision *is* the non-entailment-obligation
+check (Arm A syntactic reachability over the rule heads, Arm B finite closure over the derived
+edges), realized through the typed candidate lifecycle rather than as a separate advisory flag: the
+category `CategoryNonEntailmentObligation` records the intent, the linked obligation names the
+forbidden predicate, and the two arms enforce it.
+
 The lifecycle is a **closed four-state machine** (`logic:CandidateLifecycleState`):
 `proposed` → `under-review` → `accepted` or `rejected`. An extraction — an LLM's most of all —
 *always* enters at `proposed`; `accepted` (the canonical, axiom-bearing state) is reachable only

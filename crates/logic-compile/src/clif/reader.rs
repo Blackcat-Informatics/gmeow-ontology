@@ -16,6 +16,7 @@
 
 use crate::frontend::{parse_logic_dataset, Diagnostic, LogicParseError, Severity};
 use crate::ir::{ContextualScope, Formula, LogicAxiom, LogicProgram, Term};
+use crate::nt::{nt_escape_iri, nt_escape_literal};
 
 use super::{parse_sexprs, split_on_sentinel, Atom, SExpr};
 
@@ -218,47 +219,6 @@ fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
     }
 }
 
-/// Escape an IRI for an N-Triples `<…>`. The N-Triples `IRIREF` grammar (W3C RDF 1.1
-/// §grammar) forbids `<`, `>`, `"`, `{`, `}`, `|`, `^`, `` ` ``, `\`, and every code point
-/// `<= 0x20` (space + C0 controls) appearing raw; each must ride as a `\uXXXX` `UCHAR`.
-/// Emitting any of them raw would make the reader's reconstructed N-Triples re-parse
-/// hard-fail — turning a fail-soft round-trip into a panic — so escape them all.
-fn nt_escape_iri(iri: &str) -> String {
-    let mut out = String::with_capacity(iri.len());
-    for c in iri.chars() {
-        match c {
-            '\\' => out.push_str("\\u005C"),
-            '"' => out.push_str("\\u0022"),
-            '<' => out.push_str("\\u003C"),
-            '>' => out.push_str("\\u003E"),
-            '{' => out.push_str("\\u007B"),
-            '}' => out.push_str("\\u007D"),
-            '|' => out.push_str("\\u007C"),
-            '^' => out.push_str("\\u005E"),
-            '`' => out.push_str("\\u0060"),
-            c if c <= ' ' => out.push_str(&format!("\\u{:04X}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out
-}
-
-/// Escape a literal lexical form for an N-Triples `"…"` string.
-fn nt_escape_literal(lex: &str) -> String {
-    let mut out = String::with_capacity(lex.len());
-    for c in lex.chars() {
-        match c {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c => out.push(c),
-        }
-    }
-    out
-}
-
 // --------------------------------------------------------------------------- //
 // FOL channel
 // --------------------------------------------------------------------------- //
@@ -280,10 +240,16 @@ fn validate_fol_form(form: &SExpr) -> Result<(), String> {
     parse_formula(form).map(|_| ())
 }
 
-/// Recognize and validate the rule shape `(forall (vars) (if BODY HEAD))` (or a degenerate
-/// `(forall (vars) HEAD)` fact). Returns `Ok(true)` when the form IS the rule shape and is
-/// well-formed, `Ok(false)` when it is not the rule shape (so the caller falls through to the
-/// formula parser), and `Err(msg)` when it is the rule shape but malformed.
+/// Recognize and validate the Horn rule shape `(forall (vars) (if BODY HEAD))` (or a
+/// degenerate `(forall (vars) HEAD)` fact). Returns `Ok(true)` only when the form IS a
+/// well-formed HORN rule, and `Ok(false)` when it is not — either because it is not the
+/// `(forall …)` shape at all, or because it is a universally-quantified formula whose head
+/// or body is NOT Horn-shaped (e.g. a class-covering `(forall (?x) (if (C ?x) (or …)))`
+/// whose head is a disjunction). In every `Ok(false)` case the caller falls through to the
+/// full-FOL [`parse_formula`], which validates the general quantified formula (and reports
+/// `Err` there if it is neither a Horn rule nor a well-formed FOL sentence). This never
+/// returns `Err`: a `(forall …)` whose Horn parse fails is a legitimate full-FOL formula,
+/// not a malformed Horn rule, so it must not be rejected as one.
 fn validate_rule(items: &[SExpr]) -> Result<bool, String> {
     let Some(head_sym) = items.first().and_then(symbol_of) else {
         return Ok(false);
@@ -300,15 +266,16 @@ fn validate_rule(items: &[SExpr]) -> Result<bool, String> {
     };
     match inner_items.first().and_then(symbol_of) {
         Some("if") if inner_items.len() == 3 => {
-            parse_horn_atom(&inner_items[2])?; // head
-            parse_rule_body(&inner_items[1])?; // body + distinct pairs
-            Ok(true)
+            // A Horn rule iff BOTH the head is a Horn atom AND the body is a Horn body.
+            // Otherwise (a disjunctive/negated/nested head or body — e.g. a class covering)
+            // it is a full-FOL formula: fall through rather than reject it as a bad rule.
+            let is_horn = parse_horn_atom(&inner_items[2]).is_ok()
+                && parse_rule_body(&inner_items[1]).is_ok();
+            Ok(is_horn)
         }
-        // A `(forall (vars) HEAD)` fact (degenerate, empty body).
-        _ => {
-            parse_horn_atom(inner)?;
-            Ok(true)
-        }
+        // A `(forall (vars) HEAD)` fact: a Horn rule iff HEAD is a Horn atom; otherwise
+        // (a quantified non-atomic formula) fall through to the full-FOL parser.
+        _ => Ok(parse_horn_atom(inner).is_ok()),
     }
 }
 

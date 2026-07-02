@@ -11,51 +11,85 @@
 //!
 //! # Platform posture
 //!
-//! This crate is **native-only** and carries **NO architecture cfg guards
-//! anywhere**. The engine path stays unconditional; the PyO3 surface is enabled
-//! only for the unified native extension.
+//! The repo-free **Tier-1** validator ([`data_validate`]) compiles for
+//! `wasm32-unknown-unknown`: it runs SHACL + the OntoUML disciplines over an
+//! in-memory RDF data graph and a `gmeow.gts` byte blob, with no reasoner,
+//! filesystem, threading, or PyO3 coupling. The wasm-clean core modules
+//! ([`model`], [`codes`], [`store`], [`gufo`], [`findings`], [`data_validate`],
+//! [`report_bridge`]) are compiled on every target.
+//!
+//! Everything else — the slice-authoring dev gate ([`validate_all`], with the
+//! native DL reasoner + rayon), the repo-lint guards, the DSL phases, and the
+//! Wikidata/HTTP lanes — is **native-only** (`#[cfg(not(target_arch = "wasm32"))]`).
+//! The Tier-2 `--deep` semantic pass is excluded from the wasm surface by contract,
+//! not degraded: the wasm boundary reaches validation solely through
+//! [`data_validate::run_tier1`].
 //!
 //! # Engine core separation
 //!
-//! Only [`py`] and [`py_dsl`] import pyo3. The engine modules ([`store`],
-//! [`model`]) are PyO3-free so the rlib links into the future Rust compiler
-//! without any Python dependency.
+//! Only [`py`] and [`py_dsl`] import pyo3. The engine modules are PyO3-free so the
+//! rlib links into a future Rust compiler (and the wasm target) without Python.
 
-pub mod advisory;
-pub mod box_roles;
-pub mod cache;
+// Wasm-clean Tier-1 core: compiled on every target.
 pub mod codes;
-pub mod constitution;
-pub mod coverage;
-pub mod crate_layering;
-pub mod dsl;
+pub mod data_validate;
 pub mod findings;
 pub mod gufo;
-pub mod instance;
-pub mod language_tags;
-pub mod lint;
-pub mod mapping_eval;
 pub mod model;
-pub mod repo_static;
-pub mod rule_catalog;
-pub mod signature;
-pub mod slice_ownership;
-pub mod statement;
+pub mod report_bridge;
 pub mod store;
+
+// Native-only: the slice-authoring dev gate, repo-lint guards, DSL phases, and the
+// Tier-2 reasoner path all pull native-only crates (gmeow-logic, rayon, ureq,
+// gmeow-slice) and cannot cross-compile to wasm.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod advisory;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod box_roles;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod cache;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod constitution;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod coverage;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod crate_layering;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod crossref;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod dsl;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod dsl_shacl;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod instance;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod language_tags;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod lint;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod mapping_eval;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod repo_static;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod rule_catalog;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod signature;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod slice_ownership;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod statement;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod validate_all;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod wikidata_audit;
 
-pub mod crossref;
-pub mod data_validate;
-pub mod dsl_shacl;
-
-// PyO3 bindings — enabled only for the unified native extension.
-#[cfg(feature = "python")]
+// PyO3 bindings — enabled only for the unified native extension, never on wasm.
+#[cfg(all(feature = "python", not(target_arch = "wasm32")))]
 pub mod py;
-#[cfg(feature = "python")]
+#[cfg(all(feature = "python", not(target_arch = "wasm32")))]
 pub mod py_dsl;
 
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.validate` submodule (#630).
-#[cfg(feature = "python")]
+// cdylib can populate the `gmeow_native.validate` submodule.
+#[cfg(all(feature = "python", not(target_arch = "wasm32")))]
 pub use py::register;

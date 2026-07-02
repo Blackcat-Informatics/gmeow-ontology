@@ -90,6 +90,8 @@ gmeow:NarrationUsage
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "Narration Usage"@x-gmeow-english ;
+    logic:mediates gmeow:narrationSegment ,
+        gmeow:narrationSubject ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "The reified seam link — segment × narrated subject × mode, for when HOW the text carries the content matters: flashback, dream, hypothetical, unreliable narration. Mint one per (segment, subject) pair needing mode/vantage/confidence; the 80% case stays flat gmeow:narrates (efficiency doctrine — reify-on-demand, Principle 4). Whose reading of the mode it is rides the statement layer; competing modes for one narration usage are coexisting relators, none privileged (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -99,6 +101,8 @@ gmeow:NarrativeFrameLink
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "Narrative Frame Link"@x-gmeow-english ;
+    logic:mediates gmeow:narrativeFrameLinkSource ,
+        gmeow:narrativeFrameLinkTarget ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified relator that binds a source narrative frame, a target narrative frame, and the relation type between them into a single node. The canonical form when the specific frame-to-frame relation must itself be a node (e.g. to attach provenance, confidence, temporal scope, or standpoint); the flat shortcuts are gmeow:hasNarrativeFrameRelation and gmeow:relatesToFrame. Structurally the Tagging/NameUsage idiom wearing a different hat."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -175,6 +179,8 @@ gmeow:RoleInNarrative
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
     rdfs:label "Role In Narrative"@x-gmeow-english ;
+    logic:mediates gmeow:narrativeRoleBearer ,
+        gmeow:narrativeRoleValue ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "The reified, interpretive fact that a character bears a narratological role RELATIVE TO A SCOPE — protagonist of the trilogy, of one book, of one chapter are different claims. Vantage-indexed through the statement layer; ensemble works carry coexisting protagonist relators and NO primaryProtagonist exists or ever will (Principle 9). Flat shortcut gmeow:hasNarrativeRole for the 80% single-work case."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
