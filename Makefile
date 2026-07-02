@@ -364,8 +364,9 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 		$(WASM_CARGO) build -p gmeow-validate --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate does not build for wasm32-unknown-unknown"; exit 1; }; \
 		$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree =="; \
+		: "rayon is intentionally NOT forbidden — it cross-compiles to wasm32 and degrades to sequential when threads are unavailable (wasm-safe data-parallelism, not a reasoner/native-only crate); purrdf's RDF/SHACL core uses it and the wasm build links cleanly"; \
 		for vpkg in gmeow-validate gmeow-validate-wasm; do \
-			for forbidden in oxigraph oxrocksdb nemo scryer-prolog tokio pyo3 rayon ureq duckdb ring; do \
+			for forbidden in oxigraph oxrocksdb nemo scryer-prolog tokio pyo3 ureq duckdb ring; do \
 				if $(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
 					echo "FAIL: $$vpkg leaked $$forbidden into its wasm dependency tree:"; \
 					$(WASM_CARGO) tree -p $$vpkg -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
@@ -393,6 +394,14 @@ validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release was
 	wasm-opt -Oz -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
+
+validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and run its Node real-execution round-trip lane.
+	@# The purrdf RDF/wasm engine ships + tests its own npm package on purrdf's CI; this
+	@# lane proves ONLY gmeow's own deliverable — the Tier-1 validator wasm package — by
+	@# validating a real dataset against the committed gmeow.gts through the wasm-bindgen
+	@# bindings just built above.
+	cd crates/validate-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-validate-wasm Node round-trip lane passed"
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
@@ -457,7 +466,7 @@ maint-verify-docker: maint-pull-images native-py ## Run ROBOT/ELK reasoned-graph
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 
-maint-crosscheck: native-py ## Cross-check rdflib and native gmeow_rdf query answers.
+maint-crosscheck: native-py ## Cross-check rdflib and native purrdf query answers.
 	$(GMEOW_DEV) crosscheck-queries
 
 maint-extract: native-py ## Run import/extract policy for TARGET.
@@ -575,7 +584,7 @@ native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI co
 	VIRTUAL_ENV="$(CURDIR)/.venv" uv pip install --no-deps --force-reinstall "$${wheels[0]}"; \
 	site="$$(VIRTUAL_ENV="$(CURDIR)/.venv" uv run python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')"; \
 	if [ -z "$$site" ]; then echo "native-py-install: could not resolve site-packages" >&2; exit 1; fi; \
-	for pkg in gmeow_diagnostics gmeow_docs gmeow_logic gmeow_rdf gmeow_shacl gmeow_slice gmeow_validate; do \
+	for pkg in gmeow_diagnostics gmeow_docs gmeow_logic gmeow_validate; do \
 		rm -rf "$$site/$$pkg"; \
 		cp -r "crates/native/python/$$pkg" "$$site/$$pkg"; \
 	done
