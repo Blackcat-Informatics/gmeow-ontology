@@ -7568,3 +7568,87 @@ logic:candidateOrgMembershipPropagation
     logic:candidateSemanticRisk logic:RiskCoreContaminating ;
     logic:candidateFormalizes gmeow:memberOf ;
     logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Standpoint: surface a tenure's frame and position onto its generated claim ─
+# A gmeow:StandpointTenure generates a gmeow:StandpointClaim (a subClassOf
+# gmeow:Observation). Two rules surface the tenure's standpoint and held position
+# onto that claim: gmeow:tenureStandpoint ⇒ the claim's gmeow:vantage, and
+# gmeow:tenurePosition ⇒ the claim's gmeow:observedFeature — the mapping the
+# StandpointTenure prose documents, now derived so generic observation consumers
+# read a tenure's claim on the universal observation spine uniformly.
+
+logic:ruleTenureClaimVantage
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "surface a tenure's standpoint as its claim's vantage"@x-gmeow-english ;
+    skos:definition "Emits gmeow:vantage(claim, standpoint) whenever a gmeow:StandpointTenure gmeow:standpointClaim a claim and gmeow:tenureStandpoint a standpoint: the tenure's frame becomes the vantage of its generated gmeow:StandpointClaim observation, so 'whose frame' reads uniformly across tenures and bare observations. Positive Horn; monotone; materialized natively."@x-gmeow-english ;
+    logic:provenance logic:ruleTenureClaimVantage ;
+    logic:formalizes gmeow:StandpointTenure ;
+    logic:head [
+        rdf:subject   "?claim" ;
+        rdf:predicate gmeow:vantage ;
+        rdf:object    "?standpoint"
+    ] ;
+    logic:body [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:standpointClaim ;
+        rdf:object    "?claim"
+    ] , [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:tenureStandpoint ;
+        rdf:object    "?standpoint"
+    ] .
+
+logic:ruleTenureClaimObservedFeature
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "surface a tenure's position as its claim's observed feature"@x-gmeow-english ;
+    skos:definition "Emits gmeow:observedFeature(claim, position) whenever a gmeow:StandpointTenure gmeow:standpointClaim a claim and gmeow:tenurePosition a position: the tenure's held position becomes the observedFeature of its generated gmeow:StandpointClaim observation, so 'what is claimed' reads uniformly on the observation spine. Positive Horn; monotone; materialized natively."@x-gmeow-english ;
+    logic:provenance logic:ruleTenureClaimObservedFeature ;
+    logic:formalizes gmeow:StandpointTenure ;
+    logic:head [
+        rdf:subject   "?claim" ;
+        rdf:predicate gmeow:observedFeature ;
+        rdf:object    "?position"
+    ] ;
+    logic:body [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:standpointClaim ;
+        rdf:object    "?claim"
+    ] , [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:tenurePosition ;
+        rdf:object    "?position"
+    ] .
+
+logic:cqTenureClaimSurfacingHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a tenure's frame and position surface onto its generated claim"@x-gmeow-english ;
+    skos:definition "The positive competency case the tenure-claim-surfacing rules must satisfy: given a gmeow:StandpointTenure that gmeow:standpointClaim a claim, gmeow:tenureStandpoint a standpoint, and gmeow:tenurePosition a position, the reasoner must derive gmeow:vantage from the claim to that standpoint AND gmeow:observedFeature from the claim to that position — the tenure→claim mapping the harvested prose commits to."@x-gmeow-english .
+
+logic:cqTenureClaimSurfacingSwapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "the tenure→claim mapping is never swapped"@x-gmeow-english ;
+    skos:definition "The negative countermodel the tenure-claim-surfacing rules must respect: the mapping is directional and specific — the tenureStandpoint becomes the claim's gmeow:vantage (never its gmeow:observedFeature) and the tenurePosition becomes the claim's gmeow:observedFeature (never its gmeow:vantage), and a tenure with no gmeow:standpointClaim surfaces nothing. The boundary that keeps frame and position from being crossed onto the wrong role."@x-gmeow-english .
+
+logic:candidateTenureClaimSurfacing
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a tenure's frame and position surface onto its generated claim"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleTenureClaimVantage and logic:ruleTenureClaimObservedFeature: it harvests the tenure→claim mapping documented in gmeow:StandpointTenure's skos:definition (the tenureStandpoint maps to the claim's vantage; the tenurePosition maps to the claim's observedFeature) into two enforced positive-Horn derivation rules, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqTenureClaimSurfacingHolds) and a negative countermodel (logic:cqTenureClaimSurfacingSwapRejected). Its harvest back-link (logic:candidateFormalizes gmeow:StandpointTenure, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:4969424252e18b640bea0671288eaebc38084df25d9263ba1651eb621a24cf47"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:StandpointTenure's skos:definition, which states the tenureStandpoint maps to the generated claim's vantage and the tenurePosition maps to its observedFeature (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:standpointClaim with gmeow:tenureStandpoint ⇒ gmeow:vantage, and with gmeow:tenurePosition ⇒ gmeow:observedFeature, onto the generated StandpointClaim"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqTenureClaimSurfacingHolds ;
+    logic:candidateNegativeCase logic:cqTenureClaimSurfacingSwapRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:StandpointTenure ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
