@@ -411,21 +411,25 @@ fn magnitude_from_quantity(
     ))
 }
 
-/// Reads one open-or-closed magnitude bound: an explicit `<{unbounded_name}>true</>` (mirroring
-/// [`cardinality_from_occurrences`]'s `*_unbounded` handling) or a genuinely missing bound
-/// element both mean "open" (`None`); a bound element that IS present must parse as a number.
+/// Reads one open-or-closed magnitude bound. An explicit `<{unbounded_name}>true</>` (mirroring
+/// [`cardinality_from_occurrences`]'s `*_unbounded` handling) or a genuinely absent unbounded flag
+/// with no bound element both mean "open" (`None`). A bound element that IS present must parse as a
+/// number. When the unbounded flag is explicitly `false` the end IS bounded, so a missing bound
+/// element is a malformed OPT and hard-fails — never silently widened to open (which would accept
+/// magnitudes the constraint rejects).
 fn optional_bound(
     node: roxmltree::Node,
     name: &str,
     unbounded_name: &str,
 ) -> Result<Option<f64>, OptError> {
+    let mut explicitly_bounded = false;
     if let Some(u) = child_element(node, unbounded_name) {
         let text = u
             .text()
             .ok_or_else(|| opt_err(format!("<{unbounded_name}> has no text content")))?;
         match text.trim() {
             "true" => return Ok(None),
-            "false" => {}
+            "false" => explicitly_bounded = true,
             other => {
                 return Err(opt_err(format!(
                     "<{unbounded_name}> value {other:?} is not a boolean"
@@ -434,6 +438,9 @@ fn optional_bound(
         }
     }
     match child_element(node, name) {
+        None if explicitly_bounded => Err(opt_err(format!(
+            "interval end is bounded (<{unbounded_name}> is false) but <{name}> is missing"
+        ))),
         None => Ok(None),
         Some(child) => {
             let text = child
@@ -619,6 +626,24 @@ mod tests {
         let naming = std::collections::BTreeMap::new();
         let err = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap_err();
         assert!(err.to_string().contains("terminology_id"), "got: {err}");
+    }
+
+    #[test]
+    fn bounded_interval_with_missing_bound_element_hard_fails() {
+        // <lower_unbounded>false</lower_unbounded> asserts the lower end IS bounded; a missing
+        // <lower> must hard-fail, never be silently widened to open (which would accept magnitudes
+        // the constraint rejects).
+        let xml = "<c xsi:type=\"C_DV_QUANTITY\" \
+                   xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\
+                   <list><magnitude>\
+                   <lower_included>true</lower_included>\
+                   <upper_included>true</upper_included>\
+                   <lower_unbounded>false</lower_unbounded>\
+                   <upper_unbounded>true</upper_unbounded>\
+                   </magnitude><units>mmHg</units></list></c>";
+        let naming = std::collections::BTreeMap::new();
+        let err = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap_err();
+        assert!(err.to_string().contains("<lower> is missing"), "got: {err}");
     }
 }
 
