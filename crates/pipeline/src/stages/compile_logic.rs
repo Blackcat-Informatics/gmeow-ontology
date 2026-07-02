@@ -243,12 +243,15 @@ impl Stage for CompileLogicStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "compile-logic.v2"
+        "compile-logic.v3"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
-        // The compiler parses one canonical Turtle document; its content is the only
-        // source input, so a change to it busts this stage's cache.
-        Ok(vec![root.join(SOURCE_PATH), root.join(OPT_SOURCE_PATH)])
+        // The compiler parses the logic: source and the vendored OPT, and derives validation
+        // shapes from the whole authored ontology (#1191) — so a change to ANY authored file
+        // must bust this stage's cache.
+        let mut files = vec![root.join(SOURCE_PATH), root.join(OPT_SOURCE_PATH)];
+        files.extend(crate::stages::source_load::authored_files(root)?);
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
@@ -261,7 +264,16 @@ impl Stage for CompileLogicStage {
         // A hard fail if the committed OPT is unreadable (no optional path).
         let opt_xml = std::fs::read_to_string(input.root.join(OPT_SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {OPT_SOURCE_PATH}: {e}")))?;
-        let program = program.with_validation_shapes(lift_opt_constraints(&opt_xml)?);
+        let mut validation_shapes = lift_opt_constraints(&opt_xml)?;
+        // #1191: derive closed-world validation shapes from the merged authored ontology's OWL
+        // restrictions (someValuesFrom → sh:class), where the DOMAIN restrictions live (the
+        // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
+        // derived ontology shapes ride into gmeow.gts through the shape surfaces.
+        let ontology = crate::stages::source_load::load_authored_dataset(input.root)?;
+        validation_shapes.extend(gmeow_logic_compile::frontend::derive_validation_shapes(
+            ontology.as_ref(),
+        ));
+        let program = program.with_validation_shapes(validation_shapes);
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
         let mut arts = compile_program(&program).map_err(|e| stage_err(format!("compile: {e}")))?;

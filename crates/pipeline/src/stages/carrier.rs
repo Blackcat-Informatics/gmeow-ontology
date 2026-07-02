@@ -817,6 +817,23 @@ fn build_archive_blobs(
         root,
         &slice_named_files(root, "shapes.ttl")?,
     )?);
+    // The validation-shape SHACL surface (`generated/shapes/validation-shapes.ttl`) is
+    // produced by THIS run's `stage-compile-logic` product (the OPT constraint axis + the
+    // #1191 OWL-restriction derivation), NOT a pre-existing committed frame shape. Override
+    // the stale disk read with the fresh product bytes so the archive — and the fanout that
+    // rewrites the file from it — carry the freshly derived shapes, never the last-committed
+    // file (the carrier-archive stale-disk-read fix; the axioms archive above reads from the
+    // product for the same reason).
+    if let Some(fresh) =
+        axiom_artifacts.get(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH)
+    {
+        let rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string();
+        if let Some(entry) = shapes.iter_mut().find(|(k, _)| *k == rel) {
+            entry.1 = fresh.clone();
+        } else {
+            shapes.push((rel, fresh.clone()));
+        }
+    }
     shapes.sort_by(|a, b| a.0.cmp(&b.0));
     // axioms: the compiled logic/DL projection surface, member = repo-relative path.
     // Sourced from THIS run's `stage-compile-logic` product (not re-read from disk) so
