@@ -133,6 +133,8 @@ gmeow:NameUsage
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Usage"@x-gmeow-english ;
+    logic:mediates gmeow:usageNamed ,
+        gmeow:usageAppellation ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [

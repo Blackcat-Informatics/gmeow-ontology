@@ -29,10 +29,6 @@
 #   - gmeow-pipeline fold_parity binary:
 #     32.231 s locally; this is the full real-repo terminal sink vs committed
 #     `generated/dist/gmeow.gts` fold-isomorphism oracle.
-#   - gmeow-rdf-capi c_smoke binary:
-#     82.854 s in CI shard 1; it cold-builds the `libpurrdf` cdylib and compiles /
-#     links / runs the real C program. Header/linkage coverage stays on the dedicated
-#     C-API CI lane and maint-heavy.
 #   - gmeow-pipeline end_to_end binary:
 #     82.351 s in CI shard 1; it runs the real production spine through
 #     `stage-snapshot`, which is full-DAG / ontology-size work. Focused per-stage
@@ -54,7 +50,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & binary(fold_parity))
     | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
-    | (package(gmeow-logic) & test(/whole_bundle_coherence_gate/))
+    | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
   )
