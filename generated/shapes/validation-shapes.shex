@@ -1,5 +1,741 @@
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
+# targetClass <https://blackcatinformatics.ca/gmeow/AccessibilityAssertion> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/AccessibilityAssertion-shape> {
+  <https://blackcatinformatics.ca/gmeow/assertionFacet> IRI ;
+  <https://blackcatinformatics.ca/gmeow/assertionPolarity> IRI ;
+  <https://blackcatinformatics.ca/gmeow/assertionSubject> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Annotation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Annotation-shape> {
+  <https://blackcatinformatics.ca/gmeow/annotationMotivation> IRI ;
+  <https://blackcatinformatics.ca/gmeow/annotationTarget> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext-shape> {
+  <https://blackcatinformatics.ca/gmeow/findContextTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/AtomicConstraint> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint-shape> {
+  <https://blackcatinformatics.ca/gmeow/constraintOperator> IRI ;
+  <https://blackcatinformatics.ca/gmeow/leftOperand> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Attestation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Attestation-shape> {
+  <https://blackcatinformatics.ca/gmeow/attestedSubject> IRI ;
+  <https://blackcatinformatics.ca/gmeow/attester> IRI ;
+  <https://blackcatinformatics.ca/gmeow/issuedAt> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/AttestationArtifact> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/AttestationArtifact-shape> {
+  <https://blackcatinformatics.ca/gmeow/artifactMediaType> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Availability> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Availability-shape> {
+  <https://blackcatinformatics.ca/gmeow/availabilityAgent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/availabilitySlot> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Block> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Block-shape> {
+  <https://blackcatinformatics.ca/gmeow/blockHash> IRI ;
+  <https://blackcatinformatics.ca/gmeow/blockNumber> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/BlockchainNetwork> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/BlockchainNetwork-shape> {
+  <https://blackcatinformatics.ca/gmeow/chainId> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/BuildActivity> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/BuildActivity-shape> {
+  <https://blackcatinformatics.ca/gmeow/buildOutput> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/BuildDataFlow> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/BuildDataFlow-shape> {
+  <https://blackcatinformatics.ca/gmeow/buildFlowFrom> IRI ;
+  <https://blackcatinformatics.ca/gmeow/buildFlowTo> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Certification> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Certification-shape> {
+  <https://blackcatinformatics.ca/gmeow/certifiedIdentity> IRI ;
+  <https://blackcatinformatics.ca/gmeow/certifiedKey> IRI ;
+  <https://blackcatinformatics.ca/gmeow/certifier> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Chunk> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Chunk-shape> {
+  <https://blackcatinformatics.ca/gmeow/chunkOf> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/CitationAct> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/CitationAct-shape> {
+  <https://blackcatinformatics.ca/gmeow/citationIntent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/citedEntity> IRI ;
+  <https://blackcatinformatics.ca/gmeow/citingEntity> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Commit> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Commit-shape> {
+  <https://blackcatinformatics.ca/gmeow/authoredBy> IRI ;
+  <https://blackcatinformatics.ca/gmeow/commitAuthorIdentity> IRI ;
+  <https://blackcatinformatics.ca/gmeow/commitCommitterIdentity> IRI ;
+  <https://blackcatinformatics.ca/gmeow/commitTree> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/CommunitySummary> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/CommunitySummary-shape> {
+  <https://blackcatinformatics.ca/gmeow/summarizesCommunity> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ConceptCategorization> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ConceptCategorization-shape> {
+  <https://blackcatinformatics.ca/gmeow/observationResult> IRI ;
+  <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ConceptTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ConceptTenure-shape> {
+  <https://blackcatinformatics.ca/gmeow/conceptHoldsFor> IRI ;
+  <https://blackcatinformatics.ca/gmeow/duringInterval> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ContainmentTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure-shape> {
+  <https://blackcatinformatics.ca/gmeow/containmentChild> IRI ;
+  <https://blackcatinformatics.ca/gmeow/containmentParent> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Contradiction> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Contradiction-shape> {
+  <https://blackcatinformatics.ca/gmeow/contradictsClaim> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Contribution> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Contribution-shape> {
+  <https://blackcatinformatics.ca/gmeow/contributionRole> IRI ;
+  <https://blackcatinformatics.ca/gmeow/contributionTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/contributor> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ControlFlow> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ControlFlow-shape> {
+  <https://blackcatinformatics.ca/gmeow/flowSource> IRI ;
+  <https://blackcatinformatics.ca/gmeow/flowTarget> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/CoordinateObservation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/CoordinateObservation-shape> {
+  <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Copyright> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Copyright-shape> {
+  <https://blackcatinformatics.ca/gmeow/copyrightHolder> IRI ;
+  <https://blackcatinformatics.ca/gmeow/copyrightWork> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/CreativeDerivation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/CreativeDerivation-shape> {
+  <https://blackcatinformatics.ca/gmeow/derivationProduct> IRI ;
+  <https://blackcatinformatics.ca/gmeow/derivationSource> IRI ;
+  <https://blackcatinformatics.ca/gmeow/derivationType> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/CryptoWallet> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/CryptoWallet-shape> {
+  <https://blackcatinformatics.ca/gmeow/walletScheme> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/DataFlow> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/DataFlow-shape> {
+  <https://blackcatinformatics.ca/gmeow/dataFlowSource> IRI ;
+  <https://blackcatinformatics.ca/gmeow/dataFlowTarget> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/DegreeOfFreedom> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/DegreeOfFreedom-shape> {
+  <https://blackcatinformatics.ca/gmeow/dofParameter> IRI ;
+  <https://blackcatinformatics.ca/gmeow/dofStatus> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/DepictionUsage> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/DepictionUsage-shape> {
+  <https://blackcatinformatics.ca/gmeow/depictionImage> IRI ;
+  <https://blackcatinformatics.ca/gmeow/depictionSubject> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Diff> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Diff-shape> {
+  <https://blackcatinformatics.ca/gmeow/diffFrom> IRI ;
+  <https://blackcatinformatics.ca/gmeow/diffTo> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/DoxasticState> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/DoxasticState-shape> {
+  <https://blackcatinformatics.ca/gmeow/doxasticClaim> IRI ;
+  <https://blackcatinformatics.ca/gmeow/doxasticContent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/epistemicAgent> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/DoxasticTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/DoxasticTenure-shape> {
+  <https://blackcatinformatics.ca/gmeow/duringInterval> IRI ;
+  <https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Embedding> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Embedding-shape> {
+  <https://blackcatinformatics.ca/gmeow/distanceMetric> IRI ;
+  <https://blackcatinformatics.ca/gmeow/embeddingModel> IRI ;
+  <https://blackcatinformatics.ca/gmeow/embeddingOf> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Employment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Employment-shape> {
+  <https://blackcatinformatics.ca/gmeow/employmentType> IRI ;
+  <https://blackcatinformatics.ca/gmeow/membershipMember> IRI ;
+  <https://blackcatinformatics.ca/gmeow/membershipOrganization> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/EntityExistence> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/EntityExistence-shape> {
+  <https://blackcatinformatics.ca/gmeow/existenceEntity> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/EtymologicalDerivation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/EtymologicalDerivation-shape> {
+  <https://blackcatinformatics.ca/gmeow/derivationKind> IRI ;
+  <https://blackcatinformatics.ca/gmeow/derivationTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/etymonSource> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/EventInvitation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/EventInvitation-shape> {
+  <https://blackcatinformatics.ca/gmeow/invitationEvent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/invitationInvitee> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/EventSchedule> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/EventSchedule-shape> {
+  <https://blackcatinformatics.ca/gmeow/scheduleTemplateEvent> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Execution> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Execution-shape> {
+  <https://blackcatinformatics.ca/gmeow/executesProcedure> IRI ;
+  <https://blackcatinformatics.ca/gmeow/executesStep> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ExtractedRelationship-shape> {
+  <https://blackcatinformatics.ca/gmeow/relationshipSource> IRI ;
+  <https://blackcatinformatics.ca/gmeow/relationshipTarget> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/FinancialAccount> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/FinancialAccount-shape> {
+  <https://blackcatinformatics.ca/gmeow/accountHolder> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/FinancialTransaction> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/FinancialTransaction-shape> {
+  <https://blackcatinformatics.ca/gmeow/transactionAmount> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Finding> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Finding-shape> {
+  <https://blackcatinformatics.ca/gmeow/findingSeverity> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/GenderExpression> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/GenderExpression-shape> {
+  <https://blackcatinformatics.ca/gmeow/expressionValue> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/GenderIdentity> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/GenderIdentity-shape> {
+  <https://blackcatinformatics.ca/gmeow/genderValue> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/GenerativeProcess> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/GenerativeProcess-shape> {
+  <https://blackcatinformatics.ca/gmeow/processKind> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Highlight> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Highlight-shape> {
+  <https://blackcatinformatics.ca/gmeow/annotationTargetSpan> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Holding> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Holding-shape> {
+  <https://blackcatinformatics.ca/gmeow/holdingAgent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/holdingAsset> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/IdentityFacet> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/IdentityFacet-shape> {
+  <https://blackcatinformatics.ca/gmeow/facetSubject> IRI ;
+  <https://blackcatinformatics.ca/gmeow/facetVantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ImageRegion> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ImageRegion-shape> {
+  <https://blackcatinformatics.ca/gmeow/regionOf> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InquiryTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InquiryTenure-shape> {
+  <https://blackcatinformatics.ca/gmeow/tenureQuestion> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InscriptionReading> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InscriptionReading-shape> {
+  <https://blackcatinformatics.ca/gmeow/readingOf> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InscriptionTranslation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InscriptionTranslation-shape> {
+  <https://blackcatinformatics.ca/gmeow/translationOf> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InscriptionTransliteration> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InscriptionTransliteration-shape> {
+  <https://blackcatinformatics.ca/gmeow/transliterationOf> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InstrumentConfiguration> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InstrumentConfiguration-shape> {
+  <https://blackcatinformatics.ca/gmeow/configurationModification> IRI ;
+  <https://blackcatinformatics.ca/gmeow/configurationTuningFrame> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InterpersonalRelationship> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InterpersonalRelationship-shape> {
+  <https://blackcatinformatics.ca/gmeow/relationshipParty> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Invoice> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Invoice-shape> {
+  <https://blackcatinformatics.ca/gmeow/invoiceAmount> IRI ;
+  <https://blackcatinformatics.ca/gmeow/invoiceIssuer> IRI ;
+  <https://blackcatinformatics.ca/gmeow/invoiceRecipient> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/JournalEntry> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/JournalEntry-shape> {
+  <https://blackcatinformatics.ca/gmeow/journalEntryPostings> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure-shape> {
+  <https://blackcatinformatics.ca/gmeow/jurisdictionPlace> IRI ;
+  <https://blackcatinformatics.ca/gmeow/jurisdictionPolity> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/KnowledgeProficiency> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/KnowledgeProficiency-shape> {
+  <https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevel> IRI ;
+  <https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScale> IRI ;
+  <https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubject> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/LandTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/LandTenure-shape> {
+  <https://blackcatinformatics.ca/gmeow/tenureParty> IRI ;
+  <https://blackcatinformatics.ca/gmeow/tenurePlace> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/LanguageState> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/LanguageState-shape> {
+  <https://blackcatinformatics.ca/gmeow/stateAuthority> IRI ;
+  <https://blackcatinformatics.ca/gmeow/stateLanguage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/LedgerAccount> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/LedgerAccount-shape> {
+  <https://blackcatinformatics.ca/gmeow/ledgerAccountHolder> IRI ;
+  <https://blackcatinformatics.ca/gmeow/ledgerAccountType> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/LedgerEvent> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/LedgerEvent-shape> {
+  <https://blackcatinformatics.ca/gmeow/logIndex> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/LedgerTransaction> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/LedgerTransaction-shape> {
+  <https://blackcatinformatics.ca/gmeow/transactionHash> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/License> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/License-shape> {
+  <https://blackcatinformatics.ca/gmeow/licensedWork> IRI ;
+  <https://blackcatinformatics.ca/gmeow/licensor> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/LogicalConstraint> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/LogicalConstraint-shape> {
+  <https://blackcatinformatics.ca/gmeow/constraintLogic> IRI ;
+  <https://blackcatinformatics.ca/gmeow/logicConstraintMember> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MemoryItem> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MemoryItem-shape> {
+  <https://blackcatinformatics.ca/gmeow/memoryOf> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MentalReferenceFrame> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MentalReferenceFrame-shape> {
+  <https://blackcatinformatics.ca/gmeow/isHostedBy> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MessageParticipant> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MessageParticipant-shape> {
+  <https://blackcatinformatics.ca/gmeow/participantAddress> IRI ;
+  <https://blackcatinformatics.ca/gmeow/participantMessage> IRI ;
+  <https://blackcatinformatics.ca/gmeow/participantRole> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MeterAssignment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MeterAssignment-shape> {
+  <https://blackcatinformatics.ca/gmeow/assignedMeter> IRI ;
+  <https://blackcatinformatics.ca/gmeow/assignmentSpan> IRI ;
+  <https://blackcatinformatics.ca/gmeow/meterCarrier> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MetricModulation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MetricModulation-shape> {
+  <https://blackcatinformatics.ca/gmeow/modulationFromFrame> IRI ;
+  <https://blackcatinformatics.ca/gmeow/modulationToFrame> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Mitigation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Mitigation-shape> {
+  <https://blackcatinformatics.ca/gmeow/mitigationCounters> IRI ;
+  <https://blackcatinformatics.ca/gmeow/mitigationMeasure> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MonetaryAmount> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MonetaryAmount-shape> {
+  <https://blackcatinformatics.ca/gmeow/currency> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape> {
+  <https://blackcatinformatics.ca/gmeow/analysisFrame> IRI ;
+  <https://blackcatinformatics.ca/gmeow/analysisProperty> IRI ;
+  <https://blackcatinformatics.ca/gmeow/analysisResult> IRI ;
+  <https://blackcatinformatics.ca/gmeow/analysisTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MusicalTimeSpan-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasMusicalTimeFrame> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Myth> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Myth-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasMythTelling> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/NameUsage> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/NameUsage-shape> {
+  <https://blackcatinformatics.ca/gmeow/usageAppellation> IRI ;
+  <https://blackcatinformatics.ca/gmeow/usageNamed> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/NotationSystemUsage> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/NotationSystemUsage-shape> {
+  <https://blackcatinformatics.ca/gmeow/notationUsageInterval> IRI ;
+  <https://blackcatinformatics.ca/gmeow/notationUsageNotationSystem> IRI ;
+  <https://blackcatinformatics.ca/gmeow/notationUsageRole> IRI ;
+  <https://blackcatinformatics.ca/gmeow/notationUsageTarget> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Observation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Observation-shape> {
+  <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Order> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Order-shape> {
+  <https://blackcatinformatics.ca/gmeow/orderAmount> IRI ;
+  <https://blackcatinformatics.ca/gmeow/orderBuyer> IRI ;
+  <https://blackcatinformatics.ca/gmeow/orderSeller> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/OrnamentProfile> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/OrnamentProfile-shape> {
+  <https://blackcatinformatics.ca/gmeow/ornamentProfileKind> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ParentChildRelationship> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ParentChildRelationship-shape> {
+  <https://blackcatinformatics.ca/gmeow/relationshipChild> IRI ;
+  <https://blackcatinformatics.ca/gmeow/relationshipParent> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Participation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Participation-shape> {
+  <https://blackcatinformatics.ca/gmeow/participationEvent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/participationParticipant> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PerformanceDecision> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PerformanceDecision-shape> {
+  <https://blackcatinformatics.ca/gmeow/decisionConstraint> IRI ;
+  <https://blackcatinformatics.ca/gmeow/decisionPerformance> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PerformanceParticipation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PerformanceParticipation-shape> {
+  <https://blackcatinformatics.ca/gmeow/participationEvent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/participationParticipant> IRI ;
+  <https://blackcatinformatics.ca/gmeow/participationRole> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PitchAnchor> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PitchAnchor-shape> {
+  <https://blackcatinformatics.ca/gmeow/pitchAnchorOf> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PitchCollectionMembership> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PitchCollectionMembership-shape> {
+  <https://blackcatinformatics.ca/gmeow/membershipCollection> IRI ;
+  <https://blackcatinformatics.ca/gmeow/membershipPitch> IRI ;
+  <https://blackcatinformatics.ca/gmeow/membershipRole> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PitchSpelling> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PitchSpelling-shape> {
+  <https://blackcatinformatics.ca/gmeow/spelledName> IRI ;
+  <https://blackcatinformatics.ca/gmeow/spellingPitch> IRI ;
+  <https://blackcatinformatics.ca/gmeow/spellingSystem> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint-shape> {
+  <https://blackcatinformatics.ca/gmeow/controlPointOfTrajectory> IRI ;
+  <https://blackcatinformatics.ca/gmeow/controlPointPitch> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Post> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Post-shape> {
+  <https://blackcatinformatics.ca/gmeow/postIn> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Posting> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Posting-shape> {
+  <https://blackcatinformatics.ca/gmeow/postingAccount> IRI ;
+  <https://blackcatinformatics.ca/gmeow/postingAmount> IRI ;
+  <https://blackcatinformatics.ca/gmeow/postingDirection> IRI ;
+  <https://blackcatinformatics.ca/gmeow/postingJournalEntry> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Procedure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Procedure-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasProcedureStep> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/QualityAssessment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/QualityAssessment-shape> {
+  <https://blackcatinformatics.ca/gmeow/assessedEntity> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay-shape> {
+  <https://blackcatinformatics.ca/gmeow/overlayAuthority> IRI ;
+  <https://blackcatinformatics.ca/gmeow/overlayPlace> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Release> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Release-shape> {
+  <https://blackcatinformatics.ca/gmeow/releaseOf> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Reminder> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Reminder-shape> {
+  <https://blackcatinformatics.ca/gmeow/reminderTarget> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/RetrievalEvent> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/RetrievalEvent-shape> {
+  <https://blackcatinformatics.ca/gmeow/againstIndex> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/RightsStatement> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/RightsStatement-shape> {
+  <https://blackcatinformatics.ca/gmeow/statementAbout> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/RomanticOrientation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/RomanticOrientation-shape> {
+  <https://blackcatinformatics.ca/gmeow/romanticOrientationValue> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Rule> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Rule-shape> {
+  <https://blackcatinformatics.ca/gmeow/ruleAction> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SceneGraphEdge> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SceneGraphEdge-shape> {
+  <https://blackcatinformatics.ca/gmeow/sceneObject> IRI ;
+  <https://blackcatinformatics.ca/gmeow/sceneSubject> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ScheduleException> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ScheduleException-shape> {
+  <https://blackcatinformatics.ca/gmeow/exceptionOriginalDate> IRI ;
+  <https://blackcatinformatics.ca/gmeow/exceptionSchedule> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution-shape> {
+  <https://blackcatinformatics.ca/gmeow/attributionTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SegmentTransformation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SegmentTransformation-shape> {
+  <https://blackcatinformatics.ca/gmeow/transformationSource> IRI ;
+  <https://blackcatinformatics.ca/gmeow/transformationTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/transformationType> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SensoryEnvironment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SensoryEnvironment-shape> {
+  <https://blackcatinformatics.ca/gmeow/environmentAtLocation> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SensoryObservation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SensoryObservation-shape> {
+  <https://blackcatinformatics.ca/gmeow/sensoryObservationOf> IRI ;
+  <https://blackcatinformatics.ca/gmeow/sensoryProperty> IRI ;
+  <https://blackcatinformatics.ca/gmeow/sensoryResult> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SensoryPerception> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SensoryPerception-shape> {
+  <https://blackcatinformatics.ca/gmeow/perceptionEnvironment> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SexualOrientation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SexualOrientation-shape> {
+  <https://blackcatinformatics.ca/gmeow/sexualOrientationValue> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SkillProficiency> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SkillProficiency-shape> {
+  <https://blackcatinformatics.ca/gmeow/skillProficiencyAgent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/skillProficiencyLevel> IRI ;
+  <https://blackcatinformatics.ca/gmeow/skillProficiencyOf> IRI ;
+  <https://blackcatinformatics.ca/gmeow/skillProficiencyScale> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SmartContract> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SmartContract-shape> {
+  <https://blackcatinformatics.ca/gmeow/contractAddress> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/SpatialMeasurement> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/SpatialMeasurement-shape> {
+  <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/StandpointTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/StandpointTenure-shape> {
+  <https://blackcatinformatics.ca/gmeow/standpointClaim> IRI ;
+  <https://blackcatinformatics.ca/gmeow/tenureStandpoint> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Stream> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Stream-shape> {
+  <https://blackcatinformatics.ca/gmeow/streamOf> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Tagging> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Tagging-shape> {
+  <https://blackcatinformatics.ca/gmeow/taggingTag> IRI ;
+  <https://blackcatinformatics.ca/gmeow/taggingTagged> IRI ;
+  <https://blackcatinformatics.ca/gmeow/taggingTagger> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Teaching> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Teaching-shape> {
+  <https://blackcatinformatics.ca/gmeow/learner> IRI ;
+  <https://blackcatinformatics.ca/gmeow/teacher> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement-shape> {
+  <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Trademark> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Trademark-shape> {
+  <https://blackcatinformatics.ca/gmeow/trademarkHolder> IRI ;
+  <https://blackcatinformatics.ca/gmeow/trademarkMark> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/TransparencyLogEntry-shape> {
+  <https://blackcatinformatics.ca/gmeow/logEntryIndex> IRI ;
+  <https://blackcatinformatics.ca/gmeow/logEntryUrl> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/TreeEntry> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/TreeEntry-shape> {
+  <https://blackcatinformatics.ca/gmeow/treeEntryMode> IRI ;
+  <https://blackcatinformatics.ca/gmeow/treeEntryName> IRI ;
+  <https://blackcatinformatics.ca/gmeow/treeEntryObject> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/TrustAssertion> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/TrustAssertion-shape> {
+  <https://blackcatinformatics.ca/gmeow/trustee> IRI ;
+  <https://blackcatinformatics.ca/gmeow/trustor> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/UsageAttestation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/UsageAttestation-shape> {
+  <https://blackcatinformatics.ca/gmeow/attestedForm> IRI ;
+  <https://blackcatinformatics.ca/gmeow/attestedInSource> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/VerificationResult> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/VerificationResult-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasVerificationStatus> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/VersionMembership> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/VersionMembership-shape> {
+  <https://blackcatinformatics.ca/gmeow/membershipAuthority> IRI ;
+  <https://blackcatinformatics.ca/gmeow/versionMember> IRI ;
+  <https://blackcatinformatics.ca/gmeow/versionSet> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/DiastolicShape> {
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 1000 ;

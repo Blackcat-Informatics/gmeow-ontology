@@ -156,6 +156,9 @@ pub enum ConstraintComponent {
     },
     /// A datatype constraint (`sh:datatype`): the datatype IRI.
     Datatype(String),
+    /// A class-membership constraint (`sh:class`): values must be instances of this class
+    /// IRI. The closed-world reading of an OWL `someValuesFrom` / `allValuesFrom` restriction.
+    Class(String),
     /// A node-kind constraint (`sh:nodeKind`).
     NodeKindShacl(ShaclNodeKind),
     /// A closed value set (`sh:in`), sorted at construction.
@@ -223,6 +226,7 @@ impl ConstraintComponent {
                 opt_axis_key(*max),
             ),
             ConstraintComponent::Datatype(d) => format!("datatype={d}"),
+            ConstraintComponent::Class(c) => format!("class={c}"),
             ConstraintComponent::NodeKindShacl(k) => format!("nodekind={}", k.as_str()),
             ConstraintComponent::In(vs) => {
                 let members = vs

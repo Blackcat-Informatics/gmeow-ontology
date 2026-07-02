@@ -111,6 +111,7 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
             v
         }
         ConstraintComponent::Datatype(d) => vec![format!("sh:datatype {}", iri_term(d))],
+        ConstraintComponent::Class(c) => vec![format!("sh:class {}", iri_term(c))],
         ConstraintComponent::NodeKindShacl(k) => vec![format!("sh:nodeKind sh:{}", k.as_str())],
         ConstraintComponent::In(vs) => {
             let items = vs
@@ -330,6 +331,9 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
                     _ => "NONLITERAL",
                 })
             }
+            // A class-membership constraint: ShEx has no `sh:class` facet, so the values are
+            // only constrained to IRIs here; the class itself is declared in shex_residue.
+            ConstraintComponent::Class(_) => nodekind = Some("IRI"),
             // Not faithfully expressible in ShEx — declared in shex_residue.
             ConstraintComponent::DateTimeRange { .. }
             | ConstraintComponent::LanguageIn(_)
@@ -420,6 +424,11 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                 )),
                 ConstraintComponent::LanguageIn(_) => residue.push(format!(
                     "languageIn on {} has no ShEx form; carried in the canonical logic: layer",
+                    p.path
+                )),
+                ConstraintComponent::Class(class) => residue.push(format!(
+                    "sh:class {class} on {} has no ShEx facet; ShEx constrains the value to an IRI \
+                     only, the class membership is carried in the canonical logic: layer",
                     p.path
                 )),
                 _ => {}

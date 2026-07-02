@@ -28,7 +28,7 @@
 //! 4. **Rules** — `logic:Rule` nodes with `logic:head` / `logic:body` /
 //!    `logic:negatedBody` / `logic:distinctBody` links.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
@@ -38,14 +38,15 @@ use gmeow_rdf::{parse_dataset, RdfDataset};
 use super::compat;
 use super::graphutil::{
     canonicalize_blank_nodes, contains, default_graph_quads, has_predicate, has_predicate_object,
-    is_empty, nn, objects, subject_str, subjects_with, term_as_subject, term_is_literal, term_str,
-    value, Node, Subject, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT,
-    RDF_TYPE,
+    is_empty, nn, objects, subject_is_blank, subject_str, subjects_with, term_as_subject,
+    term_is_literal, term_str, value, Node, Subject, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
+    RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
 };
 use super::ir::{
-    AggregateSpec, ComplexityClass, ContextualScope, Correspondence, Formula, LogicAxiom,
-    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, ReasoningContract,
-    SemanticProfileId, Term, LOGIC_NAMESPACE,
+    AggregateSpec, ComplexityClass, ConstraintComponent, ContextualScope, Correspondence, Formula,
+    LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr,
+    PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShapeTarget, Term,
+    ValidationShapeIr, LOGIC_NAMESPACE,
 };
 
 /// Re-export the CGIF reader alongside CLIF (the conceptual-graph dialect inverse).
@@ -976,6 +977,91 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
         Ok(n) if n >= 1 => Some(n),
         _ => None,
     }
+}
+
+/// Derive closed-world [`ValidationShapeIr`]s from an ontology graph's OWL restrictions (the
+/// #1191 closed-world reading). For every `Class rdfs:subClassOf [ owl:onProperty P ;
+/// owl:someValuesFrom C ]`, the target `Class` gets a shape whose property `P` carries a
+/// `sh:class C` constraint, grouped so one shape holds all of a class's derived property
+/// constraints (sorted + deduped for determinism).
+///
+/// This is the closed-world reading of an open-world existential, so its ledger polarity is
+/// `logic:ValidationOnly` (an under-approximation) — never claimed as an entailment
+/// (Principle 17). **Public** so the pipeline can run it over the merged authored ontology
+/// (where the domain restrictions live), not just the logic: front-end source.
+pub fn derive_validation_shapes(store: &RdfDataset) -> Vec<ValidationShapeIr> {
+    let owl = "http://www.w3.org/2002/07/owl#";
+    let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
+    let owl_class = Node::iri(format!("{owl}Class"));
+    let p_on = nn(&format!("{owl}onProperty"));
+    let p_some = nn(&format!("{owl}someValuesFrom"));
+    let p_subclass = nn(&format!("{rdfs}subClassOf"));
+
+    // For every owl:Class, walk its `rdfs:subClassOf` restriction super-classes and read the
+    // `owl:onProperty` / `owl:someValuesFrom` pair off each restriction blank node.
+    let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
+    let mut by_class: BTreeMap<String, Vec<(String, String)>> = BTreeMap::new();
+    // GMEOW is the authoring ground: derive validation shapes only for our own domain
+    // classes (Principle 4 / maximal dogfooding). Imported ontologies (gUFO, FOAF, …) are
+    // linked, not validated by our surface — and their target-class namespaces are not
+    // registered in the downstream JSON-Schema discriminator.
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    for class in classes {
+        // An anonymous class expression (blank node) is not a shape target — skip it.
+        if subject_is_blank(&class) {
+            continue;
+        }
+        let class_iri = subject_str(&class);
+        if !class_iri.starts_with(GMEOW_NS) {
+            continue;
+        }
+        for restr in objects(store, &class, &p_subclass) {
+            let Some(restr_subj) = term_as_subject(&restr) else {
+                continue;
+            };
+            // Derive ONLY from an IRI-valued property + an IRI-valued someValuesFrom class. A
+            // blank someValuesFrom is an anonymous class expression (union/intersection) with no
+            // `sh:class` form — carried in the canon, never emitted as a bare blank label.
+            let Some(Node::Iri(on)) = value(store, &restr_subj, &p_on) else {
+                continue;
+            };
+            let Some(Node::Iri(some_c)) = value(store, &restr_subj, &p_some) else {
+                continue;
+            };
+            by_class
+                .entry(class_iri.clone())
+                .or_default()
+                .push((on, some_c));
+        }
+    }
+
+    let mut shapes = Vec::new();
+    for (class, mut props) in by_class {
+        props.sort();
+        props.dedup();
+        let mut properties = Vec::new();
+        for (p, c) in props {
+            if let Ok(pc) =
+                PropertyConstraintIr::new(&p, None, None, None, vec![ConstraintComponent::Class(c)])
+            {
+                properties.push(pc);
+            }
+        }
+        if properties.is_empty() {
+            continue;
+        }
+        if let Ok(shape) = ValidationShapeIr::new(
+            format!("{class}-shape"),
+            ShapeTarget::Class(class),
+            properties,
+            None,
+            None,
+            false,
+        ) {
+            shapes.push(shape);
+        }
+    }
+    shapes
 }
 
 /// Read `logic:PathShape` individuals into [`PathShapeIr`]s.
