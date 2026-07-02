@@ -167,6 +167,12 @@ struct Row {
     property_nodes: Vec<String>,
     /// A property node's `ontouml:propertyType` class IRI (shape a, one hop).
     property_type: Option<String>,
+    /// A property node's `ontouml:cardinality` `ontouml:Cardinality` node IRI
+    /// (shape a, one hop from the property to its cardinality node).
+    cardinality: Option<String>,
+    /// A cardinality node's `ontouml:upperBound` literal lexical form
+    /// (`"1"`, `"*"`, …); `"1"` marks a functional end.
+    upper_bound: Option<String>,
     /// `ontouml:relatorEnd` class IRI (shape b convenience predicate).
     relator_end: Option<String>,
     /// `ontouml:mediatedEnd` class IRIs (shape b convenience predicate).
@@ -204,6 +210,8 @@ pub fn parse_ontouml_model(source: &str, base: Option<&str>) -> Result<OntoumlMo
     let p_relation_end = format!("{ONTOUML_NS}relationEnd");
     let p_property = format!("{ONTOUML_NS}property");
     let p_property_type = format!("{ONTOUML_NS}propertyType");
+    let p_cardinality = format!("{ONTOUML_NS}cardinality");
+    let p_upper_bound = format!("{ONTOUML_NS}upperBound");
     let p_relator_end = format!("{ONTOUML_NS}relatorEnd");
     let p_mediated_end = format!("{ONTOUML_NS}mediatedEnd");
     let p_functional = format!("{ONTOUML_NS}functionalMediation");
@@ -240,6 +248,14 @@ pub fn parse_ontouml_model(source: &str, base: Option<&str>) -> Result<OntoumlMo
         } else if pred == p_property_type {
             if let TermRef::Iri(o) = q.o {
                 row.property_type = Some(o.to_owned());
+            }
+        } else if pred == p_cardinality {
+            if let TermRef::Iri(o) = q.o {
+                row.cardinality = Some(o.to_owned());
+            }
+        } else if pred == p_upper_bound {
+            if let TermRef::Literal { lexical, .. } = q.o {
+                row.upper_bound = Some(lexical.to_owned());
             }
         } else if pred == p_relator_end {
             if let TermRef::Iri(o) = q.o {
@@ -375,7 +391,11 @@ fn resolve_mediation(
         )));
     }
 
-    let mut end_classes = Vec::new();
+    // Each end is its propertyType class plus the `ontouml:upperBound` of its
+    // `ontouml:cardinality` node (two hops: property → cardinality → upperBound).
+    // The bound is `None` when the end declares no cardinality — an honest absence,
+    // never guessed at.
+    let mut end_classes: Vec<(String, Option<String>)> = Vec::new();
     for node in &row.property_nodes {
         let Some(node_row) = rows.get(node) else {
             return Err(OntoumlError::Unsupported(format!(
@@ -387,20 +407,26 @@ fn resolve_mediation(
                 "mediation {iri} property node {node} has no ontouml:propertyType IRI"
             )));
         };
-        end_classes.push(class_iri.clone());
+        let upper = node_row
+            .cardinality
+            .as_ref()
+            .and_then(|card| rows.get(card))
+            .and_then(|card_row| card_row.upper_bound.clone());
+        end_classes.push((class_iri.clone(), upper));
     }
 
-    // The relator end is the propertyType class carrying a `relator` stereotype.
+    // The relator end is the propertyType class carrying a `relator` stereotype; the
+    // remaining ends are the mediated relata (each carrying its own upper bound).
     let mut relator: Option<String> = None;
-    let mut mediated = Vec::new();
-    for class_iri in &end_classes {
+    let mut mediated_ends: Vec<(String, Option<String>)> = Vec::new();
+    for (class_iri, upper) in &end_classes {
         let is_relator = class_stereos
             .get(class_iri.as_str())
             .is_some_and(|stereos| stereos.iter().any(|s| s == "relator"));
         if is_relator && relator.is_none() {
             relator = Some(class_iri.clone());
         } else {
-            mediated.push(class_iri.clone());
+            mediated_ends.push((class_iri.clone(), upper.clone()));
         }
     }
 
@@ -410,18 +436,27 @@ fn resolve_mediation(
              class carries a `relator` stereotype)"
         )));
     };
-    if mediated.is_empty() {
+    if mediated_ends.is_empty() {
         return Err(OntoumlError::Unsupported(format!(
             "mediation {iri} has no mediated end (every end is the relator)"
         )));
     }
+    let mut mediated: Vec<String> = mediated_ends.iter().map(|(c, _)| c.clone()).collect();
     mediated.sort();
     mediated.dedup();
+    // Functional (the RelComp shape) iff the relator reaches a single distinct
+    // mediated relatum whose end has an upper bound of exactly 1 — the real FAIR
+    // catalog serialization's `ontouml:upperBound "1"`, the shape-(a) analogue of
+    // the shape-(b) `ontouml:functionalMediation` convenience flag.
+    let functional = mediated.len() == 1
+        && mediated_ends
+            .iter()
+            .any(|(_, upper)| upper.as_deref() == Some("1"));
     Ok(Mediation {
         relation_iri: iri.to_owned(),
         relator,
         mediated,
-        functional: row.functional,
+        functional,
     })
 }
 
@@ -504,6 +539,60 @@ ex:p3 ontouml:propertyType ex:Employer .\n";
             ]
         );
         assert!(!med.functional);
+    }
+
+    #[test]
+    fn parses_mediation_shape_a_functional_via_cardinality() {
+        // The real FAIR-catalog serialization: a mediation Relation with two
+        // `ontouml:relationEnd` Property nodes, each carrying an `ontouml:cardinality`
+        // → `ontouml:Cardinality` → `ontouml:upperBound`. The mediated (Spouse) end has
+        // upper bound "1", so the mediation is functional (the RelComp shape) — WITHOUT
+        // the self-authored `ontouml:functionalMediation` convenience flag.
+        let src = "\
+@prefix ontouml: <https://w3id.org/ontouml#> .\n\
+@prefix ex: <https://example.org/onto/> .\n\
+ex:Marriage a ontouml:Class ; ontouml:stereotype ontouml:relator .\n\
+ex:Spouse a ontouml:Class ; ontouml:stereotype ontouml:role .\n\
+ex:med a ontouml:Relation ; ontouml:stereotype ontouml:mediation ;\n\
+    ontouml:relationEnd ex:pR , ex:pM .\n\
+ex:pR a ontouml:Property ; ontouml:propertyType ex:Marriage ; ontouml:cardinality ex:cR .\n\
+ex:cR a ontouml:Cardinality ; ontouml:lowerBound \"1\" ; ontouml:upperBound \"*\" .\n\
+ex:pM a ontouml:Property ; ontouml:propertyType ex:Spouse ; ontouml:cardinality ex:cM .\n\
+ex:cM a ontouml:Cardinality ; ontouml:lowerBound \"1\" ; ontouml:upperBound \"1\" .\n";
+        let m = parse_ontouml_model(src, None).unwrap();
+        assert_eq!(m.mediations.len(), 1);
+        let med = &m.mediations[0];
+        assert_eq!(med.relator, "https://example.org/onto/Marriage");
+        assert_eq!(
+            med.mediated,
+            vec!["https://example.org/onto/Spouse".to_string()]
+        );
+        assert!(
+            med.functional,
+            "a single mediated end with ontouml:upperBound \"1\" is functional"
+        );
+    }
+
+    #[test]
+    fn shape_a_unbounded_mediated_end_is_not_functional() {
+        // A mediated end with upper bound "*" (unbounded) is NOT functional — the
+        // relator can reach many relata, so RelComp must not fire.
+        let src = "\
+@prefix ontouml: <https://w3id.org/ontouml#> .\n\
+@prefix ex: <https://example.org/onto/> .\n\
+ex:Marriage a ontouml:Class ; ontouml:stereotype ontouml:relator .\n\
+ex:Spouse a ontouml:Class ; ontouml:stereotype ontouml:role .\n\
+ex:med a ontouml:Relation ; ontouml:stereotype ontouml:mediation ;\n\
+    ontouml:relationEnd ex:pR , ex:pM .\n\
+ex:pR a ontouml:Property ; ontouml:propertyType ex:Marriage .\n\
+ex:pM a ontouml:Property ; ontouml:propertyType ex:Spouse ; ontouml:cardinality ex:cM .\n\
+ex:cM a ontouml:Cardinality ; ontouml:lowerBound \"1\" ; ontouml:upperBound \"*\" .\n";
+        let m = parse_ontouml_model(src, None).unwrap();
+        let med = &m.mediations[0];
+        assert!(
+            !med.functional,
+            "an unbounded mediated end is not functional"
+        );
     }
 
     #[test]
