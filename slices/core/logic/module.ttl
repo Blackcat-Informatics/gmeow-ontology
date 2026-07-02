@@ -7358,3 +7358,89 @@ logic:candidateBullshitTruthIndifference
     logic:candidateSemanticRisk logic:RiskProjectionOnly ;
     logic:candidateFormalizes gmeow:bullshit ;
     logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ════════════════════════════════════════════════════════════════════════════
+# Cross-slice derivation rules — the PRODUCTIVE subset of the IR
+#
+# Where the harvested constraints above are integrity/definitional axioms whose
+# violation is a finding, these are logic:Rule derivations whose head is ENTAILED:
+# monotone positive-Horn rules whose every head variable is bound positively in
+# the body (a frontier variable), so the derived fact is materialized natively
+# (it appears in the chase output) and projects to Datalog/Nemo as
+# logic:ExactPreservation. Each spans terms across two or more domain slices,
+# carries a logic:formalizes back-reference, and is governed by a reviewed
+# logic:FormalizationCandidate (logic:CategoryDerivationRule).
+# ════════════════════════════════════════════════════════════════════════════
+
+# ── Provenance: indirect contribution across the generation chain ────────────
+# gmeow:wasGeneratedBy ∘ gmeow:wasAssociatedWith ⇒ gmeow:indirectContributor.
+# An entity's indirect contributors are the agents that ran the activities that
+# produced it. The paired non-entailment obligation forbids the derived edge from
+# ever collapsing into asserted-direct gmeow:wasAttributedTo.
+
+logic:ruleIndirectContributor
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derive indirect contributor across the provenance generation chain"@x-gmeow-english ;
+    skos:definition "Emits gmeow:indirectContributor(entity, agent) whenever the entity gmeow:wasGeneratedBy an activity that gmeow:wasAssociatedWith the agent: the productive composition wasGeneratedBy ∘ wasAssociatedWith that surfaces the agents behind an entity's production. Positive Horn; monotone; materialized natively. It never derives gmeow:wasAttributedTo — indirect contribution is a reasoned consequence, not asserted direct responsibility."@x-gmeow-english ;
+    logic:provenance logic:ruleIndirectContributor ;
+    logic:formalizes gmeow:indirectContributor ;
+    logic:head [
+        rdf:subject   "?entity" ;
+        rdf:predicate gmeow:indirectContributor ;
+        rdf:object    "?agent"
+    ] ;
+    logic:body [
+        rdf:subject   "?entity" ;
+        rdf:predicate gmeow:wasGeneratedBy ;
+        rdf:object    "?activity"
+    ] , [
+        rdf:subject   "?activity" ;
+        rdf:predicate gmeow:wasAssociatedWith ;
+        rdf:object    "?agent"
+    ] .
+
+logic:IndirectContributorNotAttributionObligation
+    a owl:NamedIndividual ,
+        logic:NonEntailmentObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "indirect contribution must not become direct attribution"@x-gmeow-english ;
+    skos:definition "The standing non-entailment obligation that a derived gmeow:indirectContributor edge stays EVIDENCE, never ENTAILMENT, of direct responsibility: the foundation must never derive gmeow:wasAttributedTo (asserted authorship, ownership, or accountability) from the generation chain that surfaces indirect contribution. Enforced by syntactic reachability over the rule strata (no rule head produces the predicate) and finite closure over the materialized derivation graph (the predicate appears in no DERIVED edge). Guards the provenance credit model against collapsing indirect production into direct responsibility."@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/wasAttributedTo"^^xsd:anyURI ;
+    logic:obligationDischargeCondition
+        logic:DischargeSyntacticReachability ,
+        logic:DischargeFiniteClosure ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
+logic:cqIndirectContributorHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "indirect contributor is derived across the generation chain"@x-gmeow-english ;
+    skos:definition "The positive competency case the indirect-contribution rule must satisfy: given an entity gmeow:wasGeneratedBy an activity that gmeow:wasAssociatedWith an agent, the reasoner must derive gmeow:indirectContributor from the entity to that agent — the productive composition the harvested prose commits to."@x-gmeow-english .
+
+logic:cqIndirectContributorDirectAttributionRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "indirect contribution is not derived as direct attribution"@x-gmeow-english ;
+    skos:definition "The negative countermodel the indirect-contribution rule must respect: the derived gmeow:indirectContributor edge must never appear as gmeow:wasAttributedTo — deriving direct, asserted responsibility from the generation chain is a violation, the boundary the non-entailment obligation holds the formalization to."@x-gmeow-english .
+
+logic:candidateIndirectContributor
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "indirect contributor derives across the generation chain"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleIndirectContributor: it harvests the productive composition documented in gmeow:indirectContributor's skos:definition (indirect contributors are the agents reached by composing gmeow:wasGeneratedBy with gmeow:wasAssociatedWith) into an enforced positive-Horn derivation rule, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqIndirectContributorHolds) and a negative countermodel (logic:cqIndirectContributorDirectAttributionRejected), and bound to the non-entailment obligation logic:IndirectContributorNotAttributionObligation that forbids the derived edge from ever becoming asserted gmeow:wasAttributedTo. Its harvest back-link (logic:candidateFormalizes gmeow:indirectContributor, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:805c5d579a5ebe7957f517515002b0eeba07097f86aa2185e6f9a16ef6b577e1"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:indirectContributor's skos:definition, which states an entity's indirect contributors are the agents reached by composing gmeow:wasGeneratedBy with gmeow:wasAssociatedWith (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:wasGeneratedBy ∘ gmeow:wasAssociatedWith ⇒ gmeow:indirectContributor over the provenance generation chain"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqIndirectContributorHolds ;
+    logic:candidateNegativeCase logic:cqIndirectContributorDirectAttributionRejected ;
+    logic:candidateNonEntailment logic:IndirectContributorNotAttributionObligation ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:indirectContributor ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
