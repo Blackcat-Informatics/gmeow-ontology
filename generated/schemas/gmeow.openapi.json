@@ -1232,9 +1232,6 @@
               {
                 "anyOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -1245,15 +1242,15 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -1265,6 +1262,9 @@
                         "@value"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "type": "string"
                     }
                   ]
                 },
@@ -1436,9 +1436,6 @@
               {
                 "anyOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -1449,15 +1446,15 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -1469,6 +1466,9 @@
                         "@value"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "type": "string"
                     }
                   ]
                 },
@@ -1550,9 +1550,6 @@
               {
                 "anyOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -1563,15 +1560,15 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -1583,6 +1580,9 @@
                         "@value"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "type": "string"
                     }
                   ]
                 },
@@ -3361,41 +3361,27 @@
           "gmeow:contradictsClaim": {
             "anyOf": [
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Entity"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
+                "properties": {
+                  "@id": {
+                    "type": "string"
                   }
-                ]
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/Entity"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
                     }
-                  ]
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -8882,9 +8868,6 @@
               {
                 "anyOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -8895,15 +8878,15 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -8915,6 +8898,9 @@
                         "@value"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "type": "string"
                     }
                   ]
                 },
@@ -10119,13 +10105,27 @@
           "gmeow:mitigationCounters": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -10134,13 +10134,27 @@
           "gmeow:mitigationMeasure": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -10423,13 +10437,27 @@
           "gmeow:analysisResult": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -10438,13 +10466,27 @@
           "gmeow:analysisTarget": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -18725,13 +18767,27 @@
           "gmeow:observedFeature": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -23766,9 +23822,6 @@
               {
                 "anyOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -23779,15 +23832,15 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -23799,6 +23852,9 @@
                         "@value"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "type": "string"
                     }
                   ]
                 },
@@ -25927,9 +25983,6 @@
               {
                 "anyOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -25940,15 +25993,15 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -25960,6 +26013,9 @@
                         "@value"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "type": "string"
                     }
                   ]
                 },
@@ -26092,9 +26148,6 @@
               {
                 "anyOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -26105,15 +26158,15 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -26125,6 +26178,9 @@
                         "@value"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "type": "string"
                     }
                   ]
                 },
@@ -26137,9 +26193,6 @@
               {
                 "anyOf": [
                   {
-                    "type": "string"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -26150,15 +26203,15 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "type": "string"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -26170,6 +26223,9 @@
                         "@value"
                       ],
                       "type": "object"
+                    },
+                    {
+                      "type": "string"
                     }
                   ]
                 },
@@ -27514,7 +27570,7 @@
   },
   "info": {
     "title": "PURRDF",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "openapi": "3.1.0",
   "paths": {

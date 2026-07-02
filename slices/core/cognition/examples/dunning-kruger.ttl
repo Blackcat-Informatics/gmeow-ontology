@@ -14,6 +14,11 @@
 ex:sam      a gmeow:Person ; gmeow:name "Sam"@x-gmeow-english .
 ex:assessor a gmeow:Person ; gmeow:name "External Assessor"@x-gmeow-english .
 
+# The subject known — an external Wikidata topic grounded locally as gmeow:Concept
+# (a field of knowledge), so the KnowledgeProficiency relator's subject player is a
+# well-typed gmeow:Entity (Concept ⊑ SocialObject ⊑ Entity).
+wd:Q192995 a gmeow:Concept ; gmeow:name "quantum computing"@x-gmeow-english .
+
 # --- Self-attributed: Sam, by Sam's own lights, has MASTERED quantum computing.
 ex:samQuantumSelf a gmeow:KnowledgeProficiency ;
     gmeow:knowledgeProficiencyAgent   ex:sam ;

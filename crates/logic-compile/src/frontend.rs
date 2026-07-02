@@ -45,8 +45,8 @@ use super::graphutil::{
 use super::ir::{
     AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintProvenance, ContextualScope,
     Correspondence, Formula, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
-    PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShapeTarget, Term,
-    ValidationShapeIr, LOGIC_NAMESPACE,
+    PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShaclNodeKind,
+    ShapeTarget, Term, ValidationShapeIr, LOGIC_NAMESPACE,
 };
 
 /// Re-export the CGIF reader alongside CLIF (the conceptual-graph dialect inverse).
@@ -982,8 +982,14 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
 /// Derive closed-world [`ValidationShapeIr`]s from an ontology graph's OWL restrictions (the
 /// closed-world validation reading of the open-world axioms). For every `Class rdfs:subClassOf [
 /// owl:onProperty P ; owl:someValuesFrom C ]` the target `Class` gets a property shape on `P`
-/// carrying `sh:class C` (or `sh:datatype C` when `C` is a datatype — a literal is never an
-/// instance of a class, so `sh:class` on a datatype would flag every node). Unqualified
+/// carrying `sh:class C` (or `sh:datatype C` when `C` is a concrete datatype — a literal is never
+/// an instance of a class, so `sh:class` on a datatype would flag every node; or
+/// `sh:nodeKind sh:BlankNodeOrIRI` when `C` is `owl:Thing` — a universal-top range says "any
+/// individual", and spec-conformant `sh:class owl:Thing` would demand a never-materialized
+/// `rdf:type owl:Thing` edge, so the faithful closed-world projection of the open range is a
+/// node-kind constraint; or `sh:nodeKind sh:Literal` when `C` is `rdfs:Literal` — a
+/// universal-literal-top range says "any literal", and `sh:datatype rdfs:Literal` never matches
+/// a concrete literal, so the faithful projection is again a node-kind constraint). Unqualified
 /// `owl:cardinality` / `owl:minCardinality` / `owl:maxCardinality` restrictions lower to
 /// `sh:minCount`/`sh:maxCount` with [`ConstraintProvenance::OwlRestriction`]. Derived
 /// constraints are grouped per class and sorted + deduped for determinism.
@@ -1001,6 +1007,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     let xsd = "http://www.w3.org/2001/XMLSchema#";
     let owl_class = Node::iri(format!("{owl}Class"));
+    let owl_thing = format!("{owl}Thing");
     let rdfs_datatype = Node::iri(format!("{rdfs}Datatype"));
     let rdfs_literal = format!("{rdfs}Literal");
     let p_on = nn(&format!("{owl}onProperty"));
@@ -1103,6 +1110,46 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         let mut properties = Vec::new();
         for d in derived {
             let pc = match d {
+                // The two universal-tops project to an open node-kind constraint regardless of
+                // how the range was classified: both guards match `_` on the datatype flag and
+                // sit ahead of the general arms, so a classifier flip (a custom axiom or
+                // triplestore quirk parsing `rdfs:Literal` as a class, or `owl:Thing` as a
+                // datatype) can never fall through to a vacuous `sh:class rdfs:Literal` /
+                // `sh:datatype owl:Thing`.
+                //
+                // A universal-literal-top (`rdfs:Literal`) `someValuesFrom` says "any literal" —
+                // an intentionally open literal range. Under spec-conformant SHACL `sh:datatype
+                // rdfs:Literal` matches only a literal whose datatype IRI is literally `rdfs:Literal`
+                // (the class of all literals is never a concrete lexical datatype), so it flags
+                // every plain literal; the faithful projection of "any literal" is
+                // `sh:nodeKind sh:Literal`. Closed-world reading of the open range, `ValidationOnly`
+                // polarity, never an entailment (Principle 17).
+                Derived::Value(on, target, _) if target == rdfs_literal => {
+                    PropertyConstraintIr::new(
+                        &on,
+                        None,
+                        None,
+                        None,
+                        vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal)],
+                    )?
+                }
+                // A universal-top (`owl:Thing`) `someValuesFrom` says "any individual" — an
+                // intentionally open range. Under spec-conformant SHACL `sh:class owl:Thing`
+                // demands an explicit `rdf:type owl:Thing` edge (never materialized), which would
+                // flag every value; the faithful projection of "any individual, not a literal" is
+                // `sh:nodeKind sh:BlankNodeOrIRI`. This is the closed-world reading of the open
+                // range — still `logic:ValidationOnly` polarity, never an entailment (Principle 17).
+                Derived::Value(on, target, _) if target == owl_thing => PropertyConstraintIr::new(
+                    &on,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::NodeKindShacl(
+                        ShaclNodeKind::BlankNodeOrIri,
+                    )],
+                )?,
+                // Concrete datatype range (`true`) → `sh:datatype`; concrete class range
+                // (`false`) → `sh:class`.
                 Derived::Value(on, target, true) => PropertyConstraintIr::new(
                     &on,
                     None,

@@ -21739,6 +21739,25 @@
             }
           ],
           "message": {
+            "text": "projection shacl-core drops: an intentionally-open existential range (owl:someValuesFrom owl:Thing / rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / sh:Literal): the existential's at-least-one force and the vacuous universal-top class membership are dropped, and the open range is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1ee4c8515be79cb1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-core drops: full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -21800,101 +21819,6 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "c24857f95056b75d"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/core/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/analysisResult has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "779243f6865397c9"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/core/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/analysisTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "a662b028de4cb9a1"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/core/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/mitigationCounters has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "cf003684fba84196"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/core/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/mitigationMeasure has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "7793fd3fb032826b"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/core/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "c5779f0afa2242d2"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -23396,25 +23320,6 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "abe756ede8104294"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/core/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/contradictsClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "dcd96157a2d3c253"
           },
           "ruleId": "logic-compile.lossy-drop"
         },

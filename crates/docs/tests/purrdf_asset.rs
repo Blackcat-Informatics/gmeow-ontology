@@ -26,8 +26,8 @@ use std::path::PathBuf;
 /// The vendored files whose bytes the digest manifest pins — exactly the set the
 /// `maint-refresh-purrdf-asset` target copies out of `crates/rdf-wasm/js/pkg/`.
 const VENDORED_FILES: &[&str] = &[
-    "purrdf::wasm.d.ts",
-    "purrdf::wasm.js",
+    "gmeow_rdf_wasm.d.ts",
+    "gmeow_rdf_wasm.js",
     "gmeow_rdf_wasm_bg.wasm",
     "gmeow_rdf_wasm_bg.wasm.d.ts",
 ];
@@ -85,8 +85,8 @@ fn vendored_wasm_is_a_real_module() {
 
 #[test]
 fn vendored_bindings_expose_the_sparql_query_surface() {
-    let js = std::fs::read_to_string(asset("purrdf::wasm.js"))
-        .expect("vendored purrdf::wasm.js must exist");
+    let js = std::fs::read_to_string(asset("gmeow_rdf_wasm.js"))
+        .expect("vendored gmeow_rdf_wasm.js must exist");
     // The wasm-bindgen glue must carry the `Dataset.query` method and its imported
     // `dataset_query` symbol; their absence means the vendored bindings predate the
     // SPARQL surface (stale re-vendor).
@@ -99,8 +99,8 @@ fn vendored_bindings_expose_the_sparql_query_surface() {
         "vendored bindings lack the dataset_query wasm import — stale vendored engine"
     );
 
-    let dts = std::fs::read_to_string(asset("purrdf::wasm.d.ts"))
-        .expect("vendored purrdf::wasm.d.ts must exist");
+    let dts = std::fs::read_to_string(asset("gmeow_rdf_wasm.d.ts"))
+        .expect("vendored gmeow_rdf_wasm.d.ts must exist");
     assert!(
         dts.contains("query(sparql: string, base?: string | null): string"),
         "vendored .d.ts lacks the query type signature — stale vendored engine"

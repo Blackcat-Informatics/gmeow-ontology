@@ -2126,8 +2126,8 @@ gmeow:SelfPrivateEvidenceWarningShape
     a sh:NodeShape ;
     rdfs:label "Self/private-only evidence warning shape"@x-gmeow-english ;
     sh:targetClass gmeow:CitationAct ;
-    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it (a source may lag the flag)
     sh:sparql [
+        sh:severity sh:Warning ;   # on the constraint, where conformant SHACL honors it (a source may lag the flag)
         sh:message "This citation relies solely on self-asserted or private evidence from a self/issuer-originated source — consider suppressing it from public projections (Principle 10)." ;
         sh:select """
             SELECT $this WHERE {

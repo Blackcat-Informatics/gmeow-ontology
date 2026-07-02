@@ -253,6 +253,11 @@ def test_performance_participation_valid_passes_shacl() -> None:
     g.add((pp, GMEOW.participationRole, GMEOW.roleSoloist))
     g.add((pp, GMEOW.participationInstrument, GMEOW.instrumentTypePiano))
     g.add((pp, GMEOW.participationTechnique, GMEOW.playingTechniqueArco))
+    # Standalone fixture (no ontology import): type the referenced targets
+    # in-graph so the generated sh:class shapes resolve (P11).
+    g.add((EX.concert, RDF.type, GMEOW.Event))
+    g.add((EX.agent, RDF.type, GMEOW.Entity))
+    g.add((GMEOW.roleSoloist, RDF.type, GMEOW.ParticipantRole))
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 
@@ -285,6 +290,12 @@ def test_performance_participation_two_instruments_warns_shacl() -> None:
     g.add((pp, GMEOW.participationRole, GMEOW.roleSoloist))
     g.add((pp, GMEOW.participationInstrument, GMEOW.instrumentTypePiano))
     g.add((pp, GMEOW.participationInstrument, GMEOW.instrumentTypeViolin))
+    # Standalone fixture: type the referenced targets in-graph so the generated
+    # sh:class shapes resolve — leaves the intended instrument-cardinality
+    # Warning intact (P11).
+    g.add((EX.concert, RDF.type, GMEOW.Event))
+    g.add((EX.agent, RDF.type, GMEOW.Entity))
+    g.add((GMEOW.roleSoloist, RDF.type, GMEOW.ParticipantRole))
     result = run_shacl(g)
     # The instrument cardinality is a Warning, not a Violation.
     assert result.ok, _error_text(result)

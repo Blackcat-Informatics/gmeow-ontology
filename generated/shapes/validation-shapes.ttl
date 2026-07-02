@@ -30,7 +30,7 @@
 
 <https://blackcatinformatics.ca/gmeow/AttestationArtifact-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AttestationArtifact> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/artifactMediaType> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/artifactMediaType> ; sh:nodeKind sh:Literal ] .
 
 <https://blackcatinformatics.ca/gmeow/Availability-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Availability> ;
@@ -39,12 +39,12 @@
 
 <https://blackcatinformatics.ca/gmeow/Block-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Block> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/blockHash> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/blockHash> ; sh:nodeKind sh:Literal ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/blockNumber> ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .
 
 <https://blackcatinformatics.ca/gmeow/BlockchainNetwork-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/BlockchainNetwork> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/chainId> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/chainId> ; sh:nodeKind sh:Literal ] .
 
 <https://blackcatinformatics.ca/gmeow/BuildActivity-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/BuildActivity> ;
@@ -99,7 +99,7 @@
 
 <https://blackcatinformatics.ca/gmeow/Contradiction-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Contradiction> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contradictsClaim> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contradictsClaim> ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
 <https://blackcatinformatics.ca/gmeow/Contribution-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Contribution> ;
@@ -317,7 +317,7 @@
 
 <https://blackcatinformatics.ca/gmeow/LedgerTransaction-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/LedgerTransaction> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/transactionHash> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/transactionHash> ; sh:nodeKind sh:Literal ] .
 
 <https://blackcatinformatics.ca/gmeow/License-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/License> ;
@@ -356,8 +356,8 @@
 
 <https://blackcatinformatics.ca/gmeow/Mitigation-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Mitigation> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationMeasure> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationCounters> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationMeasure> ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationCounters> ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
 <https://blackcatinformatics.ca/gmeow/MonetaryAmount-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ;
@@ -367,8 +367,8 @@
     sh:targetClass <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisFrame> ; sh:class <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisResult> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisTarget> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisResult> ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisTarget> ; sh:nodeKind sh:BlankNodeOrIRI ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisProperty> ; sh:class <https://blackcatinformatics.ca/gmeow/AnalysisProperty> ] .
 
 <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan-shape> a sh:NodeShape ;
@@ -394,7 +394,7 @@
 <https://blackcatinformatics.ca/gmeow/Observation-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Observation> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
 <https://blackcatinformatics.ca/gmeow/Order-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Order> ;
@@ -545,7 +545,7 @@
 
 <https://blackcatinformatics.ca/gmeow/SmartContract-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/SmartContract> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contractAddress> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contractAddress> ; sh:nodeKind sh:Literal ] .
 
 <https://blackcatinformatics.ca/gmeow/SpatialMeasurement-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/SpatialMeasurement> ;
@@ -584,13 +584,13 @@
 
 <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/logEntryUrl> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/logEntryUrl> ; sh:nodeKind sh:Literal ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/logEntryIndex> ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .
 
 <https://blackcatinformatics.ca/gmeow/TreeEntry-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/TreeEntry> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/treeEntryMode> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/treeEntryName> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/treeEntryMode> ; sh:nodeKind sh:Literal ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/treeEntryName> ; sh:nodeKind sh:Literal ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/treeEntryObject> ; sh:class <https://blackcatinformatics.ca/gmeow/SourceNode> ] .
 
 <https://blackcatinformatics.ca/gmeow/TrustAssertion-shape> a sh:NodeShape ;

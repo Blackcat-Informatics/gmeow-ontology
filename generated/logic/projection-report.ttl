@@ -7780,6 +7780,7 @@
     a logic:ProjectionTarget ;
     rdfs:label "shacl-core" ;
     gmeow:lossyDrop "a shape surface validates but does not entail (ValidationOnly)" ,
+        "an intentionally-open existential range (owl:someValuesFrom owl:Thing / rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / sh:Literal): the existential's at-least-one force and the vacuous universal-top class membership are dropped, and the open range is carried in the canonical logic: layer" ,
         "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer" ,
         "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape" ;
     logic:complexityClass "closed-world shape validation (SHACL Core)" ;
@@ -7790,11 +7791,6 @@
     rdfs:label "shex" ;
     gmeow:lossyDrop "ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no datetime-range facet; those conditions are carried in the canonical logic: layer" ,
         "a shape surface validates but does not entail (ValidationOnly)" ,
-        "actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/analysisResult has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
-        "actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/analysisTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
-        "actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/mitigationCounters has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
-        "actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/mitigationMeasure has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
-        "actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/AccessibilityFacet on https://blackcatinformatics.ca/gmeow/assertionFacet has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/AccessibilityPolarity on https://blackcatinformatics.ca/gmeow/assertionPolarity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/accountHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
@@ -7871,7 +7867,6 @@
         "actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/assessedEntity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/attestedSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/citingEntity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
-        "actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/contradictsClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/depictionSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/existenceEntity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/isHostedBy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,

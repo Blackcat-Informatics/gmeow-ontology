@@ -7,8 +7,11 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-ex:surveyTeamA a gmeow:Organization .
-ex:surveyTeamB a gmeow:Organization .
+# Multi-typed gmeow:Agent: this fixture is validated standalone (no ontology
+# import), and the generated CoordinateObservation range shape requires
+# gmeow:vantage to resolve to a gmeow:Agent in the SAME data graph (Principle 11).
+ex:surveyTeamA a gmeow:Organization , gmeow:Agent .
+ex:surveyTeamB a gmeow:Organization , gmeow:Agent .
 
 ex:surveyedPlace a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeSite .

@@ -34,7 +34,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/AttestationArtifact> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/AttestationArtifact-shape> {
-  <https://blackcatinformatics.ca/gmeow/artifactMediaType> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/artifactMediaType> LITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Availability> (associate via ShapeMap)
@@ -45,13 +45,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Block> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Block-shape> {
-  <https://blackcatinformatics.ca/gmeow/blockHash> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/blockHash> LITERAL ;
   <https://blackcatinformatics.ca/gmeow/blockNumber> <http://www.w3.org/2001/XMLSchema#integer> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/BlockchainNetwork> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/BlockchainNetwork-shape> {
-  <https://blackcatinformatics.ca/gmeow/chainId> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/chainId> LITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/BuildActivity> (associate via ShapeMap)
@@ -117,7 +117,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Contradiction> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Contradiction-shape> {
-  <https://blackcatinformatics.ca/gmeow/contradictsClaim> IRI ;
+  <https://blackcatinformatics.ca/gmeow/contradictsClaim> NONLITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Contribution> (associate via ShapeMap)
@@ -380,7 +380,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/LedgerTransaction> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/LedgerTransaction-shape> {
-  <https://blackcatinformatics.ca/gmeow/transactionHash> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/transactionHash> LITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/License> (associate via ShapeMap)
@@ -427,8 +427,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Mitigation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Mitigation-shape> {
-  <https://blackcatinformatics.ca/gmeow/mitigationMeasure> IRI ;
-  <https://blackcatinformatics.ca/gmeow/mitigationCounters> IRI ;
+  <https://blackcatinformatics.ca/gmeow/mitigationMeasure> NONLITERAL ;
+  <https://blackcatinformatics.ca/gmeow/mitigationCounters> NONLITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/MonetaryAmount> (associate via ShapeMap)
@@ -440,8 +440,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape> {
   <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
   <https://blackcatinformatics.ca/gmeow/analysisFrame> IRI ;
-  <https://blackcatinformatics.ca/gmeow/analysisResult> IRI ;
-  <https://blackcatinformatics.ca/gmeow/analysisTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/analysisResult> NONLITERAL ;
+  <https://blackcatinformatics.ca/gmeow/analysisTarget> NONLITERAL ;
   <https://blackcatinformatics.ca/gmeow/analysisProperty> IRI ;
 }
 
@@ -472,7 +472,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/Observation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Observation-shape> {
   <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
-  <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
+  <https://blackcatinformatics.ca/gmeow/observedFeature> NONLITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Order> (associate via ShapeMap)
@@ -654,7 +654,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/SmartContract> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/SmartContract-shape> {
-  <https://blackcatinformatics.ca/gmeow/contractAddress> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/contractAddress> LITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/SpatialMeasurement> (associate via ShapeMap)
@@ -701,14 +701,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry-shape> {
-  <https://blackcatinformatics.ca/gmeow/logEntryUrl> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/logEntryUrl> LITERAL ;
   <https://blackcatinformatics.ca/gmeow/logEntryIndex> <http://www.w3.org/2001/XMLSchema#integer> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/TreeEntry> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/TreeEntry-shape> {
-  <https://blackcatinformatics.ca/gmeow/treeEntryMode> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
-  <https://blackcatinformatics.ca/gmeow/treeEntryName> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/treeEntryMode> LITERAL ;
+  <https://blackcatinformatics.ca/gmeow/treeEntryName> LITERAL ;
   <https://blackcatinformatics.ca/gmeow/treeEntryObject> IRI ;
 }
 
