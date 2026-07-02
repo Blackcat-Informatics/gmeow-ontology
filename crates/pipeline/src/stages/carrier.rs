@@ -804,7 +804,19 @@ fn build_archive_blobs(
     // (#747) can reassemble both the data-graph union and the DSL phases.
     let mut shapes: Vec<(String, Vec<u8>)> =
         members_relpath(root, &list_files(&root.join("shapes"), "ttl")?)?;
-    let generated_shapes = list_files(&root.join("generated/shapes"), "ttl")?;
+    let mut generated_shapes = list_files(&root.join("generated/shapes"), "ttl")?;
+    // The derived validation-shape surface (`validation-shapes.ttl`) is a DECLARED
+    // ValidationOnly projection carried in gmeow.gts as its own bundle member (folded in
+    // separately below), NOT part of the ENFORCED shapes archive: an open-world OWL
+    // someValuesFrom reading would over-flag valid data. Exclude it here exactly as the
+    // live validator does (`gmeow_shacl::shape_union::EXCLUDED`), so the enforced archive
+    // and the self-corpus validator agree.
+    generated_shapes.retain(|p| {
+        p.file_name()
+            .and_then(|n| n.to_str())
+            .map(|n| !gmeow_shacl::shape_union::EXCLUDED.contains(&n))
+            .unwrap_or(false)
+    });
     if generated_shapes.is_empty() {
         // P11 frame-relativity must never silently drop — mirror shape_union's
         // fail-closed (the validator union requires generated frame shapes).
@@ -817,23 +829,6 @@ fn build_archive_blobs(
         root,
         &slice_named_files(root, "shapes.ttl")?,
     )?);
-    // The validation-shape SHACL surface (`generated/shapes/validation-shapes.ttl`) is
-    // produced by THIS run's `stage-compile-logic` product (the OPT constraint axis + the
-    // #1191 OWL-restriction derivation), NOT a pre-existing committed frame shape. Override
-    // the stale disk read with the fresh product bytes so the archive — and the fanout that
-    // rewrites the file from it — carry the freshly derived shapes, never the last-committed
-    // file (the carrier-archive stale-disk-read fix; the axioms archive above reads from the
-    // product for the same reason).
-    if let Some(fresh) =
-        axiom_artifacts.get(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH)
-    {
-        let rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string();
-        if let Some(entry) = shapes.iter_mut().find(|(k, _)| *k == rel) {
-            entry.1 = fresh.clone();
-        } else {
-            shapes.push((rel, fresh.clone()));
-        }
-    }
     shapes.sort_by(|a, b| a.0.cmp(&b.0));
     // axioms: the compiled logic/DL projection surface, member = repo-relative path.
     // Sourced from THIS run's `stage-compile-logic` product (not re-read from disk) so
