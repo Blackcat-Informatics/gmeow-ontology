@@ -16,11 +16,12 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Emotion a owl:Class , logic:Kind ;
-        rdfs:subClassOf logic:Mode .
+        rdfs:subClassOf gmeow:AffectiveMoment .
+    gmeow:AffectiveMoment rdfs:subClassOf gmeow:MentalMoment .
     gmeow:emotionBearer a owl:FunctionalProperty ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:Emotion MUST be a logic:Kind subclass of logic:Mode with one bearer. Replaces the stale gufo:Kind/gufo:IntrinsicMode pytest assertion." .
+    gmeow:saRationale "gmeow:Emotion MUST be a logic:Kind grafted under gmeow:AffectiveMoment (an affective member of the kernel gmeow:MentalMoment family), with one bearer. Mode-ness is inherited via MentalMoment (logic:Mode); the reparent joins emotions to the agent-mental-life family (Stage 1, #1247)." .
 
 ex:saEmotionTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
