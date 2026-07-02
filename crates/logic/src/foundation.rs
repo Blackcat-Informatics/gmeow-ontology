@@ -2925,12 +2925,21 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
                         }
                     }
                     if transitive {
+                        // Group edges by subject once per round so the closure is
+                        // O(E·d) rather than O(E²): for each edge a→b, extend only over
+                        // b's out-neighbours.  `snapshot` is sorted, so each adjacency
+                        // list is already in sorted order and the derived pairs keep the
+                        // same first-wins visitation order as a full nested scan.
+                        let mut by_subject: HashMap<&str, Vec<&str>> = HashMap::new();
+                        for (x, y) in &snapshot {
+                            by_subject.entry(x.as_str()).or_default().push(y.as_str());
+                        }
                         for (a, b) in &snapshot {
-                            for (b2, c) in &snapshot {
-                                if b2 != b {
-                                    continue;
-                                }
-                                let pair = (a.clone(), c.clone());
+                            let Some(neighbours) = by_subject.get(b.as_str()) else {
+                                continue;
+                            };
+                            for &c in neighbours {
+                                let pair = (a.clone(), c.to_owned());
                                 if current.contains(&pair) || derived.contains_key(&pair) {
                                     continue;
                                 }
