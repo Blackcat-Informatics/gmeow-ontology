@@ -350,4 +350,71 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn tptp_problem_divergence_folds_into_a_conformance_finding() {
+        // Proves the `source/problem.p` (SZS) grading path AND the divergence fold
+        // end-to-end: a TPTP case whose published SZS ground truth disagrees with the
+        // frozen native verdict surfaces as a `gmeow:Finding` in the conformance graph
+        // — never silently agreed away. The committed `tptp-mini` cases agree by
+        // construction, so this synthetic case is the only always-on exercise of the
+        // problem.p dispatch's divergence branch.
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let ext = tmp.path().join("external");
+        let case = ext.join("tptp-fold-probe").join("case1");
+        std::fs::create_dir_all(case.join("source")).unwrap();
+        std::fs::create_dir_all(case.join("expected")).unwrap();
+        // Published SZS ground truth: Unsatisfiable → the runner's `inconsistent` bucket.
+        std::fs::write(
+            case.join("source").join("problem.p"),
+            "% SZS status Unsatisfiable for fold-probe\nfof(a, axiom, p(x)).\n",
+        )
+        .unwrap();
+        // Frozen native verdict: the EL/DL fragment could not decide it (an honest gap).
+        let world = "https://gmeow.example/tptp-fold-probe/case1/w";
+        std::fs::write(
+            case.join("expected").join("verdicts.json"),
+            format!("{{ \"{world}\": {{ \"status\": \"incomplete\" }} }}"),
+        )
+        .unwrap();
+
+        // The problem.p dispatch grades the case (published from SZS, native from the
+        // frozen verdict) — it is NOT skipped.
+        let graded = grade_external_cases(&ext).expect("grade");
+        let [g] = graded.as_slice() else {
+            panic!(
+                "expected exactly one graded TPTP case, got {}",
+                graded.len()
+            );
+        };
+        assert_eq!(
+            g.comparison.published, "inconsistent",
+            "SZS Unsatisfiable projects to the inconsistent bucket"
+        );
+        assert_eq!(
+            g.comparison.native, "incomplete",
+            "the frozen native verdict is threaded through the problem.p path"
+        );
+
+        // The divergence folds into a gmeow:Finding, and every quad rides the
+        // conformance graph.
+        let nq = emit_divergence_nq(&g.corpus, std::slice::from_ref(&g.comparison));
+        assert!(
+            !nq.trim().is_empty(),
+            "a native↔published divergence must emit at least one quad"
+        );
+        assert!(
+            nq.contains("gmeow"),
+            "the fold must emit a gmeow:Finding, got: {nq}"
+        );
+        for line in nq.lines() {
+            assert!(
+                line.ends_with(&format!(
+                    "<{}> .",
+                    gmeow_conformance::divergence::CONFORMANCE_GRAPH
+                )),
+                "divergence quad not in the conformance graph: {line}"
+            );
+        }
+    }
 }
