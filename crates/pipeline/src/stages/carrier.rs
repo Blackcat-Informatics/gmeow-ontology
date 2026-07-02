@@ -1355,12 +1355,56 @@ fn build_executable_docs_data(
     carrier: &purrdf::RdfDataset,
     model: &gmeow_docs::model::DocsModel,
 ) -> Result<gmeow_docs::ExecutableDocsData, PipelineError> {
-    use std::collections::{BTreeMap as StdBTreeMap, BTreeSet, HashSet};
-
     // The exact object-level EDB the reason stage reasons over — also the export handle.
     // The EDB reads its authored / imports / alignments graphs off the stage-source-load
     // product (not from disk), so neither it nor this computation needs `root`.
     let edb = assemble_object_level_edb(upstream)?;
+    // The base ontology-only closure the reason stage already committed: the try-it core
+    // subtracts it so only EXAMPLE-INDUCED inferences remain (reuse, not a second
+    // authority).
+    let base_bytes = upstream
+        .get("stage-reason")
+        .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
+        .ok_or_else(|| stage_err("missing stage-reason inferred-closure artifact"))?;
+    // Lower the discovered docs model to the reason-and-attribute core's plain inputs, so
+    // the core is exercisable over a fixed fixture without a full pipeline product map.
+    let sources: Vec<ExampleSource> = model
+        .examples
+        .iter()
+        .map(|ex| ExampleSource {
+            slice: ex.slice.clone(),
+            logical_path: ex.logical_path.clone(),
+            text: ex.text.clone(),
+        })
+        .collect();
+    executable_docs_from_sources(edb.as_ref(), base_bytes, &sources, carrier)
+}
+
+/// One worked example's authored source — its slice IRI, logical path (extension drives
+/// the parse dispatch), and raw text. The reason-and-attribute core takes these instead of
+/// the whole discovered [`gmeow_docs::model::DocsModel`] so it is exercisable over a fixed
+/// fixture without a full pipeline product map.
+pub(crate) struct ExampleSource {
+    pub slice: String,
+    pub logical_path: String,
+    pub text: String,
+}
+
+/// The reason-and-attribute core of the executable "try it" docs (see
+/// [`build_executable_docs_data`] for how the pipeline gathers the inputs).
+///
+/// Reason ONCE over `(edb ∪ every example ABox)`, subtract the committed `base_closure`
+/// and each example's own assertions, and attribute every remaining (example-induced)
+/// inference to the example that owns its subject. Inferences with no owning example
+/// subject (shared / Skolem witnesses) go to the `cross_example` bucket — never silently
+/// dropped. The playground asset is `documentation graph ∪ base_closure`, TriG.
+pub(crate) fn executable_docs_from_sources(
+    edb: &purrdf::RdfDataset,
+    base_closure_bytes: &[u8],
+    examples: &[ExampleSource],
+    carrier: &purrdf::RdfDataset,
+) -> Result<gmeow_docs::ExecutableDocsData, PipelineError> {
+    use std::collections::{BTreeMap as StdBTreeMap, BTreeSet, HashSet};
 
     // Parse every worked example's ABox; remember its subjects + asserted display lines.
     struct ExampleAbox {
@@ -1369,8 +1413,8 @@ fn build_executable_docs_data(
         asserted: Vec<String>,
         dataset: std::sync::Arc<purrdf::RdfDataset>,
     }
-    let mut examples: Vec<ExampleAbox> = Vec::new();
-    for ex in &model.examples {
+    let mut parsed: Vec<ExampleAbox> = Vec::new();
+    for ex in examples {
         let ds = parse_example(&ex.logical_path, &ex.text)?;
         let mut subjects = BTreeSet::new();
         let mut asserted = Vec::new();
@@ -1382,7 +1426,7 @@ fn build_executable_docs_data(
         }
         asserted.sort();
         asserted.dedup();
-        examples.push(ExampleAbox {
+        parsed.push(ExampleAbox {
             key: gmeow_docs::example_key(&ex.slice, &ex.logical_path),
             subjects,
             asserted,
@@ -1393,8 +1437,8 @@ fn build_executable_docs_data(
     // Reason ONCE over (EDB ∪ every example ABox). push_dataset standardizes blanks
     // apart per merged dataset, so example blanks never collide.
     let mut union = RdfDatasetBuilder::new();
-    union.push_dataset(edb.as_ref());
-    for ex in &examples {
+    union.push_dataset(edb);
+    for ex in &parsed {
         union.push_dataset(ex.dataset.as_ref());
     }
     let union_ds = union
@@ -1406,17 +1450,13 @@ fn build_executable_docs_data(
 
     // The base ontology-only closure (already committed by the reason stage): subtract
     // it so only EXAMPLE-INDUCED inferences remain (reuse, not a second authority).
-    let base_bytes = upstream
-        .get("stage-reason")
-        .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
-        .ok_or_else(|| stage_err("missing stage-reason inferred-closure artifact"))?;
-    let base_closure = parse_dataset(base_bytes, "text/turtle", None)
+    let base_closure = parse_dataset(base_closure_bytes, "text/turtle", None)
         .map_err(|e| stage_err(&format!("base closure parse: {e}")))?;
     let base_set: HashSet<String> = base_closure
         .owned_quads()
         .map(|q| format_triple(&q))
         .collect();
-    let asserted_set: HashSet<String> = examples
+    let asserted_set: HashSet<String> = parsed
         .iter()
         .flat_map(|e| e.asserted.iter().cloned())
         .collect();
@@ -1424,7 +1464,7 @@ fn build_executable_docs_data(
     // Map each example subject to its example key (subjects are distinct across
     // examples by construction — distinct example individuals).
     let mut subject_to_example: StdBTreeMap<String, String> = StdBTreeMap::new();
-    for ex in &examples {
+    for ex in &parsed {
         for s in &ex.subjects {
             subject_to_example.insert(s.clone(), ex.key.clone());
         }
@@ -1452,7 +1492,7 @@ fn build_executable_docs_data(
 
     // Assemble the per-example asserted-vs-inferred diffs.
     let mut example_inferences: StdBTreeMap<String, gmeow_docs::InferenceDiff> = StdBTreeMap::new();
-    for ex in &examples {
+    for ex in &parsed {
         let mut inferred = per_example.remove(&ex.key).unwrap_or_default();
         inferred.sort();
         inferred.dedup();
@@ -4216,6 +4256,181 @@ mod native_assembly_tests {
             text.as_bytes(),
             again.as_slice(),
             "the native authored assembly must be byte-deterministic"
+        );
+    }
+}
+
+/// Semantic golden over the executable "try it" docs core
+/// ([`executable_docs_from_sources`]). This surface is otherwise UNGUARDED — the
+/// superset gate excludes `REP_ONTOLOGY_DOCS`, and the fold gates compare RDF quads, not
+/// the dangling docs blob — so a change to WHICH inferences are attributed to WHICH
+/// example (e.g. from a future incremental-reasoning path replacing the full-union pass)
+/// could pass every default gate. This test pins the *semantic content* over a fixed
+/// fixture: the per-example asserted-vs-inferred attribution, the cross-example bucket,
+/// and the playground asset — each Skolem/blank-normalized so it survives a witness-IRI
+/// shift while still catching an attribution divergence.
+#[cfg(test)]
+mod docs_try_it_golden {
+    use super::*;
+
+    // A minimal TBox: a two-step subclass chain. Reasoning propagates an individual's
+    // type up the chain, so an example asserting `a Dog` yields inferred `a Animal`,
+    // `a LivingThing` — the canonical "try it" shape, with no existentials (hence no
+    // Skolem witnesses) so the fixture is fully deterministic.
+    const EDB_TTL: &str = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:Dog rdfs:subClassOf ex:Animal .
+ex:Animal rdfs:subClassOf ex:LivingThing .
+";
+    const EX_DOG_TTL: &str = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+ex:rex a ex:Dog .
+";
+    const EX_CAT_TTL: &str = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+ex:felix a ex:Animal .
+";
+    const SLICE: &str = "https://example.org/gmeow-try-it/slice";
+
+    /// Normalize a display line so the golden pins WHICH inferences land WHERE, not the
+    /// non-stable identity of blank / content-addressed Skolem witnesses. Blank labels
+    /// collapse to `_:_`; any Skolem-witness IRI collapses to `<skolem>`. (The fixture is
+    /// witness-free by design, so this is a defensive no-op here — present so the golden
+    /// is robust if a future reasoning path starts materializing witnesses.)
+    fn norm(line: &str) -> String {
+        line.split(' ')
+            .map(|tok| {
+                if tok.starts_with("_:") {
+                    "_:_".to_string()
+                } else if tok.contains("blackcatinformatics.ca/gmeow/skolem/") {
+                    "<skolem>".to_string()
+                } else {
+                    tok.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+
+    fn norm_all(lines: &[String]) -> Vec<String> {
+        let mut v: Vec<String> = lines.iter().map(|l| norm(l)).collect();
+        v.sort();
+        v.dedup();
+        v
+    }
+
+    fn compute() -> gmeow_docs::ExecutableDocsData {
+        let edb = parse_dataset(EDB_TTL.as_bytes(), "text/turtle", None).expect("parse EDB");
+        // The base ontology-only closure = reason(EDB), exactly as the reason stage
+        // commits it — subtracted so only EXAMPLE-INDUCED inferences survive.
+        let base = crate::stages::reason::reason_over_dataset(edb.as_ref()).expect("reason base");
+        let sources = vec![
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/dog.ttl".to_string(),
+                text: EX_DOG_TTL.to_string(),
+            },
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/cat.ttl".to_string(),
+                text: EX_CAT_TTL.to_string(),
+            },
+        ];
+        // The carrier here is the bare EDB (no documentation named graph), so the
+        // playground asset is exactly the base closure routed into `graph/reasoning`.
+        executable_docs_from_sources(
+            edb.as_ref(),
+            base.closure.as_bytes(),
+            &sources,
+            edb.as_ref(),
+        )
+        .expect("executable docs")
+    }
+
+    #[test]
+    fn try_it_attribution_is_semantically_pinned() {
+        const NS: &str = "https://example.org/gmeow-try-it/";
+        let data = compute();
+
+        // ── Per-example attribution: each example's OWN subject carries its induced
+        //    inferences; the told triple stays in `asserted`, never `inferred`. ──
+        assert_eq!(
+            data.example_inferences.len(),
+            2,
+            "both examples induce an inference"
+        );
+        let dog = data
+            .example_inferences
+            .get(&gmeow_docs::example_key(SLICE, "examples/dog.ttl"))
+            .expect("dog example diff");
+        assert_eq!(
+            norm_all(&dog.asserted),
+            vec![format!("<{NS}rex> rdf:type <{NS}Dog>")]
+        );
+        assert_eq!(
+            norm_all(&dog.inferred),
+            vec![
+                format!("<{NS}rex> rdf:type <{NS}Animal>"),
+                format!("<{NS}rex> rdf:type <{NS}LivingThing>"),
+            ]
+        );
+        let cat = data
+            .example_inferences
+            .get(&gmeow_docs::example_key(SLICE, "examples/cat.ttl"))
+            .expect("cat example diff");
+        assert_eq!(
+            norm_all(&cat.asserted),
+            vec![format!("<{NS}felix> rdf:type <{NS}Animal>")]
+        );
+        assert_eq!(
+            norm_all(&cat.inferred),
+            vec![format!("<{NS}felix> rdf:type <{NS}LivingThing>")]
+        );
+
+        // ── No inference in this fixture is unattributable — the cross-example bucket
+        //    is empty (there are no shared / Skolem-witness inferences here). ──
+        assert!(
+            norm_all(&data.cross_example).is_empty(),
+            "no unattributable inferences: got {:?}",
+            norm_all(&data.cross_example)
+        );
+
+        // ── Playground asset = documentation graph (∅ here) ∪ base closure. Pin it by
+        //    its triple set (graph-dropped, normalized) so its assembly is guarded
+        //    without coupling to the exact TriG serialization. ──
+        let edb = parse_dataset(EDB_TTL.as_bytes(), "text/turtle", None).expect("parse EDB");
+        let base = crate::stages::reason::reason_over_dataset(edb.as_ref()).expect("reason base");
+        let base_ds = parse_dataset(base.closure.as_bytes(), "text/turtle", None)
+            .expect("parse base closure");
+        let base_triples: std::collections::BTreeSet<String> = base_ds
+            .owned_quads()
+            .map(|q| norm(&format_triple(&q)))
+            .collect();
+        let pg_ds = parse_dataset(&data.playground_trig, "application/trig", None)
+            .expect("parse playground");
+        let pg_triples: std::collections::BTreeSet<String> = pg_ds
+            .owned_quads()
+            .map(|q| norm(&format_triple(&q)))
+            .collect();
+        assert_eq!(
+            pg_triples, base_triples,
+            "playground asset must be documentation(∅) ∪ base closure"
+        );
+
+        // ── Determinism: the core is a pure function of its inputs. ──
+        let again = compute();
+        assert_eq!(
+            data.example_inferences, again.example_inferences,
+            "attribution must be deterministic"
+        );
+        assert_eq!(
+            data.cross_example, again.cross_example,
+            "cross_example must be deterministic"
+        );
+        assert_eq!(
+            data.playground_trig, again.playground_trig,
+            "playground asset must be byte-deterministic"
         );
     }
 }
