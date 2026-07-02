@@ -1,0 +1,225 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:AestheticQuality
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Aesthetic Quality"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "A qualitative aesthetic reading — an OPEN vocabulary seeded with elegance, sublimity, kitsch. No AestheticQuality hierarchy exists or ever will (Principle 9): aesthetic traditions disagree about the inventory, and that disagreement is data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Appraisal
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Appraisal"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "An affective or aesthetic reading of something, as an observation: vantage = the appraiser. Dimensional (PAD: a valence/arousal/dominance value) or qualitative (an aesthetic quality: elegance, sublimity, kitsch) — at least one of the two forms (SHACL). Two critics disagreeing are two coexisting cells; self-report is top authority for the subject's own standpoint (Principle 9, the facetVantage precedent)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AppraisalDimension
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Appraisal Dimension"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "A dimensional axis of affective appraisal — an OPEN vocabulary seeded with the PAD triad: valence (pleasant ↔ unpleasant), arousal (activated ↔ calm), dominance (in control ↔ controlled)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Emotion
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Emotion"@x-gmeow-english ;
+    rdfs:subClassOf logic:Mode ,
+        gmeow:Entity ;
+    skos:definition "An emotion as an intrinsic mode inhering in one agent (the Desire/Intention grounding, teleology design). Episodic temporal scope rides validFrom/validUntil on the statement — deliberately no tenure class (thin means thin). Whether an emotion is self-reported or attributed is the vantage axis of the claims about it; self-report is top authority for the subject's own standpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:EmotionType
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Emotion Type"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The kind of an emotion — an OPEN value vocabulary seeded with Plutchik's primary eight (the EmotionML standard set). Registry-independent and contestable, never a tree (the Genre/Register precedent): traditions disagree about the emotion inventory itself, and that disagreement is data, not error (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:appraisalDimension
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "appraisal dimension"@x-gmeow-english ;
+    rdfs:range gmeow:AppraisalDimension ;
+    skos:definition "The dimension a dimensional appraisal reads. At most one per appraisal (SHACL — one cell, one reading; a PAD triple is three Appraisals sharing a vantage). Open vocabulary (sh:nodeKind sh:IRI)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:appraisalOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "appraisal of"@x-gmeow-english ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "What is appraised — an agent's state, a work, an event, an emotion (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one appraisal, one subject."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:appraisalQuality
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "appraisal quality"@x-gmeow-english ;
+    rdfs:range gmeow:AestheticQuality ;
+    skos:definition "The aesthetic quality a qualitative appraisal reads. NOT functional: one cell may attribute several coexisting qualities. Open vocabulary (sh:nodeKind sh:IRI)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:appraisalValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "appraisal value"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The dimensional reading, on whatever scale the appraising tradition declares (a rubric's ScoreScale when the rubrics facility is loaded; plain decimals otherwise — soft reference, never a dependency). At most one per appraisal, with its dimension (SHACL). Constitutive of this one cell — divergent readings are divergent Appraisals, not extra values."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:dimensionArousal
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "arousal"@x-gmeow-english ;
+    skos:definition "The arousal dimension — activated versus calm."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionDominance
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "dominance"@x-gmeow-english ;
+    skos:definition "The dominance dimension — in control versus controlled."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionValence
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "valence"@x-gmeow-english ;
+    skos:definition "The valence dimension — pleasant versus unpleasant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionAnger
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "anger"@x-gmeow-english ;
+    skos:definition "The anger emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionAnticipation
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "anticipation"@x-gmeow-english ;
+    skos:definition "The anticipation emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionBearer
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Emotion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "emotion bearer"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent in whom this emotion inheres. Functional and mandatory (SHACL): an intrinsic mode has exactly one bearer (the intentBearer pattern)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:emotionDisgust
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "disgust"@x-gmeow-english ;
+    skos:definition "The disgust emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionFear
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "fear"@x-gmeow-english ;
+    skos:definition "The fear emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionJoy
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "joy"@x-gmeow-english ;
+    skos:definition "The joy emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionSadness
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "sadness"@x-gmeow-english ;
+    skos:definition "The sadness emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionSurprise
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "surprise"@x-gmeow-english ;
+    skos:definition "The surprise emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionTrust
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "trust"@x-gmeow-english ;
+    skos:definition "The trust emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Emotion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "emotion type"@x-gmeow-english ;
+    rdfs:range gmeow:EmotionType ;
+    skos:definition "The kind(s) of this emotion. NOT functional: blended emotions carry several types, and classifications from different traditions coexist (Principle 9). At least one (SHACL); open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:qualityElegance
+    a gmeow:AestheticQuality ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "elegance"@x-gmeow-english ;
+    skos:definition "The elegance aesthetic quality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityKitsch
+    a gmeow:AestheticQuality ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "kitsch"@x-gmeow-english ;
+    skos:definition "The kitsch aesthetic quality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualitySublimity
+    a gmeow:AestheticQuality ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "sublimity"@x-gmeow-english ;
+    skos:definition "The sublimity aesthetic quality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+<https://blackcatinformatics.ca/gmeow/slices/affect>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment """Emotions and appraisals — a CORE slice: an agent's felt mental life is part of the Principle 14 grounded-agent-memory flagship.
+
+DOCTRINE.
+  * CORE AND COMPREHENSIVE: affect is core because affective memory is load-bearing for grounded agent memory (P14); GMEOW core is comprehensive by design, not a minimal kernel. This module is the A1 kernel baseline of a staged build-out to the full affect model (the high-dimensional landscape, the affective-experience and evidence layers, and the external bridges), specified canonically in design/AFFECT-DESIGN.md.
+  * An Emotion is an intrinsic affective mode inhering in one agent, grafted under gmeow:AffectiveMoment ⊑ gmeow:MentalMoment — the kernel agent-mental-life family, sibling to cognition's CognitiveState, epistemics' doxastic states, and teleology's IntentionalMode. Its aboutness (gmeow:affectiveTarget) is separated from its cause (gmeow:affectiveElicitor) and its bearer (gmeow:emotionBearer). Episodic scope rides validFrom/validUntil on the statement for now; the felt-episode and mood surfaces arrive in the staged build-out.
+  * EmotionType is an OPEN vocabulary seeded from the EmotionML standard sets (Plutchik's primary eight); registry-independent, contestable, never a tree (the Genre/Register precedent).
+  * APPRAISALS ARE OBSERVATIONS: dimensional readings (PAD: valence, arousal, dominance) and qualitative aesthetic judgements (elegance, sublimity, kitsch — open) are vantage-indexed cells. Two critics disagreeing are two cells (Principle 9). Attributed emotion vs self-report is the vantage axis too: self-report is top authority for the subject's own standpoint (the facetVantage precedent).
+  * ALIGNMENTS (Stage 5): MFOEM (linkage-only, BFO lineage), EmotionML vocabularies, WordNet-Affect, and classifier registries are generated logic:Correspondence lowerings carrying declared preservation (the W3C EmotionML projection is many-to-one and declares its loss). Target list fixed in the alignment ledger."""@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "GMEOW Affect Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Affect Module — emotions as intrinsic affective modes (kernel gmeow:MentalMoment family) and appraisals as vantage-indexed observations. Core; on a staged build-out to the full affect model (design/AFFECT-DESIGN.md)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
