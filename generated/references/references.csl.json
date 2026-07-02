@@ -5132,6 +5132,13 @@
     "type": "webpage"
   },
   {
+    "URL": "https://www.iso.org/standard/66249.html",
+    "id": "66249-html-32c5dec0",
+    "note": "ISO/IEC 24707:2018, Information technology \u2014 Common Logic (CL): a framework for a family of logic-based languages. Defines the abstract syntax and model-theoretic semantics of Common Logic and its three normative dialects \u2014 CLIF (Common Logic Interchange Format), CGIF (Conceptual Graph Interchange Format), and XCL (XML-based notation for Common Logic).",
+    "title": "ISO/IEC 24707:2018 \u2014 Information technology \u2014 Common Logic (CL)",
+    "type": "webpage"
+  },
+  {
     "URL": "https://www.loc.gov/bibframe/docs/bibframe2-model.html",
     "id": "bibframe2-model-html-cfc4a7f6",
     "title": "www.loc.gov/bibframe/docs/bibframe2-model.html",

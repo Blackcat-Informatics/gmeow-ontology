@@ -1,0 +1,2 @@
+<https://example.org/cl-ingest/genealogy/alice> <https://example.org/cl-ingest/genealogy/parent> <https://example.org/cl-ingest/genealogy/bob> <https://example.org/cl-ingest/genealogy/world-main> .
+<https://example.org/cl-ingest/genealogy/bob> <https://example.org/cl-ingest/genealogy/parent> <https://example.org/cl-ingest/genealogy/carol> <https://example.org/cl-ingest/genealogy/world-main> .
