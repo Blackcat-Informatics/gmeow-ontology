@@ -666,6 +666,11 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and \
                  external terminology bindings have no faithful SHACL Core form; both are carried \
                  and flagged per shape",
+                "an intentionally-open existential range (owl:someValuesFrom owl:Thing / \
+                 rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / \
+                 sh:Literal): the existential's at-least-one force and the vacuous universal-top \
+                 class membership are dropped, and the open range is carried in the canonical \
+                 logic: layer",
             ],
         ),
         "shex" => (
