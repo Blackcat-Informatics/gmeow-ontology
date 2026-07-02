@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Sample external Common Logic knowledge base — canonical logic: source.
+#
+# A minimal genealogy theory: the ancestor relation is the transitive closure of
+# parent. Two Horn rules (base + transitive step) over a parent EDB. This is the
+# authoring source for the committed CLIF export (sample-kb.clif); the CL-ingest
+# integration test projects this program to CLIF, ingests it back through
+# parse_clif_str, and reasons over it to derive the ancestor closure — the
+# end-to-end "import an external CL/CLIF KB and reason over it" proof.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/cl-ingest/genealogy/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:Person a logic:Kind .
+
+# ancestor(X, Y) :- parent(X, Y)
+ex:ruleAncestorBase a logic:Rule ;
+    logic:provenance ex:ruleAncestorBase ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:ancestor ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:parent ;
+        rdf:object    "?Y"
+    ] .
+
+# ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z)
+ex:ruleAncestorStep a logic:Rule ;
+    logic:provenance ex:ruleAncestorStep ;
+    logic:head [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:ancestor ;
+        rdf:object    "?Z"
+    ] ;
+    logic:body [
+        rdf:subject   "?X" ;
+        rdf:predicate ex:parent ;
+        rdf:object    "?Y"
+    ] ;
+    logic:body [
+        rdf:subject   "?Y" ;
+        rdf:predicate ex:ancestor ;
+        rdf:object    "?Z"
+    ] .
