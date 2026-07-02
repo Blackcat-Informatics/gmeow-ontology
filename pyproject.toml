@@ -188,7 +188,7 @@ markers = [
 # checked at the .ttl/.md source), and the vendored openEHR Blutdruck.opt (an
 # upstream Apache-2.0 archetype with German prose, not ours to correct).
 # Patterns are fnmatch'd against repo-relative paths.
-skip = "uv.lock,Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*,validations/openehr-bloodpressure/Blutdruck.opt"
+skip = "uv.lock,Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*,validations/openehr-bloodpressure/Blutdruck.opt,validations/common-logic-fol/clif2tptp/Cargo.lock"
 # False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
 # opNe (the not-equal expression operator in the mapping DSL algebra),
 # ser (Rust serde/ciborium module path `ciborium::ser`),

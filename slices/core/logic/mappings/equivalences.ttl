@@ -1,0 +1,34 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+#
+# Common Logic bridge: the logic: terms that face ISO/IEC 24707 Common Logic are
+# linked to the stable Common Logic Wikidata anchor (Q5153563). ISO/IEC 24707
+# publishes no RDF namespace, so the standard document is cited in the citation
+# ledger (metadata/references.ttl) and its dialects are operationalized by the
+# CLIF/CGIF/XCL codecs; only terms with a genuine, stable external counterpart are
+# aligned here (Principle 5 — by reference, no fabricated IRIs). The set-level
+# refusals (dialects, cl-imports, sequence markers) are recorded on
+# gmeow:mapsetCommonLogic in dsl/mappings/mapping-sets.ttl.
+
+gmeow:eqCommonLogic001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:CommonLogicProjection ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q5153563 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "logic:CommonLogicProjection is the projection target that renders an answer onto the ISO/IEC 24707 Common Logic surface; wd:Q5153563 (Common Logic) is the framework it targets. closeMatch, not equivalence: the projection target is a standing rendering request over the canonical logic: IR, not the CL framework itself." ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" .
+
+gmeow:eqCommonLogic002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:Module ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q5153563 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "logic:Module is the Common Logic theory/module construct onto which the ingested and emitted CLIF, CGIF, and XCL (module …) and (cl-imports …) forms map; relatedMatch to wd:Q5153563 (Common Logic) — a component construct of the framework, not the framework as a whole. No stable external entity names a CL module/text on its own." ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" .
