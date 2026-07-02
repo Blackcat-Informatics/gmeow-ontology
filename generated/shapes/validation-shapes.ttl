@@ -356,8 +356,8 @@
 
 <https://blackcatinformatics.ca/gmeow/Mitigation-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Mitigation> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationMeasure> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationCounters> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationMeasure> ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationCounters> ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
 <https://blackcatinformatics.ca/gmeow/MonetaryAmount-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ;
@@ -367,8 +367,8 @@
     sh:targetClass <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisFrame> ; sh:class <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisResult> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisTarget> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisResult> ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisTarget> ; sh:nodeKind sh:BlankNodeOrIRI ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisProperty> ; sh:class <https://blackcatinformatics.ca/gmeow/AnalysisProperty> ] .
 
 <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan-shape> a sh:NodeShape ;
@@ -394,7 +394,7 @@
 <https://blackcatinformatics.ca/gmeow/Observation-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Observation> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
 <https://blackcatinformatics.ca/gmeow/Order-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Order> ;

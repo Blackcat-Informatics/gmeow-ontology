@@ -427,8 +427,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Mitigation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Mitigation-shape> {
-  <https://blackcatinformatics.ca/gmeow/mitigationMeasure> IRI ;
-  <https://blackcatinformatics.ca/gmeow/mitigationCounters> IRI ;
+  <https://blackcatinformatics.ca/gmeow/mitigationMeasure> NONLITERAL ;
+  <https://blackcatinformatics.ca/gmeow/mitigationCounters> NONLITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/MonetaryAmount> (associate via ShapeMap)
@@ -440,8 +440,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape> {
   <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
   <https://blackcatinformatics.ca/gmeow/analysisFrame> IRI ;
-  <https://blackcatinformatics.ca/gmeow/analysisResult> IRI ;
-  <https://blackcatinformatics.ca/gmeow/analysisTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/analysisResult> NONLITERAL ;
+  <https://blackcatinformatics.ca/gmeow/analysisTarget> NONLITERAL ;
   <https://blackcatinformatics.ca/gmeow/analysisProperty> IRI ;
 }
 
@@ -472,7 +472,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/Observation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Observation-shape> {
   <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
-  <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
+  <https://blackcatinformatics.ca/gmeow/observedFeature> NONLITERAL ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Order> (associate via ShapeMap)

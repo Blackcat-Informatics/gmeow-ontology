@@ -12621,61 +12621,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/analysisResult has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/core/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/analysisTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/core/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/mitigationCounters has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/core/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/mitigationMeasure has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/core/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/core/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AccessibilityFacet on https://blackcatinformatics.ca/gmeow/assertionFacet has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
