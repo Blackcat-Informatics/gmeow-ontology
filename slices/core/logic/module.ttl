@@ -3977,6 +3977,144 @@ logic:candidateProperPartOfAsymmetric
     logic:candidateFormalizes logic:properPartOf ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 
+# ── Property-characteristic markers + central assertions (H4) ─────────────────────
+# The five property-characteristic sorts, minted standalone as the canonical logic:
+# carriers. logic:transitiveProperty, logic:asymmetricProperty and
+# logic:irreflexiveProperty are defined above; logic:symmetricProperty and
+# logic:functionalProperty complete the set. A domain gmeow: property keeps its
+# OWL-facing characteristic in its own slice, while a central
+# logic:PropertyCharacteristicAssertion names the characteristic on the canonical
+# reasoning carrier and carries a logic:formalizes back-reference to the property's
+# prose — so the native coherence gate enforces the characteristic and harvest
+# coverage stays queryable, without the domain slice asserting any logic: triple.
+
+logic:symmetricProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "symmetric property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for symmetry: a property P such that P(a,b) entails P(b,a). The logic: analogue of owl:SymmetricProperty, minted standalone so the characteristic can be asserted on the canonical reasoning carrier alongside the others and reasoned over natively — including together with logic:irreflexiveProperty, for a constitutive-opposition relation that holds both ways but never of a thing and itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:functionalProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "functional property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for functionality: a property P such that P(a,b) ∧ P(a,c) entails b = c. The logic: analogue of owl:FunctionalProperty, minted standalone so the characteristic can be asserted on the canonical reasoning carrier alongside the others; functionality is already lifted into the foundation chase for the relator-mediation count, so a functional carrier records the characteristic centrally rather than adding a second enforcement path."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PropertyCharacteristicAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "property characteristic assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:characterizes
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "characterizes"@x-gmeow-english ;
+    skos:definition "Relates a logic:PropertyCharacteristicAssertion to the property it characterises (a gmeow: or logic: property, stated in prose). Read together with logic:characteristicSort, it tells the native coherence gate which property bears which characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:characteristicSort
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "characteristic sort"@x-gmeow-english ;
+    skos:definition "Relates a logic:PropertyCharacteristicAssertion to the characteristic-sort marker it asserts — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. Co-present with logic:characterizes: a characteristic assertion carrying one without the other names no enforceable characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:subEventOfTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "subEventOf is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation."@x-gmeow-english ;
+    logic:characterizes gmeow:subEventOf ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:subEventOf .
+
+logic:coarserThanTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "coarserThan is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:coarserThan is transitive: the partial order on granularity levels its skos:definition names, which makes 'at or above a target level' well-defined. The native coherence gate reads this to close the granularity order."@x-gmeow-english ;
+    logic:characterizes gmeow:coarserThan ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:coarserThan .
+
+logic:sharpensTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "sharpens is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order."@x-gmeow-english ;
+    logic:characterizes gmeow:sharpens ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:sharpens .
+
+logic:partOfTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "partOf is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."@x-gmeow-english ;
+    logic:characterizes gmeow:partOf ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:partOf .
+
+logic:counterGoalSymmetry
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterGoal is symmetric"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition."@x-gmeow-english ;
+    logic:characterizes gmeow:counterGoal ;
+    logic:characteristicSort logic:symmetricProperty ;
+    logic:formalizes gmeow:counterGoal .
+
+logic:counterGoalIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterGoal is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterGoal is irreflexive: a goal is never its own shadow, as its skos:definition states. The native coherence gate reads this to raise a violation for a goal asserted to counter itself."@x-gmeow-english ;
+    logic:characterizes gmeow:counterGoal ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:counterGoal .
+
+logic:counterpartOfSymmetry
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterpartOf is symmetric"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterpartOf is symmetric: cross-realm counterparts recognise each other both ways, as its skos:definition states. It is deliberately NOT transitive — that non-characteristic is enforced by logic:CounterpartNonTransitivityObligation, so no transitive carrier is authored. The native coherence gate reads this to mirror the counterpart link only."@x-gmeow-english ;
+    logic:characterizes gmeow:counterpartOf ;
+    logic:characteristicSort logic:symmetricProperty ;
+    logic:formalizes gmeow:counterpartOf .
+
+logic:versionOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "versionOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states. Functionality is enforced by gmeow:versionOf's owl:FunctionalProperty declaration through native DL consistency; this records the characteristic on the canonical carrier."@x-gmeow-english ;
+    logic:characterizes gmeow:versionOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:versionOf .
+
+logic:editionOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "editionOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states. Functionality is enforced by gmeow:editionOf's owl:FunctionalProperty declaration through native DL consistency; this records the characteristic on the canonical carrier."@x-gmeow-english ;
+    logic:characterizes gmeow:editionOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:editionOf .
+
 # ── A NET-NEW harvested integrity constraint (prose → enforced axiom) ─────────────
 # The harvest mechanism run on a constraint that did NOT exist as an axiom before:
 # the three mereological individuation kinds (logic:Collection, logic:FunctionalComplex,
