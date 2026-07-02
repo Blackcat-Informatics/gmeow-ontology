@@ -45,6 +45,8 @@
 //! returns `Err`).  A malformed inequality guard (an unbound guard variable) is a
 //! hard error.  There is no silent default and no degraded fallback.
 
+use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -82,6 +84,43 @@ const RIGIDITY_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/cross
 /// Rule IRI for the anti-rigidity witness pass (`logic:rule/anti-rigidity-witness`).
 const ANTI_RIGIDITY_RULE_IRI: &str =
     "https://blackcatinformatics.ca/logic/rule/anti-rigidity-witness";
+
+// ── Property-characteristic vocabulary (H4) ──────────────────────────────────────
+//
+// The characteristic post-pass reads BOTH the OWL characteristic classes (the
+// OWL-facing declaration on a `gmeow:` property) and their `logic:` analogues (the
+// canonical carrier, asserted centrally with a `logic:formalizes` back-ref), so
+// every declared characteristic — not just the ones re-stated in `logic:` — is
+// enforced by the native gate.
+
+/// `owl:TransitiveProperty` class IRI.
+const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+/// `owl:SymmetricProperty` class IRI.
+const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
+/// `owl:IrreflexiveProperty` class IRI.
+const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+/// `owl:AsymmetricProperty` class IRI.
+const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+
+/// Predicate linking a central characteristic record to the property it characterises.
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+/// Predicate linking a central characteristic record to its characteristic sort.
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+
+/// Rule IRI stamped on a transitive-closure edge derived by the characteristic pass.
+const CHAR_TRANSITIVE_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-transitive";
+/// Rule IRI stamped on a symmetric-mirror edge derived by the characteristic pass.
+const CHAR_SYMMETRIC_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-symmetric";
+/// Rule IRI stamped on an irreflexivity/asymmetry violation raised by the pass.
+const CHAR_CLASH_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-clash";
+
+/// Violation discipline: an irreflexive property holds between an entity and itself.
+const IRREFLEXIVITY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/IrreflexivityViolation";
+/// Violation discipline: an asymmetric property holds in both directions of a pair.
+const ASYMMETRY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/AsymmetryViolation";
 
 /// The semantic-profile IRI stamped on every emitted quad — the only profile the
 /// v1 oracle applies.  Matches `py.rs::ASSERTED_PROFILE`.
@@ -2704,6 +2743,273 @@ fn anti_rigidity_obligations(
     Ok(out)
 }
 
+// ── Property characteristics (post-pass, H4) ─────────────────────────────────────
+
+/// The property-characteristic sorts the pass understands.  `Functional` is
+/// recognised so a record/marker declaring it is not misread as unknown, but it is
+/// enforced in-chase (the stratum-1 `functionalProperty` marker feeding RelComp), so
+/// the pass takes no action on it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum CharSort {
+    Transitive,
+    Symmetric,
+    Irreflexive,
+    Asymmetric,
+    Functional,
+}
+
+/// Map a characteristic-sort IRI — either the OWL characteristic class or its
+/// `logic:` analogue — to the [`CharSort`] the pass enforces.  A non-characteristic
+/// IRI is `None`.
+fn char_sort_of(iri: &str) -> Option<CharSort> {
+    match iri {
+        OWL_TRANSITIVE_PROPERTY => Some(CharSort::Transitive),
+        OWL_SYMMETRIC_PROPERTY => Some(CharSort::Symmetric),
+        OWL_IRREFLEXIVE_PROPERTY => Some(CharSort::Irreflexive),
+        OWL_ASYMMETRIC_PROPERTY => Some(CharSort::Asymmetric),
+        OWL_FUNCTIONAL_PROPERTY => Some(CharSort::Functional),
+        _ => match iri.strip_prefix(LOGIC_NS) {
+            Some("transitiveProperty") => Some(CharSort::Transitive),
+            Some("symmetricProperty") => Some(CharSort::Symmetric),
+            Some("irreflexiveProperty") => Some(CharSort::Irreflexive),
+            Some("asymmetricProperty") => Some(CharSort::Asymmetric),
+            Some("functionalProperty") => Some(CharSort::Functional),
+            _ => None,
+        },
+    }
+}
+
+/// Collect, per property IRI, the union of characteristic sorts declared for it —
+/// from direct `rdf:type` markers (`?P a owl:TransitiveProperty` and the `logic:`
+/// analogues) and from central records (`?rec logic:characterizes ?P`,
+/// `?rec logic:characteristicSort ?sort`).  Characteristics are global (TBox), so the
+/// union is taken across all worlds and applied per-world to that world's edges.
+fn collect_characteristics(quads: &[FoundationQuad]) -> BTreeMap<String, BTreeSet<CharSort>> {
+    let mut prop_sorts: BTreeMap<String, BTreeSet<CharSort>> = BTreeMap::new();
+
+    // Direct type markers on the property itself.
+    for q in quads {
+        if q.predicate == RDF_TYPE {
+            if let Some(obj) = strip_angle_opt(&q.object) {
+                if let Some(sort) = char_sort_of(obj) {
+                    prop_sorts
+                        .entry(q.subject.clone())
+                        .or_default()
+                        .insert(sort);
+                }
+            }
+        }
+    }
+
+    // Central records: join `characterizes` and `characteristicSort` on the record IRI.
+    let mut rec_prop: HashMap<String, String> = HashMap::new();
+    let mut rec_sorts: HashMap<String, Vec<CharSort>> = HashMap::new();
+    for q in quads {
+        if q.predicate == LOGIC_CHARACTERIZES {
+            if let Some(obj) = strip_angle_opt(&q.object) {
+                rec_prop.insert(q.subject.clone(), obj.to_owned());
+            }
+        } else if q.predicate == LOGIC_CHARACTERISTIC_SORT {
+            if let Some(obj) = strip_angle_opt(&q.object) {
+                if let Some(sort) = char_sort_of(obj) {
+                    rec_sorts.entry(q.subject.clone()).or_default().push(sort);
+                }
+            }
+        }
+    }
+    for (rec, prop) in &rec_prop {
+        if let Some(sorts) = rec_sorts.get(rec) {
+            for sort in sorts {
+                prop_sorts.entry(prop.clone()).or_default().insert(*sort);
+            }
+        }
+    }
+
+    prop_sorts
+}
+
+/// Per-world, per-property edge sets: world IRI → property IRI → `{(subject, object)}`.
+type WorldPropEdges = BTreeMap<String, BTreeMap<String, BTreeSet<(String, String)>>>;
+
+/// A first-derivation record for a derived pair: `(rule IRI, sorted source reifiers)`.
+type Derivation = (&'static str, Vec<String>);
+
+/// Enforce property characteristics over the materialized quads, per world.
+///
+/// For each property carrying a characteristic, this closes transitive edges and
+/// mirrors symmetric edges (emitting only the derived edges not already
+/// materialized — so it is idempotent with the in-chase `causalPartOf`/`overlaps`
+/// rules), then raises `logic:violation logic:IrreflexivityViolation` /
+/// `logic:AsymmetryViolation` for irreflexive/asymmetric properties that hold of a
+/// self-pair or a mutual pair in the closed+mirrored relation.  An asymmetric
+/// property is treated as irreflexive too (asymmetry entails irreflexivity).
+///
+/// Determinism: worlds, properties, and pairs are visited in sorted order and the
+/// first derivation of each pair wins (matching the chase's first-wins provenance).
+///
+/// # Errors
+///
+/// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
+fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQuad>, String> {
+    let prop_sorts = collect_characteristics(quads);
+    if prop_sorts.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    // Existing materialized edges, for dedup of derived edges: (graph, s, p, o).
+    let mut existing: HashSet<(String, String, String, String)> = HashSet::new();
+    // Per-world, per-property base edge sets: world → property → {(s, o)}.
+    let mut edges: WorldPropEdges = BTreeMap::new();
+    for q in quads {
+        if let Some(obj) = strip_angle_opt(&q.object) {
+            existing.insert((
+                q.graph.clone(),
+                q.subject.clone(),
+                q.predicate.clone(),
+                obj.to_owned(),
+            ));
+            if prop_sorts.contains_key(&q.predicate) {
+                edges
+                    .entry(q.graph.clone())
+                    .or_default()
+                    .entry(q.predicate.clone())
+                    .or_default()
+                    .insert((q.subject.clone(), obj.to_owned()));
+            }
+        }
+    }
+
+    let mut out: Vec<FoundationQuad> = Vec::new();
+    for (world, props) in &edges {
+        for (prop, base) in props {
+            let sorts = &prop_sorts[prop];
+            let transitive = sorts.contains(&CharSort::Transitive);
+            let symmetric = sorts.contains(&CharSort::Symmetric);
+            let asymmetric = sorts.contains(&CharSort::Asymmetric);
+            // Asymmetry entails irreflexivity, so a self-pair on an asymmetric
+            // property is an irreflexivity violation as well.
+            let irreflexive = asymmetric || sorts.contains(&CharSort::Irreflexive);
+
+            // Close + mirror to a combined fixpoint, recording the first derivation of
+            // each new pair (rule IRI + sorted source reifiers).
+            let mut current: BTreeSet<(String, String)> = base.clone();
+            let mut derived: BTreeMap<(String, String), Derivation> = BTreeMap::new();
+            if transitive || symmetric {
+                loop {
+                    let snapshot: Vec<(String, String)> = current.iter().cloned().collect();
+                    let mut round: Vec<((String, String), Derivation)> = Vec::new();
+                    if symmetric {
+                        for (s, o) in &snapshot {
+                            if s == o {
+                                continue;
+                            }
+                            let pair = (o.clone(), s.clone());
+                            if current.contains(&pair) || derived.contains_key(&pair) {
+                                continue;
+                            }
+                            let src = triple_reifier(s, prop, o)?;
+                            round.push((pair, (CHAR_SYMMETRIC_RULE_IRI, vec![src])));
+                        }
+                    }
+                    if transitive {
+                        for (a, b) in &snapshot {
+                            for (b2, c) in &snapshot {
+                                if b2 != b {
+                                    continue;
+                                }
+                                let pair = (a.clone(), c.clone());
+                                if current.contains(&pair) || derived.contains_key(&pair) {
+                                    continue;
+                                }
+                                let mut sources =
+                                    vec![triple_reifier(a, prop, b)?, triple_reifier(b, prop, c)?];
+                                sources.sort();
+                                round.push((pair, (CHAR_TRANSITIVE_RULE_IRI, sources)));
+                            }
+                        }
+                    }
+                    if round.is_empty() {
+                        break;
+                    }
+                    // First-wins: the earliest justification of each pair is kept (a pair
+                    // may be derived more than once within a round via distinct paths).
+                    for (pair, just) in round {
+                        if current.contains(&pair) {
+                            continue;
+                        }
+                        if let std::collections::btree_map::Entry::Vacant(slot) =
+                            derived.entry(pair.clone())
+                        {
+                            current.insert(pair);
+                            slot.insert(just);
+                        }
+                    }
+                }
+            }
+
+            // Emit derived edges not already materialized.
+            for ((s, o), (rule, sources)) in &derived {
+                if existing.contains(&(world.clone(), s.clone(), prop.clone(), o.clone())) {
+                    continue;
+                }
+                let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                let derivation_id = mint_derivation_id(rule, &source_refs);
+                out.push(FoundationQuad {
+                    graph: world.clone(),
+                    subject: s.clone(),
+                    predicate: prop.clone(),
+                    object: n3(o),
+                    rule_iri: (*rule).to_owned(),
+                    source_quad_ids: sources.clone(),
+                    derivation_id,
+                });
+            }
+
+            // Clash detection over the closed+mirrored relation.  Each violation is
+            // keyed on `(subject, discipline)` (first witnessing pair wins) and carries
+            // the reifier(s) of the offending edge(s) as its provenance sources.
+            if !irreflexive && !asymmetric {
+                continue;
+            }
+            use std::collections::btree_map::Entry;
+            let mut violated: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
+            for (a, b) in &current {
+                if a == b {
+                    if irreflexive {
+                        let key = (a.clone(), IRREFLEXIVITY_VIOLATION.to_owned());
+                        if let Entry::Vacant(slot) = violated.entry(key) {
+                            slot.insert(vec![triple_reifier(a, prop, a)?]);
+                        }
+                    }
+                } else if asymmetric && current.contains(&(b.clone(), a.clone())) {
+                    let key = (a.clone(), ASYMMETRY_VIOLATION.to_owned());
+                    if let Entry::Vacant(slot) = violated.entry(key) {
+                        let mut sources =
+                            vec![triple_reifier(a, prop, b)?, triple_reifier(b, prop, a)?];
+                        sources.sort();
+                        slot.insert(sources);
+                    }
+                }
+            }
+            for ((subject, discipline), sources) in violated {
+                let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                let derivation_id = mint_derivation_id(CHAR_CLASH_RULE_IRI, &source_refs);
+                out.push(FoundationQuad {
+                    graph: world.clone(),
+                    subject,
+                    predicate: format!("{LOGIC_NS}violation"),
+                    object: n3(&discipline),
+                    rule_iri: CHAR_CLASH_RULE_IRI.to_owned(),
+                    source_quad_ids: sources,
+                    derivation_id,
+                });
+            }
+        }
+    }
+
+    Ok(out)
+}
+
 // ── Public entry point ───────────────────────────────────────────────────────────
 
 /// Evaluate the foundation disciplines over `store` under the given policy.
@@ -2796,11 +3102,14 @@ pub fn evaluate(
         }
     }
 
-    // Cross-world post-passes operate over the union of all materialized quads.
+    // Cross-world post-passes operate over the union of all materialized quads.  Each
+    // reads the chase result, so they are computed before any is folded back in.
     let rigidity = cross_world_rigidity_violations(&all)?;
     let obligations = anti_rigidity_obligations(&all, policy)?;
+    let characteristics = property_characteristic_pass(&all)?;
     all.extend(rigidity);
     all.extend(obligations);
+    all.extend(characteristics);
 
     // Final canonical sort (matches the runner's fold + sort).
     all.sort_by(|a, b| {
