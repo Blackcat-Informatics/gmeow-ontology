@@ -18,7 +18,9 @@
 //! - A literal becomes a single-quoted DISTINCT constant atom `'lit|<lexical>|<datatype>'`
 //!   (kept apart from the IRI value space so a literal can never unify with an IRI).
 //! - A variable (`?Name` in a [`LogicAxiom`] string, or a [`Term::Var`] /
-//!   quantifier binder name) becomes the TPTP variable `V_<UPPERCASED-NAME>`.
+//!   quantifier binder name) becomes the TPTP variable `V_<Name>`, preserving the
+//!   authored case so the mapping stays injective; a non-alphanumeric or empty
+//!   name is a hard BOUNDARY rather than a lossy substitution.
 //! - A [`Term::SequenceMarker`] is outside first-order FOF: this is a hard
 //!   BOUNDARY (see [`main`]).
 //!
@@ -33,6 +35,7 @@ use gmeow_logic_compile::ir::{Formula, LogicAxiom, LogicProgram, Term};
 /// A hard, named boundary: an input construct that cannot be expressed in
 /// first-order TPTP-FOF. Printed to stderr as `BOUNDARY <what>: <reason>` and
 /// causes a non-zero exit — never silently dropped or approximated.
+#[derive(Debug)]
 struct Boundary(String);
 
 impl Boundary {
@@ -183,19 +186,37 @@ fn quote_literal(lexical: &str, datatype: Option<&str>) -> String {
     format!("'lit|{}|{}'", tptp_escape(lexical), tptp_escape(dt))
 }
 
-/// A TPTP variable name: `V_` + the uppercased, sanitized (non-alphanumeric →
-/// `_`) authored variable name. `name` may or may not carry the `?` sigil.
-fn tptp_var(name: &str) -> String {
+/// A TPTP variable name: `V_` + the authored variable name with its **original
+/// case preserved** (TPTP only requires the leading character be uppercase, which
+/// the `V_` prefix already guarantees). `name` may or may not carry the `?` sigil.
+///
+/// The mapping is injective: uppercasing would collapse `?a`/`?A` onto one TPTP
+/// variable, and substituting a non-alphanumeric character with `_` would collapse
+/// distinct names — both silently unsound. So a non-TPTP-safe (`[A-Za-z0-9]`) or
+/// empty name is a Boundary, never an approximation.
+fn tptp_var(name: &str) -> Result<String, Boundary> {
     let stripped = name.strip_prefix('?').unwrap_or(name);
+    if stripped.is_empty() {
+        return Err(Boundary::unsupported(
+            "empty-variable-name",
+            format!("cannot derive a TPTP variable from the empty name {name:?}"),
+        ));
+    }
     let mut v = String::from("V_");
     for c in stripped.chars() {
         if c.is_ascii_alphanumeric() {
-            v.push(c.to_ascii_uppercase());
+            v.push(c);
         } else {
-            v.push('_');
+            return Err(Boundary::unsupported(
+                "non-tptp-safe-variable",
+                format!(
+                    "variable {name:?} contains {c:?}, which has no injective TPTP-FOF \
+                     variable rendering"
+                ),
+            ));
         }
     }
-    v
+    Ok(v)
 }
 
 /// Render one bare `LogicAxiom` term string (subject or object: a bare IRI, a
@@ -207,13 +228,13 @@ fn tptp_var(name: &str) -> String {
 /// detected by its `?` sigil first, never by the literal bit alone (a
 /// previously-caught trap; see `horn_operand`/`parse_lit_simple` in
 /// `gmeow_logic_compile::clif::reader`).
-fn term_str(value: &str, is_literal: bool) -> String {
+fn term_str(value: &str, is_literal: bool) -> Result<String, Boundary> {
     if value.starts_with('?') {
         tptp_var(value)
     } else if is_literal {
-        quote_literal(value, None)
+        Ok(quote_literal(value, None))
     } else {
-        quote_iri(value)
+        Ok(quote_iri(value))
     }
 }
 
@@ -221,18 +242,18 @@ fn term_str(value: &str, is_literal: bool) -> String {
 /// `negated` (negation-as-failure body literal — becomes TPTP strong negation,
 /// the closest FOF has; the boundary between NAF and strong negation is a
 /// pre-existing modeling choice of the projection, not introduced here).
-fn axiom_atom(ax: &LogicAxiom) -> String {
+fn axiom_atom(ax: &LogicAxiom) -> Result<String, Boundary> {
     let atom = format!(
         "{}({},{})",
         quote_iri(&ax.predicate),
-        term_str(&ax.subject, false),
-        term_str(&ax.obj, ax.obj_is_literal)
+        term_str(&ax.subject, false)?,
+        term_str(&ax.obj, ax.obj_is_literal)?
     );
-    if ax.negated {
+    Ok(if ax.negated {
         format!("~({atom})")
     } else {
         atom
-    }
+    })
 }
 
 /// Collect every distinct `?var` occurring (as subject or object) across a
@@ -261,7 +282,7 @@ fn render_program(program: &LogicProgram, out: &mut String, n: &mut usize) -> Re
     // Top-level axioms are asserted positive facts (never a bare NAF literal).
     for ax in &program.axioms {
         *n += 1;
-        out.push_str(&format!("fof(ax_{n}, axiom, {}).\n", axiom_atom(ax)));
+        out.push_str(&format!("fof(ax_{n}, axiom, {}).\n", axiom_atom(ax)?));
     }
 
     for rule in &program.rules {
@@ -269,15 +290,19 @@ fn render_program(program: &LogicProgram, out: &mut String, n: &mut usize) -> Re
         if rule.body.is_empty() && rule.distinct_pairs.is_empty() {
             out.push_str(&format!(
                 "fof(rule_{n}, axiom, {}).\n",
-                axiom_atom(&rule.head)
+                axiom_atom(&rule.head)?
             ));
             continue;
         }
 
         let vars = rule_vars(&rule.head, &rule.body);
-        let mut conjuncts: Vec<String> = rule.body.iter().map(axiom_atom).collect();
+        let mut conjuncts: Vec<String> = rule
+            .body
+            .iter()
+            .map(axiom_atom)
+            .collect::<Result<Vec<String>, Boundary>>()?;
         for (a, b) in &rule.distinct_pairs {
-            conjuncts.push(format!("{} != {}", tptp_var(a), tptp_var(b)));
+            conjuncts.push(format!("{} != {}", tptp_var(a)?, tptp_var(b)?));
         }
         let antecedent = conjuncts.join(" & ");
         let quant = if vars.is_empty() {
@@ -287,13 +312,13 @@ fn render_program(program: &LogicProgram, out: &mut String, n: &mut usize) -> Re
                 "![{}] : ",
                 vars.iter()
                     .map(|v| tptp_var(v))
-                    .collect::<Vec<_>>()
+                    .collect::<Result<Vec<String>, Boundary>>()?
                     .join(",")
             )
         };
         out.push_str(&format!(
             "fof(rule_{n}, axiom, {quant}(({antecedent}) => {})).\n",
-            axiom_atom(&rule.head)
+            axiom_atom(&rule.head)?
         ));
     }
 
@@ -310,7 +335,7 @@ fn render_program(program: &LogicProgram, out: &mut String, n: &mut usize) -> Re
 /// bare-string [`LogicAxiom`] terms above) to a TPTP term.
 fn render_term(term: &Term) -> Result<String, Boundary> {
     match term {
-        Term::Var(name) => Ok(tptp_var(name)),
+        Term::Var(name) => tptp_var(name),
         Term::Iri(iri) => Ok(quote_iri(iri)),
         Term::Literal { lexical, datatype } => Ok(quote_literal(lexical, datatype.as_deref())),
         Term::SequenceMarker(name) => Err(Boundary::unsupported(
@@ -332,6 +357,11 @@ fn render_formula(formula: &Formula) -> Result<String, Boundary> {
                     ));
                 }
             };
+            if args.is_empty() {
+                // A 0-ary predication is a TPTP-FOF proposition: bare `rel`, never
+                // `rel()` (which is a syntax error).
+                return Ok(rel);
+            }
             let mut rendered_args = Vec::with_capacity(args.len());
             for a in args {
                 rendered_args.push(render_term(a)?);
@@ -351,26 +381,34 @@ fn render_formula(formula: &Formula) -> Result<String, Boundary> {
             render_formula(a)?,
             render_formula(b)?
         )),
-        Formula::Forall { vars, body } => Ok(format!(
-            "![{}] : ({})",
-            vars.iter()
+        Formula::Forall { vars, body } => {
+            let bound = vars
+                .iter()
                 .map(|v| tptp_var(v))
-                .collect::<Vec<_>>()
-                .join(","),
-            render_formula(body)?
-        )),
-        Formula::Exists { vars, body } => Ok(format!(
-            "?[{}] : ({})",
-            vars.iter()
+                .collect::<Result<Vec<String>, Boundary>>()?
+                .join(",");
+            Ok(format!("![{bound}] : ({})", render_formula(body)?))
+        }
+        Formula::Exists { vars, body } => {
+            let bound = vars
+                .iter()
                 .map(|v| tptp_var(v))
-                .collect::<Vec<_>>()
-                .join(","),
-            render_formula(body)?
-        )),
+                .collect::<Result<Vec<String>, Boundary>>()?
+                .join(",");
+            Ok(format!("?[{bound}] : ({})", render_formula(body)?))
+        }
     }
 }
 
 fn join_connective(items: &[Formula], op: &str) -> Result<String, Boundary> {
+    if items.is_empty() {
+        // An empty conjunction/disjunction has no first-order TPTP-FOF form —
+        // `()` is a syntax error, so hard-fail rather than emit invalid output.
+        return Err(Boundary::unsupported(
+            "empty-connective",
+            format!("a `{op}` connective with no operands has no TPTP-FOF rendering"),
+        ));
+    }
     let mut rendered = Vec::with_capacity(items.len());
     for item in items {
         rendered.push(render_formula(item)?);
@@ -466,4 +504,77 @@ fn render_edb(edb_text: &str, out: &mut String, n: &mut usize) -> Result<(), Bou
         ));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn iri(s: &str) -> Term {
+        Term::Iri(s.to_owned())
+    }
+
+    #[test]
+    fn tptp_var_preserves_case_and_is_injective() {
+        // The gratuitous uppercasing collapsed `?a`/`?A` onto one variable.
+        let lower = tptp_var("?a").expect("?a is TPTP-safe");
+        let upper = tptp_var("?A").expect("?A is TPTP-safe");
+        assert_eq!(lower, "V_a");
+        assert_eq!(upper, "V_A");
+        assert_ne!(lower, upper, "case-distinct variables must not collide");
+    }
+
+    #[test]
+    fn tptp_var_rejects_non_alphanumeric() {
+        // A `_`-sanitized name is non-injective, so it is a Boundary, not silent.
+        let err = tptp_var("?a-b").expect_err("a non-alphanumeric var must be a Boundary");
+        assert!(
+            err.0.contains("non-tptp-safe-variable"),
+            "unexpected: {}",
+            err.0
+        );
+    }
+
+    #[test]
+    fn tptp_var_rejects_empty_name() {
+        tptp_var("?").expect_err("an empty variable name must be a Boundary");
+    }
+
+    #[test]
+    fn zero_ary_atom_renders_bare_relation() {
+        // A 0-ary predication is a TPTP proposition: bare `rel`, never `rel()`.
+        let f = Formula::Atom {
+            relation: iri("https://example.org/p"),
+            args: vec![],
+        };
+        let out = render_formula(&f).expect("0-ary atom renders");
+        assert!(
+            !out.contains("()"),
+            "0-ary atom must not render `()`: {out}"
+        );
+        assert_eq!(out, quote_iri("https://example.org/p"));
+    }
+
+    #[test]
+    fn unary_atom_still_parenthesizes() {
+        let f = Formula::Atom {
+            relation: iri("https://example.org/p"),
+            args: vec![iri("https://example.org/a")],
+        };
+        let out = render_formula(&f).expect("unary atom renders");
+        assert!(
+            out.contains('('),
+            "an n-ary atom must parenthesize its args: {out}"
+        );
+    }
+
+    #[test]
+    fn empty_conjunction_is_a_boundary() {
+        render_formula(&Formula::And(vec![])).expect_err("empty `&` must be a Boundary");
+    }
+
+    #[test]
+    fn empty_disjunction_is_a_boundary() {
+        render_formula(&Formula::Or(vec![])).expect_err("empty `|` must be a Boundary");
+    }
 }
