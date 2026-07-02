@@ -2753,9 +2753,13 @@ fn anti_rigidity_obligations(
 // ── Property characteristics (post-pass, H4) ─────────────────────────────────────
 
 /// The property-characteristic sorts the pass understands.  `Functional` is
-/// recognised so a record/marker declaring it is not misread as unknown, but it is
-/// enforced in-chase (the stratum-1 `functionalProperty` marker feeding RelComp), so
-/// the pass takes no action on it.
+/// recognised so a record/marker declaring it is not misread as unknown, but the
+/// pass takes no action on it: functional cardinality is enforced by the property's
+/// `owl:FunctionalProperty` declaration through native DL consistency.  (The
+/// stratum-1 in-chase `functionalProperty` marker is a distinct signal that only
+/// feeds the relator-mediation entity-count and does not apply to ordinary
+/// functional properties such as the lineage relations `gmeow:versionOf` /
+/// `gmeow:editionOf`.)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum CharSort {
     Transitive,
