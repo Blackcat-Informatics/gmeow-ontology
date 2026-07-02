@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The canonical external-result → runner-verdict mapping table (#753).
+//! The canonical external-result → runner-verdict mapping table.
 //!
 //! This is THE single surface mapping third-party standard-suite outcomes (TPTP
 //! SZS status tokens and W3C `mf:` entailment test kinds) onto the runner's
@@ -9,7 +9,7 @@
 //! SZS parser and the manifest parser share exactly one source of truth, and a new
 //! corpus is a data addition here — never a scattered re-decision.
 //!
-//! The mapping (from the #753 issue body):
+//! The mapping:
 //!
 //! | external outcome                              | runner verdict |
 //! |-----------------------------------------------|----------------|
@@ -62,7 +62,7 @@ pub fn outcome_for_szs(token: &str) -> Result<ExternalOutcome, String> {
         // Undecided / resource-bounded.
         "Unknown" | "GaveUp" | "Timeout" | "ResourceOut" => Ok(ExternalOutcome::Incomplete),
         other => Err(format!(
-            "unknown TPTP SZS status token {other:?}; the #753 mapping table recognises \
+            "unknown TPTP SZS status token {other:?}; the mapping table recognises \
              Theorem|Unsatisfiable|ContradictoryAxioms (inconsistent), \
              Satisfiable|CounterSatisfiable (consistent), \
              Unknown|GaveUp|Timeout|ResourceOut (incomplete)"

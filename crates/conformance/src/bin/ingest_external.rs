@@ -3,9 +3,9 @@
 
 //! `ingest-external` — the external-corpus ingestion CLI.
 //!
-//! Concrete proof of AC1 ("the runner ingests a W3C `manifest.ttl` AND a TPTP SZS
-//! problem → produces a runner verdict") and the reproducible refresh entry point
-//! the vendoring procedure (X2–X5) follows.
+//! It ingests a W3C `manifest.ttl` or a TPTP SZS/FOF problem and produces a runner
+//! verdict, and is the reproducible refresh entry point the corpus vendoring and
+//! Lane-B grading procedures follow.
 //!
 //! Usage:
 //!
@@ -47,9 +47,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
+use gmeow_conformance::external::lower::premise_ds_to_world_nquads;
+use gmeow_conformance::external::tptp::{lower_and_decide, parse_tptp, TptpError};
 use gmeow_conformance::external::{
-    outcome_from_szs, parse_test_manifest, parse_test_manifest_rdfxml, runner_verdict_json,
-    ManifestTestKind, OntologyDoc,
+    outcome_from_szs, parse_szs_status, parse_test_manifest, parse_test_manifest_rdfxml,
+    runner_verdict_json, ExternalOutcome, ManifestTestKind, OntologyDoc,
 };
 
 const USAGE: &str = "\
@@ -57,15 +59,19 @@ usage:
   ingest-external --szs <problem.p> [--world <iri> --quads <n>]
   ingest-external --manifest <manifest.ttl>
   ingest-external --vendor-el <input.rdf> <out-dir>
+  ingest-external --vendor-tptp <corpus-dir>
   ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>
-  ingest-external --grade-ore <ontology-dir> <corpus-name> <out.nq>";
+  ingest-external --grade-ore <ontology-dir> <corpus-name> <out.nq>
+  ingest-external --grade-tptp <problem-dir> <corpus-name> <out.nq>";
 
 fn main() -> Result<(), String> {
     let mut szs: Option<PathBuf> = None;
     let mut manifest: Option<PathBuf> = None;
     let mut vendor_el: Option<(PathBuf, PathBuf)> = None;
+    let mut vendor_tptp: Option<PathBuf> = None;
     let mut grade_suite: Option<(PathBuf, String, PathBuf)> = None;
     let mut grade_ore: Option<(PathBuf, String, PathBuf)> = None;
+    let mut grade_tptp: Option<(PathBuf, String, PathBuf)> = None;
     let mut world: Option<String> = None;
     let mut quads: Option<u64> = None;
 
@@ -79,6 +85,12 @@ fn main() -> Result<(), String> {
                 let out = PathBuf::from(next(&mut args, "--vendor-el <out-dir>")?);
                 vendor_el = Some((input, out));
             }
+            "--vendor-tptp" => {
+                vendor_tptp = Some(PathBuf::from(next(
+                    &mut args,
+                    "--vendor-tptp <corpus-dir>",
+                )?));
+            }
             "--grade-suite" => {
                 let input = PathBuf::from(next(&mut args, "--grade-suite")?);
                 let corpus_name = next(&mut args, "--grade-suite <corpus-name>")?;
@@ -90,6 +102,12 @@ fn main() -> Result<(), String> {
                 let corpus_name = next(&mut args, "--grade-ore <corpus-name>")?;
                 let out_nq = PathBuf::from(next(&mut args, "--grade-ore <out.nq>")?);
                 grade_ore = Some((dir, corpus_name, out_nq));
+            }
+            "--grade-tptp" => {
+                let dir = PathBuf::from(next(&mut args, "--grade-tptp")?);
+                let corpus_name = next(&mut args, "--grade-tptp <corpus-name>")?;
+                let out_nq = PathBuf::from(next(&mut args, "--grade-tptp <out.nq>")?);
+                grade_tptp = Some((dir, corpus_name, out_nq));
             }
             "--world" => world = Some(next(&mut args, "--world")?),
             "--quads" => {
@@ -110,17 +128,30 @@ fn main() -> Result<(), String> {
     let mode_count = szs.is_some() as u8
         + manifest.is_some() as u8
         + vendor_el.is_some() as u8
+        + vendor_tptp.is_some() as u8
         + grade_suite.is_some() as u8
-        + grade_ore.is_some() as u8;
+        + grade_ore.is_some() as u8
+        + grade_tptp.is_some() as u8;
     if mode_count > 1 {
         return Err(format!(
-            "--szs, --manifest, --vendor-el, --grade-suite, and --grade-ore are mutually exclusive\n{USAGE}"
+            "--szs, --manifest, --vendor-el, --vendor-tptp, --grade-suite, --grade-ore, and \
+             --grade-tptp are mutually exclusive\n{USAGE}"
         ));
     }
 
-    match (szs, manifest, vendor_el, grade_suite, grade_ore) {
-        (Some(path), None, None, None, None) => ingest_szs(&path, world.as_deref(), quads),
-        (None, Some(path), None, None, None) => {
+    match (
+        szs,
+        manifest,
+        vendor_el,
+        vendor_tptp,
+        grade_suite,
+        grade_ore,
+        grade_tptp,
+    ) {
+        (Some(path), None, None, None, None, None, None) => {
+            ingest_szs(&path, world.as_deref(), quads)
+        }
+        (None, Some(path), None, None, None, None, None) => {
             // `--world`/`--quads` shape an SZS single-world verdict; they have no
             // meaning for a manifest (one line per entry). Reject loudly rather than
             // parse-and-drop them (no-optionality / no silent misuse).
@@ -131,17 +162,199 @@ fn main() -> Result<(), String> {
             }
             ingest_manifest(&path)
         }
-        (None, None, Some((input, out)), None, None) => vendor_el_corpus(&input, &out),
-        (None, None, None, Some((input, corpus_name, out_nq)), None) => {
+        (None, None, Some((input, out)), None, None, None, None) => vendor_el_corpus(&input, &out),
+        (None, None, None, Some(corpus_dir), None, None, None) => vendor_tptp_corpus(&corpus_dir),
+        (None, None, None, None, Some((input, corpus_name, out_nq)), None, None) => {
             grade_suite_corpus(&input, &corpus_name, &out_nq)
         }
-        (None, None, None, None, Some((dir, corpus_name, out_nq))) => {
+        (None, None, None, None, None, Some((dir, corpus_name, out_nq)), None) => {
             grade_ore_corpus(&dir, &corpus_name, &out_nq)
         }
+        (None, None, None, None, None, None, Some((dir, corpus_name, out_nq))) => {
+            grade_tptp_corpus(&dir, &corpus_name, &out_nq)
+        }
         _ => Err(format!(
-            "one of --szs / --manifest / --vendor-el / --grade-suite / --grade-ore is required\n{USAGE}"
+            "one of --szs / --manifest / --vendor-el / --vendor-tptp / --grade-suite / \
+             --grade-ore / --grade-tptp is required\n{USAGE}"
         )),
     }
+}
+
+/// The SPDX header prepended to every generated TPTP-corpus stub/derived file
+/// (self-authored, CC-BY-4.0 — the same license the corpus.json declares).
+const TPTP_SPDX_HEADER: &str =
+    "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
+     # SPDX-License-Identifier: CC-BY-4.0\n";
+
+/// Regenerate the derived anatomy of a self-authored TPTP Lane-A corpus from its
+/// source `.p` files.
+///
+/// For each `<corpus-dir>/<slug>/source/problem.p`: parse the TPTP body, apply the
+/// FOL-negation reduction, lower the EL/DL fragment to a world-scoped EDB, decide
+/// it natively, and (re)write `profile.json` (carrying the raw `szs_status`
+/// provenance), the `input.logic.ttl` stub, the generated `input.nq`, and the
+/// blessed `expected/verdicts.json`.
+///
+/// Hard-fail (Lane-A is agreeing-by-construction): a problem the native engine
+/// cannot decide (parser/lowering capability gap) or decides in *disagreement*
+/// with its `% SZS status` belongs in the sibling `-divergence` corpus, not here —
+/// so it is a loud error, never silently vendored.
+fn vendor_tptp_corpus(corpus_dir: &Path) -> Result<(), String> {
+    let corpus_name = corpus_dir
+        .file_name()
+        .and_then(|s| s.to_str())
+        .ok_or_else(|| format!("cannot derive corpus name from {}", corpus_dir.display()))?;
+
+    let mut slugs: Vec<PathBuf> = std::fs::read_dir(corpus_dir)
+        .map_err(|e| format!("cannot read {}: {e}", corpus_dir.display()))?
+        .map(|e| e.map(|e| e.path()).map_err(|e| e.to_string()))
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .filter(|p| p.is_dir())
+        .collect();
+    slugs.sort();
+
+    let mut vendored = 0usize;
+    for case_dir in slugs {
+        let slug = case_dir
+            .file_name()
+            .and_then(|s| s.to_str())
+            .ok_or_else(|| format!("bad case dir {}", case_dir.display()))?
+            .to_string();
+        let problem = case_dir.join("source").join("problem.p");
+        if !problem.is_file() {
+            return Err(format!(
+                "{}: TPTP case has no source/problem.p",
+                case_dir.display()
+            ));
+        }
+        let text = std::fs::read_to_string(&problem)
+            .map_err(|e| format!("cannot read {}: {e}", problem.display()))?;
+
+        // The declared SZS ground truth: raw token (provenance) + 3-bucket outcome.
+        let raw_token =
+            parse_szs_status(&text).map_err(|e| format!("{}: {e}", problem.display()))?;
+        let declared =
+            outcome_from_szs(&text).map_err(|e| format!("{}: {e}", problem.display()))?;
+
+        // Parse + FOL-negation reduction + native decision.
+        let formulas = parse_tptp(&text).map_err(|e| match e {
+            TptpError::Syntax(m) => format!("{}: malformed TPTP: {m}", problem.display()),
+            TptpError::Unsupported(m) => format!(
+                "{}: out-of-fragment construct ({m}) — this problem belongs in the \
+                 sibling -divergence corpus, not Lane-A",
+                problem.display()
+            ),
+        })?;
+        let world_iri = format!("https://gmeow.example/{corpus_name}/{slug}/w");
+        let (native, lowered) = lower_and_decide(&formulas, &world_iri).map_err(|g| {
+            format!(
+                "{}: native engine cannot decide this problem ({}) — it belongs in the \
+                 sibling -divergence corpus (an honest DlGap), not Lane-A",
+                problem.display(),
+                g.reason
+            )
+        })?;
+
+        // Lane-A is agreeing-by-construction: native MUST match the SZS ground truth.
+        if native != declared {
+            return Err(format!(
+                "{}: native decided {:?} but the SZS status declares {:?} — a divergence \
+                 belongs in the sibling -divergence corpus, never Lane-A",
+                problem.display(),
+                native.verdict_status().as_str(),
+                declared.verdict_status().as_str()
+            ));
+        }
+
+        write_tptp_case(
+            &case_dir,
+            &world_iri,
+            &lowered.input_nq,
+            lowered.quad_count,
+            native,
+            &raw_token,
+        )?;
+        println!(
+            "VENDOR {slug}: {} (SZS {raw_token})",
+            native.verdict_status().as_str()
+        );
+        vendored += 1;
+    }
+
+    if vendored == 0 {
+        return Err(format!(
+            "{}: no TPTP cases found (expected <slug>/source/problem.p dirs)",
+            corpus_dir.display()
+        ));
+    }
+    println!(
+        "vendored {vendored} TPTP case(s) into {}",
+        corpus_dir.display()
+    );
+    Ok(())
+}
+
+/// (Re)write the derived anatomy of one TPTP Lane-A case: `profile.json` (with the
+/// raw `szs_status` provenance), the `input.logic.ttl` stub, the generated
+/// `input.nq`, and the blessed `expected/verdicts.json`. The authored
+/// `source/problem.p` is left untouched.
+fn write_tptp_case(
+    case_dir: &Path,
+    world_iri: &str,
+    input_nq: &str,
+    quad_count: usize,
+    outcome: ExternalOutcome,
+    szs_status: &str,
+) -> Result<(), String> {
+    let expected_dir = case_dir.join("expected");
+    std::fs::create_dir_all(&expected_dir)
+        .map_err(|e| format!("cannot create {}: {e}", expected_dir.display()))?;
+
+    // profile.json — consistency mode, native engine, raw SZS token as provenance.
+    let mut profile = BTreeMap::new();
+    profile.insert("verdict_mode", serde_json::json!("consistency"));
+    profile.insert("mode", serde_json::json!("native"));
+    profile.insert("szs_status", serde_json::json!(szs_status));
+    let profile_json = serde_json::to_string_pretty(&profile)
+        .map_err(|e| format!("serialize profile.json: {e}"))?
+        + "\n";
+    std::fs::write(case_dir.join("profile.json"), profile_json)
+        .map_err(|e| format!("cannot write profile.json: {e}"))?;
+
+    // input.logic.ttl — stub required by the per-case anatomy (not compiled in
+    // consistency mode; the native DL path reads input.nq only).
+    let stub_ttl = format!(
+        "{TPTP_SPDX_HEADER}#\n\
+         # verdict_mode=consistency TPTP case. The OWL EDB is the world-scoped N-Quads\n\
+         # in input.nq, GENERATED from source/problem.p by `ingest-external --vendor-tptp`\n\
+         # (parse → FOL-negation reduction → EL/DL lowering), decided by the native DL\n\
+         # consistency path. This stub only satisfies the per-case anatomy.\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n"
+    );
+    std::fs::write(case_dir.join("input.logic.ttl"), stub_ttl)
+        .map_err(|e| format!("cannot write input.logic.ttl: {e}"))?;
+
+    // input.nq — the generated, world-scoped, sorted+deduped EDB.
+    std::fs::write(case_dir.join("input.nq"), input_nq)
+        .map_err(|e| format!("cannot write input.nq: {e}"))?;
+
+    // expected/verdicts.json — the native verdict the harness re-asserts.
+    let mut world_entry = BTreeMap::new();
+    world_entry.insert("quads", serde_json::json!(quad_count as u64));
+    world_entry.insert(
+        "status",
+        serde_json::json!(outcome.verdict_status().as_str()),
+    );
+    let mut verdicts_obj = BTreeMap::new();
+    verdicts_obj.insert(world_iri.to_owned(), world_entry);
+    let verdicts_json = serde_json::to_string_pretty(&verdicts_obj)
+        .map_err(|e| format!("serialize verdicts.json: {e}"))?
+        + "\n";
+    std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json)
+        .map_err(|e| format!("cannot write expected/verdicts.json: {e}"))?;
+
+    Ok(())
 }
 
 /// Ingest a TPTP SZS problem → runner verdict.
@@ -210,64 +423,6 @@ fn to_slug(name: &str) -> String {
         }
     }
     result.trim_matches('-').to_string()
-}
-
-/// Convert a parsed premise dataset (default graph only) into sorted, deduped N-Quads
-/// under the given world IRI. Uses the native N-Triples serializer for term encoding,
-/// then appends the world graph IRI to each triple line.
-///
-/// Returns the N-Quads text (sorted, trailing newline) and the quad count.
-fn premise_ds_to_world_nquads(
-    ds: &purrdf::RdfDataset,
-    world_iri: &str,
-) -> Result<(String, usize), String> {
-    // Serialize the default graph as N-Triples — the native codec handles all
-    // the N3 term encoding (IRI angle-brackets, literal escaping, datatype IRIs,
-    // lang tags, blank node labels) so we never re-implement it here.
-    let nt_bytes = purrdf::serialize_dataset(
-        ds,
-        "application/n-triples",
-        purrdf::SerializeGraph::DefaultGraph,
-    )
-    .map_err(|e| format!("N-Triples serialize failed: {e}"))?;
-    let nt_text = String::from_utf8(nt_bytes)
-        .map_err(|_| "N-Triples output was not valid UTF-8".to_string())?;
-
-    // Convert each N-Triple line (`S P O .`) to N-Quads (`S P O <graph> .`).
-    //
-    // Correct order: trim trailing whitespace FIRST, then strip the mandatory
-    // trailing `.`, then trim again.  The previous order (`trim_end_matches('.')`
-    // first) was buggy: a line ending with `. ` (dot + trailing space) would not
-    // have its dot stripped (last char is space, not `.`), causing the output to
-    // contain two statement terminators: `S P O . <graph> .`.
-    let mut nq_lines: Vec<String> = nt_text
-        .lines()
-        .filter(|line| !line.trim().is_empty() && !line.trim_start().starts_with('#'))
-        .map(|line| {
-            // Trim trailing whitespace first so the mandatory '.' is now last.
-            let trimmed = line.trim_end();
-            // A valid N-Triples statement MUST end with '.'.  Hard-fail on any
-            // line that does not so we never silently emit a malformed N-Quad.
-            let without_dot = trimmed
-                .strip_suffix('.')
-                .ok_or_else(|| format!("malformed N-Triples line (no trailing '.'): {line}"))?;
-            // Trim any whitespace between the last RDF term and the trailing dot.
-            let body = without_dot.trim_end();
-            Ok(format!("{body} <{world_iri}> ."))
-        })
-        .collect::<Result<Vec<String>, String>>()?;
-    nq_lines.sort();
-    nq_lines.dedup();
-
-    let count = nq_lines.len();
-    let text = if nq_lines.is_empty() {
-        String::new()
-    } else {
-        let mut s = nq_lines.join("\n");
-        s.push('\n');
-        s
-    };
-    Ok((text, count))
 }
 
 /// The result of lowering one manifest entry into a world-scoped dataset.
@@ -908,6 +1063,155 @@ fn default_quarantine_dir() -> PathBuf {
     gmeow_conformance::paths::cases_root()
         .join("external")
         .join("w3c-owl2-el-divergence")
+}
+
+/// The declared status token of a TPTP problem, tolerant of both the `% SZS status`
+/// result-comment form (used by the vendored corpora) and the real-distribution
+/// header field `% Status : <Token>`. Returns the raw SZS token.
+fn tptp_declared_status(text: &str) -> Result<String, String> {
+    if let Ok(token) = parse_szs_status(text) {
+        return Ok(token);
+    }
+    // TPTP distribution header: `% Status   : Theorem`.
+    for line in text.lines() {
+        let Some(rest) = line.trim_start().strip_prefix('%') else {
+            continue;
+        };
+        let rest = rest.trim_start();
+        if let Some(after) = rest.strip_prefix("Status") {
+            if let Some(colon) = after.trim_start().strip_prefix(':') {
+                if let Some(token) = colon.split_whitespace().next() {
+                    return Ok(token.to_string());
+                }
+            }
+        }
+    }
+    Err("no `% SZS status` or `% Status :` line found in the TPTP problem".to_string())
+}
+
+/// Recursively collect `*.p` TPTP problem files under `dir`, sorted.
+fn collect_tptp_problems(dir: &Path) -> Result<Vec<PathBuf>, String> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        for entry in std::fs::read_dir(&d).map_err(|e| format!("read_dir {}: {e}", d.display()))? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            // `file_type()` reuses the directory-walk's `stat` rather than issuing a
+            // second one per entry, and does not traverse symlinks — so a circular
+            // link cannot drive the walk into an infinite loop.
+            let file_type = entry
+                .file_type()
+                .map_err(|e| format!("file_type {}: {e}", entry.path().display()))?;
+            let path = entry.path();
+            if file_type.is_dir() {
+                stack.push(path);
+            } else if path.extension().and_then(|s| s.to_str()) == Some("p") {
+                out.push(path);
+            }
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
+/// Lane-B: grade a live-fetched subset of the real TPTP distribution against the
+/// native FOL path (parse → FOL-negation reduction → EL/DL lowering →
+/// `dl_consistency`), gap-tolerantly, and write the divergences as a `gmeow:Finding`
+/// N-Quads graph to `out_nq`.
+///
+/// Every problem's declared `% SZS status` (or distribution `% Status :`) is compared
+/// to the native decision. A problem the native EL/DL fragment cannot decide (a
+/// well-formed `Unsupported`/`LoweringGap` capability gap) is recorded with a native
+/// `incomplete` token — which the ledger classifies as a **`DlGap`** row — and its
+/// reason is disclosed to stderr, an honest "our engine cannot express this", never a
+/// silent pass. A malformed source (`TptpError::Syntax`) is instead a HARD FAIL: a
+/// corrupt/mis-fetched problem is a corpus defect, not a capability gap. This is the
+/// non-required, network/Docker-allowed lane
+/// (the real TPTP distribution has per-problem licenses and is never vendored); it is
+/// the documented path from the tiny Lane-A `tptp-mini` corpus to the full set.
+fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Result<(), String> {
+    let problems = collect_tptp_problems(problem_dir)?;
+    if problems.is_empty() {
+        return Err(format!(
+            "no *.p TPTP problems found under {}",
+            problem_dir.display()
+        ));
+    }
+
+    let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
+    let mut capability_gaps = 0usize;
+    for problem in &problems {
+        let text = std::fs::read_to_string(problem)
+            .map_err(|e| format!("cannot read {}: {e}", problem.display()))?;
+        let raw_token =
+            tptp_declared_status(&text).map_err(|e| format!("{}: {e}", problem.display()))?;
+        let published = gmeow_conformance::external::outcome_for_szs(&raw_token)?
+            .verdict_status()
+            .as_str()
+            .to_string();
+
+        let slug = problem
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("problem")
+            .to_string();
+        let world = format!("https://gmeow.example/{corpus_name}/{slug}/w");
+
+        // Gap-tolerant native decision. A well-formed but out-of-fragment problem
+        // — `Unsupported` at parse, or a `LoweringGap` at decision — is an honest
+        // capability gap → a native `incomplete` token → a DlGap ledger row, with
+        // the reason disclosed to stderr (maximal information flow), never a silent
+        // pass. A malformed source (`TptpError::Syntax`) is a different thing: a
+        // corpus-authoring defect, not a capability gap — so it is a HARD FAIL,
+        // consistent with the honest-gap gate and the Lane-A vendor path (a broken
+        // download must never masquerade as a benign fragment boundary).
+        let native = match parse_tptp(&text) {
+            Ok(formulas) => match lower_and_decide(&formulas, &world) {
+                Ok((outcome, _)) => outcome.verdict_status().as_str().to_string(),
+                Err(gap) => {
+                    eprintln!("{}: capability gap: {}", problem.display(), gap.reason);
+                    capability_gaps += 1;
+                    "incomplete".to_string()
+                }
+            },
+            Err(TptpError::Syntax(m)) => {
+                return Err(format!("{}: malformed TPTP: {m}", problem.display()));
+            }
+            Err(TptpError::Unsupported(m)) => {
+                eprintln!(
+                    "{}: capability gap (out of fragment): {m}",
+                    problem.display()
+                );
+                capability_gaps += 1;
+                "incomplete".to_string()
+            }
+        };
+
+        comparisons.push(gmeow_logic::reason::ExternalComparison {
+            case: slug,
+            world,
+            native,
+            published,
+        });
+    }
+
+    let nq = gmeow_conformance::divergence::emit_divergence_nq(corpus_name, &comparisons);
+    if let Some(parent) = out_nq.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create output dir {}: {e}", parent.display()))?;
+    }
+    std::fs::write(out_nq, &nq).map_err(|e| format!("cannot write {}: {e}", out_nq.display()))?;
+
+    let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
+    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    println!(
+        "graded={} agree={} corpus_only={} dl_gap={} capability_gaps={capability_gaps}",
+        comparisons.len(),
+        ledger.agree,
+        ledger.corpus_only,
+        ledger.dl_gap
+    );
+    Ok(())
 }
 
 /// Grade every ConsistencyTest / InconsistencyTest in `input_rdf` gap-tolerantly

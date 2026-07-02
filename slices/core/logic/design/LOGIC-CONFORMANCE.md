@@ -138,6 +138,24 @@ golden — the regression golden must be updated, with the update explicitly rev
 change passes the regression goldens but fails the external corpus, the engine has a correctness
 defect that no amount of self-consistency can paper over.
 
+**The external FOL soundness oracle.** For the full first-order fragment of the canonical IR, the
+external correctness corpus is instantiated by problems drawn from the TPTP library, each carrying a
+community-decided SZS status as engine-agnostic ground truth. A problem is parsed natively into the
+full-FOL formula core, reduced by FOL-negation to a refutation question, and — for the
+EL/DL-expressible fragment — lowered to a world-scoped OWL-RDF ABox/TBox and decided by the
+DL-consistency clash machinery. The native verdict is projected to the coarse three-bucket runner
+outcome only at the comparison gate; the raw SZS token is preserved verbatim as provenance (maximal
+information flow), so `ContradictoryAxioms` stays distinct from `Unsatisfiable` and
+`CounterSatisfiable` from `Satisfiable` in the ledger. A problem whose constructs fall outside the
+decidable fragment — function symbols, existentials under universals, non-binary predicates,
+genuinely disjunctive refutation — is recorded as an explicit capability-gap ledger row and is
+**never** silently reported as decided: a capability gap is a hard fail, not an `incomplete`
+swallowed into agreement, and a malformed source is a corpus defect, not a capability gap. The
+resulting divergences (agreement, native-only, corpus-only, and capability-gap rows) fold into the
+reasoned bundle as `gmeow:Finding` individuals, dogfooding the divergence ledger described below.
+This gate validates the EL/DL-expressible fragment of the full-FOL IR against SZS ground truth; the
+first-order-beyond-DL boundary is a declared, ledgered limitation, not an implicit gap.
+
 ## Common-Logic round-trip as a faithfulness gate
 
 One projection the canonical IR supports is emission to a Common Logic dialect. One ingestion path

@@ -102,6 +102,14 @@ pub struct Profile {
     /// each is a 2- or 3-element array of correspondence IRIs in `profile.json`'s
     /// `"compositions"`. Empty when the case declares none. Fed to the Composition gate.
     pub compositions: Vec<(String, String, Option<String>)>,
+    /// The raw external-source status token this case was declared with, preserved
+    /// verbatim as provenance so the fine-grained value (e.g. `ContradictoryAxioms`
+    /// vs `Unsatisfiable`, `CounterSatisfiable` vs `Satisfiable`) is NOT collapsed to
+    /// the 3-bucket runner verdict at ingest — the lossy projection is applied only at
+    /// the gate. `None` for cases with no external status (endogenous / W3C-manifest);
+    /// the soundness gate requires it for a TPTP `source/problem.p` case and pins it
+    /// against the source's `% SZS status` line.
+    pub szs_status: Option<String>,
 }
 
 impl Profile {
@@ -177,6 +185,7 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
 
     let verdict_mode = parse_verdict_mode(case_id, obj)?;
     let compositions = parse_compositions(case_id, obj)?;
+    let szs_status = parse_szs_status_field(case_id, obj)?;
 
     Ok(Profile {
         semantic_profile,
@@ -189,7 +198,29 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         expect_unsupported,
         verdict_mode,
         compositions,
+        szs_status,
     })
+}
+
+/// Parse the optional `szs_status` provenance field.
+///
+/// Absent ⇒ `None`. When present it MUST be a non-empty string (the raw TPTP SZS
+/// token, e.g. `"ContradictoryAxioms"`); a non-string or empty value is a hard
+/// error (no silent coercion). The *conditional-required* rule — a TPTP
+/// `source/problem.p` case MUST carry it — is enforced at the soundness gate,
+/// where the source is available to cross-check.
+fn parse_szs_status_field(
+    case_id: &str,
+    obj: &Map<String, Value>,
+) -> Result<Option<String>, String> {
+    match obj.get("szs_status") {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::String(s)) if !s.trim().is_empty() => Ok(Some(s.clone())),
+        Some(other) => Err(format!(
+            "case {case_id}: profile.json szs_status must be a non-empty string (the raw \
+             TPTP SZS token), got {other}"
+        )),
+    }
 }
 
 /// Parse the optional `compositions` array: each element is a 2- or 3-string array
@@ -374,6 +405,21 @@ mod tests {
         assert!(!p.expect_unsupported);
         assert_eq!(p.verdict_mode, VerdictMode::Materialization);
         assert_eq!(p.query_profile(), DEFAULT_SEMANTIC_PROFILE);
+        assert!(p.szs_status.is_none());
+    }
+
+    #[test]
+    fn szs_status_provenance_parses_and_validates() {
+        // A raw SZS token is preserved verbatim (the fine-grained value, not the
+        // 3-bucket projection).
+        let p = parse_profile("c", &json!({ "szs_status": "ContradictoryAxioms" })).unwrap();
+        assert_eq!(p.szs_status.as_deref(), Some("ContradictoryAxioms"));
+        // Absent ⇒ None.
+        assert!(parse_profile("c", &json!({})).unwrap().szs_status.is_none());
+        // A non-string or empty token is a hard error (no silent coercion).
+        assert!(parse_profile("c", &json!({ "szs_status": 7 })).is_err());
+        assert!(parse_profile("c", &json!({ "szs_status": "" })).is_err());
+        assert!(parse_profile("c", &json!({ "szs_status": "  " })).is_err());
     }
 
     #[test]

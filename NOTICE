@@ -32,6 +32,15 @@ External correctness corpora (conformance/logic/cases/external/)
   committed — they may only be fetched live in the non-required Lane-B lane.
   - szs-mini, w3c-mini — self-authored by Blackcat Informatics® Inc., CC BY 4.0.
     Tiny seed corpora establishing the external-corpus convention.
+  - tptp-mini, tptp-mini-divergence — self-authored by Blackcat Informatics® Inc.,
+    CC BY 4.0, in TPTP FOF/CNF syntax (the format defined at https://www.tptp.org/).
+    The FOL problem bodies are parsed for real, reduced by the FOL-negation
+    refutation, and lowered onto the native DL consistency engine. The agreeing
+    Lane-A subset (tptp-mini) is decided in agreement with each problem's SZS
+    status; the source-only tptp-mini-divergence lane holds genuine first-order
+    problems the native EL/DL fragment cannot decide, pinned as honest capability
+    gaps. No third-party TPTP distribution problems are vendored — those are
+    fetched live only in the non-required Lane-B lane, audited per problem.
   - w3c-owl2-el — W3C OWL 2 conformance test cases (ConsistencyTest /
     InconsistencyTest, OWL 2 EL profile subset). Original suite maintained by
     the W3C OWL Working Group and archived at:

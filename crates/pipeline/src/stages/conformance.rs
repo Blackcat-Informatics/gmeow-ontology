@@ -31,7 +31,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_conformance::divergence::emit_divergence_nq;
-use gmeow_conformance::external::parse_test_manifest;
+use gmeow_conformance::external::{outcome_from_szs, parse_test_manifest};
 use gmeow_logic::reason::ExternalComparison;
 
 use crate::error::PipelineError;
@@ -95,9 +95,12 @@ pub fn build_conformance_divergence(root: &Path) -> Result<Vec<u8>, PipelineErro
 }
 
 /// Discover and grade every committed external case under `external`, sorted by
-/// `(corpus, case)`. A case dir lacking a `source/manifest.ttl` carries no published
-/// external verdict to grade against and is skipped (it is not a corpus divergence
-/// source); a manifest or verdicts file that is present but unparsable HARD-fails.
+/// `(corpus, case)`. A case's *published* verdict comes from whichever source it
+/// carries: a W3C `source/manifest.ttl` (`otest:`/`mf:` outcome) OR a TPTP
+/// `source/problem.p` (`% SZS status` outcome). A case dir carrying neither — or a
+/// TPTP source-only divergence case with no frozen `expected/verdicts.json` — has
+/// no native/published pair to grade and is skipped (not a defect). A source that
+/// is present but unparsable, or a verdicts file present but malformed, HARD-fails.
 fn grade_external_cases(external: &Path) -> Result<Vec<GradedCase>, PipelineError> {
     let mut graded: Vec<GradedCase> = Vec::new();
     if !external.is_dir() {
@@ -110,13 +113,16 @@ fn grade_external_cases(external: &Path) -> Result<Vec<GradedCase>, PipelineErro
         let corpus = dir_name(&corpus_dir)?;
         for case_dir in sorted_dirs(&corpus_dir)? {
             let case = dir_name(&case_dir)?;
-            let manifest_path = case_dir.join("source").join("manifest.ttl");
-            if !manifest_path.is_file() {
-                // No published external verdict to grade against (e.g. a corpus
-                // README-only or fixture dir) — nothing to compare, not a defect.
+            let Some(published) = published_outcome(&case_dir)? else {
+                // No published external verdict to grade against (README/fixture dir,
+                // or a source-only divergence case) — nothing to compare, not a defect.
+                continue;
+            };
+            // A published outcome with no frozen native verdict (e.g. a source-only
+            // divergence case) has nothing to compare — skip rather than hard-fail.
+            if !case_dir.join("expected").join("verdicts.json").is_file() {
                 continue;
             }
-            let published = published_verdict(&manifest_path)?;
             let (world, native) = native_verdict(&case_dir, &case)?;
             graded.push(GradedCase {
                 corpus: corpus.clone(),
@@ -130,6 +136,25 @@ fn grade_external_cases(external: &Path) -> Result<Vec<GradedCase>, PipelineErro
         }
     }
     Ok(graded)
+}
+
+/// The published external verdict for a case, from whichever committed source it
+/// carries: a W3C `source/manifest.ttl` or a TPTP `source/problem.p`. Returns
+/// `None` when the case carries neither recognized source.
+fn published_outcome(case_dir: &Path) -> Result<Option<String>, PipelineError> {
+    let manifest_path = case_dir.join("source").join("manifest.ttl");
+    if manifest_path.is_file() {
+        return Ok(Some(published_verdict(&manifest_path)?));
+    }
+    let szs_path = case_dir.join("source").join("problem.p");
+    if szs_path.is_file() {
+        let text = std::fs::read_to_string(&szs_path)
+            .map_err(|e| stage_err(&format!("read {}: {e}", szs_path.display())))?;
+        let outcome = outcome_from_szs(&text)
+            .map_err(|e| stage_err(&format!("parse SZS {}: {e}", szs_path.display())))?;
+        return Ok(Some(outcome.verdict_status().as_str().to_string()));
+    }
+    Ok(None)
 }
 
 /// The published external verdict: parse the case's `source/manifest.ttl` (the
@@ -255,10 +280,20 @@ impl Stage for ConformanceStage {
         if external.is_dir() {
             for corpus_dir in sorted_dirs(&external)? {
                 for case_dir in sorted_dirs(&corpus_dir)? {
+                    // Whichever published source the case carries (W3C manifest or TPTP
+                    // SZS problem) plus its frozen native verdict busts the cache.
                     let manifest = case_dir.join("source").join("manifest.ttl");
+                    let szs = case_dir.join("source").join("problem.p");
+                    let verdicts = case_dir.join("expected").join("verdicts.json");
                     if manifest.is_file() {
                         files.push(manifest);
-                        files.push(case_dir.join("expected").join("verdicts.json"));
+                    } else if szs.is_file() {
+                        files.push(szs);
+                    } else {
+                        continue;
+                    }
+                    if verdicts.is_file() {
+                        files.push(verdicts);
                     }
                 }
             }
@@ -312,6 +347,73 @@ mod tests {
                     gmeow_conformance::divergence::CONFORMANCE_GRAPH
                 )),
                 "line not in the conformance graph: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn tptp_problem_divergence_folds_into_a_conformance_finding() {
+        // Proves the `source/problem.p` (SZS) grading path AND the divergence fold
+        // end-to-end: a TPTP case whose published SZS ground truth disagrees with the
+        // frozen native verdict surfaces as a `gmeow:Finding` in the conformance graph
+        // — never silently agreed away. The committed `tptp-mini` cases agree by
+        // construction, so this synthetic case is the only always-on exercise of the
+        // problem.p dispatch's divergence branch.
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let ext = tmp.path().join("external");
+        let case = ext.join("tptp-fold-probe").join("case1");
+        std::fs::create_dir_all(case.join("source")).unwrap();
+        std::fs::create_dir_all(case.join("expected")).unwrap();
+        // Published SZS ground truth: Unsatisfiable → the runner's `inconsistent` bucket.
+        std::fs::write(
+            case.join("source").join("problem.p"),
+            "% SZS status Unsatisfiable for fold-probe\nfof(a, axiom, p(x)).\n",
+        )
+        .unwrap();
+        // Frozen native verdict: the EL/DL fragment could not decide it (an honest gap).
+        let world = "https://gmeow.example/tptp-fold-probe/case1/w";
+        std::fs::write(
+            case.join("expected").join("verdicts.json"),
+            format!("{{ \"{world}\": {{ \"status\": \"incomplete\" }} }}"),
+        )
+        .unwrap();
+
+        // The problem.p dispatch grades the case (published from SZS, native from the
+        // frozen verdict) — it is NOT skipped.
+        let graded = grade_external_cases(&ext).expect("grade");
+        let [g] = graded.as_slice() else {
+            panic!(
+                "expected exactly one graded TPTP case, got {}",
+                graded.len()
+            );
+        };
+        assert_eq!(
+            g.comparison.published, "inconsistent",
+            "SZS Unsatisfiable projects to the inconsistent bucket"
+        );
+        assert_eq!(
+            g.comparison.native, "incomplete",
+            "the frozen native verdict is threaded through the problem.p path"
+        );
+
+        // The divergence folds into a gmeow:Finding, and every quad rides the
+        // conformance graph.
+        let nq = emit_divergence_nq(&g.corpus, std::slice::from_ref(&g.comparison));
+        assert!(
+            !nq.trim().is_empty(),
+            "a native↔published divergence must emit at least one quad"
+        );
+        assert!(
+            nq.contains("gmeow"),
+            "the fold must emit a gmeow:Finding, got: {nq}"
+        );
+        for line in nq.lines() {
+            assert!(
+                line.ends_with(&format!(
+                    "<{}> .",
+                    gmeow_conformance::divergence::CONFORMANCE_GRAPH
+                )),
+                "divergence quad not in the conformance graph: {line}"
             );
         }
     }

@@ -91,7 +91,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
 	maint-test-network maint-pull-images maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
-	maint-external-corpora
+	maint-external-corpora maint-tptp-corpus
 
 ##@ Core Workflows
 
@@ -548,6 +548,39 @@ maint-external-corpora: ## Grade the native reasoner against the full Lane-B ext
 	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-ore "$$sub" ore2015-el-consistency generated/conformance/divergence-ore2015-el.nq; \
 	'
 	@echo "external-corpora grading complete; divergences in generated/conformance/divergence-w3c-owl2-full.nq + divergence-ore2015-el.nq"
+
+# The scratch dir the Lane-B TPTP grade reads `*.p` problems from. Populate it from
+# a local TPTP distribution checkout, or set TPTP_SUBSET_URL to a tarball of a
+# decidable subset. Defaults to a gitignored scratch dir (never committed).
+TPTP_PROBLEMS_DIR ?= .tmp/tptp
+TPTP_SUBSET_URL ?=
+
+maint-tptp-corpus: ## Grade the native FOL path against a live/local TPTP subset (Lane-B, per-problem licensed, NEVER vendored); record divergences as a gmeow:Finding graph.
+	# `.tmp` holds the fetched subset tarball; create it explicitly so an overridden
+	# TPTP_PROBLEMS_DIR (pointing outside `.tmp`) does not leave `curl -o .tmp/...` without a parent.
+	mkdir -p .tmp $(TPTP_PROBLEMS_DIR) generated/conformance
+	# TPTP problems carry PER-PROBLEM licenses and are NEVER vendored/committed
+	# ($(TPTP_PROBLEMS_DIR) is a gitignored scratch dir). This lane parses the real
+	# FOF/CNF bodies, applies the FOL-negation reduction, lowers the EL/DL fragment,
+	# and grades the native decision against each problem's `% SZS status` / `% Status`
+	# ground truth. A problem outside the native fragment is recorded as an honest
+	# DlGap `gmeow:Finding` (never a silent pass). It is the documented path from the
+	# tiny committed Lane-A `tptp-mini` corpus to the full distribution.
+	bash -euo pipefail -c '\
+	  dir="$(TPTP_PROBLEMS_DIR)"; url="$(TPTP_SUBSET_URL)"; \
+	  if [ -n "$$url" ] && [ -z "$$(ls -A "$$dir"/*.p 2>/dev/null)" ]; then \
+	    echo "fetching TPTP subset tarball $$url"; \
+	    curl -sSL "$$url" -o .tmp/tptp-subset.tgz; \
+	    tar -xzf .tmp/tptp-subset.tgz -C "$$dir" --strip-components=1 || tar -xzf .tmp/tptp-subset.tgz -C "$$dir"; \
+	  fi; \
+	  test -n "$$(find "$$dir" -name "*.p" -print -quit 2>/dev/null)" || { \
+	    echo "no TPTP *.p problems under $$dir."; \
+	    echo "populate it from a local TPTP checkout (cp \$$TPTP_HOME/Problems/SYN/*.p $$dir/),"; \
+	    echo "or run: make maint-tptp-corpus TPTP_SUBSET_URL=<tarball-of-decidable-problems>"; \
+	    exit 1; }; \
+	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-tptp "$$dir" tptp-live generated/conformance/divergence-tptp.nq; \
+	'
+	@echo "TPTP Lane-B grading complete; divergences in generated/conformance/divergence-tptp.nq"
 
 native-py: $(NATIVE_PY_STAMP)
 
