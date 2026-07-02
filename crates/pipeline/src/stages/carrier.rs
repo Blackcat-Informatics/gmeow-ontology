@@ -68,21 +68,6 @@ pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
-/// Assemble the structured `dist` snapshot bytes from the repo `root` and the
-/// upstream stage products (statements RDF 1.2, mappings SSSOM, docs graph).
-///
-/// Mirrors the two-pass `build_snapshot_bytes`: pass 1 omits the verify graph,
-/// the native verify lane runs over it, and pass 2 folds the attestation in as
-/// `gmeow:graph/verify`.
-pub fn build_snapshot(
-    upstream: &BTreeMap<String, StageProduct>,
-    blobs: Vec<BlobRow>,
-    report_blobs: Vec<BlobRow>,
-) -> Result<Vec<u8>, PipelineError> {
-    let carrier = assemble_carrier(upstream)?;
-    serialize_snapshot(&carrier, blobs, report_blobs)
-}
-
 /// Gather the by-reference archive blobs (#699/#746/#897/#940) + the SHACL report
 /// blobs from `upstream`, and serialize the ALREADY-ASSEMBLED `carrier` into the
 /// terminal `gmeow.gts` package — the SINGLE serialization the terminal gts sink
@@ -1812,13 +1797,14 @@ fn archive_blob(rep: &str, members: &[(String, Vec<u8>)]) -> Result<BlobRow, Pip
 
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
-/// The `stage-snapshot` Transform stage (#861 P6): assembles the structured
-/// multi-named-graph `dist` snapshot bytes (`build_snapshot`) as an in-memory
-/// artifact. The split from the sink lets every fold-reading export leaf consume
-/// THIS run's freshly-composed fold rather than re-reading the committed file
-/// from disk; the sole [`crate::stages::gts_sink::GtsSinkStage`] then just writes
-/// these bytes to `generated/dist/gmeow.gts` (the narrow-waist invariant — one
-/// Sink, the disk writer).
+/// The `stage-snapshot` Transform stage: assembles the fully-accumulated
+/// multi-named-graph `dist` carrier as an in-memory value and attaches it to its
+/// product — it serializes NOTHING (no bytes on the product). The split from the
+/// sink lets every fold-reading export leaf consume THIS run's freshly-assembled
+/// carrier rather than re-reading the committed file from disk; the sole
+/// [`crate::stages::gts_sink::GtsSinkStage`] then presents that carrier as the
+/// `generated/dist/gmeow.gts` bytes — the single serialization boundary (the
+/// narrow-waist invariant: one Sink, the sole byte writer).
 pub struct SnapshotStage {
     consumes: Vec<String>,
 }
@@ -1955,21 +1941,23 @@ impl Stage for SnapshotStage {
         // Assemble the terminal carrier ONCE — the single native RdfDataset that every
         // export leaf (N-Quads/TriG/JSON-LD/OKF/LPG/metadata/logic AND the gts export)
         // reads off this product's bundle. NOTHING is serialized here: GTS is exit-only,
-        // produced by the `stage-export-gts` leaf like any other export format.
+        // presented as bytes by the sole terminal writer (`gts_sink::GtsSinkStage`),
+        // never by this stage — the snapshot product carries the carrier, no byte lane.
         let carrier = assemble_carrier(input.upstream)?;
-        let bundle = build_snapshot_bundle(carrier, input.upstream, BTreeMap::new())?;
+        let bundle = build_snapshot_bundle(carrier, input.upstream)?;
         Ok(StageOutput {
             product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle)),
         })
     }
 }
 
-/// Build the snapshot product bundle: the byte-artifact lane (the emitted `gmeow.gts`)
-/// riding over a dataset whose `graph/logic` and `graph/reasoning` named graphs are the
+/// Build the snapshot product bundle: the fully-assembled carrier dataset — this stage
+/// attaches NO byte artifacts (the sole terminal `gts_sink` serializes the carrier to
+/// `gmeow.gts`) — whose `graph/logic` and `graph/reasoning` named graphs are the
 /// canonical projections of the compiled program and the typed reasoning result, with
-/// the upstream typed [`PipelineHandle::Logic`] (#1132 C6) and
-/// [`PipelineHandle::Reasoning`](crate::bundle::PipelineHandle::Reasoning) (#1132 C7)
-/// re-pinned to those graphs' canonical digests.
+/// the upstream typed [`PipelineHandle::Logic`] and
+/// [`PipelineHandle::Reasoning`](crate::bundle::PipelineHandle::Reasoning) re-pinned to
+/// those graphs' canonical digests.
 ///
 /// Each handle's payload is taken from its upstream product's handle (never
 /// re-compiled / re-run); the backing graph is re-derived from the SAME projection the
@@ -1978,7 +1966,6 @@ impl Stage for SnapshotStage {
 fn build_snapshot_bundle(
     carrier: std::sync::Arc<purrdf::RdfDataset>,
     upstream: &BTreeMap<String, StageProduct>,
-    artifacts: BTreeMap<String, Vec<u8>>,
 ) -> Result<purrdf::PipelineBundle<crate::bundle::PipelineHandle>, PipelineError> {
     // ── the Logic handle payload + its backing graph/logic projection ────────────
     let compile = upstream
@@ -2038,8 +2025,13 @@ fn build_snapshot_bundle(
     // value serialized to gmeow.gts) — never a second, partial assembly. The carried
     // graph/logic + relational-core + correspondence + reasoning are already folded into
     // it, so each typed handle re-pins to ITS graph in the carrier (digest hard-checked).
-    let mut bundle =
-        crate::bundle::bundle_from_artifacts_over(carrier, artifacts, DatasetProvenance::new());
+    // The snapshot product carries the carrier ALONE — no byte artifacts (only the
+    // terminal `gts_sink` emits bytes), so the artifact map is empty by construction.
+    let mut bundle = crate::bundle::bundle_from_artifacts_over(
+        carrier,
+        BTreeMap::new(),
+        DatasetProvenance::new(),
+    );
     let pinned_logic = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
     bundle
         .pin_handle(
@@ -3509,8 +3501,8 @@ mod conformance_fold_tests {
             "the synthetic divergence must emit Findings"
         );
 
-        // Fold it through the SAME add_named path build_snapshot uses, emit, and
-        // read the bundle back.
+        // Fold it through the SAME add_named path the snapshot serialization uses, emit,
+        // and read the bundle back.
         let mut builder = SnapshotBuilder::new();
         // A non-empty default graph so the bundle is well-formed.
         add_base_nq(
@@ -3562,7 +3554,7 @@ mod conformance_fold_tests {
             "base",
         )
         .expect("fold base graph");
-        // Mirror build_snapshot's guard: an empty graph is never add_named'd.
+        // Mirror the snapshot serialization guard: an empty graph is never add_named'd.
         let conformance: Vec<u8> = Vec::new();
         if !conformance.is_empty() {
             add_named(&mut builder, &conformance, GRAPH_CONFORMANCE, "conformance").expect("fold");
