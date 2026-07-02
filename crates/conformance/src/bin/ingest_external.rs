@@ -1095,8 +1095,15 @@ fn collect_tptp_problems(dir: &Path) -> Result<Vec<PathBuf>, String> {
     let mut stack = vec![dir.to_path_buf()];
     while let Some(d) = stack.pop() {
         for entry in std::fs::read_dir(&d).map_err(|e| format!("read_dir {}: {e}", d.display()))? {
-            let path = entry.map_err(|e| e.to_string())?.path();
-            if path.is_dir() {
+            let entry = entry.map_err(|e| e.to_string())?;
+            // `file_type()` reuses the directory-walk's `stat` rather than issuing a
+            // second one per entry, and does not traverse symlinks — so a circular
+            // link cannot drive the walk into an infinite loop.
+            let file_type = entry
+                .file_type()
+                .map_err(|e| format!("file_type {}: {e}", entry.path().display()))?;
+            let path = entry.path();
+            if file_type.is_dir() {
                 stack.push(path);
             } else if path.extension().and_then(|s| s.to_str()) == Some("p") {
                 out.push(path);
@@ -1114,9 +1121,12 @@ fn collect_tptp_problems(dir: &Path) -> Result<Vec<PathBuf>, String> {
 ///
 /// Every problem's declared `% SZS status` (or distribution `% Status :`) is compared
 /// to the native decision. A problem the native EL/DL fragment cannot decide (a
-/// parser/lowering capability gap) is recorded with a native `incomplete` token, which
-/// the ledger classifies as a **`DlGap`** row — an honest "our engine cannot express
-/// this", never a silent pass. This is the non-required, network/Docker-allowed lane
+/// well-formed `Unsupported`/`LoweringGap` capability gap) is recorded with a native
+/// `incomplete` token — which the ledger classifies as a **`DlGap`** row — and its
+/// reason is disclosed to stderr, an honest "our engine cannot express this", never a
+/// silent pass. A malformed source (`TptpError::Syntax`) is instead a HARD FAIL: a
+/// corrupt/mis-fetched problem is a corpus defect, not a capability gap. This is the
+/// non-required, network/Docker-allowed lane
 /// (the real TPTP distribution has per-problem licenses and is never vendored); it is
 /// the documented path from the tiny Lane-A `tptp-mini` corpus to the full set.
 fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Result<(), String> {
@@ -1129,7 +1139,7 @@ fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Re
     }
 
     let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
-    let mut unparsable = 0usize;
+    let mut capability_gaps = 0usize;
     for problem in &problems {
         let text = std::fs::read_to_string(problem)
             .map_err(|e| format!("cannot read {}: {e}", problem.display()))?;
@@ -1147,15 +1157,32 @@ fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Re
             .to_string();
         let world = format!("https://gmeow.example/{corpus_name}/{slug}/w");
 
-        // Gap-tolerant native decision: a parse or lowering capability gap becomes an
-        // honest `incomplete` native token → a DlGap ledger row (never a silent pass).
+        // Gap-tolerant native decision. A well-formed but out-of-fragment problem
+        // — `Unsupported` at parse, or a `LoweringGap` at decision — is an honest
+        // capability gap → a native `incomplete` token → a DlGap ledger row, with
+        // the reason disclosed to stderr (maximal information flow), never a silent
+        // pass. A malformed source (`TptpError::Syntax`) is a different thing: a
+        // corpus-authoring defect, not a capability gap — so it is a HARD FAIL,
+        // consistent with the honest-gap gate and the Lane-A vendor path (a broken
+        // download must never masquerade as a benign fragment boundary).
         let native = match parse_tptp(&text) {
             Ok(formulas) => match lower_and_decide(&formulas, &world) {
                 Ok((outcome, _)) => outcome.verdict_status().as_str().to_string(),
-                Err(_gap) => "incomplete".to_string(),
+                Err(gap) => {
+                    eprintln!("{}: capability gap: {}", problem.display(), gap.reason);
+                    capability_gaps += 1;
+                    "incomplete".to_string()
+                }
             },
-            Err(_) => {
-                unparsable += 1;
+            Err(TptpError::Syntax(m)) => {
+                return Err(format!("{}: malformed TPTP: {m}", problem.display()));
+            }
+            Err(TptpError::Unsupported(m)) => {
+                eprintln!(
+                    "{}: capability gap (out of fragment): {m}",
+                    problem.display()
+                );
+                capability_gaps += 1;
                 "incomplete".to_string()
             }
         };
@@ -1178,7 +1205,7 @@ fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Re
     let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
     let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
     println!(
-        "graded={} agree={} corpus_only={} dl_gap={} unparsable={unparsable}",
+        "graded={} agree={} corpus_only={} dl_gap={} capability_gaps={capability_gaps}",
         comparisons.len(),
         ledger.agree,
         ledger.corpus_only,
