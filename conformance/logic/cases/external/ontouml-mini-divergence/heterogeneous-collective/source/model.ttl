@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# documented-antipattern: HetColl (Heterogeneous Collective)
+#
+# OntoUML metamodel model — the HetColl anti-pattern (documented in the OntoUML
+# anti-pattern catalogue at https://ontouml.readthedocs.io/en/latest/anti-patterns/):
+# a collective whose members are not uniform under the collective's unity criterion.
+# The collective stereotype is a mereological endurant outside the endurant-SORTAL +
+# relator fragment the five native disciplines range over, so the lowerer records an
+# HONEST CAPABILITY GAP (an Unsupported construct) rather than a wrong verdict — the
+# native fragment cannot yet express, let alone decide, this documented anti-pattern.
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini-divergence/heterogeneous-collective/> .
+
+ex:Committee a ontouml:Class ; ontouml:stereotype ontouml:collective .

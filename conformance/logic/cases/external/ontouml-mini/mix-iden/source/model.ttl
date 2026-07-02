@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# OntoUML metamodel model — the MixIden anti-pattern (documented in the OntoUML
+# anti-pattern catalogue at https://ontouml.readthedocs.io/en/latest/anti-patterns/).
+#
+# A sortal must inherit its principle of identity from exactly one Kind. ex:Employee
+# is a subkind specializing TWO distinct Kinds (ex:Person and ex:Organization), so it
+# traces to two identity providers and violates the discipline. The documented
+# verdict is MixIden.
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini/mix-iden/> .
+
+ex:Person       a ontouml:Class ; ontouml:stereotype ontouml:kind .
+ex:Organization a ontouml:Class ; ontouml:stereotype ontouml:kind .
+ex:Employee     a ontouml:Class ; ontouml:stereotype ontouml:subkind .
+
+ex:g1 a ontouml:Generalization ;
+    ontouml:general  ex:Person ;
+    ontouml:specific ex:Employee .
+ex:g2 a ontouml:Generalization ;
+    ontouml:general  ex:Organization ;
+    ontouml:specific ex:Employee .
