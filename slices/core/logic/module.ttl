@@ -7444,3 +7444,66 @@ logic:candidateIndirectContributor
     logic:candidateSemanticRisk logic:RiskCoreContaminating ;
     logic:candidateFormalizes gmeow:indirectContributor ;
     logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Creative works: the WEMI Item→Work shortcut ──────────────────────────────
+# gmeow:exemplifies ∘ gmeow:embodies ∘ gmeow:realizes ⇒ gmeow:instantiatesWork.
+# The full WEMI spine composed into a direct copy-to-Work edge, materialized only
+# when all three R-relations hold (a broken spine derives nothing).
+
+logic:ruleInstantiatesWork
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derive the WEMI Item→Work shortcut across the full spine"@x-gmeow-english ;
+    skos:definition "Emits gmeow:instantiatesWork(item, work) whenever an Item gmeow:exemplifies a Manifestation that gmeow:embodies an Expression that gmeow:realizes the Work: the productive composition exemplifies ∘ embodies ∘ realizes that links a concrete copy directly to the abstract Work it carries. Positive Horn; monotone; materialized natively. The conjunction of all three R-relations means a broken spine (a missing tier) derives nothing."@x-gmeow-english ;
+    logic:provenance logic:ruleInstantiatesWork ;
+    logic:formalizes gmeow:instantiatesWork ;
+    logic:head [
+        rdf:subject   "?item" ;
+        rdf:predicate gmeow:instantiatesWork ;
+        rdf:object    "?work"
+    ] ;
+    logic:body [
+        rdf:subject   "?item" ;
+        rdf:predicate gmeow:exemplifies ;
+        rdf:object    "?manifestation"
+    ] , [
+        rdf:subject   "?manifestation" ;
+        rdf:predicate gmeow:embodies ;
+        rdf:object    "?expression"
+    ] , [
+        rdf:subject   "?expression" ;
+        rdf:predicate gmeow:realizes ;
+        rdf:object    "?work"
+    ] .
+
+logic:cqInstantiatesWorkHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Item→Work shortcut is derived across the full WEMI spine"@x-gmeow-english ;
+    skos:definition "The positive competency case the WEMI-instantiation rule must satisfy: given an Item that gmeow:exemplifies a Manifestation that gmeow:embodies an Expression that gmeow:realizes a Work, the reasoner must derive gmeow:instantiatesWork from the Item to that Work — the copy-to-Work composition the harvested prose commits to."@x-gmeow-english .
+
+logic:cqInstantiatesWorkBrokenSpineRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "broken WEMI spine derives no Item→Work edge"@x-gmeow-english ;
+    skos:definition "The negative countermodel the WEMI-instantiation rule must respect: an Item whose spine is broken — a Manifestation that embodies no Expression, or an Expression that realizes no Work — derives NO gmeow:instantiatesWork edge, because the derivation is the conjunction of all three R-relations. The boundary that keeps the shortcut from short-circuiting an incomplete spine."@x-gmeow-english .
+
+logic:candidateInstantiatesWork
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "WEMI Item→Work shortcut derives across the full spine"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleInstantiatesWork: it harvests the copy-to-Work composition documented in gmeow:instantiatesWork's skos:definition (an Item instantiates the Work reached by composing gmeow:exemplifies, gmeow:embodies and gmeow:realizes) into an enforced positive-Horn derivation rule, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqInstantiatesWorkHolds) and a negative countermodel (logic:cqInstantiatesWorkBrokenSpineRejected). Its harvest back-link (logic:candidateFormalizes gmeow:instantiatesWork, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:5bbbd0fe5674a1a79bc9329e8829eb411f53fa6bd00a3f77899de0015acebe23"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:instantiatesWork's skos:definition, which states an Item instantiates the Work reached by composing gmeow:exemplifies, gmeow:embodies and gmeow:realizes across the WEMI spine (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:exemplifies ∘ gmeow:embodies ∘ gmeow:realizes ⇒ gmeow:instantiatesWork over the WEMI spine"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqInstantiatesWorkHolds ;
+    logic:candidateNegativeCase logic:cqInstantiatesWorkBrokenSpineRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:instantiatesWork ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
