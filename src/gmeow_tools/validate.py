@@ -88,6 +88,10 @@ def _shapes_turtle(shapes_path: Path) -> str:
         "statement-dsl-shapes.ttl",
         "test-dsl-shapes.ttl",
         "slice-manifest-shapes.ttl",  # targets manifests, not the data graph
+        # Declared ValidationOnly projection carried in gmeow.gts, NOT enforced
+        # against the corpus (open-world someValuesFrom over-flags); mirrors
+        # gmeow_shacl::shape_union::EXCLUDED.
+        "validation-shapes.ttl",
         shapes_path.name,
     }
     files: list[Path] = [shapes_path]
@@ -99,7 +103,11 @@ def _shapes_turtle(shapes_path: Path) -> str:
     # Generated shapes (#283): frame-relativity derived from gmeow:requiresFrame.
     # FAIL CLOSED: the hand-written frame constraints were deleted in favor of
     # these, so their absence would silently stop enforcing P11.
-    generated_shapes = sorted(GENERATED_SHAPES_DIR.glob("*.ttl"))
+    generated_shapes = [
+        g
+        for g in sorted(GENERATED_SHAPES_DIR.glob("*.ttl"))
+        if g.name not in dsl_shapes
+    ]
     if not generated_shapes:
         msg = (
             f"no generated shapes under {GENERATED_SHAPES_DIR} — "
