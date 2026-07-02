@@ -14908,3 +14908,28 @@ repo:README.md a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/references/selector/d46477f3aa3ed2c6> a gmeow:Selector ;
     gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<https://www.iso.org/standard/66249.html> a gmeow:CreativeWork ;
+    rdfs:label "ISO/IEC 24707:2018 — Information technology — Common Logic (CL)"@en ;
+    gmeow:sourceLocation "https://www.iso.org/standard/66249.html" ;
+    gmeow:bibliographicCitation "ISO/IEC 24707:2018, Information technology — Common Logic (CL): a framework for a family of logic-based languages. Defines the abstract syntax and model-theoretic semantics of Common Logic and its three normative dialects — CLIF (Common Logic Interchange Format), CGIF (Conceptual Graph Interchange Format), and XCL (XML-based notation for Common Logic)." .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/a5041cfe0b2f933c> a gmeow:CitationAct ;
+    rdfs:label "logic: design reference to ISO/IEC 24707 Common Logic and its CLIF/CGIF/XCL dialects"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://www.iso.org/standard/66249.html> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/a5041cfe0b2f933c> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/a5041cfe0b2f933c> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/logic/design/LOGIC-REFERENCES.md:41" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/35cf3ae20aad3156> a gmeow:CitationAct ;
+    rdfs:label "logic: lineage note bridges Common Logic as an operationalized, externally cross-checked FOL ancestor"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://www.iso.org/standard/66249.html> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/logic/design/LOGIC.md> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/35cf3ae20aad3156> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/35cf3ae20aad3156> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/logic/design/LOGIC.md:131" .
