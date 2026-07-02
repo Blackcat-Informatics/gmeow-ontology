@@ -100,7 +100,7 @@ def _shapes_turtle(shapes_path: Path) -> str:
         for extra in sorted(SHAPES_DIR.glob("*.ttl"))
         if extra.name not in dsl_shapes
     ]
-    # Generated shapes (#283): frame-relativity derived from gmeow:requiresFrame.
+    # Generated shapes: frame-relativity derived from gmeow:requiresFrame.
     # FAIL CLOSED: the hand-written frame constraints were deleted in favor of
     # these, so their absence would silently stop enforcing P11.
     generated_shapes = [

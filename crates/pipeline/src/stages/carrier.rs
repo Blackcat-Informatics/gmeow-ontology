@@ -820,7 +820,7 @@ fn build_archive_blobs(
     // REP_SHAPES is the FULL shape surface (like the DSL lints, carried for a repo-free
     // consumer that opts into them); the validator applies `shape_union::EXCLUDED` to get the
     // enforced data-graph union. `validation-shapes.ttl` is a `stage-compile-logic` PRODUCT
-    // (the OPT axis + #1191 derivation), so override the stale disk read with the fresh
+    // (the OPT axis + the OWL-restriction derivation), so override the stale disk read with the fresh
     // product bytes — otherwise the archive/fanout carry the last-committed file, never the
     // freshly derived shapes (the axioms archive below reads from the product for this reason).
     if let Some(fresh) =

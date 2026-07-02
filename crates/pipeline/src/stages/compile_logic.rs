@@ -247,7 +247,7 @@ impl Stage for CompileLogicStage {
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The compiler parses the logic: source and the vendored OPT, and derives validation
-        // shapes from the whole authored ontology (#1191) — so a change to ANY authored file
+        // shapes from the whole authored ontology's OWL restrictions — so a change to ANY authored file
         // must bust this stage's cache.
         let mut files = vec![root.join(SOURCE_PATH), root.join(OPT_SOURCE_PATH)];
         files.extend(crate::stages::source_load::authored_files(root)?);
@@ -265,7 +265,7 @@ impl Stage for CompileLogicStage {
         let opt_xml = std::fs::read_to_string(input.root.join(OPT_SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {OPT_SOURCE_PATH}: {e}")))?;
         let mut validation_shapes = lift_opt_constraints(&opt_xml)?;
-        // #1191: derive closed-world validation shapes from the merged authored ontology's OWL
+        // Derive closed-world validation shapes from the merged authored ontology's OWL
         // restrictions (someValuesFrom → sh:class), where the DOMAIN restrictions live (the
         // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
         // derived ontology shapes ride into gmeow.gts through the shape surfaces.

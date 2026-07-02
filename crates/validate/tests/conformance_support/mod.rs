@@ -53,7 +53,7 @@ pub const DSL_SHAPE_FILENAMES: &[&str] = &[
     "test-dsl-shapes.ttl",
     "slice-manifest-shapes.ttl",
     // The derived validation-shape surface is a DECLARED ValidationOnly projection (the OPT
-    // constraint axis + the #1191 OWL-restriction reading), carried in gmeow.gts but NOT
+    // constraint axis + the OWL-restriction reading), carried in gmeow.gts but NOT
     // enforced against the corpus — an open-world someValuesFrom reading over-flags valid
     // data. Excluded here exactly as `gmeow_shacl::shape_union::EXCLUDED` excludes it.
     "validation-shapes.ttl",
