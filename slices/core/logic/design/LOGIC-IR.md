@@ -153,6 +153,13 @@ downstream of a lowering discloses which formulas the target did not evaluate (s
 judgments is the loss ledger that accompanies the generated artifacts (see
 [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)).
 
+The soundness of the full-FOL core — that a decided verdict is the *right* verdict, not merely a
+self-consistent one — is established independently of any self-authored golden by the external
+FOL soundness oracle: TPTP problems parsed into this IR, negation-reduced, decided over the
+EL/DL-expressible fragment, and compared against their community-decided SZS ground truth, with the
+first-order-beyond-DL remainder disclosed as capability-gap ledger rows (see
+[`LOGIC-CONFORMANCE.md` § the external FOL soundness oracle](LOGIC-CONFORMANCE.md)).
+
 ### Class coverings and partitions
 
 A **class covering** — "every `Whole` is one of `S₁ … Sₙ`" — is not a new node kind or a bespoke
