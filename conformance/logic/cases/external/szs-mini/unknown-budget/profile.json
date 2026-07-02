@@ -1,5 +1,6 @@
 {
   "reasoning_contract": {"preset": "PositiveHornProfile"},
   "mode": "native",
-  "budget_params": { "max_rule_firings": 2 }
+  "budget_params": { "max_rule_firings": 2 },
+  "szs_status": "Unknown"
 }
