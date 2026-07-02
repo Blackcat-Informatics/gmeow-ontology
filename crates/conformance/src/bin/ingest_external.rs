@@ -42,6 +42,25 @@
 //!     Functional Syntax, which the native RDF codecs do not read) or cannot decide
 //!     (gaps non-empty) becomes an honest DlGap Finding — never a silent skip. The
 //!     divergences are written as a gmeow:Finding N-Quads graph to <out.nq>.
+//!
+//! ingest-external --vendor-ontouml <corpus-dir>
+//!     Regenerate the derived anatomy of a self-authored OntoUML Lane-A corpus from
+//!     its `<slug>/source/model.ttl` files: lower each model onto the world-scoped
+//!     `logic:` stereotype ABox, run the native foundation disciplines, and (re)write
+//!     `profile.json`, the `input.logic.ttl` stub, the generated `input.nq`, and the
+//!     blessed `expected/{materialized.nq,verdicts.json}`. Lane-A is agreeing-by-
+//!     construction: a documented anti-pattern the disciplines do NOT reproduce, or a
+//!     clean control that fires anything, belongs in the sibling -divergence corpus
+//!     (a hard error), never Lane-A.
+//!
+//! ingest-external --grade-ontouml <catalog-dir> <corpus-name> <out.nq>
+//!     Grade every `ontology.ttl` / `model.ttl` under <catalog-dir> against the native
+//!     foundation disciplines gap-tolerantly. The live FAIR catalog ships no per-model
+//!     documented anti-pattern, so the null hypothesis is `clean`: any fired discipline
+//!     is surfaced as a CorpusOnly finding for review, any un-lowerable model is an
+//!     honest DlGap capability gap, and each model's sibling `metadata.ttl` license is
+//!     audited + disclosed (never a skip). Divergences are written as a gmeow:Finding
+//!     N-Quads graph to <out.nq>.
 //! ```
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -50,9 +69,18 @@ use std::path::{Path, PathBuf};
 use gmeow_conformance::external::lower::premise_ds_to_world_nquads;
 use gmeow_conformance::external::tptp::{lower_and_decide, parse_tptp, TptpError};
 use gmeow_conformance::external::{
-    outcome_from_szs, parse_szs_status, parse_test_manifest, parse_test_manifest_rdfxml,
-    runner_verdict_json, ExternalOutcome, ManifestTestKind, OntologyDoc,
+    compare, fired_disciplines, lower_and_evaluate, native_verdict_string, outcome_from_szs,
+    parse_ontouml_model, parse_szs_status, parse_test_manifest, parse_test_manifest_rdfxml,
+    runner_verdict_json, DisciplineVerdict, ExternalOutcome, ManifestTestKind, OntologyDoc,
+    OntoumlError,
 };
+use gmeow_conformance::run::RunnerQuad;
+use gmeow_conformance::serialize::{
+    build_verdicts, count_worlds, materialized_to_nquads, VerdictStatus,
+};
+use gmeow_license::{policy_for_license, LicensePolicy};
+use gmeow_logic::foundation::{AntiRigidityPolicy, FoundationQuad};
+use purrdf::TermRef;
 
 const USAGE: &str = "\
 usage:
@@ -60,18 +88,22 @@ usage:
   ingest-external --manifest <manifest.ttl>
   ingest-external --vendor-el <input.rdf> <out-dir>
   ingest-external --vendor-tptp <corpus-dir>
+  ingest-external --vendor-ontouml <corpus-dir>
   ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>
   ingest-external --grade-ore <ontology-dir> <corpus-name> <out.nq>
-  ingest-external --grade-tptp <problem-dir> <corpus-name> <out.nq>";
+  ingest-external --grade-tptp <problem-dir> <corpus-name> <out.nq>
+  ingest-external --grade-ontouml <catalog-dir> <corpus-name> <out.nq>";
 
 fn main() -> Result<(), String> {
     let mut szs: Option<PathBuf> = None;
     let mut manifest: Option<PathBuf> = None;
     let mut vendor_el: Option<(PathBuf, PathBuf)> = None;
     let mut vendor_tptp: Option<PathBuf> = None;
+    let mut vendor_ontouml: Option<PathBuf> = None;
     let mut grade_suite: Option<(PathBuf, String, PathBuf)> = None;
     let mut grade_ore: Option<(PathBuf, String, PathBuf)> = None;
     let mut grade_tptp: Option<(PathBuf, String, PathBuf)> = None;
+    let mut grade_ontouml: Option<(PathBuf, String, PathBuf)> = None;
     let mut world: Option<String> = None;
     let mut quads: Option<u64> = None;
 
@@ -91,6 +123,12 @@ fn main() -> Result<(), String> {
                     "--vendor-tptp <corpus-dir>",
                 )?));
             }
+            "--vendor-ontouml" => {
+                vendor_ontouml = Some(PathBuf::from(next(
+                    &mut args,
+                    "--vendor-ontouml <corpus-dir>",
+                )?));
+            }
             "--grade-suite" => {
                 let input = PathBuf::from(next(&mut args, "--grade-suite")?);
                 let corpus_name = next(&mut args, "--grade-suite <corpus-name>")?;
@@ -108,6 +146,12 @@ fn main() -> Result<(), String> {
                 let corpus_name = next(&mut args, "--grade-tptp <corpus-name>")?;
                 let out_nq = PathBuf::from(next(&mut args, "--grade-tptp <out.nq>")?);
                 grade_tptp = Some((dir, corpus_name, out_nq));
+            }
+            "--grade-ontouml" => {
+                let dir = PathBuf::from(next(&mut args, "--grade-ontouml")?);
+                let corpus_name = next(&mut args, "--grade-ontouml <corpus-name>")?;
+                let out_nq = PathBuf::from(next(&mut args, "--grade-ontouml <out.nq>")?);
+                grade_ontouml = Some((dir, corpus_name, out_nq));
             }
             "--world" => world = Some(next(&mut args, "--world")?),
             "--quads" => {
@@ -129,13 +173,15 @@ fn main() -> Result<(), String> {
         + manifest.is_some() as u8
         + vendor_el.is_some() as u8
         + vendor_tptp.is_some() as u8
+        + vendor_ontouml.is_some() as u8
         + grade_suite.is_some() as u8
         + grade_ore.is_some() as u8
-        + grade_tptp.is_some() as u8;
+        + grade_tptp.is_some() as u8
+        + grade_ontouml.is_some() as u8;
     if mode_count > 1 {
         return Err(format!(
-            "--szs, --manifest, --vendor-el, --vendor-tptp, --grade-suite, --grade-ore, and \
-             --grade-tptp are mutually exclusive\n{USAGE}"
+            "--szs, --manifest, --vendor-el, --vendor-tptp, --vendor-ontouml, --grade-suite, \
+             --grade-ore, --grade-tptp, and --grade-ontouml are mutually exclusive\n{USAGE}"
         ));
     }
 
@@ -144,14 +190,16 @@ fn main() -> Result<(), String> {
         manifest,
         vendor_el,
         vendor_tptp,
+        vendor_ontouml,
         grade_suite,
         grade_ore,
         grade_tptp,
+        grade_ontouml,
     ) {
-        (Some(path), None, None, None, None, None, None) => {
+        (Some(path), None, None, None, None, None, None, None, None) => {
             ingest_szs(&path, world.as_deref(), quads)
         }
-        (None, Some(path), None, None, None, None, None) => {
+        (None, Some(path), None, None, None, None, None, None, None) => {
             // `--world`/`--quads` shape an SZS single-world verdict; they have no
             // meaning for a manifest (one line per entry). Reject loudly rather than
             // parse-and-drop them (no-optionality / no silent misuse).
@@ -162,20 +210,30 @@ fn main() -> Result<(), String> {
             }
             ingest_manifest(&path)
         }
-        (None, None, Some((input, out)), None, None, None, None) => vendor_el_corpus(&input, &out),
-        (None, None, None, Some(corpus_dir), None, None, None) => vendor_tptp_corpus(&corpus_dir),
-        (None, None, None, None, Some((input, corpus_name, out_nq)), None, None) => {
+        (None, None, Some((input, out)), None, None, None, None, None, None) => {
+            vendor_el_corpus(&input, &out)
+        }
+        (None, None, None, Some(corpus_dir), None, None, None, None, None) => {
+            vendor_tptp_corpus(&corpus_dir)
+        }
+        (None, None, None, None, Some(corpus_dir), None, None, None, None) => {
+            vendor_ontouml_corpus(&corpus_dir)
+        }
+        (None, None, None, None, None, Some((input, corpus_name, out_nq)), None, None, None) => {
             grade_suite_corpus(&input, &corpus_name, &out_nq)
         }
-        (None, None, None, None, None, Some((dir, corpus_name, out_nq)), None) => {
+        (None, None, None, None, None, None, Some((dir, corpus_name, out_nq)), None, None) => {
             grade_ore_corpus(&dir, &corpus_name, &out_nq)
         }
-        (None, None, None, None, None, None, Some((dir, corpus_name, out_nq))) => {
+        (None, None, None, None, None, None, None, Some((dir, corpus_name, out_nq)), None) => {
             grade_tptp_corpus(&dir, &corpus_name, &out_nq)
         }
+        (None, None, None, None, None, None, None, None, Some((dir, corpus_name, out_nq))) => {
+            grade_ontouml_corpus(&dir, &corpus_name, &out_nq)
+        }
         _ => Err(format!(
-            "one of --szs / --manifest / --vendor-el / --vendor-tptp / --grade-suite / \
-             --grade-ore / --grade-tptp is required\n{USAGE}"
+            "one of --szs / --manifest / --vendor-el / --vendor-tptp / --vendor-ontouml / \
+             --grade-suite / --grade-ore / --grade-tptp / --grade-ontouml is required\n{USAGE}"
         )),
     }
 }
@@ -183,6 +241,12 @@ fn main() -> Result<(), String> {
 /// The SPDX header prepended to every generated TPTP-corpus stub/derived file
 /// (self-authored, CC-BY-4.0 — the same license the corpus.json declares).
 const TPTP_SPDX_HEADER: &str =
+    "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
+     # SPDX-License-Identifier: CC-BY-4.0\n";
+
+/// The SPDX header prepended to every generated OntoUML-corpus stub/derived file
+/// (self-authored, CC-BY-4.0 — the same license the corpus.json declares).
+const ONTOUML_SPDX_HEADER: &str =
     "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
      # SPDX-License-Identifier: CC-BY-4.0\n";
 
@@ -349,6 +413,245 @@ fn write_tptp_case(
     let mut verdicts_obj = BTreeMap::new();
     verdicts_obj.insert(world_iri.to_owned(), world_entry);
     let verdicts_json = serde_json::to_string_pretty(&verdicts_obj)
+        .map_err(|e| format!("serialize verdicts.json: {e}"))?
+        + "\n";
+    std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json)
+        .map_err(|e| format!("cannot write expected/verdicts.json: {e}"))?;
+
+    Ok(())
+}
+
+/// Read the DOCUMENTED anti-pattern label of an OntoUML case from its authored
+/// `profile.json` (the `documented_antipattern` string key). Returns `None` when the
+/// file is absent or the key is missing (a clean-control case); a present-but-non-
+/// string value is a hard error. The corpus author sets this label; this tool
+/// regenerates the rest of the anatomy and never invents it.
+fn read_documented_antipattern(profile_path: &Path) -> Result<Option<String>, String> {
+    if !profile_path.is_file() {
+        return Ok(None);
+    }
+    let text = std::fs::read_to_string(profile_path)
+        .map_err(|e| format!("cannot read {}: {e}", profile_path.display()))?;
+    let value: serde_json::Value = serde_json::from_str(&text)
+        .map_err(|e| format!("cannot parse {}: {e}", profile_path.display()))?;
+    match value.get("documented_antipattern") {
+        None | Some(serde_json::Value::Null) => Ok(None),
+        Some(serde_json::Value::String(s)) => Ok(Some(s.clone())),
+        Some(other) => Err(format!(
+            "{}: documented_antipattern must be a string, got {other}",
+            profile_path.display()
+        )),
+    }
+}
+
+/// Regenerate the derived anatomy of a self-authored OntoUML Lane-A corpus from its
+/// source `model.ttl` files.
+///
+/// For each `<corpus-dir>/<slug>/source/model.ttl`: read the documented anti-pattern
+/// label from the case's authored `profile.json` (absent for a clean control), parse
+/// the model, lower it onto the world-scoped `logic:` stereotype ABox, run the native
+/// foundation disciplines, and (re)write `profile.json`, the `input.logic.ttl` stub,
+/// the generated `input.nq`, and the blessed `expected/{materialized.nq,verdicts.json}`.
+///
+/// Hard-fail (Lane-A is agreeing-by-construction): a documented anti-pattern the
+/// disciplines do NOT reproduce (`CorpusOnly`) belongs in the sibling `-divergence`
+/// corpus (an honest gap), a clean control that fires anything (`EngineOnly`) is a
+/// soundness false positive, and a well-formed but out-of-fragment construct
+/// (`Unsupported`) belongs in `-divergence` too — each a loud error, never vendored.
+fn vendor_ontouml_corpus(corpus_dir: &Path) -> Result<(), String> {
+    let corpus_name = corpus_dir
+        .file_name()
+        .and_then(|s| s.to_str())
+        .ok_or_else(|| format!("cannot derive corpus name from {}", corpus_dir.display()))?;
+
+    let mut slugs: Vec<PathBuf> = std::fs::read_dir(corpus_dir)
+        .map_err(|e| format!("cannot read {}: {e}", corpus_dir.display()))?
+        .map(|e| e.map(|e| e.path()).map_err(|e| e.to_string()))
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .filter(|p| p.is_dir())
+        .collect();
+    slugs.sort();
+
+    let mut vendored = 0usize;
+    for case_dir in slugs {
+        let slug = case_dir
+            .file_name()
+            .and_then(|s| s.to_str())
+            .ok_or_else(|| format!("bad case dir {}", case_dir.display()))?
+            .to_string();
+        let model_path = case_dir.join("source").join("model.ttl");
+        if !model_path.is_file() {
+            return Err(format!(
+                "{}: OntoUML case has no source/model.ttl",
+                case_dir.display()
+            ));
+        }
+        let text = std::fs::read_to_string(&model_path)
+            .map_err(|e| format!("cannot read {}: {e}", model_path.display()))?;
+
+        // The documented anti-pattern is authored provenance carried in the case's
+        // profile.json (absent for a clean control); we regenerate the rest here.
+        let documented = read_documented_antipattern(&case_dir.join("profile.json"))?;
+
+        // Build the base IRI from an ABSOLUTE path (mirrors `ingest_manifest`).
+        let abs = std::path::absolute(&model_path)
+            .map_err(|e| format!("cannot resolve {}: {e}", model_path.display()))?;
+        let base = format!("file://{}", abs.display());
+        let model = parse_ontouml_model(&text, Some(&base)).map_err(|e| match e {
+            OntoumlError::Syntax(m) => format!("{}: malformed OntoUML: {m}", model_path.display()),
+            OntoumlError::Unsupported(m) => format!(
+                "{}: out-of-fragment construct ({m}) — this model belongs in the \
+                 sibling -divergence corpus, not Lane-A",
+                model_path.display()
+            ),
+        })?;
+
+        let world_iri = format!("https://gmeow.example/{corpus_name}/{slug}/w");
+        let (fq, input_nq, _count) =
+            lower_and_evaluate(&model, &world_iri, AntiRigidityPolicy::WitnessObligation).map_err(
+                |e| match e {
+                    OntoumlError::Syntax(m) => format!(
+                        "{}: OntoUML lowering/evaluation failed: {m}",
+                        model_path.display()
+                    ),
+                    OntoumlError::Unsupported(m) => format!(
+                        "{}: out-of-fragment construct ({m}) — this model belongs in the \
+                         sibling -divergence corpus (an honest gap), not Lane-A",
+                        model_path.display()
+                    ),
+                },
+            )?;
+
+        let fired = fired_disciplines(&fq);
+
+        // Lane-A is agreeing-by-construction: the documented anti-pattern MUST fire,
+        // and a clean control MUST fire nothing.
+        match compare(documented.as_deref(), &fired) {
+            DisciplineVerdict::Agree => {}
+            DisciplineVerdict::CorpusOnly => {
+                return Err(format!(
+                    "{}: documented anti-pattern {} was NOT reproduced by the native \
+                     disciplines (fired: {fired:?}) — this model belongs in the sibling \
+                     -divergence corpus (an honest gap), never Lane-A",
+                    model_path.display(),
+                    documented.as_deref().unwrap_or("<none>")
+                ));
+            }
+            DisciplineVerdict::EngineOnly => {
+                return Err(format!(
+                    "{}: clean-control case fired disciplines {fired:?} — a soundness FALSE \
+                     POSITIVE; Lane-A clean controls must fire nothing",
+                    model_path.display()
+                ));
+            }
+            DisciplineVerdict::DlGap => {
+                return Err(format!(
+                    "{}: discipline comparison yielded an unexpected DlGap — a lowering gap \
+                     belongs in the sibling -divergence corpus, not Lane-A",
+                    model_path.display()
+                ));
+            }
+        }
+
+        write_ontouml_case(&case_dir, &input_nq, &fq, documented.as_deref())?;
+        println!("VENDOR {slug}: fired={fired:?} documented={documented:?}");
+        vendored += 1;
+    }
+
+    if vendored == 0 {
+        return Err(format!(
+            "{}: no OntoUML cases found (expected <slug>/source/model.ttl dirs)",
+            corpus_dir.display()
+        ));
+    }
+    println!(
+        "vendored {vendored} OntoUML case(s) into {}",
+        corpus_dir.display()
+    );
+    Ok(())
+}
+
+/// (Re)write the derived anatomy of one OntoUML Lane-A case: `profile.json` (native
+/// foundation-lowering materialization, carrying the documented anti-pattern label
+/// only when present), the `input.logic.ttl` stub, the generated `input.nq`, and the
+/// blessed `expected/{materialized.nq,verdicts.json}`. The authored `source/model.ttl`
+/// is left untouched.
+fn write_ontouml_case(
+    case_dir: &Path,
+    input_nq: &str,
+    fq: &[FoundationQuad],
+    documented: Option<&str>,
+) -> Result<(), String> {
+    let expected_dir = case_dir.join("expected");
+    std::fs::create_dir_all(&expected_dir)
+        .map_err(|e| format!("cannot create {}: {e}", expected_dir.display()))?;
+
+    // profile.json — native foundation-lowering materialization (not certified). The
+    // documented anti-pattern label is carried ONLY when present (a clean control
+    // omits the key entirely, matching the `Option<String>` None semantics).
+    let mut profile = BTreeMap::new();
+    profile.insert(
+        "reasoning_contract",
+        serde_json::json!({ "preset": "StratifiedNAFProfile" }),
+    );
+    profile.insert("mode", serde_json::json!("native"));
+    profile.insert("foundation_lowering", serde_json::json!(true));
+    profile.insert("certify", serde_json::json!(false));
+    if let Some(label) = documented {
+        profile.insert("documented_antipattern", serde_json::json!(label));
+    }
+    let profile_json = serde_json::to_string_pretty(&profile)
+        .map_err(|e| format!("serialize profile.json: {e}"))?
+        + "\n";
+    std::fs::write(case_dir.join("profile.json"), profile_json)
+        .map_err(|e| format!("cannot write profile.json: {e}"))?;
+
+    // input.logic.ttl — stub required by the per-case anatomy (the native foundation
+    // evaluator reads the world-scoped logic: ABox in input.nq, not this file).
+    let stub_ttl = format!(
+        "{ONTOUML_SPDX_HEADER}#\n\
+         # foundation-lowering native case. The world-scoped logic: ABox is the\n\
+         # N-Quads in input.nq, GENERATED from source/model.ttl by\n\
+         # `ingest-external --vendor-ontouml` (OntoUML metamodel → logic: stereotype\n\
+         # lowering), consumed by the native foundation evaluator. This stub only\n\
+         # satisfies the per-case anatomy.\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n"
+    );
+    std::fs::write(case_dir.join("input.logic.ttl"), stub_ttl)
+        .map_err(|e| format!("cannot write input.logic.ttl: {e}"))?;
+
+    // input.nq — the generated, world-scoped, sorted+deduped stereotype ABox.
+    std::fs::write(case_dir.join("input.nq"), input_nq)
+        .map_err(|e| format!("cannot write input.nq: {e}"))?;
+
+    // Map FoundationQuads → RunnerQuads field-for-field (no filtering) — byte-
+    // identical to what `materialize_foundation` produces in the harness.
+    let runner_quads: Vec<RunnerQuad> = fq
+        .iter()
+        .map(|q| RunnerQuad {
+            graph: q.graph.clone(),
+            subject: q.subject.clone(),
+            predicate: q.predicate.clone(),
+            obj: q.object.clone(),
+            derivation_id: q.derivation_id.clone(),
+            rule_iri: q.rule_iri.clone(),
+            source_quad_ids: q.source_quad_ids.clone(),
+        })
+        .collect();
+
+    // expected/materialized.nq — the derived foundation quads the harness re-asserts.
+    std::fs::write(
+        expected_dir.join("materialized.nq"),
+        materialized_to_nquads(&runner_quads),
+    )
+    .map_err(|e| format!("cannot write expected/materialized.nq: {e}"))?;
+
+    // expected/verdicts.json — foundation materialization is always consistent (a
+    // discipline violation is a materialized diagnostic, not an inconsistency).
+    let counts = count_worlds(&runner_quads);
+    let verdicts = build_verdicts(&counts, |_| VerdictStatus::Consistent);
+    let verdicts_json = serde_json::to_string_pretty(&verdicts)
         .map_err(|e| format!("serialize verdicts.json: {e}"))?
         + "\n";
     std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json)
@@ -1214,6 +1517,199 @@ fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Re
     Ok(())
 }
 
+/// Recursively collect OntoUML model files (named `ontology.ttl` or `model.ttl`)
+/// under `dir`, sorted.
+///
+/// Symlink-safe: `file_type()` reuses the directory-walk's `stat` and does not
+/// traverse symlinks, so a circular link cannot drive the walk into an infinite loop
+/// (mirrors `collect_tptp_problems`).
+fn collect_ontouml_models(dir: &Path) -> Result<Vec<PathBuf>, String> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        for entry in std::fs::read_dir(&d).map_err(|e| format!("read_dir {}: {e}", d.display()))? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let file_type = entry
+                .file_type()
+                .map_err(|e| format!("file_type {}: {e}", entry.path().display()))?;
+            let path = entry.path();
+            if file_type.is_dir() {
+                stack.push(path);
+            } else if matches!(
+                path.file_name().and_then(|s| s.to_str()),
+                Some("ontology.ttl" | "model.ttl")
+            ) {
+                out.push(path);
+            }
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
+/// Read a declared license from a model's sibling `metadata.ttl` (if present),
+/// returning the first `dcterms:` / `dcat:` / `schema:` license object as its bare
+/// IRI or literal lexical form. Returns `None` when no metadata file or no license
+/// triple is found. This is a provenance disclosure (never a gate): Lane-B grades
+/// live and commits nothing.
+fn read_ontouml_license(model_path: &Path) -> Result<Option<String>, String> {
+    let Some(dir) = model_path.parent() else {
+        return Ok(None);
+    };
+    let metadata = dir.join("metadata.ttl");
+    if !metadata.is_file() {
+        return Ok(None);
+    }
+    let text = std::fs::read_to_string(&metadata)
+        .map_err(|e| format!("cannot read {}: {e}", metadata.display()))?;
+    let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
+        .map_err(|e| format!("cannot parse {}: {e}", metadata.display()))?;
+    const LICENSE_PREDS: [&str; 3] = [
+        "http://purl.org/dc/terms/license",
+        "http://www.w3.org/ns/dcat#license",
+        "http://schema.org/license",
+    ];
+    for q in ds.quad_refs() {
+        let TermRef::Iri(pred) = q.p else { continue };
+        if !LICENSE_PREDS.contains(&pred) {
+            continue;
+        }
+        match q.o {
+            TermRef::Iri(iri) => return Ok(Some(iri.to_owned())),
+            TermRef::Literal { lexical, .. } => return Ok(Some(lexical.to_owned())),
+            _ => continue,
+        }
+    }
+    Ok(None)
+}
+
+/// Lane-B: grade a live-fetched FAIR OntoUML/UFO catalog against the native
+/// foundation disciplines (OntoUML metamodel → `logic:` stereotype lowering →
+/// `gmeow_logic::foundation::evaluate`), gap-tolerantly, and write the divergences as
+/// a `gmeow:Finding` N-Quads graph to `out_nq`.
+///
+/// The real catalog ships NO per-model documented anti-pattern, so the null
+/// hypothesis is `clean`: every fired discipline surfaces as a `CorpusOnly` finding
+/// for review (native != published `"clean"`), and every un-lowerable model — a
+/// well-formed `Unsupported` fragment boundary at parse or lower time — is an honest
+/// capability gap recorded with a native `incomplete` token (a `DlGap` row), its
+/// reason disclosed to stderr, never a silent pass. A malformed source
+/// (`OntoumlError::Syntax`) is instead a HARD FAIL: a corrupt/mis-fetched model is a
+/// corpus defect, not a capability gap. Each model's sibling `metadata.ttl` license is
+/// audited and disclosed (never a skip — the audit is provenance, not a gate; Lane-B
+/// grades live and commits nothing). This is the non-required, network-allowed lane
+/// (the real catalog has per-model licenses and is never vendored); it is the
+/// documented path from the tiny Lane-A `ontouml-mini` corpus to the full set.
+fn grade_ontouml_corpus(
+    catalog_dir: &Path,
+    corpus_name: &str,
+    out_nq: &Path,
+) -> Result<(), String> {
+    let models = collect_ontouml_models(catalog_dir)?;
+    if models.is_empty() {
+        return Err(format!(
+            "no ontology.ttl / model.ttl OntoUML models found under {} — populate the \
+             directory (or set the catalog subset URL) before grading",
+            catalog_dir.display()
+        ));
+    }
+
+    let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
+    let mut capability_gaps = 0usize;
+    for model_path in &models {
+        // License audit + disclosure. NOT a skip: Lane-B grades live and commits
+        // nothing, so a ReferenceOnly license is disclosed provenance, not a gate.
+        match read_ontouml_license(model_path)? {
+            Some(license) => {
+                let policy = match policy_for_license(&license) {
+                    LicensePolicy::ImportOk => "ImportOk",
+                    LicensePolicy::ReferenceOnly => "ReferenceOnly",
+                };
+                eprintln!("LICENSE {}: {license} → {policy}", model_path.display());
+            }
+            None => eprintln!("LICENSE {}: unknown", model_path.display()),
+        }
+
+        let text = std::fs::read_to_string(model_path)
+            .map_err(|e| format!("cannot read {}: {e}", model_path.display()))?;
+
+        // Slug = a sanitized catalog-relative path (deterministic, collision-free).
+        let rel = model_path.strip_prefix(catalog_dir).unwrap_or(model_path);
+        let slug = to_slug(&rel.to_string_lossy());
+        let world = format!("https://gmeow.example/{corpus_name}/{slug}/w");
+
+        // Gap-tolerant native discipline verdict. A well-formed but out-of-fragment
+        // model — `Unsupported` at parse or lower time — is an honest capability gap
+        // → a native `incomplete` token → a DlGap ledger row, with the reason
+        // disclosed to stderr, never a silent pass. A malformed source
+        // (`OntoumlError::Syntax`) is a corpus-authoring defect → a HARD FAIL.
+        let model = match parse_ontouml_model(&text, None) {
+            Ok(m) => m,
+            Err(OntoumlError::Syntax(m)) => {
+                return Err(format!("{}: malformed OntoUML: {m}", model_path.display()));
+            }
+            Err(OntoumlError::Unsupported(reason)) => {
+                eprintln!(
+                    "{}: capability gap (out of fragment): {reason}",
+                    model_path.display()
+                );
+                capability_gaps += 1;
+                comparisons.push(gmeow_logic::reason::ExternalComparison {
+                    case: slug,
+                    world,
+                    native: "incomplete".to_string(),
+                    published: "clean".to_string(),
+                });
+                continue;
+            }
+        };
+
+        let native = match lower_and_evaluate(&model, &world, AntiRigidityPolicy::WitnessObligation)
+        {
+            Ok((fq, _nq, _count)) => {
+                let fired = fired_disciplines(&fq);
+                native_verdict_string(None, &fired)
+            }
+            Err(OntoumlError::Syntax(m)) => {
+                return Err(format!(
+                    "{}: OntoUML lowering/evaluation failed: {m}",
+                    model_path.display()
+                ));
+            }
+            Err(OntoumlError::Unsupported(reason)) => {
+                eprintln!("{}: capability gap: {reason}", model_path.display());
+                capability_gaps += 1;
+                "incomplete".to_string()
+            }
+        };
+
+        comparisons.push(gmeow_logic::reason::ExternalComparison {
+            case: slug,
+            world,
+            native,
+            published: "clean".to_string(),
+        });
+    }
+
+    let nq = gmeow_conformance::divergence::emit_divergence_nq(corpus_name, &comparisons);
+    if let Some(parent) = out_nq.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create output dir {}: {e}", parent.display()))?;
+    }
+    std::fs::write(out_nq, &nq).map_err(|e| format!("cannot write {}: {e}", out_nq.display()))?;
+
+    let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
+    let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    println!(
+        "graded={} agree={} corpus_only={} dl_gap={} capability_gaps={capability_gaps}",
+        comparisons.len(),
+        ledger.agree,
+        ledger.corpus_only,
+        ledger.dl_gap
+    );
+    Ok(())
+}
+
 /// Grade every ConsistencyTest / InconsistencyTest in `input_rdf` gap-tolerantly
 /// against the native reasoner and write divergences as a `gmeow:Finding` N-Quads
 /// graph to `out_nq`.
@@ -2021,6 +2517,202 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         assert!(
             result.unwrap_err().contains("no *.owl ontologies"),
             "error must name the empty-extract condition"
+        );
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    // ── OntoUML vendoring/grading-adapter unit tests ─────────────────────────
+    //
+    // These are network-free: they exercise `write_ontouml_case` into a tempdir and
+    // the `grade_ontouml_corpus` empty-dir hard-fail, mirroring the ORE-adapter tests.
+
+    /// A world-scoped `FoundationQuad` helper for the write-case round-trip test.
+    fn fq(subject: &str, predicate: &str, object: &str, world: &str) -> super::FoundationQuad {
+        super::FoundationQuad {
+            graph: world.to_owned(),
+            subject: subject.to_owned(),
+            predicate: predicate.to_owned(),
+            object: object.to_owned(),
+            rule_iri: "https://blackcatinformatics.ca/logic/assert".to_owned(),
+            source_quad_ids: Vec::new(),
+            derivation_id: "d0".to_owned(),
+        }
+    }
+
+    /// `write_ontouml_case` must lay down the full per-case anatomy: `profile.json`
+    /// (carrying the documented anti-pattern label), the `input.logic.ttl` stub, the
+    /// generated `input.nq`, and the blessed `expected/{materialized.nq,verdicts.json}`.
+    #[test]
+    fn write_ontouml_case_round_trips_documented_case() {
+        let base =
+            std::env::temp_dir().join(format!("gmeow-ontouml-vendor-{}-doc", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).expect("create case dir");
+
+        let world = "https://gmeow.example/ontouml-mini/free-role/w";
+        let input_nq = format!("<https://ex/Wanderer> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Wanderer> <{world}> .\n");
+        let quads = vec![fq(
+            "https://ex/Wanderer",
+            "https://blackcatinformatics.ca/logic/violation",
+            "<https://blackcatinformatics.ca/logic/FreeRole>",
+            world,
+        )];
+
+        super::write_ontouml_case(&base, &input_nq, &quads, Some("FreeRole"))
+            .expect("write_ontouml_case must succeed");
+
+        // profile.json — native foundation-lowering, certify:false, documented label.
+        let profile = std::fs::read_to_string(base.join("profile.json")).expect("profile.json");
+        assert!(
+            profile.contains("\"documented_antipattern\": \"FreeRole\""),
+            "{profile}"
+        );
+        assert!(profile.contains("\"certify\": false"), "{profile}");
+        assert!(
+            profile.contains("\"foundation_lowering\": true"),
+            "{profile}"
+        );
+        assert!(
+            profile.contains("\"preset\": \"StratifiedNAFProfile\""),
+            "{profile}"
+        );
+        assert!(profile.contains("\"mode\": \"native\""), "{profile}");
+        assert!(!profile.contains("verdict_mode"), "{profile}");
+
+        // input.logic.ttl — CC-BY stub with the logic: prefix.
+        let stub = std::fs::read_to_string(base.join("input.logic.ttl")).expect("input.logic.ttl");
+        assert!(
+            stub.contains("SPDX-License-Identifier: CC-BY-4.0"),
+            "{stub}"
+        );
+        assert!(
+            stub.contains("@prefix logic: <https://blackcatinformatics.ca/logic/> ."),
+            "{stub}"
+        );
+        assert!(stub.contains("--vendor-ontouml"), "{stub}");
+
+        // input.nq — verbatim world-scoped lowering.
+        let nq = std::fs::read_to_string(base.join("input.nq")).expect("input.nq");
+        assert_eq!(nq, input_nq);
+
+        // expected/materialized.nq — the mapped foundation quad, world-scoped.
+        let mat =
+            std::fs::read_to_string(base.join("expected").join("materialized.nq")).expect("mat.nq");
+        assert_eq!(
+            mat,
+            format!(
+                "<https://ex/Wanderer> <https://blackcatinformatics.ca/logic/violation> \
+                 <https://blackcatinformatics.ca/logic/FreeRole> <{world}> .\n"
+            )
+        );
+
+        // expected/verdicts.json — one world, always consistent, quad-count 1.
+        let verdicts =
+            std::fs::read_to_string(base.join("expected").join("verdicts.json")).expect("verdicts");
+        assert!(verdicts.contains(world), "{verdicts}");
+        assert!(
+            verdicts.contains("\"status\": \"consistent\""),
+            "{verdicts}"
+        );
+        assert!(verdicts.contains("\"quads\": 1"), "{verdicts}");
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// A clean-control case (`documented == None`) must OMIT the
+    /// `documented_antipattern` key entirely (matching the `Option<String>` None
+    /// semantics), and its `materialized.nq` must be empty (nothing fired).
+    #[test]
+    fn write_ontouml_case_clean_control_omits_documented_key() {
+        let base =
+            std::env::temp_dir().join(format!("gmeow-ontouml-vendor-{}-clean", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).expect("create case dir");
+
+        let world = "https://gmeow.example/ontouml-mini/clean/w";
+        let input_nq = format!("<https://ex/Person> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Person> <{world}> .\n");
+
+        super::write_ontouml_case(&base, &input_nq, &[], None)
+            .expect("write_ontouml_case must succeed");
+
+        let profile = std::fs::read_to_string(base.join("profile.json")).expect("profile.json");
+        assert!(!profile.contains("documented_antipattern"), "{profile}");
+        assert!(profile.contains("\"certify\": false"), "{profile}");
+
+        // No fired quads → empty materialized.nq and empty (`{}`) verdicts.
+        let mat =
+            std::fs::read_to_string(base.join("expected").join("materialized.nq")).expect("mat.nq");
+        assert_eq!(mat, "");
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// An empty (or no-model) directory must hard-fail rather than silently pass a
+    /// vacuous grade — a broken extract / unpopulated catalog is a real error.
+    #[test]
+    fn grade_ontouml_hard_fails_on_empty_dir() {
+        let base = std::env::temp_dir().join(format!("gmeow-ontouml-empty-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).expect("create empty catalog dir");
+
+        let out_nq = base.join("divergence.nq");
+        let result = super::grade_ontouml_corpus(&base, "ontouml-catalog", &out_nq);
+        assert!(
+            result.is_err(),
+            "an empty OntoUML catalog must hard-fail, not vacuously pass"
+        );
+        assert!(
+            result.unwrap_err().contains("no ontology.ttl / model.ttl"),
+            "error must name the empty-catalog condition"
+        );
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// `grade_ontouml_corpus` over a synthetic catalog: one clean model (fires
+    /// nothing → `clean` → Agree, no Finding) and one FreeRole anti-pattern model
+    /// (fires `FreeRole` → native != published `"clean"` → CorpusOnly Finding). The
+    /// FreeRole divergence must surface as a `corpus-only` Finding.
+    #[test]
+    fn grade_ontouml_surfaces_fired_discipline_as_corpus_only() {
+        let base = std::env::temp_dir().join(format!("gmeow-ontouml-grade-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(base.join("clean")).expect("create clean dir");
+        std::fs::create_dir_all(base.join("freerole")).expect("create freerole dir");
+
+        // A clean kind class fires nothing.
+        std::fs::write(
+            base.join("clean").join("model.ttl"),
+            "@prefix ontouml: <https://w3id.org/ontouml#> .\n\
+             @prefix ex: <https://example.org/onto/> .\n\
+             ex:Person a ontouml:Class ; ontouml:stereotype ontouml:kind .\n",
+        )
+        .expect("write clean model");
+
+        // A lone role class (no rigid ancestor) is the FreeRole anti-pattern.
+        std::fs::write(
+            base.join("freerole").join("ontology.ttl"),
+            "@prefix ontouml: <https://w3id.org/ontouml#> .\n\
+             @prefix ex: <https://example.org/onto/> .\n\
+             ex:Wanderer a ontouml:Class ; ontouml:stereotype ontouml:role .\n",
+        )
+        .expect("write freerole model");
+
+        let out_nq = base.join("divergence.nq");
+        super::grade_ontouml_corpus(&base, "ontouml-catalog", &out_nq)
+            .expect("grade must succeed (grading never gates)");
+
+        let nq = std::fs::read_to_string(&out_nq).expect("read divergence nq");
+        assert!(
+            nq.contains("reason.divergence.corpus-only"),
+            "fired FreeRole must surface as a corpus-only Finding: {nq}"
+        );
+        // Exactly one Finding (the clean model agrees → no row).
+        let finding_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
+        assert_eq!(
+            finding_count, 1,
+            "exactly one corpus-only Finding expected: {nq}"
         );
 
         let _ = std::fs::remove_dir_all(&base);
