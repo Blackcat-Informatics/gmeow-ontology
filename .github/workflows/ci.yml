@@ -64,7 +64,7 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Cache pre-commit hook environments
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -205,7 +205,7 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@b8cecb83565409bcc297b2df6e77f030b2a468d5 # v2
+        uses: taiki-e/install-action@ace6ebe54a6a0c86dfb5f7764b17f793b6925bc3 # v2
         with:
           tool: cargo-nextest
 
@@ -326,7 +326,7 @@ jobs:
           enable-cache: true
 
       - name: Cache generator stamps
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .stamps/generators
           key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
@@ -334,7 +334,7 @@ jobs:
             generator-stamps-${{ runner.os }}-
 
       - name: Cache ontology-docs build outputs
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/ontology-docs
           key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
@@ -365,7 +365,7 @@ jobs:
       # coarse content hint over the validated sources + the Rust validator; the
       # authoritative invalidation stays the in-process content key.
       - name: Cache validate (content-addressed SHACL findings)
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/validate
           key: validate-${{ runner.os }}-${{ hashFiles('slices/**/*.ttl', 'shapes/**/*.ttl', 'dsl/**/*.ttl', 'crates/shacl/**/*.rs', 'crates/validate/**/*.rs') }}
@@ -389,7 +389,7 @@ jobs:
           enable-cache: true
 
       - name: Cache generator stamps
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .stamps/generators
           key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
@@ -397,7 +397,7 @@ jobs:
             generator-stamps-${{ runner.os }}-
 
       - name: Cache ontology-docs build outputs
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/ontology-docs
           key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
@@ -439,7 +439,7 @@ jobs:
           enable-cache: true
 
       - name: Cache generator stamps
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .stamps/generators
           key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
@@ -447,7 +447,7 @@ jobs:
             generator-stamps-${{ runner.os }}-
 
       - name: Cache ontology-docs build outputs
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/ontology-docs
           key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
@@ -489,7 +489,7 @@ jobs:
           enable-cache: true
 
       - name: Cache generator stamps
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .stamps/generators
           key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
@@ -497,7 +497,7 @@ jobs:
             generator-stamps-${{ runner.os }}-
 
       - name: Cache ontology-docs build outputs
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/ontology-docs
           key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
@@ -570,7 +570,7 @@ jobs:
       # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.125) byte
       # for byte, or it refuses to generate the JS bindings.
       - name: Install wasm-bindgen-cli (pinned to the crate version)
-        uses: taiki-e/install-action@b8cecb83565409bcc297b2df6e77f030b2a468d5 # v2
+        uses: taiki-e/install-action@ace6ebe54a6a0c86dfb5f7764b17f793b6925bc3 # v2
         with:
           tool: wasm-bindgen-cli@0.2.125
 
