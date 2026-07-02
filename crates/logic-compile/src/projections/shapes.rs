@@ -112,6 +112,33 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
             }
             v
         }
+        // A precision satellite projects to the same numeric facets as a magnitude range — it is
+        // faithfully expressible in SHACL Core (no residue).
+        ConstraintComponent::PrecisionRange {
+            min,
+            max,
+            min_inclusive,
+            max_inclusive,
+        } => {
+            let mut v = Vec::new();
+            if let Some(lo) = min {
+                let p = if *min_inclusive {
+                    "minInclusive"
+                } else {
+                    "minExclusive"
+                };
+                v.push(format!("sh:{p} {}", format_bound(*lo)));
+            }
+            if let Some(hi) = max {
+                let p = if *max_inclusive {
+                    "maxInclusive"
+                } else {
+                    "maxExclusive"
+                };
+                v.push(format!("sh:{p} {}", format_bound(*hi)));
+            }
+            v
+        }
         ConstraintComponent::Datatype(d) => vec![format!("sh:datatype {}", iri_term(d))],
         ConstraintComponent::Class(c) => vec![format!("sh:class {}", iri_term(c))],
         ConstraintComponent::NodeKindShacl(k) => vec![format!("sh:nodeKind sh:{}", k.as_str())],
@@ -349,6 +376,30 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
         match c {
             ConstraintComponent::Datatype(d) => datatype = iri_term(d),
             ConstraintComponent::NumericRange {
+                min,
+                max,
+                min_inclusive,
+                max_inclusive,
+            } => {
+                if let Some(lo) = min {
+                    let f = if *min_inclusive {
+                        "MININCLUSIVE"
+                    } else {
+                        "MINEXCLUSIVE"
+                    };
+                    facets.push(format!("{f} {}", format_bound(*lo)));
+                }
+                if let Some(hi) = max {
+                    let f = if *max_inclusive {
+                        "MAXINCLUSIVE"
+                    } else {
+                        "MAXEXCLUSIVE"
+                    };
+                    facets.push(format!("{f} {}", format_bound(*hi)));
+                }
+            }
+            // A precision satellite projects to the same ShEx numeric facets as a magnitude range.
+            ConstraintComponent::PrecisionRange {
                 min,
                 max,
                 min_inclusive,
