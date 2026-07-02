@@ -33,6 +33,11 @@ use std::fmt;
 
 use crate::opt_lift::{OptConstraintIr, OptConstraintKind, OptInterval};
 
+/// The XML local name of an OPT ordinal-value-set node kind.
+const C_DV_ORDINAL: &str = "C_DV_ORDINAL";
+/// The XML local name of an OPT datetime-validity-pattern node kind.
+const C_DATE_TIME: &str = "C_DATE_TIME";
+
 /// A parsed `C_DV_QUANTITY` magnitude interval, read verbatim from an OPT.
 #[derive(Debug, Clone, PartialEq)]
 pub struct MagnitudeInterval {
@@ -267,6 +272,8 @@ pub fn read_all_opt_constraints(
                     })
             }
             Some("C_CODE_PHRASE") => code_phrase_value_set(node, base_iri)?,
+            Some(C_DV_ORDINAL) => ordinal_value_set(node, base_iri)?,
+            Some(C_DATE_TIME) => datetime_pattern(node, base_iri)?,
             // A complex-object node carries its multiplicity as a direct `<occurrences>`
             // interval — the OPT's cardinality/occurrences constraint node kind.
             Some("C_COMPLEX_OBJECT") => cardinality_from_occurrences(node, base_iri, label)?,
@@ -299,8 +306,8 @@ pub fn read_all_opt_constraints(
     let _ = idx;
     if out.is_empty() {
         return Err(opt_err(
-            "no C_DV_QUANTITY / C_STRING / C_CODE_PHRASE / occurrences / term_binding constraint \
-             found in OPT",
+            "no C_DV_QUANTITY / C_STRING / C_CODE_PHRASE / occurrences / term_binding / \
+             C_DV_ORDINAL / C_DATE_TIME constraint found in OPT",
         ));
     }
     Ok(out)
@@ -352,6 +359,8 @@ fn family_tag(kind: &OptConstraintKind) -> &'static str {
         OptConstraintKind::DateTime { .. } => "dateTime",
         OptConstraintKind::StringPattern { .. } => "stringPattern",
         OptConstraintKind::TerminologyBinding { .. } => "termBinding",
+        OptConstraintKind::Ordinal { .. } => "ordinal",
+        OptConstraintKind::DateTimePattern { .. } => "dateTimePattern",
     }
 }
 
@@ -474,6 +483,65 @@ fn code_phrase_value_set(
     }))
 }
 
+/// Extract an ordinal value set from a `C_DV_ORDINAL` node's `<list>` entries: each `<list>` is
+/// an `<value>` ordinal integer plus a `<symbol>/<defining_code>` coded term. Returns
+/// `Ok(None)` when the node has no `<list>`; hard-fails on a `<list>` missing its integer value
+/// or its terminology-qualified code (a malformed OPT — never mint a bogus code).
+fn ordinal_value_set(
+    node: roxmltree::Node,
+    base_iri: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let mut ordinals: Vec<(i64, String)> = Vec::new();
+    for list in node
+        .children()
+        .filter(|c| c.is_element() && c.tag_name().name() == "list")
+    {
+        let value: i64 = child_element(list, "value")
+            .and_then(|v| v.text())
+            .map(str::trim)
+            .ok_or_else(|| opt_err("C_DV_ORDINAL <list> has no <value>"))?
+            .parse()
+            .map_err(|e| opt_err(format!("C_DV_ORDINAL <value> is not an integer: {e}")))?;
+        let defining_code = child_element(list, "symbol")
+            .and_then(|s| child_element(s, "defining_code"))
+            .ok_or_else(|| opt_err("C_DV_ORDINAL <list> symbol has no <defining_code>"))?;
+        let terminology = child_element(defining_code, "terminology_id")
+            .and_then(|t| child_element(t, "value"))
+            .and_then(|v| v.text())
+            .map(str::trim)
+            .ok_or_else(|| opt_err("C_DV_ORDINAL defining_code has no terminology_id/value"))?;
+        let code = child_element(defining_code, "code_string")
+            .and_then(|c| c.text())
+            .map(str::trim)
+            .ok_or_else(|| opt_err("C_DV_ORDINAL defining_code has no code_string"))?;
+        ordinals.push((value, format!("{base_iri}terminology/{terminology}/{code}")));
+    }
+    if ordinals.is_empty() {
+        return Ok(None);
+    }
+    ordinals.sort();
+    Ok(Some(OptConstraintKind::Ordinal {
+        path: format!("{base_iri}value"),
+        ordinals,
+    }))
+}
+
+/// Extract a datetime validity pattern from a `C_DATE_TIME` node's `<pattern>` child. Returns
+/// `Ok(None)` when the node carries no `<pattern>` (an unconstrained datetime has nothing to
+/// lift).
+fn datetime_pattern(
+    node: roxmltree::Node,
+    base_iri: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let Some(pattern) = child_element(node, "pattern").and_then(|p| p.text()) else {
+        return Ok(None);
+    };
+    Ok(Some(OptConstraintKind::DateTimePattern {
+        path: format!("{base_iri}value"),
+        pattern: pattern.trim().to_owned(),
+    }))
+}
+
 /// Extract a cardinality constraint from a complex-object node's direct `<occurrences>`
 /// multiplicity interval — the OPT's `occurrences`/`existence` constraint node kind. Returns
 /// `None` when the node has no `<occurrences>` child. An unbounded end (`*_unbounded = true`)
@@ -568,6 +636,14 @@ mod walker_tests {
 
     const BASE: &str = "https://gmeow.example/openehr/bp/";
 
+    fn test_all_datatypes() -> String {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("../../validations/openehr-test-datatypes/TestAllDatatypes.opt");
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    }
+
+    const ALL_TYPES_BASE: &str = "https://gmeow.example/openehr/alltypes/";
+
     /// The naming map the production pipeline uses for the vendored Blutdruck OPT: the
     /// systolic/diastolic at-codes get meaningful local names, every other recognized at-code
     /// falls back to its raw form.
@@ -637,6 +713,40 @@ mod walker_tests {
         let err =
             read_all_opt_constraints("<template></template>", BASE, &empty_naming).unwrap_err();
         assert!(err.to_string().contains("no C_DV_QUANTITY"), "got: {err}");
+    }
+
+    #[test]
+    fn walker_extracts_ordinal_and_datetime_from_the_real_all_types_opt() {
+        let naming = std::collections::BTreeMap::new();
+        let all = read_all_opt_constraints(&test_all_datatypes(), ALL_TYPES_BASE, &naming)
+            .expect("walk TestAllDatatypes.opt");
+        let has = |pred: fn(&OptConstraintKind) -> bool| all.iter().any(|c| pred(&c.kind));
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::Ordinal { .. })),
+            "no ordinal value set extracted from {} constraints",
+            all.len()
+        );
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::DateTimePattern { .. })),
+            "no datetime pattern extracted"
+        );
+    }
+
+    #[test]
+    fn every_all_types_constraint_round_trips_u_after_d_is_identity() {
+        let naming = std::collections::BTreeMap::new();
+        let all = read_all_opt_constraints(&test_all_datatypes(), ALL_TYPES_BASE, &naming)
+            .expect("walk TestAllDatatypes.opt");
+        assert!(
+            all.len() >= 2,
+            "expected several constraints, got {}",
+            all.len()
+        );
+        for c in &all {
+            let shape = lift_opt_to_validation_shape(c).expect("lift");
+            let recovered = recover_opt_from_shape(&shape).expect("recover");
+            assert_eq!(&recovered, c, "u∘d must be the identity on {c:?}");
+        }
     }
 
     #[test]

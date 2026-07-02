@@ -168,6 +168,19 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
         // Lossy for SHACL Core: an external terminology has no faithful closed shape form.
         // Carried in the loss ledger by shacl_residue, never emitted as a silent constraint.
         ConstraintComponent::TerminologyBinding { .. } => Vec::new(),
+        // Project only the coded symbols as sh:in; the ordinal integers and their ordering have
+        // no SHACL form — carried in the loss ledger by shacl_residue.
+        ConstraintComponent::OrdinalSet { pairs } => {
+            let items = pairs
+                .iter()
+                .map(|(_, c)| iri_term(c))
+                .collect::<Vec<_>>()
+                .join(" ");
+            vec![format!("sh:in ( {items} )")]
+        }
+        ConstraintComponent::DateTimePattern(p) => {
+            vec![format!("sh:pattern \"{}\"", esc_str(p))]
+        }
     }
 }
 
@@ -257,6 +270,23 @@ pub fn shacl_residue(shape: &ValidationShapeIr) -> Vec<String> {
                     p.path,
                     codes.len()
                 )),
+                ConstraintComponent::OrdinalSet { pairs } => residue.push(format!(
+                    "ordinal set on {} projects only its coded symbols (sh:in); the ordinal \
+                     integer values ({}) and their ordering have no SHACL/ShEx form and are \
+                     carried in the canonical logic: layer",
+                    p.path,
+                    pairs
+                        .iter()
+                        .map(|(v, _)| v.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )),
+                ConstraintComponent::DateTimePattern(pat) => residue.push(format!(
+                    "sh:pattern on {} is an openEHR datetime validity pattern ({pat}), not an \
+                     XPath regex; a regex engine would misread its precision semantics, so the \
+                     pattern's meaning is carried in the canonical logic: layer",
+                    p.path
+                )),
                 _ => {}
             }
         }
@@ -299,6 +329,14 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
                 .join(" ");
             return format!("[{items}]");
         }
+        if let ConstraintComponent::OrdinalSet { pairs } = c {
+            let items = pairs
+                .iter()
+                .map(|(_, s)| iri_term(s))
+                .collect::<Vec<_>>()
+                .join(" ");
+            return format!("[{items}]");
+        }
     }
     let mut datatype = String::new();
     let mut nodekind: Option<&str> = None;
@@ -335,6 +373,10 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
                 let delimited = regex.replace('/', "\\/");
                 facets.push(format!("/{delimited}/{}", flags.as_deref().unwrap_or("")))
             }
+            ConstraintComponent::DateTimePattern(p) => {
+                let delimited = p.replace('/', "\\/");
+                facets.push(format!("/{delimited}/"));
+            }
             ConstraintComponent::MinLength(n) => facets.push(format!("MINLENGTH {n}")),
             ConstraintComponent::MaxLength(n) => facets.push(format!("MAXLENGTH {n}")),
             ConstraintComponent::NodeKindShacl(k) => {
@@ -352,7 +394,8 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
             ConstraintComponent::DateTimeRange { .. }
             | ConstraintComponent::LanguageIn(_)
             | ConstraintComponent::TerminologyBinding { .. }
-            | ConstraintComponent::In(_) => {}
+            | ConstraintComponent::In(_)
+            | ConstraintComponent::OrdinalSet { .. } => {}
         }
     }
     let base = if !datatype.is_empty() {
@@ -667,6 +710,63 @@ mod tests {
             residue[0].contains("no faithful SHACL Core form"),
             "{residue:?}"
         );
+    }
+
+    #[test]
+    fn ordinal_set_projects_sh_in_symbols_and_ledgers_integers() {
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/value",
+                vec![ConstraintComponent::OrdinalSet {
+                    pairs: vec![
+                        (1, "https://ex/terminology/local/at0014".into()),
+                        (2, "https://ex/terminology/local/at0015".into()),
+                    ],
+                }],
+            )],
+        );
+        let ttl = project_validation_shape_shacl(&s);
+        assert!(
+            ttl.contains(
+                "sh:in ( <https://ex/terminology/local/at0014> \
+                 <https://ex/terminology/local/at0015> )"
+            ),
+            "{ttl}"
+        );
+        assert!(!ttl.contains(" 1 ") && !ttl.contains(" 2 "), "{ttl}");
+        let residue = shacl_residue(&s);
+        assert_eq!(
+            residue.len(),
+            1,
+            "ordinal set must be ledgered: {residue:?}"
+        );
+        assert!(residue[0].contains("1"), "{residue:?}");
+        assert!(residue[0].contains("2"), "{residue:?}");
+    }
+
+    #[test]
+    fn datetime_pattern_projects_sh_pattern_and_is_ledgered() {
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/value",
+                vec![ConstraintComponent::DateTimePattern(
+                    "yyyy-mm-ddTHH:MM:SS".into(),
+                )],
+            )],
+        );
+        let ttl = project_validation_shape_shacl(&s);
+        assert!(ttl.contains("sh:pattern \"yyyy-mm-ddTHH:MM:SS\""), "{ttl}");
+        let residue = shacl_residue(&s);
+        assert_eq!(
+            residue.len(),
+            1,
+            "datetime pattern must be ledgered: {residue:?}"
+        );
+        assert!(residue[0].contains("validity pattern"), "{residue:?}");
     }
 
     #[test]
