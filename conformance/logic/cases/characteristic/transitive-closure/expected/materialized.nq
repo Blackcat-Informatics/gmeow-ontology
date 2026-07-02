@@ -1,0 +1,4 @@
+<https://example.org/characteristic/transitive-closure/A> <https://example.org/characteristic/transitive-closure/before> <https://example.org/characteristic/transitive-closure/B> <https://example.org/characteristic/transitive-closure/schema> .
+<https://example.org/characteristic/transitive-closure/A> <https://example.org/characteristic/transitive-closure/before> <https://example.org/characteristic/transitive-closure/C> <https://example.org/characteristic/transitive-closure/schema> .
+<https://example.org/characteristic/transitive-closure/B> <https://example.org/characteristic/transitive-closure/before> <https://example.org/characteristic/transitive-closure/C> <https://example.org/characteristic/transitive-closure/schema> .
+<https://example.org/characteristic/transitive-closure/before> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/transitiveProperty> <https://example.org/characteristic/transitive-closure/schema> .
