@@ -28,7 +28,9 @@
 //!   wired into `make check` via `CHECK_TARGETS`. The minimal test above remains a fast,
 //!   deterministic companion.
 
-use gmeow_logic::foundation::{evaluate as foundation_evaluate, AntiRigidityPolicy};
+use gmeow_logic::foundation::{
+    evaluate as foundation_evaluate, AntiRigidityPolicy, FoundationQuad,
+};
 use gmeow_logic::reason::dl_consistency;
 use gmeow_logic::store::WorldStore;
 use purrdf::{
@@ -51,6 +53,32 @@ const LOGIC_RELATOR: &str = "https://blackcatinformatics.ca/logic/Relator";
 // One synthetic world holding the whole bundle's relator schema — RelComp is a
 // class-level (TBox) discipline, so a single world is the correct scope.
 const BUNDLE_WORLD: &str = "https://blackcatinformatics.ca/gmeow/test/relcomp/world";
+
+// ── Property-characteristic gate (H4) ────────────────────────────────────────────
+const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
+const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const LOGIC_IRREFLEXIVITY_VIOLATION: &str =
+    "https://blackcatinformatics.ca/logic/IrreflexivityViolation";
+const LOGIC_ASYMMETRY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/AsymmetryViolation";
+// A synthetic world holding the whole bundle's characteristic schema + injected edges.
+const CHAR_WORLD: &str = "https://blackcatinformatics.ca/gmeow/test/characteristic/world";
+// Shipped properties whose characteristics the gate binds to (drop a declaration → red).
+const GMEOW_SUB_EVENT_OF: &str = "https://blackcatinformatics.ca/gmeow/subEventOf";
+const GMEOW_COUNTER_GOAL: &str = "https://blackcatinformatics.ca/gmeow/counterGoal";
+const GMEOW_COUNTERPART_OF: &str = "https://blackcatinformatics.ca/gmeow/counterpartOf";
+const GMEOW_COARSER_THAN: &str = "https://blackcatinformatics.ca/gmeow/coarserThan";
+const GMEOW_SHARPENS: &str = "https://blackcatinformatics.ca/gmeow/sharpens";
+const GMEOW_PART_OF: &str = "https://blackcatinformatics.ca/gmeow/partOf";
+const GMEOW_VERSION_OF: &str = "https://blackcatinformatics.ca/gmeow/versionOf";
+const GMEOW_EDITION_OF: &str = "https://blackcatinformatics.ca/gmeow/editionOf";
+// Drift discipline: a DL-projectable logic: characteristic record whose OWL projection
+// is missing (the two carriers of one characteristic have diverged).
+const LOGIC_CARRIER_DISAGREEMENT: &str =
+    "https://blackcatinformatics.ca/logic/CharacteristicCarrierDisagreement";
 
 // A self-contained clash in a fresh world so it can never interact with the shipped
 // ontology's own worlds: individual X is typed into A and B, which are disjoint.
@@ -279,5 +307,290 @@ fn whole_bundle_relcomp_gate_holds_and_has_teeth() {
         offenders.iter().any(|s| s == bad),
         "an injected concrete relator with a single functional role must fire RelComp: \
          {offenders:#?}"
+    );
+}
+
+/// Whether an IRI is a property-characteristic marker — the OWL characteristic classes
+/// or their `logic:` analogues.
+fn is_characteristic_marker(iri: &str) -> bool {
+    matches!(
+        iri,
+        OWL_TRANSITIVE_PROPERTY
+            | OWL_SYMMETRIC_PROPERTY
+            | OWL_IRREFLEXIVE_PROPERTY
+            | OWL_ASYMMETRIC_PROPERTY
+            | OWL_FUNCTIONAL_PROPERTY
+    ) || matches!(
+        iri.strip_prefix(LOGIC_NS),
+        Some("transitiveProperty")
+            | Some("symmetricProperty")
+            | Some("irreflexiveProperty")
+            | Some("asymmetricProperty")
+            | Some("functionalProperty")
+    )
+}
+
+/// Project the committed bundle to the IRI-only fact set the characteristic pass needs,
+/// world-scoped in [`CHAR_WORLD`]:
+///
+/// - each `?P rdf:type <characteristic marker>` type triple (owl: or logic:),
+/// - each central record `?rec logic:characterizes ?P` / `?rec logic:characteristicSort ?sort`,
+/// - every edge `?s ?P ?o` whose predicate ?P carries a characteristic, so the pass can
+///   close/mirror it and detect a self- or mutual-pair clash.
+///
+/// The foundation chase is all-IRI, so literal- and blank-object triples are dropped.
+fn project_characteristic_facts(onto: &purrdf::RdfDataset) -> BTreeSet<String> {
+    // Pass 1: which predicates carry a characteristic (a marker on the property itself, or
+    // a property named by a central record)?
+    let mut characterized: BTreeSet<String> = BTreeSet::new();
+    for q in onto.owned_quads() {
+        if let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) {
+            if q.predicate == RDF_TYPE && is_characteristic_marker(o) {
+                characterized.insert(s.clone());
+            } else if q.predicate == LOGIC_CHARACTERIZES {
+                characterized.insert(o.clone());
+            }
+        }
+    }
+    // Pass 2: emit the markers, the record links, and the edges of characterized predicates.
+    let mut lines: BTreeSet<String> = BTreeSet::new();
+    for q in onto.owned_quads() {
+        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
+            continue;
+        };
+        let emit = match q.predicate.as_str() {
+            RDF_TYPE => is_characteristic_marker(o),
+            LOGIC_CHARACTERIZES | LOGIC_CHARACTERISTIC_SORT => true,
+            pred => characterized.contains(pred),
+        };
+        if emit {
+            lines.insert(format!("<{s}> <{}> <{o}> <{CHAR_WORLD}> .\n", q.predicate));
+        }
+    }
+    lines
+}
+
+/// Run the native foundation discipline over projected characteristic N-Quads.
+fn run_characteristic_gate(nquads: &str) -> Vec<FoundationQuad> {
+    let store = WorldStore::new();
+    store
+        .load_nquads(nquads)
+        .expect("load the projected characteristic facts");
+    foundation_evaluate(&store, AntiRigidityPolicy::WitnessObligation)
+        .expect("foundation evaluate over the projected characteristic facts")
+}
+
+/// The subjects that fire a characteristic (irreflexivity/asymmetry) violation.
+fn characteristic_violations(quads: &[FoundationQuad]) -> Vec<(String, String)> {
+    let irr = format!("<{LOGIC_IRREFLEXIVITY_VIOLATION}>");
+    let asym = format!("<{LOGIC_ASYMMETRY_VIOLATION}>");
+    quads
+        .iter()
+        .filter(|q| q.predicate == LOGIC_VIOLATION && (q.object == irr || q.object == asym))
+        .map(|q| (q.subject.clone(), q.object.clone()))
+        .collect()
+}
+
+/// Whole-ontology property-characteristic gate. Projects the committed `gmeow.gts` to its
+/// characteristic schema (the marker/record declarations + the edges of characterised
+/// properties) and runs the native foundation discipline over it — the canonical `logic:`
+/// enforcement of transitivity closure, symmetric mirroring, and irreflexivity/asymmetry
+/// clashes, no longer confined to conformance fixtures.
+///
+/// HOLDS: the shipped ontology has ZERO characteristic violations. TEETH: over the shipped
+/// declarations (gmeow:subEventOf transitive, gmeow:counterGoal symmetric) the gate closes
+/// and mirrors injected edges; a fresh irreflexive self-loop and an asymmetric mutual pair
+/// injected on top must each fire; and gmeow:counterpartOf — symmetric but deliberately not
+/// transitive — is mirrored but never closed.
+///
+/// Named `whole_bundle_..._gate` and matched by the `coherence-gate-teeth` selector; the
+/// whole-bundle chase is carved out of the budget-gated nextest profile by `default-filter`
+/// (budget-exempt, not gate-exempt).
+#[test]
+fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
+    let gts_path = repo_root().join("generated/dist/gmeow.gts");
+    let bytes = std::fs::read(&gts_path)
+        .unwrap_or_else(|e| panic!("read committed bundle {}: {e}", gts_path.display()));
+    let bundle = import_gts_events(&bytes).expect("import the committed gmeow.gts bundle");
+    let facts = project_characteristic_facts(bundle.dataset.as_ref());
+    let projection: String = facts.iter().cloned().collect();
+
+    // Bind to production: every DL-projectable H4 target carries BOTH its OWL marker and
+    // its canonical logic: record in the shipped bundle. Drop either carrier of any of
+    // them and this test goes red — closing the dual-carrier silent-drift hole.
+    let marker_fact =
+        |prop: &str, marker: &str| format!("<{prop}> <{RDF_TYPE}> <{marker}> <{CHAR_WORLD}> .\n");
+    let characterizes_fact = |rec: &str, prop: &str| {
+        format!("<{rec}> <{LOGIC_CHARACTERIZES}> <{prop}> <{CHAR_WORLD}> .\n")
+    };
+    let sort_fact = |rec: &str, sort_local: &str| {
+        format!("<{rec}> <{LOGIC_CHARACTERISTIC_SORT}> <{LOGIC_NS}{sort_local}> <{CHAR_WORLD}> .\n")
+    };
+    // (property, OWL marker, logic: record local name, characteristic-sort local name).
+    let production: [(&str, &str, &str, &str); 8] = [
+        (
+            GMEOW_SUB_EVENT_OF,
+            OWL_TRANSITIVE_PROPERTY,
+            "subEventOfTransitivity",
+            "transitiveProperty",
+        ),
+        (
+            GMEOW_COARSER_THAN,
+            OWL_TRANSITIVE_PROPERTY,
+            "coarserThanTransitivity",
+            "transitiveProperty",
+        ),
+        (
+            GMEOW_SHARPENS,
+            OWL_TRANSITIVE_PROPERTY,
+            "sharpensTransitivity",
+            "transitiveProperty",
+        ),
+        (
+            GMEOW_PART_OF,
+            OWL_TRANSITIVE_PROPERTY,
+            "partOfTransitivity",
+            "transitiveProperty",
+        ),
+        (
+            GMEOW_COUNTER_GOAL,
+            OWL_SYMMETRIC_PROPERTY,
+            "counterGoalSymmetry",
+            "symmetricProperty",
+        ),
+        (
+            GMEOW_COUNTERPART_OF,
+            OWL_SYMMETRIC_PROPERTY,
+            "counterpartOfSymmetry",
+            "symmetricProperty",
+        ),
+        (
+            GMEOW_VERSION_OF,
+            OWL_FUNCTIONAL_PROPERTY,
+            "versionOfFunctionality",
+            "functionalProperty",
+        ),
+        (
+            GMEOW_EDITION_OF,
+            OWL_FUNCTIONAL_PROPERTY,
+            "editionOfFunctionality",
+            "functionalProperty",
+        ),
+    ];
+    for (prop, marker, rec_local, sort_local) in production {
+        let rec = format!("{LOGIC_NS}{rec_local}");
+        assert!(
+            facts.contains(&marker_fact(prop, marker)),
+            "the committed gmeow.gts must declare {prop} with OWL characteristic {marker}"
+        );
+        assert!(
+            facts.contains(&characterizes_fact(&rec, prop)),
+            "the committed gmeow.gts must carry the logic: record {rec} characterizing {prop}"
+        );
+        assert!(
+            facts.contains(&sort_fact(&rec, sort_local)),
+            "the logic: record {rec} must assert characteristic sort logic:{sort_local}"
+        );
+    }
+    // counterGoal irreflexivity is a logic:-only carrier (no OWL projection, DL-clean).
+    let cg_irr = format!("{LOGIC_NS}counterGoalIrreflexivity");
+    assert!(
+        facts.contains(&characterizes_fact(&cg_irr, GMEOW_COUNTER_GOAL)),
+        "the committed gmeow.gts must carry the logic:-only counterGoal irreflexivity record"
+    );
+    assert!(
+        facts.contains(&sort_fact(&cg_irr, "irreflexiveProperty")),
+        "the counterGoal irreflexivity record must assert logic:irreflexiveProperty"
+    );
+
+    // HOLDS: the shipped ontology satisfies its property characteristics.
+    let clean = run_characteristic_gate(&projection);
+    let clean_violations = characteristic_violations(&clean);
+    assert!(
+        clean_violations.is_empty(),
+        "the committed gmeow.gts must satisfy its property characteristics, but the gate \
+         found these irreflexivity/asymmetry violations: {clean_violations:#?}"
+    );
+    // HOLDS: no dual-carrier drift — every DL-projectable logic: characteristic record in
+    // the shipped bundle has its OWL projection, so the agreement gate fires nothing.
+    let disagreement_obj = format!("<{LOGIC_CARRIER_DISAGREEMENT}>");
+    let clean_disagreements: Vec<String> = clean
+        .iter()
+        .filter(|q| q.predicate == LOGIC_VIOLATION && q.object == disagreement_obj)
+        .map(|q| q.subject.clone())
+        .collect();
+    assert!(
+        clean_disagreements.is_empty(),
+        "the committed gmeow.gts must have zero characteristic-carrier disagreements, but \
+         these properties carry a logic: record whose OWL projection is missing: \
+         {clean_disagreements:#?}"
+    );
+
+    // TEETH: inject over the shipped declarations + two fresh violating properties.
+    let t = "https://blackcatinformatics.ca/gmeow/test/characteristic";
+    let irr_prop = format!("{t}/strictlyContains");
+    let asym_prop = format!("{t}/strictlyBefore");
+    let poisoned = format!(
+        "{projection}\
+         <{t}/A> <{GMEOW_SUB_EVENT_OF}> <{t}/B> <{CHAR_WORLD}> .\n\
+         <{t}/B> <{GMEOW_SUB_EVENT_OF}> <{t}/C> <{CHAR_WORLD}> .\n\
+         <{t}/M> <{GMEOW_COUNTER_GOAL}> <{t}/N> <{CHAR_WORLD}> .\n\
+         <{t}/X> <{GMEOW_COUNTERPART_OF}> <{t}/Y> <{CHAR_WORLD}> .\n\
+         <{t}/Y> <{GMEOW_COUNTERPART_OF}> <{t}/Z> <{CHAR_WORLD}> .\n\
+         <{irr_prop}> <{RDF_TYPE}> <{OWL_IRREFLEXIVE_PROPERTY}> <{CHAR_WORLD}> .\n\
+         <{t}/self> <{irr_prop}> <{t}/self> <{CHAR_WORLD}> .\n\
+         <{asym_prop}> <{RDF_TYPE}> <{OWL_ASYMMETRIC_PROPERTY}> <{CHAR_WORLD}> .\n\
+         <{t}/P> <{asym_prop}> <{t}/Q> <{CHAR_WORLD}> .\n\
+         <{t}/Q> <{asym_prop}> <{t}/P> <{CHAR_WORLD}> .\n\
+         <{t}/driftRec> <{LOGIC_CHARACTERIZES}> <{t}/driftProp> <{CHAR_WORLD}> .\n\
+         <{t}/driftRec> <{LOGIC_CHARACTERISTIC_SORT}> <{LOGIC_NS}transitiveProperty> <{CHAR_WORLD}> .\n"
+    );
+    let out = run_characteristic_gate(&poisoned);
+    let has_edge = |s: &str, p: &str, o: &str| {
+        let obj = format!("<{o}>");
+        out.iter()
+            .any(|q| q.subject == s && q.predicate == p && q.object == obj)
+    };
+    let fires = |subject: &str, discipline: &str| {
+        let obj = format!("<{discipline}>");
+        out.iter()
+            .any(|q| q.subject == subject && q.predicate == LOGIC_VIOLATION && q.object == obj)
+    };
+
+    // Transitivity closure over the shipped transitive property.
+    assert!(
+        has_edge(&format!("{t}/A"), GMEOW_SUB_EVENT_OF, &format!("{t}/C")),
+        "the gate must close A→C over shipped-transitive gmeow:subEventOf"
+    );
+    // Symmetric mirror over the shipped symmetric property.
+    assert!(
+        has_edge(&format!("{t}/N"), GMEOW_COUNTER_GOAL, &format!("{t}/M")),
+        "the gate must mirror N→M over shipped-symmetric gmeow:counterGoal"
+    );
+    // counterpartOf is symmetric (mirrored) but deliberately NOT transitive (not closed).
+    assert!(
+        has_edge(&format!("{t}/Y"), GMEOW_COUNTERPART_OF, &format!("{t}/X")),
+        "gmeow:counterpartOf is symmetric, so Y→X must be mirrored"
+    );
+    assert!(
+        !has_edge(&format!("{t}/X"), GMEOW_COUNTERPART_OF, &format!("{t}/Z")),
+        "gmeow:counterpartOf is NOT transitive, so X→Z must never be derived"
+    );
+    // Violation teeth.
+    assert!(
+        fires(&format!("{t}/self"), LOGIC_IRREFLEXIVITY_VIOLATION),
+        "an irreflexive property holding of a self-pair must fire IrreflexivityViolation"
+    );
+    assert!(
+        fires(&format!("{t}/P"), LOGIC_ASYMMETRY_VIOLATION)
+            || fires(&format!("{t}/Q"), LOGIC_ASYMMETRY_VIOLATION),
+        "an asymmetric property holding both ways must fire AsymmetryViolation"
+    );
+    // Carrier-agreement teeth: a DL-projectable logic: record injected without its OWL
+    // marker must fire CharacteristicCarrierDisagreement on the drifted property.
+    assert!(
+        fires(&format!("{t}/driftProp"), LOGIC_CARRIER_DISAGREEMENT),
+        "a logic: transitive record with no owl:TransitiveProperty projection must fire \
+         CharacteristicCarrierDisagreement"
     );
 }
