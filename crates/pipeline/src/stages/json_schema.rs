@@ -5,9 +5,9 @@
 //!
 //! Replaces the Python LinkML `JsonSchemaGenerator` + OpenAPI derivation (which
 //! went through the LinkML toolkit). This leaf compiles the SAME SHACL shape
-//! union the live validator enforces (`gmeow_shacl::shape_union::load_shapes`)
+//! union the live validator enforces (`purrdf::shapes::shape_union::load_shapes`)
 //! into a closed-world JSON Schema (draft 2020-12) and an OpenAPI 3.1 document
-//! via the native emitter (`gmeow_shacl::json_schema::compile`) — no external
+//! via the native emitter (`purrdf::shapes::json_schema::compile`) — no external
 //! toolkit, no Python.
 //!
 //! Like `frame_shapes`, this is a source-reading export leaf: it declares the
@@ -50,12 +50,15 @@ impl Stage for JsonSchemaStage {
         // Declaring those as cache inputs keeps `consumes() == []` (no DAG edge)
         // while busting the cache whenever any shape file changes — the same
         // pattern frame_shapes uses for its authored sources.
-        gmeow_shacl::shape_union::shape_files(root).map_err(PipelineError::Parse)
+        purrdf::shapes::shape_union::shape_files(root).map_err(PipelineError::Parse)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let (_store, shapes) =
-            gmeow_shacl::shape_union::load_shapes(input.root).map_err(PipelineError::Parse)?;
-        let compiled = gmeow_shacl::json_schema::compile(&shapes);
+            purrdf::shapes::shape_union::load_shapes(input.root).map_err(PipelineError::Parse)?;
+        let compiled = purrdf::shapes::json_schema::compile(
+            &shapes,
+            &crate::gmeow_ns::gmeow_json_schema_namespaces(),
+        );
         report_losses(&compiled.losses);
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(
@@ -69,7 +72,7 @@ impl Stage for JsonSchemaStage {
     }
 }
 
-fn report_losses(losses: &[gmeow_shacl::json_schema::LossRecord]) {
+fn report_losses(losses: &[purrdf::shapes::json_schema::LossRecord]) {
     let mut grouped: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
     for loss in losses {
         grouped
@@ -116,8 +119,11 @@ mod tests {
     fn run_once(root: &Path) -> BTreeMap<String, Vec<u8>> {
         let stage = JsonSchemaStage;
         let (_store, shapes) =
-            gmeow_shacl::shape_union::load_shapes(root).expect("load shape union");
-        let compiled = gmeow_shacl::json_schema::compile(&shapes);
+            purrdf::shapes::shape_union::load_shapes(root).expect("load shape union");
+        let compiled = purrdf::shapes::json_schema::compile(
+            &shapes,
+            &crate::gmeow_ns::gmeow_json_schema_namespaces(),
+        );
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(
             JSON_SCHEMA_PATH.to_string(),

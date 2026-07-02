@@ -102,6 +102,35 @@ fn run_pipeline(py: Python<'_>, root: String, jobs: usize, check: bool) -> PyRes
     Ok(out.into_any().unbind())
 }
 
+/// Project the flat consumer tree back out of `gmeow.gts` (PIPELINE_SPINE §6).
+///
+/// * `root` — the repository root; the bundle is read from
+///   `<root>/generated/dist/gmeow.gts`.
+/// * `jobs` — parallelism budget for the independent per-file writes (clamped `>= 1`).
+///
+/// The post-pipeline fanout phase, invocable standalone. Pure projection: reads the
+/// shipped bundle and writes every committed `generated/` file from it ALONE — no
+/// computation, reasoning, or assembly. A missing bundle is a hard failure (maps to
+/// `ValueError`). Returns a summary `dict`:
+///
+/// ```text
+/// { "produced": int,  # committed files reconstructed from the bundle
+///   "written":  int,  # files whose on-disk bytes changed and were rewritten
+///   "skipped":  int } # files already byte-identical on disk
+/// ```
+#[pyfunction]
+#[pyo3(signature = (root, jobs))]
+fn fanout(py: Python<'_>, root: String, jobs: usize) -> PyResult<Py<PyAny>> {
+    let report = crate::fanout::fanout(Path::new(&root), jobs)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+
+    let out = PyDict::new(py);
+    out.set_item("produced", report.produced)?;
+    out.set_item("written", report.written)?;
+    out.set_item("skipped", report.skipped)?;
+    Ok(out.into_any().unbind())
+}
+
 /// Compile only the statement layer through the native Rust statements stage.
 ///
 /// This is an interface hook for developer feedback and oracle checks. The
@@ -157,9 +186,8 @@ fn compile_mappings_report(py: Python<'_>, root: String) -> PyResult<Py<PyAny>> 
 #[pyfunction]
 #[pyo3(signature = (nquads_bytes, format = "jsonld"))]
 fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
-    let dataset =
-        gmeow_rdf::dataset_from_bytes(nquads_bytes, gmeow_rdf::NativeRdfFormat::NQuads)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("parse N-Quads: {e}")))?;
+    let dataset = purrdf::dataset_from_bytes(nquads_bytes, purrdf::NativeRdfFormat::NQuads)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("parse N-Quads: {e}")))?;
     let text = match format {
         "jsonld" => crate::stages::yaml_ld::serialize_graph(&dataset)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
@@ -318,8 +346,8 @@ fn fold_release_bundle_native(
 
     // Load the Ed25519 signing material from the armored secret key in Rust
     // (no key handling in Python beyond reading the file bytes).
-    let signer =
-        gmeow_gts::openpgp::parse_secret_signing_key(&signer_secret_armor, None).map_err(|e| {
+    let signer = purrdf::gts::openpgp::parse_secret_signing_key(&signer_secret_armor, None)
+        .map_err(|e| {
             pyo3::exceptions::PyValueError::new_err(format!("parsing signing secret key: {e}"))
         })?;
     let (signing_key, kid) = signer.into_parts();
@@ -855,7 +883,7 @@ fn export_views(
     out_dir: String,
     languages: Vec<String>,
 ) -> PyResult<Vec<String>> {
-    let dataset = gmeow_rdf::gts::flattened_dataset_from_bytes(&gts_bytes)
+    let dataset = purrdf::gts::flattened_dataset_from_bytes(&gts_bytes)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let artifacts = crate::stages::export::render_all_with_languages(&dataset, &languages)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
@@ -883,7 +911,7 @@ fn export_views(
 /// Serves the source-free bundle checks (`label`/`definition` empty → missing).
 #[pyfunction]
 fn bundle_term_summaries(gts_bytes: Vec<u8>) -> PyResult<Vec<(String, String, String)>> {
-    let dataset = gmeow_rdf::gts::flattened_dataset_from_bytes(&gts_bytes)
+    let dataset = purrdf::gts::flattened_dataset_from_bytes(&gts_bytes)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     let view = crate::stages::export::FoldView::new(&dataset);
     let terms = crate::stages::export::collect_terms(&view);
@@ -906,6 +934,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(bundle_term_summaries, m)?)?;
     m.add_function(wrap_pyfunction!(compact_curie, m)?)?;
     m.add_function(wrap_pyfunction!(run_pipeline, m)?)?;
+    m.add_function(wrap_pyfunction!(fanout, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements_report, m)?)?;
     m.add_function(wrap_pyfunction!(compile_mappings_report, m)?)?;

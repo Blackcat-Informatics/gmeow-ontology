@@ -55,7 +55,7 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_sparql_algebra::PropertyPathExpression;
+use purrdf::sparql::PropertyPathExpression;
 
 use crate::query_ir::{AnswerSet, Budget, QAtom, QBodyLit, QGoal, QProgram, QRule, QTerm};
 use crate::scryer_engine::run_scryer;
@@ -508,7 +508,7 @@ impl Lowering {
 mod tests {
     use super::*;
     // Paths are built from the algebra's `NamedNode`.
-    use gmeow_sparql_algebra::NamedNode as AlgNamedNode;
+    use purrdf::sparql::NamedNode as AlgNamedNode;
 
     const EX: &str = "https://example.org/";
 

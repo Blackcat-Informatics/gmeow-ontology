@@ -14,8 +14,8 @@ import httpx
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import DCTERMS, OWL, RDF, RDFS, SKOS
+from purrdf.compat.rdflib import Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib.namespace import DCTERMS, OWL, RDF, RDFS, SKOS
 from typer.testing import CliRunner
 
 from gmeow_tools.cli import app as public_app

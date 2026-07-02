@@ -17,11 +17,9 @@ use std::sync::Arc;
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
 use gmeow_logic_compile::projections::sssom::lower_sssom;
-use gmeow_rdf::dataset_view::{DatasetView, GraphMatch};
-use gmeow_rdf::{
-    parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue,
-};
-use gmeow_slice::{ArtifactRole, SliceCatalog};
+use purrdf::dataset_view::{DatasetView, GraphMatch};
+use purrdf::slice::{ArtifactRole, SliceCatalog};
+use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
 
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 const GM_DATE_PUBLISHED: &str = "https://blackcatinformatics.ca/gmeow/datePublished";
@@ -71,7 +69,11 @@ fn merge_sssom_sources(root: &Path) -> Arc<RdfDataset> {
 
     let slices_dir = root.join("slices");
     if slices_dir.is_dir() {
-        let catalog = SliceCatalog::discover(&slices_dir).expect("discover slices");
+        let catalog = SliceCatalog::discover(
+            &slices_dir,
+            purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
+        )
+        .expect("discover slices");
         let mut slice_mappings: Vec<(PathBuf, Vec<u8>)> = Vec::new();
         for record in catalog.records() {
             for artifact in &record.artifacts {

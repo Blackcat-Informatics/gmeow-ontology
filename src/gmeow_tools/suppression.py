@@ -7,8 +7,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 
-from gmeow_rdf.compat.rdflib import RDFS, Graph, URIRef
-from gmeow_rdf.compat.rdflib.namespace import Namespace
+from purrdf.compat.rdflib import RDFS, Graph, URIRef
+from purrdf.compat.rdflib.namespace import Namespace
 
 from gmeow_tools.config import PREFIXES
 from gmeow_tools.graph import load_merged_graph

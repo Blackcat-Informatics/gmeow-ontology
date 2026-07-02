@@ -58,6 +58,8 @@ pub mod ir;
 // Shared N-Triples term codecs (escape only, no bracket/quote wrapping) used by the
 // xcl/clif/cgif dialects' embedded canonical N-Triples RDF channel.
 mod nt;
+pub mod openehr_opt;
+pub mod opt_lift;
 pub mod projections;
 pub mod relational_core;
 pub mod result_shape;

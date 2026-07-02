@@ -75,24 +75,23 @@ NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify mappings \
-	lint-alignment doc-lint sparql-conformance gts-codec-hygiene coherence-gate-teeth
+	lint-alignment doc-lint coherence-gate-teeth
 
 .PHONY: help \
 	install fmt lint \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify test test-fast rust-build rust-test rust-docs check \
 	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy rdf-core-hygiene carrier-purity gts-codec-hygiene sparql-conformance wasm wasm-pkg wasm-pkg-test \
-	capi-build capi-header capi-check capi-install \
+	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
 	maint-reason-hermit maint-explain maint-verify-docker maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
-	maint-test-network maint-test-network-rust maint-pull-images maint-quality maint-evals-score \
+	maint-test-network maint-pull-images maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
-	maint-external-corpora maint-capture-sparql-goldens
+	maint-external-corpora
 
 ##@ Core Workflows
 
@@ -321,22 +320,6 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 coherence-gate-teeth: rust-build ## Run the whole-ontology coherence-gate teeth proof on-gate (budget-exempt, ~95s).
 	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_coherence_gate/)'
 
-sparql-conformance: rust-build ## Run the OXIGRAPH-FREE native frozen-golden SPARQL corpus conformance gate.
-	@# Replays every captured query through NativeSparqlEngine over the merged ontology,
-	@# loaded oxigraph-free + flattened identically to the capture, and asserts equality
-	@# vs the frozen oxigraph goldens. Default nextest profile excludes the off-gate-heavy
-	@# sweep (run on `make maint-rust-heavy`). MUST NOT require the oxigraph feature.
-	@# Hygiene: the conformance crate must carry NO oxigraph normal dependency, so it
-	@# survives oxigraph removal in Task 8.
-	@tree=$$(cargo tree -p gmeow-sparql-conformance --edges normal -f "{p}") || { echo "FAIL: cargo tree errored"; exit 1; }; \
-	if echo "$$tree" | grep -q 'oxigraph v'; then \
-		echo "FAIL: oxigraph is a NORMAL dependency of gmeow-sparql-conformance"; \
-		echo "$$tree" | grep 'oxigraph v'; exit 1; \
-	else \
-		echo "OK: gmeow-sparql-conformance has no oxigraph normal dependency"; \
-	fi
-	cargo nextest run -p gmeow-sparql-conformance
-
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
 
@@ -355,174 +338,15 @@ carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport p
 	cargo nextest run -p gmeow-pipeline --test carrier_purity
 	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (native gmeow_xsd literal canon, no sanctioned residual)"
 
-gts-codec-hygiene: rust-build ## Lock the native RDF codec seam: no gmeow_gts codec entrypoint + no oxigraph in production source.
-	@# STRUCTURAL boundary-lock gate. The whole RDF codec seam is native:
-	@# crates/rdf/src/native_codecs/ parses/serializes RDF on the first-party IR with
-	@# NO gmeow_gts codec and NO oxigraph in the middle. The test scans crates/*/src for
-	@# three rules: (1) native_codecs/ is 100% gmeow_gts- AND oxigraph-free (prod OR test);
-	@# (2) the gmeow_gts RDF-codec ENTRYPOINTS (nquads/trig/yamlld/rdf_xml/rdf_codecs/rdf::)
-	@# are banned in PRODUCTION — gmeow.gts CONTAINER symbols (reader/writer/model/verify/
-	@# policy/codec::/ulid/…) STAY and are explicitly allowed; (3) no oxigraph-family crate
-	@# reference in PRODUCTION (complements the crate-dep `rdf-core-hygiene` lock). The
-	@# bundled negative-arm unit tests prove the detector flags each forbidden token and
-	@# does NOT flag an allowed container symbol, so the gate can never silently pass.
-	cargo nextest run -p gmeow-rdf --test gts_codec_hygiene
-	@echo "OK: RDF codec seam is native — no gmeow_gts codec entrypoint, no oxigraph in production source"
-
-rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
-	cargo build -p gmeow-rdf-core
-	@tree=$$(cargo tree -p gmeow-rdf-core --edges normal -f "{p}") || { echo "FAIL: cargo tree errored"; exit 1; }; \
-	if echo "$$tree" | grep -q 'oxigraph v'; then \
-		echo "FAIL: oxigraph is a NORMAL dependency of gmeow-rdf-core"; \
-		echo "$$tree" | grep 'oxigraph v'; exit 1; \
-	else \
-		echo "OK: gmeow-rdf-core has no oxigraph normal dependency"; \
-	fi
-	@# [purrdf S2] The native gmeow-iri leaf REPLACES `oxiri`; assert it pulls
-	@# NO oxigraph-family crate (umbrella + any ox*/spar* leaf) into its normal tree.
-	@itree=$$(cargo tree -p gmeow-iri --edges normal -f "{p}") || { echo "FAIL: cargo tree errored for gmeow-iri"; exit 1; }; \
-	if echo "$$itree" | grep -Eq '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; then \
-		echo "FAIL: gmeow-iri pulls an oxigraph-family crate — the S2 zero-dep replacement is BROKEN"; \
-		echo "$$itree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
-	else \
-		echo "OK: gmeow-iri has NO oxigraph-family crate in its normal dependency tree (the oxiri replacement is clean)"; \
-	fi
-	@# [purrdf S5] The native gmeow-sparql-algebra leaf REPLACES `spargebra`;
-	@# assert it pulls NO oxigraph-family crate into its normal tree.
-	@stree=$$(cargo tree -p gmeow-sparql-algebra --edges normal -f "{p}") || { echo "FAIL: cargo tree errored for gmeow-sparql-algebra"; exit 1; }; \
-	if echo "$$stree" | grep -Eq '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; then \
-		echo "FAIL: gmeow-sparql-algebra pulls an oxigraph-family crate — the S5 spargebra replacement is BROKEN"; \
-		echo "$$stree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
-	else \
-		echo "OK: gmeow-sparql-algebra has NO oxigraph-family crate in its normal dependency tree (the spargebra replacement is clean)"; \
-	fi
-	@# [purrdf S6] The native gmeow-sparql-eval evaluator REPLACES `spareval`;
-	@# assert it pulls NO oxigraph-family crate into its normal OR dev tree. The
-	@# dev-tree check is stronger than the sibling leaves': this is the wasm query
-	@# path and its differential parity goldens are checked-in DATA (the oxigraph
-	@# baseline-capture lives only in `crates/rdf`), so sparql-eval must never gain
-	@# an oxigraph-family edge — not even a dev-dependency.
-	@etree=$$(cargo tree -p gmeow-sparql-eval --edges normal,dev -f "{p}") || { echo "FAIL: cargo tree errored for gmeow-sparql-eval"; exit 1; }; \
-	if echo "$$etree" | grep -Eq '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; then \
-		echo "FAIL: gmeow-sparql-eval pulls an oxigraph-family crate — the S6 spareval replacement is BROKEN"; \
-		echo "$$etree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
-	else \
-		echo "OK: gmeow-sparql-eval has NO oxigraph-family crate in its normal/dev dependency tree (the spareval replacement is clean)"; \
-	fi
-	@# [purrdf S9] The native gmeow-sparql-results serializer REPLACES
-	@# `sparesults`; assert it pulls NO oxigraph-family crate into its normal OR
-	@# dev tree (it carries checked-in golden DATA and is on the wasm-first path).
-	@rtree=$$(cargo tree -p gmeow-sparql-results --edges normal,dev -f "{p}") || { echo "FAIL: cargo tree errored for gmeow-sparql-results"; exit 1; }; \
-	if echo "$$rtree" | grep -Eq '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; then \
-		echo "FAIL: gmeow-sparql-results pulls an oxigraph-family crate — the S9 sparesults replacement is BROKEN"; \
-		echo "$$rtree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
-	else \
-		echo "OK: gmeow-sparql-results has NO oxigraph-family crate in its normal/dev dependency tree (the sparesults replacement is clean)"; \
-	fi
-	@# [purrdf S5 + S6] The purrdf EPIC is wasm-first: the SPARQL leaves MUST
-	@# compile to wasm32. The target's absence is a SKIP locally but a hard FAIL in
-	@# CI, so the wasm-clean criterion is never silently unverified on the gating path.
-	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then \
-		$(WASM_CARGO) build -p gmeow-sparql-algebra --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-algebra does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "OK: gmeow-sparql-algebra builds for wasm32-unknown-unknown (wasm-clean)"; \
-		$(WASM_CARGO) build -p gmeow-sparql-eval --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-eval does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "OK: gmeow-sparql-eval builds for wasm32-unknown-unknown (wasm-clean)"; \
-		$(WASM_CARGO) build -p gmeow-sparql-results --target wasm32-unknown-unknown || { echo "FAIL: gmeow-sparql-results does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "OK: gmeow-sparql-results builds for wasm32-unknown-unknown (wasm-clean)"; \
-	elif [ -n "$${CI:-}" ]; then \
-		echo "FAIL: wasm32-unknown-unknown target absent in CI — the wasm-first criterion cannot be verified; CI must install it"; exit 1; \
-	else \
-		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the wasm-clean check"; \
-	fi
-	@# No FIRST-PARTY crate may name oxigraph or any oxigraph-family crate
-	@# as a DIRECT dependency. The oxigraph umbrella is fully removed; the residual
-	@# ox*-family sub-crates (oxrdf/oxttl/oxiri/spargebra/oxsdatatypes/…) survive ONLY
-	@# transitively through two EXTERNAL crates — nemo (the Datalog chase engine) and
-	@# gmeow-gts — which are outside this workspace and on their own retirement track.
-	@# This grep guards against a first-party regression that re-introduces a DIRECT
-	@# edge; the cargo-tree allowlist PROOF immediately below extends the guard to
-	@# TRANSITIVE first-party introductions (every ox* path must root only in the
-	@# sanctioned external carriers), which a Cargo.toml grep alone cannot see.
-	@hits=$$(grep -rnE '^\s*(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld)\s*=|"oxigraph"|dep:oxigraph' crates/*/Cargo.toml 2>/dev/null || true); \
-	if [ -n "$$hits" ]; then \
-		echo "FAIL: a first-party crate names an oxigraph-family crate as a direct dependency:"; \
-		echo "$$hits"; exit 1; \
-	else \
-		echo "OK: no first-party crate has a direct oxigraph-family dependency (umbrella removed; residual ox* is external nemo/gmeow-gts only)"; \
-	fi
-	@# [S14] Whole-workspace cargo-tree PROOF (the `cargo tree proof
-	@# in CI` asks for). Every oxigraph-family crate that survives in the NORMAL
-	@# dependency tree must be INTRODUCED ONLY by a sanctioned external carrier — nemo
-	@# (+ its nemo-physical sub-crate) or gmeow-gts — or by another ox*-family sibling
-	@# (the ox* crates depend on each other: oxrdfio→oxrdf, oxttl→oxrdfio, …). NO
-	@# first-party gmeow-* crate may be a DIRECT depender. This is strictly stronger
-	@# than the grep above: it catches a TRANSITIVE first-party regression (a gmeow-*
-	@# crate that newly pulls an ox* crate through some third path) that no Cargo.toml
-	@# grep can see, and it AUTO-TIGHTENS when nemo is retired (the allowlist shrinks,
-	@# so a remaining first-party path becomes a hard fail). Note: `nemo`/`gmeow-gts`
-	@# are the ONLY two `gmeow-`/external names allowed here — every other gmeow-* is
-	@# rejected, so the gate cannot be widened by accident. `--charset utf8` is MANDATORY
-	@# (not cosmetic): `cargo tree` auto-selects ASCII (`|--`/`\--`) under a non-UTF-8
-	@# locale (LANG=C, minimal Docker/CI), which would make the `[├└]` parse below match
-	@# nothing and SILENTLY PASS the gate — the exact degraded-fallback this repo forbids.
-	@# `--workspace` makes every member a reverse-dep root so the proof is truly
-	@# whole-workspace, not just the default members.
-	@ALLOW='nemo|nemo-physical|gmeow-gts|oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld'; \
-	fail=0; \
-	for C in oxigraph oxrdf oxsdatatypes oxiri spargebra spareval sparopt sparesults oxttl oxrdfio oxrdfxml oxjsonld; do \
-		inv=$$(cargo tree --workspace -e normal --charset utf8 -i "$$C" 2>/dev/null) || continue; \
-		[ -n "$$inv" ] || continue; \
-		parents=$$(echo "$$inv" | sed -n '2,$$p' | grep -E '^[├└]── ' | sed -E 's/^[├└]── ([^ ]+).*/\1/'); \
-		bad=$$(echo "$$parents" | grep -vE "^($$ALLOW)$$" | grep -vE '^$$' || true); \
-		if [ -n "$$bad" ]; then \
-			echo "FAIL: oxigraph-family crate '$$C' is introduced by a NON-sanctioned direct depender (a first-party transitive regression):"; \
-			echo "$$bad" | sed 's/^/  - /'; \
-			fail=1; \
-		fi; \
-	done; \
-	if [ "$$fail" = 1 ]; then \
-		echo "The ONLY sanctioned transitive carriers for oxigraph-family crates are the external 'nemo' chase engine and 'gmeow-gts' (S14)."; \
-		exit 1; \
-	fi; \
-	echo "OK: every residual oxigraph-family crate roots only in the sanctioned external nemo/gmeow-gts (no first-party transitive introduction)"
-
 CAPI_HEADER := crates/rdf-capi/include/purrdf.h
 
-capi-build: ## Build libpurrdf (cdylib + staticlib + header + pkg-config) via cargo-c.
-	cargo capi build -p gmeow-rdf-capi
-
-capi-header: ## Regenerate the committed purrdf.h ABI contract from the crate.
-	@touch crates/rdf-capi/src/lib.rs  # cargo-c only re-runs cbindgen when the crate recompiles; force it so a cache-fresh build cannot serve a stale header
-	cargo capi build -p gmeow-rdf-capi
-	@hdr=$$(find $(CARGO_TARGET_DIR) -path '*/include/purrdf/purrdf.h' | head -1); \
-	  test -n "$$hdr" || { echo "FAIL: cargo-c did not emit purrdf.h"; exit 1; }; \
-	  cp "$$hdr" $(CAPI_HEADER); echo "regenerated $(CAPI_HEADER)"
-
-capi-check: ## Verify the committed purrdf.h is current + the C smoke links and runs.
-	@touch crates/rdf-capi/src/lib.rs  # force cbindgen to re-run; otherwise CI's rust-cache can restore a stale header and the drift diff is meaningless
-	cargo capi build -p gmeow-rdf-capi
-	@hdr=$$(find $(CARGO_TARGET_DIR) -path '*/include/purrdf/purrdf.h' | head -1); \
-	  test -n "$$hdr" || { echo "FAIL: cargo-c did not emit purrdf.h"; exit 1; }; \
-	  if ! diff -q "$$hdr" $(CAPI_HEADER) >/dev/null; then \
-	    echo "FAIL: $(CAPI_HEADER) is STALE — run 'make capi-header' and commit the ABI header"; \
-	    diff $(CAPI_HEADER) "$$hdr" | head -40; exit 1; \
-	  fi; \
-	  echo "OK: committed purrdf.h matches the libpurrdf ABI surface"
-	cargo test -p gmeow-rdf-capi --test c_smoke  # the smoke driver self-builds the cdylib if absent (hermetic in every lane)
-
-capi-install: ## Install libpurrdf + purrdf.pc + header to PREFIX (default /usr/local).
-	cargo capi install -p gmeow-rdf-capi --prefix="$(if $(PREFIX),$(PREFIX),/usr/local)"
-
-wasm: ## Build the purrdf wasm engine (P10) for wasm32-unknown-unknown.
-	@# purrdf P10 is wasm-first: the in-memory RDF/JS engine MUST compile to
-	@# wasm32. The target's absence is a SKIP locally but a hard FAIL in CI, so the
-	@# wasm-clean criterion is never silently unverified on the gating path (same
-	@# idiom as `rdf-core-hygiene`'s sparql-algebra wasm check).
+wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) build for wasm32.
+	@# gmeow's own wasm-first crates MUST compile to wasm32 with a reasoning-runtime-free
+	@# dep tree. The RDF/wasm engine is the sibling `purrdf` package (gated by its own
+	@# CI), so this target proves only gmeow's own crates. The target's absence is a SKIP
+	@# locally but a hard FAIL in CI, so the wasm-clean criterion is never silently
+	@# unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then \
-		echo "== engine proof: gmeow-rdf (gts, no oxigraph/python) builds for wasm32 =="; \
-		$(WASM_CARGO) build -p gmeow-rdf --no-default-features --features gts --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf does not build for wasm32-unknown-unknown"; exit 1; }; \
-		echo "== binding proof: the purrdf cdylib builds for wasm32 =="; \
-		$(WASM_CARGO) build -p gmeow-rdf-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-rdf-wasm (purrdf) does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== compiler proof: gmeow-logic-compile (pure parse->IR->project) builds for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-logic-compile --target wasm32-unknown-unknown || { echo "FAIL: gmeow-logic-compile does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== purity gate: no reasoning-runtime crate may appear in the gmeow-logic-compile wasm dep tree =="; \
@@ -546,27 +370,12 @@ wasm: ## Build the purrdf wasm engine (P10) for wasm32-unknown-unknown.
 				fi; \
 			done; \
 		done; \
-		echo "OK: purrdf + gmeow-logic-compile + the wasm Tier-1 validator build for wasm32 (dep trees are reasoning-runtime-free)"; \
+		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator build for wasm32 (dep trees are reasoning-runtime-free)"; \
 	elif [ -n "$${CI:-}" ]; then \
-		echo "FAIL: wasm32-unknown-unknown target absent in CI — the P10 wasm-first criterion cannot be verified; CI must install it"; exit 1; \
+		echo "FAIL: wasm32-unknown-unknown target absent in CI — gmeow's wasm-clean criterion cannot be verified; CI must install it"; exit 1; \
 	else \
-		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the purrdf wasm build"; \
+		echo "SKIP: wasm32-unknown-unknown target not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' to enable the wasm-clean check"; \
 	fi
-
-wasm-pkg: ## Build the purrdf npm/ESM package (release wasm + wasm-bindgen web bindings).
-	@# Release-build the cdylib, then run `wasm-bindgen` (pinned =0.2.125, matching the
-	@# crate) to emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
-	@# `~/.cargo/bin` carries the cli on both CI runners and local dev installs.
-	$(WASM_CARGO) build -p gmeow-rdf-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_rdf_wasm.wasm \
-		--out-dir crates/rdf-wasm/js/pkg --target web
-	@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a
-	@# hard dependency: a missing wasm-opt is a build failure, never a note.
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	wasm-opt -Oz -o crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm
-	@echo "OK: wasm-opt -Oz applied"
-	@echo "OK: purrdf npm package built (crates/rdf-wasm/js/, pkg/ generated)"
 
 validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	@# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
@@ -581,27 +390,6 @@ validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release was
 	wasm-opt -Oz -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
-
-wasm-pkg-test: wasm-pkg validate-wasm-pkg ## Build the wasm packages and run the Node real-execution round-trip lanes.
-	cd crates/rdf-wasm/js && node --test tests/*.test.mjs
-	cd crates/validate-wasm/js && node --test tests/*.test.mjs
-
-maint-refresh-purrdf-asset: wasm-pkg ## Refresh the vendored purrdf wasm engine shipped in the docs SPARQL playground.
-	@# The docs site's offline SPARQL playground loads a PINNED copy of the purrdf
-	@# wasm engine (crates/docs/assets/purrdf/). The regenerate pipeline never builds
-	@# wasm, so the artifact is vendored here as a build input and refreshed by hand
-	@# after any change to crates/rdf-wasm. `wasm-pkg` always applies `wasm-opt -Oz`
-	@# (a required build step).
-	cp crates/rdf-wasm/js/pkg/gmeow_rdf_wasm.js \
-	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm.d.ts \
-	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm \
-	   crates/rdf-wasm/js/pkg/gmeow_rdf_wasm_bg.wasm.d.ts \
-	   crates/docs/assets/purrdf/
-	@# Rewrite the BLAKE3 content-digest manifest so the anti-rot gate pins the exact
-	@# bytes just vendored (the bless path recomputes and writes DIGESTS.blake3).
-	GMEOW_PURRDF_BLESS=1 cargo nextest run -E 'binary(purrdf_asset)'
-	@echo "OK: vendored purrdf wasm engine refreshed + digest manifest rewritten (crates/docs/assets/purrdf/)"
-	@echo "    run 'make check' + 'make wasm-pkg-test' to re-verify the anti-rot gates"
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
@@ -631,7 +419,7 @@ fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format fron
 	done
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
-	cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate -p gmeow-sparql-eval
+	cargo bench -p gmeow-logic -p gmeow-validate
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
@@ -690,9 +478,6 @@ maint-test-heavy: native-py ## Run kept-Python-module maintainer tests.
 maint-test-network: ## Run live network tests.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
-maint-test-network-rust: ## Run the live SERVICE federation test against a public endpoint.
-	GMEOW_RUN_NETWORK=1 cargo test -p gmeow-sparql-eval --test service_live -- --ignored
-
 maint-pull-images: ## Pull or build pinned Docker oracle images.
 	bash scripts/pull-images.sh
 
@@ -709,10 +494,6 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	$(MAKE) bench
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
-
-maint-capture-sparql-goldens: ## (maintainer) Freeze the native SPARQL engine as committed goldens (native-vs-native regression gate).
-	cargo run -q -p gmeow-rdf --features gts --bin capture_sparql_goldens
-	@echo "wrote goldens under crates/sparql-conformance/tests/goldens/ — verify byte-stable (re-run = no diff), then commit"
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
 # ontologies. Grading all of them is intractable for a maint lane, so we cap to

@@ -14,7 +14,7 @@ dynamic-set sweep (the #867 "Keep" category).
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import Graph, URIRef
+from purrdf.compat.rdflib import Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 

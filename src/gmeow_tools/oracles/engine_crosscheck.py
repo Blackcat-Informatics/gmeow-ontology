@@ -1,6 +1,6 @@
-"""Cross-check that rdflib and gmeow_rdf answer every committed query alike.
+"""Cross-check that rdflib and purrdf answer every committed query alike.
 
-The test suite trusts gmeow_rdf for speed (:mod:`gmeow_tools.sparql`); this gate
+The test suite trusts purrdf for speed (:mod:`gmeow_tools.sparql`); this gate
 is what *licenses* that trust. Every committed SPARQL query under ``queries/`` is
 run on the same data graph under **both** engines and their answers compared by
 value (CONSTITUTION Principle 7 — verified by construction; it extends the RDF 1.2
@@ -29,19 +29,19 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-import gmeow_rdf
+import purrdf
 
 # The native side returns the purrdf compat term types (str subclasses that are
 # *siblings*, not subclasses, of real rdflib's). _term_key compares both engines'
 # results, so it must recognise both families or every native URI/Literal would
 # fall through to the ("other", …) bucket and spuriously diverge from the oracle.
-from gmeow_rdf.compat.rdflib.term import (
+from purrdf.compat.rdflib.term import (
     BNode as _CompatBNode,
 )
-from gmeow_rdf.compat.rdflib.term import (
+from purrdf.compat.rdflib.term import (
     Literal as _CompatLiteral,
 )
-from gmeow_rdf.compat.rdflib.term import (
+from purrdf.compat.rdflib.term import (
     URIRef as _CompatURIRef,
 )
 from rdflib import BNode, Graph, Literal, URIRef
@@ -67,7 +67,7 @@ from gmeow_tools.slices import iter_slice_query_files
 def _rdflib_merged_graph(include_imports: bool) -> Graph:
     """The merged ontology parsed into a REAL rdflib graph (the oracle engine).
 
-    This gate compares upstream rdflib's SPARQL engine against gmeow_rdf, so the
+    This gate compares upstream rdflib's SPARQL engine against purrdf, so the
     rdflib side MUST query a genuine rdflib graph — not the native compat ``Graph``
     that :func:`gmeow_tools.graph.load_merged_graph` now returns (whose ``.query``
     runs oxigraph, which would make the cross-check vacuous).
@@ -133,7 +133,7 @@ _NUMERIC = frozenset(
 _XSD_STRING = str(XSD.string)
 
 #: Temporal datatypes whose lexical form may carry a timezone. rdflib serializes
-#: UTC as ``+00:00`` while gmeow_rdf (oxigraph) emits the equivalent ``Z`` — the
+#: UTC as ``+00:00`` while purrdf (oxigraph) emits the equivalent ``Z`` — the
 #: same instant, two spellings. Folding the UTC suffix makes them compare equal.
 _TEMPORAL = frozenset(
     str(dt)
@@ -153,7 +153,7 @@ _TEMPORAL = frozenset(
 _FORM = re.compile(r"\b(SELECT|ASK|CONSTRUCT|DESCRIBE)\b", re.IGNORECASE)
 
 #: A decimal number token inside a string literal. The two engines render
-#: ``STR(?decimal)`` differently (rdflib keeps trailing zeros, gmeow_rdf
+#: ``STR(?decimal)`` differently (rdflib keeps trailing zeros, purrdf
 #: canonicalizes), so e.g. a constructed ``POINT(-113.924350 ...)`` WKT string
 #: differs only in trailing zeros — value-equal, lexically not. Normalizing each
 #: numeric token consistently on both sides makes them compare equal.
@@ -231,7 +231,7 @@ def _triple_keys(
     graph: Iterable[tuple[object, object, object]],
 ) -> Counter[tuple[object, object, object]]:
     # Accepts either engine's graph: the rdflib oracle's CONSTRUCT result OR the
-    # gmeow_rdf compat graph from sparql.construct — both iterate (s, p, o).
+    # purrdf compat graph from sparql.construct — both iterate (s, p, o).
     return Counter((_term_key(s), _term_key(p), _term_key(o)) for s, p, o in graph)
 
 
@@ -242,7 +242,7 @@ def _row_keys(
 
 
 def crosscheck_query(
-    name: str, query_text: str, data_graph: Graph, store: gmeow_rdf.Store
+    name: str, query_text: str, data_graph: Graph, store: purrdf.Store
 ) -> CrosscheckResult:
     """Run one query on both engines over the same data and compare by value.
 
@@ -284,7 +284,7 @@ def _run_rdflib(
 ) -> tuple[bool, object, str]:
     # rdflib's pyparsing-based SPARQL parser can RecursionError on very large
     # UNION chains (e.g. the schema-org projection query). The query is valid
-    # SPARQL — gmeow_rdf parses it fine — so we temporarily raise the limit.
+    # SPARQL — purrdf parses it fine — so we temporarily raise the limit.
     old_limit = sys.getrecursionlimit()
     sys.setrecursionlimit(max(old_limit, 2000))
     try:
@@ -301,7 +301,7 @@ def _run_rdflib(
 
 
 def _run_native(
-    form: str, query_text: str, store: gmeow_rdf.Store
+    form: str, query_text: str, store: purrdf.Store
 ) -> tuple[bool, object, str]:
     try:
         if form == "CONSTRUCT":
@@ -321,7 +321,7 @@ def _delta(a: object, b: object) -> str:
     return f"rdflib-only={only_a!r} native-only={only_b!r}"
 
 
-def _projection_data() -> tuple[Graph, gmeow_rdf.Store]:
+def _projection_data() -> tuple[Graph, purrdf.Store]:
     """The merged ontology plus the projection example fixtures, both engines."""
     graph = Graph()
     for source in iter_source_files(include_imports=False):
@@ -347,7 +347,7 @@ def crosscheck_all() -> list[CrosscheckResult]:
         base_store = sparql.merged_store(include_imports=False)
         proj_graph, proj_store = _projection_data()
 
-        plan: list[tuple[Path, Graph, gmeow_rdf.Store]] = []
+        plan: list[tuple[Path, Graph, purrdf.Store]] = []
         for directory in (
             AUDIT_QUERY_DIR,
             COMPETENCY_DIR,
@@ -378,7 +378,7 @@ def crosscheck_all() -> list[CrosscheckResult]:
 def build_report(results: list[CrosscheckResult]) -> DiagnosticsReport:
     """Fold the engine cross-check results into a diagnostics report (#667).
 
-    Every committed query compared across rdflib + gmeow_rdf is carried into the
+    Every committed query compared across rdflib + purrdf is carried into the
     SARIF/JSON/HTML artifact instead of terminating at stdout (north-star (d)).
     A real divergence is an ``error`` (it FAILS the gate); a both-engines-rejected
     file is a ``note`` (skipped — recorded, never silently dropped); the agreeing
@@ -401,7 +401,7 @@ def build_report(results: list[CrosscheckResult]) -> DiagnosticsReport:
             code=RULE_AGREEMENT,
             message=(
                 f"engine cross-check: {agreed}/{len(checked)} queries agree across "
-                f"rdflib + gmeow_rdf ({len(diverged)} diverged, {len(skipped)} skipped)"
+                f"rdflib + purrdf ({len(diverged)} diverged, {len(skipped)} skipped)"
             ),
             tool="engine-cross-check",
             tags=["agreement-matrix"],

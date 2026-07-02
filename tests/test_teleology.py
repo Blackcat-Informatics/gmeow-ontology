@@ -27,8 +27,8 @@ slices/core/teleology/tests/structural.ttl (#867).
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import RDFS, Graph, Namespace
-from gmeow_rdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib import RDFS, Graph, Namespace
+from purrdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph

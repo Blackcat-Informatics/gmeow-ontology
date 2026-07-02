@@ -12,7 +12,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, TermRef, TermValue};
+use purrdf::{parse_dataset, DatasetView, GraphMatch, TermRef, TermValue};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};

@@ -1,3 +1,0 @@
-PREFIX : <http://example/>
-## Surrogates : high-high
-:s :p "\uD83C\uD83D" .

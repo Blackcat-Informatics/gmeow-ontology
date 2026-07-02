@@ -14,17 +14,17 @@
 //! generator's format. Everything is sorted (BTreeMap/BTreeSet) for determinism.
 //!
 //! The lossless N-Quads / TriG forms delegate to the gmeow-gts Rust serializers
-//! (`gmeow_gts::nquads::to_nquads` / `gmeow_gts::trig::to_trig`), with internal
+//! (`purrdf::gts::nquads::to_nquads` / `purrdf::gts::trig::to_trig`), with internal
 //! `x-gmeow-*` language tags remapped to public BCP-47 at the projection boundary
 //! (#287) exactly as the Python `write_nquads` / `write_trig` do.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use gmeow_rdf::{RdfDataset, TermId, TermRef};
 use gmeow_validate::language_tags::{
     self, filter_literals as authority_filter_literals, is_internal_tag,
     marked as authority_marked, select_literal as authority_select_literal, LitDesc,
 };
+use purrdf::{RdfDataset, TermId, TermRef};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -1921,8 +1921,8 @@ fn dataset_with_public_tags(
     dataset: &RdfDataset,
     tag_map: &BTreeMap<String, String>,
 ) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
-    use gmeow_rdf::model::RdfTerm;
-    use gmeow_rdf::RdfDatasetBuilder;
+    use purrdf::model::RdfTerm;
+    use purrdf::RdfDatasetBuilder;
     let retag = |term: RdfTerm| -> RdfTerm {
         if let RdfTerm::Literal(mut lit) = term {
             if let Some(public) = lit.language.as_ref().and_then(|l| tag_map.get(l)) {
@@ -1955,10 +1955,10 @@ fn write_nquads(
     tag_map: &BTreeMap<String, String>,
 ) -> Result<Vec<u8>, PipelineError> {
     let public = dataset_with_public_tags(dataset, tag_map)?;
-    gmeow_rdf::serialize_dataset(
+    purrdf::serialize_dataset(
         &public,
         "application/n-quads",
-        gmeow_rdf::SerializeGraph::Dataset,
+        purrdf::SerializeGraph::Dataset,
     )
     .map_err(|e| PipelineError::Parse(format!("n-quads serialize: {e}")))
 }
@@ -1968,12 +1968,8 @@ fn write_trig(
     tag_map: &BTreeMap<String, String>,
 ) -> Result<Vec<u8>, PipelineError> {
     let public = dataset_with_public_tags(dataset, tag_map)?;
-    gmeow_rdf::serialize_dataset(
-        &public,
-        "application/trig",
-        gmeow_rdf::SerializeGraph::Dataset,
-    )
-    .map_err(|e| PipelineError::Parse(format!("trig serialize: {e}")))
+    purrdf::serialize_dataset(&public, "application/trig", purrdf::SerializeGraph::Dataset)
+        .map_err(|e| PipelineError::Parse(format!("trig serialize: {e}")))
 }
 
 // ── statements JSONL ─────────────────────────────────────────────────────────────
@@ -2502,7 +2498,7 @@ pub(crate) fn read_fold(
     root: &std::path::Path,
 ) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
     let gts = std::fs::read(root.join("generated/dist/gmeow.gts"))?;
-    let bundle = gmeow_rdf::import_gts_events(&gts)
+    let bundle = purrdf::import_gts_events(&gts)
         .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))?;
     Ok(bundle.dataset)
 }

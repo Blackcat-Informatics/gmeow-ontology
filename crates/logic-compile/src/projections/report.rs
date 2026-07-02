@@ -12,7 +12,7 @@
 //! flags no residue — blocks serialization (red build).
 //! Compared by RDF isomorphism, like the other RDF targets.
 
-use gmeow_rdf::RdfLiteral;
+use purrdf::RdfLiteral;
 
 use super::super::ir::LogicProgram;
 use super::rdf::TripleSink;

@@ -18,11 +18,11 @@
 use std::sync::Arc;
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_rdf::{
+use purrdf::sparql::NativeSparqlEngine;
+use purrdf::{
     DatasetMut, MutableDataset, QuadValues, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult,
     TermValue,
 };
-use gmeow_sparql_eval::NativeSparqlEngine;
 
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::reason_all;
@@ -292,7 +292,7 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+    use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";

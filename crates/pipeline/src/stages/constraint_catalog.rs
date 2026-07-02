@@ -21,8 +21,8 @@ use std::fmt::Write as _;
 use std::path::Path;
 
 use gmeow_diagnostics::Severity;
-use gmeow_slice::rdf_query::Dataset;
 use gmeow_validate::rule_catalog::{all_rules, help_uri_for, slugify, Enforcement, RuleSeed};
+use purrdf::slice::rdf_query::Dataset;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -57,7 +57,7 @@ const GMEOW_REQUIRES_FRAME: &str = "https://blackcatinformatics.ca/gmeow/require
 /// the source the term-enrichment resolves against. Mirrors
 /// `frame_shapes::load_authored_no_imports`.
 fn load_authored_no_imports(root: &Path) -> Result<Dataset, PipelineError> {
-    let mut acc = gmeow_slice::rdf_query::DatasetAccumulator::new();
+    let mut acc = purrdf::slice::rdf_query::DatasetAccumulator::new();
     let mut files = vec![root.join("ontology").join("gmeow.ttl")];
     files.extend(module_files(root)?);
     for path in files {
@@ -284,7 +284,7 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, PipelineError> {
 pub fn render_constraint_catalog(root: &Path) -> Result<Vec<u8>, PipelineError> {
     let dataset = load_authored_no_imports(root)?;
     let nq = build_catalog_nquads(&dataset)?;
-    let ds = gmeow_rdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+    let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| PipelineError::Parse(format!("parse constraint-catalog N-Quads: {e}")))?;
     crate::stages::superset::canonical_ntriples(&ds)
         .map_err(|e| PipelineError::Parse(format!("canonicalize constraint-catalog: {e}")))

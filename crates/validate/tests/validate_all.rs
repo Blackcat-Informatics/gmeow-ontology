@@ -6,10 +6,10 @@
 use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDatasetBuilder};
 use gmeow_validate::lint::LintConfig;
 use gmeow_validate::store::{dataset_from_paths, parse_file_dataset};
 use gmeow_validate::validate_all::{ValidateOptions, ValidationRun};
+use purrdf::{DatasetView, GraphMatch, RdfDatasetBuilder};
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -278,7 +278,7 @@ fn test_dsl_shacl_runs_in_orchestration() {
 }
 
 /// Helper: build a frozen native dataset from a list of Turtle file paths.
-fn build_store(paths: &[String]) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+fn build_store(paths: &[String]) -> std::sync::Arc<purrdf::RdfDataset> {
     let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
     dataset_from_paths(&path_bufs).expect("dataset must build")
 }

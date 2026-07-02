@@ -63,8 +63,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_rdf::provenance::{DatasetProvenance, OriginKind};
-use gmeow_rdf::{
+use purrdf::provenance::{DatasetProvenance, OriginKind};
+use purrdf::{
     canonicalize, parse_dataset, serialize_dataset, ContentDigest, ContentStore, QuadHandle,
     RdfBlobOrigin, RdfBlobRecord, RdfLocation, RdfLookaside, RdfLookasideKind,
     RdfLookasideResource, RdfMetadataValue, SerializeGraph,
@@ -223,7 +223,7 @@ struct CachedProvRow {
 /// and the backing named-graph canonical bytes the payload is re-derived from.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CachedHandle {
-    /// The named-graph IRI the handle backs (the [`HandleKey`](gmeow_rdf::HandleKey)).
+    /// The named-graph IRI the handle backs (the [`HandleKey`](purrdf::HandleKey)).
     graph: String,
     /// The [`PipelineHandle`] arm tag (see [`handle_arm_tag`]).
     arm: String,
@@ -255,7 +255,7 @@ fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
 /// parses to a program is a corrupt cache, never a silently-dropped handle.
 fn rebuild_handle(
     arm: &str,
-    graph: Arc<gmeow_rdf::RdfDataset>,
+    graph: Arc<purrdf::RdfDataset>,
 ) -> Result<PipelineHandle, PipelineError> {
     Ok(match arm {
         "logic" => {
@@ -635,7 +635,7 @@ impl CachedBundle {
 }
 
 /// The pipeline bundle alias the cache reconstitutes (`PipelineBundle<PipelineHandle>`).
-type PipelineBundleAlias = gmeow_rdf::PipelineBundle<PipelineHandle>;
+type PipelineBundleAlias = purrdf::PipelineBundle<PipelineHandle>;
 
 // ── On-disk content-addressed cache ──────────────────────────────────────────
 
@@ -769,10 +769,10 @@ mod tests {
     use super::*;
 
     use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
-    use gmeow_rdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId};
+    use purrdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId};
 
     fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
-        b.intern_iri(format!("http://example.org/{n}"))
+        b.intern_iri(&format!("http://example.org/{n}"))
     }
 
     const GRAPH_IRI: &str = "http://example.org/graph";
@@ -815,7 +815,7 @@ mod tests {
     /// A non-trivial dataset: one default-graph quad plus the canonical RDF-1.2
     /// projection of [`sample_logic_program`] folded into named graph [`GRAPH_IRI`]
     /// (so the attached `Logic` handle has a real, re-derivable backing graph).
-    fn dataset_with_named_graph() -> Arc<gmeow_rdf::RdfDataset> {
+    fn dataset_with_named_graph() -> Arc<purrdf::RdfDataset> {
         let arts = gmeow_logic_compile::projections::compile_program(&sample_logic_program())
             .expect("compile sample program");
         let logic_ds = parse_dataset(arts.canonical_rdf12.as_bytes(), "text/turtle", None)
@@ -873,7 +873,7 @@ mod tests {
         bundle
     }
 
-    fn canon_hex(ds: &gmeow_rdf::RdfDataset) -> String {
+    fn canon_hex(ds: &purrdf::RdfDataset) -> String {
         ContentDigest::of(canonicalize(ds).nquads.as_bytes()).to_hex()
     }
 

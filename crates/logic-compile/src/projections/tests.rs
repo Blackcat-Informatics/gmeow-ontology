@@ -193,7 +193,7 @@ fn parse(ttl: &str) -> LogicProgram {
 /// line reads `<s> <p> <o>`). No oxigraph Store — the compiler crate's test harness
 /// rides the same `gmeow-rdf` `gts` surface the projections themselves use.
 fn triple_set(turtle: &str) -> Vec<String> {
-    use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
+    use purrdf::{parse_dataset, serialize_dataset, SerializeGraph};
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("turtle parse failed: {e}\n---\n{turtle}"));
     let nt = serialize_dataset(

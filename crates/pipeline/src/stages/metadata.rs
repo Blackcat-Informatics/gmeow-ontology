@@ -15,15 +15,15 @@
 //! `graph/alignments` named graph, the Wikidata links from `graph/metadata`. The
 //! committed artifacts were rdflib-serialized; we build the output as a native
 //! [`RdfQuad`] set, fold it into the frozen IR via
-//! [`gmeow_rdf::dataset_from_quads`], and serialize with the native codecs. The
+//! [`purrdf::dataset_from_quads`], and serialize with the native codecs. The
 //! gate compares by graph ISOMORPHISM (both files are blank-node-free, so
 //! isomorphism reduces to triple-set equality).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_rdf::model::{RdfLiteral, RdfTerm};
-use gmeow_rdf::{dataset_from_quads, serialize_dataset, RdfDataset, RdfQuad, SerializeGraph};
+use purrdf::model::{RdfLiteral, RdfTerm};
+use purrdf::{dataset_from_quads, serialize_dataset, RdfDataset, RdfQuad, SerializeGraph};
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
@@ -746,18 +746,18 @@ mod tests {
     fn quads_triple_set(quads: &[RdfQuad]) -> BTreeSet<String> {
         quads
             .iter()
-            .map(|q| gmeow_rdf::emit_quad(q).trim_end().to_string())
+            .map(|q| purrdf::emit_quad(q).trim_end().to_string())
             .collect()
     }
 
     /// N-Triple-encoded triple set of a committed Turtle file's default graph.
     fn committed_triple_set(path: &Path) -> BTreeSet<String> {
         let bytes = std::fs::read(path).unwrap_or_else(|_| panic!("committed missing: {path:?}"));
-        let dataset = gmeow_rdf::parse_dataset(&bytes, "text/turtle", None)
+        let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
             .unwrap_or_else(|e| panic!("parse {path:?}: {e}"));
         dataset
             .owned_quads()
-            .map(|q| gmeow_rdf::emit_quad(&q).trim_end().to_string())
+            .map(|q| purrdf::emit_quad(&q).trim_end().to_string())
             .collect()
     }
 
@@ -765,7 +765,7 @@ mod tests {
     fn metadata_void_is_isomorphic_to_committed() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
+        let bundle = purrdf::import_gts_events(&gts).unwrap();
         let built = build_void_quads(bundle.dataset.as_ref()).unwrap();
         let a = quads_triple_set(&built);
         let b = committed_triple_set(&root.join(VOID_PATH));
@@ -783,7 +783,7 @@ mod tests {
     fn metadata_dcat_is_isomorphic_to_committed() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
+        let bundle = purrdf::import_gts_events(&gts).unwrap();
         let built = build_dcat_quads(bundle.dataset.as_ref(), &root).unwrap();
         let a = quads_triple_set(&built);
         let b = committed_triple_set(&root.join(DCAT_PATH));
@@ -821,14 +821,14 @@ mod tests {
     fn metadata_stats_match_committed_targets() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
+        let bundle = purrdf::import_gts_events(&gts).unwrap();
         let stats = fold_stats(bundle.dataset.as_ref()).unwrap();
         // Expected values are read from the committed `void.ttl` dataset subject
         // (the canonical artifact) rather than hardcoded, so they track every
         // refold automatically. `fold_stats` counts the default graph exactly as
         // the Python `metadata._fold_stats` does over `FoldView.quads(DEFAULT)`.
         let committed_bytes = std::fs::read(root.join(VOID_PATH)).unwrap();
-        let committed = gmeow_rdf::parse_dataset(&committed_bytes, "text/turtle", None).unwrap();
+        let committed = purrdf::parse_dataset(&committed_bytes, "text/turtle", None).unwrap();
         assert_eq!(
             stats.triples,
             committed_void_stat(&committed, "triples"),

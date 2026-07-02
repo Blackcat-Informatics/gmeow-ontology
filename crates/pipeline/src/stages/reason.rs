@@ -26,7 +26,7 @@ use gmeow_logic::reason::perf_ledger::perf_ledger;
 use gmeow_logic::reason::reason_all;
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::result_rdf::{project_reasoning_result, GRAPH_REASONING};
-use gmeow_rdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
+use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
 use crate::error::PipelineError;
@@ -69,7 +69,7 @@ pub struct ReasonArtifacts {
 /// Reason over a composed dataset (N-Quads bytes) and return the three artifacts plus
 /// the typed [`ReasoningResult`]. Parses then delegates to [`reason_over_dataset`].
 pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<ReasonArtifacts, PipelineError> {
-    let edb = gmeow_rdf::parse_dataset(composed_nquads, NativeRdfFormat::NQuads.media_type(), None)
+    let edb = purrdf::parse_dataset(composed_nquads, NativeRdfFormat::NQuads.media_type(), None)
         .map_err(|e| PipelineError::Parse(format!("reason input parse: {e}")))?;
     reason_over_dataset(edb.as_ref())
 }
@@ -86,11 +86,11 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, Pipeline
     // the native codec so the RDF 1.2 statement layer is reconstructed exactly as
     // `dataset_from_oxigraph_quads` did — content-addressed Skolem witnesses are a pure
     // function of this canonical, transport-independent EDB.
-    let canon_nquads = gmeow_rdf::canonical_flat_nquads(edb).map_err(|e| PipelineError::Stage {
+    let canon_nquads = purrdf::canonical_flat_nquads(edb).map_err(|e| PipelineError::Stage {
         stage: "stage-reason".to_string(),
         message: format!("RDFC-1.0 canonicalize EDB: {e}"),
     })?;
-    let canon = gmeow_rdf::parse_dataset(
+    let canon = purrdf::parse_dataset(
         canon_nquads.as_bytes(),
         NativeRdfFormat::NQuads.media_type(),
         None,
@@ -135,11 +135,11 @@ fn reason_dataset(
     closure_ttl: &str,
     result: &ReasoningResult,
 ) -> Result<Arc<RdfDataset>, PipelineError> {
-    let closure_ds = gmeow_rdf::parse_dataset(closure_ttl.as_bytes(), "text/turtle", None)
+    let closure_ds = purrdf::parse_dataset(closure_ttl.as_bytes(), "text/turtle", None)
         .map_err(|e| PipelineError::Parse(format!("reason closure parse: {e}")))?;
     let reasoning_nt = project_reasoning_result(result);
     let reasoning_ds =
-        gmeow_rdf::parse_dataset(reasoning_nt.as_bytes(), "application/n-triples", None)
+        purrdf::parse_dataset(reasoning_nt.as_bytes(), "application/n-triples", None)
             .map_err(|e| PipelineError::Parse(format!("reason projection parse: {e}")))?;
 
     let mut builder = RdfDatasetBuilder::new();
@@ -259,7 +259,7 @@ impl Stage for ReasonStage {
         let mut bundle = bundle_from_artifacts_over(
             dataset,
             artifacts,
-            gmeow_rdf::provenance::DatasetProvenance::new(),
+            purrdf::provenance::DatasetProvenance::new(),
         );
         let pinned = bundle.graph_digest(GRAPH_REASONING);
         bundle
@@ -325,7 +325,7 @@ mod tests {
         let mut bundle = bundle_from_artifacts_over(
             dataset,
             BTreeMap::new(),
-            gmeow_rdf::provenance::DatasetProvenance::new(),
+            purrdf::provenance::DatasetProvenance::new(),
         );
         let pinned = bundle.graph_digest(GRAPH_REASONING);
         bundle
@@ -362,10 +362,10 @@ mod tests {
         let mut bundle = bundle_from_artifacts_over(
             dataset,
             BTreeMap::new(),
-            gmeow_rdf::provenance::DatasetProvenance::new(),
+            purrdf::provenance::DatasetProvenance::new(),
         );
         // A WRONG pinned digest must be rejected (no silently-stale handle).
-        let wrong = gmeow_rdf::ContentDigest::of(b"not the backing graph");
+        let wrong = purrdf::ContentDigest::of(b"not the backing graph");
         let err = bundle
             .pin_handle(
                 GRAPH_REASONING,

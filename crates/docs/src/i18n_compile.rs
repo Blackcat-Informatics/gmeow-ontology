@@ -11,7 +11,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use gmeow_slice::{ArtifactRole, SliceCatalog};
+use purrdf::slice::{ArtifactRole, SliceCatalog};
 use regex::Regex;
 use sha1::{Digest, Sha1};
 
@@ -109,10 +109,10 @@ fn media_type_for_format(format: &str) -> Result<&'static str, String> {
 /// `parse_rdf_literals`. Only literal objects on named subjects are surfaced (the
 /// i18n family keys translations on those exactly).
 fn parse_rdf_literals(bytes: &[u8], format: &str) -> Result<Vec<RdfLiteralRow>, String> {
-    use gmeow_rdf::{DatasetView, GraphMatch, TermRef};
+    use purrdf::{DatasetView, GraphMatch, TermRef};
 
     let media_type = media_type_for_format(format)?;
-    let dataset = gmeow_rdf::parse_dataset(bytes, media_type, None)
+    let dataset = purrdf::parse_dataset(bytes, media_type, None)
         .map_err(|e| format!("RDF parse error: {e}"))?;
     let mut rows = Vec::new();
     for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
@@ -765,7 +765,11 @@ fn slice_group_name(root: &Path, slice_dir: &Path) -> (String, String) {
 }
 
 fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKey>>, String> {
-    let catalog = SliceCatalog::discover(&root.join("slices")).map_err(|e| e.to_string())?;
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
+    )
+    .map_err(|e| e.to_string())?;
     let localizable: HashSet<&str> = LOCALIZABLE_PREDICATES.iter().copied().collect();
     let mut groups: BTreeMap<String, BTreeMap<(String, String), TranslationKey>> = BTreeMap::new();
     let mut english_seen: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
@@ -835,7 +839,11 @@ pub fn extract_catalog(
     lang: Option<&str>,
     terms_only: bool,
 ) -> Result<ExtractReport, String> {
-    let catalog = SliceCatalog::discover(&root.join("slices")).map_err(|e| e.to_string())?;
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
+    )
+    .map_err(|e| e.to_string())?;
     let by_iri: BTreeMap<String, (String, String)> = catalog
         .records()
         .iter()

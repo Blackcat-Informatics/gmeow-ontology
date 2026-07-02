@@ -10,7 +10,7 @@
 
 use std::collections::HashSet;
 
-use gmeow_rdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
+use purrdf::{serialize_dataset, RdfDatasetBuilder, RdfLiteral, SerializeGraph};
 
 use super::super::ir::{Formula, LogicAxiom, LogicModality, LogicProgram, Term};
 use super::{
@@ -152,15 +152,15 @@ pub(crate) struct TripleSink {
 
 impl TripleSink {
     pub(crate) fn add_iri(&mut self, s: &str, p: &str, o: &str) {
-        let s = self.builder.intern_iri(s.to_owned());
-        let p = self.builder.intern_iri(p.to_owned());
-        let o = self.builder.intern_iri(o.to_owned());
+        let s = self.builder.intern_iri(s);
+        let p = self.builder.intern_iri(p);
+        let o = self.builder.intern_iri(o);
         self.builder.push_quad(s, p, o, None);
     }
 
     pub(crate) fn add_lit(&mut self, s: &str, p: &str, lit: RdfLiteral) {
-        let s = self.builder.intern_iri(s.to_owned());
-        let p = self.builder.intern_iri(p.to_owned());
+        let s = self.builder.intern_iri(s);
+        let p = self.builder.intern_iri(p);
         let o = self.builder.intern_literal(lit);
         self.builder.push_quad(s, p, o, None);
     }

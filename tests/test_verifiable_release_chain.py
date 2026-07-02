@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace
-from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
-from gmeow_rdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib import Graph, Literal, Namespace
+from purrdf.compat.rdflib.namespace import OWL, RDF, RDFS
+from purrdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.graph import load_merged_graph
 

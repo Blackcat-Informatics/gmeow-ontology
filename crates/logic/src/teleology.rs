@@ -46,7 +46,7 @@ use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 use crate::provenance::{mint_derivation_id, mint_reifier};
 use crate::result::PreservationClaim;

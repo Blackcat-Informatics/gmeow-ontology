@@ -19,7 +19,7 @@ import io
 import tarfile
 from typing import TYPE_CHECKING, Final
 
-import gmeow_rdf as ox
+import purrdf as ox
 from gts import read
 from gts.model import Graph, Term
 
@@ -79,7 +79,7 @@ class FoldView:
     """Read-side idioms over a folded GTS graph backed by Rust indexes."""
 
     def __init__(self, graph: Graph, data: bytes | None = None) -> None:
-        """Wrap a folded graph; all lookup indexes live in ``gmeow_rdf`` Rust."""
+        """Wrap a folded graph; all lookup indexes live in ``purrdf`` Rust."""
         self.graph = graph
         self._native = (
             ox.GtsFoldViewNative.from_bytes(data)

@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use gmeow_diagnostics::{Finding, Report, Severity};
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 use serde_yaml::Value as Yaml;
 
@@ -196,7 +196,7 @@ fn check_no_rdflib_in_runtime(root: &Path, report: &mut RepoStaticReport) {
         .collect::<Vec<_>>();
     if !offenders.is_empty() {
         report.error(format!(
-            "first-party modules must use gmeow_rdf.compat.rdflib, not upstream rdflib: {}",
+            "first-party modules must use purrdf.compat.rdflib, not upstream rdflib: {}",
             offenders.join(", ")
         ));
     }
@@ -294,7 +294,7 @@ fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
             continue;
         }
         let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
-        let ds = match gmeow_rdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
             Ok(ds) => ds,
             Err(err) => {
                 report.error(format!("{rel}: does not parse as Turtle: {err}"));
@@ -831,7 +831,7 @@ mod tests {
     #[test]
     fn python_scanner_ignores_comments_and_strings() {
         let code = strip_python_non_code(
-            "import os\n# import rdflib\nTEXT = \"import gmeow_rdf\"\n'''load_merged_graph'''\n",
+            "import os\n# import rdflib\nTEXT = \"import purrdf\"\n'''load_merged_graph'''\n",
         );
         let imports = python_imported_top_modules(&code);
         assert!(imports.contains("os"));

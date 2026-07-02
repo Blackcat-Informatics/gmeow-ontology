@@ -134,7 +134,7 @@ mod tests {
         // the end-to-end pipeline test; this unit test pins the sink's fail-closed
         // artifact wiring without paying for reasoning and snapshot assembly.
         let root = repo_root();
-        let carrier = gmeow_rdf::parse_dataset(
+        let carrier = purrdf::parse_dataset(
             b"<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
               <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/description> \"test bundle\" .\n\
               <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
@@ -151,7 +151,7 @@ mod tests {
         // pins the sink's fail-closed wiring, not a real reasoned closure).
         let source_load = StageProduct::from_artifacts_over(
             "stage-source-load",
-            gmeow_rdf::parse_dataset(b"", "application/n-quads", None)
+            purrdf::parse_dataset(b"", "application/n-quads", None)
                 .expect("empty source-load dataset"),
             BTreeMap::new(),
         );
@@ -166,6 +166,9 @@ mod tests {
             // The SHACL-AF rule (computation) surface the generated-fanout archive pulls
             // from the compile-logic product (design/LOGIC-SHACL-AF.md).
             crate::stages::compile_logic::SHACL_AF_PATH,
+            // The validation-shape surfaces (SHACL Core + ShEx) — the OPT/ADL constraints axis.
+            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+            crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH,
             crate::stages::compile_logic::N3_PATH,
             crate::stages::compile_logic::CLIF_PATH,
             crate::stages::compile_logic::CGIF_PATH,
@@ -299,6 +302,6 @@ mod tests {
         );
 
         // Round-trips through the kernel GTS importer (the bundle is well-formed).
-        let _ = gmeow_rdf::import_gts_events(emitted).expect("import_gts_events");
+        let _ = purrdf::import_gts_events(emitted).expect("import_gts_events");
     }
 }

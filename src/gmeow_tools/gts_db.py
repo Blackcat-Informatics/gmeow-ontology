@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import gmeow_rdf as ox
+import purrdf as ox
 
 
 def to_sqlite(data: bytes, path: str | Path) -> Path:

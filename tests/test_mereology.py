@@ -11,7 +11,7 @@ hasPart spine and its sub-properties. See ``dsl/tests/MIGRATION-LEDGER.md``.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
 

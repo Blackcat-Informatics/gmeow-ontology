@@ -14,7 +14,7 @@ use std::path::Path;
 
 use gmeow_docs::model::{DocsModel, ReasoningVerdict};
 use gmeow_docs::rdf::to_gmeow_rdf;
-use gmeow_rdf::RdfTerm;
+use purrdf::RdfTerm;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};

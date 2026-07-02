@@ -14,7 +14,7 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
-use gmeow_slice::{
+use purrdf::slice::{
     ArtifactRecord, ArtifactRole, ManifestView, OwnershipAnalyzer, OwnershipReport, SliceCatalog,
     SliceError, SliceRecord, SliceTier,
 };
@@ -1058,7 +1058,10 @@ impl DocsModel {
     /// and build the model. Also reads the curated `<root>/docs/four-boxes.md`
     /// prose at build time, if present.
     pub fn discover(root: &Path) -> Result<Self, DocsError> {
-        let catalog = SliceCatalog::discover(&root.join("slices"))?;
+        let catalog = SliceCatalog::discover(
+            &root.join("slices"),
+            purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
+        )?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let central_sets = read_central_mapping_sets(root)?;
         let mut model = Self::from_catalog(&catalog, &ownership, &central_sets);

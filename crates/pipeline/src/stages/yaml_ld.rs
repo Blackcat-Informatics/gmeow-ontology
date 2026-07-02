@@ -7,7 +7,7 @@
 //! derivative, plus a small serialization-preservation ledger.
 //!
 //! The JSON-LD-star / YAML-LD-star CODEC now lives in the lowest crate the rdf /
-//! validate / pipeline consumers share (`gmeow_rdf::native_codecs::jsonld`). The
+//! validate / pipeline consumers share (`purrdf::native_codecs::jsonld`). The
 //! production functions in this stage are thin wrappers over it; only the
 //! stage-specific code (the stage entry, the preservation ledger, the build-time
 //! round-trip gate) lives here.
@@ -15,8 +15,8 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use gmeow_rdf::native_codecs::jsonld;
-use gmeow_rdf::RdfDataset;
+use purrdf::native_codecs::jsonld;
+use purrdf::RdfDataset;
 use serde_json::Value;
 
 use crate::error::PipelineError;
@@ -29,22 +29,39 @@ pub const YAML_LD_PATH: &str = "dist/gmeow.yamlld";
 /// Logical path of the serialization-preservation ledger.
 pub const PRESERVATION_PATH: &str = "generated/metadata/preservation.json";
 
-/// GMEOW quoted object property (IRI / blank-node objects).
-pub use jsonld::GMEOW_QOBJECT;
-/// GMEOW quoted literal object property.
-pub use jsonld::GMEOW_QOBJECTLITERAL;
-/// GMEOW quoted predicate property.
-pub use jsonld::GMEOW_QPREDICATE;
+// The statement-metadata reification vocabulary is gmeow's OWN ontology surface
+// (`gmeow:StatementMetadata` / `gmeow:qSubject…`, defined in the kernel/provenance/
+// standpoint slices and SKOS-aligned). purrdf's JSON-LD-star codec is namespace-
+// parametric (`StatementMetadataVocab`); gmeow supplies these gmeow: IRIs so the
+// downcast emits the ontology's terms, not purrdf's neutral default.
+
 /// GMEOW quoted subject property.
-pub use jsonld::GMEOW_QSUBJECT;
+pub const GMEOW_QSUBJECT: &str = "https://blackcatinformatics.ca/gmeow/qSubject";
+/// GMEOW quoted predicate property.
+pub const GMEOW_QPREDICATE: &str = "https://blackcatinformatics.ca/gmeow/qPredicate";
+/// GMEOW quoted object property (IRI / blank-node objects).
+pub const GMEOW_QOBJECT: &str = "https://blackcatinformatics.ca/gmeow/qObject";
+/// GMEOW quoted literal object property.
+pub const GMEOW_QOBJECTLITERAL: &str = "https://blackcatinformatics.ca/gmeow/qObjectLiteral";
 /// GMEOW statement-metadata class.
-pub use jsonld::GMEOW_STATEMENT_METADATA;
+pub const GMEOW_STATEMENT_METADATA: &str = "https://blackcatinformatics.ca/gmeow/StatementMetadata";
 /// RDF 1.2 reifier predicate (re-exported from the codec so the tests + downcast share
 /// one definition).
 pub use jsonld::RDF_REIFIES;
 
+/// The gmeow-namespace reification vocab handed to purrdf's parametric downcast.
+fn gmeow_statement_metadata_vocab() -> jsonld::StatementMetadataVocab<'static> {
+    jsonld::StatementMetadataVocab {
+        statement_metadata: GMEOW_STATEMENT_METADATA,
+        q_subject: GMEOW_QSUBJECT,
+        q_predicate: GMEOW_QPREDICATE,
+        q_object: GMEOW_QOBJECT,
+        q_object_literal: GMEOW_QOBJECTLITERAL,
+    }
+}
+
 /// Map a JSON-LD/YAML-LD codec diagnostic onto a pipeline decode error.
-fn codec_err(e: gmeow_rdf::RdfDiagnostic) -> PipelineError {
+fn codec_err(e: purrdf::RdfDiagnostic) -> PipelineError {
     PipelineError::Decode(e.to_string())
 }
 
@@ -117,8 +134,16 @@ pub fn serialize_graph_yaml(
     dataset: &RdfDataset,
     schema_url: Option<&str>,
 ) -> Result<String, PipelineError> {
+    // purrdf is namespace-neutral: with no schema_url it stamps its own
+    // `purrdf.schema.json` header. gmeow's bundled YAML-LD schema is
+    // `gmeow.schema.json`, so default `None` to it (the consumer's schema).
+    let schema_url = schema_url.or(Some(GMEOW_BUNDLED_SCHEMA));
     jsonld::serialize_dataset_to_yamlld(dataset, schema_url).map_err(codec_err)
 }
+
+/// gmeow's bundled YAML-LD language-server schema reference (resolves inside the
+/// `gmeow.gts` snapshot as a bare member name).
+pub const GMEOW_BUNDLED_SCHEMA: &str = "gmeow.schema.json";
 
 /// Serialization-preservation ledger: records JSON-LD-star and YAML-LD-star as lossless.
 pub(crate) fn preservation_ledger() -> String {
@@ -153,7 +178,8 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Arc<RdfDataset>, PipelineE
 pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
     json_bytes: &[u8],
 ) -> Result<String, PipelineError> {
-    jsonld::jsonld_to_gmeow_statement_metadata_nquads(json_bytes).map_err(codec_err)
+    jsonld::jsonld_to_statement_metadata_nquads(json_bytes, Some(&gmeow_statement_metadata_vocab()))
+        .map_err(codec_err)
 }
 
 /// Convert YAML-LD-star bytes to JSON-LD-star JSON (thin wrapper over the first-party
@@ -167,7 +193,8 @@ pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, PipelineError> 
 pub fn yaml_ld_star_to_gmeow_statement_metadata_nquads(
     yaml_bytes: &[u8],
 ) -> Result<String, PipelineError> {
-    jsonld::yamlld_to_gmeow_statement_metadata_nquads(yaml_bytes).map_err(codec_err)
+    jsonld::yamlld_to_statement_metadata_nquads(yaml_bytes, Some(&gmeow_statement_metadata_vocab()))
+        .map_err(codec_err)
 }
 
 /// Return an RDFC-1.0 canonical, deterministically sorted quad representation.
@@ -178,7 +205,7 @@ pub(crate) fn canonical_lines(dataset: &RdfDataset) -> Vec<String> {
     // Native full RDFC-1.0 over the FLATTENED carrier (#910): `canonical_flat_nquads`
     // re-materializes the RDF 1.2 statement overlay to plain `rdf:reifies` / annotation
     // triples before canonicalizing.
-    let canonical = gmeow_rdf::canonical_flat_nquads(dataset)
+    let canonical = purrdf::canonical_flat_nquads(dataset)
         .expect("RDFC-1.0 canonicalization of parsed dataset");
     let mut lines: Vec<String> = canonical.lines().map(str::to_owned).collect();
     lines.sort();
@@ -193,7 +220,7 @@ fn dataset_from_nquads(nquads: &[u8]) -> Result<Arc<RdfDataset>, PipelineError> 
     // time; `canonical_lines` un-folds it back to the equivalent flat `<reifier> rdf:reifies
     // <<( s p o )>>` rows (exact inverses), so the star structure the RDFC-1.0 canonical
     // comparison depends on is preserved.
-    gmeow_rdf::parse_dataset(nquads, "application/n-quads", None)
+    purrdf::parse_dataset(nquads, "application/n-quads", None)
         .map_err(|e| PipelineError::Parse(format!("parse N-Quads: {e}")))
 }
 
@@ -223,7 +250,7 @@ pub fn roundtrip_isomorphic(
 mod tests {
     use super::*;
 
-    use gmeow_rdf::{
+    use purrdf::{
         BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTextDirection,
         RdfTriple, TermId,
     };
@@ -299,9 +326,9 @@ mod tests {
         let mut ids: Vec<TermId> = Vec::with_capacity(g.terms.len());
         for term in &g.terms {
             let id = match term.kind {
-                TermKind::Iri => builder.intern_iri(term.value.clone().unwrap_or_default()),
+                TermKind::Iri => builder.intern_iri(&term.value.clone().unwrap_or_default()),
                 TermKind::Bnode => {
-                    builder.intern_blank(term.value.clone().unwrap_or_default(), BlankScope(0))
+                    builder.intern_blank(&term.value.clone().unwrap_or_default(), BlankScope(0))
                 }
                 TermKind::Literal => {
                     let lexical = term.value.clone().unwrap_or_default();
@@ -352,7 +379,7 @@ mod tests {
     /// statement overlay (reifier bindings + annotations) is re-materialized to plain
     /// `rdf:reifies` / annotation quads.
     fn flat_quads(dataset: &RdfDataset) -> Vec<RdfQuad> {
-        gmeow_rdf::flat_rdf_quads_from_dataset(dataset)
+        purrdf::flat_rdf_quads_from_dataset(dataset)
     }
 
     /// Assert no quad object is an RDF 1.2 quoted triple term (over the flattened
@@ -628,7 +655,7 @@ mod tests {
         // Build the carrier directly from RDF 1.2 directional-language N-Quads
         // (`"lex"@lang--ltr`) — the production path.
         let nq = b"<https://example.org/s> <https://example.org/p> \"hello\"@en--ltr .\n";
-        let dataset = gmeow_rdf::dataset_from_bytes(nq, gmeow_rdf::NativeRdfFormat::NQuads)
+        let dataset = purrdf::dataset_from_bytes(nq, purrdf::NativeRdfFormat::NQuads)
             .expect("parse directional-language N-Quads into the carrier");
 
         let json = serialize_graph(dataset.as_ref()).expect("serialize");
@@ -1187,7 +1214,7 @@ mod tests {
     fn load_turtle_dataset(path: &std::path::Path) -> Result<Arc<RdfDataset>, PipelineError> {
         let bytes = std::fs::read(path)
             .map_err(|e| PipelineError::Parse(format!("read {}: {e}", path.display())))?;
-        gmeow_rdf::parse_dataset(&bytes, "text/turtle", None)
+        purrdf::parse_dataset(&bytes, "text/turtle", None)
             .map_err(|e| PipelineError::Parse(format!("Turtle parse: {e}")))
     }
 
@@ -1431,10 +1458,10 @@ mod tests {
         let graph = minimal_graph();
         let dataset = synth_to_dataset(&graph);
         let json = serialize_graph(dataset.as_ref()).expect("serialize JSON-LD-star");
-        let nquads = gmeow_rdf::serialize_dataset(
+        let nquads = purrdf::serialize_dataset(
             dataset.as_ref(),
             "application/n-quads",
-            gmeow_rdf::SerializeGraph::Dataset,
+            purrdf::SerializeGraph::Dataset,
         )
         .expect("serialize fixture dataset to N-Quads");
         assert!(
@@ -1449,10 +1476,10 @@ mod tests {
         let graph = minimal_graph();
         let dataset = synth_to_dataset(&graph);
         let yaml = serialize_graph_yaml(dataset.as_ref(), None).expect("serialize YAML-LD-star");
-        let nquads = gmeow_rdf::serialize_dataset(
+        let nquads = purrdf::serialize_dataset(
             dataset.as_ref(),
             "application/n-quads",
-            gmeow_rdf::SerializeGraph::Dataset,
+            purrdf::SerializeGraph::Dataset,
         )
         .expect("serialize fixture dataset to N-Quads");
         assert!(
@@ -1515,7 +1542,7 @@ ex:r a gmeow:StatementMetadata ;
      gmeow:accordingTo   ex:source1 .
 "#;
 
-        let turtle_lift = gmeow_rdf::parse_dataset(TURTLE_DOC.as_bytes(), "text/turtle", None)
+        let turtle_lift = purrdf::parse_dataset(TURTLE_DOC.as_bytes(), "text/turtle", None)
             .expect("Turtle parse must succeed");
 
         // ── 5. RDFC-1.0 canonical equality: lift ≡ native Turtle ─────────────

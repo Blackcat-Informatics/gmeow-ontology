@@ -39,7 +39,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_rdf::{RdfDataset, RdfLiteral, RdfTerm};
+use purrdf::{RdfDataset, RdfLiteral, RdfTerm};
 
 use crate::ir::{
     Formula, LogicAxiom, LogicProgram, LogicRule, PreservationKind, Term, LOGIC_NAMESPACE,
@@ -401,9 +401,9 @@ fn canonical_fact_key(facts: &[RcAtom]) -> String {
     let mut nt = lines.join("\n");
     nt.push('\n');
 
-    match gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+    match purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .map_err(|e| e.to_string())
-        .and_then(|dataset| gmeow_rdf::canonical_flat_nquads(dataset.as_ref()))
+        .and_then(|dataset| purrdf::canonical_flat_nquads(dataset.as_ref()))
     {
         Ok(canonical) => canonical,
         Err(_) => {
@@ -1391,7 +1391,7 @@ mod tests {
         // cache-hit re-derivation the handle relies on).
         let lowered = lower_program(&horn_program());
         let nt = project_relational_core(&lowered);
-        let ds = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("parse projection");
         let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
         assert_eq!(
@@ -1414,7 +1414,7 @@ mod tests {
             ],
         );
         let nt = project_relational_core(&lowered);
-        let ds = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("parse projection");
         let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
         assert_eq!(re_derived.preservation(), PreservationKind::SoundUnder);
@@ -1474,7 +1474,7 @@ mod tests {
         let lowered = lower_program(&program);
         // Project then re-derive: must reconstruct 2 body atoms, not 1.
         let nt = project_relational_core(&lowered);
-        let ds = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("parse projection");
         let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
         assert_eq!(
@@ -1499,7 +1499,7 @@ mod tests {
             RDF_TYPE,
             class_fact(),
         );
-        let ds = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("parse malformed");
         let err = parse_relational_core(ds.as_ref()).expect_err("malformed graph must hard-fail");
         assert!(err.contains("missing rcSubject"), "got: {err}");
@@ -1616,7 +1616,7 @@ mod tests {
             .with_formulas(vec![transitivity_formula()]);
         let lowered = lower_program_with_formulas(&program);
         let nt = project_relational_core(&lowered);
-        let ds = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("parse projection");
         let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
         assert_eq!(

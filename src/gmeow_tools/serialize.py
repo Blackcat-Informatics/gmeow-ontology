@@ -13,7 +13,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import Graph
+from purrdf.compat.rdflib import Graph
 
 from gmeow_tools.config import DIST_DIR
 from gmeow_tools.graph import bind_prefixes

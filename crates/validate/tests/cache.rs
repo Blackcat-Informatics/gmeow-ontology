@@ -217,10 +217,10 @@ fn mini_shapes_ttl() -> String {
         .to_owned()
 }
 
-fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> gmeow_gts::model::Graph {
-    use gmeow_gts::model::{Term, TermKind};
+fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> purrdf::gts::model::Graph {
+    use purrdf::gts::model::{Term, TermKind};
 
-    let mut graph = gmeow_gts::model::Graph::default();
+    let mut graph = purrdf::gts::model::Graph::default();
     let mut iri_to_id: HashMap<String, usize> = HashMap::new();
 
     for (s, p, o) in triples {
@@ -266,9 +266,9 @@ fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> gmeow_gts::mo
     graph
 }
 
-fn write_gts_bundle(graph: &gmeow_gts::model::Graph, deterministic: bool) -> Vec<u8> {
+fn write_gts_bundle(graph: &purrdf::gts::model::Graph, deterministic: bool) -> Vec<u8> {
     if deterministic {
-        gmeow_gts::writer::Writer::deterministic(graph, "gmeow-validate-test")
+        purrdf::gts::writer::Writer::deterministic(graph, "gmeow-validate-test")
             .expect("deterministic GTS writer must succeed")
             .to_bytes()
     } else {
@@ -278,14 +278,14 @@ fn write_gts_bundle(graph: &gmeow_gts::model::Graph, deterministic: bool) -> Vec
         // tag omitted. The wire bytes differ, but the content-addressed
         // segment head stays stable.
         let canonical_bytes =
-            gmeow_gts::writer::Writer::deterministic(graph, "gmeow-validate-test")
+            purrdf::gts::writer::Writer::deterministic(graph, "gmeow-validate-test")
                 .expect("deterministic GTS writer must succeed")
                 .to_bytes();
         let canonical_graph =
             store::read_gts_graph(&canonical_bytes).expect("canonical bundle must parse");
-        let mut writer = gmeow_gts::writer::Writer::with_options(
+        let mut writer = purrdf::gts::writer::Writer::with_options(
             "gmeow-validate-test",
-            gmeow_gts::writer::WriterOptions {
+            purrdf::gts::writer::WriterOptions {
                 magic_tag: false,
                 ..Default::default()
             },
@@ -530,12 +530,12 @@ fn gts_cache_key_is_stable_across_segment_orders() {
 
 #[test]
 fn gts_validate_uses_cache_when_configured() {
-    use gmeow_gts::model::{Term, TermKind};
+    use purrdf::gts::model::{Term, TermKind};
 
     // Build a minimal GTS graph that mirrors the ontology used in
     // `validate_all_uses_cache_when_configured`, with the required annotations
     // for the structural lint.
-    let mut graph = gmeow_gts::model::Graph::default();
+    let mut graph = purrdf::gts::model::Graph::default();
     let ns = "https://blackcatinformatics.ca/gmeow/";
     let thing_iri = format!("{ns}Thing");
 
@@ -560,7 +560,7 @@ fn gts_validate_uses_cache_when_configured() {
         });
     }
 
-    fn literal(graph: &mut gmeow_gts::model::Graph, value: &str) -> usize {
+    fn literal(graph: &mut purrdf::gts::model::Graph, value: &str) -> usize {
         let id = graph.terms.len();
         graph.terms.push(Term {
             kind: TermKind::Literal,

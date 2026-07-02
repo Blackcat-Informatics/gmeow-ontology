@@ -544,12 +544,12 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
 /// bare-individual frontend extractor ([`extract_correspondences`]) so a single reader
 /// ([`read_correspondence`]) serves both — built once, reverse-lookups are cheap.
 struct SpIndex {
-    by_sp: BTreeMap<(String, String), Vec<gmeow_rdf::RdfTerm>>,
+    by_sp: BTreeMap<(String, String), Vec<purrdf::RdfTerm>>,
 }
 
 impl SpIndex {
-    fn from_dataset(dataset: &gmeow_rdf::RdfDataset) -> Self {
-        use gmeow_rdf::RdfTerm;
+    fn from_dataset(dataset: &purrdf::RdfDataset) -> Self {
+        use purrdf::RdfTerm;
         let mut by_sp: BTreeMap<(String, String), Vec<RdfTerm>> = BTreeMap::new();
         for quad in dataset.owned_quads() {
             let RdfTerm::Iri(subject) = &quad.subject else {
@@ -564,7 +564,7 @@ impl SpIndex {
     }
 
     fn iri_obj(&self, s: &str, p: &str) -> Option<String> {
-        use gmeow_rdf::RdfTerm;
+        use purrdf::RdfTerm;
         self.by_sp
             .get(&(s.to_owned(), p.to_owned()))?
             .iter()
@@ -575,7 +575,7 @@ impl SpIndex {
     }
 
     fn lit_obj(&self, s: &str, p: &str) -> Option<String> {
-        use gmeow_rdf::RdfTerm;
+        use purrdf::RdfTerm;
         self.by_sp
             .get(&(s.to_owned(), p.to_owned()))?
             .iter()
@@ -590,7 +590,7 @@ impl SpIndex {
     }
 
     fn iri_objs(&self, s: &str, p: &str) -> Vec<String> {
-        use gmeow_rdf::RdfTerm;
+        use purrdf::RdfTerm;
         let mut out: Vec<String> = self
             .by_sp
             .get(&(s.to_owned(), p.to_owned()))
@@ -609,7 +609,7 @@ impl SpIndex {
     /// Subjects carrying an `rdf:type <type_iri>` triple, sorted + deduped. Finds bare
     /// `logic:Correspondence` individuals independent of any program wrapper.
     fn subjects_of_type(&self, type_iri: &str) -> Vec<String> {
-        use gmeow_rdf::RdfTerm;
+        use purrdf::RdfTerm;
         let mut out: Vec<String> = self
             .by_sp
             .iter()
@@ -729,9 +729,7 @@ fn read_caveats(idx: &SpIndex, corr_iri: &str) -> Result<Vec<CorrespondenceCavea
 ///
 /// HARD-fails on a malformed graph (no-optionality): a backing graph that no longer
 /// re-derives is a corrupt cache, never a silently-dropped handle.
-pub fn parse_correspondence(
-    dataset: &gmeow_rdf::RdfDataset,
-) -> Result<CorrespondenceProgram, String> {
+pub fn parse_correspondence(dataset: &purrdf::RdfDataset) -> Result<CorrespondenceProgram, String> {
     let idx = SpIndex::from_dataset(dataset);
 
     let prog = program_iri();
@@ -767,7 +765,7 @@ pub fn parse_correspondence(
 /// single malformed cell never poisons the rest (the frontend is fail-soft, unlike the
 /// hard-fail cache re-derivation in [`parse_correspondence`]).
 pub fn extract_correspondences(
-    dataset: &gmeow_rdf::RdfDataset,
+    dataset: &purrdf::RdfDataset,
 ) -> (Vec<Correspondence>, Vec<(String, String)>) {
     let idx = SpIndex::from_dataset(dataset);
     let mut ok = Vec::new();
@@ -857,7 +855,7 @@ fn leg_path_members(
 /// [`TransactionProgramIr`]. A leg with no `gm:path` body is omitted (the round-trip gate
 /// REDs an unverifiable claim rather than passing it vacuously). Deduped + sorted by IRI.
 pub fn extract_leg_programs(
-    dataset: &gmeow_rdf::RdfDataset,
+    dataset: &purrdf::RdfDataset,
     correspondences: &[Correspondence],
 ) -> Vec<TransactionProgramIr> {
     let idx = SpIndex::from_dataset(dataset);

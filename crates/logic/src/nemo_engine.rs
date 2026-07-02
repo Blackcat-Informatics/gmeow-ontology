@@ -50,7 +50,6 @@
 //! MUST release the GIL **and** call this function from a non-async context
 //! or a `spawn_blocking` task.
 
-use gmeow_rdf::provenance::Attribution;
 use nemo::api::{load_program, load_string, reason, validate};
 use nemo::datavalues::AnyDataValue;
 use nemo::execution::tracing::trace::{ExecutionTraceTree, TraceTreeRuleApplication};
@@ -59,6 +58,7 @@ use nemo::rule_model::components::fact::Fact;
 use nemo::rule_model::components::tag::Tag;
 use nemo::rule_model::programs::program::Program;
 use nemo::rule_model::programs::ProgramRead;
+use purrdf::provenance::Attribution;
 use tokio::runtime::Runtime;
 
 use std::cell::RefCell;

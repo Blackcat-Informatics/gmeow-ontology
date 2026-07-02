@@ -13,7 +13,7 @@ use crate::projections::{rdf, target_meta, ProjectionResult};
 
 use super::{escape_name, escape_string, RDF_META_SENTINEL};
 
-use gmeow_rdf::{parse_dataset, RdfDataset, TermRef};
+use purrdf::{parse_dataset, RdfDataset, TermRef};
 
 /// `xsd:string` — the datatype the dataset assigns a plain literal; emitted CLIF
 /// distinguishes a plain `(lit "x")` from a typed `(lit "x" 'dt')` by suppressing this

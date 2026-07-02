@@ -18,7 +18,7 @@ use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_rdf::{
+use purrdf::{
     flat_dataset_from_quads, parse_dataset, serialize_dataset, DatasetView, GraphMatch, RdfDataset,
     RdfLiteral, RdfTerm, SerializeGraph, TermRef, TermValue,
 };
@@ -233,7 +233,7 @@ impl FileAcceptance {
 // ── Native RDF substrate (EPIC #906) ──────────────────────────────────────────
 //
 // The scoreboard once built oxigraph `Store`s and read `oxigraph::model` terms.
-// It now operates entirely on the frozen `gmeow_rdf::RdfDataset` IR: each Turtle
+// It now operates entirely on the frozen `purrdf::RdfDataset` IR: each Turtle
 // source is parsed natively and unioned, SPARQL runs through the native engine,
 // and pattern queries resolve `TermRef`s off the dataset. No oxigraph anywhere.
 
@@ -358,7 +358,7 @@ fn escape_literal(s: &str) -> String {
 
 /// The id of an IRI term in `ds`, or `None` if absent (an absent IRI matches no
 /// quad, exactly like the oxigraph pattern miss).
-fn iri_id(ds: &RdfDataset, iri: &str) -> Option<gmeow_rdf::TermId> {
+fn iri_id(ds: &RdfDataset, iri: &str) -> Option<purrdf::TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
 }
 
@@ -944,11 +944,11 @@ fn run_claim_shacl(
     trace_claim_audit_phase(trace, "shacl.load-shapes", phase_started);
 
     let phase_started = Instant::now();
-    let shapes = retain_claim_audit_shapes(gmeow_shacl::engine::parse_shapes(&shapes_ttl)?)?;
+    let shapes = retain_claim_audit_shapes(purrdf::shapes::engine::parse_shapes(&shapes_ttl)?)?;
     trace_claim_audit_phase(trace, "shacl.parse-shapes", phase_started);
 
     let phase_started = Instant::now();
-    let shacl = gmeow_shacl::engine::validate_dataset(store.as_ref(), &shapes)?;
+    let shacl = purrdf::shapes::engine::validate_dataset(store.as_ref(), &shapes)?;
     trace_claim_audit_phase(trace, "shacl.validate", phase_started);
     if shacl.conforms {
         return Ok((Vec::new(), Vec::new()));
@@ -958,8 +958,10 @@ fn run_claim_shacl(
     for result in shacl.results {
         let line = shacl_line(&result);
         match result.severity {
-            gmeow_shacl::report::Severity::Violation => violations.push(line),
-            gmeow_shacl::report::Severity::Warning | gmeow_shacl::report::Severity::Info => {
+            purrdf::shapes::report::Severity::Violation => violations.push(line),
+            purrdf::shapes::report::Severity::Warning
+            | purrdf::shapes::report::Severity::Info
+            | purrdf::shapes::report::Severity::Other(_) => {
                 warnings.push(line);
             }
         }
@@ -978,8 +980,8 @@ fn run_claim_shacl(
 }
 
 fn retain_claim_audit_shapes(
-    mut shapes: gmeow_shacl::shapes::Shapes,
-) -> Result<gmeow_shacl::shapes::Shapes, String> {
+    mut shapes: purrdf::shapes::shapes::Shapes,
+) -> Result<purrdf::shapes::shapes::Shapes, String> {
     let wanted = CLAIM_AUDIT_SHAPES
         .iter()
         .map(|local| format!("<{GM}{local}>"))
@@ -1061,7 +1063,7 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
         .map(|parts| parts.join("\n"))
 }
 
-fn shacl_line(result: &gmeow_shacl::report::ValidationResult) -> String {
+fn shacl_line(result: &purrdf::shapes::report::ValidationResult) -> String {
     let focus = result.focus_value();
     match &result.message {
         Some(message) => format!("{focus}: {message}"),
@@ -1909,8 +1911,8 @@ fn run_range_shacl(
         let Some(shapes_ttl) = generate_range_shapes(root, prefix)? else {
             continue;
         };
-        let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl)?;
-        let report = gmeow_shacl::engine::validate_dataset(output, &shapes)?;
+        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)?;
+        let report = purrdf::shapes::engine::validate_dataset(output, &shapes)?;
         if report.conforms {
             continue;
         }

@@ -32,7 +32,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use gmeow_rdf_core::{RdfDataset, SparqlResult};
+use purrdf::{RdfDataset, SparqlResult};
 
 use crate::native_query::{self, merge_preserving_blanks};
 use crate::paths;
@@ -198,7 +198,7 @@ mod tests {
             "<https://example.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/Agent> .\n",
             "<https://example.org/ada> <https://example.org/hasPet> <https://example.org/cat> .\n",
         );
-        let base = gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        let base = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("synthetic NT must load");
         let closed = rdfs_close(base).expect("rdfs closure must converge");
 

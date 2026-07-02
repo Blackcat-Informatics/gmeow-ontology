@@ -1,5 +1,0 @@
-signature
-[Some(Iri("https://blackcatinformatics.ca/gmeow/CryptographicSignature"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/DKIMSignature"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/PGPSignature"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/SMIMESignature"))]

@@ -20,8 +20,8 @@ use gmeow_logic_compile::projections::correspondence_frontend::{
 use gmeow_logic_compile::projections::edoal::lower_edoal;
 use gmeow_logic_compile::projections::get_leg::projections;
 use gmeow_logic_compile::projections::sparql::lower_sparql;
-use gmeow_rdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder};
-use gmeow_slice::{ArtifactRole, SliceCatalog};
+use purrdf::slice::{ArtifactRole, SliceCatalog};
+use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder};
 
 /// The materialized correspondence lookup the four lowerings consume for their overclaim
 /// gate / ledger path (F5 Task 2). Built from the SAME merged DSL the lowerings read, so
@@ -62,7 +62,11 @@ fn merge_slice_artifacts(root: &Path, role: ArtifactRole, b: &mut RdfDatasetBuil
     if !slices_dir.is_dir() {
         return;
     }
-    let catalog = SliceCatalog::discover(&slices_dir).expect("discover slices");
+    let catalog = SliceCatalog::discover(
+        &slices_dir,
+        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
+    )
+    .expect("discover slices");
     let mut artifacts: Vec<(PathBuf, Vec<u8>)> = Vec::new();
     for record in catalog.records() {
         for artifact in &record.artifacts {
