@@ -45,6 +45,33 @@ proseFieldProperty("https://blackcatinformatics.ca/logic/ProseFieldUseWhen", "ht
 instantiatesFramework("https://blackcatinformatics.ca/logic/TransactionStep", "https://blackcatinformatics.ca/logic/TemporalFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/TruthAlgebra", "https://blackcatinformatics.ca/logic/ParaconsistentFramework", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/World", "https://blackcatinformatics.ca/logic/ModalFramework", "default").
+formalizes("https://blackcatinformatics.ca/logic/bullshitTruthIndifference", "https://blackcatinformatics.ca/gmeow/bullshit", "default").
+candidateCategory("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/CategoryEquivalenceDefinition", "default").
+candidateContract("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "hand-harvested from gmeow:bullshit's skos:definition, which states the standpoint asserts with indifference to truth-value (Frankfurt) (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+candidateFormalizes("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/gmeow/bullshit", "default").
+candidateLifecycle("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
+candidateNegativeCase("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/cqBullshitIndifferenceLieRejected", "default").
+candidatePositiveCase("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/cqBullshitIndifferenceHolds", "default").
+candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/SoundUnderApproximation", "default").
+candidateScope("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", 'equivalence: gmeow:claimModality gmeow:bullshit ⟺ StandpointClaim with claimTruthDirectedness truthIndifferent', "default").
+candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/RiskProjectionOnly", "default").
+candidateSourceField("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", 'sha256:c0c4ef42d3dded8c978b2667694654d06b5d470dc1c93fb882b801b296ddf50d', "default").
+reviewedBy("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
+candidateCategory("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/CategoryNecessaryCondition", "default").
+candidateContract("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "hand-harvested from gmeow:eventTypeDeception's skos:definition, which states that a deception projects a standpoint diverging from the one actually held (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+candidateFormalizes("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/gmeow/eventTypeDeception", "default").
+candidateLifecycle("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
+candidateNegativeCase("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/cqDeceptionDivergenceGapRejected", "default").
+candidatePositiveCase("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/cqDeceptionDivergenceHolds", "default").
+candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/SoundUnderApproximation", "default").
+candidateScope("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", 'necessary condition: gmeow:eventTypeDeception ⇒ a divergent held/projected DoxasticStandpointClaim pair', "default").
+candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/RiskProjectionOnly", "default").
+candidateSourceField("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", 'sha256:b8643c1fb0583812f11a418b01244c78af2e5f97edc306479a6ae717dfcec391', "default").
+reviewedBy("https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint", 'hand-harvested from the logic:Endurant skos:definition, which contrasts logic:Perdurant, which has temporal parts (design/LOGIC-FOUNDATION.md, §Typed formalization governance)', "default").
@@ -80,6 +107,19 @@ candidateScope("https://blackcatinformatics.ca/logic/candidateEventSituationDisj
 candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint", "https://blackcatinformatics.ca/logic/RiskCoreContaminating", "default").
 candidateSourceHash("https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint", 'sha256:b9c5746f9d224a4dad32653671549671d5daec63b28758a89151e13fbff3a479', "default").
 reviewedBy("https://blackcatinformatics.ca/logic/candidateEventSituationDisjoint", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
+candidateCategory("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/CategoryEquivalenceDefinition", "default").
+candidateContract("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "hand-harvested from gmeow:refuted's skos:definition, which states the standpoint DENIES the proposition (□¬, settled-false-in-frame) (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+candidateFormalizes("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/gmeow/refuted", "default").
+candidateLifecycle("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
+candidateNegativeCase("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/cqFalsehoodRefutedGlobalTruthRejected", "default").
+candidatePositiveCase("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/cqFalsehoodRefutedHolds", "default").
+candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/SoundUnderApproximation", "default").
+candidateScope("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", 'equivalence: gmeow:claimModality gmeow:refuted ⟺ StandpointClaim with polarityDeny ∧ modalForceNecessary', "default").
+candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/RiskProjectionOnly", "default").
+candidateSourceField("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", 'sha256:5a0209094cea0065b721afa45f2bda0dacaf1b8c659bf77f5c52c7632f6b0b0e', "default").
+reviewedBy("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", 'hand-harvested from the logic:FunctionalComplex skos:definition, which contrasts it against logic:Collection and logic:Quantity (design/LOGIC-FOUNDATION.md, §Typed formalization governance)', "default").
@@ -93,6 +133,19 @@ candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateFunctionalC
 candidateSourceField("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
 candidateSourceHash("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", 'sha256:ae6ffde78c8d4cd93cdb0d06ee67fd15ab46573e7aa4f1fe5f2ee2dd209cb529', "default").
 reviewedBy("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
+candidateCategory("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/CategoryNecessaryCondition", "default").
+candidateContract("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "hand-harvested from gmeow:veridicalityLicensedFalsehood's skos:definition, which states the licensed-falsehood safety property separates fiction/satire/sarcasm from deception (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+candidateFormalizes("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/gmeow/veridicalityLicensedFalsehood", "default").
+candidateLifecycle("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
+candidateNegativeCase("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/cqLicensedFalsehoodDeceptionRejected", "default").
+candidatePositiveCase("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/cqLicensedFalsehoodSafeHolds", "default").
+candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/SoundUnderApproximation", "default").
+candidateScope("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", 'necessary condition: a licensed-falsehood projected claim ⇒ ¬ gmeow:eventTypeDeception', "default").
+candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/RiskProjectionOnly", "default").
+candidateSourceField("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", 'sha256:885472a556e60956181fc7f7e512fbee34b63d02349fb8ca1388f2736fdf6589', "default").
+reviewedBy("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering", "https://blackcatinformatics.ca/logic/CategoryNecessaryCondition", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering", "anchored to logic:Object's skos:definition; completes the individuation-kind pairwise disjointness (logic:candidateFunctionalComplexKindDisjoint) into a partition, realized in the OWL projection (owl:unionOf), non-monotone, disclosed in the loss ledger — NOT natively enforced (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
@@ -168,6 +221,7 @@ formalizes("https://blackcatinformatics.ca/logic/counterGoalSymmetry", "https://
 characteristicSort("https://blackcatinformatics.ca/logic/counterpartOfSymmetry", "https://blackcatinformatics.ca/logic/symmetricProperty", "default").
 characterizes("https://blackcatinformatics.ca/logic/counterpartOfSymmetry", "https://blackcatinformatics.ca/gmeow/counterpartOf", "default").
 formalizes("https://blackcatinformatics.ca/logic/counterpartOfSymmetry", "https://blackcatinformatics.ca/gmeow/counterpartOf", "default").
+formalizes("https://blackcatinformatics.ca/logic/deceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/gmeow/eventTypeDeception", "default").
 hasThresholdRow("https://blackcatinformatics.ca/logic/defaultLadderProfile", "https://blackcatinformatics.ca/logic/ladderRowAwareness", "default").
 hasThresholdRow("https://blackcatinformatics.ca/logic/defaultLadderProfile", "https://blackcatinformatics.ca/logic/ladderRowConceptual", "default").
 hasThresholdRow("https://blackcatinformatics.ca/logic/defaultLadderProfile", "https://blackcatinformatics.ca/logic/ladderRowDeclarative", "default").
@@ -179,6 +233,7 @@ characteristicSort("https://blackcatinformatics.ca/logic/editionOfFunctionality"
 characterizes("https://blackcatinformatics.ca/logic/editionOfFunctionality", "https://blackcatinformatics.ca/gmeow/editionOf", "default").
 formalizes("https://blackcatinformatics.ca/logic/editionOfFunctionality", "https://blackcatinformatics.ca/gmeow/editionOf", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/evidenceStrength", "https://blackcatinformatics.ca/logic/EpistemicFramework", "default").
+formalizes("https://blackcatinformatics.ca/logic/falsehoodIsRefutedClaim", "https://blackcatinformatics.ca/gmeow/refuted", "default").
 projectsLadderEdge("https://blackcatinformatics.ca/logic/ladderRowAwareness", "https://blackcatinformatics.ca/gmeow/isAwareOf", "default").
 sourceDimension("https://blackcatinformatics.ca/logic/ladderRowAwareness", "https://blackcatinformatics.ca/logic/dimensionAwareness", "default").
 thresholdLevel("https://blackcatinformatics.ca/logic/ladderRowAwareness", "https://blackcatinformatics.ca/logic/levelEmerging", "default").
@@ -204,6 +259,7 @@ levelAtOrAbove("https://blackcatinformatics.ca/logic/levelStrong", "https://blac
 levelAtOrAbove("https://blackcatinformatics.ca/logic/levelStrong", "https://blackcatinformatics.ca/logic/levelEmerging", "default").
 levelAtOrAbove("https://blackcatinformatics.ca/logic/levelStrong", "https://blackcatinformatics.ca/logic/levelNone", "default").
 levelAtOrAbove("https://blackcatinformatics.ca/logic/levelStrong", "https://blackcatinformatics.ca/logic/levelStrong", "default").
+formalizes("https://blackcatinformatics.ca/logic/licensedFalsehoodNotDeception", "https://blackcatinformatics.ca/gmeow/veridicalityLicensedFalsehood", "default").
 characteristicSort("https://blackcatinformatics.ca/logic/partOfTransitivity", "https://blackcatinformatics.ca/logic/transitiveProperty", "default").
 characterizes("https://blackcatinformatics.ca/logic/partOfTransitivity", "https://blackcatinformatics.ca/gmeow/partOf", "default").
 formalizes("https://blackcatinformatics.ca/logic/partOfTransitivity", "https://blackcatinformatics.ca/gmeow/partOf", "default").
