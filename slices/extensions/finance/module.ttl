@@ -82,6 +82,8 @@ gmeow:Holding
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Holding"@x-gmeow-english ;
+    logic:mediates gmeow:holdingAgent ,
+        gmeow:holdingAsset ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -227,6 +229,8 @@ gmeow:Posting
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Posting"@x-gmeow-english ;
+    logic:mediates gmeow:postingJournalEntry ,
+        gmeow:postingAccount ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

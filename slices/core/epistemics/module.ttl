@@ -12,6 +12,8 @@ gmeow:AdequacyAssessment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Adequacy Assessment"@x-gmeow-english ;
+    logic:mediates gmeow:adequacyUnderStandard ,
+        gmeow:meetsThreshold ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified, solver-set judgement that a justification's support MEETS (or fails) the threshold of a named epistemic standard — carrying the standard (gmeow:adequacyUnderStandard -> gmeow:EpistemicStandard) and the verdict (gmeow:meetsThreshold -> gmeow:AdequacyVerdict). Adequacy is the fourth of the five factored justification components (available-evidence, basing, support-under-a-standard, adequacy, defeat): whether the support meets the standard's bar. COMPUTED, never asserted (Principle 12); the same basis may be adequate under one standard and inadequate under a stricter one, so several assessments coexist (Principle 9)."@x-gmeow-english ;
     skos:scopeNote "Reached from a gmeow:JustificationSubject via gmeow:adequateUnder. Formalises the 'adequacy — meets the standard's threshold' component of design/LOGIC-FOUNDATION.md (Argumentation and epistemic standards), by prose reference (Principle 5)."@x-gmeow-english ;
@@ -215,6 +217,9 @@ gmeow:KnowledgeAttribution
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Knowledge Attribution"@x-gmeow-english ;
+    logic:mediates gmeow:attributedKnower ,
+        gmeow:attributedProposition ,
+        gmeow:attributingAgent ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified, NON-FACTIVE attribution of knowledge — 'X takes themselves (or Y) to know that P' — a claim ABOUT an attitude, never collapsed into the locally-factive gmeow:KnowledgeClaim. Relates an attributing agent (gmeow:attributingAgent), the agent credited with the knowing (gmeow:attributedKnower, which may equal the attributer for self-attribution), and the proposition attributed as known (gmeow:attributedProposition). Carries NO world and NO standard and entails no truth: 'they take themselves to know' is a separate claim, never the factive relation (design/LOGIC-FOUNDATION.md). The flat surface is gmeow:claimsToKnowThat."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -224,6 +229,9 @@ gmeow:KnowledgeClaim
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Knowledge Claim"@x-gmeow-english ;
+    logic:mediates gmeow:knowerAgent ,
+        gmeow:knownProposition ,
+        gmeow:knownInWorld ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "The reified, LOCALLY-FACTIVE knowing relation — that an agent (gmeow:knowerAgent) knows a proposition (gmeow:knownProposition) IN a belief-world (gmeow:knownInWorld -> gmeow:EpistemicContext) under an epistemic standard (gmeow:underStandard -> gmeow:EpistemicStandard). The promotion target of the flat gmeow:knowsThatIn. Knowledge is locally factive: knowing P in world W entails that P holds IN W, never globally across all worlds — an agent can know contested facts in its own world without the model claiming them everywhere. This is a CLAIM apparatus (a logic:Relator, like gmeow:ClaimToken / inference gmeow:InferenceCommitment), deliberately NOT a kernel:MentalMoment — the believing ATTITUDE remains gmeow:DoxasticState (the mental moment); the KnowledgeClaim reifies the knowing relation, not the attitude."@x-gmeow-english ;
     skos:scopeNote "Local factivity (knowing P in W ⇒ P holds in W) is recorded by PROSE reference (Principle 5), never as an asserted axiom here: there is NO gmeow:isTrue, no factivity OWL axiom, and no asserted logic: triple — the world-indexed rule that makes factivity honest stays central in the logic slice over the typed, world-relative hold predicate (logic:doxasticallyAccessible / the context algebra), never a global truth bit. This keeps the no-truth-bit invariant and the clean DL/EL profile (the standpoint-slice Belnap-correspondence precedent)."@x-gmeow-english ;
@@ -251,6 +259,8 @@ gmeow:SupportAssessment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Support Assessment"@x-gmeow-english ;
+    logic:mediates gmeow:supportGround ,
+        gmeow:supportUnderStandard ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified, solver-set judgement of HOW STRONGLY a justification ground warrants its content RELATIVE TO a named epistemic standard — carrying the ground (gmeow:supportGround -> gmeow:JustificationGround), the standard (gmeow:supportUnderStandard -> gmeow:EpistemicStandard), and a solver-layer strength (gmeow:supportStrength, xsd:decimal). Support-under-a-standard is the third of the five factored justification components (available-evidence, basing, support-under-a-standard, adequacy, defeat): the same evidence warrants more under a lenient standard than under a strict one. A solver value (Principle 12), and several assessments under different standards coexist (Principle 9)."@x-gmeow-english ;
     skos:scopeNote "Reached from a gmeow:JustificationSubject via gmeow:supportsUnder. Formalises the 'support under a standard' component of design/LOGIC-FOUNDATION.md (Argumentation and epistemic standards), by prose reference (Principle 5)."@x-gmeow-english ;

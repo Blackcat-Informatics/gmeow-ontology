@@ -12,6 +12,9 @@ gmeow:AtomicConstraint
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Atomic Constraint"@x-gmeow-english ;
+    logic:mediates gmeow:leftOperand ,
+        gmeow:constraintOperator ,
+        gmeow:rightOperandReference ;
     rdfs:subClassOf gmeow:Constraint ,
         [
             a owl:Restriction ;
@@ -87,6 +90,8 @@ gmeow:Copyright
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Copyright"@x-gmeow-english ;
+    logic:mediates gmeow:copyrightWork ,
+        gmeow:copyrightHolder ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -192,6 +197,8 @@ gmeow:LogicalConstraint
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Logical Constraint"@x-gmeow-english ;
+    logic:mediates gmeow:constraintLogic ,
+        gmeow:logicConstraintMember ;
     rdfs:subClassOf gmeow:Constraint ,
         [
             a owl:Restriction ;
@@ -283,6 +290,9 @@ gmeow:RightsStatement
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rights Statement"@x-gmeow-english ;
+    logic:mediates gmeow:statementAbout ,
+        gmeow:hasDataController ,
+        gmeow:hasDataSubject ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
@@ -321,6 +331,9 @@ gmeow:Rule
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rule"@x-gmeow-english ;
+    logic:mediates gmeow:ruleAction ,
+        gmeow:ruleAssignee ,
+        gmeow:ruleTarget ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -339,6 +352,8 @@ gmeow:Trademark
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Trademark"@x-gmeow-english ;
+    logic:mediates gmeow:trademarkMark ,
+        gmeow:trademarkHolder ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

@@ -65,6 +65,8 @@ gmeow:EventInvitation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Event Invitation"@x-gmeow-english ;
+    logic:mediates gmeow:invitationEvent ,
+        gmeow:invitationInvitee ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Agreement ,
         [
@@ -89,6 +91,9 @@ gmeow:EventSchedule
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Event Schedule"@x-gmeow-english ;
+    logic:mediates gmeow:scheduleOccurrence ,
+        gmeow:scheduleRecurrenceRule ,
+        gmeow:scheduleTemplateEvent ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -178,6 +183,8 @@ gmeow:ScheduleException
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Schedule Exception"@x-gmeow-english ;
+    logic:mediates gmeow:exceptionSchedule ,
+        gmeow:exceptionOriginalDate ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

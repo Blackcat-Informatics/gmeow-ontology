@@ -50,6 +50,8 @@ gmeow:Mitigation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Mitigation"@x-gmeow-english ;
+    logic:mediates gmeow:mitigationMeasure ,
+        gmeow:mitigationCounters ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

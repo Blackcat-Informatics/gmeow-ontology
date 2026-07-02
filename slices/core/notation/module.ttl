@@ -43,6 +43,9 @@ gmeow:NotationSystemUsage
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Notation System Usage"@x-gmeow-english ;
+    logic:mediates gmeow:notationUsageTarget ,
+        gmeow:notationUsageNotationSystem ,
+        gmeow:notationUsageRole ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
