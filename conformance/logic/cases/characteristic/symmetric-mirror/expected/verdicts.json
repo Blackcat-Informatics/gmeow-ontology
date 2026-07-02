@@ -1,0 +1,6 @@
+{
+  "https://example.org/characteristic/symmetric-mirror/schema": {
+    "quads": 3,
+    "status": "consistent"
+  }
+}
