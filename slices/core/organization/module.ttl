@@ -511,7 +511,6 @@ gmeow:memberOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "member of"@x-gmeow-english ;
     rdfs:range gmeow:Organization ;
-    owl:propertyChainAxiom ( gmeow:memberOf gmeow:subOrganizationOf ) ;
     skos:definition "Relates an agent to an organization it belongs to. The flat shortcut (Principle 4); membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf, so a department member is a member of the containing organization. Non-functional and standpoint-indexable — contested memberships coexist (Principle 9). Projects to schema:memberOf / org:memberOf."@x-gmeow-english ;
     skos:example "ex:alice gmeow:memberOf ex:acme ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it where role or period matter (promote to a gmeow:Membership relator) and avoid asserting the department-to-parent membership by hand — the property chain with gmeow:subOrganizationOf infers it."@x-gmeow-english ;

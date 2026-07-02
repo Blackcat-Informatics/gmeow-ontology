@@ -7507,3 +7507,64 @@ logic:candidateInstantiatesWork
     logic:candidateSemanticRisk logic:RiskCoreContaminating ;
     logic:candidateFormalizes gmeow:instantiatesWork ;
     logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Organization: membership propagation up the sub-organization hierarchy ────
+# gmeow:memberOf ∘ gmeow:subOrganizationOf ⇒ gmeow:memberOf (recursive on
+# gmeow:memberOf, so a member of a team is a member of every containing
+# organization). This logic:Rule is the single canonical source for the
+# inference; the OWL owl:propertyChainAxiom on gmeow:memberOf is a generated
+# lossy projection of it (Principle 17), never a second authored copy.
+
+logic:ruleOrgMembershipPropagation
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "propagate membership up the sub-organization hierarchy"@x-gmeow-english ;
+    skos:definition "Emits gmeow:memberOf(agent, parent) whenever the agent gmeow:memberOf an organization that is gmeow:subOrganizationOf the parent: membership climbs the organizational part/whole hierarchy, so a department member is a member of the containing organization. Positive Horn and recursive on gmeow:memberOf — one rule carries membership up an arbitrarily deep nest of sub-organizations without needing gmeow:subOrganizationOf transitivity. Monotone; materialized natively. The canonical source of the propagation; the OWL owl:propertyChainAxiom ( gmeow:memberOf gmeow:subOrganizationOf ) is its generated projection."@x-gmeow-english ;
+    logic:provenance logic:ruleOrgMembershipPropagation ;
+    logic:formalizes gmeow:memberOf ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:memberOf ;
+        rdf:object    "?parent"
+    ] ;
+    logic:body [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:memberOf ;
+        rdf:object    "?org"
+    ] , [
+        rdf:subject   "?org" ;
+        rdf:predicate gmeow:subOrganizationOf ;
+        rdf:object    "?parent"
+    ] .
+
+logic:cqOrgMembershipPropagationHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "membership propagates up the sub-organization hierarchy"@x-gmeow-english ;
+    skos:definition "The positive competency case the membership-propagation rule must satisfy: given an agent gmeow:memberOf a department that is gmeow:subOrganizationOf a company, the reasoner must derive gmeow:memberOf from the agent to the company — and, recursively, to every further containing organization — the upward propagation the harvested prose commits to."@x-gmeow-english .
+
+logic:cqOrgMembershipPropagationDownwardRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "membership does not propagate down or sideways"@x-gmeow-english ;
+    skos:definition "The negative countermodel the membership-propagation rule must respect: membership climbs the sub-organization chain UP only — a member of a parent organization is NOT thereby a member of its sub-organizations, and an agent outside the hierarchy gains no derived membership. The direction boundary the frontier-variable rule keeps, deriving parent membership from child membership and never the reverse."@x-gmeow-english .
+
+logic:candidateOrgMembershipPropagation
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "membership propagates up the sub-organization hierarchy"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleOrgMembershipPropagation: it harvests the upward membership propagation documented in gmeow:memberOf's skos:definition (membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf) into an enforced positive-Horn derivation rule, materialized natively as logic:ExactPreservation. It makes logic: the single authored source for the inference; the OWL owl:propertyChainAxiom on gmeow:memberOf is a generated projection of this rule (Principle 17), not a second authored copy. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqOrgMembershipPropagationHolds) and a negative countermodel (logic:cqOrgMembershipPropagationDownwardRejected). Its harvest back-link (logic:candidateFormalizes gmeow:memberOf, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:e69c9076321932cd8ca8fb9784382dd625429a454cbdc52ce2ab165e0f40567d"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:memberOf's skos:definition, which states membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:memberOf ∘ gmeow:subOrganizationOf ⇒ gmeow:memberOf, recursive up the sub-organization hierarchy"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqOrgMembershipPropagationHolds ;
+    logic:candidateNegativeCase logic:cqOrgMembershipPropagationDownwardRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:memberOf ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
