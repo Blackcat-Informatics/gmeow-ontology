@@ -979,6 +979,26 @@ mod tests {
     }
 
     #[test]
+    fn parses_nested_alternating_quantifiers() {
+        // `![X] : ?[Y] : r(X, Y)` — the outer body is itself a quantified unit
+        // formula, so the parse is Forall(Exists(atom)) with the inner binder distinct.
+        let af = one("fof(nest, axiom, ![X] : ?[Y] : r(X, Y)).\n");
+        match &af.formula {
+            Formula::Forall { vars, body } => {
+                assert_eq!(vars, &["X".to_string()]);
+                match &**body {
+                    Formula::Exists { vars, body } => {
+                        assert_eq!(vars, &["Y".to_string()]);
+                        assert!(matches!(**body, Formula::Atom { .. }));
+                    }
+                    other => panic!("expected inner Exists, got {other:?}"),
+                }
+            }
+            other => panic!("expected outer Forall, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn parses_multiple_formulas_in_order() {
         let src = "fof(a1, axiom, a(x)).\nfof(a2, axiom, b(y)).\n";
         let v = parse_tptp(src).unwrap();
