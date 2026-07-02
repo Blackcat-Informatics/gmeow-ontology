@@ -242,9 +242,13 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
             )
         }
     };
-    // Scan for each family's discriminating component, in an unambiguous priority order (each
-    // family emits exactly one such component; Quantity's units is an In-of-Literal, a value
-    // set is an In-of-IRI, so the two In shapes never collide).
+    // Collect EVERY family's discriminating component — never return on the first match. A
+    // well-formed lifted OPT constraint carries exactly one discriminating family (Quantity's
+    // units is an In-of-Literal, a value set is an In-of-IRI, so the two In shapes never
+    // collide). More than one match means the shape is ambiguous (structure was gained or lost),
+    // so we HARD-FAIL rather than silently pick one by iteration order — that silent pick would
+    // let a lossy shape masquerade as a faithful inverse and break the u∘d=id law.
+    let mut recovered: Vec<OptConstraintKind> = Vec::new();
     for p in &shape.properties {
         for comp in &p.components {
             match comp {
@@ -255,21 +259,17 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                     max_inclusive,
                 } => {
                     let (units_path, units) = recover_units(shape)?;
-                    return Ok(mk(
-                        shape,
-                        target_class,
-                        OptConstraintKind::Quantity {
-                            magnitude_path: p.path.clone(),
-                            interval: OptInterval {
-                                lower: *min,
-                                upper: *max,
-                                lower_included: *min_inclusive,
-                                upper_included: *max_inclusive,
-                            },
-                            units_path,
-                            units,
+                    recovered.push(OptConstraintKind::Quantity {
+                        magnitude_path: p.path.clone(),
+                        interval: OptInterval {
+                            lower: *min,
+                            upper: *max,
+                            lower_included: *min_inclusive,
+                            upper_included: *max_inclusive,
                         },
-                    ));
+                        units_path,
+                        units,
+                    });
                 }
                 ConstraintComponent::DateTimeRange {
                     min,
@@ -277,44 +277,32 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                     min_inclusive,
                     max_inclusive,
                 } => {
-                    return Ok(mk(
-                        shape,
-                        target_class,
-                        OptConstraintKind::DateTime {
-                            path: p.path.clone(),
-                            range: OptDateTimeRange {
-                                lower: min.clone(),
-                                upper: max.clone(),
-                                lower_included: *min_inclusive,
-                                upper_included: *max_inclusive,
-                            },
+                    recovered.push(OptConstraintKind::DateTime {
+                        path: p.path.clone(),
+                        range: OptDateTimeRange {
+                            lower: min.clone(),
+                            upper: max.clone(),
+                            lower_included: *min_inclusive,
+                            upper_included: *max_inclusive,
                         },
-                    ));
+                    });
                 }
                 ConstraintComponent::Pattern { regex, flags } => {
-                    return Ok(mk(
-                        shape,
-                        target_class,
-                        OptConstraintKind::StringPattern {
-                            path: p.path.clone(),
-                            regex: regex.clone(),
-                            flags: flags.clone(),
-                        },
-                    ));
+                    recovered.push(OptConstraintKind::StringPattern {
+                        path: p.path.clone(),
+                        regex: regex.clone(),
+                        flags: flags.clone(),
+                    });
                 }
                 ConstraintComponent::TerminologyBinding {
                     terminology_id,
                     codes,
                 } => {
-                    return Ok(mk(
-                        shape,
-                        target_class,
-                        OptConstraintKind::TerminologyBinding {
-                            path: p.path.clone(),
-                            terminology_id: terminology_id.clone(),
-                            codes: codes.clone(),
-                        },
-                    ));
+                    recovered.push(OptConstraintKind::TerminologyBinding {
+                        path: p.path.clone(),
+                        terminology_id: terminology_id.clone(),
+                        codes: codes.clone(),
+                    });
                 }
                 ConstraintComponent::In(vs)
                     if vs.iter().all(|v| matches!(v, ShapeValue::Iri(_))) =>
@@ -326,34 +314,39 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                             _ => unreachable!("guarded to all-IRI above"),
                         })
                         .collect();
-                    return Ok(mk(
-                        shape,
-                        target_class,
-                        OptConstraintKind::ValueSet {
-                            path: p.path.clone(),
-                            codes,
-                        },
-                    ));
+                    recovered.push(OptConstraintKind::ValueSet {
+                        path: p.path.clone(),
+                        codes,
+                    });
                 }
                 _ => {}
             }
         }
     }
-    // No value component matched: a bare cardinality (occurrences/existence) constraint.
+    // A bare cardinality (occurrences/existence) constraint carries no value component.
     for p in &shape.properties {
         if (p.min_count.is_some() || p.max_count.is_some()) && p.components.is_empty() {
-            return Ok(mk(
-                shape,
-                target_class,
-                OptConstraintKind::Cardinality {
-                    path: p.path.clone(),
-                    min: p.min_count,
-                    max: p.max_count,
-                },
-            ));
+            recovered.push(OptConstraintKind::Cardinality {
+                path: p.path.clone(),
+                min: p.min_count,
+                max: p.max_count,
+            });
         }
     }
-    Err("recover_opt_from_shape: shape is not a recognizable lifted OPT constraint".into())
+    match recovered.len() {
+        0 => {
+            Err("recover_opt_from_shape: shape is not a recognizable lifted OPT constraint".into())
+        }
+        1 => Ok(mk(
+            shape,
+            target_class,
+            recovered.into_iter().next().expect("len checked == 1"),
+        )),
+        n => Err(format!(
+            "recover_opt_from_shape: ambiguous shape — {n} discriminating OPT families present; \
+             a lifted OPT constraint must carry exactly one (no silent first-wins recovery)"
+        )),
+    }
 }
 
 /// Reconstruct the shape's `iri`/`target_class` envelope around a recovered kind.
@@ -548,5 +541,50 @@ mod tests {
         )
         .unwrap();
         assert!(recover_opt_from_shape(&empty).is_err());
+    }
+
+    #[test]
+    fn recover_hard_fails_on_an_ambiguous_multi_family_shape() {
+        // Two discriminating families in one shape: a datetime range AND a string pattern. A
+        // well-formed lifted OPT constraint carries exactly one family, so recovery must
+        // HARD-FAIL rather than silently pick the first by iteration order (defends u∘d=id).
+        let dt = PropertyConstraintIr::new(
+            "https://ex/when",
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::DateTimeRange {
+                min: Some("2020-01-01T00:00:00Z".into()),
+                max: None,
+                min_inclusive: true,
+                max_inclusive: false,
+            }],
+        )
+        .unwrap();
+        let pat = PropertyConstraintIr::new(
+            "https://ex/name",
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::Pattern {
+                regex: "^x".into(),
+                flags: None,
+            }],
+        )
+        .unwrap();
+        let shape = ValidationShapeIr::new(
+            "https://ex/S",
+            ShapeTarget::Class("https://ex/C".into()),
+            vec![dt, pat],
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+        let err = recover_opt_from_shape(&shape).unwrap_err();
+        assert!(
+            err.contains("ambiguous"),
+            "expected an ambiguity hard-fail, got: {err}"
+        );
     }
 }
