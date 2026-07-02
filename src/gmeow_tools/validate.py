@@ -83,17 +83,12 @@ def _shapes_turtle(shapes_path: Path) -> str:
     shape file in ``shapes/`` except the DSL-specific lints, so new domain
     shape files (e.g. ``expertise-shapes.ttl``) are picked up automatically.
     """
-    dsl_shapes = {
-        "mapping-dsl-shapes.ttl",
-        "statement-dsl-shapes.ttl",
-        "test-dsl-shapes.ttl",
-        "slice-manifest-shapes.ttl",  # targets manifests, not the data graph
-        # Declared ValidationOnly projection carried in gmeow.gts, NOT enforced
-        # against the corpus (open-world someValuesFrom over-flags); mirrors
-        # gmeow_shacl::shape_union::EXCLUDED.
-        "validation-shapes.ttl",
-        shapes_path.name,
-    }
+    # The DSL / manifest lints and the declared ValidationOnly derived-shape
+    # surface are excluded from the data-graph union. Single source of truth: the
+    # native gmeow_shacl::shape_union::EXCLUDED list (exposed here), so the pySHACL
+    # corpus selection and the native validator can never drift.
+    dsl_shapes = set(gmeow_validate.excluded_shape_files())
+    dsl_shapes.add(shapes_path.name)
     files: list[Path] = [shapes_path]
     files += [
         extra
