@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: deception/held-projected-no-intent
+# AC: intent is EVIDENCE, never ENTAILMENT, of a held/projected gap. A deception
+# structure formalized as a non-Horn logic:Formula (an existential-head necessary
+# condition — every deception has SOME held and SOME projected standpoint) does NOT
+# lower to an evaluable rule: it is carried as flagged unsupported residue
+# (SoundUnder), so the engine fabricates NEITHER a held nor a projected witness for
+# a deception-typed event, and — the guardrail — it materializes NO
+# gmeow:deceptiveIntentClaim. The world's only deceptive-intent fact is the one
+# ASSERTED in input.nq (an attributed, defeasible assessor claim, EDB); the chase
+# never derives a new one. The materialized graph therefore carries only the echoed
+# EDB facts, never a fabricated held/projected witness and never a derived intent.
+#
+# The whole-bundle guarantee that NO rule anywhere derives gmeow:deceptiveIntentClaim
+# is the standing logic:IntentNotFromDeceptionObligation (Arm A syntactic reachability
+# over rule heads + Arm B finite closure), enforced over the reasoned graph by
+# `make verify`; this case is its adversarial complement at the engine level.
+#
+# Formula: ∀e. Deception(e) → ∃h,p. (gmeow:heldStandpoint(e,h) ∧ gmeow:projectedStandpoint(e,p))
+
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <https://blackcatinformatics.ca/logic/hasFormula> <https://blackcatinformatics.ca/logic/formula/_000001> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/forall> <https://blackcatinformatics.ca/logic/formula/_000001/body> .
+<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/quantifiedVariable> <https://blackcatinformatics.ca/logic/formula/_000001/var/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/var/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/var/0000> <https://blackcatinformatics.ca/logic/termVariable> "e" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <https://blackcatinformatics.ca/logic/antecedent> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body> <https://blackcatinformatics.ca/logic/consequent> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/relation> <https://example.org/deception/held-projected-no-intent/Deception> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "e" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/exists> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/quantifiedVariable> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/quantifiedVariable> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0001> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0000> <https://blackcatinformatics.ca/logic/termVariable> "h" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0001> <https://blackcatinformatics.ca/logic/termIndex> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0001> <https://blackcatinformatics.ca/logic/termVariable> "p" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body> <https://blackcatinformatics.ca/logic/and> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body> <https://blackcatinformatics.ca/logic/and> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> <https://blackcatinformatics.ca/logic/relation> <https://blackcatinformatics.ca/gmeow/heldStandpoint> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0001> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "e" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0001> <https://blackcatinformatics.ca/logic/termIndex> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0001> <https://blackcatinformatics.ca/logic/termVariable> "h" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> <https://blackcatinformatics.ca/logic/relation> <https://blackcatinformatics.ca/gmeow/projectedStandpoint> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0000> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0001> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "e" .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0001> <https://blackcatinformatics.ca/logic/termIndex> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
+<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0001> <https://blackcatinformatics.ca/logic/termVariable> "p" .
