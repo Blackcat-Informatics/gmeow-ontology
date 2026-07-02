@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native Rust evaluator for the OntoUML *foundation* disciplines (issue #636).
+//! Native Rust evaluator for the OntoUML *foundation* disciplines.
 //!
 //! This module is the **canonical** native evaluator for the OntoUML *foundation*
 //! disciplines.  (The Python foundation oracle that preceded it —
 //! `logic_foundation.py` plus the `enable_naf` chase path of
-//! `logic_materialize.py` — was retired in #636/#497.)  It lowers five OntoUML
+//! `logic_materialize.py` — was retired.)  It lowers five OntoUML
 //! structural disciplines into a small stratified Datalog program with
 //! negation-as-failure and inequality guards, runs that program *per world* as a
 //! semi-naive chase, and then applies two cross-world post-passes (positive
@@ -175,7 +175,7 @@ impl AntiRigidityPolicy {
     /// # Errors
     ///
     /// Returns `Err` for any string outside the closed enum.
-    // Named `from_str` deliberately (the PyO3 seam + issue #636 spec call it by this
+    // Named `from_str` deliberately (the PyO3 seam + the spec call it by this
     // name); the fallible `String`-error signature does not match `std::str::FromStr`.
     #[allow(clippy::should_implement_trait)]
     pub fn from_str(value: &str) -> Result<Self, String> {
@@ -327,7 +327,7 @@ macro_rules! ancestor_marker {
 // violations), and the rule order WITHIN each stratum is the canonical
 // `LogicProgram` sort order (by each rule's `_sort_key`).  The body of every rule
 // is likewise in canonical sorted order.  This was captured from the live Python
-// oracle (issue #636) and is the parity anchor: chasing these strata in order with
+// oracle and is the parity anchor: chasing these strata in order with
 // first-wins dedup yields the same derivation IRIs as the oracle.
 
 // Stratum 0 is empty (no rule's head predicate lands in the lowest SCC layer, which
@@ -438,11 +438,11 @@ const STRATUM_1: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Typed/contextual mereology + holon kernel (issue #704, C1) ──────────────────
+    // ── Typed/contextual mereology + holon kernel (C1) ──────────────────
     // Positive prerequisites: overlap, the supplementation-profile marker, and the
     // unary holon projection.  All depend only on the asserted (EDB) relations
     // logic:properPartOf and logic:underMereologyProfile, so they are inert on inputs
-    // that carry neither — the pre-#704 foundation goldens are unaffected.
+    // that carry neither — the earlier foundation goldens are unaffected.
     //
     // overlaps(?A, ?B) :- properPartOf(?Z, ?A), properPartOf(?Z, ?B)
     Rule {
@@ -562,7 +562,7 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic emergence: aggregate reduction (issue #705, C2) ──────────────────────
+    // ── Holonic emergence: aggregate reduction (C2) ──────────────────────
     // The positive, derivation-grounded verdict marker.  Under the assessment's declared
     // logic:ReductionTheory, the whole bears a property the theory's logic:reductionBasis
     // carries AND a proper part also bears it, so the property reduces to the parts — a
@@ -617,7 +617,7 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic governance: override marker (issue #706, C3) ─────────────────────────
+    // ── Holonic governance: override marker (C3) ─────────────────────────
     // The positive, derivation-grounded face of downward constraint, mirroring the C2
     // aggregate marker.  A logic:DownwardConstraint is OVERRIDDEN when it names an
     // override token (constraintOverride) and the constrained target actually bears
@@ -663,7 +663,7 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic agency: the two co-equal tendency markers (issue #707, C4) ────────────
+    // ── Holonic agency: the two co-equal tendency markers (C4) ────────────
     // Koestler's Janus-faced holon carries a self-assertive (autonomy-as-a-whole) and an
     // integrative (subordination-as-a-part) tendency.  These are CO-EQUAL vantage facets
     // (Principle 9): the two markers are built by IDENTICAL rules — a holon evidences a
@@ -672,7 +672,7 @@ const STRATUM_1: &[Rule] = &[
     // neither face is privileged in the vocabulary or the firing order.  Both settle in
     // stratum 1 so the pathology NAF (stratum 3) and the unknown NAF (stratum 4) are
     // stratified.  Inert on inputs with no logic:AgencyAssessment.  Agency is a DECLARED
-    // profile a holarchy adopts, not a universal rule (#775).  (LOGIC-FOUNDATION.md
+    // profile a holarchy adopts, not a universal rule.  (LOGIC-FOUNDATION.md
     // §mereology+holons.)
     //
     // selfAssertive(?A, ?A) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
@@ -739,7 +739,7 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic level coherence: position presence marker (issue #708, C5) ───────────
+    // ── Holonic level coherence: position presence marker (C5) ───────────
     // A holon's logic:holonicLevel (mereological compositional depth) is READ OFF its
     // logic:HolonicPosition — the canonical relational construct of which logic:Holon
     // and a level are lossy projections (see logic:Holon / logic:holonicLevel defs).
@@ -772,7 +772,7 @@ const STRATUM_1: &[Rule] = &[
     },
     // multiplyPositioned(?X, ?X) :- positionEntity(?P1, ?X), positionEntity(?P2, ?X)  [?P1 != ?P2]
     //
-    // ME9 (#775), the positive companion to the stratum-4 logic:HolonicLevelIncoherence
+    // ME9, the positive companion to the stratum-4 logic:HolonicLevelIncoherence
     // (which fires for a profiled holon occupying NO position).  This marker fires when an
     // entity occupies TWO OR MORE distinct logic:HolonicPositions — the structural signature
     // of a DAG node sitting on several paths through a holarchy, so its logic:holonicLevel is
@@ -969,7 +969,7 @@ const STRATUM_2: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic emergence: aggregate verdict projection (issue #705, C2) ─────────────
+    // ── Holonic emergence: aggregate verdict projection (C2) ─────────────
     // assessmentVerdict(?A, logic:Aggregate) :- aggregateAssessed(?A, ?A)
     Rule {
         head: pos(
@@ -984,7 +984,7 @@ const STRATUM_2: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic governance: overridden verdict projection (issue #706, C3) ───────────
+    // ── Holonic governance: overridden verdict projection (C3) ───────────
     // constraintVerdict(?C, logic:ConstraintOverridden) :- overriddenConstraint(?C, ?C)
     Rule {
         head: pos(
@@ -999,7 +999,7 @@ const STRATUM_2: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic agency: integral verdict projection (issue #707, C4) ─────────────────
+    // ── Holonic agency: integral verdict projection (C4) ─────────────────
     // The positive, derivation-grounded verdict, mirroring the C2 Aggregate and C3
     // Overridden projections: a holon is INTEGRAL when BOTH co-equal tendency markers
     // hold — it asserts itself as a whole AND subordinates itself as a part.  The
@@ -1099,7 +1099,7 @@ const STRATUM_3: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Mereology NAF helpers (issue #704, C1) ──────────────────────────────────────
+    // ── Mereology NAF helpers (C1) ──────────────────────────────────────
     // Disjointness is the negation of overlap, scoped to co-parts of a common whole so
     // the NAF body is range-restricted (overlaps must be settled in a lower stratum).
     //
@@ -1155,7 +1155,7 @@ const STRATUM_3: &[Rule] = &[
         ],
         distinct_pairs: &[("?P", "?P2")],
     },
-    // ── Holonic emergence: emergent verdict (issue #705, C2) ─────────────────────────
+    // ── Holonic emergence: emergent verdict (C2) ─────────────────────────
     // Emergent by negation-as-failure over the aggregate reduction, WHILE the assessment
     // still binds a declared logic:ReductionTheory (?T) — so the verdict is theory-relative,
     // never a bare "unflagged" default, and failure-to-derive is not irreducibility.
@@ -1213,12 +1213,12 @@ const STRATUM_3: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic governance: binding marker (issue #706, C3) ──────────────────────────
+    // ── Holonic governance: binding marker (C3) ──────────────────────────
     // A downward constraint BINDS its named target by negation-as-failure over the
     // override derivation, WHILE the constraint still binds a declared logic:GovernanceRegime
     // (?R) whose activationBasis carries the constrained state (?S) — so the verdict is
     // regime-relative, never a bare "unconstrained" default.  NON-TRANSITIVE by default
-    // (#775): the constraint is read only for the explicitly named ?P (a proper part of
+    // the constraint is read only for the explicitly named ?P (a proper part of
     // ?W); there is no rule cascading it to ?P's own sub-parts.  overriddenConstraint
     // settles in stratum 1, so the NAF is stratified; ?C/?W/?P/?S/?R are all positively
     // bound, so the rule is DL-safe.
@@ -1285,7 +1285,7 @@ const STRATUM_3: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic agency: the two co-equal pathology verdicts (issue #707, C4) ──────────
+    // ── Holonic agency: the two co-equal pathology verdicts (C4) ──────────
     // Koestler's two pathologies, each the collapse of ONE tendency, reached by
     // negation-as-failure over the corresponding stratum-1 marker WHILE the opposite
     // marker still holds — so each verdict is profile-relative, never a bare default.
@@ -1637,7 +1637,7 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Weak supplementation (issue #704, C1) ───────────────────────────────────────
+    // ── Weak supplementation (C1) ───────────────────────────────────────
     // A profile-scoped MereologyConstraint (NOT an OntoUML Discipline): a whole with a
     // proper part must have another proper part disjoint from the first.  Fires only
     // for wholes armed by supplementationScoped (declared under a logic:MereologyProfile).
@@ -1669,8 +1669,8 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic level coherence: incoherence violation (issue #708, C5) ─────────────────
-    // PROFILE-SCOPED, exactly like weak supplementation (and per #775 profile-relativity):
+    // ── Holonic level coherence: incoherence violation (C5) ─────────────────
+    // PROFILE-SCOPED, exactly like weak supplementation (and per profile-relativity):
     // a holon (isHolon — both a proper part of some whole AND itself has a proper part) is
     // charged with this coherence violation ONLY when it is declared under a mereology
     // profile (underMereologyProfile) yet occupies NO logic:HolonicPosition.  A holon
@@ -1716,7 +1716,7 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic emergence: unknown verdict (issue #705, C2) ──────────────────────────
+    // ── Holonic emergence: unknown verdict (C2) ──────────────────────────
     // ME9's first-class third value: the whole bears the property under assessment, but
     // neither an aggregate reduction nor a theory-relative emergence verdict is derivable
     // (the assessment declares no logic:assessmentReductionTheory, so emergentAssessed
@@ -1762,7 +1762,7 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic governance: unknown verdict (issue #706, C3) ─────────────────────────
+    // ── Holonic governance: unknown verdict (C3) ─────────────────────────
     // The first-class third value: the constraint names a target that is a proper part
     // of the governing whole, but neither an override-defeat nor a regime-relative
     // binding is derivable (no constraintRegime activates the state), so the binding
@@ -1809,7 +1809,7 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic agency: unknown verdict (issue #707, C4) ─────────────────────────────
+    // ── Holonic agency: unknown verdict (C4) ─────────────────────────────
     // The first-class fourth value: the assessment names a holon and a profile, but the
     // holon evidences NEITHER tendency — neither the self-assertive nor the integrative
     // marker can fire — so the integrity question has no positive footing.  This subsumes
@@ -3298,10 +3298,10 @@ pub fn evaluate(
 }
 
 /// Evaluate the foundation disciplines and fold the result into a truth-maintenance
-/// [`crate::derivation_graph::DerivationGraph`] (issue #820, S6b).
+/// [`crate::derivation_graph::DerivationGraph`] (S6b).
 ///
 /// This is the chase→derivation-graph wiring: it runs [`evaluate`] (which preserves
-/// #824's per-world parallel chase and deterministic world/index-ordered fold) and
+/// the per-world parallel chase and deterministic world/index-ordered fold) and
 /// then records each materialized quad as one justification —
 /// [`crate::derivation_graph::from_foundation_quads`]. Because `evaluate` returns the
 /// quads in canonical content order, and `from_foundation_quads` keys everything by
