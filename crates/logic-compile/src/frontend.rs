@@ -980,7 +980,7 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
 }
 
 /// Derive closed-world [`ValidationShapeIr`]s from an ontology graph's OWL restrictions (the
-/// #1191 closed-world reading). For every `Class rdfs:subClassOf [ owl:onProperty P ;
+/// closed-world validation reading of the open-world axioms). For every `Class rdfs:subClassOf [ owl:onProperty P ;
 /// owl:someValuesFrom C ]`, the target `Class` gets a shape whose property `P` carries a
 /// `sh:class C` constraint, grouped so one shape holds all of a class's derived property
 /// constraints (sorted + deduped for determinism).

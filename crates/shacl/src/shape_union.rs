@@ -30,7 +30,7 @@ pub const EXCLUDED: &[&str] = &[
     "statement-dsl-shapes.ttl",
     "test-dsl-shapes.ttl",
     "slice-manifest-shapes.ttl",
-    // The derived closed-world validation-shape surface (the OPT constraint axis + the #1191
+    // The derived closed-world validation-shape surface (the OPT constraint axis + the
     // OWL-restriction reading). It is a DECLARED ValidationOnly projection carried in
     // gmeow.gts for a consumer that opts into the closed-world reading — NOT part of the
     // enforced data-validation union: an OWL someValuesFrom is open-world, so enforcing its
