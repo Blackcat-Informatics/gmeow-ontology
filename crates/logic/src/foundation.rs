@@ -2893,7 +2893,9 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
     let mut out: Vec<FoundationQuad> = Vec::new();
     for (world, props) in &edges {
         for (prop, base) in props {
-            let sorts = &prop_sorts[prop];
+            let sorts = prop_sorts
+                .get(prop)
+                .ok_or_else(|| format!("missing characteristic sorts for property {prop}"))?;
             let transitive = sorts.contains(&CharSort::Transitive);
             let symmetric = sorts.contains(&CharSort::Symmetric);
             let asymmetric = sorts.contains(&CharSort::Asymmetric);
