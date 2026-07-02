@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: characteristic/irreflexive-clash
+# Property-characteristic enforcement (H4) — irreflexivity violation.
+#
+# ex:shadow is typed logic:irreflexiveProperty. Given the self-pair
+# ex:G shadow ex:G, the native characteristic pass must raise
+# logic:violation logic:IrreflexivityViolation on ex:G — a goal is never its
+# own shadow. The chase seeds only from input.nq; this is the mirror axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/characteristic/irreflexive-clash/> .
+
+ex:shadow a logic:irreflexiveProperty .
+ex:G ex:shadow ex:G .
