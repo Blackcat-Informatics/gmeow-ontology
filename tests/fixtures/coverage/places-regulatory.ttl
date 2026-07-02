@@ -19,13 +19,17 @@ ex:standpoint-state-a  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandp
 ex:standpoint-state-b  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
 
 # --- Agents ------------------------------------------------------------------ #
-ex:cityCouncil   a gmeow:Organization ; rdfs:label "City Council"@en .
-ex:nationalParkService a gmeow:Organization ; rdfs:label "National Park Service"@en .
-ex:caa           a gmeow:Organization ; rdfs:label "Civil Aviation Authority"@en .
-ex:unSecurityCouncil a gmeow:Organization ; rdfs:label "UN Security Council"@en .
-ex:stateA        a gmeow:Organization ; rdfs:label "State A Foreign Ministry"@en .
-ex:stateB        a gmeow:Organization ; rdfs:label "State B Foreign Ministry"@en .
-ex:electionBoard a gmeow:Organization ; rdfs:label "Independent Election Board"@en .
+# Each is multi-typed gmeow:Agent alongside gmeow:Organization: this fixture is
+# validated standalone (no ontology import), and the generated RegulatoryOverlay
+# range shape requires gmeow:overlayAuthority to resolve to a gmeow:Agent in the
+# SAME data graph (Principle 11).
+ex:cityCouncil   a gmeow:Organization , gmeow:Agent ; rdfs:label "City Council"@en .
+ex:nationalParkService a gmeow:Organization , gmeow:Agent ; rdfs:label "National Park Service"@en .
+ex:caa           a gmeow:Organization , gmeow:Agent ; rdfs:label "Civil Aviation Authority"@en .
+ex:unSecurityCouncil a gmeow:Organization , gmeow:Agent ; rdfs:label "UN Security Council"@en .
+ex:stateA        a gmeow:Organization , gmeow:Agent ; rdfs:label "State A Foreign Ministry"@en .
+ex:stateB        a gmeow:Organization , gmeow:Agent ; rdfs:label "State B Foreign Ministry"@en .
+ex:electionBoard a gmeow:Organization , gmeow:Agent ; rdfs:label "Independent Election Board"@en .
 
 # --- RegulatoryOverlayType values (exercising the open value vocabulary) -------- #
 gmeow:overlayTypeZoning              a gmeow:RegulatoryOverlayType ; rdfs:label "zoning"@en .
@@ -43,7 +47,8 @@ ex:nationalPark a gmeow:Place ;
     gmeow:placeType gmeow:placeTypeNaturalFeature ;
     rdfs:label "Alpine National Park"@en .
 
-ex:airportApproach a gmeow:Place ;
+ex:airportApproach a gmeow:Place ,
+        gmeow:Entity ;
     gmeow:placeType gmeow:placeTypePointOfInterest ;
     rdfs:label "Airport Approach Corridor"@en .
 

@@ -6,7 +6,8 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-ex:disputedPlace a gmeow:Place ;
+ex:disputedPlace a gmeow:Place ,
+        gmeow:Entity ;
     gmeow:placeType gmeow:placeTypeRegion .
 
 # Claim A: the place existed from 1000 CE to 1500 CE (per Historian A).
