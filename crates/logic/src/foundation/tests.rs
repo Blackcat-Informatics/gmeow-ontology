@@ -1777,3 +1777,57 @@ fn characteristic_unmarked_property_is_inert() {
         "an unmarked property must not be transitively closed"
     );
 }
+
+#[test]
+fn characteristic_carrier_agreement_holds_when_both_present() {
+    // A DL-projectable logic: record WITH its OWL projection: carriers agree, no drift.
+    let b = "https://example.org/char/agree";
+    let p = format!("{b}/before");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_TRANSITIVE}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}transitiveProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
+        "a logic: record whose OWL projection is present must not fire a disagreement"
+    );
+}
+
+#[test]
+fn characteristic_carrier_agreement_fires_when_owl_marker_dropped() {
+    // The canonical logic: record is present but its OWL projection is missing — the
+    // carriers have drifted, so the property-characteristic agreement gate must fire.
+    let b = "https://example.org/char/drift";
+    let p = format!("{b}/before");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}transitiveProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
+        "a DL-projectable logic: record without its OWL marker must fire a disagreement"
+    );
+}
+
+#[test]
+fn characteristic_carrier_agreement_ignores_logic_only_sorts() {
+    // Irreflexive/asymmetric are logic:-only by design (DL-clean, EL-safe): a record for
+    // them carries no OWL projection and must NOT be read as a carrier disagreement.
+    let b = "https://example.org/char/logiconly";
+    let p = format!("{b}/counterGoal");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}irreflexiveProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
+        "a logic:-only irreflexive record must not fire a carrier disagreement"
+    );
+}
