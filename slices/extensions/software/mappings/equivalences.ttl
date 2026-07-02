@@ -9,6 +9,8 @@
 @prefix codemeta: <https://codemeta.github.io/terms/#> .
 @prefix forgefed: <https://forgefed.org/ns#> .
 @prefix swh:     <https://www.softwareheritage.org/data-model/> .
+@prefix dcmitype: <http://purl.org/dc/dcmitype/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 
 # Software five-facet de-conflation alignments.
 # Compiled to mappings/gmeow-software.sssom.tsv by `gmeow compile-mappings`.
@@ -209,3 +211,63 @@ gmeow:eqSw018 a gmeow:TermEquivalence ;
     gmeow:confidence 0.85 ;
     gmeow:comment "Software Heritage Origin is a repository origin URL; GMEOW Repository is the location/hosting facet, which may carry additional metadata." ;
     gmeow:sssomFile "gmeow-software.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqClasses029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SoftwareProject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject doap:Project ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:SoftwareSourceCode ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:SoftwareProduct ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject schema:SoftwareApplication ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject gmeow:SoftwareProduct ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject doap:GitRepository ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:Repository ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqDcType006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SoftwareProject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcmitype:Software ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "A GMEOW SoftwareProject is a DCMI Software" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqProperties016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasRepository ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject doap:repository ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqWikidata004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:SoftwareProject ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q7397 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "software" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

@@ -456,7 +456,7 @@ pub fn project_shacl_af(program: &LogicProgram) -> ProjectionResult {
 
     // The full-FOL formula layer + reasoning contracts are beyond the Horn-with-NAF fragment;
     // disclose each as a flagged residue note (carried in the canon, never silent).
-    actual_drops.extend(contract_drop_notes(program, "SHACL-AF"));
+    actual_drops.extend(contract_drop_notes(program, "SHACL-AF", &|_| false));
 
     let content = format!("{}\n", blocks.join("\n\n"));
     ProjectionResult {

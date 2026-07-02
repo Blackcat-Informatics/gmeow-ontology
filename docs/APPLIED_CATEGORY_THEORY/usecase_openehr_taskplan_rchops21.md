@@ -3,7 +3,7 @@
 
 # Grounded use case — the process axis: openEHR PROC (RCHOPS21) ⇄ `logic:Plan`
 
-> **Grounds:** `take1.md` §13.5 and META-EPIC #1054 (W1 #1055 / W2 #1056 / W3 #1057) against the
+> **Grounds:** `take1.md` §13.5 and the canonical process model against the
 > openEHR **PROC 1.6.0** process examples — specifically the **RCHOPS21** chemotherapy Task Plan
 > (`process_examples.html`). Companion: `usecase_openehr_bloodpressure.md` (the data axis).
 >
@@ -13,7 +13,7 @@
 >
 > **Claim under test:** openEHR Task Planning is *one more by-reference projection target of
 > `logic:Plan`* (`take1.md` §13.5), and RCHOPS21 exercises exactly the constructs a pure DAG
-> **cannot** express — proving why the W1 superset is needed and the W2 DAG is only a profile.
+> **cannot** express — proving why the full `logic:Plan` superset is needed and the acyclic DAG profile is only a restriction of it.
 
 ---
 
@@ -44,9 +44,9 @@ notification)." The executed record is ordinary openEHR **Compositions/Instructi
 
 ---
 
-## 2. The GMEOW canonical form — `logic:Plan` (W1)
+## 2. The GMEOW canonical form — `logic:Plan`
 
-RCHOPS21 maps onto the W1 canonical process model almost 1:1 (`take1.md` §13.5):
+RCHOPS21 maps onto the `logic:Plan` canonical process model almost 1:1 (`take1.md` §13.5):
 
 ```text
 logic:Plan  :rchops21
@@ -62,7 +62,7 @@ logic:Plan  :rchops21
 
 - **Tasks → `logic:ActionSchema`** (`premedicate`, `administer`) with
   precondition / effect (`ins`/`del`, supersession-not-erasure) / invariant / **resource**
-  (drug, infusion chair, nurse — serialized by `competes-for-resource`, W3) / capability /
+  (drug, infusion chair, nurse — serialized by `competes-for-resource`, captured by the build-pipeline executor's typed `DataFlow`/resource layer) / capability /
   **observation** / **compensation** (e.g. extravasation handling).
 - **DLM → `logic:` derivation rules + an observation-conditioned policy.** The DLM is openEHR's
   rule dialect; in the calculus it is a *projection target* of `logic:` rules (like SWRL/N3),
@@ -76,23 +76,23 @@ logic:Plan  :rchops21
 
 ---
 
-## 3. The `get` leg and the DAG-profile loss (W2)
+## 3. The `get` leg and the DAG-profile loss
 
 Down-projecting `:rchops21` to openEHR TP-VML + DLM is a `logic:Plan` lowering. But note the
-two-tier projection W2 makes explicit:
+two-tier projection the DAG profile makes explicit:
 
 - **To the full TP-VML/DLM surface:** loops, guards, callbacks, manual-notification all have
   TP-VML constructs → a relatively faithful projection (under-approximation only where TP-VML
   lacks `logic:`'s concurrency-serializability or per-outcome compensation expressivity).
-- **To the W2 DAG profile (e.g. for a build/CWL/Airflow consumer):** the **loop over cycles** is
+- **To the acyclic DAG profile (e.g. for a build/CWL/Airflow consumer):** the **loop over cycles** is
   *not acyclic* → the DAG profile reports `unsupported` **with the offending edge named** (the
-  cycle back-edge), per W2; a consumer that must have a DAG either gets the loop **unrolled** to a
+  cycle back-edge); a consumer that must have a DAG either gets the loop **unrolled** to a
   fixed cycle count (with the unroll recorded in the loss ledger) or an honest `unsupported`. The
   plan is still valid canonically — never silently truncated.
 
-This is the whole point of META-EPIC #1054: RCHOPS21 exhibits **iteration, guarded branching on
-real conditions, and per-branch compensation** — exactly the four things #1054 says "a pure DAG
-cannot express." It is the worked proof that DAG must be a *profile of* the superset, not the core.
+This is the whole point of the canonical process model: RCHOPS21 exhibits **iteration, guarded
+branching on real conditions, and per-branch compensation** — exactly the constructs a pure DAG
+cannot express. It is the worked proof that DAG must be a *profile of* the superset, not the core.
 
 ---
 
@@ -110,13 +110,13 @@ by-reference bridge to YAMATO terms) each earn their keep here:
 2. **causal parts vs temporal parts (causal ⊆ temporal).** `premedicate` **causally enables**
    `administer` (not merely *precedes* it); a 3-day-stale neutrophil count **causally gates** the
    dose branch. These are *causal* edges, distinct from the *temporal* `gmeow:hasSubEvent`
-   nesting of cycles. W3's typed `DataFlow`/resource capture is where this causal axis lands in
-   the executor.
+   nesting of cycles. The build-pipeline executor's typed `DataFlow`/resource capture is where this
+   causal axis lands in the executor.
 3. **process ≠ event (change-asymmetry).** The plan prescribes over *processes* (dissective,
    revisable — the protocol can be amended mid-treatment by suppression, never mutation); the
    executed record is *events* (unitary, immutable — an administration that occurred cannot
-   un-occur). This is why the plan is held over an interval and revised by supersession (W1),
-   while the descriptive Actions are append-only.
+   un-occur). This is why the plan is held over an interval and revised by supersession (in the
+   canonical `logic:Plan` process model), while the descriptive Actions are append-only.
 
 ---
 
@@ -147,7 +147,7 @@ general**:
   the planned skeleton* (not of the off-plan reality). That witness is the mnemomorphism's
   in-band complement at the process layer; where the ISM linkage is present, the planned portion
   round-trips; the manual/off-plan portion is an **honest loss-ledger entry**, never a failure.
-- **Two distinct correspondences, never conflated** (W1's "path vs. intention vs. causation:
+- **Two distinct correspondences, never conflated** (the canonical process model's "path vs. intention vs. causation:
   connected, never identified"): (i) plan ⟷ external workflow surface (BPMN/Airflow/TP-VML — the
   §13.5 by-reference targets), and (ii) plan ⟷ its own execution record (this lossy lens). The
   calculus keeps them apart.
@@ -159,10 +159,10 @@ general**:
 | `take1.md` law / gate | This case |
 |---|---|
 | `logic:Plan` projection to TP-VML/DLM (§13.5) | under-approximation where TP-VML lacks concurrency-serializability / per-outcome compensation |
-| DAG profile (W2) | **`unsupported`** for the cycle loop, offending back-edge named; or unrolled with loss recorded |
+| DAG profile | **`unsupported`** for the cycle loop, offending back-edge named; or unrolled with loss recorded |
 | Mnemomorphism gate (§15.4) | prescriptive↔descriptive lens is **not** mnemomorphic in general; recoverable only via ISM witness |
 | Composition / merge (§8) | the DLM terminology bindings are **nested** correspondences (§13.4-Q3) |
-| Loss ledger (§15.6) | loops→error/unroll; concurrency→serialize; compensation→omit (per W2); off-plan reality→declared loss on the descriptive lens |
+| Loss ledger (§15.6) | loops→error/unroll; concurrency→serialize; compensation→omit (in the DAG profile); off-plan reality→declared loss on the descriptive lens |
 
 ---
 
@@ -176,14 +176,19 @@ general**:
   property of the world (events happen off-engine). The honest move is to *name* it: the
   plan→record correspondence sits on the lossy-lens rung, recoverable only to the extent the ISM
   witness is present. Do **not** claim section/retraction for the process execution lens.
-- **Caveat (grounding) — partially closed.** A machine-readable RCHOPS21 now exists as
-  `fixtures/rchops21.plan.ttl` — GMEOW's own `logic:Plan` rendering, derived from the PROC 1.6.0
-  source (`openEHR/specifications-PROC : docs/process_examples/master05-chemo.adoc`, DLM
-  "RCHOPS21"), with the loop / patient-fit guard / nondeterministic-outcome+compensation /
-  high-IPI conditional-addition / tracked-state currencies all expressed canonically. The openEHR
-  DLM/TP-VML is **not** vendored (specifications-PROC license is "Other"/NOASSERTION) — only cited.
-  The remaining step is mechanizing the lowering `logic:Plan → TP-VML/DLM` and its inverse once the
-  calculus is implemented; flag for the breakout.
+- **Grounding — closed.** A machine-readable RCHOPS21 exists as `fixtures/rchops21.plan.ttl` —
+  GMEOW's own `logic:Plan` rendering, derived from the PROC 1.6.0 source
+  (`openEHR/specifications-PROC : docs/process_examples/master05-chemo.adoc`, DLM "RCHOPS21"), with
+  the loop / patient-fit guard / nondeterministic-outcome+compensation / high-IPI
+  conditional-addition / tracked-state currencies all expressed canonically. The openEHR DLM/TP-VML
+  is **not** vendored (specifications-PROC license is "Other"/NOASSERTION) — only cited. The
+  distinctive DLM constructs are now realized natively: `currency`/time-window staleness is
+  `logic:FreshnessGuard` (an out-of-window datum gates the action `logic:GateUndetermined`);
+  manual-notification / callback completion is `logic:NotificationWaitSchema` (an un-signalled wait
+  is pending, carrying a `logic:awaitingSignal` witness); and the Instruction-State-Machine
+  plan→execution linkage is the `logic:instantiatesSchema` + `logic:instantiatesPlan` in-band
+  witness. The lowering `logic:Plan → openEHR Task Planning` is wired as a by-reference projection in
+  `slices/extensions/procedures/mappings/` with its preservation judgment in the loss ledger.
 - **The two axes together** complete the openEHR subsumption picture (`take1.md` §13 table): the
   **data axis** reaches the section/retraction rung (perfect replacement of the RM data, with the
   in-band complement); the **process axis** reaches the lossy-lens rung for execution and a faithful

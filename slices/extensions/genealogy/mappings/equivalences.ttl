@@ -9,6 +9,9 @@
 @prefix gxv: <http://gedcomx.org/v1/> .
 @prefix gn: <http://www.geonames.org/ontology#> .
 @prefix wdt: <http://www.wikidata.org/prop/direct/> .
+@prefix rel: <http://purl.org/vocab/relationship/> .
+@prefix schema: <https://schema.org/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 
 # Term equivalences for the genealogy domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-genealogy.sssom.tsv by `gmeow compile-mappings`.
@@ -214,3 +217,87 @@ gmeow:eqGenealogy073 a gmeow:TermEquivalence ;
     gmeow:confidence 0.7 ;
     gmeow:comment "legacy W3C gedcom couple role" ;
     gmeow:sssomFile "gmeow-genealogy.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqClasses033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Family ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject gedcom:Family ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqProperties020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasParent ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:parent ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasParent ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject rel:childOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "childOf points child->parent = hasParent" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasChild ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:children ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasChild ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject rel:parentOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSpouse ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:spouse ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSpouse ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject rel:spouseOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSibling ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject schema:sibling ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:hasSibling ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject rel:siblingOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqWikidata005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Family ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q8436 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "family" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

@@ -6,7 +6,7 @@ The `gmeow` wheel ships ONE artifact — `generated/dist/gmeow.gts` — that fol
 the **complete useful ontology surface AND its transforms**: the SSSOM lift maps,
 the compiled projection queries, the equivalence/projection cells, and the
 ontology/import named graphs. This module reads them back so the
-consumer loaders (`build_lift_map`, `project_graph`, `load_cells`,
+consumer loaders (`execute_put_legs`, `project_graph`, `load_cells`,
 `_build_merged_graph`) can run **from the wheel alone, with no repo checkout** —
 the CLI razor: `gmeow` does not need a repo, `gmeow-dev` does.
 

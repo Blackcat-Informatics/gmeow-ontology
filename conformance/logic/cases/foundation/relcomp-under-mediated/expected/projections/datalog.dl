@@ -3,9 +3,9 @@
 
 % === Ground facts (axioms) ===
 type("https://example.org/foundation/relcomp-under-mediated/Employment", "https://blackcatinformatics.ca/logic/Relator", "default").
-mediates("https://example.org/foundation/relcomp-under-mediated/Employment", "https://example.org/foundation/relcomp-under-mediated/Employee", "default").
-mediates("https://example.org/foundation/relcomp-under-mediated/Employment", "https://example.org/foundation/relcomp-under-mediated/Employer", "default").
+mediates("https://example.org/foundation/relcomp-under-mediated/Employment", "https://example.org/foundation/relcomp-under-mediated/employee", "default").
+mediates("https://example.org/foundation/relcomp-under-mediated/Employment", "https://example.org/foundation/relcomp-under-mediated/employer", "default").
 type("https://example.org/foundation/relcomp-under-mediated/Marriage", "https://blackcatinformatics.ca/logic/Relator", "default").
-mediates("https://example.org/foundation/relcomp-under-mediated/Marriage", "https://example.org/foundation/relcomp-under-mediated/Spouse1", "default").
+mediates("https://example.org/foundation/relcomp-under-mediated/Marriage", "https://example.org/foundation/relcomp-under-mediated/spouse", "default").
 
 % === Rules ===

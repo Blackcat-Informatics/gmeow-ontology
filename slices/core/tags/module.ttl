@@ -37,6 +37,9 @@ gmeow:Tagging
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "Tagging"@x-gmeow-english ;
+    logic:mediates gmeow:taggingTagged ,
+        gmeow:taggingTag ,
+        gmeow:taggingTagger ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

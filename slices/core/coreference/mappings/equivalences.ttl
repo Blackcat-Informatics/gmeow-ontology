@@ -5,6 +5,8 @@
 @prefix prov:   <http://www.w3.org/ns/prov#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
 # Term equivalences for the universal identity/coreference layer (authority/coreference links).
 # Instance coreference is asserted in data with gmeow:authorityLink plus
@@ -68,3 +70,23 @@ gmeow:eqCoreference006 a gmeow:TermEquivalence ;
     gmeow:confidence 0.9 ;
     gmeow:comment "both relate a local description to a close external authority record, by reference (PROV activity alignment phase 2). mads:authoritativeLabel is REFUSED: GMEOW has no authority-control labeling model — skos:prefLabel serves that role.";
     gmeow:sssomFile "gmeow-coreference.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqDcTerms019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:supersedes ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:replaces ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms replaces — a related resource that is superseded by the described resource" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqDcTerms022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:versionOf ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:isVersionOf ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:comment "DCTerms isVersionOf — a related resource of which the described resource is a version" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .

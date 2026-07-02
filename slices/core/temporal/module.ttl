@@ -113,6 +113,8 @@ gmeow:TemporalMeasurement
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Temporal Measurement"@x-gmeow-english ;
+    logic:mediates gmeow:observedFeature ,
+        gmeow:vantage ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Measurement ,
         [

@@ -82,6 +82,8 @@ gmeow:IdentityFacet
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Identity Facet"@x-gmeow-english ;
+    logic:mediates gmeow:facetSubject ,
+        gmeow:facetVantage ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [

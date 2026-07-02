@@ -104,6 +104,8 @@ gmeow:InterpersonalRelationship
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Interpersonal Relationship"@x-gmeow-english ;
+    logic:mediates gmeow:relationshipParty ,
+        gmeow:relationshipInterval ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

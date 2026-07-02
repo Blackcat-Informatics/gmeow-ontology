@@ -1772,6 +1772,7 @@ name = "gmeow-logic"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "chrono",
  "criterion",
  "gmeow-diagnostics",
  "gmeow-logic-compile",
@@ -1799,6 +1800,7 @@ dependencies = [
  "gmeow-rdf",
  "gmeow-sparql-algebra",
  "insta",
+ "roxmltree",
  "serde",
  "serde_json",
  "sha2",
@@ -1957,6 +1959,7 @@ version = "0.1.0"
 dependencies = [
  "criterion",
  "gmeow-gts",
+ "gmeow-logic-compile",
  "gmeow-rdf",
  "gmeow-slice",
  "gmeow-sparql-algebra",
@@ -2080,6 +2083,14 @@ dependencies = [
  "tempfile",
  "toml",
  "ureq",
+]
+
+[[package]]
+name = "gmeow-validate-wasm"
+version = "0.1.0"
+dependencies = [
+ "gmeow-validate",
+ "wasm-bindgen",
 ]
 
 [[package]]
