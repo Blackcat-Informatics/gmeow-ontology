@@ -47,6 +47,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
+use gmeow_conformance::external::lower::premise_ds_to_world_nquads;
 use gmeow_conformance::external::{
     outcome_from_szs, parse_test_manifest, parse_test_manifest_rdfxml, runner_verdict_json,
     ManifestTestKind, OntologyDoc,
@@ -210,64 +211,6 @@ fn to_slug(name: &str) -> String {
         }
     }
     result.trim_matches('-').to_string()
-}
-
-/// Convert a parsed premise dataset (default graph only) into sorted, deduped N-Quads
-/// under the given world IRI. Uses the native N-Triples serializer for term encoding,
-/// then appends the world graph IRI to each triple line.
-///
-/// Returns the N-Quads text (sorted, trailing newline) and the quad count.
-fn premise_ds_to_world_nquads(
-    ds: &purrdf::RdfDataset,
-    world_iri: &str,
-) -> Result<(String, usize), String> {
-    // Serialize the default graph as N-Triples — the native codec handles all
-    // the N3 term encoding (IRI angle-brackets, literal escaping, datatype IRIs,
-    // lang tags, blank node labels) so we never re-implement it here.
-    let nt_bytes = purrdf::serialize_dataset(
-        ds,
-        "application/n-triples",
-        purrdf::SerializeGraph::DefaultGraph,
-    )
-    .map_err(|e| format!("N-Triples serialize failed: {e}"))?;
-    let nt_text = String::from_utf8(nt_bytes)
-        .map_err(|_| "N-Triples output was not valid UTF-8".to_string())?;
-
-    // Convert each N-Triple line (`S P O .`) to N-Quads (`S P O <graph> .`).
-    //
-    // Correct order: trim trailing whitespace FIRST, then strip the mandatory
-    // trailing `.`, then trim again.  The previous order (`trim_end_matches('.')`
-    // first) was buggy: a line ending with `. ` (dot + trailing space) would not
-    // have its dot stripped (last char is space, not `.`), causing the output to
-    // contain two statement terminators: `S P O . <graph> .`.
-    let mut nq_lines: Vec<String> = nt_text
-        .lines()
-        .filter(|line| !line.trim().is_empty() && !line.trim_start().starts_with('#'))
-        .map(|line| {
-            // Trim trailing whitespace first so the mandatory '.' is now last.
-            let trimmed = line.trim_end();
-            // A valid N-Triples statement MUST end with '.'.  Hard-fail on any
-            // line that does not so we never silently emit a malformed N-Quad.
-            let without_dot = trimmed
-                .strip_suffix('.')
-                .ok_or_else(|| format!("malformed N-Triples line (no trailing '.'): {line}"))?;
-            // Trim any whitespace between the last RDF term and the trailing dot.
-            let body = without_dot.trim_end();
-            Ok(format!("{body} <{world_iri}> ."))
-        })
-        .collect::<Result<Vec<String>, String>>()?;
-    nq_lines.sort();
-    nq_lines.dedup();
-
-    let count = nq_lines.len();
-    let text = if nq_lines.is_empty() {
-        String::new()
-    } else {
-        let mut s = nq_lines.join("\n");
-        s.push('\n');
-        s
-    };
-    Ok((text, count))
 }
 
 /// The result of lowering one manifest entry into a world-scoped dataset.
