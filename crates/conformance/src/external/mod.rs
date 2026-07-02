@@ -15,6 +15,11 @@
 //! * [`status`] — the single SZS/manifest → [`serialize::VerdictStatus`](crate::serialize::VerdictStatus)
 //!   mapping table.
 //! * [`szs`] — TPTP `% SZS status` ingestion.
+//! * [`tptp`] — TPTP FOF/CNF *problem-body* ingestion: a native FOF/CNF parser
+//!   that lowers a problem into the full-FOL [`Formula`](gmeow_logic_compile::ir::Formula)
+//!   IR, applies the FOL-negation reduction, and lowers the EL/DL-expressible
+//!   fragment to a world-scoped OWL-RDF EDB the native DL engine decides. A
+//!   construct outside that fragment is a typed capability gap, never a silent skip.
 //! * [`manifest`] — W3C `mf:` entailment-manifest ingestion (dogfoods
 //!   `purrdf::parse_dataset`).
 //! * [`lower`] — the pure AC1 `runner_verdict_json` surface (declared external
@@ -30,6 +35,7 @@ pub mod lower;
 pub mod manifest;
 pub mod status;
 pub mod szs;
+pub mod tptp;
 
 pub use corpus::{
     audit_vendorable, lane_for_case, load_corpus_meta, parse_corpus_meta, CorpusMeta, Lane,
@@ -41,3 +47,4 @@ pub use manifest::{
 };
 pub use status::{outcome_for_szs, ExternalOutcome};
 pub use szs::{outcome_from_szs, parse_szs_status};
+pub use tptp::{parse_tptp, AnnotatedFormula, TptpError, TptpRole, TPTP_NS};
