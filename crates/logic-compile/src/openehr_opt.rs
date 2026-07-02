@@ -254,12 +254,13 @@ pub fn read_all_opt_constraints(
         let label = at_code.as_deref().unwrap_or(&archetype_tag);
         let kind = match xsi_type(node) {
             Some("C_DV_QUANTITY") => {
-                let (interval, units) = magnitude_from_quantity(node, label)?;
+                let (interval, units, precision) = magnitude_from_quantity(node, label)?;
                 Some(OptConstraintKind::Quantity {
                     magnitude_path: format!("{base_iri}magnitude"),
                     interval,
                     units_path: format!("{base_iri}units"),
                     units,
+                    precision: precision.map(|iv| (format!("{base_iri}precision"), iv)),
                 })
             }
             Some("C_STRING") => {
@@ -277,6 +278,11 @@ pub fn read_all_opt_constraints(
             // A complex-object node carries its multiplicity as a direct `<occurrences>`
             // interval — the OPT's cardinality/occurrences constraint node kind.
             Some("C_COMPLEX_OBJECT") => cardinality_from_occurrences(node, base_iri, label)?,
+            // A single-/multiple-attribute node carries its multiplicity as a direct `<existence>`
+            // interval — structurally identical to `<occurrences>`, minted on a distinct path.
+            Some("C_SINGLE_ATTRIBUTE") | Some("C_MULTIPLE_ATTRIBUTE") => {
+                cardinality_from_existence(node, base_iri, label)?
+            }
             // `<term_bindings>` is not an `xsi:type`-tagged node; match it by tag name.
             _ if node.tag_name().name() == "term_bindings" => {
                 terminology_from_bindings(node, base_iri)?
@@ -381,14 +387,16 @@ fn dedupe_local(candidate: String, used: &mut std::collections::BTreeMap<String,
     }
 }
 
-/// Extract the magnitude interval + units from a `C_DV_QUANTITY` node's `<list><magnitude>`. An
-/// unbounded end (`lower_unbounded`/`upper_unbounded` = `true`, or the bound element simply
-/// absent) is an open interval end (`None`); a bound that is PRESENT but not a valid number is a
-/// hard failure, as is a `<list>`/`<magnitude>`/`<units>` structure that is missing outright.
+/// Extract the magnitude interval, units, and optional precision interval from a `C_DV_QUANTITY`
+/// node's `<list>`. An unbounded end (`lower_unbounded`/`upper_unbounded` = `true`, or the bound
+/// element simply absent) is an open interval end (`None`); a bound that is PRESENT but not a valid
+/// number is a hard failure, as is a `<list>`/`<magnitude>`/`<units>` structure that is missing
+/// outright. The sibling `<precision>` interval (a `DV_QUANTITY.precision` decimal-place count,
+/// same interval structure as `<magnitude>`) is OPTIONAL — `Ok(None)` when the `<list>` omits it.
 fn magnitude_from_quantity(
     node: roxmltree::Node,
     label: &str,
-) -> Result<(OptInterval, String), OptError> {
+) -> Result<(OptInterval, String, Option<OptInterval>), OptError> {
     let list = child_element(node, "list")
         .ok_or_else(|| opt_err(format!("C_DV_QUANTITY {label:?}: no <list>")))?;
     let magnitude = child_element(list, "magnitude").ok_or_else(|| {
@@ -400,6 +408,15 @@ fn magnitude_from_quantity(
         .and_then(|u| u.text())
         .ok_or_else(|| opt_err(format!("C_DV_QUANTITY {label:?}: no <units>")))?
         .to_owned();
+    let precision = match child_element(list, "precision") {
+        None => None,
+        Some(precision) => Some(OptInterval {
+            lower: optional_bound(precision, "lower", "lower_unbounded")?,
+            upper: optional_bound(precision, "upper", "upper_unbounded")?,
+            lower_included: element_text_bool(precision, "lower_included")?,
+            upper_included: element_text_bool(precision, "upper_included")?,
+        }),
+    };
     Ok((
         OptInterval {
             lower: optional_bound(magnitude, "lower", "lower_unbounded")?,
@@ -408,6 +425,7 @@ fn magnitude_from_quantity(
             upper_included: element_text_bool(magnitude, "upper_included")?,
         },
         units,
+        precision,
     ))
 }
 
@@ -578,6 +596,38 @@ fn cardinality_from_occurrences(
     }))
 }
 
+/// Extract a cardinality constraint from an attribute node's direct `<existence>` multiplicity
+/// interval — the OPT's `existence` constraint node kind, structurally identical to
+/// `<occurrences>` (a `{lower,upper,*_included,*_unbounded}` interval). Returns `None` when the
+/// node has no `<existence>` child. An unbounded end (`*_unbounded = true`) maps to an open count
+/// (`None`); a bounded end reads its non-negative-integer value. The path is minted under
+/// `existence/{label}` (distinct from occurrences' `occurrences/{label}`) so the two families'
+/// shapes never collide on a shared enclosing at-code.
+fn cardinality_from_existence(
+    node: roxmltree::Node,
+    base_iri: &str,
+    label: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let Some(existence) = child_element(node, "existence") else {
+        return Ok(None);
+    };
+    let min = if element_text_bool(existence, "lower_unbounded")? {
+        None
+    } else {
+        Some(element_text_u32(existence, "lower")?)
+    };
+    let max = if element_text_bool(existence, "upper_unbounded")? {
+        None
+    } else {
+        Some(element_text_u32(existence, "upper")?)
+    };
+    Ok(Some(OptConstraintKind::Cardinality {
+        path: format!("{base_iri}existence/{label}"),
+        min,
+        max,
+    }))
+}
+
 /// Extract an external terminology binding from a `<term_bindings terminology="…">` block: the
 /// `terminology` attribute is the id, each `<items>/<value>/<code_string>` is a bound code. The
 /// codes are sorted (a binding set is order-free) so the lifted shape recovers to the identical
@@ -632,6 +682,35 @@ mod tests {
         let naming = std::collections::BTreeMap::new();
         let err = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap_err();
         assert!(err.to_string().contains("terminology_id"), "got: {err}");
+    }
+
+    #[test]
+    fn existence_on_a_single_attribute_yields_cardinality() {
+        // A `<existence>` interval on a C_SINGLE_ATTRIBUTE node is read exactly like an
+        // `<occurrences>` interval — a Cardinality on a distinct `existence/` path.
+        let xml = "<c xsi:type=\"C_SINGLE_ATTRIBUTE\" \
+                   xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\
+                   <existence>\
+                   <lower_included>true</lower_included>\
+                   <upper_included>true</upper_included>\
+                   <lower_unbounded>false</lower_unbounded>\
+                   <upper_unbounded>false</upper_unbounded>\
+                   <lower>1</lower><upper>1</upper>\
+                   </existence></c>";
+        let naming = std::collections::BTreeMap::new();
+        let all = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap();
+        let card = all
+            .iter()
+            .find_map(|c| match &c.kind {
+                OptConstraintKind::Cardinality { path, min, max }
+                    if path.contains("existence/") =>
+                {
+                    Some((*min, *max))
+                }
+                _ => None,
+            })
+            .expect("an existence cardinality on an existence/ path");
+        assert_eq!(card, (Some(1), Some(1)));
     }
 
     #[test]

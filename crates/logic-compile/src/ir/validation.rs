@@ -171,6 +171,20 @@ pub enum ConstraintComponent {
         /// Whether the upper bound is inclusive (`sh:maxInclusive` vs `sh:maxExclusive`).
         max_inclusive: bool,
     },
+    /// A numeric interval over an openEHR `C_DV_QUANTITY.precision` decimal-place-count, kept
+    /// distinct from [`ConstraintComponent::NumericRange`] so a precision satellite never aliases
+    /// the magnitude range (which would trip the OPT recovery ambiguity guard). Projected to the
+    /// same `sh:minInclusive`/`sh:maxInclusive` numeric facets — it is NOT lossy under projection.
+    PrecisionRange {
+        /// Lower bound (`None` ⇒ unbounded below).
+        min: Option<f64>,
+        /// Upper bound (`None` ⇒ unbounded above).
+        max: Option<f64>,
+        /// Whether the lower bound is inclusive (`sh:minInclusive` vs `sh:minExclusive`).
+        min_inclusive: bool,
+        /// Whether the upper bound is inclusive (`sh:maxInclusive` vs `sh:maxExclusive`).
+        max_inclusive: bool,
+    },
     /// A datatype constraint (`sh:datatype`): the datatype IRI.
     Datatype(String),
     /// A class-membership constraint (`sh:class`): values must be instances of this class
@@ -293,6 +307,16 @@ impl ConstraintComponent {
                 max_inclusive,
             } => format!(
                 "range{SEP}min={}{SEP}max={}{SEP}mincl={min_inclusive}{SEP}maxcl={max_inclusive}",
+                opt_axis_key(*min),
+                opt_axis_key(*max),
+            ),
+            ConstraintComponent::PrecisionRange {
+                min,
+                max,
+                min_inclusive,
+                max_inclusive,
+            } => format!(
+                "precisionrange{SEP}min={}{SEP}max={}{SEP}mincl={min_inclusive}{SEP}maxcl={max_inclusive}",
                 opt_axis_key(*min),
                 opt_axis_key(*max),
             ),

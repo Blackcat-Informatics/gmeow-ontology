@@ -84,6 +84,11 @@ pub enum OptConstraintKind {
         units_path: String,
         /// The unit string (e.g. `mm[Hg]`).
         units: String,
+        /// The optional `DV_QUANTITY.precision` decimal-place-count interval, paired with the
+        /// predicate reaching it. `None` when the OPT omits `<precision>`. Precision counts are
+        /// integers carried as `f64` (e.g. `1.0..1.0`); it is a non-discriminating satellite of the
+        /// Quantity family (recovered by [`recover_precision`], never a second magnitude range).
+        precision: Option<(String, OptInterval)>,
     },
     /// `occurrences` / `existence` / cardinality: a closed-world count bound on `path`.
     Cardinality {
@@ -158,6 +163,7 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
             interval,
             units_path,
             units,
+            precision,
         } => {
             let magnitude = PropertyConstraintIr::new(
                 magnitude_path,
@@ -185,7 +191,24 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
                     lang: None,
                 }])],
             )?;
-            vec![magnitude, unit]
+            let mut properties = vec![magnitude, unit];
+            // The optional precision satellite: a single PrecisionRange property, kept distinct
+            // from the magnitude NumericRange so recovery never treats it as a second discriminator.
+            if let Some((precision_path, precision_interval)) = precision {
+                properties.push(PropertyConstraintIr::new(
+                    precision_path,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::PrecisionRange {
+                        min: precision_interval.lower,
+                        max: precision_interval.upper,
+                        min_inclusive: precision_interval.lower_included,
+                        max_inclusive: precision_interval.upper_included,
+                    }],
+                )?);
+            }
+            properties
         }
         OptConstraintKind::Cardinality { path, min, max } => vec![PropertyConstraintIr::new(
             path,
@@ -299,6 +322,9 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                         },
                         units_path,
                         units,
+                        // A satellite, not a discriminator: recovered by scanning for the
+                        // PrecisionRange property (absent ⇒ None), so u∘d=id in both directions.
+                        precision: recover_precision(shape),
                     });
                 }
                 ConstraintComponent::DateTimeRange {
@@ -361,6 +387,10 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                         codes,
                     });
                 }
+                // A precision satellite is NOT a discriminator (recovered by `recover_precision`
+                // inside the Quantity arm); ignore it here so it never inflates the family count
+                // and trips the ambiguity guard.
+                ConstraintComponent::PrecisionRange { .. } => {}
                 _ => {}
             }
         }
@@ -414,6 +444,34 @@ fn recover_units(shape: &ValidationShapeIr) -> Result<(String, String), String> 
     Err("recover_opt_from_shape: quantity shape has no units (singleton sh:in literal)".into())
 }
 
+/// Recover a quantity shape's optional precision satellite — the property carrying the single
+/// [`ConstraintComponent::PrecisionRange`] component — as `(path, interval)`. Returns `None` when
+/// no property carries a precision range (a quantity without a precision constraint).
+fn recover_precision(shape: &ValidationShapeIr) -> Option<(String, OptInterval)> {
+    for p in &shape.properties {
+        for comp in &p.components {
+            if let ConstraintComponent::PrecisionRange {
+                min,
+                max,
+                min_inclusive,
+                max_inclusive,
+            } = comp
+            {
+                return Some((
+                    p.path.clone(),
+                    OptInterval {
+                        lower: *min,
+                        upper: *max,
+                        lower_included: *min_inclusive,
+                        upper_included: *max_inclusive,
+                    },
+                ));
+            }
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -434,6 +492,7 @@ mod tests {
                 },
                 units_path: "https://gmeow.example/openehr/bp/units".into(),
                 units: "mm[Hg]".into(),
+                precision: None,
             },
         }
     }
@@ -453,6 +512,39 @@ mod tests {
         assert!(ttl.contains("sh:minInclusive 0"), "{ttl}");
         assert!(ttl.contains("sh:maxExclusive 1000"), "{ttl}");
         assert!(ttl.contains("mm[Hg]"), "{ttl}");
+    }
+
+    #[test]
+    fn quantity_with_precision_round_trips_and_projects() {
+        // A Quantity carrying an optional precision satellite [1, 1] decimal places: the satellite
+        // must round-trip (u∘d=id) WITHOUT tripping the recovery ambiguity guard (it is not a
+        // second discriminator), and it must project to SHACL as an ordinary numeric facet.
+        let mut c = systolic();
+        match &mut c.kind {
+            OptConstraintKind::Quantity { precision, .. } => {
+                *precision = Some((
+                    "https://gmeow.example/openehr/bp/precision".into(),
+                    OptInterval {
+                        lower: Some(1.0),
+                        upper: Some(1.0),
+                        lower_included: true,
+                        upper_included: true,
+                    },
+                ));
+            }
+            _ => unreachable!(),
+        }
+        assert_u_after_d_is_identity(&c);
+        let shape = lift_opt_to_validation_shape(&c).unwrap();
+        let ttl = project_validation_shape_shacl(&shape);
+        assert!(ttl.contains("sh:minInclusive 1"), "{ttl}");
+        assert!(ttl.contains("sh:maxInclusive 1"), "{ttl}");
+        // The precision satellite is faithfully projected — no loss-ledger residue.
+        assert!(
+            shacl_residue(&shape).is_empty(),
+            "{:?}",
+            shacl_residue(&shape)
+        );
     }
 
     #[test]
