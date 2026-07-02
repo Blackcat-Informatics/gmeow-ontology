@@ -25,6 +25,8 @@
 //! cannot express this"), whereas `incomplete` means the oracle itself was
 //! undecided. Conflating them would hide gaps behind a green verdict.
 
+pub mod lower_fol;
 pub mod parser;
 
+pub use lower_fol::{lower_and_decide, lower_problem, LoweredProblem, LoweringGap};
 pub use parser::{parse_tptp, AnnotatedFormula, TptpError, TptpRole, TPTP_NS};

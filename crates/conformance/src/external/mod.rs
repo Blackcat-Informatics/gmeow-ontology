@@ -47,4 +47,7 @@ pub use manifest::{
 };
 pub use status::{outcome_for_szs, ExternalOutcome};
 pub use szs::{outcome_from_szs, parse_szs_status};
-pub use tptp::{parse_tptp, AnnotatedFormula, TptpError, TptpRole, TPTP_NS};
+pub use tptp::{
+    lower_and_decide, lower_problem, parse_tptp, AnnotatedFormula, LoweredProblem, LoweringGap,
+    TptpError, TptpRole, TPTP_NS,
+};
