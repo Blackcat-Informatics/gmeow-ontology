@@ -122,7 +122,10 @@ jobs:
         run: uv run python -c "import gmeow_diagnostics; print('gmeow_diagnostics at', gmeow_diagnostics.__file__)"
 
       - name: purrdf native SHACL seam imports
-        run: uv run python -c "from purrdf.purrdf_native import shacl; print('purrdf shacl at', shacl.__file__)"
+        # `shacl` is a compiled submodule of the purrdf native extension, not a
+        # Python shim package, so it has no `__file__`. Assert the capability the
+        # seam actually depends on (a callable `validate`) instead of a file path.
+        run: uv run python -c "from purrdf.purrdf_native import shacl; assert callable(shacl.validate), 'purrdf shacl.validate missing'; print('purrdf shacl seam OK:', shacl.__name__)"
 
       # Per-category diagnostics: re-run mypy through the external-tool
       # wrapper purely to emit a `python`-category SARIF of any type errors. The
