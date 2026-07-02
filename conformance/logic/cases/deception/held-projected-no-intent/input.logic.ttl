@@ -19,9 +19,10 @@
 #       residue. The chase therefore fabricates neither a held nor a projected witness
 #       for the event, and — the guardrail — materializes no gmeow:deceptiveIntentClaim.
 #
-#   (2) A POSITIVE CONTROL — a monotone Horn logic:Rule that fires over the SAME
-#       divergence data (heldStandpoint(e,h) ∧ projectedStandpoint(e,p) ⇒
-#       ex:standpointPairWitnessed(e,p)). The chase DOES derive its head, so
+#   (2) A POSITIVE CONTROL — a monotone Horn logic:Rule anchored to the deception event
+#       (eventType(e, eventTypeDeception) ∧ heldStandpoint(e,h) ∧ projectedStandpoint(e,p)
+#       ⇒ ex:standpointPairWitnessed(e,p)), so it exercises the deception-specific path
+#       rather than any incidental held/projected pair. The chase DOES derive its head, so
 #       materialized.nq is a strict superset of input.nq: proof that the engine is live
 #       and actively reasons over the deception structure. That the live chase still
 #       derives NO gmeow:deceptiveIntentClaim is thus a meaningful observation, not the
@@ -121,10 +122,14 @@ ex:dhpdProjectedModality
 ex:dhpdProjectedModalityArgP logic:termIndex 0 ; logic:termVariable "p" .
 ex:dhpdProjectedModalityArgM logic:termIndex 1 ; logic:termVariable "m" .
 
-# ── (2) Positive control — a monotone Horn rule that fires over the same divergence data ──
-# heldStandpoint(e,h) ∧ projectedStandpoint(e,p) ⇒ ex:standpointPairWitnessed(e,p)
+# ── (2) Positive control — a monotone Horn rule anchored to the deception event ──
+# eventType(e, eventTypeDeception) ∧ heldStandpoint(e,h) ∧ projectedStandpoint(e,p)
+#   ⇒ ex:standpointPairWitnessed(e,p)
 # Benign structural witness the chase DOES derive (materialized ⊋ input); its head is an
-# ex: predicate nowhere near gmeow:deceptiveIntentClaim, so the guardrail is untouched.
+# ex: predicate nowhere near gmeow:deceptiveIntentClaim, so the guardrail is untouched. The
+# eventType(e, eventTypeDeception) antecedent ties the witness to the deception-specific path,
+# so a regression that stops recognising the deception event fails this case rather than
+# greening on any incidental held/projected pair.
 ex:ruleStandpointPairWitness
     a logic:Rule ;
     logic:provenance ex:ruleStandpointPairWitness ;
@@ -132,6 +137,11 @@ ex:ruleStandpointPairWitness
         rdf:subject   "?e" ;
         rdf:predicate ex:standpointPairWitnessed ;
         rdf:object    "?p"
+    ] ;
+    logic:body [
+        rdf:subject   "?e" ;
+        rdf:predicate gmeow:eventType ;
+        rdf:object    gmeow:eventTypeDeception
     ] ;
     logic:body [
         rdf:subject   "?e" ;
