@@ -53,6 +53,7 @@ pub mod report;
 // computation surface (design/LOGIC-SHACL-AF.md): computation added to the canon and
 // emitted, never bolted onto SHACL (Principle 17).
 pub mod shacl_af;
+pub mod shapes;
 // The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
 pub mod sparql;
 // The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
@@ -203,6 +204,42 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         })
         .collect();
     owned.extend(path_results);
+
+    // Validation-shape surfaces: the closed-world SHACL Core + ShEx projections of every
+    // logic:ValidationShape, each a ledgered target (shacl-core / shex). Emitted as
+    // whole-program documents so the pipeline can write generated/shapes/validation-shapes.
+    // {ttl,shex}; a shape-free program yields empty documents and only the structural ledger
+    // rows (no per-shape residue), so the corpus is byte-stable until shapes are attached.
+    let shacl_shape_residue: Vec<String> = program
+        .validation_shapes
+        .iter()
+        .flat_map(shapes::shacl_residue)
+        .collect();
+    let (sc_kind, sc_compl, sc_struct) = target_meta("shacl-core");
+    owned.push(ProjectionResult {
+        target: "shacl-core".to_owned(),
+        content: shapes::project_validation_shapes_shacl(program),
+        is_rdf: false,
+        preservation: sc_kind,
+        complexity: sc_compl.to_owned(),
+        lossy_drops: sc_struct.into_iter().map(str::to_owned).collect(),
+        actual_drops: shacl_shape_residue,
+    });
+    let shex_shape_residue: Vec<String> = program
+        .validation_shapes
+        .iter()
+        .flat_map(shapes::shex_residue)
+        .collect();
+    let (sx_kind, sx_compl, sx_struct) = target_meta("shex");
+    owned.push(ProjectionResult {
+        target: "shex".to_owned(),
+        content: shapes::project_validation_shapes_shex(program),
+        is_rdf: false,
+        preservation: sx_kind,
+        complexity: sx_compl.to_owned(),
+        lossy_drops: sx_struct.into_iter().map(str::to_owned).collect(),
+        actual_drops: shex_shape_residue,
+    });
 
     // Teleology-specific lossy disclosure.  When the program carries the flat
     // gmeow:satisfiedBy edge generated from a factored logic:GoalEvaluation, the
@@ -618,6 +655,30 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "world/standpoint scope and the put leg are not carried",
             ],
         ),
+        "shacl-core" => (
+            PreservationKind::ValidationOnly,
+            "closed-world shape validation (SHACL Core)",
+            vec![
+                "a shape surface validates but does not entail (ValidationOnly)",
+                "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and \
+                 cross-node conditions have no SHACL Core form and are carried in the canonical \
+                 logic: layer",
+                "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and \
+                 external terminology bindings have no faithful SHACL Core form; both are carried \
+                 and flagged per shape",
+            ],
+        ),
+        "shex" => (
+            PreservationKind::ValidationOnly,
+            "closed-world shape validation (ShEx, strictly narrower than SHACL Core)",
+            vec![
+                "a shape surface validates but does not entail (ValidationOnly)",
+                "ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no \
+                 datetime-range facet; those conditions are carried in the canonical logic: layer",
+                "everything SHACL Core drops (regex dialect, external terminology) is also dropped \
+                 by ShEx, plus the ShEx-only drops above (a strictly larger residue set)",
+            ],
+        ),
         other => panic!("unknown projection target: {other}"),
     }
 }
@@ -627,7 +688,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 16] = [
+const LEDGER_TARGETS: [&str; 18] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -646,6 +707,10 @@ const LEDGER_TARGETS: [&str; 16] = [
     "fno",
     "edoal",
     "sparql-construct",
+    // The closed-world validation-shape surfaces (SHACL Core + ShEx), each carrying its own
+    // per-target preservation judgment in the same loss ledger.
+    "shacl-core",
+    "shex",
 ];
 
 /// One row of the preservation loss ledger as a public, owned value: a projection

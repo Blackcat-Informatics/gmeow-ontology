@@ -36,6 +36,7 @@ use std::sync::Arc;
 use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::LogicProgram;
+use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
     affine_triangle_worked_example, project_correspondence, CorrespondenceProgram,
 };
@@ -49,6 +50,7 @@ use gmeow_logic_compile::relational_core::{
 };
 use gmeow_rdf::provenance::DatasetProvenance;
 use gmeow_rdf::{parse_dataset, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm};
+use gmeow_shacl::openehr_opt::read_opt_quantity_constraint;
 use serde::{Deserialize, Serialize};
 
 use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
@@ -117,6 +119,14 @@ pub const XCL_PATH: &str = "generated/cl/gmeow.xcl";
 /// directory (NOT `generated/shapes/`) so the SHACL constraint validator never ingests
 /// these inference rules as no-op constraint shapes.
 pub const SHACL_AF_PATH: &str = "generated/shacl-af/gmeow.shacl-af.ttl";
+
+/// The closed-world validation-shape SHACL Core surface: the openEHR OPT/ADL constraint axis
+/// lifted to logic:ValidationShape and projected. Lives under generated/shapes/.
+pub const VALIDATION_SHAPES_TTL_PATH: &str = "generated/shapes/validation-shapes.ttl";
+/// The ShEx projection of the same validation shapes (a strictly narrower surface).
+pub const VALIDATION_SHAPES_SHEX_PATH: &str = "generated/shapes/validation-shapes.shex";
+/// The vendored openEHR OPT the constraint axis lifts (GECCO blood pressure).
+pub const OPT_SOURCE_PATH: &str = "validations/openehr-bloodpressure/Blutdruck.opt";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
@@ -200,6 +210,31 @@ impl Default for CompileLogicStage {
     }
 }
 
+/// Lift the vendored openEHR OPT C_DV_QUANTITY constraints (systolic at0004, diastolic
+/// at0005) to logic:ValidationShapes. Hard-fails on any read/lift error (no optional path).
+fn lift_opt_constraints(
+    opt_xml: &str,
+) -> Result<Vec<gmeow_logic_compile::ir::ValidationShapeIr>, PipelineError> {
+    const BP: &str = "https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/";
+    let mut shapes = Vec::new();
+    for (node, local) in [("at0004", "Systolic"), ("at0005", "Diastolic")] {
+        let constraint = read_opt_quantity_constraint(
+            opt_xml,
+            node,
+            &format!("{BP}{local}Shape"),
+            &format!("{BP}{local}"),
+            &format!("{BP}magnitude"),
+            &format!("{BP}units"),
+        )
+        .map_err(|e| stage_err(format!("OPT read {node}: {e}")))?;
+        shapes.push(
+            lift_opt_to_validation_shape(&constraint)
+                .map_err(|e| stage_err(format!("OPT lift {node}: {e}")))?,
+        );
+    }
+    Ok(shapes)
+}
+
 impl Stage for CompileLogicStage {
     fn id(&self) -> &str {
         "stage-compile-logic"
@@ -208,18 +243,38 @@ impl Stage for CompileLogicStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "compile-logic.v1"
+        "compile-logic.v3"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
-        // The compiler parses one canonical Turtle document; its content is the only
-        // source input, so a change to it busts this stage's cache.
-        Ok(vec![root.join(SOURCE_PATH)])
+        // The compiler parses the logic: source and the vendored OPT, and derives validation
+        // shapes from the whole authored ontology's OWL restrictions — so a change to ANY authored file
+        // must bust this stage's cache.
+        let mut files = vec![root.join(SOURCE_PATH), root.join(OPT_SOURCE_PATH)];
+        files.extend(crate::stages::source_load::authored_files(root)?);
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {SOURCE_PATH}: {e}")))?;
         let (program, diagnostics) = parse_logic_str(&source, Some(SOURCE_PATH.to_string()))
             .map_err(|e| stage_err(format!("parse {SOURCE_PATH}: {}", e.0)))?;
+        // Constraints axis: lift the vendored openEHR OPT C_DV_QUANTITY constraints to
+        // logic:ValidationShapes and attach them, so the SHACL Core + ShEx shape surfaces flow
+        // into gmeow.gts as generated projections (DATA FLOWS TO gmeow.gts; maximal dogfooding).
+        // A hard fail if the committed OPT is unreadable (no optional path).
+        let opt_xml = std::fs::read_to_string(input.root.join(OPT_SOURCE_PATH))
+            .map_err(|e| stage_err(format!("read {OPT_SOURCE_PATH}: {e}")))?;
+        let mut validation_shapes = lift_opt_constraints(&opt_xml)?;
+        // Derive closed-world validation shapes from the merged authored ontology's OWL
+        // restrictions (someValuesFrom → sh:class), where the DOMAIN restrictions live (the
+        // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
+        // derived ontology shapes ride into gmeow.gts through the shape surfaces.
+        let ontology = crate::stages::source_load::load_authored_dataset(input.root)?;
+        validation_shapes.extend(
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+                .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
+        );
+        let program = program.with_validation_shapes(validation_shapes);
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
         let mut arts = compile_program(&program).map_err(|e| stage_err(format!("compile: {e}")))?;
@@ -278,6 +333,29 @@ impl Stage for CompileLogicStage {
         // sh:SPARQLRule. A byte-decorated text artifact (carries a GENERATED banner), so it
         // rides the generated-fanout archive (REP_GENERATED) as a committed byte projection.
         artifacts.insert(SHACL_AF_PATH.to_string(), arts.shacl_af.into_bytes());
+        // The validation-shape surfaces (SHACL Core + ShEx): the OPT/ADL constraint axis
+        // projected. Extracted from the ledgered logic_projections so the file bytes and the
+        // loss-ledger rows share one source (single-renderer razor).
+        let vs_content = |target: &str| {
+            arts.logic_projections
+                .iter()
+                .find(|p| p.target == target)
+                .map(|p| p.content.clone())
+                .ok_or_else(|| {
+                    stage_err(format!(
+                        "compile: no '{target}' validation-shape projection produced — the target \
+                         string drifted from gmeow-logic-compile's registered projection targets"
+                    ))
+                })
+        };
+        artifacts.insert(
+            VALIDATION_SHAPES_TTL_PATH.to_string(),
+            vs_content("shacl-core")?.into_bytes(),
+        );
+        artifacts.insert(
+            VALIDATION_SHAPES_SHEX_PATH.to_string(),
+            vs_content("shex")?.into_bytes(),
+        );
 
         // The COMMITTED projection report is no longer emitted here: the loss ledger
         // must carry BOTH the logic projection rows AND the correspondence-calculus
