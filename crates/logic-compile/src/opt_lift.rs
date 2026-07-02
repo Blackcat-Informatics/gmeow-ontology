@@ -4,7 +4,7 @@
 //! openEHR OPT constraint IR and its **pure** lift to the canonical [`ValidationShapeIr`].
 //!
 //! This is the XML-free half of the ADL2/OPT constraints axis. The `roxmltree` reader
-//! (`crates/shacl`) parses an Operational Template into [`OptConstraintIr`] values; this
+//! ([`crate::openehr_opt`]) parses an Operational Template into [`OptConstraintIr`] values; this
 //! module lifts each to a `logic:` validation shape, from which the SHACL Core and ShEx
 //! surfaces are projected ([`crate::projections::shapes`]). Keeping the lift here — with no
 //! XML dependency — is what lets `crates/logic-compile` stay wasm-clean (the reusable-crate
@@ -129,6 +129,20 @@ pub enum OptConstraintKind {
         /// The bound codes.
         codes: Vec<String>,
     },
+    /// `C_DV_ORDINAL`: an ordinal value set of (ordinal integer, coded-symbol IRI) pairs on `path`.
+    Ordinal {
+        /// The predicate the ordinal set applies to.
+        path: String,
+        /// The (ordinal integer, coded-symbol IRI) pairs.
+        ordinals: Vec<(i64, String)>,
+    },
+    /// `C_DATE_TIME` validity pattern: a required datetime precision/format pattern on `path`.
+    DateTimePattern {
+        /// The predicate the datetime pattern applies to.
+        path: String,
+        /// The openEHR validity pattern (e.g. `yyyy-mm-ddTHH:MM:SS`).
+        pattern: String,
+    },
 }
 
 /// Lift an [`OptConstraintIr`] to the canonical [`ValidationShapeIr`] (the `d`/down leg).
@@ -225,6 +239,22 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
                 codes: codes.clone(),
             }],
         )?],
+        OptConstraintKind::Ordinal { path, ordinals } => vec![PropertyConstraintIr::new(
+            path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::OrdinalSet {
+                pairs: ordinals.clone(),
+            }],
+        )?],
+        OptConstraintKind::DateTimePattern { path, pattern } => vec![PropertyConstraintIr::new(
+            path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::DateTimePattern(pattern.clone())],
+        )?],
     };
     ValidationShapeIr::new(&c.shape_iri, target, properties, None, None, false)
 }
@@ -302,6 +332,18 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                         path: p.path.clone(),
                         terminology_id: terminology_id.clone(),
                         codes: codes.clone(),
+                    });
+                }
+                ConstraintComponent::OrdinalSet { pairs } => {
+                    recovered.push(OptConstraintKind::Ordinal {
+                        path: p.path.clone(),
+                        ordinals: pairs.clone(),
+                    });
+                }
+                ConstraintComponent::DateTimePattern(pattern) => {
+                    recovered.push(OptConstraintKind::DateTimePattern {
+                        path: p.path.clone(),
+                        pattern: pattern.clone(),
                     });
                 }
                 ConstraintComponent::In(vs)
@@ -526,6 +568,74 @@ mod tests {
             shacl_residue(&shape).len(),
             1,
             "terminology must be ledgered"
+        );
+    }
+
+    #[test]
+    fn ordinal_round_trips() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::Ordinal {
+                path: "https://ex/value".into(),
+                ordinals: vec![
+                    (1, "https://ex/terminology/local/at0014".into()),
+                    (2, "https://ex/terminology/local/at0015".into()),
+                ],
+            },
+        };
+        assert_u_after_d_is_identity(&c);
+    }
+
+    #[test]
+    fn datetime_pattern_round_trips() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::DateTimePattern {
+                path: "https://ex/value".into(),
+                pattern: "yyyy-mm-ddTHH:MM:SS".into(),
+            },
+        };
+        assert_u_after_d_is_identity(&c);
+    }
+
+    #[test]
+    fn ordinal_and_value_set_do_not_alias() {
+        // The discriminator-distinctness guarantee: an Ordinal must recover to Ordinal (NOT
+        // ValueSet), and a DateTimePattern must recover to DateTimePattern (NOT StringPattern) —
+        // the OPT lift must not collapse these into the plain `In`/`Pattern` components that
+        // would recover to the wrong family.
+        let ordinal = OptConstraintIr {
+            shape_iri: "https://ex/S1".into(),
+            target_class: "https://ex/C1".into(),
+            kind: OptConstraintKind::Ordinal {
+                path: "https://ex/value".into(),
+                ordinals: vec![(1, "https://ex/terminology/local/at0014".into())],
+            },
+        };
+        let shape = lift_opt_to_validation_shape(&ordinal).unwrap();
+        let recovered = recover_opt_from_shape(&shape).unwrap();
+        assert!(
+            matches!(recovered.kind, OptConstraintKind::Ordinal { .. }),
+            "expected Ordinal, got {:?}",
+            recovered.kind
+        );
+
+        let datetime_pattern = OptConstraintIr {
+            shape_iri: "https://ex/S2".into(),
+            target_class: "https://ex/C2".into(),
+            kind: OptConstraintKind::DateTimePattern {
+                path: "https://ex/value".into(),
+                pattern: "yyyy-mm-ddTHH:MM:SS".into(),
+            },
+        };
+        let shape = lift_opt_to_validation_shape(&datetime_pattern).unwrap();
+        let recovered = recover_opt_from_shape(&shape).unwrap();
+        assert!(
+            matches!(recovered.kind, OptConstraintKind::DateTimePattern { .. }),
+            "expected DateTimePattern, got {:?}",
+            recovered.kind
         );
     }
 

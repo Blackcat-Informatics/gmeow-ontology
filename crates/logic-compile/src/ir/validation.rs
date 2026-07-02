@@ -215,6 +215,18 @@ pub enum ConstraintComponent {
         /// The bound codes, sorted at construction.
         codes: Vec<String>,
     },
+    /// An openEHR `C_DV_ORDINAL` value set: (ordinal integer, coded-symbol IRI) pairs, sorted at
+    /// construction. SHACL Core / ShEx can express the coded symbols as an `sh:in`, but NOT the
+    /// ordinal integer values or their ordering — that residue is recorded in the loss ledger.
+    OrdinalSet {
+        /// The (ordinal integer, coded-symbol IRI) pairs, sorted at construction.
+        pairs: Vec<(i64, String)>,
+    },
+    /// An openEHR `C_DATE_TIME` validity pattern (e.g. `yyyy-mm-ddTHH:MM:SS`) — the required
+    /// datetime precision/format. Distinct from a regex [`ConstraintComponent::Pattern`] so
+    /// recovery does not collapse it to a string pattern; projected to `sh:pattern` on the
+    /// lexical (lossy: an openEHR validity pattern is not an XPath regex).
+    DateTimePattern(String),
 }
 
 impl ConstraintComponent {
@@ -224,7 +236,10 @@ impl ConstraintComponent {
     pub fn is_lossy(&self) -> bool {
         matches!(
             self,
-            ConstraintComponent::Pattern { .. } | ConstraintComponent::TerminologyBinding { .. }
+            ConstraintComponent::Pattern { .. }
+                | ConstraintComponent::TerminologyBinding { .. }
+                | ConstraintComponent::OrdinalSet { .. }
+                | ConstraintComponent::DateTimePattern(_)
         )
     }
 
@@ -248,10 +263,18 @@ impl ConstraintComponent {
                             .to_owned());
                     }
                 }
-                vs.sort_by_cached_key(ShapeValue::content_key);
+                // Sort by the type's own derived `Ord`, NOT by `content_key`: the content key is
+                // length-prefixed for unambiguous folding (`key_field`), which does not agree
+                // with plain lexical order once members differ in byte length (e.g. two IRIs of
+                // lengths 78 and 85 would fold-sort as "78:…" < "85:…", which happens to agree
+                // here, but a 9-vs-10-length pair would not). The OPT reader canonicalizes its
+                // own value sets with a plain `Vec<String>::sort()`; using the same natural order
+                // here is what keeps the two sides content-identical after a round trip.
+                vs.sort();
             }
             ConstraintComponent::LanguageIn(langs) => langs.sort(),
             ConstraintComponent::TerminologyBinding { codes, .. } => codes.sort(),
+            ConstraintComponent::OrdinalSet { pairs } => pairs.sort(),
             _ => {}
         }
         Ok(())
@@ -307,6 +330,17 @@ impl ConstraintComponent {
                 key_field(terminology_id),
                 key_list(codes.iter().cloned()),
             ),
+            ConstraintComponent::OrdinalSet { pairs } => format!(
+                "ordinalset={}",
+                key_list(
+                    pairs
+                        .iter()
+                        .map(|(v, c)| format!("{}{}", key_field(&v.to_string()), key_field(c)))
+                ),
+            ),
+            ConstraintComponent::DateTimePattern(p) => {
+                format!("datetimepattern={}", key_field(p))
+            }
         }
     }
 }

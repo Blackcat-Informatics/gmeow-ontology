@@ -4487,6 +4487,96 @@
       ],
       "type": "object"
     },
+    "Diastolic-cardinality": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0005": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0005"
+      ],
+      "type": "object"
+    },
+    "Diastolic-cardinality-2": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0005": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0005"
+      ],
+      "type": "object"
+    },
+    "Diastolic-cardinality-3": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0005": {}
+      },
+      "type": "object"
+    },
     "Diff": {
       "properties": {
         "@annotation": {
@@ -12942,6 +13032,81 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "gmeow:Diastolic-cardinality"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Diastolic-cardinality"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Diastolic-cardinality"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:Diastolic-cardinality-2"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Diastolic-cardinality-2"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Diastolic-cardinality-2"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:Diastolic-cardinality-3"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Diastolic-cardinality-3"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Diastolic-cardinality-3"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "gmeow:Diff"
                   },
                   {
@@ -17292,6 +17457,106 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "gmeow:Systolic-cardinality"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Systolic-cardinality"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Systolic-cardinality"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:Systolic-cardinality-2"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Systolic-cardinality-2"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Systolic-cardinality-2"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:Systolic-cardinality-3"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Systolic-cardinality-3"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Systolic-cardinality-3"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:Systolic-valueSet"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Systolic-valueSet"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Systolic-valueSet"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "gmeow:Tagging"
                   },
                   {
@@ -17909,6 +18174,406 @@
           },
           "then": {
             "$ref": "#/$defs/WebPage"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0000"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0000"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0000"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0000-2"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0000-2"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0000-2"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0000-3"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0000-3"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0000-3"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0000-4"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0000-4"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0000-4"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0000-5"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0000-5"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0000-5"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0001"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0001"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0001"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0001-2"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0001-2"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0001-2"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0002"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0002"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0002"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0003"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0003"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0003"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0006"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0006"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0006"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0007"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0007"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0007"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at0011"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at0011"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at0011"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at1025"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at1025"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at1025"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at1030"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at1030"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at1030"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at1057"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at1057"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at1057"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:at1058"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:at1058"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/at1058"
           }
         },
         {
@@ -24557,6 +25222,134 @@
       ],
       "type": "object"
     },
+    "Systolic-cardinality": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0004": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0004"
+      ],
+      "type": "object"
+    },
+    "Systolic-cardinality-2": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0004": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0004"
+      ],
+      "type": "object"
+    },
+    "Systolic-cardinality-3": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0004": {}
+      },
+      "type": "object"
+    },
+    "Systolic-valueSet": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/definingCode": {
+          "anyOf": [
+            {
+              "enum": [
+                "gmeow:openehr/bloodpressure/terminology/local/at0010",
+                "gmeow:openehr/bloodpressure/terminology/local/at0011",
+                "gmeow:openehr/bloodpressure/terminology/local/at0012",
+                "gmeow:openehr/bloodpressure/terminology/local/at0013"
+              ]
+            },
+            {
+              "items": {
+                "enum": [
+                  "gmeow:openehr/bloodpressure/terminology/local/at0010",
+                  "gmeow:openehr/bloodpressure/terminology/local/at0011",
+                  "gmeow:openehr/bloodpressure/terminology/local/at0012",
+                  "gmeow:openehr/bloodpressure/terminology/local/at0013"
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "Tagging": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -26797,6 +27590,514 @@
           ]
         },
         "gmeow:pagePrincipalSubject": {}
+      },
+      "type": "object"
+    },
+    "at0000": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0000": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0000"
+      ],
+      "type": "object"
+    },
+    "at0000-2": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/definingCode": {
+          "anyOf": [
+            {
+              "enum": [
+                "gmeow:openehr/bloodpressure/terminology/openehr/433"
+              ]
+            },
+            {
+              "items": {
+                "enum": [
+                  "gmeow:openehr/bloodpressure/terminology/openehr/433"
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "at0000-3": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0000": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0000"
+      ],
+      "type": "object"
+    },
+    "at0000-4": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0000": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0000"
+      ],
+      "type": "object"
+    },
+    "at0000-5": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/termBinding": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "at0001": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0001": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0001"
+      ],
+      "type": "object"
+    },
+    "at0001-2": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0001": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0001"
+      ],
+      "type": "object"
+    },
+    "at0002": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/text": {
+          "anyOf": [
+            {
+              "pattern": ".*"
+            },
+            {
+              "items": {
+                "pattern": ".*"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "at0003": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0003": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0003"
+      ],
+      "type": "object"
+    },
+    "at0006": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0006": {}
+      },
+      "type": "object"
+    },
+    "at0007": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0007": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0007"
+      ],
+      "type": "object"
+    },
+    "at0011": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/occurrences/at0011": {}
+      },
+      "required": [
+        "gmeow:openehr/bloodpressure/occurrences/at0011"
+      ],
+      "type": "object"
+    },
+    "at1025": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/text": {
+          "anyOf": [
+            {
+              "pattern": "openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1"
+            },
+            {
+              "items": {
+                "pattern": "openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "at1030": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/text": {
+          "anyOf": [
+            {
+              "pattern": "openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1"
+            },
+            {
+              "items": {
+                "pattern": "openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "at1057": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/text": {
+          "anyOf": [
+            {
+              "pattern": "openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1"
+            },
+            {
+              "items": {
+                "pattern": "openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "at1058": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:openehr/bloodpressure/text": {
+          "anyOf": [
+            {
+              "pattern": ".*"
+            },
+            {
+              "items": {
+                "pattern": ".*"
+              },
+              "type": "array"
+            }
+          ]
+        }
       },
       "type": "object"
     },
