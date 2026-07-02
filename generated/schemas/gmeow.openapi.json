@@ -10119,13 +10119,27 @@
           "gmeow:mitigationCounters": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -10134,13 +10148,27 @@
           "gmeow:mitigationMeasure": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -10423,13 +10451,27 @@
           "gmeow:analysisResult": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -10438,13 +10480,27 @@
           "gmeow:analysisTarget": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -18725,13 +18781,27 @@
           "gmeow:observedFeature": {
             "anyOf": [
               {
-                "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "$comment": "external class http://www.w3.org/2002/07/owl#Thing",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }

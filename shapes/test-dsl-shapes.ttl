@@ -42,9 +42,10 @@ gmeow:CompetencyQuestionShape
     sh:property [
         sh:path gmeow:cqExpectRowCount ;
         sh:maxCount 1 ;
-        sh:datatype xsd:nonNegativeInteger ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
         sh:severity sh:Violation ;
-        sh:message "CompetencyQuestion may have at most one gmeow:cqExpectRowCount (xsd:nonNegativeInteger)"
+        sh:message "CompetencyQuestion may have at most one gmeow:cqExpectRowCount (a non-negative xsd:integer)"
     ] ;
     sh:property [
         sh:path gmeow:cqExactRows ;

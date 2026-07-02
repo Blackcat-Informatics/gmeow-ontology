@@ -13490,17 +13490,6 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/contradictsClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/core/logic/module.ttl"
-        }
-      ]
-    },
-    {
-      "severity": "note",
-      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/depictionSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [

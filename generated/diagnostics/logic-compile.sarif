@@ -23316,25 +23316,6 @@
             }
           ],
           "message": {
-            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/contradictsClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "dcd96157a2d3c253"
-          },
-          "ruleId": "logic-compile.lossy-drop"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/core/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/depictionSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
