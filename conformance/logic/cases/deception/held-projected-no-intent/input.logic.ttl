@@ -2,63 +2,144 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 #
 # Conformance case: deception/held-projected-no-intent
-# AC: intent is EVIDENCE, never ENTAILMENT, of a held/projected gap. A deception
-# structure formalized as a non-Horn logic:Formula (an existential-head necessary
-# condition — every deception has SOME held and SOME projected standpoint) does NOT
-# lower to an evaluable rule: it is carried as flagged unsupported residue
-# (SoundUnder), so the engine fabricates NEITHER a held nor a projected witness for
-# a deception-typed event, and — the guardrail — it materializes NO
-# gmeow:deceptiveIntentClaim. The world's only deceptive-intent fact is the one
-# ASSERTED in input.nq (an attributed, defeasible assessor claim, EDB); the chase
-# never derives a new one. The materialized graph therefore carries only the echoed
-# EDB facts, never a fabricated held/projected witness and never a derived intent.
 #
-# The whole-bundle guarantee that NO rule anywhere derives gmeow:deceptiveIntentClaim
-# is the standing logic:IntentNotFromDeceptionObligation (Arm A syntactic reachability
-# over rule heads + Arm B finite closure), enforced over the reasoned graph by
-# `make verify`; this case is its adversarial complement at the engine level.
+# AC: intent is EVIDENCE, never ENTAILMENT, of a held/projected gap.
 #
-# Formula: ∀e. Deception(e) → ∃h,p. (gmeow:heldStandpoint(e,h) ∧ gmeow:projectedStandpoint(e,p))
+# input.nq models a genuine deception structure as DATA: a gmeow:Event of
+# gmeow:eventTypeDeception whose gmeow:heldStandpoint (modality gmeow:refuted) and
+# gmeow:projectedStandpoint (modality gmeow:unequivocal) are divergent
+# gmeow:DoxasticStandpointClaims. No gmeow:deceptiveIntentClaim is asserted.
+#
+# This case ships two logic programs over that data:
+#
+#   (1) The production axiom under test — logic:deceptionHeldProjectedDivergence,
+#       reproduced here verbatim in shape. It is a non-Horn logic:Formula (nested
+#       existential head + strong negation of the shared-modality existential), so it
+#       lowers to NO evaluable rule and is carried as flagged SoundUnderApproximation
+#       residue. The chase therefore fabricates neither a held nor a projected witness
+#       for the event, and — the guardrail — materializes no gmeow:deceptiveIntentClaim.
+#
+#   (2) A POSITIVE CONTROL — a monotone Horn logic:Rule that fires over the SAME
+#       divergence data (heldStandpoint(e,h) ∧ projectedStandpoint(e,p) ⇒
+#       ex:standpointPairWitnessed(e,p)). The chase DOES derive its head, so
+#       materialized.nq is a strict superset of input.nq: proof that the engine is live
+#       and actively reasons over the deception structure. That the live chase still
+#       derives NO gmeow:deceptiveIntentClaim is thus a meaningful observation, not the
+#       side effect of an empty run.
+#
+# The whole-bundle guarantee that NO rule anywhere derives gmeow:deceptiveIntentClaim is
+# the standing logic:IntentNotFromDeceptionObligation (Arm A syntactic reachability over
+# rule heads + Arm B finite-closure over derived edges), enforced over the reasoned graph
+# by `make verify`; this case is its adversarial complement at the engine level.
 
-<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
-<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <https://blackcatinformatics.ca/logic/hasFormula> <https://blackcatinformatics.ca/logic/formula/_000001> .
-<https://blackcatinformatics.ca/logic/formula/_000001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
-<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/forall> <https://blackcatinformatics.ca/logic/formula/_000001/body> .
-<https://blackcatinformatics.ca/logic/formula/_000001> <https://blackcatinformatics.ca/logic/quantifiedVariable> <https://blackcatinformatics.ca/logic/formula/_000001/var/0000> .
-<https://blackcatinformatics.ca/logic/formula/_000001/var/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<https://blackcatinformatics.ca/logic/formula/_000001/var/0000> <https://blackcatinformatics.ca/logic/termVariable> "e" .
-<https://blackcatinformatics.ca/logic/formula/_000001/body> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body> <https://blackcatinformatics.ca/logic/antecedent> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body> <https://blackcatinformatics.ca/logic/consequent> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/relation> <https://example.org/deception/held-projected-no-intent/Deception> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/antecedent/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "e" .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/exists> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/quantifiedVariable> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0000> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent> <https://blackcatinformatics.ca/logic/quantifiedVariable> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0001> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0000> <https://blackcatinformatics.ca/logic/termVariable> "h" .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0001> <https://blackcatinformatics.ca/logic/termIndex> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/var/0001> <https://blackcatinformatics.ca/logic/termVariable> "p" .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body> <https://blackcatinformatics.ca/logic/and> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body> <https://blackcatinformatics.ca/logic/and> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> <https://blackcatinformatics.ca/logic/relation> <https://blackcatinformatics.ca/gmeow/heldStandpoint> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0000> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0001> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "e" .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0001> <https://blackcatinformatics.ca/logic/termIndex> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0000/arg/0001> <https://blackcatinformatics.ca/logic/termVariable> "h" .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Formula> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> <https://blackcatinformatics.ca/logic/relation> <https://blackcatinformatics.ca/gmeow/projectedStandpoint> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0000> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001> <https://blackcatinformatics.ca/logic/argument> <https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0001> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0000> <https://blackcatinformatics.ca/logic/termIndex> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0000> <https://blackcatinformatics.ca/logic/termVariable> "e" .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0001> <https://blackcatinformatics.ca/logic/termIndex> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> .
-<https://blackcatinformatics.ca/logic/formula/_000001/body/consequent/body/and/0001/arg/0001> <https://blackcatinformatics.ca/logic/termVariable> "p" .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/deception/held-projected-no-intent/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# ── (1) Production axiom under test — non-Horn residue, mirrors logic:deceptionHeldProjectedDivergence ──
+# ∀e. eventType(e, eventTypeDeception) →
+#     ∃h,p. heldStandpoint(e,h) ∧ projectedStandpoint(e,p)
+#           ∧ DoxasticStandpointClaim(h) ∧ DoxasticStandpointClaim(p)
+#           ∧ ¬∃m. (claimModality(h,m) ∧ claimModality(p,m))
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12>
+    a owl:Ontology ;
+    logic:hasFormula ex:deceptionHeldProjectedDivergence .
+
+ex:deceptionHeldProjectedDivergence
+    a logic:Formula ;
+    logic:forall ex:dhpdBody ;
+    logic:quantifiedVariable ex:dhpdVarE .
+ex:dhpdVarE logic:termIndex 0 ; logic:termVariable "e" .
+ex:dhpdBody
+    a logic:Formula ;
+    logic:antecedent ex:dhpdAnte ;
+    logic:consequent ex:dhpdCons .
+ex:dhpdAnte
+    a logic:Formula ;
+    logic:relation gmeow:eventType ;
+    logic:argument ex:dhpdAnteArgE , ex:dhpdAnteArgKind .
+ex:dhpdAnteArgE logic:termIndex 0 ; logic:termVariable "e" .
+ex:dhpdAnteArgKind logic:termIndex 1 ; logic:termIri gmeow:eventTypeDeception .
+ex:dhpdCons
+    a logic:Formula ;
+    logic:exists ex:dhpdConsBody ;
+    logic:quantifiedVariable ex:dhpdVarH , ex:dhpdVarP .
+ex:dhpdVarH logic:termIndex 0 ; logic:termVariable "h" .
+ex:dhpdVarP logic:termIndex 1 ; logic:termVariable "p" .
+ex:dhpdConsBody
+    a logic:Formula ;
+    logic:and ex:dhpdHeld ,
+        ex:dhpdProjected ,
+        ex:dhpdHeldDox ,
+        ex:dhpdProjectedDox ,
+        ex:dhpdDivergent .
+ex:dhpdHeld
+    a logic:Formula ;
+    logic:relation gmeow:heldStandpoint ;
+    logic:argument ex:dhpdHeldArgE , ex:dhpdHeldArgH .
+ex:dhpdHeldArgE logic:termIndex 0 ; logic:termVariable "e" .
+ex:dhpdHeldArgH logic:termIndex 1 ; logic:termVariable "h" .
+ex:dhpdProjected
+    a logic:Formula ;
+    logic:relation gmeow:projectedStandpoint ;
+    logic:argument ex:dhpdProjectedArgE , ex:dhpdProjectedArgP .
+ex:dhpdProjectedArgE logic:termIndex 0 ; logic:termVariable "e" .
+ex:dhpdProjectedArgP logic:termIndex 1 ; logic:termVariable "p" .
+ex:dhpdHeldDox
+    a logic:Formula ;
+    logic:relation gmeow:DoxasticStandpointClaim ;
+    logic:argument ex:dhpdHeldDoxArg .
+ex:dhpdHeldDoxArg logic:termIndex 0 ; logic:termVariable "h" .
+ex:dhpdProjectedDox
+    a logic:Formula ;
+    logic:relation gmeow:DoxasticStandpointClaim ;
+    logic:argument ex:dhpdProjectedDoxArg .
+ex:dhpdProjectedDoxArg logic:termIndex 0 ; logic:termVariable "p" .
+ex:dhpdDivergent
+    a logic:Formula ;
+    logic:not ex:dhpdShared .
+ex:dhpdShared
+    a logic:Formula ;
+    logic:exists ex:dhpdSharedBody ;
+    logic:quantifiedVariable ex:dhpdVarM .
+ex:dhpdVarM logic:termIndex 0 ; logic:termVariable "m" .
+ex:dhpdSharedBody
+    a logic:Formula ;
+    logic:and ex:dhpdHeldModality , ex:dhpdProjectedModality .
+ex:dhpdHeldModality
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument ex:dhpdHeldModalityArgH , ex:dhpdHeldModalityArgM .
+ex:dhpdHeldModalityArgH logic:termIndex 0 ; logic:termVariable "h" .
+ex:dhpdHeldModalityArgM logic:termIndex 1 ; logic:termVariable "m" .
+ex:dhpdProjectedModality
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument ex:dhpdProjectedModalityArgP , ex:dhpdProjectedModalityArgM .
+ex:dhpdProjectedModalityArgP logic:termIndex 0 ; logic:termVariable "p" .
+ex:dhpdProjectedModalityArgM logic:termIndex 1 ; logic:termVariable "m" .
+
+# ── (2) Positive control — a monotone Horn rule that fires over the same divergence data ──
+# heldStandpoint(e,h) ∧ projectedStandpoint(e,p) ⇒ ex:standpointPairWitnessed(e,p)
+# Benign structural witness the chase DOES derive (materialized ⊋ input); its head is an
+# ex: predicate nowhere near gmeow:deceptiveIntentClaim, so the guardrail is untouched.
+ex:ruleStandpointPairWitness
+    a logic:Rule ;
+    logic:provenance ex:ruleStandpointPairWitness ;
+    logic:head [
+        rdf:subject   "?e" ;
+        rdf:predicate ex:standpointPairWitnessed ;
+        rdf:object    "?p"
+    ] ;
+    logic:body [
+        rdf:subject   "?e" ;
+        rdf:predicate gmeow:heldStandpoint ;
+        rdf:object    "?h"
+    ] ;
+    logic:body [
+        rdf:subject   "?e" ;
+        rdf:predicate gmeow:projectedStandpoint ;
+        rdf:object    "?p"
+    ] .

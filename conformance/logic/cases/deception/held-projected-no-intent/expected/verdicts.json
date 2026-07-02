@@ -1,6 +1,6 @@
 {
   "https://example.org/deception/held-projected-no-intent/world": {
-    "quads": 2,
+    "quads": 10,
     "status": "consistent"
   }
 }
