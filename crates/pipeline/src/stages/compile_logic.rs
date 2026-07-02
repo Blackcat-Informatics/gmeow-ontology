@@ -341,15 +341,20 @@ impl Stage for CompileLogicStage {
                 .iter()
                 .find(|p| p.target == target)
                 .map(|p| p.content.clone())
-                .unwrap_or_default()
+                .ok_or_else(|| {
+                    stage_err(format!(
+                        "compile: no '{target}' validation-shape projection produced — the target \
+                         string drifted from gmeow-logic-compile's registered projection targets"
+                    ))
+                })
         };
         artifacts.insert(
             VALIDATION_SHAPES_TTL_PATH.to_string(),
-            vs_content("shacl-core").into_bytes(),
+            vs_content("shacl-core")?.into_bytes(),
         );
         artifacts.insert(
             VALIDATION_SHAPES_SHEX_PATH.to_string(),
-            vs_content("shex").into_bytes(),
+            vs_content("shex")?.into_bytes(),
         );
 
         // The COMMITTED projection report is no longer emitted here: the loss ledger
