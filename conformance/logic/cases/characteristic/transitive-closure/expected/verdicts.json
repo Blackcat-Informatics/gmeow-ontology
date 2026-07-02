@@ -1,0 +1,6 @@
+{
+  "https://example.org/characteristic/transitive-closure/schema": {
+    "quads": 4,
+    "status": "consistent"
+  }
+}
