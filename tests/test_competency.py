@@ -23,7 +23,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
 from purrdf.compat.rdflib import RDF, Graph, Literal, Namespace
 from purrdf.compat.rdflib.namespace import XSD
 from purrdf.compat.rdflib.query import ResultRow
@@ -44,15 +43,6 @@ def _query_terms_on_graph(filename: str, graph: Graph) -> set[str]:
     return terms
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "purrdf 0.2 SPARQL NOW() returns the 1970 epoch, so the clock-relative "
-        "[NOW(), ~NOW()+1yr] window is empty and the credential falls outside it. "
-        "strict=True flips this to a failure once NOW() is conformant, forcing the "
-        "marker's removal."
-    ),
-)
 def test_competency_expertise_expiring_credentials_query() -> None:
     """Expiring-credentials query returns credentials with a near-future expiry.
 
