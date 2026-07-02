@@ -1,0 +1,8 @@
+{
+  "name": "tptp-mini",
+  "spdx_license": "CC-BY-4.0",
+  "source_url": "https://www.tptp.org/",
+  "version_or_commit": "gmeow-self-authored-1",
+  "refresh_command": "cargo run -p gmeow-conformance --bin ingest-external -- --vendor-tptp conformance/logic/cases/external/tptp-mini",
+  "lane": "a"
+}

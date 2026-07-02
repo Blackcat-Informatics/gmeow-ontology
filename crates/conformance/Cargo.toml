@@ -83,3 +83,9 @@ name = "dl_oracle_gold"
 # libtest harness, not datatest-stable).
 [[test]]
 name = "el_divergence_gate"
+
+# The TPTP honest-capability-gap gate: pins each source-only
+# `tptp-mini-divergence` problem as an honest gap (parser/lowerer error), never a
+# silently-decided verdict. Offline + deterministic + sub-second.
+[[test]]
+name = "tptp_divergence_gate"
