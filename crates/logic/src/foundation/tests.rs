@@ -1636,3 +1636,144 @@ fn holonic_agent_goal_holarchy_non_propagation_and_non_transitivity() {
         );
     }
 }
+
+// ── Property characteristics (H4) ────────────────────────────────────────────────
+
+const OWL_TRANSITIVE: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+const OWL_SYMMETRIC: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
+const OWL_IRREFLEXIVE: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+const OWL_ASYMMETRIC: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+
+/// Whether a plain edge `(subject, predicate_iri, object_iri)` is materialized.
+fn has_edge(quads: &[FoundationQuad], subject: &str, predicate: &str, object: &str) -> bool {
+    let obj = format!("<{object}>");
+    quads
+        .iter()
+        .any(|q| q.subject == subject && q.predicate == predicate && q.object == obj)
+}
+
+#[test]
+fn characteristic_transitive_closure_via_owl_marker() {
+    let b = "https://example.org/char/transitive";
+    let p = format!("{b}/before");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_TRANSITIVE}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/C> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &format!("{b}/A"), &p, &format!("{b}/C")),
+        "transitive closure must derive A→C"
+    );
+}
+
+#[test]
+fn characteristic_transitive_closure_via_logic_record() {
+    // The canonical carrier: a central record, not a marker on the property itself.
+    let b = "https://example.org/char/record";
+    let p = format!("{b}/before");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}transitiveProperty> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/C> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &format!("{b}/A"), &p, &format!("{b}/C")),
+        "a logic:characterizes/characteristicSort record must drive closure like an owl: marker"
+    );
+}
+
+#[test]
+fn characteristic_symmetric_mirror() {
+    let b = "https://example.org/char/symmetric";
+    let p = format!("{b}/counter");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_SYMMETRIC}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &format!("{b}/B"), &p, &format!("{b}/A")),
+        "symmetric mirror must derive B→A"
+    );
+}
+
+#[test]
+fn characteristic_irreflexive_self_edge_violates() {
+    let b = "https://example.org/char/irreflexive";
+    let p = format!("{b}/counter");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_IRREFLEXIVE}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/A> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &format!("{b}/A"), "IrreflexivityViolation"),
+        "an irreflexive property holding of a self-pair must fire IrreflexivityViolation"
+    );
+}
+
+#[test]
+fn characteristic_symmetric_irreflexive_cycle_violates() {
+    // counterGoal shape: symmetric + irreflexive. A self-edge is a violation; a plain
+    // A↔B pair (mirror) is NOT (distinct endpoints).
+    let b = "https://example.org/char/countergoal";
+    let p = format!("{b}/counterGoal");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_SYMMETRIC}> <{b}/g> .\n\
+         <{p}> <{RDF_TYPE_P}> <{OWL_IRREFLEXIVE}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/S> <{p}> <{b}/S> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &format!("{b}/B"), &p, &format!("{b}/A")),
+        "symmetric mirror still derives B→A"
+    );
+    assert!(
+        has_violation(&quads, &format!("{b}/S"), "IrreflexivityViolation"),
+        "a goal that is its own counter-goal must fire IrreflexivityViolation"
+    );
+    assert!(
+        !has_violation(&quads, &format!("{b}/A"), "IrreflexivityViolation"),
+        "a symmetric pair between DISTINCT goals is not an irreflexivity violation"
+    );
+}
+
+#[test]
+fn characteristic_asymmetric_mutual_pair_violates() {
+    let b = "https://example.org/char/asymmetric";
+    let p = format!("{b}/strictlyBefore");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_ASYMMETRIC}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/A> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &format!("{b}/A"), "AsymmetryViolation")
+            || has_violation(&quads, &format!("{b}/B"), "AsymmetryViolation"),
+        "an asymmetric property holding both ways must fire AsymmetryViolation"
+    );
+}
+
+#[test]
+fn characteristic_unmarked_property_is_inert() {
+    // The counterpartOf shape: a plain (unmarked) property must NOT be closed — proving
+    // the pass fires ONLY on declared characteristics (non-transitivity is respected).
+    let b = "https://example.org/char/unmarked";
+    let p = format!("{b}/counterpartOf");
+    let nq = format!(
+        "<{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/C> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_edge(&quads, &format!("{b}/A"), &p, &format!("{b}/C")),
+        "an unmarked property must not be transitively closed"
+    );
+}
