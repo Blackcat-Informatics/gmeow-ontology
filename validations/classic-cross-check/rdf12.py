@@ -18,7 +18,7 @@ Oracle-only note (Principle 18)
 -------------------------------
 This Jena codec is **not** the lead writer and **not** on the normal-use primary
 path. The **lead** RDF 1.2 producer is the native ``gmeow-rdf`` Rust
-codec (``gmeow_rdf.project_statements_rdf12`` / ``normalize_rdf12_to_owl``, driven
+codec (``purrdf.project_statements_rdf12`` / ``normalize_rdf12_to_owl``, driven
 by `crates/pipeline/src/stages/statements.rs`), so ``make check`` /
 ``check-generated`` / ``regenerate`` carry **zero Java and zero Docker**. This
 module survives **only**
@@ -32,7 +32,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import Graph
+from purrdf.compat.rdflib import Graph
 
 from gmeow_tools.config import JENA_IMAGE, PROJECT_ROOT, QUERIES_DIR
 from gmeow_tools.graph import bind_prefixes

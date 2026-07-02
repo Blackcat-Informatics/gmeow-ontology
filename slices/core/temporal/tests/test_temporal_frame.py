@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import Graph, URIRef
-from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
+from purrdf.compat.rdflib import Graph, URIRef
+from purrdf.compat.rdflib.namespace import OWL, RDF, RDFS
 
 from gmeow_tools.graph import load_merged_graph
 

@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import Graph, URIRef
+from purrdf.compat.rdflib import Graph, URIRef
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 SLICE_IRI = URIRef("https://blackcatinformatics.ca/gmeow/slices/awareness")
