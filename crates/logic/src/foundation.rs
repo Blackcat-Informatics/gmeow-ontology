@@ -121,6 +121,15 @@ const CHAR_CLASH_RULE_IRI: &str =
 const IRREFLEXIVITY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/IrreflexivityViolation";
 /// Violation discipline: an asymmetric property holds in both directions of a pair.
 const ASYMMETRY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/AsymmetryViolation";
+/// Violation discipline: a DL-projectable `logic:` characteristic record whose OWL
+/// projection (`owl:{Transitive,Symmetric,Functional}Property`) is missing — the two
+/// carriers of one characteristic have drifted (Principle 17: the `logic:` record is
+/// canonical, the OWL marker is its projection, and the projection must not be dropped).
+const CHARACTERISTIC_CARRIER_DISAGREEMENT: &str =
+    "https://blackcatinformatics.ca/logic/CharacteristicCarrierDisagreement";
+/// Rule IRI stamped on a carrier-disagreement violation.
+const CHAR_CARRIER_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-carrier-agreement";
 
 /// The semantic-profile IRI stamped on every emitted quad — the only profile the
 /// v1 oracle applies.  Matches `py.rs::ASSERTED_PROFILE`.
@@ -2790,6 +2799,147 @@ fn char_sort_of(iri: &str) -> Option<CharSort> {
     }
 }
 
+/// Whether a characteristic sort has an OWL projection under this ontology's
+/// convention.  Transitive/symmetric/functional are DL-clean and carried as OWL
+/// characteristic classes; irreflexive and asymmetric are deliberately `logic:`-only
+/// (they would break the OWL 2 EL profile), so they carry no OWL projection to
+/// cross-check.
+fn char_sort_has_owl_projection(sort: CharSort) -> bool {
+    matches!(
+        sort,
+        CharSort::Transitive | CharSort::Symmetric | CharSort::Functional
+    )
+}
+
+/// One DL-projectable characteristic sort asserted by a central `logic:` record, with
+/// the provenance needed to raise a carrier-disagreement violation.
+struct LogicCharacteristicRecord {
+    /// The property the record characterises.
+    property: String,
+    /// The characteristic sort asserted.
+    sort: CharSort,
+    /// The sort marker IRI (`logic:transitiveProperty` …) — provenance object.
+    sort_iri: String,
+    /// The record IRI (`?rec`) — provenance subject.
+    record: String,
+    /// The named graph the record's `logic:characteristicSort` quad lives in.
+    graph: String,
+}
+
+/// Split the characteristic declarations by carrier for the agreement check:
+/// - `owl_sorts`: property → sorts declared by a direct `owl:{…}Property` type marker.
+/// - `logic_records`: one entry per `logic:` record sort, in deterministic order.
+///
+/// Unlike [`collect_characteristics`] (which unions the two carriers), this keeps them
+/// separate so the agreement pass can detect a canonical record whose OWL projection is
+/// missing.
+fn collect_characteristic_carriers(
+    quads: &[FoundationQuad],
+) -> (
+    BTreeMap<String, BTreeSet<CharSort>>,
+    Vec<LogicCharacteristicRecord>,
+) {
+    let mut owl_sorts: BTreeMap<String, BTreeSet<CharSort>> = BTreeMap::new();
+    let mut rec_prop: HashMap<String, String> = HashMap::new();
+    let mut rec_sorts: HashMap<String, Vec<(CharSort, String, String)>> = HashMap::new();
+    for q in quads {
+        let Some(obj) = strip_angle_opt(&q.object) else {
+            continue;
+        };
+        if q.predicate == RDF_TYPE {
+            if let Some(sort) = char_sort_of(obj) {
+                owl_sorts.entry(q.subject.clone()).or_default().insert(sort);
+            }
+        } else if q.predicate == LOGIC_CHARACTERIZES {
+            rec_prop.insert(q.subject.clone(), obj.to_owned());
+        } else if q.predicate == LOGIC_CHARACTERISTIC_SORT {
+            if let Some(sort) = char_sort_of(obj) {
+                rec_sorts.entry(q.subject.clone()).or_default().push((
+                    sort,
+                    obj.to_owned(),
+                    q.graph.clone(),
+                ));
+            }
+        }
+    }
+    let mut logic_records: Vec<LogicCharacteristicRecord> = Vec::new();
+    for (rec, prop) in &rec_prop {
+        if let Some(sorts) = rec_sorts.get(rec) {
+            for (sort, sort_iri, graph) in sorts {
+                logic_records.push(LogicCharacteristicRecord {
+                    property: prop.clone(),
+                    sort: *sort,
+                    sort_iri: sort_iri.clone(),
+                    record: rec.clone(),
+                    graph: graph.clone(),
+                });
+            }
+        }
+    }
+    // The joins above iterate `HashMap`s, so sort into a canonical order before the
+    // agreement pass consumes them — output must be byte-stable across runs.
+    logic_records.sort_by(|a, b| {
+        (&a.property, a.sort, &a.sort_iri, &a.record, &a.graph).cmp(&(
+            &b.property,
+            b.sort,
+            &b.sort_iri,
+            &b.record,
+            &b.graph,
+        ))
+    });
+    (owl_sorts, logic_records)
+}
+
+/// Cross-check the two characteristic carriers for drift.  A central
+/// `logic:PropertyCharacteristicAssertion` of a DL-projectable sort
+/// (transitive/symmetric/functional) is the canonical characteristic; its OWL marker is
+/// the lossy projection.  When the canonical record is present but its OWL projection is
+/// missing, the carriers have drifted — raise `logic:violation
+/// logic:CharacteristicCarrierDisagreement` on the property, keyed per (graph, property).
+/// Irreflexive/asymmetric sorts are `logic:`-only by design and are never cross-checked.
+///
+/// # Errors
+///
+/// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
+fn characteristic_carrier_agreement_pass(
+    quads: &[FoundationQuad],
+) -> Result<Vec<FoundationQuad>, String> {
+    let (owl_sorts, logic_records) = collect_characteristic_carriers(quads);
+    let mut emitted: BTreeSet<(String, String)> = BTreeSet::new();
+    let mut out: Vec<FoundationQuad> = Vec::new();
+    for rec in &logic_records {
+        if !char_sort_has_owl_projection(rec.sort) {
+            continue;
+        }
+        let owl_has = owl_sorts
+            .get(&rec.property)
+            .is_some_and(|s| s.contains(&rec.sort));
+        if owl_has {
+            continue;
+        }
+        if !emitted.insert((rec.graph.clone(), rec.property.clone())) {
+            continue;
+        }
+        let sources = vec![triple_reifier(
+            &rec.record,
+            LOGIC_CHARACTERISTIC_SORT,
+            &rec.sort_iri,
+        )?];
+        let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+        let derivation_id = mint_derivation_id(CHAR_CARRIER_RULE_IRI, &source_refs);
+        out.push(FoundationQuad {
+            graph: rec.graph.clone(),
+            subject: rec.property.clone(),
+            predicate: format!("{LOGIC_NS}violation"),
+            object: n3(CHARACTERISTIC_CARRIER_DISAGREEMENT),
+            rule_iri: CHAR_CARRIER_RULE_IRI.to_owned(),
+            source_quad_ids: sources,
+            derivation_id,
+        });
+    }
+    Ok(out)
+}
+
 /// Collect, per property IRI, the union of characteristic sorts declared for it —
 /// from direct `rdf:type` markers (`?P a owl:TransitiveProperty` and the `logic:`
 /// analogues) and from central records (`?rec logic:characterizes ?P`,
@@ -3129,9 +3279,11 @@ pub fn evaluate(
     let rigidity = cross_world_rigidity_violations(&all)?;
     let obligations = anti_rigidity_obligations(&all, policy)?;
     let characteristics = property_characteristic_pass(&all)?;
+    let carrier_agreement = characteristic_carrier_agreement_pass(&all)?;
     all.extend(rigidity);
     all.extend(obligations);
     all.extend(characteristics);
+    all.extend(carrier_agreement);
 
     // Final canonical sort (matches the runner's fold + sort).
     all.sort_by(|a, b| {

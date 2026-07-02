@@ -70,6 +70,15 @@ const CHAR_WORLD: &str = "https://blackcatinformatics.ca/gmeow/test/characterist
 const GMEOW_SUB_EVENT_OF: &str = "https://blackcatinformatics.ca/gmeow/subEventOf";
 const GMEOW_COUNTER_GOAL: &str = "https://blackcatinformatics.ca/gmeow/counterGoal";
 const GMEOW_COUNTERPART_OF: &str = "https://blackcatinformatics.ca/gmeow/counterpartOf";
+const GMEOW_COARSER_THAN: &str = "https://blackcatinformatics.ca/gmeow/coarserThan";
+const GMEOW_SHARPENS: &str = "https://blackcatinformatics.ca/gmeow/sharpens";
+const GMEOW_PART_OF: &str = "https://blackcatinformatics.ca/gmeow/partOf";
+const GMEOW_VERSION_OF: &str = "https://blackcatinformatics.ca/gmeow/versionOf";
+const GMEOW_EDITION_OF: &str = "https://blackcatinformatics.ca/gmeow/editionOf";
+// Drift discipline: a DL-projectable logic: characteristic record whose OWL projection
+// is missing (the two carriers of one characteristic have diverged).
+const LOGIC_CARRIER_DISAGREEMENT: &str =
+    "https://blackcatinformatics.ca/logic/CharacteristicCarrierDisagreement";
 
 // A self-contained clash in a fresh world so it can never interact with the shipped
 // ontology's own worlds: individual X is typed into A and B, which are disjoint.
@@ -406,21 +415,92 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
     let facts = project_characteristic_facts(bundle.dataset.as_ref());
     let projection: String = facts.iter().cloned().collect();
 
-    // Bind to production: the shipped bundle declares gmeow:subEventOf transitive and
-    // gmeow:counterGoal symmetric. Drop either declaration and this test goes red.
-    let sub_event_marker = format!(
-        "<{GMEOW_SUB_EVENT_OF}> <{RDF_TYPE}> <{OWL_TRANSITIVE_PROPERTY}> <{CHAR_WORLD}> .\n"
-    );
-    let counter_goal_marker = format!(
-        "<{GMEOW_COUNTER_GOAL}> <{RDF_TYPE}> <{OWL_SYMMETRIC_PROPERTY}> <{CHAR_WORLD}> .\n"
+    // Bind to production: every DL-projectable H4 target carries BOTH its OWL marker and
+    // its canonical logic: record in the shipped bundle. Drop either carrier of any of
+    // them and this test goes red — closing the dual-carrier silent-drift hole.
+    let marker_fact =
+        |prop: &str, marker: &str| format!("<{prop}> <{RDF_TYPE}> <{marker}> <{CHAR_WORLD}> .\n");
+    let characterizes_fact = |rec: &str, prop: &str| {
+        format!("<{rec}> <{LOGIC_CHARACTERIZES}> <{prop}> <{CHAR_WORLD}> .\n")
+    };
+    let sort_fact = |rec: &str, sort_local: &str| {
+        format!("<{rec}> <{LOGIC_CHARACTERISTIC_SORT}> <{LOGIC_NS}{sort_local}> <{CHAR_WORLD}> .\n")
+    };
+    // (property, OWL marker, logic: record local name, characteristic-sort local name).
+    let production: [(&str, &str, &str, &str); 8] = [
+        (
+            GMEOW_SUB_EVENT_OF,
+            OWL_TRANSITIVE_PROPERTY,
+            "subEventOfTransitivity",
+            "transitiveProperty",
+        ),
+        (
+            GMEOW_COARSER_THAN,
+            OWL_TRANSITIVE_PROPERTY,
+            "coarserThanTransitivity",
+            "transitiveProperty",
+        ),
+        (
+            GMEOW_SHARPENS,
+            OWL_TRANSITIVE_PROPERTY,
+            "sharpensTransitivity",
+            "transitiveProperty",
+        ),
+        (
+            GMEOW_PART_OF,
+            OWL_TRANSITIVE_PROPERTY,
+            "partOfTransitivity",
+            "transitiveProperty",
+        ),
+        (
+            GMEOW_COUNTER_GOAL,
+            OWL_SYMMETRIC_PROPERTY,
+            "counterGoalSymmetry",
+            "symmetricProperty",
+        ),
+        (
+            GMEOW_COUNTERPART_OF,
+            OWL_SYMMETRIC_PROPERTY,
+            "counterpartOfSymmetry",
+            "symmetricProperty",
+        ),
+        (
+            GMEOW_VERSION_OF,
+            OWL_FUNCTIONAL_PROPERTY,
+            "versionOfFunctionality",
+            "functionalProperty",
+        ),
+        (
+            GMEOW_EDITION_OF,
+            OWL_FUNCTIONAL_PROPERTY,
+            "editionOfFunctionality",
+            "functionalProperty",
+        ),
+    ];
+    for (prop, marker, rec_local, sort_local) in production {
+        let rec = format!("{LOGIC_NS}{rec_local}");
+        assert!(
+            facts.contains(&marker_fact(prop, marker)),
+            "the committed gmeow.gts must declare {prop} with OWL characteristic {marker}"
+        );
+        assert!(
+            facts.contains(&characterizes_fact(&rec, prop)),
+            "the committed gmeow.gts must carry the logic: record {rec} characterizing {prop}"
+        );
+        assert!(
+            facts.contains(&sort_fact(&rec, sort_local)),
+            "the logic: record {rec} must assert characteristic sort logic:{sort_local}"
+        );
+    }
+    // counterGoal irreflexivity is a logic:-only carrier (no OWL projection, DL-clean).
+    let cg_irr = format!("{LOGIC_NS}counterGoalIrreflexivity");
+    assert!(
+        facts.contains(&characterizes_fact(&cg_irr, GMEOW_COUNTER_GOAL)),
+        "the committed gmeow.gts must carry the logic:-only counterGoal irreflexivity record"
     );
     assert!(
-        facts.contains(&sub_event_marker),
-        "the committed gmeow.gts must declare gmeow:subEventOf transitive"
-    );
-    assert!(
-        facts.contains(&counter_goal_marker),
-        "the committed gmeow.gts must declare gmeow:counterGoal symmetric"
+        facts.contains(&sort_fact(&cg_irr, "irreflexiveProperty")),
+        "the counterGoal irreflexivity record must assert logic:irreflexiveProperty"
     );
 
     // HOLDS: the shipped ontology satisfies its property characteristics.
@@ -430,6 +510,20 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
         clean_violations.is_empty(),
         "the committed gmeow.gts must satisfy its property characteristics, but the gate \
          found these irreflexivity/asymmetry violations: {clean_violations:#?}"
+    );
+    // HOLDS: no dual-carrier drift — every DL-projectable logic: characteristic record in
+    // the shipped bundle has its OWL projection, so the agreement gate fires nothing.
+    let disagreement_obj = format!("<{LOGIC_CARRIER_DISAGREEMENT}>");
+    let clean_disagreements: Vec<String> = clean
+        .iter()
+        .filter(|q| q.predicate == LOGIC_VIOLATION && q.object == disagreement_obj)
+        .map(|q| q.subject.clone())
+        .collect();
+    assert!(
+        clean_disagreements.is_empty(),
+        "the committed gmeow.gts must have zero characteristic-carrier disagreements, but \
+         these properties carry a logic: record whose OWL projection is missing: \
+         {clean_disagreements:#?}"
     );
 
     // TEETH: inject over the shipped declarations + two fresh violating properties.
@@ -447,7 +541,9 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
          <{t}/self> <{irr_prop}> <{t}/self> <{CHAR_WORLD}> .\n\
          <{asym_prop}> <{RDF_TYPE}> <{OWL_ASYMMETRIC_PROPERTY}> <{CHAR_WORLD}> .\n\
          <{t}/P> <{asym_prop}> <{t}/Q> <{CHAR_WORLD}> .\n\
-         <{t}/Q> <{asym_prop}> <{t}/P> <{CHAR_WORLD}> .\n"
+         <{t}/Q> <{asym_prop}> <{t}/P> <{CHAR_WORLD}> .\n\
+         <{t}/driftRec> <{LOGIC_CHARACTERIZES}> <{t}/driftProp> <{CHAR_WORLD}> .\n\
+         <{t}/driftRec> <{LOGIC_CHARACTERISTIC_SORT}> <{LOGIC_NS}transitiveProperty> <{CHAR_WORLD}> .\n"
     );
     let out = run_characteristic_gate(&poisoned);
     let has_edge = |s: &str, p: &str, o: &str| {
@@ -489,5 +585,12 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
         fires(&format!("{t}/P"), LOGIC_ASYMMETRY_VIOLATION)
             || fires(&format!("{t}/Q"), LOGIC_ASYMMETRY_VIOLATION),
         "an asymmetric property holding both ways must fire AsymmetryViolation"
+    );
+    // Carrier-agreement teeth: a DL-projectable logic: record injected without its OWL
+    // marker must fire CharacteristicCarrierDisagreement on the drifted property.
+    assert!(
+        fires(&format!("{t}/driftProp"), LOGIC_CARRIER_DISAGREEMENT),
+        "a logic: transitive record with no owl:TransitiveProperty projection must fire \
+         CharacteristicCarrierDisagreement"
     );
 }
