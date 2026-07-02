@@ -178,9 +178,12 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
                 .join(" ");
             vec![format!("sh:in ( {items} )")]
         }
-        ConstraintComponent::DateTimePattern(p) => {
-            vec![format!("sh:pattern \"{}\"", esc_str(p))]
-        }
+        // An openEHR datetime validity pattern is a format template (e.g. `yyyy-mm-ddTHH:MM:SS`),
+        // NOT an XPath regular expression. Emitting it as `sh:pattern` would match those literal
+        // characters and reject every valid datetime — an inverted constraint, not a lossy one.
+        // Nothing faithful survives in SHACL Core, so it is carried in the loss ledger by
+        // `shacl_residue`, never emitted as a broken constraint (cf. `TerminologyBinding` above).
+        ConstraintComponent::DateTimePattern(_) => Vec::new(),
     }
 }
 
@@ -282,9 +285,10 @@ pub fn shacl_residue(shape: &ValidationShapeIr) -> Vec<String> {
                         .join(", ")
                 )),
                 ConstraintComponent::DateTimePattern(pat) => residue.push(format!(
-                    "sh:pattern on {} is an openEHR datetime validity pattern ({pat}), not an \
-                     XPath regex; a regex engine would misread its precision semantics, so the \
-                     pattern's meaning is carried in the canonical logic: layer",
+                    "datetime validity pattern ({pat}) on {} is a format template, not an XPath \
+                     regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would \
+                     reject every valid datetime), so its meaning is carried in the canonical \
+                     logic: layer",
                     p.path
                 )),
                 _ => {}
@@ -373,10 +377,6 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
                 let delimited = regex.replace('/', "\\/");
                 facets.push(format!("/{delimited}/{}", flags.as_deref().unwrap_or("")))
             }
-            ConstraintComponent::DateTimePattern(p) => {
-                let delimited = p.replace('/', "\\/");
-                facets.push(format!("/{delimited}/"));
-            }
             ConstraintComponent::MinLength(n) => facets.push(format!("MINLENGTH {n}")),
             ConstraintComponent::MaxLength(n) => facets.push(format!("MAXLENGTH {n}")),
             ConstraintComponent::NodeKindShacl(k) => {
@@ -390,8 +390,11 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
             // A class-membership constraint: ShEx has no `sh:class` facet, so the values are
             // only constrained to IRIs here; the class itself is declared in shex_residue.
             ConstraintComponent::Class(_) => nodekind = Some("IRI"),
-            // Not faithfully expressible in ShEx — declared in shex_residue.
+            // Not faithfully expressible in ShEx — declared in shex_residue. A DateTimePattern is a
+            // format template, not a regex, so emitting it as a `/…/` facet would reject every
+            // valid datetime; its meaning is carried in the canonical logic: layer.
             ConstraintComponent::DateTimeRange { .. }
+            | ConstraintComponent::DateTimePattern(_)
             | ConstraintComponent::LanguageIn(_)
             | ConstraintComponent::TerminologyBinding { .. }
             | ConstraintComponent::In(_)
@@ -747,7 +750,7 @@ mod tests {
     }
 
     #[test]
-    fn datetime_pattern_projects_sh_pattern_and_is_ledgered() {
+    fn datetime_pattern_emits_no_shacl_constraint_but_is_ledgered() {
         let s = shape(
             "https://ex/S",
             "https://ex/C",
@@ -758,8 +761,14 @@ mod tests {
                 )],
             )],
         );
+        // An openEHR validity pattern is a format template, not an XPath regex; emitting it as
+        // `sh:pattern` would reject every valid datetime. Nothing is emitted; the meaning is
+        // carried only in the loss ledger.
         let ttl = project_validation_shape_shacl(&s);
-        assert!(ttl.contains("sh:pattern \"yyyy-mm-ddTHH:MM:SS\""), "{ttl}");
+        assert!(
+            !ttl.contains("sh:pattern"),
+            "datetime pattern must NOT be emitted as a SHACL constraint: {ttl}"
+        );
         let residue = shacl_residue(&s);
         assert_eq!(
             residue.len(),
