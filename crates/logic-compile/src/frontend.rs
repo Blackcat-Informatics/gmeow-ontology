@@ -28,7 +28,7 @@
 //! 4. **Rules** — `logic:Rule` nodes with `logic:head` / `logic:body` /
 //!    `logic:negatedBody` / `logic:distinctBody` links.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
@@ -38,14 +38,15 @@ use gmeow_rdf::{parse_dataset, RdfDataset};
 use super::compat;
 use super::graphutil::{
     canonicalize_blank_nodes, contains, default_graph_quads, has_predicate, has_predicate_object,
-    is_empty, nn, objects, subject_str, subjects_with, term_as_subject, term_is_literal, term_str,
-    value, Node, Subject, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT,
-    RDF_TYPE,
+    is_empty, nn, objects, subject_is_blank, subject_str, subjects_with, term_as_subject,
+    term_is_literal, term_str, value, Iri, Node, Subject, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
+    RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
 };
 use super::ir::{
-    AggregateSpec, ComplexityClass, ContextualScope, Correspondence, Formula, LogicAxiom,
-    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, ReasoningContract,
-    SemanticProfileId, Term, LOGIC_NAMESPACE,
+    AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintProvenance, ContextualScope,
+    Correspondence, Formula, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
+    PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShapeTarget, Term,
+    ValidationShapeIr, LOGIC_NAMESPACE,
 };
 
 /// Re-export the CGIF reader alongside CLIF (the conceptual-graph dialect inverse).
@@ -976,6 +977,170 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
         Ok(n) if n >= 1 => Some(n),
         _ => None,
     }
+}
+
+/// Derive closed-world [`ValidationShapeIr`]s from an ontology graph's OWL restrictions (the
+/// closed-world validation reading of the open-world axioms). For every `Class rdfs:subClassOf [
+/// owl:onProperty P ; owl:someValuesFrom C ]` the target `Class` gets a property shape on `P`
+/// carrying `sh:class C` (or `sh:datatype C` when `C` is a datatype — a literal is never an
+/// instance of a class, so `sh:class` on a datatype would flag every node). Unqualified
+/// `owl:cardinality` / `owl:minCardinality` / `owl:maxCardinality` restrictions lower to
+/// `sh:minCount`/`sh:maxCount` with [`ConstraintProvenance::OwlRestriction`]. Derived
+/// constraints are grouped per class and sorted + deduped for determinism.
+///
+/// These are closed-world readings of open-world axioms, so their ledger polarity is
+/// `logic:ValidationOnly` (an under-approximation) — never claimed as an entailment
+/// (Principle 17). **Public** so the pipeline can run it over the merged authored ontology
+/// (where the domain restrictions live), not just the logic: front-end source.
+///
+/// Hard-fails (returns `Err`) if a derived constraint is malformed (e.g. a cardinality
+/// restriction with `minCardinality > maxCardinality`) rather than silently dropping it — a
+/// required structural element that cannot be represented is a hard error, not a fallback.
+pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShapeIr>, String> {
+    let owl = "http://www.w3.org/2002/07/owl#";
+    let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
+    let xsd = "http://www.w3.org/2001/XMLSchema#";
+    let owl_class = Node::iri(format!("{owl}Class"));
+    let rdfs_datatype = Node::iri(format!("{rdfs}Datatype"));
+    let rdfs_literal = format!("{rdfs}Literal");
+    let p_on = nn(&format!("{owl}onProperty"));
+    let p_some = nn(&format!("{owl}someValuesFrom"));
+    let p_mincard = nn(&format!("{owl}minCardinality"));
+    let p_maxcard = nn(&format!("{owl}maxCardinality"));
+    let p_card = nn(&format!("{owl}cardinality"));
+    let p_subclass = nn(&format!("{rdfs}subClassOf"));
+
+    // A someValuesFrom target is a DATATYPE (→ sh:datatype) rather than a class (→ sh:class)
+    // when it is in the XSD space, is rdfs:Literal, or is declared `a rdfs:Datatype`.
+    let is_datatype = |iri: &str| -> bool {
+        iri.starts_with(xsd)
+            || iri == rdfs_literal
+            || objects(store, &Subject::Iri(iri.to_owned()), &nn(RDF_TYPE)).contains(&rdfs_datatype)
+    };
+
+    // A non-negative-integer cardinality literal off a restriction blank node; `None` (never a
+    // hard error here) for an absent or non-integer object — a broken count contributes nothing.
+    let card_of = |restr: &Subject, p: &Iri| -> Option<u32> {
+        match value(store, restr, p) {
+            Some(Node::Lit(lex)) => lex.trim().parse::<u32>().ok(),
+            _ => None,
+        }
+    };
+
+    // A single derived constraint on one property of one class. Sorted + deduped so supply
+    // order never affects the emitted surface (content-addressed determinism).
+    #[derive(PartialEq, Eq, PartialOrd, Ord)]
+    enum Derived {
+        /// `someValuesFrom` target: (property IRI, target IRI, target-is-datatype).
+        Value(String, String, bool),
+        /// Unqualified cardinality: (property IRI, min_count, max_count).
+        Card(String, Option<u32>, Option<u32>),
+    }
+
+    // For every owl:Class, walk its `rdfs:subClassOf` restriction super-classes.
+    let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
+    let mut by_class: BTreeMap<String, Vec<Derived>> = BTreeMap::new();
+    // GMEOW is the authoring ground: derive validation shapes only for our own domain
+    // classes (Principle 4 / maximal dogfooding). Imported ontologies (gUFO, FOAF, …) are
+    // linked, not validated by our surface — and their target-class namespaces are not
+    // registered in the downstream JSON-Schema discriminator.
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    for class in classes {
+        // An anonymous class expression (blank node) is not a shape target — skip it.
+        if subject_is_blank(&class) {
+            continue;
+        }
+        let class_iri = subject_str(&class);
+        if !class_iri.starts_with(GMEOW_NS) {
+            continue;
+        }
+        for restr in objects(store, &class, &p_subclass) {
+            let Some(restr_subj) = term_as_subject(&restr) else {
+                continue;
+            };
+            // A restriction constrains exactly one property; skip a malformed one with no
+            // IRI-valued `owl:onProperty`.
+            let Some(Node::Iri(on)) = value(store, &restr_subj, &p_on) else {
+                continue;
+            };
+            // someValuesFrom → sh:class / sh:datatype. Only an IRI-valued target has a shape
+            // form: a blank someValuesFrom is an anonymous class expression (union/intersection),
+            // carried in the canon but never emitted as a bare blank label.
+            if let Some(Node::Iri(some_c)) = value(store, &restr_subj, &p_some) {
+                let dt = is_datatype(&some_c);
+                by_class
+                    .entry(class_iri.clone())
+                    .or_default()
+                    .push(Derived::Value(on.clone(), some_c, dt));
+            }
+            // Unqualified cardinality → sh:minCount/sh:maxCount. Qualified cardinality
+            // (`owl:onClass` + `owl:qualifiedCardinality`) is deliberately NOT lifted: it maps
+            // to `sh:qualifiedValueShape`/`sh:qualifiedMinCount`, a distinct construct, and
+            // reducing it to a plain count would over-constrain (count all values, not just the
+            // qualified ones).
+            let exact = card_of(&restr_subj, &p_card);
+            let (mut lo, mut hi) = (
+                card_of(&restr_subj, &p_mincard),
+                card_of(&restr_subj, &p_maxcard),
+            );
+            if let Some(n) = exact {
+                lo = Some(n);
+                hi = Some(n);
+            }
+            if lo.is_some() || hi.is_some() {
+                by_class
+                    .entry(class_iri.clone())
+                    .or_default()
+                    .push(Derived::Card(on, lo, hi));
+            }
+        }
+    }
+
+    let mut shapes = Vec::new();
+    for (class, mut derived) in by_class {
+        derived.sort();
+        derived.dedup();
+        let mut properties = Vec::new();
+        for d in derived {
+            let pc = match d {
+                Derived::Value(on, target, true) => PropertyConstraintIr::new(
+                    &on,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::Datatype(target)],
+                )?,
+                Derived::Value(on, target, false) => PropertyConstraintIr::new(
+                    &on,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::Class(target)],
+                )?,
+                Derived::Card(on, lo, hi) => PropertyConstraintIr::new(
+                    &on,
+                    lo,
+                    hi,
+                    Some(ConstraintProvenance::OwlRestriction),
+                    vec![],
+                )?,
+            };
+            properties.push(pc);
+        }
+        if properties.is_empty() {
+            continue;
+        }
+        let shape = ValidationShapeIr::new(
+            format!("{class}-shape"),
+            ShapeTarget::Class(class),
+            properties,
+            None,
+            None,
+            false,
+        )?;
+        shapes.push(shape);
+    }
+    Ok(shapes)
 }
 
 /// Read `logic:PathShape` individuals into [`PathShapeIr`]s.
