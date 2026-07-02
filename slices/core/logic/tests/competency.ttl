@@ -214,7 +214,8 @@ ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
         ex:rowHarvestRelatorMediation, ex:rowHarvestTopSortal,
         ex:rowHarvestDeception, ex:rowHarvestFalsehood,
         ex:rowHarvestLicensedFalsehood, ex:rowHarvestBullshit,
-        ex:rowHarvestIndirectContribution, ex:rowHarvestWemiInstantiation .
+        ex:rowHarvestIndirectContribution, ex:rowHarvestWemiInstantiation,
+        ex:rowHarvestOrgMembership .
 
 ex:cqHarvestCoverageShape a logic:ResultShape ;
     logic:declaresColumn
@@ -305,5 +306,12 @@ ex:rowHarvestWemiInstantiation a gmeow:ExpectedRow ;
     gmeow:rowCell
         [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateInstantiatesWork ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:instantiatesWork ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestOrgMembership a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateOrgMembershipPropagation ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:memberOf ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
