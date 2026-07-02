@@ -1,0 +1,8 @@
+<https://gmeow.example/ontouml-mini/clean-relator/Marriage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> <https://gmeow.example/ontouml-mini/clean-relator/w> .
+<https://gmeow.example/ontouml-mini/clean-relator/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://gmeow.example/ontouml-mini/clean-relator/med#end0> <https://gmeow.example/ontouml-mini/clean-relator/w> .
+<https://gmeow.example/ontouml-mini/clean-relator/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://gmeow.example/ontouml-mini/clean-relator/med#end1> <https://gmeow.example/ontouml-mini/clean-relator/w> .
+<https://gmeow.example/ontouml-mini/clean-relator/Person> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> <https://gmeow.example/ontouml-mini/clean-relator/w> .
+<https://gmeow.example/ontouml-mini/clean-relator/Spouse> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> <https://gmeow.example/ontouml-mini/clean-relator/w> .
+<https://gmeow.example/ontouml-mini/clean-relator/Spouse> <https://blackcatinformatics.ca/logic/subClassOf> <https://gmeow.example/ontouml-mini/clean-relator/Person> <https://gmeow.example/ontouml-mini/clean-relator/w> .
+<https://gmeow.example/ontouml-mini/clean-relator/Witness> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> <https://gmeow.example/ontouml-mini/clean-relator/w> .
+<https://gmeow.example/ontouml-mini/clean-relator/Witness> <https://blackcatinformatics.ca/logic/subClassOf> <https://gmeow.example/ontouml-mini/clean-relator/Person> <https://gmeow.example/ontouml-mini/clean-relator/w> .

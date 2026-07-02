@@ -607,18 +607,30 @@ fn write_ontouml_case(
     std::fs::write(case_dir.join("profile.json"), profile_json)
         .map_err(|e| format!("cannot write profile.json: {e}"))?;
 
-    // input.logic.ttl — stub required by the per-case anatomy (the native foundation
-    // evaluator reads the world-scoped logic: ABox in input.nq, not this file).
-    let stub_ttl = format!(
+    // input.logic.ttl — the seed logic: stereotype ABox as a default-graph program
+    // (the harness compiles this file, so it must carry the same seed facts input.nq
+    // world-scopes; the foundation materialization itself reads input.nq). Derived
+    // mechanically by dropping each N-Quad's world-graph term — every term is an IRI
+    // (`<…>`), so the trailing graph token is unambiguous.
+    let program_lines: Vec<String> = input_nq
+        .lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|line| {
+            let body = line.trim_end().trim_end_matches('.').trim_end();
+            // `<s> <p> <o> <g>` → drop the last (graph) token.
+            let triple = body.rsplit_once(' ').map(|(t, _g)| t).unwrap_or(body);
+            format!("{triple} .")
+        })
+        .collect();
+    let program_ttl = format!(
         "{ONTOUML_SPDX_HEADER}#\n\
-         # foundation-lowering native case. The world-scoped logic: ABox is the\n\
-         # N-Quads in input.nq, GENERATED from source/model.ttl by\n\
-         # `ingest-external --vendor-ontouml` (OntoUML metamodel → logic: stereotype\n\
-         # lowering), consumed by the native foundation evaluator. This stub only\n\
-         # satisfies the per-case anatomy.\n\
-         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n"
+         # foundation-lowering native case. This default-graph logic: stereotype ABox\n\
+         # is GENERATED from source/model.ttl by `ingest-external --vendor-ontouml`\n\
+         # (OntoUML metamodel → logic: stereotype lowering); input.nq world-scopes the\n\
+         # same facts for the native foundation evaluator.\n{}\n",
+        program_lines.join("\n")
     );
-    std::fs::write(case_dir.join("input.logic.ttl"), stub_ttl)
+    std::fs::write(case_dir.join("input.logic.ttl"), program_ttl)
         .map_err(|e| format!("cannot write input.logic.ttl: {e}"))?;
 
     // input.nq — the generated, world-scoped, sorted+deduped stereotype ABox.
@@ -2580,17 +2592,22 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         assert!(profile.contains("\"mode\": \"native\""), "{profile}");
         assert!(!profile.contains("verdict_mode"), "{profile}");
 
-        // input.logic.ttl — CC-BY stub with the logic: prefix.
-        let stub = std::fs::read_to_string(base.join("input.logic.ttl")).expect("input.logic.ttl");
+        // input.logic.ttl — CC-BY header + the seed logic: ABox as a default-graph
+        // program (the same facts input.nq world-scopes, with the world term dropped).
+        let program =
+            std::fs::read_to_string(base.join("input.logic.ttl")).expect("input.logic.ttl");
         assert!(
-            stub.contains("SPDX-License-Identifier: CC-BY-4.0"),
-            "{stub}"
+            program.contains("SPDX-License-Identifier: CC-BY-4.0"),
+            "{program}"
         );
         assert!(
-            stub.contains("@prefix logic: <https://blackcatinformatics.ca/logic/> ."),
-            "{stub}"
+            program.contains(
+                "<https://ex/Wanderer> <https://blackcatinformatics.ca/logic/subClassOf> \
+                 <https://ex/Wanderer> ."
+            ),
+            "{program}"
         );
-        assert!(stub.contains("--vendor-ontouml"), "{stub}");
+        assert!(program.contains("--vendor-ontouml"), "{program}");
 
         // input.nq — verbatim world-scoped lowering.
         let nq = std::fs::read_to_string(base.join("input.nq")).expect("input.nq");
