@@ -4596,4 +4596,182 @@ ex:shared a ex:Dog .
             }
         }
     }
+
+    /// `build_executable_docs_data`'s core correctness claim: reasoning the reduced seed
+    /// `source_load_dataset(upstream).project_named_graph(GRAPH_AUTHORED_DEFAULT)`
+    /// reproduces the attribution `assemble_object_level_edb`'s FULL object-level EDB
+    /// would give, because worked examples parse into the default world and the calculus
+    /// is same-world (imports/statements/alignments/logic ride NAMED worlds the examples
+    /// cannot reach). This mirrors `assemble_object_level_edb`'s real shape (carrier.rs
+    /// ~515-556): the authored-default content is projected OUT of its internal transport
+    /// tag into the true default graph, then UNIONED with the other pipeline products,
+    /// each rooted in ITS OWN named-world graph (never the default graph).
+    ///
+    /// The fixture is DISCRIMINATING: the full EDB's "import" named world carries an
+    /// axiom (`ex:Animal rdfs:subClassOf ex:ImportedExtra`) that WOULD transitively fire
+    /// on the example's own asserted type — yielding `ex:rex a ex:ImportedExtra` — if it
+    /// were (wrongly) merged into the default world the examples inhabit; a control
+    /// computation below reasons the SAME axioms flattened into one world to prove that.
+    /// In the real (world-separated) fixture that axiom lives only in the full seed's
+    /// `import` named graph, structurally absent from the reduced (authored-default
+    /// projection) seed — so if the reduced-seed optimization, or the reasoner's
+    /// world-scoping it relies on, were unsound, this test would see `reduced != full`
+    /// or the `ImportedExtra` type leaking into an example's `.inferred`.
+    #[test]
+    fn reduced_seed_attribution_matches_full_edb_attribution() {
+        // Mirrors what `source_load_dataset(upstream)` carries: the authored default-
+        // world chain under the GRAPH_AUTHORED_DEFAULT internal transport tag.
+        let raw_source_load_trig = format!(
+            "@prefix ex: <https://example.org/gmeow-try-it/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             GRAPH <{GRAPH_AUTHORED_DEFAULT}> {{\n\
+             \x20 ex:Dog rdfs:subClassOf ex:Animal .\n\
+             \x20 ex:Animal rdfs:subClassOf ex:LivingThing .\n\
+             }}\n"
+        );
+        let raw_source_load =
+            parse_dataset(raw_source_load_trig.as_bytes(), "application/trig", None)
+                .expect("parse raw source-load fixture");
+        // The reduced seed: exactly `build_executable_docs_data`'s
+        // `source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)`
+        // call — the authored chain re-rooted into the true default graph.
+        let reduced_seed = raw_source_load.project_named_graph(GRAPH_AUTHORED_DEFAULT);
+
+        // A SEPARATE named "import" world (standing in for GRAPH_IMPORTS /
+        // GRAPH_ALIGNMENTS / the logic graphs `assemble_object_level_edb` unions in),
+        // carrying an additional superclass edge off `ex:Animal` that only a
+        // world-isolation bug would let leak into the default-world reasoning the
+        // examples participate in.
+        let import_world_trig = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+GRAPH <https://example.org/gmeow-try-it/import> {
+  ex:Animal rdfs:subClassOf ex:ImportedExtra .
+}
+";
+        let import_world = parse_dataset(import_world_trig.as_bytes(), "application/trig", None)
+            .expect("parse import-world fixture");
+
+        // Control computation proving the fixture is DISCRIMINATING: flatten the SAME
+        // authored-chain + import axioms into a single (default) world and reason over
+        // `(flat_edb ∪ the dog example)` directly — no reduced/full split at all. If
+        // `ex:Animal rdfs:subClassOf ex:ImportedExtra` were reachable from a default-
+        // world example, this is where it would show up.
+        let flat_probe_ttl = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:Dog rdfs:subClassOf ex:Animal .
+ex:Animal rdfs:subClassOf ex:LivingThing .
+ex:Animal rdfs:subClassOf ex:ImportedExtra .
+ex:rex a ex:Dog .
+";
+        let flat_probe = parse_dataset(flat_probe_ttl.as_bytes(), "text/turtle", None)
+            .expect("parse flat probe fixture");
+        let flat_reasoned = crate::stages::reason::reason_over_dataset(flat_probe.as_ref())
+            .expect("reason flat probe");
+        assert!(
+            flat_reasoned.closure.contains("ImportedExtra"),
+            "fixture is not discriminating: merging the import axiom into the default \
+             world never yields an ImportedExtra inference on the example subject: {}",
+            flat_reasoned.closure
+        );
+
+        // The full object-level EDB, shaped exactly like `assemble_object_level_edb`:
+        // the default-world projection UNIONED with the other named-world graphs.
+        let full_edb = purrdf::RdfDataset::union(&[&reduced_seed, import_world.as_ref()]);
+
+        // What stage-reason would commit for this full EDB: the base ontology-only
+        // closure, subtracted (witness-insensitively) in both runs below. Because the
+        // reasoner is world-scoped by design (PIPELINE_SPINE's same-world calculus),
+        // this closure does NOT show the import axiom crossing into the default world —
+        // that is exactly the invariant this test locks down, via the reduced-vs-full
+        // attribution comparison below rather than via this closure alone.
+        let base =
+            crate::stages::reason::reason_over_dataset(&full_edb).expect("reason full-EDB base");
+
+        let sources = vec![
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/dog.ttl".to_string(),
+                text: EX_DOG_TTL.to_string(),
+            },
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/cat.ttl".to_string(),
+                text: EX_CAT_TTL.to_string(),
+            },
+        ];
+
+        // Run 1 — production behavior: reason the REDUCED seed (the authored
+        // default-world projection alone), exactly as `build_executable_docs_data` does.
+        let reduced = executable_docs_from_sources(
+            &reduced_seed,
+            base.closure.as_bytes(),
+            &sources,
+            &reduced_seed,
+        )
+        .expect("executable docs (reduced seed)");
+
+        // Run 2 — the ground truth: reason the FULL object-level EDB, import world and
+        // all, exactly as `assemble_object_level_edb` + stage-reason would.
+        let full =
+            executable_docs_from_sources(&full_edb, base.closure.as_bytes(), &sources, &full_edb)
+                .expect("executable docs (full EDB)");
+
+        // The reduction must be attribution-lossless: same per-example diffs, same
+        // cross-example bucket. Normalize with the module's witness-insensitive `norm_all`
+        // — this fixture has no existentials so it is a no-op here, but keeps the
+        // comparison robust to incidental witness IRIs.
+        let reduced_keys: Vec<&String> = reduced.example_inferences.keys().collect();
+        let full_keys: Vec<&String> = full.example_inferences.keys().collect();
+        assert_eq!(
+            reduced_keys, full_keys,
+            "reduced- and full-seed runs must attribute to the same set of examples"
+        );
+        for key in full.example_inferences.keys() {
+            let reduced_diff = reduced
+                .example_inferences
+                .get(key)
+                .unwrap_or_else(|| panic!("reduced run missing diff for {key}"));
+            let full_diff = &full.example_inferences[key];
+            assert_eq!(
+                norm_all(&reduced_diff.asserted),
+                norm_all(&full_diff.asserted),
+                "asserted lines diverged for {key}"
+            );
+            assert_eq!(
+                norm_all(&reduced_diff.inferred),
+                norm_all(&full_diff.inferred),
+                "reduced-seed attribution diverged from full-EDB attribution for {key}"
+            );
+        }
+        assert_eq!(
+            norm_all(&reduced.cross_example),
+            norm_all(&full.cross_example),
+            "cross_example diverged between reduced- and full-seed runs"
+        );
+
+        // Neither run's example diffs pick up the import-world's `ex:ImportedExtra` edge
+        // — the flat probe above proved it WOULD if the worlds merged, so its absence
+        // here is the world boundary holding, not the fixture being inert.
+        for diff in full
+            .example_inferences
+            .values()
+            .chain(reduced.example_inferences.values())
+        {
+            assert!(
+                diff.inferred.iter().all(|l| !l.contains("ImportedExtra")),
+                "import-world axiom leaked into example attribution: {:?}",
+                diff.inferred
+            );
+        }
+        assert!(
+            reduced
+                .cross_example
+                .iter()
+                .chain(full.cross_example.iter())
+                .all(|l| !l.contains("ImportedExtra")),
+            "import-world axiom leaked into cross_example"
+        );
+    }
 }
