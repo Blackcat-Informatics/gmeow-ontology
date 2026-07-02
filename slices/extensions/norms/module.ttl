@@ -261,6 +261,9 @@ gmeow:Persona
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Persona"@x-gmeow-english ;
+    logic:mediates gmeow:personaBearer ,
+        gmeow:expressesNorm ,
+        gmeow:activatedIn ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified expression policy of one agent — the relator binding {bearer} × {register(s)} × {expressed norms} × {activation context}. PRIMARY and PRIVATE are two Personas of one agent; 'Dr. Chen at the clinic' and 'Mom at home' are two of another. No primaryPersona exists or ever will (Principle 9): personas are co-equal, context-activated, and withdrawn by suppression, never deletion (Principle 10). Register-switching is not deception — divergence of held and projected standpoints is the deception module's territory, a documented boundary with no axiom coupling."@x-gmeow-english ;
     skos:example "ex:drChen a gmeow:Persona ; gmeow:personaBearer ex:chen ; gmeow:personaRegister gmeow:registerClinical ; gmeow:activatedIn ex:atClinic ."@x-gmeow-english ;

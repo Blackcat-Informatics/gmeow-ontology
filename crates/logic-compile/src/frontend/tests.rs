@@ -852,3 +852,108 @@ fn vacuous_quantifier_is_malformed() {
         "expected a MALFORMED_FORMULA diagnostic for a vacuous quantifier: {diags:?}"
     );
 }
+
+// ── Derived validation shapes (OWL restrictions → closed-world SHACL) ─────────
+
+/// Parse a Turtle fragment into a dataset for [`derive_validation_shapes`]. The `g:` prefix is
+/// the GMEOW authoring namespace, so its classes are in-scope for derivation.
+fn shape_dataset(ttl: &str) -> std::sync::Arc<RdfDataset> {
+    let full = format!(
+        "@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix owl:  <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .\n\
+         @prefix g:    <https://blackcatinformatics.ca/gmeow/> .\n{ttl}"
+    );
+    parse_dataset(full.as_bytes(), "text/turtle", None).expect("parse dataset ok")
+}
+
+fn all_components(shapes: &[ValidationShapeIr]) -> Vec<ConstraintComponent> {
+    shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .flat_map(|p| &p.components)
+        .cloned()
+        .collect()
+}
+
+#[test]
+fn derive_datatype_target_lowers_to_sh_datatype_not_sh_class() {
+    // A someValuesFrom whose target is a datatype must NOT become sh:class — a literal is never
+    // an instance of a class, so sh:class would flag every focus node. It becomes sh:datatype.
+    let ds = shape_dataset(
+        "g:Block a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:blockNumber ; owl:someValuesFrom xsd:integer ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Datatype(d) if d.ends_with("integer"))),
+        "expected sh:datatype for an xsd:integer target: {comps:?}"
+    );
+    assert!(
+        !comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(_))),
+        "a datatype target must never emit sh:class: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_class_target_stays_sh_class() {
+    let ds = shape_dataset(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        all_components(&shapes)
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+        "a real class target must emit sh:class"
+    );
+}
+
+#[test]
+fn derive_owl_cardinality_lifts_with_owl_provenance() {
+    // Unqualified owl:min/maxCardinality lower to sh:minCount/sh:maxCount tagged as
+    // OwlRestriction provenance — the open-world axiom read closed-world (ValidationOnly).
+    let ds = shape_dataset(
+        "g:Rec a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:id ; \
+           owl:minCardinality \"1\"^^xsd:nonNegativeInteger ; \
+           owl:maxCardinality \"3\"^^xsd:nonNegativeInteger ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let card = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .find(|p| p.min_count.is_some() || p.max_count.is_some())
+        .expect("a cardinality property shape");
+    assert_eq!(card.min_count, Some(1));
+    assert_eq!(card.max_count, Some(3));
+    assert_eq!(
+        card.cardinality_provenance,
+        Some(ConstraintProvenance::OwlRestriction),
+        "OWL-restriction cardinality is a closed-world reading, never OptNative"
+    );
+}
+
+#[test]
+fn derive_contradictory_cardinality_hard_fails() {
+    // min > max is structurally impossible: the derivation HARD-FAILS rather than silently
+    // dropping the malformed restriction (no fail-soft).
+    let ds = shape_dataset(
+        "g:Bad a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:id ; \
+           owl:minCardinality \"5\"^^xsd:nonNegativeInteger ; \
+           owl:maxCardinality \"2\"^^xsd:nonNegativeInteger ] .",
+    );
+    assert!(
+        derive_validation_shapes(ds.as_ref()).is_err(),
+        "min > max cardinality must hard-fail, not drop the shape"
+    );
+}

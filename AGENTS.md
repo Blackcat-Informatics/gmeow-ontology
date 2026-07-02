@@ -293,7 +293,15 @@ production spine through `stage-snapshot`, so focused per-stage and carrier
 tests keep the failure modes covered on-gate); and
 `gmeow-pipeline::stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs`
 (25.8 s in CI shard 3; it exercises terminal carrier serialization and import
-round-trip work with no remaining CI headroom). Former off-gate groups such as
+round-trip work with no remaining CI headroom); and
+`gmeow-logic::whole_bundle_coherence_gate_catches_injected_clash` (~95 s locally;
+it imports the WHOLE committed `gmeow.gts` bundle and drives the native Nemo
+chase over it twice, proving the shipped ontology is coherent and that an
+injected disjoint-class clash is caught). This exclusion is **budget-exempt,
+not gate-exempt**: the test still runs on every `make check` via the dedicated
+`make coherence-gate-teeth` target, which selects it with
+`--ignore-default-filter` plus an explicit `-E` filter and does not feed the
+JUnit budget gate. Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
 acceptance, JSON-LD round-trips, product routing, slice/slicetest parity, and

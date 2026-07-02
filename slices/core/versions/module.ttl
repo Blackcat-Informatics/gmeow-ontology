@@ -11,6 +11,9 @@ gmeow:VersionMembership
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Membership"@x-gmeow-english ;
+    logic:mediates gmeow:versionMember ,
+        gmeow:versionSet ,
+        gmeow:membershipAuthority ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [

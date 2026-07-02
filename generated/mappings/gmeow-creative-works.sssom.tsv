@@ -22,7 +22,7 @@
 #   wd: http://www.wikidata.org/entity/
 subject_id	predicate_id	object_id	mapping_justification	confidence	comment
 gmeow:BookRelease	skos:broadMatch	schema:Book	semapv:ManualMappingCuration	0.85	schema:Book is broader (may denote abstract work); BookRelease is concrete.
-gmeow:CreativeWork	skos:closeMatch	schema:CreativeWork	semapv:ManualMappingCuration	0.8	Lossy: schema.org collapses WEMI into one flat node.
+gmeow:CreativeWork	skos:exactMatch	schema:CreativeWork	semapv:ManualMappingCuration	0.9	co-extensive at the top creative-work class; schema.org flattening the WEMI sub-structure is a preservation loss, not an extension difference — the WEMI tiers (gmeow:Work etc.) map separately by closeMatch
 gmeow:Document	skos:closeMatch	wd:Q571	semapv:ManualMappingCuration	0.85	Wikidata 'book' (Q571) — close match to Document/Work.
 gmeow:Expression	owl:equivalentClass	frbr:Expression	semapv:ManualMappingCuration	1.0	FRBR Expression — realization in language/notation.
 gmeow:Expression	owl:equivalentClass	lrmoo:F2_Expression	semapv:ManualMappingCuration	0.95	LRMoo F2 Expression.
@@ -37,7 +37,7 @@ gmeow:Manifestation	owl:equivalentClass	lrmoo:F3_Manifestation	semapv:ManualMapp
 gmeow:Manifestation	skos:broadMatch	wd:Q3331189	semapv:ManualMappingCuration	0.8	Wikidata 'version, edition or translation' (Q3331189) — lossy: muddles edition (Manifestation) and translation (Expression).
 gmeow:Manifestation	skos:closeMatch	bibframe:Instance	semapv:ManualMappingCuration	0.9	BIBFRAME Instance ≈ FRBR Manifestation.
 gmeow:Manifestation	skos:closeMatch	fabio:Manifestation	semapv:ManualMappingCuration	0.95	FaBiO Manifestation is scholarly-scoped.
-gmeow:MediaObject	skos:closeMatch	schema:MediaObject	semapv:ManualMappingCuration	0.9	Direct correspondence.
+gmeow:MediaObject	skos:exactMatch	schema:MediaObject	semapv:ManualMappingCuration	0.9	direct 1:1 correspondence; schema:ImageObject/AudioObject map in as narrower subclasses
 gmeow:WebPage	owl:equivalentClass	schema:WebPage	semapv:ManualMappingCuration	1.0	Direct correspondence.
 gmeow:Work	owl:equivalentClass	frbr:Work	semapv:ManualMappingCuration	1.0	FRBR Work — abstract intellectual creation.
 gmeow:Work	owl:equivalentClass	lrmoo:F1_Work	semapv:ManualMappingCuration	0.95	LRMoo F1 Work — aligned by reference, not axiom import.

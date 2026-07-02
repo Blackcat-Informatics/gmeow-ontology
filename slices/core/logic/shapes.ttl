@@ -87,6 +87,26 @@ logic:FormalizationCandidateShape
         sh:class logic:SemanticRiskClass ;
         sh:severity sh:Violation ;
         sh:message "A FormalizationCandidate must have exactly one logic:candidateSemanticRisk from the closed logic:SemanticRiskClass value set." ;
+    ] ;
+    # The harvest back-link (logic:candidateFormalizes + logic:candidateSourceField)
+    # is OPTIONAL — present exactly when the candidate harvested a term's annotation
+    # field, absent when the source is a doc section (recorded in provenance alone).
+    # When present each is single-valued; the field is closed to logic:ProseField.
+    # Co-presence of the pair is enforced by verify.harvest-link-paired.
+    sh:property [
+        sh:path logic:candidateFormalizes ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate may carry at most one logic:candidateFormalizes (the prose-bearing term its harvested axiom formalizes)." ;
+    ] ;
+    sh:property [
+        sh:path logic:candidateSourceField ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:ProseField ;
+        sh:severity sh:Violation ;
+        sh:message "A FormalizationCandidate may carry at most one logic:candidateSourceField from the closed logic:ProseField value set." ;
     ] .
 
 # =========================================================================== #
@@ -263,6 +283,89 @@ logic:McpActionPolicyShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "An MCP-action schema must declare at least one logic:compensation — the rollback that recovers from the realized outcome." ;
+    ] .
+
+# logic:FreshnessGuardShape — well-formedness for a valid-time currency guard.
+# A freshness guard names the precondition it guards (logic:guardsPrecondition) and
+# then constrains its datum along TWO INDEPENDENT valid-time axes, each OPTIONAL:
+#   • AGE HORIZON — logic:freshnessHorizon (an xsd:duration ceiling on datum age);
+#   • EXPLICIT WINDOW — logic:freshnessWindow with a closed
+#     [logic:freshnessWindowStart, logic:freshnessWindowEnd] xsd:dateTime interval.
+# A guard may carry horizon only, window only, both, or neither extra axis (the
+# precondition is always required). Each declared bound must be single-valued and
+# well-typed, and — because the window is a paired interval — IF a logic:freshnessWindow
+# is declared THEN both bounds must be present (exactly one each): a half-declared
+# window would gate on an ill-defined interval. This paired rule is enforced by the
+# sh:sparql constraint below; the horizon / window bounds are individually typed by the
+# property shapes.
+logic:FreshnessGuardShape
+    a sh:NodeShape ;
+    rdfs:label "FreshnessGuard well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:FreshnessGuard: the valid-time currency guard on an action-schema precondition. It must declare exactly one logic:guardsPrecondition (the situation whose supporting datum must be current). It then constrains that datum along two INDEPENDENT and individually OPTIONAL valid-time axes: an AGE HORIZON (logic:freshnessHorizon, at most one xsd:duration ceiling on datum age) and an EXPLICIT VALID-TIME WINDOW (logic:freshnessWindow with a closed [logic:freshnessWindowStart, logic:freshnessWindowEnd] xsd:dateTime interval). A guard may carry horizon only, window only, both, or neither of these axes. Where a bound is present it must be single-valued and well-typed; and because the window is a paired interval, declaring a logic:freshnessWindow OBLIGES exactly one logic:freshnessWindowStart and exactly one logic:freshnessWindowEnd (an sh:sparql check) — a half-declared window would gate on an ill-defined interval. The window axis is orthogonal to the age horizon: a datum may pass one and fail the other."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:FreshnessGuard ;
+    sh:property [
+        sh:path logic:guardsPrecondition ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A FreshnessGuard must guard exactly one logic:precondition (via logic:guardsPrecondition)." ;
+    ] ;
+    sh:property [
+        sh:path logic:freshnessHorizon ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:duration ;
+        sh:severity sh:Violation ;
+        sh:message "A FreshnessGuard's logic:freshnessHorizon, when declared, must be a single xsd:duration (the maximum admissible datum age)." ;
+    ] ;
+    sh:property [
+        sh:path logic:freshnessWindowStart ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:dateTime ;
+        sh:severity sh:Violation ;
+        sh:message "A FreshnessGuard's logic:freshnessWindowStart, when declared, must be a single xsd:dateTime (the inclusive lower bound of the valid-time window)." ;
+    ] ;
+    sh:property [
+        sh:path logic:freshnessWindowEnd ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:dateTime ;
+        sh:severity sh:Violation ;
+        sh:message "A FreshnessGuard's logic:freshnessWindowEnd, when declared, must be a single xsd:dateTime (the inclusive upper bound of the valid-time window)." ;
+    ] ;
+    # Paired-window well-formedness: if an explicit valid-time window is declared
+    # (logic:freshnessWindow), BOTH interval bounds must be present exactly once. A
+    # window with a missing or duplicated bound gates on an ill-defined interval.
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A FreshnessGuard that declares a logic:freshnessWindow must carry BOTH a logic:freshnessWindowStart AND a logic:freshnessWindowEnd (the closed interval bounds); the property shapes already cap each bound at one." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/logic/freshnessWindow> ?w .
+                FILTER (
+                    NOT EXISTS { $this <https://blackcatinformatics.ca/logic/freshnessWindowStart> ?s . }
+                    ||
+                    NOT EXISTS { $this <https://blackcatinformatics.ca/logic/freshnessWindowEnd> ?e . }
+                )
+            }
+        """ ;
+    ] .
+
+# logic:NotificationWaitShape — the wait-well-formedness PROFILE. Like
+# logic:McpActionPolicyShape it does NOT auto-apply to every logic:ActionSchema:
+# it targets only the opt-in marker subtype logic:NotificationWaitSchema, so a
+# plain action schema is never forced to declare a signal. A wait schema must name
+# the logic:ExternalSignal it awaits, or the gate has nothing to wait on.
+logic:NotificationWaitShape
+    a sh:NodeShape ;
+    rdfs:label "NotificationWait well-formedness shape"@x-gmeow-english ;
+    skos:definition "The wait-well-formedness profile: a sh:NodeShape (a CONSTRAINT, not ontology vocabulary) over the logic:NotificationWaitSchema instances whose completion the engine learns of only by external notification. It targets ONLY the opt-in marker subtype logic:NotificationWaitSchema, never every logic:ActionSchema. It requires at least one logic:awaitsSignal (the logic:ExternalSignal the wait blocks on): a wait schema with no signal has nothing to wait on and could never surface as pending, which would silently collapse the prescriptive-descriptive epistemic boundary the construct exists to hold."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:NotificationWaitSchema ;
+    sh:property [
+        sh:path logic:awaitsSignal ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A NotificationWaitSchema must declare at least one logic:awaitsSignal (the logic:ExternalSignal whose arrival the wait blocks on)." ;
     ] .
 
 # Dual-authority consistency (VANTAGE-SCOPED, never a global satisfaction verdict).

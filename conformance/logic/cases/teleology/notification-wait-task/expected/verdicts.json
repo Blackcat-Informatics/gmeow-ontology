@@ -1,0 +1,10 @@
+{
+  "https://example.org/teleology/notification-wait-task/pending": {
+    "quads": 11,
+    "status": "consistent"
+  },
+  "https://example.org/teleology/notification-wait-task/received": {
+    "quads": 9,
+    "status": "consistent"
+  }
+}
