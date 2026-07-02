@@ -17,7 +17,7 @@ use crate::ir::LogicProgram;
 
 use super::{RDF_META_ELEMENT, ROOT_ELEMENT};
 
-use gmeow_rdf::parse_dataset;
+use purrdf::parse_dataset;
 
 /// The idiomatic-sentence container element the writer emits.
 const SENTENCES_ELEMENT: &str = "sentences";

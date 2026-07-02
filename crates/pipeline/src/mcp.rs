@@ -24,12 +24,12 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use serde_json::{json, Value};
 
-use gmeow_gts::examples::agent_memory::{
+use gmeow_logic::transaction::execute::{execute_transaction, CommitMode, TxReceipt};
+use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
-use gmeow_gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
-use gmeow_gts::writer::Writer as GtsWriter;
-use gmeow_logic::transaction::execute::{execute_transaction, CommitMode, TxReceipt};
+use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
+use purrdf::gts::writer::Writer as GtsWriter;
 
 use crate::stages::export::{self, FoldView, Term};
 use crate::stages::fold_arena;
@@ -47,7 +47,7 @@ pub struct McpView {
     /// (#1132): the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
     /// the carrier representation ONCE and serves every surface off the shared export
     /// `FoldView`, exactly as the in-pipeline export leaf does.
-    dataset: Arc<gmeow_rdf::RdfDataset>,
+    dataset: Arc<purrdf::RdfDataset>,
     /// Ontology title / version — language-independent (`fold_meta` reads the
     /// header via a token-minimal `value`, not a language selector), so they are
     /// resolved once at construction.
@@ -67,12 +67,12 @@ pub struct McpView {
 
 impl McpView {
     fn from_snapshot(snapshot: &[u8]) -> Result<Self, String> {
-        let bundle = gmeow_rdf::import_gts_events(snapshot)
+        let bundle = purrdf::import_gts_events(snapshot)
             .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
         Self::from_dataset(bundle.dataset)
     }
 
-    fn from_dataset(dataset: Arc<gmeow_rdf::RdfDataset>) -> Result<Self, String> {
+    fn from_dataset(dataset: Arc<purrdf::RdfDataset>) -> Result<Self, String> {
         let (title, version) = {
             let view = FoldView::new(dataset.as_ref());
             export::fold_meta(&view).map_err(|e| e.to_string())?
@@ -266,7 +266,7 @@ impl McpServer {
         root: Option<PathBuf>,
         mode: McpMode,
     ) -> Result<Self, String> {
-        let bundle = gmeow_rdf::import_gts_events(snapshot)
+        let bundle = purrdf::import_gts_events(snapshot)
             .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
         let dataset = bundle.dataset;
         let tag_map = language_tag_map(dataset.as_ref());
@@ -818,7 +818,7 @@ impl McpServer {
 }
 
 impl McpView {
-    fn graph_dataset(&self) -> Result<Arc<gmeow_rdf::RdfDataset>, String> {
+    fn graph_dataset(&self) -> Result<Arc<purrdf::RdfDataset>, String> {
         // The carrier IS the dataset — no gts round-trip (GTS is exit-only).
         Ok(Arc::clone(&self.dataset))
     }
@@ -838,7 +838,7 @@ pub fn run_dev_mcp(snapshot: &[u8], root: String) -> PyResult<()> {
     server.run_stdio().map_err(PyValueError::new_err)
 }
 
-fn language_tag_map(dataset: &gmeow_rdf::RdfDataset) -> BTreeMap<String, String> {
+fn language_tag_map(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
     let graph = fold_arena::Graph::from_dataset(dataset);
     let graph = &graph;
     let iri_index: HashMap<&str, usize> = graph
@@ -1134,17 +1134,16 @@ const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 fn action_policy_nquads() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
     CACHE.get_or_init(|| {
-        let dataset =
-            gmeow_rdf::parse_dataset(MCP_ACTION_POLICY_TTL.as_bytes(), "text/turtle", None)
-                .expect("canonical mcp-action-policy.ttl must parse (single authority)");
-        let mut lines: Vec<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&dataset)
+        let dataset = purrdf::parse_dataset(MCP_ACTION_POLICY_TTL.as_bytes(), "text/turtle", None)
+            .expect("canonical mcp-action-policy.ttl must parse (single authority)");
+        let mut lines: Vec<String> = purrdf::flat_rdf_quads_from_dataset(&dataset)
             .into_iter()
             // The engine reads only the structural action theory (precondition / effect / ins /
             // del / compensation), all IRI→IRI — keep those and drop the annotation literals
             // (labels, comments) the executional-entailment run never consults.
             .filter(|quad| {
-                matches!(quad.subject, gmeow_rdf::RdfTerm::Iri(_))
-                    && matches!(quad.object, gmeow_rdf::RdfTerm::Iri(_))
+                matches!(quad.subject, purrdf::RdfTerm::Iri(_))
+                    && matches!(quad.object, purrdf::RdfTerm::Iri(_))
             })
             .map(|quad| {
                 format!(
@@ -1324,7 +1323,7 @@ fn tool_arguments(args: &Value, keys: &[&str]) -> String {
     Value::Object(out).to_string()
 }
 
-fn claim_json(claim: &gmeow_gts::examples::agent_memory::Claim) -> Value {
+fn claim_json(claim: &purrdf::gts::examples::agent_memory::Claim) -> Value {
     json!({
         "id": claim.id,
         "text": claim.text,
@@ -1610,8 +1609,8 @@ mod tests {
         // The committed turn is cold-auditable: the persisted memory.gts carries exactly the
         // predicates emit_trajectory_audits requires on the recorded ToolCall and its anchor.
         let raw = fs::read(&memory_path).unwrap();
-        let bundle = gmeow_rdf::import_gts_events(&raw).expect("import memory.gts");
-        let predicates: BTreeSet<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&bundle.dataset)
+        let bundle = purrdf::import_gts_events(&raw).expect("import memory.gts");
+        let predicates: BTreeSet<String> = purrdf::flat_rdf_quads_from_dataset(&bundle.dataset)
             .iter()
             .map(|quad| quad.predicate.clone())
             .collect();
@@ -1629,7 +1628,7 @@ mod tests {
             );
         }
         // The single canonical temporal frame is recorded (P11 — one frame per trajectory).
-        let frames: Vec<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&bundle.dataset)
+        let frames: Vec<String> = purrdf::flat_rdf_quads_from_dataset(&bundle.dataset)
             .iter()
             .filter(|quad| quad.predicate == GMEOW_EVENT_TEMPORAL_FRAME)
             .map(|quad| quad.object.to_string())

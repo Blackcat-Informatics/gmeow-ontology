@@ -31,7 +31,7 @@
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 use crate::provenance::term_display;
 use crate::seam::ScryerForeign;

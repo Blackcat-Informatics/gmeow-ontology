@@ -18,7 +18,7 @@ use crate::nt::{nt_escape_iri, nt_escape_literal};
 
 use super::{parse_forms, split_on_sentinel, CExpr};
 
-use gmeow_rdf::parse_dataset;
+use purrdf::parse_dataset;
 
 /// Parse CGIF source text into a [`LogicProgram`] + diagnostics.
 ///

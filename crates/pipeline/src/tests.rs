@@ -409,7 +409,7 @@ fn cache_hard_fails_on_corruption() {
 
 #[test]
 fn provenance_stamps_capability_derived_origin() {
-    use gmeow_rdf::provenance::{DatasetProvenance, OriginKind};
+    use purrdf::provenance::{DatasetProvenance, OriginKind};
     let mut prov = DatasetProvenance::new();
     let source_caps = [SOURCE_ORIGIN.to_string()];
     let load = register_stage_unit(&mut prov, "stage-source-load", &source_caps);
@@ -670,7 +670,7 @@ impl Stage for TwoGraphProducer {
             "<https://example.org/s> <https://example.org/p> \"{content}\" <{G1}> .\n\
              <https://example.org/s> <https://example.org/p> \"const\" <{G2}> .\n"
         );
-        let dataset = gmeow_rdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+        let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
             .map_err(|e| PipelineError::Parse(format!("producer dataset: {e}")))?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(

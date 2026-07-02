@@ -15,8 +15,8 @@ SPARQL ASK cells:
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import Graph
-from gmeow_rdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib import Graph
+from purrdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph

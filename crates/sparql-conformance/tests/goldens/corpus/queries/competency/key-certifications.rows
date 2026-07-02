@@ -1,5 +1,0 @@
-role
-[Some(Iri("https://blackcatinformatics.ca/gmeow/certificationLevel"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/certifiedIdentity"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/certifiedKey"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/certifier"))]

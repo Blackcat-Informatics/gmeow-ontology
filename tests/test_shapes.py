@@ -14,8 +14,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import RDF, Graph
-from gmeow_rdf.compat.rdflib.term import Node
+from purrdf.compat.rdflib import RDF, Graph
+from purrdf.compat.rdflib.term import Node
 
 
 def test_no_nodeshape_iri_collision_across_shape_files() -> None:
@@ -29,7 +29,7 @@ def test_no_nodeshape_iri_collision_across_shape_files() -> None:
     """
     from collections import defaultdict
 
-    from gmeow_rdf.compat.rdflib.namespace import SH
+    from purrdf.compat.rdflib.namespace import SH
 
     from gmeow_tools.config import GENERATED_SHAPES_DIR, SHAPES_DIR
     from gmeow_tools.slices import iter_slice_shape_files

@@ -22,7 +22,7 @@
 //!
 //! # Loss recording
 //!
-//! Every transcode pair is checked against [`gmeow_rdf::loss::pair_loss_ledger`]
+//! Every transcode pair is checked against [`purrdf::loss::pair_loss_ledger`]
 //! for its static loss contract. Each contract entry is materialized into a
 //! [`RealizedLoss`] with a runtime count attached:
 //! - `named-graph-dropped`: number of distinct non-default graph-name terms
@@ -40,8 +40,8 @@ use gmeow_logic_compile::projections::{
     rdf::{project_canonical_rdf12, project_gufo, project_owl_dl, project_owl_el},
     text::{project_datalog, project_n3, project_nemo},
 };
-use gmeow_rdf::loss::pair_loss_ledger;
-use gmeow_rdf::{
+use purrdf::loss::pair_loss_ledger;
+use purrdf::{
     dataset_from_bytes, import_gts_events, serialize_dataset_base_only,
     serialize_dataset_to_format, NativeRdfFormat, RdfDataset, RdfLookaside, SerializeGraph, TermId,
 };
@@ -76,7 +76,7 @@ pub enum Codec {
     /// the `<<( … )>>` quoted-triple syntax). The distinct name marks "this Turtle carries OWL
     /// in RDF-1.2 form" for routing/reporting; it does NOT imply a separate
     /// parser or a syntactic rewrite. (We deliberately do not run the lossy,
-    /// directional `gmeow_rdf::statements::normalize_rdf12_to_owl` here — it
+    /// directional `purrdf::statements::normalize_rdf12_to_owl` here — it
     /// drops bare base triples and would break round-trip honesty.)
     OwlRdf12,
     /// OWL 2 DL projection (lossy; NOT decodable).
@@ -331,7 +331,7 @@ pub fn transcode(
 
     if to == Codec::Gts {
         let bytes =
-            gmeow_rdf::gts_write::to_gts(&dataset, &RdfLookaside::default(), "gmeow-transcode")
+            purrdf::gts_write::to_gts(&dataset, &RdfLookaside::default(), "gmeow-transcode")
                 .map_err(|e| TranscodeError::Codec(e.to_string()))?;
         let realized = realize_losses(ledger.entries(), named_graph_count, 0, 0);
         return Ok(TranscodeOutput { bytes, realized });
@@ -474,7 +474,7 @@ fn transcode_to_projection(
 /// - any projection code (ends in `-projection`) → `projection_drops`
 /// - anything else → 0
 fn realize_losses(
-    entries: &[gmeow_rdf::loss::LossEntry],
+    entries: &[purrdf::loss::LossEntry],
     named_graph_count: u64,
     star_dropped: u64,
     projection_drops: u64,
@@ -587,7 +587,7 @@ fn codec_to_native_format(codec: Codec) -> Option<NativeRdfFormat> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::loss::canonical_codec_name;
+    use purrdf::loss::canonical_codec_name;
 
     // ── Fixtures ──────────────────────────────────────────────────────────────
 
@@ -698,7 +698,7 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
     /// the same quad/reifier count as the direct path.
     #[test]
     fn gts_round_trip_via_canonical_nquads() {
-        use gmeow_rdf::{dataset_from_bytes, NativeRdfFormat};
+        use purrdf::{dataset_from_bytes, NativeRdfFormat};
 
         // Turtle → GTS → NTriples
         let gts_out = transcode(

@@ -31,7 +31,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_conformance::paths::cases_root;
-use gmeow_rdf::{dataset_from_bytes, NativeRdfFormat};
+use purrdf::{dataset_from_bytes, NativeRdfFormat};
 
 /// The native verdict token for one case (`consistent` / `inconsistent` /
 /// `incomplete`), computed exactly as the grader/runner does: a non-empty

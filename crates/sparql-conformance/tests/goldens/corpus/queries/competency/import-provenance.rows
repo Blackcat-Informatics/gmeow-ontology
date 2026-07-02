@@ -1,4 +1,0 @@
-property
-[Some(Iri("https://blackcatinformatics.ca/gmeow/contentDigest"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/sourceLocation"))]
-[Some(Iri("https://blackcatinformatics.ca/gmeow/sourceModifiedAt"))]

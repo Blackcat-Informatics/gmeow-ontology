@@ -642,7 +642,7 @@ mod tests {
     use crate::provenance::term_display;
     use crate::rule_ir::{least_model_of_reduct, parse_eval_rules};
     use crate::store::WorldStore;
-    use gmeow_rdf::TermValue;
+    use purrdf::TermValue;
 
     const NS: &str = "https://example.org/p3/";
 

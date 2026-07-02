@@ -1029,9 +1029,9 @@ fn build_divergence_ledger(
         &hermit_unsat,
     );
     // The ledger gap-row builder takes RdfLoss; mint one per (code, message).
-    let gap_losses: Vec<gmeow_rdf::RdfLoss> = gaps
+    let gap_losses: Vec<purrdf::RdfLoss> = gaps
         .iter()
-        .map(|(code, message)| gmeow_rdf::RdfLoss::new(code, message))
+        .map(|(code, message)| purrdf::RdfLoss::new(code, message))
         .collect();
     let gap_rows = dl_gap_rows(&gap_losses);
 
@@ -1094,7 +1094,7 @@ fn map_native_reason_error(err: NativeReasonPyError) -> PyErr {
 }
 
 fn native_reason_payload(bytes: Vec<u8>) -> Result<NativeReasonPayload, NativeReasonPyError> {
-    let bundle = gmeow_rdf::import_gts_events(&bytes)
+    let bundle = purrdf::import_gts_events(&bytes)
         .map_err(|e| NativeReasonPyError::GtsRead(format!("GTS read error: {e}")))?;
     let (closure, verdict) = crate::reason::reason_closure(bundle.dataset.as_ref())
         .map_err(NativeReasonPyError::Reason)?;
@@ -1111,7 +1111,7 @@ fn native_reason_payload_with_artifacts(
         build_reasoning_result_ttl,
     };
 
-    let bundle = gmeow_rdf::import_gts_events(&bytes)
+    let bundle = purrdf::import_gts_events(&bytes)
         .map_err(|e| NativeReasonPyError::GtsRead(format!("GTS read error: {e}")))?;
     let dataset = bundle.dataset.as_ref();
     let (closure, verdict) =
@@ -1146,7 +1146,7 @@ fn native_reason_verify_payload_with_artifacts(
         build_reasoning_result_ttl,
     };
 
-    let bundle = gmeow_rdf::import_gts_events(&bytes)
+    let bundle = purrdf::import_gts_events(&bytes)
         .map_err(|e| NativeReasonPyError::GtsRead(format!("GTS read error: {e}")))?;
     let dataset = bundle.dataset.as_ref();
     let (closure, verdict) =
@@ -1262,7 +1262,7 @@ fn reason_native_to_dict<'py>(
 /// Run native OWL-2 reasoning over a `gmeow.gts` bundle (issue #665).
 ///
 /// Ingests the RDF-1.2-first GTS bundle through the concrete
-/// [`gmeow_rdf::RdfDataset`] import path, then runs
+/// [`purrdf::RdfDataset`] import path, then runs
 /// the single-chase combined entry point [`crate::reason::reason_all`] — the EL
 /// subsumption closure and the DL consistency verdict are derived from ONE Nemo
 /// chase, never two.
@@ -1416,7 +1416,7 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
     }
     let bytes = gts_bytes.to_vec();
     let built: Result<(String, String, String, String), ArtifactsError> = py.detach(move || {
-        let bundle = gmeow_rdf::import_gts_events(&bytes)
+        let bundle = purrdf::import_gts_events(&bytes)
             .map_err(|e| ArtifactsError::GtsRead(format!("GTS read error: {e}")))?;
         let dataset = bundle.dataset.as_ref();
         let result = crate::reason::reason_all(dataset).map_err(ArtifactsError::Reason)?;
@@ -1470,7 +1470,7 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
 /// # Returns
 ///
 /// The full closure (asserted + derived) as an N-Triples string ([`rl_closure_nt`])
-/// or a list of live `gmeow_rdf.Quad` objects ([`rl_closure_quads`]). Term
+///. Term
 /// rendering — skolem-IRI → blank-node, literal display, de-dup and sort — happens
 /// in Rust ([`crate::reason::rl::RlClosure::to_ntriples`]), so the reasoning path
 /// crosses the FFI boundary exactly once (issue #630; the Python helper no longer
@@ -1488,7 +1488,7 @@ fn compute_rl_closure(py: Python<'_>, input: &str) -> PyResult<crate::reason::rl
     // generic-triple RL chase with the GIL released.
     let bytes = input.as_bytes().to_vec();
     let closure: Result<crate::reason::rl::RlClosure, (bool, String)> = py.detach(move || {
-        let dataset = gmeow_rdf::dataset_from_bytes(&bytes, gmeow_rdf::NativeRdfFormat::NQuads)
+        let dataset = purrdf::dataset_from_bytes(&bytes, purrdf::NativeRdfFormat::NQuads)
             .map_err(|e| (true, format!("N-Quads parse error: {e}")))?;
         crate::reason::rl::rl_closure(dataset.as_ref()).map_err(|e| (false, e))
     });
@@ -1516,39 +1516,10 @@ fn rl_closure_nt(py: Python<'_>, input: &str) -> PyResult<String> {
     Ok(compute_rl_closure(py, input)?.to_ntriples())
 }
 
-/// Compute the OWL 2 RL/RDF deductive closure and return live `gmeow_rdf.Quad`s.
-///
-/// The structured twin of [`rl_closure_nt`]: the closure is rendered to N-Triples
-/// in Rust and re-parsed (reusing the native lossless term parser) into a list of
-/// `gmeow_rdf.Quad` objects, so an rdflib caller folds the closure straight back
-/// into its graph with no intermediate Python-side N-Triples render/parse seam
-/// (issue #630). Blank nodes round-trip as blank nodes; literals keep
-/// datatype/language. All quads land in the default graph (the world axis is
-/// flattened for the single-default-graph close the suites use).
-#[pyfunction]
-fn rl_closure_quads(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
-    if input.trim().is_empty() {
-        return Ok(vec![]);
-    }
-    let nt = compute_rl_closure(py, input)?.to_ntriples();
-    // Re-parse the rendered closure through the native codec (#909), then flatten the
-    // frozen IR directly into the gmeow-rdf adapter quad list (text-free IR → quad
-    // stream, the same un-fold the GTS producer surfaces use) so each quad is handed to
-    // Python as a native `gmeow_rdf.Quad` (#630). The native codec is the same engine
-    // that the rest of the stack parses with — literal/datatype and blank-node grammar
-    // decode identically.
-    // Re-parse the rendered closure through the native codec (#909) into the frozen
-    // IR, then hand each quad to Python as a live `gmeow_rdf.Quad` via the
-    // oxigraph-free cross-crate entry point `dataset_quads_to_py` (the logic crate
-    // names no oxigraph type; the conversion is owned by gmeow-rdf, EPIC #906).
-    let dataset = py
-        .detach(move || {
-            gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
-                .map_err(|e| format!("RL closure re-parse failed: {e}"))
-        })
-        .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
-    gmeow_rdf::py_store::dataset_quads_to_py(py, dataset.as_ref())
-}
+// There is no `rl_closure_quads` returning live `purrdf.Quad` pyclasses: those
+// pyclasses live in the external `purrdf` cdylib and cannot be constructed from
+// `gmeow_native`. The reasoning surface is `rl_closure_nt`, whose N-Triples an
+// rdflib caller parses back into quads with purrdf's own parser.
 
 // ── verify_native ─────────────────────────────────────────────────────────────
 
@@ -1590,7 +1561,7 @@ fn verify_native(
     let bytes = gts_bytes.to_vec();
     let verify_result: Result<gmeow_diagnostics::Report, VerifyNativeError> =
         py.detach(move || {
-            let bundle = gmeow_rdf::import_gts_events(&bytes)
+            let bundle = purrdf::import_gts_events(&bytes)
                 .map_err(|e| VerifyNativeError::GtsRead(format!("GTS read error: {e}")))?;
             crate::verify::verify(bundle.dataset.as_ref(), &queries)
                 .map_err(VerifyNativeError::Verify)
@@ -1700,7 +1671,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reason_native_artifacts, m)?)?;
     m.add_function(wrap_pyfunction!(reason_and_verify_native, m)?)?;
     m.add_function(wrap_pyfunction!(rl_closure_nt, m)?)?;
-    m.add_function(wrap_pyfunction!(rl_closure_quads, m)?)?;
     m.add_function(wrap_pyfunction!(build_divergence_ledger, m)?)?;
     m.add_function(wrap_pyfunction!(verify_native, m)?)?;
     m.add_function(wrap_pyfunction!(extract_module, m)?)?;
@@ -1714,7 +1684,7 @@ mod tests {
     use crate::encode::decode_nemo_term;
     use crate::materialize::reifier_for_quad;
     use crate::provenance::term_n3;
-    use gmeow_rdf::TermValue;
+    use purrdf::TermValue;
 
     // ── reifier_for_quad ──────────────────────────────────────────────────────
 

@@ -10,8 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, XSD, Graph, URIRef
-from gmeow_rdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib import OWL, RDF, RDFS, XSD, Graph, URIRef
+from purrdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.graph import load_merged_graph
 

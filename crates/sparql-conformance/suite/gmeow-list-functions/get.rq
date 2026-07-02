@@ -1,3 +1,0 @@
-PREFIX g: <https://blackcatinformatics.ca/gmeow/>
-PREFIX : <http://gmeow.test/list#>
-SELECT ?x WHERE { ?q :list ?l . BIND(g:listGet(?l, 1) AS ?x) }

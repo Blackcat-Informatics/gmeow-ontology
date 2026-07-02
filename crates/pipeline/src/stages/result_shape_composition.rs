@@ -18,7 +18,7 @@ use std::sync::Arc;
 use gmeow_logic_compile::result_shape::{
     ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality, TermKind,
 };
-use gmeow_rdf::{RdfDataset, TermValue};
+use purrdf::{RdfDataset, TermValue};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};

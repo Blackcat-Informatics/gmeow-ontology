@@ -12,11 +12,11 @@
 //! * [`report_to_diagnostics`] — project a [`Report`] to LSP [`Diagnostic`] objects.
 
 use gmeow_diagnostics::model::{Finding, Location, Report, Rule, Severity};
-use gmeow_rdf::{parse_dataset, NativeRdfFormat};
-use gmeow_rdf_core::RdfDiagnostic;
 use lsp_types::{
     CodeDescription, Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Uri,
 };
+use purrdf::RdfDiagnostic;
+use purrdf::{parse_dataset, NativeRdfFormat};
 
 // ─── Language discriminant ───────────────────────────────────────────────────
 
@@ -77,7 +77,7 @@ fn analyze_ttl(text: &str, virtual_path: &str) -> Report {
 }
 
 /// Extract a (1-based line, 1-based column, message) triple from a native
-/// [`RdfDiagnostic`]. Uses the structured [`RdfLocation`](gmeow_rdf_core::RdfLocation)
+/// [`RdfDiagnostic`]. Uses the structured [`RdfLocation`](purrdf::RdfLocation)
 /// line/column when the parser supplies them; falls back to `(1, 1)` otherwise.
 fn extract_rdf_error(err: &RdfDiagnostic) -> (u32, u32, String) {
     let (line, col) = err

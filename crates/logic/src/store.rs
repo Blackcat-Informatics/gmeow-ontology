@@ -13,7 +13,7 @@
 use std::cell::RefCell;
 use std::sync::Arc;
 
-use gmeow_rdf::{
+use purrdf::{
     parse_dataset, DatasetMut, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, TermValue,
 };
 
@@ -203,8 +203,8 @@ impl WorldStore {
         &self,
         sparql: &str,
     ) -> Result<Vec<std::collections::BTreeMap<String, String>>, String> {
-        use gmeow_rdf::{SparqlEngine, SparqlRequest, SparqlResult};
-        use gmeow_sparql_eval::NativeSparqlEngine;
+        use purrdf::sparql::NativeSparqlEngine;
+        use purrdf::{SparqlEngine, SparqlRequest, SparqlResult};
 
         let dataset = self
             .inner
@@ -292,7 +292,7 @@ mod tests {
 
     #[test]
     fn load_dataset_preserves_named_graph_worlds() {
-        use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+        use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
         let quad =
             RdfQuad::new(RdfTerm::iri(S_A), P_A, RdfTerm::iri(O_A)).in_graph(RdfTerm::iri(WORLD_A));

@@ -30,7 +30,7 @@
 
 mod conformance_support;
 use conformance_support::*;
-use gmeow_rdf::{flat_rdf_quads_from_dataset, parse_dataset, RdfTerm};
+use purrdf::{flat_rdf_quads_from_dataset, parse_dataset, RdfTerm};
 use rstest::rstest;
 
 /// Turtle prefix block shared by all music analysis conformance tests.

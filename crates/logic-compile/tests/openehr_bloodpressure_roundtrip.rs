@@ -35,13 +35,13 @@
 //!     proving both proofs are anchored to the same RM coordinate.
 //!
 //! No openEHR/COMPOSITION parser is built: only narrow `serde_json` field access plus the
-//! first-party `gmeow_rdf` parse + RDFC-1.0 canonicalization. The complement carries an
+//! first-party `purrdf` parse + RDFC-1.0 canonicalization. The complement carries an
 //! RDF-1.2 reifier triple term (`<<( … )>>`); the native parser admits it in full — there
 //! is no subset path, parsing the whole complement is a hard requirement.
 
 use std::path::{Path, PathBuf};
 
-use gmeow_rdf::RdfDataset;
+use purrdf::RdfDataset;
 
 fn fixtures_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/APPLIED_CATEGORY_THEORY/fixtures")
@@ -59,9 +59,9 @@ fn systolic_value(composition: &serde_json::Value) -> &serde_json::Value {
 }
 
 fn canonical_nquads(turtle: &[u8]) -> String {
-    let ds = gmeow_rdf::parse_dataset(turtle, "text/turtle", None)
+    let ds = purrdf::parse_dataset(turtle, "text/turtle", None)
         .expect("native parse of RDF-1.2 Turtle (full complement, triple term included)");
-    gmeow_rdf::canonicalize(&ds).nquads
+    purrdf::canonicalize(&ds).nquads
 }
 
 #[test]
@@ -246,9 +246,9 @@ fn up_projection_reconstructs_source_from_rm_slice_and_complement() {
     // S ∖ im(get): parse the standalone complement (the part the RM slice cannot hold).
     let complement_bytes = std::fs::read(fixtures_dir().join("blood_pressure.complement.ttl"))
         .expect("read complement.ttl");
-    let complement_ds = gmeow_rdf::parse_dataset(&complement_bytes, "text/turtle", None)
+    let complement_ds = purrdf::parse_dataset(&complement_bytes, "text/turtle", None)
         .expect("native parse of the complement");
-    let complement_canon = gmeow_rdf::canonicalize(&complement_ds).nquads;
+    let complement_canon = purrdf::canonicalize(&complement_ds).nquads;
 
     // Derive the archetype-node witnesses from the complement itself — load-bearing: the
     // RM-item index is READ from gmeow:rmPath, never hardcoded.
@@ -271,19 +271,19 @@ fn up_projection_reconstructs_source_from_rm_slice_and_complement() {
     // RM slice — this is `get`, applied for real against the vendored augmented artifact.
     let augmented = read_json("blood_pressure.augmented.json");
     let minted_ttl = mint_measured_value_turtle(&witnesses, &augmented);
-    let minted_ds = gmeow_rdf::parse_dataset(minted_ttl.as_bytes(), "text/turtle", None)
+    let minted_ds = purrdf::parse_dataset(minted_ttl.as_bytes(), "text/turtle", None)
         .expect("native parse of the minted measuredValue leaves");
 
     // u(d(S)): union the re-lifted RM values with the parsed complement, canonicalize.
     let reconstructed = RdfDataset::union(&[complement_ds.as_ref(), minted_ds.as_ref()]);
-    let reconstructed_canon = gmeow_rdf::canonicalize(&reconstructed).nquads;
+    let reconstructed_canon = purrdf::canonicalize(&reconstructed).nquads;
 
     // The golden: the standalone canonical source object S.
     let source_bytes = std::fs::read(fixtures_dir().join("blood_pressure.source.ttl"))
         .expect("read blood_pressure.source.ttl");
-    let source_ds = gmeow_rdf::parse_dataset(&source_bytes, "text/turtle", None)
+    let source_ds = purrdf::parse_dataset(&source_bytes, "text/turtle", None)
         .expect("native parse of blood_pressure.source.ttl");
-    let source_canon = gmeow_rdf::canonicalize(&source_ds).nquads;
+    let source_canon = purrdf::canonicalize(&source_ds).nquads;
 
     assert_eq!(
         reconstructed_canon, source_canon,

@@ -54,7 +54,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 use crate::physical::seminaive::{evaluate, NativeOutcome, UnsupportedKind};
 use crate::physical::store::extract_edb;

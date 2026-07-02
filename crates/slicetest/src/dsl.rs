@@ -19,7 +19,7 @@ use std::sync::Arc;
 use gmeow_logic_compile::result_shape::{
     ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality, TermKind,
 };
-use gmeow_rdf_core::{RdfDataset, TermValue};
+use purrdf::{RdfDataset, TermValue};
 
 use crate::native_query::{self, render_term};
 

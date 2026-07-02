@@ -556,7 +556,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     // gate above already proved every committed path is reconstructible.
     if mode == RunMode::Regenerate {
         let fanout_started = Instant::now();
-        let report = crate::fanout::fanout(root)?;
+        let report = crate::fanout::fanout(root, jobs)?;
         timings.push(TimingRecord {
             phase: "fanout".to_string(),
             elapsed_ms: fanout_started.elapsed().as_millis(),
@@ -632,15 +632,15 @@ fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>
     // — NOT the native folded overlay sentinels. The canonical N-Quads lines are then
     // collected into the order-independent set (each already `.`-terminated).
     for media_type in ["text/turtle", "application/n-quads"] {
-        let Ok(ir) = gmeow_rdf::parse_dataset(bytes, media_type, None) else {
+        let Ok(ir) = purrdf::parse_dataset(bytes, media_type, None) else {
             continue;
         };
         // The full flat quad stream (base ∪ un-folded reifier/annotation rows) — the
         // same emptiness predicate the prior `flat_oxigraph_quads_from_dataset` guarded.
-        let quads = gmeow_rdf::flat_rdf_quads_from_dataset(&ir);
+        let quads = purrdf::flat_rdf_quads_from_dataset(&ir);
         if !quads.is_empty() {
-            let flat = gmeow_rdf::flat_dataset_from_quads(&quads).ok()?;
-            let set: std::collections::BTreeSet<String> = gmeow_rdf::canonicalize(&flat)
+            let flat = purrdf::flat_dataset_from_quads(&quads).ok()?;
+            let set: std::collections::BTreeSet<String> = purrdf::canonicalize(&flat)
                 .nquads
                 .lines()
                 .map(str::to_owned)

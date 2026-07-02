@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_rdf::{DatasetView, GraphMatch, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 use serde::Serialize;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -893,7 +893,7 @@ pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> Result<Vec<MappingRow>, 
     for path in paths {
         let text = fs::read_to_string(&path)
             .map_err(|e| format!("failed to read {}: {e}", path.display()))?;
-        let set = gmeow_rdf::sssom::parse_tsv(&text)
+        let set = purrdf::sssom::parse_tsv(&text)
             .map_err(|e| format!("failed to parse {}: {}", path.display(), e.message))?;
         let source_stem = path
             .file_stem()

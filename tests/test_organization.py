@@ -26,8 +26,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import OWL, RDF
+from purrdf.compat.rdflib import Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib.namespace import OWL, RDF
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl

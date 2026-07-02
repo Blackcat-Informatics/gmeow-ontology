@@ -18,7 +18,7 @@ Migrated to crates/validate/tests/ontology_conformance.rs:
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, URIRef
+from purrdf.compat.rdflib import OWL, RDF, Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 

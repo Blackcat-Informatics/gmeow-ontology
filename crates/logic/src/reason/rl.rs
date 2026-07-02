@@ -72,7 +72,7 @@ use std::collections::HashMap;
 
 use crate::encode::{decode_iri_term, skolem_iri, SKOLEM_PREFIX};
 use crate::nemo_engine::run_chase;
-use gmeow_rdf::{RdfDataset, RdfTerm};
+use purrdf::{RdfDataset, RdfTerm};
 
 /// IRI scheme prefix for an interned-literal surrogate (see [`encode_generic_edb`]).
 const LIT_SURROGATE_PREFIX: &str = "urn:gmeow-rl-lit:";
@@ -401,7 +401,7 @@ fn nemo_escape(value: &str) -> String {
 
 /// Render a literal as its N-Triples object form (`"v"`, `"v"@lang`,
 /// `"v"^^<dt>`) — the form rdflib parses back losslessly.
-fn literal_nt(lit: &gmeow_rdf::RdfLiteral) -> String {
+fn literal_nt(lit: &purrdf::RdfLiteral) -> String {
     // N-Triples requires escaping `\`, `"`, newline, CR, and tab in the value.
     let escaped = lit
         .lexical_form
@@ -443,7 +443,7 @@ struct Interner {
 
 impl Interner {
     /// Intern a literal, returning its stable surrogate IRI.
-    fn intern_literal(&mut self, lit: &gmeow_rdf::RdfLiteral) -> String {
+    fn intern_literal(&mut self, lit: &purrdf::RdfLiteral) -> String {
         let nt = literal_nt(lit);
         if let Some(s) = self.by_nt.get(&nt) {
             return s.clone();
@@ -571,7 +571,7 @@ pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+    use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -845,7 +845,7 @@ mod tests {
         let lit_quad = RdfQuad::new(
             RdfTerm::iri(X),
             p1,
-            RdfTerm::Literal(gmeow_rdf::RdfLiteral::language_tagged(
+            RdfTerm::Literal(purrdf::RdfLiteral::language_tagged(
                 "say \"hi\"",
                 "x-gmeow-english",
             )),
@@ -854,7 +854,7 @@ mod tests {
         let int_quad = RdfQuad::new(
             RdfTerm::iri(X),
             label,
-            RdfTerm::Literal(gmeow_rdf::RdfLiteral::typed(
+            RdfTerm::Literal(purrdf::RdfLiteral::typed(
                 "5",
                 "http://www.w3.org/2001/XMLSchema#integer",
             )),

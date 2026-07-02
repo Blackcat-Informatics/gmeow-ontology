@@ -35,7 +35,7 @@
 //! Some("EntrenchmentRevision")` rather than on a modality string — the contract
 //! carries no per-world modality, only its revision policy.
 
-use gmeow_rdf::{RdfDataset, TermRef};
+use purrdf::{RdfDataset, TermRef};
 
 use super::ir::{ReasoningContract, LOGIC_NAMESPACE};
 
@@ -509,12 +509,12 @@ mod tests {
         }
     }
 
-    fn dataset_from(ttl: &str) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+    fn dataset_from(ttl: &str) -> std::sync::Arc<purrdf::RdfDataset> {
         let header = "\
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 ";
-        gmeow_rdf::parse_dataset(format!("{header}{ttl}").as_bytes(), "text/turtle", None)
+        purrdf::parse_dataset(format!("{header}{ttl}").as_bytes(), "text/turtle", None)
             .expect("parse contract turtle")
     }
 

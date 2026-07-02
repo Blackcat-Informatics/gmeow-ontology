@@ -218,16 +218,16 @@ fn to_slug(name: &str) -> String {
 ///
 /// Returns the N-Quads text (sorted, trailing newline) and the quad count.
 fn premise_ds_to_world_nquads(
-    ds: &gmeow_rdf::RdfDataset,
+    ds: &purrdf::RdfDataset,
     world_iri: &str,
 ) -> Result<(String, usize), String> {
     // Serialize the default graph as N-Triples — the native codec handles all
     // the N3 term encoding (IRI angle-brackets, literal escaping, datatype IRIs,
     // lang tags, blank node labels) so we never re-implement it here.
-    let nt_bytes = gmeow_rdf::serialize_dataset(
+    let nt_bytes = purrdf::serialize_dataset(
         ds,
         "application/n-triples",
-        gmeow_rdf::SerializeGraph::DefaultGraph,
+        purrdf::SerializeGraph::DefaultGraph,
     )
     .map_err(|e| format!("N-Triples serialize failed: {e}"))?;
     let nt_text = String::from_utf8(nt_bytes)
@@ -311,7 +311,7 @@ fn lower_entry(
     };
 
     // ── Parse the premise RDF/XML ─────────────────────────────────────────
-    let premise_ds = match gmeow_rdf::parse_dataset(
+    let premise_ds = match purrdf::parse_dataset(
         premise_xml.as_bytes(),
         "application/rdf+xml",
         Some("http://example.org/"),
@@ -654,9 +654,9 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
         } = lowered;
 
         // ── Run the native DL consistency path ────────────────────────────────
-        let world_ds = match gmeow_rdf::dataset_from_bytes(
+        let world_ds = match purrdf::dataset_from_bytes(
             input_nq.as_bytes(),
-            gmeow_rdf::NativeRdfFormat::NQuads,
+            purrdf::NativeRdfFormat::NQuads,
         ) {
             Ok(ds) => ds,
             Err(e) => {
@@ -974,9 +974,9 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
         } = lowered;
 
         // Round-trip into a parsed dataset for dl_consistency.
-        let world_ds = match gmeow_rdf::dataset_from_bytes(
+        let world_ds = match purrdf::dataset_from_bytes(
             input_nq.as_bytes(),
-            gmeow_rdf::NativeRdfFormat::NQuads,
+            purrdf::NativeRdfFormat::NQuads,
         ) {
             Ok(ds) => ds,
             Err(e) => {
@@ -1174,11 +1174,8 @@ fn grade_ore_ontology(
     }
 
     // Parse as RDF/XML (the only OWL-bearing surface the native codecs read).
-    let ds = match gmeow_rdf::parse_dataset(
-        &bytes,
-        "application/rdf+xml",
-        Some("http://example.org/"),
-    ) {
+    let ds = match purrdf::parse_dataset(&bytes, "application/rdf+xml", Some("http://example.org/"))
+    {
         Ok(ds) => ds,
         Err(e) => {
             println!("DL-GAP {slug}: ontology unparsable as RDF/XML: {e}");

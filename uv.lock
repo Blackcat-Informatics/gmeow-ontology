@@ -683,6 +683,7 @@ dependencies = [
     { name = "jsonschema" },
     { name = "linkml" },
     { name = "markdown" },
+    { name = "purrdf" },
     { name = "pyyaml" },
     { name = "rich" },
     { name = "typer" },
@@ -720,6 +721,7 @@ requires-dist = [
     { name = "linkml", specifier = ">=1.11" },
     { name = "markdown", specifier = ">=3.10" },
     { name = "owlrl", marker = "extra == 'crosscheck'", specifier = ">=6.0.2" },
+    { name = "purrdf", specifier = ">=0.2,<0.3" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "rdflib", marker = "extra == 'crosscheck'", specifier = ">=7.6" },
     { name = "rich", specifier = ">=13.9" },
@@ -1533,6 +1535,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/4d/cf/f588bcdfd2c841839b9d59ce219a46695da56aa2805faff937bbafb9ee2b/prefixmaps-0.2.6.tar.gz", hash = "sha256:7421e1244eea610217fa1ba96c9aebd64e8162a930dc0626207cd8bf62ecf4b9", size = 709899, upload-time = "2024-10-17T16:30:57.738Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/89/b2/2b2153173f2819e3d7d1949918612981bc6bd895b75ffa392d63d115f327/prefixmaps-0.2.6-py3-none-any.whl", hash = "sha256:f6cef28a7320fc6337cf411be212948ce570333a0ce958940ef684c7fb192a62", size = 754732, upload-time = "2024-10-17T16:30:55.731Z" },
+]
+
+[[package]]
+name = "purrdf"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/2e/340b33b4f43c6db85c3c5baeb215a8d31e271129017c58198ab8adbebf95/purrdf-0.2.0.tar.gz", hash = "sha256:8f973247c7a97113837b3a56ca733dadccd7961f379090186bd1a5c5cba2b7e8", size = 1204959, upload-time = "2026-07-02T06:03:46.311Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5b/58/1f3f54cda92439430b07bb7933cfce00af4952e1841f968c435ae4fc1e13/purrdf-0.2.0-cp313-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:26e2d8996e8bf93d16e30d5d76de5ebe56ed6a80334abee572e6d90aac63e880", size = 3385141, upload-time = "2026-07-02T06:03:44.585Z" },
 ]
 
 [[package]]

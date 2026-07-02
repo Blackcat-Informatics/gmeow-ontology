@@ -6,9 +6,9 @@
 //! The docs crate used to parse each slice's `module.ttl` / example / mapping
 //! Turtle into an `oxigraph::store::Store` and pattern-match it. Every store/term
 //! type is now native: parsing folds the RDF text into the frozen
-//! [`gmeow_rdf::RdfDataset`] IR via the native codecs
-//! ([`gmeow_rdf::parse_dataset`]), and pattern queries route through the IR's
-//! indexed [`gmeow_rdf::DatasetView::quads_for_pattern`].
+//! [`purrdf::RdfDataset`] IR via the native codecs
+//! ([`purrdf::parse_dataset`]), and pattern queries route through the IR's
+//! indexed [`purrdf::DatasetView::quads_for_pattern`].
 //!
 //! The wrapper here is a *thin* twin of the slice crate's `rdf_query::Dataset`
 //! (`crates/slice/src/rdf_query.rs`), specialised to the docs extractors' exact
@@ -29,8 +29,8 @@
 
 use std::sync::Arc;
 
-use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
-use gmeow_slice::SliceError;
+use purrdf::slice::SliceError;
+use purrdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -71,9 +71,9 @@ pub(crate) enum Object {
 }
 
 /// A frozen RDF dataset plus the IRI-pattern query surface the docs extractors
-/// use. Wraps [`gmeow_rdf::RdfDataset`]; query helpers resolve a query IRI to a
+/// use. Wraps [`purrdf::RdfDataset`]; query helpers resolve a query IRI to a
 /// dataset-local term id and pattern-scan via the indexed
-/// [`gmeow_rdf::DatasetView::quads_for_pattern`].
+/// [`purrdf::DatasetView::quads_for_pattern`].
 #[derive(Debug)]
 pub(crate) struct Store {
     ds: Arc<RdfDataset>,

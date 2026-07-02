@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import XSD
-from gmeow_rdf.compat.rdflib.query import ResultRow
-from gmeow_rdf.compat.rdflib.term import Identifier
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib.term import Identifier
 
 from gmeow_tools.config import TEMPORAL_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph

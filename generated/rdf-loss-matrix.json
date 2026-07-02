@@ -11,6 +11,6 @@
     "from": "gts",
     "to": "rdf-1.2-dataset",
     "intentional": true,
-    "note": "`gmeow_gts::reader::read()` folds all segments into one term table, collapsing per-segment blank-node scope; the distinct scopes are recovered only via the streaming-event importer."
+    "note": "`purrdf_gts::reader::read()` folds all segments into one term table, collapsing per-segment blank-node scope; the distinct scopes are recovered only via the streaming-event importer."
   }
 ]

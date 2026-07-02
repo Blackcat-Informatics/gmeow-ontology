@@ -7,7 +7,7 @@
 //!
 //! `gmeow-diagnostics` defines the `Report` / `Finding` pyclasses. When that
 //! crate is statically linked into several *separate* cdylibs (the old
-//! `gmeow_rdf` / `gmeow_validate` / `gmeow_logic` / `gmeow_shacl` /
+//! `purrdf` / `gmeow_validate` / `gmeow_logic` / `purrdf::shapes` /
 //! `gmeow_diagnostics` extensions), each cdylib gets its **own** copy of the
 //! `Report` type. A `Report` produced by one extension is then "not an instance
 //! of" the `Report` of another — PyO3 raises
@@ -40,7 +40,7 @@
 //!
 //! Each submodule is also registered in `sys.modules` under its dotted name so
 //! `import gmeow_native.validate` (and friends) resolves. The legacy import
-//! names (`import gmeow_rdf`, `import gmeow_validate`, …) are thin Python shims
+//! names (`import purrdf`, `import gmeow_validate`, …) are thin Python shims
 //! (see `crates/native/python/`) that alias themselves to the matching submodule
 //! object, so the ~60 existing call sites keep working unchanged — and crucially
 //! resolve to the SAME submodule object, hence the SAME pyclass types.
@@ -60,7 +60,7 @@ fn add_engine_submodule(
 ) -> PyResult<()> {
     let sub = PyModule::new(py, name)?;
     // `PyModule::new` sets no `__file__`. The legacy import-name shims
-    // (`gmeow_logic`, `gmeow_rdf`, …) swap themselves in `sys.modules` for this
+    // (`gmeow_logic`, `purrdf`, …) swap themselves in `sys.modules` for this
     // submodule object, so it must satisfy `module.__file__` introspection — a CI
     // import smoke test exercises exactly `gmeow_logic.__file__`. Borrow the
     // parent cdylib's `__file__` (the installed `.so`).
@@ -78,7 +78,9 @@ fn add_engine_submodule(
 fn gmeow_native(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     let sys_modules = py.import("sys")?.getattr("modules")?;
 
-    add_engine_submodule(py, m, &sys_modules, "rdf", gmeow_rdf::register)?;
+    // The RDF / SHACL / slice Python surface is the external `purrdf` package
+    // (PyO3-free crates, so there is no `register` fn to fold here). This cdylib
+    // registers only the gmeow-owned engines.
     add_engine_submodule(
         py,
         m,
@@ -86,10 +88,8 @@ fn gmeow_native(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
         "diagnostics",
         gmeow_diagnostics::register,
     )?;
-    add_engine_submodule(py, m, &sys_modules, "shacl", gmeow_shacl::register)?;
     add_engine_submodule(py, m, &sys_modules, "validate", gmeow_validate::register)?;
     add_engine_submodule(py, m, &sys_modules, "logic", gmeow_logic::register)?;
-    add_engine_submodule(py, m, &sys_modules, "slice", gmeow_slice::register)?;
     add_engine_submodule(py, m, &sys_modules, "docs", gmeow_docs::register)?;
     add_engine_submodule(py, m, &sys_modules, "pipeline", gmeow_pipeline::register)?;
     add_engine_submodule(

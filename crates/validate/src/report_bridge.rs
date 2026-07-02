@@ -31,12 +31,12 @@ pub(crate) fn build_report(
     report
 }
 
-/// Convert a SHACL [`ValidationReport`](gmeow_shacl::report::ValidationReport) into
+/// Convert a SHACL [`ValidationReport`](purrdf::shapes::report::ValidationReport) into
 /// structured findings via the [`finding_from_shacl`] bridge, optionally tagging each
 /// with the example/DSL source (`origin`) as the finding's primary path so SARIF and
 /// the `gmeow:` RDF projection can attribute it.
 pub(crate) fn shacl_findings_from_report(
-    report: &gmeow_shacl::report::ValidationReport,
+    report: &purrdf::shapes::report::ValidationReport,
     origin: Option<&str>,
 ) -> Vec<Finding> {
     let mut findings: Vec<Finding> = report

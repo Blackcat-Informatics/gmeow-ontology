@@ -16,7 +16,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use gmeow_rdf::{
+use purrdf::{
     parse_dataset, DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, TermRef, TermValue,
 };
 

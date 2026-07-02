@@ -21,7 +21,7 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
+from purrdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
 
 from gmeow_tools.config import PROJECTION_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph

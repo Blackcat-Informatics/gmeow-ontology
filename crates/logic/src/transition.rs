@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_rdf::{QuadValues, TermValue};
+use purrdf::{QuadValues, TermValue};
 
 use crate::entrenchment::{Entrenchment, LeastEntrenched};
 use crate::provenance::{mint_reifier, term_n3};

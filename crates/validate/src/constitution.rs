@@ -14,7 +14,7 @@ use std::path::Path;
 use std::sync::OnceLock;
 
 use gmeow_diagnostics::{Finding, Severity};
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 
 use crate::model::rdf;
@@ -825,7 +825,7 @@ pub fn check_supersession(md_text: &str, principles: &[Principle]) -> Vec<Findin
 }
 
 fn load_dataset_from_ttl(ttl: &str) -> Result<std::sync::Arc<RdfDataset>, String> {
-    gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| e.to_string())
+    purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| e.to_string())
 }
 
 /// Run every constitution-as-code check into one granular finding list.
@@ -935,7 +935,7 @@ mod tests {
     }
 
     fn store_from(ttl: &str) -> std::sync::Arc<RdfDataset> {
-        gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
+        purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
     }
 
     const PREFIX: &str = "@prefix meta: <https://blackcatinformatics.ca/gmeow/meta#> .\n\
