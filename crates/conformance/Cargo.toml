@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-conformance"
-description = "GMEOW native logic-conformance harness (#785, T4): discovers and runs the logic conformance corpus under cargo-nextest, driving the crates/logic native engine directly (zero PyO3) and diffing against committed goldens via graph-isomorphism / canonical-JSON / cited-IRI-skeleton comparison. Replaces the Python logic_runner.py."
+description = "GMEOW native logic-conformance harness: discovers and runs the logic conformance corpus under cargo-nextest, driving the crates/logic native engine directly (zero PyO3) and diffing against committed goldens via graph-isomorphism / canonical-JSON / cited-IRI-skeleton comparison. Replaces the Python logic_runner.py."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -13,16 +13,16 @@ readme = "README.md"
 [lib]
 path = "src/lib.rs"
 
-# Release-as-evidence roll-up (#673, §18): run the corpus and materialize the
+# Release-as-evidence roll-up: run the corpus and materialize the
 # per-case verdicts as one canonical-JSON artifact for folding into the signed
 # release bundle. Driven by `make conformance-report`.
 [[bin]]
 name = "conformance-report"
 path = "src/bin/conformance_report.rs"
 
-# External-corpus ingestion CLI (#753): ingest a TPTP SZS problem / W3C manifest.ttl
-# and print the runner verdict (AC1), and the reproducible refresh entry point the
-# vendoring procedure (X2–X5) follows.
+# External-corpus ingestion CLI: ingest a TPTP SZS problem / W3C manifest.ttl
+# and print the runner verdict, and the reproducible refresh entry point the
+# corpus vendoring procedure follows.
 [[bin]]
 name = "ingest-external"
 path = "src/bin/ingest_external.rs"
@@ -37,18 +37,18 @@ gmeow-license = { path = "../license" }
 # (the SAME functions py.rs wraps), so case outputs are identical by construction.
 gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str / compile_program / projections /
-# LedgerEntry) the harness drives, split out of gmeow-logic in #732.
+# LedgerEntry) the harness drives, split out of gmeow-logic.
 gmeow-logic-compile = { path = "../logic-compile" }
 # The diagnostics model + the single gmeow:Finding RDF projection. External-corpus
 # divergences ARE restricted Findings (diagnostics doctrine), so the divergence
 # emitter reuses this model and `render::to_gmeow_rdf_in_graph` rather than minting
 # a parallel vocabulary. `gmeow-logic` already depends on it — no new layering edge.
 gmeow-diagnostics = { path = "../diagnostics" }
-# Native RDF text codecs (#909) + native flat RDFC-1.0 (#910): the comparator parses
+# Native RDF text codecs + native flat RDFC-1.0: the comparator parses
 # serialized RDF via `gmeow_rdf::parse_dataset` (oxigraph-free text ingress through the
 # gmeow-gts codecs), canonicalizes via `gmeow_rdf::canonical_flat_nquads`, and buckets
 # named graphs via `RdfDataset::project_named_graph` + `serialize_dataset` — all on the
-# native, oxigraph-free path (#906 cutover; no `oxigraph` feature). `gmeow-logic` already
+# native, oxigraph-free path (no `oxigraph` feature). `gmeow-logic` already
 # depends on this crate, so no new layering edge is created.
 purrdf = "0.2"
 # Canonical-JSON comparison (sorted keys) for verdicts / ledger / certification /
@@ -59,17 +59,17 @@ serde_json = "1"
 
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered profile.json (i.e. per
-# case directory), run in parallel. Mirrors crates/slicetest (#784, T3).
+# case directory), run in parallel. Mirrors crates/slicetest.
 datatest-stable = "0.3"
 # NOTE: `gmeow-rdf` is now a regular dependency (above) — the RDF comparator uses its
-# native canonicalizer, and the #697 native-DL gold lane parses curated OWL/gUFO
+# native canonicalizer, and the native-DL gold lane parses curated OWL/gUFO
 # fixtures into the frozen `RdfDataset` IR via the same dependency.
 
 [[test]]
 name = "conformance"
 harness = false
 
-# The #697 native⊇oracle DL gold lane: load each curated fixture, run native
+# The native⊇oracle DL gold lane: load each curated fixture, run native
 # `reason_all`, and assert the native verdict reproduces every FROZEN HermiT
 # inconsistency/unsat class. Offline + deterministic (no Docker/Java/network);
 # the standard libtest harness (not datatest-stable).
