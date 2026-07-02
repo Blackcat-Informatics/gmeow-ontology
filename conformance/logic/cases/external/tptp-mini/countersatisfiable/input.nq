@@ -1,0 +1,3 @@
+<https://blackcatinformatics.ca/gmeow/tptp#b> <http://www.w3.org/2002/07/owl#disjointWith> <https://blackcatinformatics.ca/gmeow/tptp#b-COMPLEMENT> <https://gmeow.example/tptp-mini/countersatisfiable/w> .
+<https://blackcatinformatics.ca/gmeow/tptp#x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/tptp#a> <https://gmeow.example/tptp-mini/countersatisfiable/w> .
+<https://blackcatinformatics.ca/gmeow/tptp#x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/tptp#b-COMPLEMENT> <https://gmeow.example/tptp-mini/countersatisfiable/w> .
