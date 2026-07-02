@@ -3977,7 +3977,7 @@ logic:candidateProperPartOfAsymmetric
     logic:candidateFormalizes logic:properPartOf ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 
-# ── Property-characteristic markers + central assertions (H4) ─────────────────────
+# ── Property-characteristic markers + central assertions ──────────────────────────
 # The five property-characteristic sorts, minted standalone as the canonical logic:
 # carriers. logic:transitiveProperty, logic:asymmetricProperty and
 # logic:irreflexiveProperty are defined above; logic:symmetricProperty and
@@ -4168,7 +4168,7 @@ logic:candidateFunctionalComplexKindDisjoint
 # owl:disjointWith in the kernel; logic:Endurant ⊥ logic:Perdurant and
 # logic:Event ⊥ logic:Situation here; the two class-covering logic:Formula
 # disjunctions over gmeow:Entity and logic:Object) are each governed by a
-# logic:FormalizationCandidate below, mirroring the H1 harvest pattern
+# logic:FormalizationCandidate below, following the same harvest pattern as the central axioms
 # (logic:candidateProperPartOfAsymmetric, logic:candidateFunctionalComplexKindDisjoint).
 #
 # Each candidate is accepted through review (logic:reviewedBy
@@ -6822,7 +6822,7 @@ vann:preferredNamespaceUri
     a owl:AnnotationProperty .
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Foundational class-coverings (H2). Each is a full-FOL logic:Formula disjunction
+# Foundational class-coverings. Each is a full-FOL logic:Formula disjunction
 # ∀x. Whole(x) → (S₁(x) ∨ … ∨ Sₙ(x)); the canonical RDF 1.2 projection carries it
 # exact, and the OWL projection lowers it to owl:unionOf (an exhaustive cover). The
 # member disjointness is the separate owl:disjointWith axioms, never folded into the
@@ -6938,14 +6938,14 @@ logic:coverObjectIndividuationFunctionalComplexArg
     logic:termVariable "x" .
 
 # ─────────────────────────────────────────────────────────────────────────────
-# H5 — Definitional axioms for the deception / standpoint / falsehood family.
+# Definitional axioms for the deception / standpoint / falsehood family.
 # Four object-level full-FOL logic:Formula definitions, each logic:formalizes-linked
 # to the gmeow: prose it encodes and paired with a reviewed logic:FormalizationCandidate
 # (harvest back-link + drift-checked source hash). Each formula exceeds the monotone
 # Horn+NAF fragment (nested existential, biconditional, strong negation), so it is
 # realized ONLY in the OWL / full-FOL projection and disclosed in the loss ledger — the
-# native StratifiedNAF chase does NOT enforce it (RiskProjectionOnly, mirroring the H2
-# class coverings). The intent-never-entailed guardrail is unaffected: none of these
+# native StratifiedNAF chase does NOT enforce it (RiskProjectionOnly, mirroring the
+# foundational class coverings). The intent-never-entailed guardrail is unaffected: none of these
 # formulas is a productive rule and none carries gmeow:deceptiveIntentClaim, so
 # logic:IntentNotFromDeceptionObligation's Arm A (no rule head) stays discharged.
 # ─────────────────────────────────────────────────────────────────────────────
