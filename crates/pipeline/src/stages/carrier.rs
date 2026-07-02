@@ -1479,12 +1479,18 @@ pub(crate) fn executable_docs_from_sources(
         .flat_map(|e| e.asserted.iter().cloned())
         .collect();
 
-    // Map each example subject to its example key (subjects are distinct across
-    // examples by construction — distinct example individuals).
-    let mut subject_to_example: StdBTreeMap<String, String> = StdBTreeMap::new();
+    // Map each example subject to its owning example key. A subject named by exactly one
+    // example maps to `Some(key)`; a subject shared by 2+ examples is ambiguous (we cannot
+    // tell which example induced a given inference on it) and is recorded as `None` so it
+    // routes to `cross_example` rather than being silently misattributed to whichever
+    // example happened to insert last.
+    let mut subject_to_example: StdBTreeMap<String, Option<String>> = StdBTreeMap::new();
     for ex in &parsed {
         for s in &ex.subjects {
-            subject_to_example.insert(s.clone(), ex.key.clone());
+            subject_to_example
+                .entry(s.clone())
+                .and_modify(|owner| *owner = None)
+                .or_insert_with(|| Some(ex.key.clone()));
         }
     }
 
@@ -1500,7 +1506,12 @@ pub(crate) fn executable_docs_from_sources(
             RdfTerm::Iri(iri) => Some(iri.clone()),
             _ => None,
         };
-        match subject_iri.and_then(|s| subject_to_example.get(&s).cloned()) {
+        // Unknown subject or an ambiguous (multi-example) subject both fall through to
+        // `cross_example`; only an unambiguous single-owner subject attributes directly.
+        match subject_iri
+            .and_then(|s| subject_to_example.get(&s).cloned())
+            .flatten()
+        {
             Some(key) => per_example.entry(key).or_default().push(line),
             None => cross_example.push(line),
         }
@@ -4519,5 +4530,70 @@ ex:C rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/skolem/bbb> .
             "example subject must still receive its derived type: {:?}",
             probe.inferred
         );
+    }
+
+    /// Two DIFFERENT worked examples naming the SAME subject IRI are ambiguous: neither
+    /// example can be said to have solely induced an inference on that shared subject, so
+    /// the induced inferences must route to `cross_example`, never to either example's
+    /// `.inferred` (a plain last-write-wins map would misattribute them to whichever
+    /// example happened to be parsed last).
+    #[test]
+    fn shared_subject_across_examples_routes_to_cross_example() {
+        const NS: &str = "https://example.org/gmeow-try-it/";
+        let edb = parse_dataset(EDB_TTL.as_bytes(), "text/turtle", None).expect("parse EDB");
+        let base = crate::stages::reason::reason_over_dataset(edb.as_ref()).expect("reason base");
+        let shared_ttl = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+ex:shared a ex:Dog .
+";
+        let sources = vec![
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/shared-a.ttl".to_string(),
+                text: shared_ttl.to_string(),
+            },
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/shared-b.ttl".to_string(),
+                text: shared_ttl.to_string(),
+            },
+        ];
+        let data = executable_docs_from_sources(
+            edb.as_ref(),
+            base.closure.as_bytes(),
+            &sources,
+            edb.as_ref(),
+        )
+        .expect("executable docs");
+
+        // Both `ex:shared a ex:Animal` and `ex:shared a ex:LivingThing` are induced by an
+        // asserted `ex:shared a ex:Dog`, but which example "owns" `ex:shared` is
+        // ambiguous — they must land in cross_example, not in either example's diff.
+        let expected_cross = vec![
+            format!("<{NS}shared> rdf:type <{NS}Animal>"),
+            format!("<{NS}shared> rdf:type <{NS}LivingThing>"),
+        ];
+        assert_eq!(
+            norm_all(&data.cross_example),
+            expected_cross,
+            "ambiguous shared-subject inferences must route to cross_example: {:?}",
+            norm_all(&data.cross_example)
+        );
+
+        // Neither example's diff carries the ambiguous inferences (both would be
+        // present, and only their own `asserted` line, if attribution were unambiguous
+        // — but a shared subject must never appear in a per-example `.inferred`).
+        for key in [
+            gmeow_docs::example_key(SLICE, "examples/shared-a.ttl"),
+            gmeow_docs::example_key(SLICE, "examples/shared-b.ttl"),
+        ] {
+            if let Some(diff) = data.example_inferences.get(&key) {
+                assert!(
+                    diff.inferred.is_empty(),
+                    "shared-subject inference must not be attributed to a single example {key}: {:?}",
+                    diff.inferred
+                );
+            }
+        }
     }
 }
