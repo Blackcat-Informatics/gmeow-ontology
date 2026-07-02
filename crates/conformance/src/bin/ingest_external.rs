@@ -1574,7 +1574,13 @@ fn read_ontouml_license(model_path: &Path) -> Result<Option<String>, String> {
     }
     let text = std::fs::read_to_string(&metadata)
         .map_err(|e| format!("cannot read {}: {e}", metadata.display()))?;
-    let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
+    // Resolve relative IRIs against the file's ABSOLUTE location (mirrors the vendor
+    // path): a live catalog `metadata.ttl` commonly declares its license with a
+    // document-relative IRI, which a `None` base would drop or mis-parse.
+    let abs = std::path::absolute(&metadata)
+        .map_err(|e| format!("cannot resolve {}: {e}", metadata.display()))?;
+    let base = format!("file://{}", abs.display());
+    let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", Some(&base))
         .map_err(|e| format!("cannot parse {}: {e}", metadata.display()))?;
     const LICENSE_PREDS: [&str; 3] = [
         "http://purl.org/dc/terms/license",
@@ -1650,12 +1656,19 @@ fn grade_ontouml_corpus(
         let slug = to_slug(&rel.to_string_lossy());
         let world = format!("https://gmeow.example/{corpus_name}/{slug}/w");
 
+        // Resolve relative IRIs against the model's ABSOLUTE location (mirrors the
+        // vendor path): real FAIR-catalog Turtle commonly uses document-relative IRIs,
+        // which a `None` base would mis-parse into the wrong subjects.
+        let abs = std::path::absolute(model_path)
+            .map_err(|e| format!("cannot resolve {}: {e}", model_path.display()))?;
+        let base = format!("file://{}", abs.display());
+
         // Gap-tolerant native discipline verdict. A well-formed but out-of-fragment
         // model — `Unsupported` at parse or lower time — is an honest capability gap
         // → a native `incomplete` token → a DlGap ledger row, with the reason
         // disclosed to stderr, never a silent pass. A malformed source
         // (`OntoumlError::Syntax`) is a corpus-authoring defect → a HARD FAIL.
-        let model = match parse_ontouml_model(&text, None) {
+        let model = match parse_ontouml_model(&text, Some(&base)) {
             Ok(m) => m,
             Err(OntoumlError::Syntax(m)) => {
                 return Err(format!("{}: malformed OntoUML: {m}", model_path.display()));
@@ -2132,6 +2145,36 @@ fn next(args: &mut impl Iterator<Item = String>, flag: &str) -> Result<String, S
 
 #[cfg(test)]
 mod tests {
+    /// A live catalog `metadata.ttl` commonly declares its license with a
+    /// document-relative IRI. `read_ontouml_license` must resolve it against the
+    /// file's absolute location (regression for the earlier `None` base URI, which
+    /// left the license unresolved or mis-parsed).
+    #[test]
+    fn read_ontouml_license_resolves_relative_iri_against_file_base() {
+        // Self-contained temp dir (tempfile is not a dep of this crate); the process
+        // id keeps concurrent nextest cases from colliding.
+        let dir =
+            std::env::temp_dir().join(format!("gmeow-ontouml-license-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(
+            dir.join("metadata.ttl"),
+            "@prefix dcterms: <http://purl.org/dc/terms/> .\n\
+             <> dcterms:license <LICENSE> .\n",
+        )
+        .unwrap();
+        // read_ontouml_license derives `metadata.ttl` from the model's parent dir.
+        let model_path = dir.join("model.ttl");
+        let result = super::read_ontouml_license(&model_path);
+        let _ = std::fs::remove_dir_all(&dir);
+        let license = result
+            .expect("license read must not error")
+            .expect("a declared license must be found");
+        assert!(
+            license.starts_with("file://") && license.ends_with("/LICENSE"),
+            "relative license IRI must resolve against the absolute file:// base, got {license:?}"
+        );
+    }
+
     /// `premise_ds_to_world_nquads` is not `pub`, so we test the same logic via a
     /// local helper that mirrors the fixed conversion exactly.  This keeps the test
     /// small and fast (no RDF parser, no reasoner).
