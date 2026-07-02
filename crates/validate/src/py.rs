@@ -383,6 +383,18 @@ fn build_dataset_from_nt_or_err(data_nt: &str) -> PyResult<std::sync::Arc<gmeow_
     store::dataset_from_nt(data_nt).map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
+/// The shape files excluded from the data-graph validation union (the DSL / manifest lints and
+/// the declared ValidationOnly derived-shape surface). Single source of truth:
+/// `gmeow_shacl::shape_union::EXCLUDED`, so the pySHACL corpus selection and the native
+/// validator can never drift.
+#[pyfunction]
+fn excluded_shape_files() -> Vec<String> {
+    gmeow_shacl::shape_union::EXCLUDED
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect()
+}
+
 /// Structural lint over the merged sources (mirrors `validate.structural_lint`).
 #[pyfunction]
 fn structural_lint(
@@ -1581,6 +1593,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyValidateOptions>()?;
     m.add_class::<PyValidationStore>()?;
     m.add_function(wrap_pyfunction!(annotation_predicates, m)?)?;
+    m.add_function(wrap_pyfunction!(excluded_shape_files, m)?)?;
     m.add_function(wrap_pyfunction!(is_internal_tag, m)?)?;
     m.add_function(wrap_pyfunction!(rank_language, m)?)?;
     m.add_function(wrap_pyfunction!(marked, m)?)?;

@@ -22,6 +22,8 @@ gmeow:DepictionUsage
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Depiction Usage"@x-gmeow-english ;
+    logic:mediates gmeow:depictionSubject ,
+        gmeow:depictionImage ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
@@ -74,6 +76,8 @@ gmeow:SceneGraphEdge
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Scene Graph Edge"@x-gmeow-english ;
+    logic:mediates gmeow:sceneSubject ,
+        gmeow:sceneObject ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

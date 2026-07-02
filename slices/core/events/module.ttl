@@ -132,6 +132,8 @@ gmeow:Participation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Participation"@x-gmeow-english ;
+    logic:mediates gmeow:participationEvent ,
+        gmeow:participationParticipant ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

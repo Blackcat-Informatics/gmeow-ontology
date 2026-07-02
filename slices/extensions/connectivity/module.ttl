@@ -12,6 +12,8 @@ gmeow:Connection
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Connection"@x-gmeow-english ;
+    logic:mediates gmeow:connectionSource ,
+        gmeow:connectionTarget ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified traversable link between two entities, able to bear its own period, cost, weight, bandwidth, confidence, and standpoint. The flat shortcut is gmeow:connectsTo; promote to Connection when metadata matters."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .

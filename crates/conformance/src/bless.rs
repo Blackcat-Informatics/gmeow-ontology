@@ -77,11 +77,17 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
             write_json(p, &out.projections.ledger)
         })?;
 
-        // Plain-text projections (now deterministic; gated like the RDF set).
+        // Plain-text projections (now deterministic; gated like the RDF set). The three
+        // ISO 24707 CL dialects (clif/cgif/xcl) ride the same byte-exact text path; they
+        // are produced only for a `cl-roundtrip` case (`out.projections.text` lacks the
+        // keys otherwise), so `get(target)` naturally skips them for every other case.
         for (target, filename) in [
             ("datalog", "datalog.dl"),
             ("n3", "n3.n3"),
             ("nemo", "nemo.rls"),
+            ("clif", "gmeow.clif"),
+            ("cgif", "gmeow.cgif"),
+            ("xcl", "gmeow.xcl"),
         ] {
             if let Some(content) = out.projections.text.get(target) {
                 write_if(init, &proj.join(filename), |p| write_text(p, content))?;
@@ -139,7 +145,15 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
         })?;
     }
 
-    // Answers (#504).
+    // Common Logic round-trip verdict: write the `cl-dialects.json` report for a
+    // `cl-roundtrip` case (refresh an existing golden or seed in init mode).
+    if let Some(cl) = &out.cl_dialects {
+        write_if(init, &expected.join("cl-dialects.json"), |p| {
+            write_json(p, cl)
+        })?;
+    }
+
+    // Answers.
     if !out.answers.is_empty() {
         let answers_dir = expected.join("answers");
         mkdirs(&answers_dir)?;

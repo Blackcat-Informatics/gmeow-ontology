@@ -60,10 +60,11 @@ expression algebra plus a per-profile fan-out). Three defects follow, each real:
   layer is explicit that `logic:confidence`, `logic:probability`, `logic:weight`, and
   `logic:evidenceStrength` are not interchangeable — and *determinacy* (is the target crisp or
   vague?) is a fifth, orthogonal concern the single number cannot express.
-- **Decoupled asymmetry.** Down-projection is the CONSTRUCT; up-projection is an independent
-  heuristic (`crates/pipeline/src/up_projection.rs`) that re-reads SSSOM and *re-derives* an
-  inverse, audited post hoc at ~81% liftability. Down and up are authored apart and free to
-  drift — the very defect the first inversion targeted, re-appearing one level up.
+- **Decoupled asymmetry.** Down-projection is the CONSTRUCT; up-projection *was* an independent
+  heuristic that re-read SSSOM and *re-derived* an inverse, audited post hoc at ~81% liftability.
+  Down and up were authored apart and free to drift — the very defect the first inversion targeted,
+  re-appearing one level up. (The calculus below retires that heuristic: the up-projection is now the
+  derived `put` leg of the correspondence, executed natively as a projection of the same IR.)
 
 ### 2.2 Why external standards cannot be the source of truth
 
@@ -458,7 +459,7 @@ and tooling cross over; the substrate does not. Three mechanisms are adopted as 
 
 Two further patterns adopted at no IR-shaping cost: **analysis vs transform passes with explicit
 invalidation** (the preservation-analyzer / law-checker are *analyses*; lowerings are
-*transforms*; W3's artifact-level incremental rebuild *is* analysis invalidation), and
+*transforms*; the build-pipeline executor's artifact-level incremental rebuild *is* analysis invalidation), and
 **declarative op / rewrite description** (TableGen / PDL-DRR → the closed operator algebra and
 rewrite rules authored as data — already GMEOW's dogfooded-generator shape).
 
@@ -501,7 +502,7 @@ everything:
 3. **Incremental maintenance — the biggest long-term lever.** Differential Dataflow / DBSP give
    incremental *recursive* evaluation proportional to the *change*; Rust-native and proven
    (`differential-dataflow`/`timely`, **DDlog**, **DBSP/Feldera**). This is the foundation for
-   "re-reason after an edit" and for W3 artifact-level incrementality.
+   "re-reason after an edit" and for the build-pipeline executor's artifact-level incrementality.
 4. **Worst-case-optimal joins** (Leapfrog Triejoin / free-join) for cyclic graph patterns
    (triangles, paths) where binary joins are asymptotically bad — i.e. exactly ontology reasoning.
 5. **Provenance semirings — the GMEOW unification.** Annotate tuples with a semiring element and
@@ -595,7 +596,7 @@ And OpenEHR is not one model but a **six-layer standard**; GMEOW subsumes each l
 |---|---|---|---|
 | Data (RM) | `DV_QUANTITY` in `blood_pressure.json` | `logic:` foundation; frame-relative quantity (P11) | correspondence / lens (§13.3) |
 | Constraints (AM/ADL) | `C_DV_QUANTITY` in `Blutdruck.opt` | `logic:` validation-shapes (full-FOL ⊃ ADL) | ADL → FOL lowering |
-| Process (PROC/TP-VML) | Task Plan / Work Plan | `logic:Plan` (W1) | correspondence; W2 by-reference target (§13.5) |
+| Process (PROC/TP-VML) | Task Plan / Work Plan | `logic:Plan` | correspondence; DAG-profile by-reference target (§13.5) |
 | Decision logic (DLM) | input / tracked-state / rules | `logic:` derivation rules + observation-conditioned policies | rule projection |
 | Query (AQL) | DLM-variable ↔ EHR-path bindings | `logic:` query / SPARQL projection | query lowering |
 | Terminology | `DV_CODED_TEXT` (SNOMED/LOINC) | identity-by-reference (P5) | nested correspondence |
@@ -670,14 +671,15 @@ indices, the four axes, RDF-1.2 reifier identities, multi-vantage claims.
 4. **Witness-cost** — quantify the complement's footprint; confirm content-addressed sharing
    keeps `gmeow.gts` compact enough to "ride along."
 
-### 13.5 The process axis: openEHR PROC ↔ `logic:Plan` (W1 / W2 / W3)
+### 13.5 The process axis: openEHR PROC ↔ `logic:Plan`
 
 OpenEHR's Task-Planning (PROC 1.6.0) is a *process* model, and it is a subsumption target for
-the canonical process model META-EPIC — `logic:Plan` (W1), the certified acyclic DAG profile (W2),
-and the dogfooded executor (W3). The two epics are the *same*
-projection doctrine applied to two cores (alignment and process); they meet here, because W2
-*already* generates workflow surfaces "Airflow/CWL/WDL/Temporal added by reference
-(SSSOM/EDOAL/FnO)". **The correspondence calculus is W2's mechanism, and openEHR Task Planning is
+the canonical process model — the full `logic:Plan` Transaction-Logic superset, its certified
+acyclic DAG profile, and the dogfooded build-pipeline executor. The process model and the
+correspondence calculus are the *same* projection doctrine applied to two cores (alignment and
+process); they meet here, because the by-reference DAG projection *already* generates workflow
+surfaces "Airflow/CWL/WDL/Temporal added by reference (SSSOM/EDOAL/FnO)". **The correspondence
+calculus is the DAG profile's by-reference projection mechanism, and openEHR Task Planning is
 one more by-reference projection target of `logic:Plan`.** The construct map is near-1:1:
 
 | openEHR PROC | `logic:` canonical |
@@ -697,7 +699,7 @@ reality: the EHR records outcomes and "manual notifications close gaps." This is
 plan, an on-going action) vs *arrival* (the descriptive record, a closed unitary event) — typed
 canonically as a value (Principle 9) via `logic:occurrentBoundary` over `logic:Open` /
 `logic:Closed`, and it is the
-**plan ⟂ execution** de-conflation already specified in W1 ("path vs. intention vs. causation:
+**plan ⟂ execution** de-conflation already specified in the canonical process model ("path vs. intention vs. causation:
 connected, never identified") and in `slices/extensions/procedures`. As a correspondence it is a
 **lossy lens**: the descriptive record is a reality-perturbed realization of the prescriptive
 plan, and it is **not** mnemomorphic in general — events occur outside the engine, so the plan is
@@ -710,7 +712,7 @@ Two further YAMATO process refinements — now **formalized canonically in `logi
 by-reference bridge to YAMATO terms) — sharpen the plan model: **causal parts vs temporal parts**
 (`logic:causalPartOf` ⊆ `logic:temporalPartOf`, transitive) — a plan's hand-off/callback edges are
 *causal* dependencies, carried at the domain level by `gmeow:causalPartOf` distinct from the
-temporal nesting of `gmeow:hasSubEvent`, which is what W3's typed `DataFlow` capture realizes; and
+temporal nesting of `gmeow:hasSubEvent`, which is what the build-pipeline executor's typed `DataFlow` capture realizes; and
 **process ≠ event** (a plan prescribes over dissective, changeable processes; the record is
 unitary, immutable events), the change-asymmetry — enforced by `logic:OccurrentChangeAsymmetry`
 over `logic:Closed` + `logic:Fluent` — that keeps a revisable plan distinct from a completed
@@ -787,7 +789,7 @@ committed SSSOM/EDOAL/FnO/CONSTRUCT **byte- or graph-isomorphically** (the exist
 `projection_lint`/`alignment_lint` deleted. Real files touched: `slices/core/logic/module.ttl`
 (or a new `slices/core/correspondence/` slice — see open question below);
 `crates/logic-compile/src/{ir.rs, projections/mod.rs, report.rs}`;
-`crates/pipeline/src/{up_projection.rs, stages/mappings.rs}`; `crates/slice/src/{edoal_emit,
+`crates/pipeline/src/{put_executor.rs, stages/mappings.rs}`; `crates/slice/src/{edoal_emit,
 fno_emit, sparql_emit, mapping_emit}.rs` (rendering logic *moves* under the new back-ends).
 
 **Open placement question:** a dedicated `slices/core/correspondence/` slice (its own
@@ -851,8 +853,8 @@ subsumption — and naming it honestly is worth more than papering over it.
 - OpenEHR treated as a **six-layer** subsumption (data, constraints, process, decision-logic,
   query, terminology), grounded in real GECCO data: the **data axis** (`DV_QUANTITY` section/
   retraction via the in-band complement) and the **process axis** (PROC ↔ `logic:Plan`, the
-  prescriptive↔descriptive lossy lens, joined to META-EPIC #1054 / W1–W3), with the four genuine
-  unknowns flagged rather than smoothed over.
+  prescriptive↔descriptive lossy lens, joined to the canonical process model — the `logic:Plan` superset, its acyclic DAG profile, and the build-pipeline executor), with the four
+  genuine unknowns flagged rather than smoothed over.
 - **YAMATO** (Mizoguchi 2010) adopted by-reference as a bridge view (P5), canonical in `logic:`
   (P17): the quality stratification (persistent `Quality` identity, generic-quality→role ladder,
   unit-independent true quantity) grounds the data axis; the event refinements (process ≠ event,

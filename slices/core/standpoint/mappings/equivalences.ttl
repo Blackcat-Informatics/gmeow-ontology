@@ -242,11 +242,11 @@ gmeow:eqStandpoint019 a gmeow:TermEquivalence ;
 # W3C Web Annotation deepening — StandpointClaim as Annotation.
 gmeow:eqStandpoint020 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:StandpointClaim ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject oa:Annotation ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.55 ;
-    gmeow:comment "a StandpointClaim individual projects to an OA Annotation where the body is the claim and the target is the observedFeature" ;
+    gmeow:comment "a StandpointClaim projects to an OA Annotation via a directional lowering (body is the claim, target is the observedFeature); not interchangeable, so relatedMatch" ;
     gmeow:sssomFile "gmeow-standpoint.sssom.tsv" .
 
 gmeow:eqStandpoint021 a gmeow:TermEquivalence ;

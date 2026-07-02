@@ -1,0 +1,6 @@
+{
+  "https://example.org/teleology/plan-instantiation-witness/world": {
+    "quads": 34,
+    "status": "consistent"
+  }
+}

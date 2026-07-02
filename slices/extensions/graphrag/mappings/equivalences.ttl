@@ -1,0 +1,72 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqGr001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Corpus ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q461183 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'text corpus'; curl-validated 2026-06-12" ;
+    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
+
+gmeow:eqGr002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Corpus ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:Dataset ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "the working retrieval dataset; the Croissant/RO-Crate profiles project through this cell" ;
+    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
+
+gmeow:eqGr003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Embedding ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q18395344 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "Wikidata 'word embedding' — the vector-representation technique family (no artifact-level RDF vocabulary exists; see trailer); curl-validated 2026-06-12" ;
+    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
+
+gmeow:eqGr004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:RetrievalEvent ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q121362277 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Wikidata 'retrieval-augmented generation' — the technique this event instruments; curl-validated 2026-06-12" ;
+    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
+
+gmeow:eqGr005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Community ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q105222918 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Wikidata 'community detection' — the technique producing the artifact; curl-validated 2026-06-12" ;
+    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
+
+gmeow:eqGr006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:CommunitySummary ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q1394144 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Wikidata 'automatic summarization' — the technique; the artifact also bridges via its Summary parent; curl-validated 2026-06-12" ;
+    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" .
+
+gmeow:eqProperties080 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:corpusMember ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject schema:distribution ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a dataset's corpus members are its schema:distribution DataDownloads" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .

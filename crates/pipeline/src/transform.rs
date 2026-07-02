@@ -341,7 +341,7 @@ fn convert_cells(inputs: &[CellInput]) -> Result<Vec<Cell>, String> {
             // authored `gmeow:confidence` must be an `xsd:decimal` in [0.0, 1.0]
             // — never emitted verbatim into the derived triple's provenance.
             if !cell.confidence.is_empty()
-                && crate::up_projection::decimal_confidence(&cell.confidence).is_none()
+                && crate::up_projection_corpus::decimal_confidence(&cell.confidence).is_none()
             {
                 return Err(format!(
                     "cell {} carries a malformed gmeow:confidence {:?}: expected a decimal in [0.0, 1.0]",

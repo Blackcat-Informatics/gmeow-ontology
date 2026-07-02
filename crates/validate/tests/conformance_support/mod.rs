@@ -52,6 +52,11 @@ pub const DSL_SHAPE_FILENAMES: &[&str] = &[
     "statement-dsl-shapes.ttl",
     "test-dsl-shapes.ttl",
     "slice-manifest-shapes.ttl",
+    // The derived validation-shape surface is a DECLARED ValidationOnly projection (the OPT
+    // constraint axis + the OWL-restriction reading), carried in gmeow.gts but NOT
+    // enforced against the corpus — an open-world someValuesFrom reading over-flags valid
+    // data. Excluded here exactly as `gmeow_shacl::shape_union::EXCLUDED` excludes it.
+    "validation-shapes.ttl",
 ];
 
 /// Collect `shapes/*.ttl` paths, sorted, excluding DSL-specific files.
@@ -85,7 +90,12 @@ pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
             )
         })
         .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.extension().and_then(|s| s.to_str()) == Some("ttl"))
+        .filter(|p| {
+            p.extension().and_then(|s| s.to_str()) == Some("ttl")
+                && !DSL_SHAPE_FILENAMES
+                    .iter()
+                    .any(|x| p.file_name().and_then(|n| n.to_str()) == Some(x))
+        })
         .collect();
     assert!(
         !paths.is_empty(),

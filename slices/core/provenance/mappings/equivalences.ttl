@@ -5,6 +5,7 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 
 # Term equivalences for the provenance domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-provenance.sssom.tsv by `gmeow compile-mappings`.
@@ -17,34 +18,36 @@ gmeow:mapsetProvenance a gmeow:MappingSet ;
 
 gmeow:eqProvenance001 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:Activity ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject prov:Activity ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "the general provenance-activity class, co-extensive with prov:Activity; the narrower activity kinds (Event, ObservationalActivity, ImportActivity, ...) map in by closeMatch/relatedMatch" ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
 
 gmeow:eqProvenance002 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:wasDerivedFrom ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject prov:wasDerivedFrom ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "the same derivation relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range" ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
 
 gmeow:eqProvenance003 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:wasGeneratedBy ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject prov:wasGeneratedBy ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.95 ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
 
 gmeow:eqProvenance004 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:wasAttributedTo ;
-    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignPredicate skos:exactMatch ;
     gmeow:alignObject prov:wasAttributedTo ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
+    gmeow:confidence 0.95 ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
 
 gmeow:eqProvenance005 a gmeow:TermEquivalence ;
@@ -117,11 +120,49 @@ gmeow:eqProvenance013 a gmeow:TermEquivalence ;
     gmeow:comment "prov:generated links an activity to the entity it generated; gmeow:generatedObservation specialises the range to Observation. The ObservationalActivity→prov:Activity alignment is canonical in mapping-dsl/equivalences/events.ttl (eqEvents132)." ;
     gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
 
-gmeow:eqProvenance014 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:wasDerivedFrom ;
-    gmeow:alignPredicate owl:equivalentProperty ;
-    gmeow:alignObject prov:wasDerivedFrom ;
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqClasses045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Activity ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject prov:Activity ;
     gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0 ;
-    gmeow:comment "the same derivation relation; gmeow's is deliberately domain-free so events and endurants may participate (PROV activity alignment phase 2)";
-    gmeow:sssomFile "gmeow-provenance.sssom.tsv" .
+    gmeow:confidence 0.95 ;
+    gmeow:comment "the general provenance-activity class, co-extensive with prov:Activity; the narrower activity kinds (Event, ObservationalActivity, ImportActivity, ...) map in by closeMatch/relatedMatch" ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqDcTerms030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:provenance ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject dcterms:provenance ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:comment "DCTerms provenance — a statement of changes in ownership and custody" ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" .
+
+gmeow:eqProperties034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:wasAttributedTo ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject prov:wasAttributedTo ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "the same attribution relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties035 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:wasGeneratedBy ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject prov:wasGeneratedBy ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95 ;
+    gmeow:comment "the same generation relation — an exact 1:1 term correspondence that round-trips; skos:exactMatch (not owl:equivalentProperty) keeps gmeow's deliberately domain-free property from importing prov's domain/range" ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqWikidata055 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Activity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1914636 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.75 ;
+    gmeow:objectLabel "activity" ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

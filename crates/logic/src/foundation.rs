@@ -63,6 +63,11 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 /// The `rdf:type` predicate IRI (string form).
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
+/// The `owl:FunctionalProperty` class IRI (string form).  A mediation role typed
+/// with it reaches exactly one relatum (one end); a role WITHOUT it reaches two or
+/// more (two ends) — the entity-count reading the relator-mediation discipline needs.
+const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+
 /// Sentinel rule IRI stamped on asserted (input) quads (`logic:assert`).
 pub const ASSERT_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/assert";
 
@@ -309,26 +314,46 @@ const STRATUM_1: &[Rule] = &[
     meta_rule!("RoleMixin"),
     meta_rule!("Situation"),
     meta_rule!("SubKind"),
-    // hasTwoMediatedRelata(?C, ?C) :- mediates(?C, ?R1), mediates(?C, ?R2), ?R1 != ?R2
+    // functionalProperty(?P, ?P) :- ?P rdf:type owl:FunctionalProperty
+    // A mediation role that is functional reaches exactly one relatum (one "end");
+    // a non-functional role reaches two or more.  This marker lifts the property
+    // characteristic into the chase so the entity-count reading of the mediation
+    // discipline can weight each role — a single non-functional role already
+    // mediates two distinct entities, so it satisfies the discipline on its own.
+    // Pure-positive over EDB, so it settles in this stratum, below the stratum-2
+    // hasTwoMediatedRelata rules whose NAF ranges over it.
     Rule {
         head: pos(
-            var("?C"),
-            TermPat::Const(logic_iri!("hasTwoMediatedRelata")),
-            var("?C"),
+            var("?P"),
+            TermPat::Const(logic_iri!("functionalProperty")),
+            var("?P"),
         ),
+        body: &[pos(
+            var("?P"),
+            TermPat::Const(RDF_TYPE),
+            TermPat::Const(OWL_FUNCTIONAL_PROPERTY),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // mediates(?C, ?R) :- subClassOfT(?C, ?P), mediates(?P, ?R)
+    // A relator subclass inherits the relata its ancestors mediate: a gmeow:Contract
+    // IS a gmeow:Agreement and mediates the same parties; a gmeow:Finding IS a
+    // gmeow:Observation and mediates the same observed feature and vantage.  Without
+    // this, a concrete (leaf) relator that specialises a mediated relator would count
+    // zero mediated relata of its own and spuriously trip RelComp.  Pure-positive, so
+    // it settles by fixpoint in this stratum, below the stratum-2 hasTwoMediatedRelata
+    // rules that count the relata a relator reaches.
+    Rule {
+        head: pos(var("?C"), TermPat::Const(logic_iri!("mediates")), var("?R")),
         body: &[
             pos(
                 var("?C"),
-                TermPat::Const(logic_iri!("mediates")),
-                var("?R1"),
+                TermPat::Const(logic_iri!("subClassOfT")),
+                var("?P"),
             ),
-            pos(
-                var("?C"),
-                TermPat::Const(logic_iri!("mediates")),
-                var("?R2"),
-            ),
+            pos(var("?P"), TermPat::Const(logic_iri!("mediates")), var("?R")),
         ],
-        distinct_pairs: &[("?R1", "?R2")],
+        distinct_pairs: NO_GUARD,
     },
     // subClassOfT(?C, ?A) :- subClassOfT(?B, ?A), subClassOf(?C, ?B)
     Rule {
@@ -726,6 +751,57 @@ const STRATUM_1: &[Rule] = &[
 ];
 
 const STRATUM_2: &[Rule] = &[
+    // ── Relator mediation, entity-count reading ─────────────────────────────────────
+    // A Relator must mediate at least two distinct ENTITIES.  Mediation is carried by
+    // role properties (logic:mediates names each role); the count of entities a relator
+    // reaches is the count of its roles WEIGHTED by cardinality — a functional role
+    // reaches one entity (one end), a non-functional role reaches two or more (two
+    // ends).  So a relator satisfies the discipline when it either mediates via two
+    // distinct roles, or mediates via a single non-functional role.  These two rules
+    // are the canonical, engine-native reading of the mediation discipline; the gUFO
+    // downcast is a lossy projection of them, never the authority.  Both must sit above
+    // stratum 1: the second negates functionalProperty, which settles there.
+    //
+    // hasTwoMediatedRelata(?C, ?C) :- mediates(?C, ?R1), mediates(?C, ?R2), ?R1 != ?R2
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("hasTwoMediatedRelata")),
+            var("?C"),
+        ),
+        body: &[
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("mediates")),
+                var("?R1"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("mediates")),
+                var("?R2"),
+            ),
+        ],
+        distinct_pairs: &[("?R1", "?R2")],
+    },
+    // hasTwoMediatedRelata(?C, ?C) :- mediates(?C, ?R), NOT functionalProperty(?R, ?R)
+    // A single non-functional mediation role reaches two or more entities, so it
+    // discharges the discipline on its own.
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("hasTwoMediatedRelata")),
+            var("?C"),
+        ),
+        body: &[
+            pos(var("?C"), TermPat::Const(logic_iri!("mediates")), var("?R")),
+            neg(
+                var("?R"),
+                TermPat::Const(logic_iri!("functionalProperty")),
+                var("?R"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
     // antiRigidSortalClass(?C, ?C) :- hasMetaClass(?C, logic:Phase)
     sortal_marker!("antiRigidSortalClass", "Phase"),
     // antiRigidSortalClass(?C, ?C) :- hasMetaClass(?C, logic:Role)
@@ -782,6 +858,28 @@ const STRATUM_2: &[Rule] = &[
     ancestor_marker!("isRelatorClass", "Relator"),
     // isRelatorClass(?C, ?C) :- hasMetaClass(?C, logic:Relator)
     sortal_marker!("isRelatorClass", "Relator"),
+    // isRelatorClass(?C, ?C) :- subClassOfT(?C, logic:Relator)
+    // Production relators are typed `a logic:Kind ; rdfs:subClassOf logic:Relator` — a
+    // class-edge to the Relator meta-class, never a direct `a logic:Relator`.  The two
+    // hasMetaClass-keyed markers above never bind on that shape (logic:Relator itself
+    // carries no hasMetaClass fact), leaving the relator-mediation discipline (RelComp)
+    // dormant on every production relator.  This marker confers relator-hood on every
+    // subclass of the Relator category so the discipline reaches them.  logic:Relator
+    // itself is never flagged: subClassOfT is non-reflexive, and even were it derived,
+    // concreteRelator is guarded by NOT hasLogicSubclass, which holds for logic:Relator.
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("isRelatorClass")),
+            var("?C"),
+        ),
+        body: &[pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("subClassOfT")),
+            TermPat::Const(logic_iri!("Relator")),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
     // kindAncestor(?C, ?A) :- hasMetaClass(?A, logic:Kind), subClassOfT(?C, ?A)
     Rule {
         head: pos(
