@@ -330,7 +330,10 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
                 }
             }
             ConstraintComponent::Pattern { regex, flags } => {
-                facets.push(format!("/{regex}/{}", flags.as_deref().unwrap_or("")))
+                // ShExC delimits a regex with `/…/`; a literal `/` in the pattern MUST be escaped
+                // as `\/` (and ONLY that — escaping `\` would change the regex semantics).
+                let delimited = regex.replace('/', "\\/");
+                facets.push(format!("/{delimited}/{}", flags.as_deref().unwrap_or("")))
             }
             ConstraintComponent::MinLength(n) => facets.push(format!("MINLENGTH {n}")),
             ConstraintComponent::MaxLength(n) => facets.push(format!("MAXLENGTH {n}")),
@@ -790,6 +793,28 @@ mod shex_tests {
             shex_residue(&s).iter().any(|r| r.contains("regex-dialect")),
             "{:?}",
             shex_residue(&s)
+        );
+    }
+
+    #[test]
+    fn shex_regex_escapes_the_slash_delimiter() {
+        // A `/` inside the pattern must be escaped as `\/`, else it prematurely closes the
+        // ShExC `/…/` regex literal and corrupts the shape.
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/path",
+                vec![ConstraintComponent::Pattern {
+                    regex: "^a/b$".into(),
+                    flags: None,
+                }],
+            )],
+        );
+        let shex = project_validation_shape_shex(&s);
+        assert!(
+            shex.contains("/^a\\/b$/"),
+            "the `/` delimiter must be escaped: {shex}"
         );
     }
 

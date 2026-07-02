@@ -272,7 +272,7 @@ pub fn read_all_opt_constraints(
                         flags: None,
                     })
             }
-            Some("C_CODE_PHRASE") => code_phrase_value_set(node, base_iri),
+            Some("C_CODE_PHRASE") => code_phrase_value_set(node, base_iri)?,
             // A complex-object node carries its multiplicity as a direct `<occurrences>`
             // interval — the OPT's cardinality/occurrences constraint node kind.
             Some("C_COMPLEX_OBJECT") => cardinality_from_occurrences(node, base_iri, idx)?,
@@ -325,30 +325,39 @@ fn magnitude_from_quantity(
 }
 
 /// Extract a coded value set (`<code_list>` codes qualified by `<terminology_id><value>`)
-/// from a `C_CODE_PHRASE` node. Returns `None` when the node carries no `<code_list>`.
-fn code_phrase_value_set(node: roxmltree::Node, base_iri: &str) -> Option<OptConstraintKind> {
-    let terminology = child_element(node, "terminology_id")
-        .and_then(|t| child_element(t, "value"))
-        .and_then(|v| v.text())
-        .unwrap_or("unknown")
-        .trim()
-        .to_owned();
-    let mut codes: Vec<String> = node
+/// from a `C_CODE_PHRASE` node. `Ok(None)` when the node carries no `<code_list>`; hard-fails
+/// when a `<code_list>` is present but its `<terminology_id>` qualifier is absent (a malformed
+/// OPT — never mint a bogus `unknown` terminology).
+fn code_phrase_value_set(
+    node: roxmltree::Node,
+    base_iri: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let raw_codes: Vec<&str> = node
         .children()
         .filter(|c| c.is_element() && c.tag_name().name() == "code_list")
         .filter_map(|c| c.text())
-        .map(|s| format!("{base_iri}terminology/{terminology}/{}", s.trim()))
         .collect();
-    if codes.is_empty() {
-        return None;
+    if raw_codes.is_empty() {
+        return Ok(None);
     }
+    let terminology = child_element(node, "terminology_id")
+        .and_then(|t| child_element(t, "value"))
+        .and_then(|v| v.text())
+        .map(|s| s.trim().to_owned())
+        .ok_or_else(|| {
+            opt_err("C_CODE_PHRASE with a <code_list> is missing its <terminology_id>/<value>")
+        })?;
     // A value set is a SET — carry the members in canonical (sorted) order so the lifted shape
     // (whose value-set members are sorted at construction) recovers to the identical IR.
+    let mut codes: Vec<String> = raw_codes
+        .iter()
+        .map(|s| format!("{base_iri}terminology/{terminology}/{}", s.trim()))
+        .collect();
     codes.sort();
-    Some(OptConstraintKind::ValueSet {
+    Ok(Some(OptConstraintKind::ValueSet {
         path: format!("{base_iri}definingCode"),
         codes,
-    })
+    }))
 }
 
 /// Extract a cardinality constraint from a complex-object node's direct `<occurrences>`
@@ -416,6 +425,17 @@ mod tests {
     fn missing_node_id_hard_fails() {
         let err = read_magnitude_interval("<template></template>", "at9999").unwrap_err();
         assert!(err.to_string().contains("at9999"));
+    }
+
+    #[test]
+    fn code_phrase_without_terminology_hard_fails() {
+        // A <code_list> with no <terminology_id> is malformed — hard-fail rather than mint a
+        // bogus `unknown` terminology.
+        let xml = "<c xsi:type=\"C_CODE_PHRASE\" \
+                   xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\
+                   <code_list>at0004</code_list></c>";
+        let err = read_all_opt_constraints(xml, "https://ex/").unwrap_err();
+        assert!(err.to_string().contains("terminology_id"), "got: {err}");
     }
 }
 

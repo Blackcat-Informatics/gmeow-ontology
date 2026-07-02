@@ -823,15 +823,22 @@ fn build_archive_blobs(
     // (the OPT axis + the OWL-restriction derivation), so override the stale disk read with the fresh
     // product bytes — otherwise the archive/fanout carry the last-committed file, never the
     // freshly derived shapes (the axioms archive below reads from the product for this reason).
-    if let Some(fresh) =
-        axiom_artifacts.get(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH)
-    {
-        let rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string();
-        if let Some(entry) = shapes.iter_mut().find(|(k, _)| *k == rel) {
-            entry.1 = fresh.clone();
-        } else {
-            shapes.push((rel, fresh.clone()));
-        }
+    // The fresh product MUST exist (stage-compile-logic always emits it) — falling back to the
+    // stale on-disk read is exactly the failure this override exists to prevent, so hard-fail
+    // rather than silently carry last-committed bytes (no-optionality, fail-closed).
+    let rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string();
+    let fresh = axiom_artifacts
+        .get(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH)
+        .ok_or_else(|| {
+            stage_err(
+                "carrier: stage-compile-logic produced no validation-shapes.ttl product; refusing \
+                 to carry a stale on-disk read",
+            )
+        })?;
+    if let Some(entry) = shapes.iter_mut().find(|(k, _)| *k == rel) {
+        entry.1 = fresh.clone();
+    } else {
+        shapes.push((rel, fresh.clone()));
     }
     shapes.sort_by(|a, b| a.0.cmp(&b.0));
     // axioms: the compiled logic/DL projection surface, member = repo-relative path.
@@ -3143,6 +3150,13 @@ mod ustar_tests {
                 std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
             );
         }
+        // The validation-shapes.ttl product is required (fail-closed): mirror the committed
+        // file, as the production stage-compile-logic always emits it.
+        let vs_rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH;
+        axiom_artifacts.insert(
+            vs_rel.to_string(),
+            std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
+        );
         let blobs = build_archive_blobs(
             &root,
             b"",
@@ -3232,6 +3246,13 @@ mod ustar_tests {
                 std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
             );
         }
+        // The validation-shapes.ttl product is required (fail-closed): mirror the committed
+        // file, as the production stage-compile-logic always emits it.
+        let vs_rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH;
+        axiom_artifacts.insert(
+            vs_rel.to_string(),
+            std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
+        );
         let blobs = build_archive_blobs(
             &root,
             b"",
