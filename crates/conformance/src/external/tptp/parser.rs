@@ -341,7 +341,22 @@ fn lex(src: &str) -> Result<Vec<Tok>, TptpError> {
                 }
             }
             let word = &src[start..i];
-            let first = word.chars().next().unwrap();
+            let first = word
+                .chars()
+                .next()
+                .ok_or_else(|| TptpError::Syntax("internal: empty identifier token".to_string()))?;
+            if first == '_' {
+                // A leading `_` is neither a valid TPTP variable (`<upper_word>` =
+                // `[A-Z][A-Za-z0-9_]*`) nor a valid functor (`<lower_word>` =
+                // `[a-z][A-Za-z0-9_]*`) — it is malformed FOF/CNF. Reject it rather
+                // than silently admit `_x` as a constant (which would change the
+                // problem's meaning); underscore/anonymous variables are not part of
+                // the standard first-order syntax this parser accepts.
+                return Err(TptpError::Syntax(format!(
+                    "identifier `{word}` starts with `_`, which is not a valid TPTP \
+                     variable or functor"
+                )));
+            }
             if first.is_ascii_uppercase() {
                 toks.push(Tok::Upper(word.to_string()));
             } else {
@@ -663,7 +678,8 @@ impl<'a> Parser<'a> {
             lits.push(self.cnf_literal()?);
         }
         if lits.len() == 1 {
-            Ok(lits.pop().unwrap())
+            lits.pop()
+                .ok_or_else(|| TptpError::Syntax("internal: empty CNF disjunction".to_string()))
         } else {
             Ok(Formula::Or(lits))
         }
@@ -920,6 +936,15 @@ mod tests {
     #[test]
     fn missing_trailing_dot_is_a_syntax_error() {
         let err = parse_tptp("fof(x, axiom, a(x))\n").unwrap_err();
+        assert!(matches!(err, TptpError::Syntax(_)), "{err}");
+    }
+
+    #[test]
+    fn leading_underscore_identifier_is_a_syntax_error() {
+        // A word starting with `_` is neither a valid variable (`<upper_word>`) nor a
+        // valid functor (`<lower_word>`), so it must be rejected — never silently
+        // admitted as a constant (which would change the problem's meaning).
+        let err = parse_tptp("fof(u, axiom, p(_x)).\n").unwrap_err();
         assert!(matches!(err, TptpError::Syntax(_)), "{err}");
     }
 
