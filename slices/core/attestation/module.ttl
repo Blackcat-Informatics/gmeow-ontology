@@ -12,6 +12,9 @@ gmeow:Attestation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation"@x-gmeow-english ;
+    logic:mediates gmeow:attester ,
+        gmeow:attestedSubject ,
+        gmeow:attestedClaim ;
     logic:instantiatesFramework logic:EpistemicFramework ;
     rdfs:subClassOf logic:Relator ,
         [

@@ -1485,7 +1485,7 @@ logic:RelComp
         logic:Discipline ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Relator Completeness"@x-gmeow-english ;
-    skos:definition "The OntoUML RelComp anti-pattern: a concrete Relator must mediate at least two distinct relata. A concrete Relator (one with no logic: subclass to defer its mediations to) that mediates fewer than two distinct entities violates it. The lowering of reasoning_lint.relator_mediation."@x-gmeow-english .
+    skos:definition "The OntoUML RelComp anti-pattern: a concrete Relator must mediate at least two distinct entities. Mediation is read by entity count — a relator reaches two entities either through two distinct mediation roles, or through a single non-functional role (which connects two or more entities on its own). A concrete Relator (one with no logic: subclass to defer its mediations to) that reaches fewer than two entities — a single functional role, or none — violates it. The native foundation lowering enforces it over the whole ontology; the gUFO downcast is a lossy projection of it."@x-gmeow-english .
 
 logic:RelationshipType
     a owl:Class ;
@@ -2935,7 +2935,7 @@ logic:mediates
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "mediates"@x-gmeow-english ;
-    skos:definition "Relates a Relator to one of the entities it connects: the relationship between an objectified relation and each of its relata, on which the Relator existentially depends. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp); the material relation the Relator grounds holds in virtue of these mediation links."@x-gmeow-english .
+    skos:definition "Relates a Relator to a mediation role — the relationship between an objectified relation and each of its relata, on which the Relator existentially depends. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp), reached either through two distinct roles or through a single non-functional role; the material relation the Relator grounds holds in virtue of these mediation links."@x-gmeow-english .
 
 logic:memberOf
     a owl:ObjectProperty ;
@@ -4271,6 +4271,38 @@ logic:candidateSocialInformationOverlap
     logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
     logic:candidateSemanticRisk logic:RiskAdvisory ;
     logic:candidateFormalizes gmeow:SocialObject ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+logic:cqRelatorMediationHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "relator mediation holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the relator-mediation discipline (RelComp) must satisfy: a concrete relator that mediates at least two distinct relata stays coherent — it fires no logic:violation logic:RelComp. gmeow:Commitment, which mediates gmeow:committedAgent, gmeow:commitmentBeneficiary and gmeow:intentionGoal, is well-mediated and passes."@x-gmeow-english .
+
+logic:cqRelatorMediationUnderMediatedRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "under-mediated relator rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the relator-mediation discipline must reject: a concrete relator that mediates fewer than two distinct relata is degenerate and fires logic:violation logic:RelComp — an objectified relation that connects only one entity grounds no material relation, so it is not a relator."@x-gmeow-english .
+
+logic:candidateRelatorMediation
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "every concrete relator mediates at least two distinct relata"@x-gmeow-english ;
+    skos:definition "The formalization candidate that generalizes the relator-mediation discipline (RelComp) from the hardcoded OntoUML seed relators to every subclass of the logic:Relator category, harvested from logic:Relator's own skos:definition ('A Relator must mediate at least two distinct entities'). The native foundation reasoner confers relator-hood on every class subClassOf logic:Relator and fires logic:violation logic:RelComp on any concrete (leaf) relator that mediates fewer than two distinct relata. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqRelatorMediationHolds) and a negative countermodel (logic:cqRelatorMediationUnderMediatedRejected); its harvest back-link (logic:candidateFormalizes logic:Relator, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that skos:definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b3799a43d3716eb873c0fff6c0931bf68a9bdf3b6182571a305df0cb08ba40f9"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:Relator skos:definition, which states a Relator must mediate at least two distinct entities (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "every class subClassOf logic:Relator; a concrete relator (one with no logic: subclass) must reach at least two distinct entities — two distinct logic:mediates roles, or one non-functional role — or fire logic:violation logic:RelComp"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqRelatorMediationHolds ;
+    logic:candidateNegativeCase logic:cqRelatorMediationUnderMediatedRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:Relator ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 
 # ── Closed value class: the eleven formalization categories ──────────────────────
@@ -5853,6 +5885,8 @@ logic:ControlFlowEdge
     rdfs:subClassOf logic:Relator ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Control-Flow Edge"@x-gmeow-english ;
+    logic:mediates logic:flowFrom ,
+        logic:flowTo ;
     skos:definition "A reified control-flow edge between two process nodes — the canonical FLOW-GRAPH form of control flow, mediating a source node (logic:flowFrom) and a target node (logic:flowTo). Complementary to, NOT a duplicate of, the structured-program combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback): the combinators are the program-TREE form an interpreter walks, while a logic:ControlFlowEdge is the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over. A graph carrying a logic:Iteration loop edge (or any back-edge) is outside the DAG fragment. Downstream reified control-flow relators such as gmeow:ControlFlow specialize this class. A Relator mediating two distinct relata (its flowFrom and flowTo nodes), satisfying the relator-mediation discipline."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -5861,6 +5895,8 @@ logic:DataFlowEdge
     rdfs:subClassOf logic:Relator ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Data-Flow Edge"@x-gmeow-english ;
+    logic:mediates logic:flowFrom ,
+        logic:flowTo ;
     skos:definition "A reified dataflow edge between two process nodes — the FLOW-GRAPH counterpart of the logic:dataflowConsumes property, mediating a source (producer) node via logic:flowFrom and a target (consumer) node via logic:flowTo. Use the property form (logic:dataflowConsumes) for a bare binary dependency and this reified form when an edge must carry its own attributes (the flowing entity, a guard, an order). Downstream reified dataflow relators such as gmeow:DataFlow specialize this class. A Relator mediating two distinct relata, satisfying the relator-mediation discipline."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

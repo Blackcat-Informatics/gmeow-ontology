@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: foundation/relcomp-subclass-relator
+# AC: foundation lowering — the relator-mediation discipline (RelComp) generalized
+# to the PRODUCTION relator shape, read with entity-count (cardinality) weighting.
+#
+# Production relators are typed `a logic:Kind ; logic:subClassOf logic:Relator` — a
+# class-edge to the Relator meta-class, NOT the direct `a logic:Relator` the
+# relcomp-under-mediated case uses. The hasMetaClass-keyed relator markers never
+# bind on that shape, so the discipline used to be wholly dormant on it. This case
+# proves the generalized discipline (isRelatorClass :- subClassOfT(?C, logic:Relator))
+# reaches it, and that the mediation count is read by ENTITY, not by role:
+#   * ex:Devotion   — a concrete relator (a logic:Kind, subClassOf logic:Relator, no
+#     logic: subclass) mediating a single FUNCTIONAL role (ex:devotee): one role, one
+#     end, one entity → logic:RelComp.
+#   * ex:Enrollment — the same production shape mediating TWO DISTINCT roles
+#     (ex:student, ex:course): two ends → trips nothing (negative control).
+#   * ex:Membership — the same shape mediating a single NON-functional role
+#     (ex:memberParty): one role that reaches two or more entities → two ends → trips
+#     nothing (the symmetric-relator control, e.g. an agreement bound by its parties).
+#
+# CRITICAL: the chase seeds only from input.nq world facts, so the schema facts (the
+# Kind puns, the subClassOf edges, the logic:mediates edges, and the owl:FunctionalProperty
+# type on ex:devotee) are duplicated there in the named world ex:schema; these
+# declarations are the program axioms the projections need.
+#
+# EXPECTED SIDE-ARTIFACT: logic:Relator appears here as a bare, stereotype-less
+# subClassOf object (exactly as it is declared in production, `a owl:Class`), so the
+# existing exactly-one-stereotype discipline fires logic:StereotypeCardinality on it.
+# That is orthogonal to this case's subject; logic:Relator correctly does NOT fire
+# logic:RelComp (it is not a concreteRelator — nothing makes it isRelatorClass).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/foundation/relcomp-subclass-relator/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# Schema: an under-mediated relator, a well-formed one, and a symmetric one, all in the
+# production `a logic:Kind ; subClassOf logic:Relator` shape (also world facts in input.nq).
+ex:Devotion   a logic:Kind ;
+    logic:subClassOf logic:Relator ;
+    logic:mediates ex:devotee .
+ex:devotee a owl:FunctionalProperty .
+ex:Enrollment a logic:Kind ;
+    logic:subClassOf logic:Relator ;
+    logic:mediates ex:student, ex:course .
+ex:Membership a logic:Kind ;
+    logic:subClassOf logic:Relator ;
+    logic:mediates ex:memberParty .

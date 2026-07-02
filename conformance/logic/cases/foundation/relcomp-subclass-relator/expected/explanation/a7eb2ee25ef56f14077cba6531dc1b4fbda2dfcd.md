@@ -1,0 +1,36 @@
+<!-- cited-iri-skeleton
+  http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+  https://blackcatinformatics.ca/gmeow/derivation/6cf0d30d1a853d5c59960598f1bccde852ecfc6b
+  https://blackcatinformatics.ca/gmeow/derivation/8b17e6d9121ed7379d41c8d45f51290851665902
+  https://blackcatinformatics.ca/gmeow/reifier/53b9cf4bdd16ae660a1e57a6432b6329d5261899
+  https://blackcatinformatics.ca/gmeow/reifier/a7eb2ee25ef56f14077cba6531dc1b4fbda2dfcd
+  https://blackcatinformatics.ca/logic/Kind
+  https://blackcatinformatics.ca/logic/assert
+  https://blackcatinformatics.ca/logic/hasMetaClass
+  https://blackcatinformatics.ca/logic/rule/anonymous
+  https://example.org/foundation/relcomp-subclass-relator/Enrollment
+  https://example.org/foundation/relcomp-subclass-relator/schema
+-->
+
+<!-- step-skeleton
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/6cf0d30d1a853d5c59960598f1bccde852ecfc6b
+    rule=https://blackcatinformatics.ca/logic/rule/anonymous
+    term=https://blackcatinformatics.ca/logic/Kind
+    term=https://blackcatinformatics.ca/logic/hasMetaClass
+    term=https://example.org/foundation/relcomp-subclass-relator/Enrollment
+  step derivation=https://blackcatinformatics.ca/gmeow/derivation/8b17e6d9121ed7379d41c8d45f51290851665902
+    rule=https://blackcatinformatics.ca/logic/assert
+    term=http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+    term=https://blackcatinformatics.ca/logic/Kind
+    term=https://example.org/foundation/relcomp-subclass-relator/Enrollment
+-->
+
+# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/a7eb2ee25ef56f14077cba6531dc1b4fbda2dfcd>`
+
+**World:** `<https://example.org/foundation/relcomp-subclass-relator/schema>`
+**Target derivation:** `<https://blackcatinformatics.ca/gmeow/derivation/6cf0d30d1a853d5c59960598f1bccde852ecfc6b>`
+
+**Derived** by rule `<https://blackcatinformatics.ca/logic/rule/anonymous>`:
+  `<https://example.org/foundation/relcomp-subclass-relator/Enrollment>` `<https://blackcatinformatics.ca/logic/hasMetaClass>` `<https://blackcatinformatics.ca/logic/Kind>` *(in `<https://example.org/foundation/relcomp-subclass-relator/schema>`)*
+  **Asserted fact** (input — `<https://blackcatinformatics.ca/gmeow/reifier/53b9cf4bdd16ae660a1e57a6432b6329d5261899>`):
+    `<https://example.org/foundation/relcomp-subclass-relator/Enrollment>` `<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>` `<https://blackcatinformatics.ca/logic/Kind>` *(in `<https://example.org/foundation/relcomp-subclass-relator/schema>`)*

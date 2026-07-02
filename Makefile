@@ -80,7 +80,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 .PHONY: help \
 	install fmt lint \
 	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify test test-fast rust-build rust-test rust-docs check \
-	regenerate check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
+	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
@@ -177,6 +177,9 @@ check: native-py ## Run the full Docker-free local quality gate.
 
 regenerate: native-py ## Rebuild all checked-in generated artifacts from canonical sources.
 	$(GMEOW_DEV) regenerate -j $(NPROC)
+
+fanout: native-py ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
+	$(GMEOW_DEV) fanout -j $(NPROC)
 
 check-generated: native-py ## Drift + orphan check for all registered generators.
 	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS)
@@ -317,8 +320,8 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
-coherence-gate-teeth: rust-build ## Run the whole-ontology coherence-gate teeth proof on-gate (budget-exempt, ~95s).
-	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_coherence_gate/)'
+coherence-gate-teeth: rust-build ## Run the whole-ontology coherence + relator-mediation gate teeth proofs on-gate (budget-exempt, ~95s).
+	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_.*gate/)'
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings

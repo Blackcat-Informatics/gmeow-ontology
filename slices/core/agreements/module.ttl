@@ -11,6 +11,7 @@ gmeow:Agreement
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Agreement"@x-gmeow-english ;
+    logic:mediates gmeow:hasParty ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A mutual understanding between two or more agents that creates obligations or rights, reified as a relator connecting its parties."@x-gmeow-english ;
     skos:example "ex:partnership a gmeow:Agreement ; gmeow:hasParty ex:lillith, ex:vendor ."@x-gmeow-english ;

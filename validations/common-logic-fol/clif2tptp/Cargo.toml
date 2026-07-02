@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# A lane-local, detached (empty [workspace]) binary crate: it must build entirely
+# outside the gmeow-ontology cargo workspace (this Makefile lane lives outside
+# `make check`), while still reusing the real `gmeow_logic_compile::clif` reader.
+
+[workspace]
+
+[package]
+name = "clif2tptp"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[dependencies]
+gmeow-logic-compile = { path = "../../../crates/logic-compile" }
