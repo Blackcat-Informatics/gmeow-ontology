@@ -4151,6 +4151,8 @@ export interface Embedding extends InformationObject {
 }
 
 export interface Emotion extends AffectiveMoment {
+    affectiveElicitor?: string[],
+    affectiveTarget?: string[],
     emotionBearer?: Agent,
     emotionType?: EmotionType[],
 }

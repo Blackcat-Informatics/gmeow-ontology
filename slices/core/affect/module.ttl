@@ -65,7 +65,32 @@ gmeow:EmotionType
     rdfs:label "Emotion Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of an emotion — an OPEN value vocabulary seeded with Plutchik's primary eight (the EmotionML standard set). Registry-independent and contestable, never a tree (the Genre/Register precedent): traditions disagree about the emotion inventory itself, and that disagreement is data, not error (Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "Typed logic:AbstractIndividualType ⊑ logic:QualityValue — the repo-wide idiom for an open value vocabulary of individuals. Purist note: logic:Mode is defined as an aspect lacking a quality value, so classifying an emotion's TYPE with points in a quality space is a mild UFO category tension; GMEOW uses logic:QualityValue as the universal genus for any open value vocabulary (status enums, algorithm names, etc.), so this is house style, not a defect."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:affectiveElicitor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Emotion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "affective elicitor"@x-gmeow-english ;
+    skos:definition "The event, state, or act that TRIGGERED an emotion — its elicitor/cause (the bark that frightened, the news that saddened). Distinct from gmeow:affectiveTarget (what the emotion is ABOUT) and gmeow:emotionBearer (in whom it inheres); conflating cause with aboutness is a modeling error. Range intentionally open; non-functional (several things may contribute)."@x-gmeow-english ;
+    skos:example "ex:startle gmeow:affectiveElicitor ex:suddenBark ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for what the emotion is ABOUT (its intentional object) — that is gmeow:affectiveTarget; and avoid it for the bearer (gmeow:emotionBearer)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point it from an Emotion at the occurrent (event/act/state) that gave rise to it; leave the range open (constrained to an IRI by SHACL)."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the trigger/cause of an affective state, kept separate from its aboutness."@x-gmeow-english .
+
+gmeow:affectiveTarget
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Emotion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "affective target"@x-gmeow-english ;
+    skos:definition "What an emotion is ABOUT — its intentional object (the dog one fears, the outcome one is proud of). Distinct from gmeow:affectiveElicitor (what TRIGGERED it) and gmeow:emotionBearer (in whom it inheres). Range intentionally open; non-functional (an emotion may be about several things)."@x-gmeow-english ;
+    skos:example "ex:fearOfDog gmeow:affectiveTarget ex:theDog ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for what merely TRIGGERED the emotion (that is gmeow:affectiveElicitor) or for the bearer (gmeow:emotionBearer)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point it from an Emotion at its intentional object; leave the range open (constrained to an IRI by SHACL)."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what an emotion is directed at / about, kept separate from its trigger."@x-gmeow-english .
 
 gmeow:appraisalDimension
     a owl:ObjectProperty ;

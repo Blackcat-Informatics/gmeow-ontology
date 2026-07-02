@@ -1180,6 +1180,8 @@ classes:
     title: Emotion
     is_a: AffectiveMoment
     slots:
+    - affectiveElicitor
+    - affectiveTarget
     - emotionBearer
     - emotionType
   EmotionType:
@@ -4496,6 +4498,18 @@ slots:
     title: affected language
     range: Language
     domain: LanguageChangeEvent
+    multivalued: true
+  affectiveElicitor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/affectiveElicitor
+    title: affective elicitor
+    range: uriorcurie
+    domain: Emotion
+    multivalued: true
+  affectiveTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/affectiveTarget
+    title: affective target
+    range: uriorcurie
+    domain: Emotion
     multivalued: true
   after:
     slot_uri: https://blackcatinformatics.ca/gmeow/after
