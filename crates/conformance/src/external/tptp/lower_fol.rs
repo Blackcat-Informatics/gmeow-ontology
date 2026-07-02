@@ -260,10 +260,47 @@ fn lower_universal_body(
                     .into(),
             )),
         },
+        // A binary CNF clause: `¬C(X) ∨ D(X)` = subclass; `¬C(X) ∨ ¬D(X)` =
+        // disjointness. A two-positive clause `C(X) ∨ D(X)` (`⊤ ⊑ C ⊔ D`) is a genuine
+        // disjunction — outside the EL fragment.
+        Formula::Or(lits) if lits.len() == 2 => {
+            let (p0, c0) = classify_literal(&lits[0], var)?;
+            let (p1, c1) = classify_literal(&lits[1], var)?;
+            match (p0, p1) {
+                // ¬c0 ∨ c1 = c0 ⊑ c1.
+                (false, true) => out.push((c0, RDFS_SUBCLASSOF.to_string(), c1)),
+                // c0 ∨ ¬c1 = c1 ⊑ c0.
+                (true, false) => out.push((c1, RDFS_SUBCLASSOF.to_string(), c0)),
+                // ¬c0 ∨ ¬c1 = c0 ⊥ c1.
+                (false, false) => out.push((c0, OWL_DISJOINTWITH.to_string(), c1)),
+                // c0 ∨ c1 = ⊤ ⊑ c0 ⊔ c1 — a disjunctive head, not EL-expressible.
+                (true, true) => {
+                    return Err(gap(
+                        "two-positive clause (`⊤ ⊑ C ⊔ D`) is a disjunction outside the \
+                         EL fragment"
+                            .into(),
+                    ))
+                }
+            }
+            Ok(())
+        }
         _ => Err(gap(format!(
             "universal body shape {} is not an EL axiom (expected `C(X) → D(X)`, \
-             `C(X) → ¬D(X)`, or `¬(C(X) ∧ D(X))`)",
+             `C(X) → ¬D(X)`, `¬(C(X) ∧ D(X))`, or a binary CNF clause)",
             shape_name(body)
+        ))),
+    }
+}
+
+/// Classify a CNF clause literal over `var` into `(is_positive, class_iri)`. A
+/// `¬C(X)` literal is negative, a bare `C(X)` positive; anything else is a gap.
+fn classify_literal(lit: &Formula, var: &str) -> Result<(bool, String), LoweringGap> {
+    match lit {
+        Formula::Not(inner) => Ok((false, unary_class_over(inner, var)?)),
+        atom @ Formula::Atom { .. } => Ok((true, unary_class_over(atom, var)?)),
+        _ => Err(gap(format!(
+            "clause literal shape {} is not a (negated) unary atom",
+            shape_name(lit)
         ))),
     }
 }
@@ -467,6 +504,25 @@ mod tests {
             fof(a_sub_b, axiom, ![X] : (a(X) => b(X))).\n\
             fof(goal, conjecture, ![X] : (a(X) => c(X))).\n";
         assert_eq!(decide(src).unwrap(), ExternalOutcome::Consistent);
+    }
+
+    #[test]
+    fn cnf_disjointness_clash_is_inconsistent() {
+        // Same unsat-clash, authored in CNF: ¬a∨b, ¬a∨c, ¬b∨¬c, a(x).
+        let src = "\
+            cnf(a_sub_b, axiom, ( ~a(X) | b(X) )).\n\
+            cnf(a_sub_c, axiom, ( ~a(X) | c(X) )).\n\
+            cnf(b_disj_c, axiom, ( ~b(X) | ~c(X) )).\n\
+            cnf(x_is_a, axiom, a(x)).\n";
+        assert_eq!(decide(src).unwrap(), ExternalOutcome::Inconsistent);
+    }
+
+    #[test]
+    fn cnf_two_positive_clause_is_a_capability_gap() {
+        // `a(X) | b(X)` = ⊤ ⊑ a ⊔ b, a genuine disjunction outside EL.
+        let src = "cnf(c, axiom, ( a(X) | b(X) )).\n";
+        let err = decide(src).unwrap_err();
+        assert!(err.reason.contains("disjunction"), "{err}");
     }
 
     #[test]

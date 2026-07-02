@@ -211,9 +211,10 @@ fn external_corpus_verdicts_match_their_third_party_source() {
     }
 
     assert!(
-        checked >= 24,
-        "expected ≥24 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19; the \
-         w3c-owl2-el-divergence lane is excluded above), found {checked}"
+        checked >= 30,
+        "expected ≥30 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19, \
+         tptp-mini ×6; the w3c-owl2-el-divergence and tptp-mini-divergence lanes are \
+         excluded above), found {checked}"
     );
     assert!(
         failures.is_empty(),
