@@ -2,28 +2,30 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 #
 # Conformance case: foundation/relcomp-under-mediated
-# AC: foundation lowering — OntoUML RelComp discipline (issue #503).
+# AC: foundation lowering — the OntoUML RelComp discipline, read by ENTITY count.
 #
-# Reproduces reasoning_lint.relator_mediation in its logic-layer reading: a
-# concrete relator must mediate at least two DISTINCT relata (the logic layer
-# counts distinct logic:mediates relata ≥2; the gUFO functional/non-functional
-# end-weighting is a downcast concern checked in Task 6, not here).
-#   * ex:Marriage   — a concrete logic:Relator (no logic: subclass) with ONLY ONE
-#     logic:mediates relatum (ex:Spouse1) → logic:RelComp.
-#   * ex:Employment — a well-formed concrete logic:Relator with TWO DISTINCT
-#     logic:mediates relata (ex:Employer, ex:Employee) → trips nothing (negative
-#     control).
+# A concrete relator must mediate at least two distinct ENTITIES. Mediation is carried
+# by role properties (logic:mediates names each role); a functional role reaches one
+# entity (one end), a non-functional role reaches two or more (two ends). So a relator
+# is degenerate iff it reaches fewer than two entities — a single functional role.
+#   * ex:Marriage   — a concrete logic:Relator (no logic: subclass) mediating a single
+#     FUNCTIONAL role (ex:spouse): one end → logic:RelComp.
+#   * ex:Employment — a well-formed concrete logic:Relator mediating TWO DISTINCT roles
+#     (ex:employer, ex:employee): two ends → trips nothing (negative control).
 #
-# CRITICAL: the chase seeds only from input.nq world facts, so the schema facts
-# (the Relator puns + the logic:mediates edges) are duplicated there in the named
-# world ex:schema; these declarations are the program axioms the projections need.
+# CRITICAL: the chase seeds only from input.nq world facts, so the schema facts (the
+# Relator puns, the logic:mediates edges, and the owl:FunctionalProperty type on
+# ex:spouse) are duplicated there in the named world ex:schema; these declarations are
+# the program axioms the projections need.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://example.org/foundation/relcomp-under-mediated/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 
 # Schema: an under-mediated relator and a well-formed one (also world facts in input.nq).
 ex:Marriage   a logic:Relator ;
-    logic:mediates ex:Spouse1 .
+    logic:mediates ex:spouse .
+ex:spouse a owl:FunctionalProperty .
 ex:Employment a logic:Relator ;
-    logic:mediates ex:Employer, ex:Employee .
+    logic:mediates ex:employer, ex:employee .

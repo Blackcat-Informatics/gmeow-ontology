@@ -10,11 +10,14 @@
 
 # === Axioms ===
 <https://example.org/foundation/relcomp-subclass-relator/Devotion> a <https://blackcatinformatics.ca/logic/Kind> .
-<https://example.org/foundation/relcomp-subclass-relator/Devotion> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-subclass-relator/Devotee> .
+<https://example.org/foundation/relcomp-subclass-relator/Devotion> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-subclass-relator/devotee> .
 <https://example.org/foundation/relcomp-subclass-relator/Devotion> <https://blackcatinformatics.ca/logic/subClassOf> <https://blackcatinformatics.ca/logic/Relator> .
 <https://example.org/foundation/relcomp-subclass-relator/Enrollment> a <https://blackcatinformatics.ca/logic/Kind> .
-<https://example.org/foundation/relcomp-subclass-relator/Enrollment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-subclass-relator/Course> .
-<https://example.org/foundation/relcomp-subclass-relator/Enrollment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-subclass-relator/Student> .
+<https://example.org/foundation/relcomp-subclass-relator/Enrollment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-subclass-relator/course> .
+<https://example.org/foundation/relcomp-subclass-relator/Enrollment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-subclass-relator/student> .
 <https://example.org/foundation/relcomp-subclass-relator/Enrollment> <https://blackcatinformatics.ca/logic/subClassOf> <https://blackcatinformatics.ca/logic/Relator> .
+<https://example.org/foundation/relcomp-subclass-relator/Membership> a <https://blackcatinformatics.ca/logic/Kind> .
+<https://example.org/foundation/relcomp-subclass-relator/Membership> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-subclass-relator/memberParty> .
+<https://example.org/foundation/relcomp-subclass-relator/Membership> <https://blackcatinformatics.ca/logic/subClassOf> <https://blackcatinformatics.ca/logic/Relator> .
 
 # === Rules ===
