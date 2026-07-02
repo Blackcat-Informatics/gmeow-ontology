@@ -2206,6 +2206,11 @@ pub struct LogicProgram {
     /// Horn+NAF stays in [`Self::axioms`] / [`Self::rules`] — a trivially-Horn leaf may
     /// not enter here.
     pub formulas: Vec<Formula>,
+    /// Closed-world validation shapes (`logic:ValidationShape`) in canonical (IRI) order —
+    /// the canonical form the SHACL Core / ShEx surfaces project from. Attached via
+    /// [`LogicProgram::with_validation_shapes`]; empty for the historical shape-free corpus,
+    /// so the canonical key is byte-unchanged there.
+    pub validation_shapes: Vec<ValidationShapeIr>,
     /// IRI of the source graph/document (optional provenance).
     pub source_iri: Option<String>,
 }
@@ -2233,6 +2238,7 @@ impl LogicProgram {
             correspondences: Vec::new(),
             transaction_programs: Vec::new(),
             formulas: Vec::new(),
+            validation_shapes: Vec::new(),
             source_iri,
         }
     }
@@ -2293,6 +2299,24 @@ impl LogicProgram {
         let mut formulas = formulas;
         formulas.sort_by_cached_key(Formula::sort_key);
         self.formulas = formulas;
+        self
+    }
+
+    /// Attach the program's `logic:ValidationShape` nodes, canonicalizing them into IRI
+    /// order. Kept separate from [`Self::new`] so existing call sites are untouched and the
+    /// byte-pinned canonical key of a shape-free program is unchanged (the validation-shapes
+    /// segment is append-only at the fixed tail when present).
+    pub fn with_validation_shapes(mut self, validation_shapes: Vec<ValidationShapeIr>) -> Self {
+        let mut validation_shapes = validation_shapes;
+        // Sort by IRI directly (no key clone). The IRI is the shape's identity, so two shapes
+        // sharing one would make `canonical_key` depend on supply order — a hard invariant
+        // violation, not a recoverable state, so reject it rather than silently keep both.
+        validation_shapes.sort_by(|a, b| a.iri.cmp(&b.iri));
+        assert!(
+            validation_shapes.windows(2).all(|w| w[0].iri != w[1].iri),
+            "LogicProgram.validation_shapes must not contain duplicate shape IRIs"
+        );
+        self.validation_shapes = validation_shapes;
         self
     }
 
@@ -2368,9 +2392,26 @@ impl LogicProgram {
             key.push_str("\nTRANSACTIONPROGRAMS\n");
             key.push_str(&legs);
         }
+        // Append-only at the FIXED tail: a validation-shape-free program keeps its exact key.
+        if !self.validation_shapes.is_empty() {
+            let shapes = self
+                .validation_shapes
+                .iter()
+                .map(ValidationShapeIr::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nVALIDATIONSHAPES\n");
+            key.push_str(&shapes);
+        }
         key
     }
 }
+
+mod validation;
+pub use validation::{
+    ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
+    ShapeValue, ValidationShapeIr,
+};
 
 #[cfg(test)]
 mod tests;

@@ -43,6 +43,7 @@ gmeow-rdf = { path = "../rdf", features = ["gts"] }
 # rather than transcribing bounds by hand. Same version pin as crates/rdf and
 # crates/music.
 roxmltree = "0.20"
+gmeow-logic-compile = { path = "../logic-compile" }
 
 # pyo3 native-only: cannot link into wasm. The engine core is PyO3-free; only
 # py.rs uses it, so the rlib links into the future Rust compiler without Python.
