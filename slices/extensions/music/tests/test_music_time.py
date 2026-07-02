@@ -176,6 +176,29 @@ def test_musical_time_span_valid_passes_shacl() -> None:
     g.add((span, GMEOW.timeStartDenominator, Literal(1, datatype=XSD.integer)))
     g.add((span, GMEOW.timeDurationNumerator, Literal(5, datatype=XSD.integer)))
     g.add((span, GMEOW.timeDurationDenominator, Literal(8, datatype=XSD.integer)))
+    # Standalone fixture (no ontology import): restate the referenced canonical
+    # MusicalTimeFrame individual in-graph — the generated sh:class range shape
+    # requires it typed, and MusicalTimeFrameShape then requires its frame
+    # descriptors (values copied verbatim from slices/extensions/music/module.ttl,
+    # gmeow:musicalTimeFrameCommon). Honest ABox completion (P11), no fabrication.
+    g.add((GMEOW.musicalTimeFrameCommon, RDF.type, GMEOW.MusicalTimeFrame))
+    g.add((GMEOW.musicalTimeFrameCommon, GMEOW.frameRealm, GMEOW.frameRealmMusicalTime))
+    g.add((GMEOW.musicalTimeFrameCommon, GMEOW.frameKind, GMEOW.frameKindScalar))
+    g.add(
+        (
+            GMEOW.musicalTimeFrameCommon,
+            GMEOW.dimensionCount,
+            Literal(1, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((GMEOW.musicalTimeFrameCommon, GMEOW.hasAxis, GMEOW.axisTime))
+    g.add(
+        (
+            GMEOW.musicalTimeFrameCommon,
+            GMEOW.requiresHost,
+            Literal(False, datatype=XSD.boolean),
+        )
+    )
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 

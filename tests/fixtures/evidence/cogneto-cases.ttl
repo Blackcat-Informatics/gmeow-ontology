@@ -41,20 +41,27 @@ ex:claimCognetoEmploymentTerms
 # --- Source: InfoWorld article -------------------------------------------------
 
 ex:sourceInfoWorldCogneto
-    a gmeow:Entity ;
+    a gmeow:CreativeWork ;
     rdfs:label "Cogneto: to identity and beyond! (InfoWorld)"@en .
 
 # --- Source: OrgBook BC registry entry -----------------------------------------
 
 ex:sourceOrgBookCogneto
-    a gmeow:Entity ;
+    a gmeow:CreativeWork ;
     rdfs:label "OrgBook BC registry entry for Cogneto Development Inc."@en .
 
 # --- Source: private employment contract ---------------------------------------
 
 ex:sourcePrivateCognetoContract
-    a gmeow:Entity ;
+    a gmeow:CreativeWork ;
     rdfs:label "Private employment contract — Cogneto Development Inc."@en .
+
+# --- Citation-intent vocabulary value, restated locally: this fixture is
+# validated standalone (no ontology import), and the generated CitationAct
+# range shape requires gmeow:citationIntent to resolve to a gmeow:CitationIntent
+# in the SAME data graph (Principle 11 — no implicit closed-world types).
+
+gmeow:intentCitesAsDataSource a gmeow:CitationIntent .
 
 # =========================================================================== #
 # Case 1 — InfoWorld article: independent secondary significant coverage.

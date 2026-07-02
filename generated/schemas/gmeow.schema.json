@@ -1231,9 +1231,6 @@
             {
               "anyOf": [
                 {
-                  "type": "string"
-                },
-                {
                   "properties": {
                     "@type": {
                       "type": "string"
@@ -1244,15 +1241,15 @@
                     "@value"
                   ],
                   "type": "object"
+                },
+                {
+                  "type": "string"
                 }
               ]
             },
             {
               "items": {
                 "anyOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "properties": {
                       "@type": {
@@ -1264,6 +1261,9 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
@@ -1435,9 +1435,6 @@
             {
               "anyOf": [
                 {
-                  "type": "string"
-                },
-                {
                   "properties": {
                     "@type": {
                       "type": "string"
@@ -1448,15 +1445,15 @@
                     "@value"
                   ],
                   "type": "object"
+                },
+                {
+                  "type": "string"
                 }
               ]
             },
             {
               "items": {
                 "anyOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "properties": {
                       "@type": {
@@ -1468,6 +1465,9 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
@@ -1549,9 +1549,6 @@
             {
               "anyOf": [
                 {
-                  "type": "string"
-                },
-                {
                   "properties": {
                     "@type": {
                       "type": "string"
@@ -1562,15 +1559,15 @@
                     "@value"
                   ],
                   "type": "object"
+                },
+                {
+                  "type": "string"
                 }
               ]
             },
             {
               "items": {
                 "anyOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "properties": {
                       "@type": {
@@ -1582,6 +1579,9 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
@@ -3360,41 +3360,27 @@
         "gmeow:contradictsClaim": {
           "anyOf": [
             {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/Entity"
-                },
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+              "properties": {
+                "@id": {
+                  "type": "string"
                 }
-              ]
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             },
             {
               "items": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Entity"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
+                "properties": {
+                  "@id": {
+                    "type": "string"
                   }
-                ]
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               "type": "array"
             }
@@ -8881,9 +8867,6 @@
             {
               "anyOf": [
                 {
-                  "type": "string"
-                },
-                {
                   "properties": {
                     "@type": {
                       "type": "string"
@@ -8894,15 +8877,15 @@
                     "@value"
                   ],
                   "type": "object"
+                },
+                {
+                  "type": "string"
                 }
               ]
             },
             {
               "items": {
                 "anyOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "properties": {
                       "@type": {
@@ -8914,6 +8897,9 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
@@ -23835,9 +23821,6 @@
             {
               "anyOf": [
                 {
-                  "type": "string"
-                },
-                {
                   "properties": {
                     "@type": {
                       "type": "string"
@@ -23848,15 +23831,15 @@
                     "@value"
                   ],
                   "type": "object"
+                },
+                {
+                  "type": "string"
                 }
               ]
             },
             {
               "items": {
                 "anyOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "properties": {
                       "@type": {
@@ -23868,6 +23851,9 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
@@ -25996,9 +25982,6 @@
             {
               "anyOf": [
                 {
-                  "type": "string"
-                },
-                {
                   "properties": {
                     "@type": {
                       "type": "string"
@@ -26009,15 +25992,15 @@
                     "@value"
                   ],
                   "type": "object"
+                },
+                {
+                  "type": "string"
                 }
               ]
             },
             {
               "items": {
                 "anyOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "properties": {
                       "@type": {
@@ -26029,6 +26012,9 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
@@ -26161,9 +26147,6 @@
             {
               "anyOf": [
                 {
-                  "type": "string"
-                },
-                {
                   "properties": {
                     "@type": {
                       "type": "string"
@@ -26174,15 +26157,15 @@
                     "@value"
                   ],
                   "type": "object"
+                },
+                {
+                  "type": "string"
                 }
               ]
             },
             {
               "items": {
                 "anyOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "properties": {
                       "@type": {
@@ -26194,6 +26177,9 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },
@@ -26206,9 +26192,6 @@
             {
               "anyOf": [
                 {
-                  "type": "string"
-                },
-                {
                   "properties": {
                     "@type": {
                       "type": "string"
@@ -26219,15 +26202,15 @@
                     "@value"
                   ],
                   "type": "object"
+                },
+                {
+                  "type": "string"
                 }
               ]
             },
             {
               "items": {
                 "anyOf": [
-                  {
-                    "type": "string"
-                  },
                   {
                     "properties": {
                       "@type": {
@@ -26239,6 +26222,9 @@
                       "@value"
                     ],
                     "type": "object"
+                  },
+                  {
+                    "type": "string"
                   }
                 ]
               },

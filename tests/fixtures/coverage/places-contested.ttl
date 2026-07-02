@@ -15,12 +15,21 @@ ex:standpoint-polity-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandp
 
 # A contested sovereignty case: a place is containedInPlace two larger places,
 # each asserted by a different polity standpoint.
-ex:disputedPlace a gmeow:Place ;
+ex:disputedPlace a gmeow:Place ,
+        gmeow:Entity ;
     gmeow:placeType gmeow:placeTypeRegion ;
     gmeow:containedInPlace ex:polityA , ex:polityB .
 
-ex:polityA a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry .
-ex:polityB a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry .
+# Each polity doubles as the Place it governs AND the governing Organization
+# (an Agent) that gmeow:jurisdictionPolity requires — a country is both.
+ex:polityA a gmeow:Place ,
+        gmeow:Organization ,
+        gmeow:Agent ;
+    gmeow:placeType gmeow:placeTypeCountry .
+ex:polityB a gmeow:Place ,
+        gmeow:Organization ,
+        gmeow:Agent ;
+    gmeow:placeType gmeow:placeTypeCountry .
 
 ex:claimContainedInA a owl:Axiom ;
     owl:annotatedSource   ex:disputedPlace ;
@@ -41,12 +50,14 @@ ex:claimContainedInB a owl:Axiom ;
 # A contested place name: endonym vs exonym, each asserted by a different community.
 ex:disputedPlace gmeow:hasPlaceName ex:nameEndonym , ex:nameExonym .
 
-ex:nameEndonym a gmeow:PlaceName ;
+ex:nameEndonym a gmeow:PlaceName ,
+        gmeow:Appellation ;
     gmeow:fullName "Konstantinoupoli"@x-gmeow-el ;
     gmeow:namePurpose gmeow:namePurposeEndonym ;
     gmeow:displayable true .
 
-ex:nameExonym a gmeow:PlaceName ;
+ex:nameExonym a gmeow:PlaceName ,
+        gmeow:Appellation ;
     gmeow:fullName "Constantinople"@x-gmeow-en ;
     gmeow:namePurpose gmeow:namePurposeExonym ;
     gmeow:displayable true .
@@ -69,7 +80,8 @@ ex:greekCommunity a gmeow:Organization .
 ex:westernCommunity a gmeow:Organization .
 
 # A superseded historical name — suppressed, never deleted (Principle 10).
-ex:nameHistorical a gmeow:PlaceName ;
+ex:nameHistorical a gmeow:PlaceName ,
+        gmeow:Appellation ;
     gmeow:fullName "Byzantium"@x-gmeow-la ;
     gmeow:namePurpose gmeow:namePurposeSuperseded ;
     gmeow:displayable false .

@@ -9,9 +9,12 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-ex:registryA a gmeow:Organization ; rdfs:label "Land Titles Office"@en .
-ex:ownerA    a gmeow:Person ; rdfs:label "Alice Nguyen"@en .
-ex:ownerB    a gmeow:Person ; rdfs:label "Bob Singh"@en .
+# Multi-typed gmeow:Agent: this fixture is validated standalone (no ontology
+# import), and the generated LandTenure range shape requires gmeow:tenureParty
+# to resolve to a gmeow:Agent in the SAME data graph (Principle 11).
+ex:registryA a gmeow:Organization , gmeow:Agent ; rdfs:label "Land Titles Office"@en .
+ex:ownerA    a gmeow:Person , gmeow:Agent ; rdfs:label "Alice Nguyen"@en .
+ex:ownerB    a gmeow:Person , gmeow:Agent ; rdfs:label "Bob Singh"@en .
 ex:cadastralJurisdiction a gmeow:Place ; gmeow:placeType gmeow:placeTypeCountry .
 
 # --------------------------------------------------------------------------- #
