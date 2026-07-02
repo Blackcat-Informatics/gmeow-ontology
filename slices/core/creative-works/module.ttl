@@ -24,6 +24,9 @@ gmeow:Contribution
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Contribution"@x-gmeow-english ;
+    logic:mediates gmeow:contributor ,
+        gmeow:contributionTarget ,
+        gmeow:contributionRole ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -65,6 +68,9 @@ gmeow:CreativeDerivation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Creative Derivation"@x-gmeow-english ;
+    logic:mediates gmeow:derivationSource ,
+        gmeow:derivationProduct ,
+        gmeow:derivationType ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

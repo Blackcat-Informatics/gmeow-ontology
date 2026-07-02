@@ -43,6 +43,8 @@ gmeow:Teaching
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "Teaching"@x-gmeow-english ;
+    logic:mediates gmeow:teacher ,
+        gmeow:learner ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

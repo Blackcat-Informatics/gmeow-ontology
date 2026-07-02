@@ -17,9 +17,13 @@
 <https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/Support> .
 <https://blackcatinformatics.ca/logic/ArgumentationSemantics> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/EpistemicFramework> .
 <https://blackcatinformatics.ca/logic/BelnapBilattice> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ParaconsistentFramework> .
+<https://blackcatinformatics.ca/logic/ControlFlowEdge> <https://blackcatinformatics.ca/logic/mediates> <https://blackcatinformatics.ca/logic/flowFrom> .
+<https://blackcatinformatics.ca/logic/ControlFlowEdge> <https://blackcatinformatics.ca/logic/mediates> <https://blackcatinformatics.ca/logic/flowTo> .
 <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> .
 <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeVerdict> <https://blackcatinformatics.ca/logic/ObligationDischarged> .
 <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> 'https://blackcatinformatics.ca/gmeow/counterpartOf' .
+<https://blackcatinformatics.ca/logic/DataFlowEdge> <https://blackcatinformatics.ca/logic/mediates> <https://blackcatinformatics.ca/logic/flowFrom> .
+<https://blackcatinformatics.ca/logic/DataFlowEdge> <https://blackcatinformatics.ca/logic/mediates> <https://blackcatinformatics.ca/logic/flowTo> .
 <https://blackcatinformatics.ca/logic/EmergenceAssessment> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/MereologicalFramework> .
 <https://blackcatinformatics.ca/logic/GoalEvaluation> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TeleologicalFramework> .
 <https://blackcatinformatics.ca/logic/GoalExpression> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TeleologicalFramework> .
@@ -120,6 +124,19 @@
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> .
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/candidateSourceHash> 'sha256:0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621' .
 <https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> 'hand-harvested from the logic:Relator skos:definition, which states a Relator must mediate at least two distinct entities (design/LOGIC-FOUNDATION.md, §Typed formalization governance)' .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateFormalizes> <https://blackcatinformatics.ca/logic/Relator> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateLifecycle> <https://blackcatinformatics.ca/logic/CandidateAccepted> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateNegativeCase> <https://blackcatinformatics.ca/logic/cqRelatorMediationUnderMediatedRejected> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidatePositiveCase> <https://blackcatinformatics.ca/logic/cqRelatorMediationHolds> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateScope> 'every class subClassOf logic:Relator; a concrete relator (one with no logic: subclass) must reach at least two distinct entities — two distinct logic:mediates roles, or one non-functional role — or fire logic:violation logic:RelComp' .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> <https://blackcatinformatics.ca/logic/RiskCoreContaminating> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateSourceField> <https://blackcatinformatics.ca/logic/ProseFieldDefinition> .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateSourceHash> 'sha256:b3799a43d3716eb873c0fff6c0931bf68a9bdf3b6182571a305df0cb08ba40f9' .
+<https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/reviewedBy> <https://blackcatinformatics.ca/logic/reviewerLogicFoundation> .
 <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateCategory> <https://blackcatinformatics.ca/logic/CategoryDeliberateOverlap> .
 <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateContract> <https://blackcatinformatics.ca/logic/StratifiedNAFProfile> .
 <https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> 'hand-harvested from the gmeow:SocialObject skos:definition, which states no disjointness with InformationObject is asserted so that socially-sustained narratives may carry information content without identity clash (design/LOGIC-FOUNDATION.md, §Typed formalization governance)' .

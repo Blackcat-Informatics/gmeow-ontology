@@ -12,6 +12,9 @@ gmeow:Certification
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Certification"@x-gmeow-english ;
+    logic:mediates gmeow:certifier ,
+        gmeow:certifiedKey ,
+        gmeow:certifiedIdentity ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -105,6 +108,8 @@ gmeow:TrustAssertion
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Trust Assertion"@x-gmeow-english ;
+    logic:mediates gmeow:trustor ,
+        gmeow:trustee ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

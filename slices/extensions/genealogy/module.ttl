@@ -56,6 +56,7 @@ gmeow:KinRelationship
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Kin Relationship"@x-gmeow-english ;
+    logic:mediates gmeow:withinFamily ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ;
     skos:definition "A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (observation-spine bridge). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation."@x-gmeow-english ;

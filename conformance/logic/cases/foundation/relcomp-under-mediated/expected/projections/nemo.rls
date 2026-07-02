@@ -3,9 +3,9 @@
 
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/foundation/relcomp-under-mediated/Employment>, <https://blackcatinformatics.ca/logic/Relator>, "default").
-<https://blackcatinformatics.ca/logic/mediates>(<https://example.org/foundation/relcomp-under-mediated/Employment>, <https://example.org/foundation/relcomp-under-mediated/Employee>, "default").
-<https://blackcatinformatics.ca/logic/mediates>(<https://example.org/foundation/relcomp-under-mediated/Employment>, <https://example.org/foundation/relcomp-under-mediated/Employer>, "default").
+<https://blackcatinformatics.ca/logic/mediates>(<https://example.org/foundation/relcomp-under-mediated/Employment>, <https://example.org/foundation/relcomp-under-mediated/employee>, "default").
+<https://blackcatinformatics.ca/logic/mediates>(<https://example.org/foundation/relcomp-under-mediated/Employment>, <https://example.org/foundation/relcomp-under-mediated/employer>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/foundation/relcomp-under-mediated/Marriage>, <https://blackcatinformatics.ca/logic/Relator>, "default").
-<https://blackcatinformatics.ca/logic/mediates>(<https://example.org/foundation/relcomp-under-mediated/Marriage>, <https://example.org/foundation/relcomp-under-mediated/Spouse1>, "default").
+<https://blackcatinformatics.ca/logic/mediates>(<https://example.org/foundation/relcomp-under-mediated/Marriage>, <https://example.org/foundation/relcomp-under-mediated/spouse>, "default").
 
 % === Rules ===
