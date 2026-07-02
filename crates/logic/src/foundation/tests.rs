@@ -373,6 +373,31 @@ fn relcomp_on_subclass_relator() {
     );
 }
 
+/// A concrete relator that SPECIALISES a mediated relator inherits its ancestor's
+/// mediated relata (mediation propagates down subClassOf), so it does NOT trip
+/// RelComp even though it declares no logic:mediates of its own.
+#[test]
+fn relcomp_mediation_propagates_to_subclass() {
+    let base = "https://example.org/foundation/relcomp-propagation";
+    let nq = format!(
+        // Agreement: a relator mediating two distinct parties.
+        "<{base}/Agreement> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Agreement> <{LOGIC}mediates> <{base}/partyA> <{base}/schema> .\n\
+         <{base}/Agreement> <{LOGIC}mediates> <{base}/partyB> <{base}/schema> .\n\
+         <{base}/Contract> <{LOGIC}subClassOf> <{base}/Agreement> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &format!("{base}/Contract"), "RelComp"),
+        "Contract (⊑ Agreement) must inherit its ancestor's mediated relata and NOT fire RelComp"
+    );
+    // Agreement itself is abstract here (Contract is its subclass) → not concrete → exempt.
+    assert!(
+        !has_violation(&quads, &format!("{base}/Agreement"), "RelComp"),
+        "Agreement (non-leaf) is not a concreteRelator and must not fire RelComp"
+    );
+}
+
 // ── Anti-rigidity policies ───────────────────────────────────────────────────────
 
 /// Two-world input: alice exists in both, Employee (a Role) typed instance carol.

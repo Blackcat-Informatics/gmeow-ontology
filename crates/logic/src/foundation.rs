@@ -309,6 +309,25 @@ const STRATUM_1: &[Rule] = &[
     meta_rule!("RoleMixin"),
     meta_rule!("Situation"),
     meta_rule!("SubKind"),
+    // mediates(?C, ?R) :- subClassOfT(?C, ?P), mediates(?P, ?R)
+    // A relator subclass inherits the relata its ancestors mediate: a gmeow:Contract
+    // IS a gmeow:Agreement and mediates the same parties; a gmeow:Finding IS a
+    // gmeow:Observation and mediates the same observed feature and vantage.  Without
+    // this, a concrete (leaf) relator that specialises a mediated relator would count
+    // zero mediated relata of its own and spuriously trip RelComp.  Pure-positive, so
+    // it settles by fixpoint in this stratum alongside hasTwoMediatedRelata.
+    Rule {
+        head: pos(var("?C"), TermPat::Const(logic_iri!("mediates")), var("?R")),
+        body: &[
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("subClassOfT")),
+                var("?P"),
+            ),
+            pos(var("?P"), TermPat::Const(logic_iri!("mediates")), var("?R")),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
     // hasTwoMediatedRelata(?C, ?C) :- mediates(?C, ?R1), mediates(?C, ?R2), ?R1 != ?R2
     Rule {
         head: pos(
