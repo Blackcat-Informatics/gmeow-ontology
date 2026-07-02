@@ -128,7 +128,7 @@ restraint we reject; `logic:` subsumes the contribution and discards the restrai
 | F-logic (Flora-2, Ergo) | frame/object reasoning + LP | its own syntax, outside RDF | frame reasoning over native RDF frames |
 | N3 Logic (cwm, EYE) | RDF-native rules, **quoted graphs**, builtins, both chaining directions | pre-RDF-1.2 cited formulae; no contextual/modal scope as data | RDF 1.2 triple terms are the modern cited formula, with full contextual scope |
 | SPARQL | query, CONSTRUCT | a query language, not a logic | query is a *projection* of goal resolution |
-| Common Logic | first-order interchange | no RDF model, no contextual layer | FOL-grade expressivity, RDF 1.2-native, contextualized — and operationalized as generated *and* ingested CLIF, CGIF, and XCL dialects, not merely cited as an ancestor |
+| Common Logic | first-order interchange | no RDF model, no contextual layer | FOL-grade expressivity, RDF 1.2-native, contextualized — and operationalized as generated *and* ingested CLIF, CGIF, and XCL dialects, and independently cross-checked by an external first-order reasoner over the CLIF export (an FOL oracle held to the *native ⊇ oracle* discipline), not merely cited as an ancestor |
 | gUFO | OWL upper ontology, stereotypes | a *lossy OWL realization of UFO* — drops modality and higher-order types | the full foundational theory; gUFO becomes a projection |
 
 The closest living ancestor is **N3 Logic and the EYE reasoner**: RDF-native rules, quoted graphs

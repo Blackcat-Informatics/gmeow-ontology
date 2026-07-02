@@ -42,7 +42,7 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `module.ttl` | `text/turtle` | `7a6add371993` |
+| `module.ttl` | `text/turtle` | `f92829a3a938` |
 
 ### Tests
 

@@ -29,6 +29,8 @@ gmeow:Contradiction
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Contradiction"@x-gmeow-english ;
+    logic:mediates gmeow:contradictsClaim ,
+        gmeow:detectedBy ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

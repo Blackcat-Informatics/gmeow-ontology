@@ -11,6 +11,8 @@ gmeow:ArchaeologicalFindContext
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Archaeological Find Context"@x-gmeow-english ;
+    logic:mediates gmeow:findContextTarget ,
+        gmeow:vantage ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
@@ -41,6 +43,8 @@ gmeow:InscriptionReading
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Reading"@x-gmeow-english ;
+    logic:mediates gmeow:readingOf ,
+        gmeow:vantage ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
@@ -61,6 +65,8 @@ gmeow:InscriptionTranslation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Translation"@x-gmeow-english ;
+    logic:mediates gmeow:translationOf ,
+        gmeow:vantage ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
@@ -81,6 +87,8 @@ gmeow:InscriptionTransliteration
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Transliteration"@x-gmeow-english ;
+    logic:mediates gmeow:transliterationOf ,
+        gmeow:vantage ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
@@ -110,6 +118,8 @@ gmeow:ScriptLanguageAttribution
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Script Language Attribution"@x-gmeow-english ;
+    logic:mediates gmeow:attributionTarget ,
+        gmeow:vantage ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [

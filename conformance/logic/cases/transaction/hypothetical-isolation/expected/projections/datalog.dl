@@ -3,7 +3,6 @@
 
 % === Ground facts (axioms) ===
 type("https://example.org/transaction/hypothetical-isolation/GoalExpression", "https://blackcatinformatics.ca/logic/GoalExpression", "default").
-type("https://example.org/transaction/hypothetical-isolation/TransactionContract", "https://blackcatinformatics.ca/logic/ReasoningContract", "default").
 executionMode("https://example.org/transaction/hypothetical-isolation/TransactionContract", "https://blackcatinformatics.ca/logic/HypotheticalExecution", "default").
 
 % === Rules ===

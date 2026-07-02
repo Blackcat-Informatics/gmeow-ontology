@@ -556,7 +556,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     // gate above already proved every committed path is reconstructible.
     if mode == RunMode::Regenerate {
         let fanout_started = Instant::now();
-        let report = crate::fanout::fanout(root)?;
+        let report = crate::fanout::fanout(root, jobs)?;
         timings.push(TimingRecord {
             phase: "fanout".to_string(),
             elapsed_ms: fanout_started.elapsed().as_millis(),
@@ -572,7 +572,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     drifted.sort();
     drifted.dedup();
 
-    // The DAG-workflow certification of the build plan (the W3 typed surface): the
+    // The DAG-workflow certification of the build plan (the build-pipeline executor's typed surface): the
     // SAME verdict the RDF `emit_dag_certification` emits, lowered to the typed
     // ReasoningResult a consumer reads. Hard-fails if the plan is not certified.
     let certification = certify_build_plan(&spec)?;
@@ -766,7 +766,7 @@ mod dag_profile_tests {
         );
     }
 
-    /// The W3 hand-off: the build run's typed `ReasoningResult` certification
+    /// The build-pipeline executor hand-off: the build run's typed `ReasoningResult` certification
     /// surface. `certify_build_plan` is the EXACT wiring `run_full` folds into the
     /// returned `RunReport.certification` — it certifies the real `full_spec()`
     /// plan via the shared certifier and lowers the verdict to the typed result a

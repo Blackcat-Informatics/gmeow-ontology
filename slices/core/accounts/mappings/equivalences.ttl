@@ -1,0 +1,45 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix sioc: <http://rdfs.org/sioc/ns#> .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqClasses013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:OnlineAccount ;
+    gmeow:alignPredicate owl:equivalentClass ;
+    gmeow:alignObject foaf:OnlineAccount ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqClasses014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject sioc:UserAccount ;
+    gmeow:alignPredicate rdfs:subClassOf ;
+    gmeow:alignObject gmeow:OnlineAccount ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" .
+
+gmeow:eqProperties031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:holdsAccount ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject foaf:account ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:accountName ;
+    gmeow:alignPredicate owl:equivalentProperty ;
+    gmeow:alignObject foaf:accountName ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" .
+
+gmeow:eqProperties092 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:accountServiceHomepage ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject foaf:accountServiceHomepage ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.95 ; gmeow:comment "FOAF's OnlineAccount service-homepage idiom" ; gmeow:sssomFile "gmeow-properties.sssom.tsv" .

@@ -1599,3 +1599,237 @@ fn canonical_key_is_normal_form_invariant() {
     let b = LegPath::Seq(vec![step("foo")]);
     assert_eq!(leg_path_canonical(&a), leg_path_canonical(&b));
 }
+
+// ── Validation shapes (the closed-world SHACL/ShEx-shaped subset) ─────────────
+
+fn vshape(iri: &str, target_class: &str, props: Vec<PropertyConstraintIr>) -> ValidationShapeIr {
+    ValidationShapeIr::new(
+        iri,
+        ShapeTarget::Class(target_class.to_owned()),
+        props,
+        None,
+        None,
+        false,
+    )
+    .unwrap()
+}
+
+#[test]
+fn validation_shape_constructor_hard_pins_node_kind() {
+    // The whole point of the type: NodeKind::ValidationShape goes from dead to live.
+    let s = vshape(&format!("{LOGIC}s"), "ex:C", vec![]);
+    assert_eq!(s.node_kind, NodeKind::ValidationShape);
+}
+
+#[test]
+fn validation_shape_rejects_empty_iri_and_target() {
+    let e1 = ValidationShapeIr::new(
+        "",
+        ShapeTarget::Class("ex:C".into()),
+        vec![],
+        None,
+        None,
+        false,
+    )
+    .unwrap_err();
+    assert!(e1.contains("non-empty IRI"), "got: {e1}");
+    let e2 = ValidationShapeIr::new(
+        format!("{LOGIC}s"),
+        ShapeTarget::Class("  ".into()),
+        vec![],
+        None,
+        None,
+        false,
+    )
+    .unwrap_err();
+    assert!(e2.contains("non-empty IRI"), "got: {e2}");
+}
+
+#[test]
+fn property_constraint_binds_cardinality_to_provenance() {
+    // A cardinality without a provenance (or vice versa) is rejected — the provenance is
+    // what decides the loss-ledger polarity (OWL open-world vs OPT closed-world).
+    let missing_prov = PropertyConstraintIr::new("ex:p", Some(1), None, None, vec![]).unwrap_err();
+    assert!(
+        missing_prov.contains("cardinality_provenance"),
+        "got: {missing_prov}"
+    );
+    let dangling_prov = PropertyConstraintIr::new(
+        "ex:p",
+        None,
+        None,
+        Some(ConstraintProvenance::OptNative),
+        vec![],
+    )
+    .unwrap_err();
+    assert!(
+        dangling_prov.contains("cardinality_provenance"),
+        "got: {dangling_prov}"
+    );
+    // With both present it constructs.
+    assert!(PropertyConstraintIr::new(
+        "ex:p",
+        Some(1),
+        Some(1),
+        Some(ConstraintProvenance::OptNative),
+        vec![],
+    )
+    .is_ok());
+}
+
+#[test]
+fn property_constraint_rejects_inverted_cardinality() {
+    let err = PropertyConstraintIr::new(
+        "ex:p",
+        Some(3),
+        Some(1),
+        Some(ConstraintProvenance::OptNative),
+        vec![],
+    )
+    .unwrap_err();
+    assert!(err.contains("must not exceed"), "got: {err}");
+}
+
+#[test]
+fn validation_shape_content_key_is_component_order_independent() {
+    // Supplying the same components in different orders yields the identical shape key.
+    let p_ab = PropertyConstraintIr::new(
+        "ex:p",
+        None,
+        None,
+        None,
+        vec![
+            ConstraintComponent::Datatype("xsd:decimal".into()),
+            ConstraintComponent::NumericRange {
+                min: Some(0.0),
+                max: Some(1000.0),
+                min_inclusive: true,
+                max_inclusive: false,
+            },
+        ],
+    )
+    .unwrap();
+    let p_ba = PropertyConstraintIr::new(
+        "ex:p",
+        None,
+        None,
+        None,
+        vec![
+            ConstraintComponent::NumericRange {
+                min: Some(0.0),
+                max: Some(1000.0),
+                min_inclusive: true,
+                max_inclusive: false,
+            },
+            ConstraintComponent::Datatype("xsd:decimal".into()),
+        ],
+    )
+    .unwrap();
+    let s_ab = vshape(&format!("{LOGIC}s"), "ex:C", vec![p_ab]);
+    let s_ba = vshape(&format!("{LOGIC}s"), "ex:C", vec![p_ba]);
+    assert_eq!(s_ab.content_key(), s_ba.content_key());
+}
+
+#[test]
+fn validation_shape_numeric_range_signed_zero_is_stable() {
+    // -0.0 and 0.0 must fold to the same key (opt_axis_key contract).
+    let pos = vshape(
+        &format!("{LOGIC}s"),
+        "ex:C",
+        vec![PropertyConstraintIr::new(
+            "ex:p",
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::NumericRange {
+                min: Some(0.0),
+                max: None,
+                min_inclusive: true,
+                max_inclusive: false,
+            }],
+        )
+        .unwrap()],
+    );
+    let neg = vshape(
+        &format!("{LOGIC}s"),
+        "ex:C",
+        vec![PropertyConstraintIr::new(
+            "ex:p",
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::NumericRange {
+                min: Some(-0.0),
+                max: None,
+                min_inclusive: true,
+                max_inclusive: false,
+            }],
+        )
+        .unwrap()],
+    );
+    assert_eq!(pos.content_key(), neg.content_key());
+}
+
+#[test]
+fn has_lossy_component_flags_pattern_and_terminology() {
+    let clean = vshape(
+        &format!("{LOGIC}s"),
+        "ex:C",
+        vec![PropertyConstraintIr::new(
+            "ex:p",
+            Some(1),
+            Some(1),
+            Some(ConstraintProvenance::OptNative),
+            vec![ConstraintComponent::Datatype("xsd:string".into())],
+        )
+        .unwrap()],
+    );
+    assert!(!clean.has_lossy_component());
+    let lossy = vshape(
+        &format!("{LOGIC}s"),
+        "ex:C",
+        vec![PropertyConstraintIr::new(
+            "ex:p",
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::Pattern {
+                regex: "^[A-Z]+$".into(),
+                flags: None,
+            }],
+        )
+        .unwrap()],
+    );
+    assert!(lossy.has_lossy_component());
+}
+
+#[test]
+fn with_validation_shapes_sorts_canonically() {
+    let prog = LogicProgram::new(vec![], vec![], vec![], None).with_validation_shapes(vec![
+        vshape(&format!("{LOGIC}z"), "ex:C", vec![]),
+        vshape(&format!("{LOGIC}a"), "ex:C", vec![]),
+    ]);
+    let iris: Vec<&str> = prog
+        .validation_shapes
+        .iter()
+        .map(|s| s.iri.as_str())
+        .collect();
+    assert_eq!(iris, vec![format!("{LOGIC}a"), format!("{LOGIC}z")]);
+}
+
+#[test]
+fn canonical_key_is_unchanged_for_validation_shape_free_program() {
+    // Corpus safety: attaching no validation shapes must not alter the historical key.
+    let ax = axiom(&format!("{LOGIC}x"), &kind_pred(), &format!("{LOGIC}y"));
+    let base = LogicProgram::new(vec![ax.clone()], vec![], vec![], None);
+    let attached = LogicProgram::new(vec![ax], vec![], vec![], None).with_validation_shapes(vec![]);
+    assert_eq!(base.canonical_key(), attached.canonical_key());
+    assert!(!base.canonical_key().contains("VALIDATIONSHAPES"));
+}
+
+#[test]
+fn canonical_key_appends_validation_shapes_when_present() {
+    let prog = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_validation_shapes(vec![vshape(&format!("{LOGIC}s"), "ex:C", vec![])]);
+    assert!(prog.canonical_key().contains("VALIDATIONSHAPES"));
+}

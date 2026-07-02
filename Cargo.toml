@@ -76,6 +76,9 @@ members = [
     # (purrdf S9, EPIC #906). Depends only on `crates/rdf-core`.
     "crates/sparql-results",
     "crates/validate",
+    # wasm32 bindings for the repo-free Tier-1 validator: client-side conformance in
+    # editors / browsers / LLM clients, over the wasm-clean gmeow-validate core.
+    "crates/validate-wasm",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
     # oxigraph-family `oxsdatatypes` (purrdf S1, EPIC #906).
@@ -232,6 +235,9 @@ codegen-units = 1
 # wasm-pack build in the crate's own package metadata, not the workspace release
 # profile (which native wheels share).
 [profile.release.package.gmeow-rdf-wasm]
+codegen-units = 1
+
+[profile.release.package.gmeow-validate-wasm]
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which

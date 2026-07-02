@@ -111,9 +111,10 @@ fn is_literal_direction(direction: &str) -> bool {
 }
 
 /// Escape an IRI body for an N-Triples / Turtle / TriG `<…>` `IRIREF`. The W3C grammar
-/// forbids `<`, `>`, `"`, `{`, `}`, `|`, `^`, `` ` ``, `\`, and every code point `<= 0x20`
-/// appearing raw; each rides as a `\uXXXX` `UCHAR` (the text parser decodes them back). A
-/// clean ASCII IRI (every production IRI) passes through byte-for-byte unchanged.
+/// forbids `<`, `>`, `"`, `{`, `}`, `|`, `^`, `` ` ``, `\`, the space character, and every
+/// control code point (C0 `0x00-0x1F`, DEL `0x7F`, and the C1 block `0x80-0x9F`) appearing
+/// raw; each rides as a `\uXXXX` `UCHAR` (the text parser decodes them back). A clean ASCII
+/// IRI (every production IRI) passes through byte-for-byte unchanged.
 fn escape_iri(iri: &str) -> String {
     let mut out = String::with_capacity(iri.len());
     for ch in iri.chars() {
@@ -121,14 +122,21 @@ fn escape_iri(iri: &str) -> String {
             '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
                 out.push_str(&format!("\\u{:04X}", ch as u32));
             }
-            c if (c as u32) <= 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c if c.is_control() || c == ' ' => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
     }
     out
 }
 
-/// Escape a literal lexical form for N-Triples (incl. all C0 control chars).
+/// Escape a literal lexical form for N-Triples. Escapes `\` and `"`, emits the readable ECHAR
+/// forms for `\n`/`\r`/`\t`, and rides EVERY other control character (C0, DEL, and the C1 block
+/// `0x80-0x9F`) as `\uXXXX`. This deliberately escapes MORE than the W3C-pinned canonical form
+/// (`gmeow_rdf_core::ir::canon::write_literal_escaped`, which keeps C1 raw): this serializer's
+/// output is embedded verbatim inside an XML text node by the CL-dialect carrier, and an XML
+/// parser normalizes/replaces raw C1 code points on read — so the payload only survives an XML
+/// round-trip if the full control range rides as ASCII `\uXXXX`. The canonical form answers to
+/// RDFC-1.0 byte-conformance; this one answers to XML transport.
 fn escape_literal(lex: &str) -> String {
     let mut out = String::with_capacity(lex.len());
     for ch in lex.chars() {
@@ -138,7 +146,7 @@ fn escape_literal(lex: &str) -> String {
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c if c.is_control() => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
     }

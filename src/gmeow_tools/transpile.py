@@ -6,8 +6,7 @@ The two halves, chained end to end:
 
 1. **Up-projection** (the front half, #451): lift a non-GMEOW source graph up
    into pure GMEOW — facts for the mechanically-invertible terms, provenance-
-   stamped claims for the inferred ones — resolving each edge by its position in
-   the graph (the context-aware descent) over the per-term floor.
+   stamped claims for the inferred ones — via the lawful native put-leg executor.
 2. **Maximal down-projection** (the back half, #34): run ``MAXIMAL(G) = G + E(G)
    + P(G)`` over that pure-GMEOW draft — the canonical base, its strong-
    equivalence saturation, and every projection profile — into one fat,
@@ -32,7 +31,6 @@ from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.transform import TransformReport, transform_graph
 from gmeow_tools.up_projection import UpProjection, up_project
 from gmeow_tools.up_projection_audit import _canon_qname
-from gmeow_tools.up_projection_descend import up_project_descend
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -51,10 +49,7 @@ class TranspileReport:
 
     lifted: int  # source triples lifted as bare facts
     claimed: int  # source triples lifted as provenance-stamped claims
-    context_resolved: int  # edges the descent resolved by graph position
-    tag_resolved: int  # gmeow:hasTag edges added by the QID-bridge pass
     gap_terms: int  # distinct source terms with no lift rule
-    ambiguous_terms: int  # distinct source terms held out as ambiguous
     draft_path: Path  # the pure-GMEOW intermediate
     gap_report_path: Path  # the gap report (un-lifted source triples)
     transform: TransformReport  # the MAXIMAL(G) report
@@ -64,17 +59,16 @@ def _gap_report(source: Graph, lift: UpProjection, stem: str) -> str:
     """Render a Markdown gap report — every un-lifted source triple.
 
     Never silently dropped: a triple is un-lifted because its term has **no lift
-    rule** (a coverage gap) or its reverse is **ambiguous** (many gmeow
-    up-targets, held out rather than guessed). Each is listed under its term.
+    rule** (a coverage gap). Each is listed under its term.
     """
-    gaps, ambig = lift.gap_terms, lift.ambiguous_terms
+    gaps = lift.gap_terms
     held: dict[str, list[tuple[str, str, str]]] = {}
     for s, p, o in source:
         if not isinstance(p, URIRef):
             continue
         is_type = p == RDF.type and isinstance(o, URIRef)
         term = _canon_qname(str(o)) if is_type else _canon_qname(str(p))
-        if term in gaps or term in ambig:
+        if term in gaps:
             held.setdefault(term, []).append((s.n3(), p.n3(), o.n3()))
 
     lines = [f"# Transpile gap report — {stem}\n"]
@@ -98,11 +92,6 @@ def _gap_report(source: Graph, lift: UpProjection, stem: str) -> str:
         lines.append("")
 
     section("Gap terms", gaps, "no GMEOW lift rule — a coverage gap")
-    section(
-        "Ambiguous terms",
-        ambig,
-        "several gmeow up-targets, held out rather than guessed",
-    )
 
     if held:
         lines.append("## Un-lifted source triples\n")
@@ -119,7 +108,6 @@ def transpile(
     *,
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
-    descend: bool = True,
     selector: LangSelector | None = None,
 ) -> TranspileReport:
     """Transpile a consumer-vocabulary source *file* to MAXIMAL GMEOW.
@@ -129,8 +117,6 @@ def transpile(
         out_dir: Output directory (default ``dist/transpile/<stem>/``); receives
             the ``<stem>.gmeow.ttl`` draft and the maximal file family.
         profiles: Projection profiles for the maximal pass (default: all).
-        descend: Use the context-aware graph-descent up-projection (default) over
-            the per-term floor.
         selector: Optional language selector for projected/consumer labels.
 
     Returns:
@@ -143,7 +129,6 @@ def transpile(
         source_path.stem,
         out_dir=out_dir,
         profiles=profiles,
-        descend=descend,
         selector=selector,
     )
 
@@ -154,7 +139,6 @@ def transpile_graph(
     *,
     out_dir: Path | None = None,
     profiles: Sequence[str] | None = None,
-    descend: bool = True,
     selector: LangSelector | None = None,
 ) -> TranspileReport:
     """Transpile an in-memory consumer-vocabulary graph to MAXIMAL GMEOW.
@@ -167,7 +151,6 @@ def transpile_graph(
         stem: The output basename (the draft, ``.gts`` file, default sub-dir).
         out_dir: Output directory (default ``dist/transpile/<stem>/``).
         profiles: Projection profiles for the maximal pass (default: all).
-        descend: Use the context-aware graph-descent up-projection (default).
         selector: Optional language selector for projected/consumer labels.
 
     Returns:
@@ -182,7 +165,7 @@ def transpile_graph(
         raise ValueError("transpile_graph: stem must be a non-empty string")
     target = out_dir if out_dir is not None else DIST_DIR / "transpile" / stem
 
-    lift = up_project_descend(source) if descend else up_project(source)
+    lift = up_project(source)
     if len(lift.graph) == 0:
         msg = f"transpile: nothing lifted to GMEOW from {stem} — empty draft"
         raise ValueError(msg)
@@ -204,10 +187,7 @@ def transpile_graph(
     return TranspileReport(
         lifted=lift.lifted,
         claimed=lift.claimed,
-        context_resolved=lift.context_resolved,
-        tag_resolved=lift.tag_resolved,
         gap_terms=len(lift.gap_terms),
-        ambiguous_terms=len(lift.ambiguous_terms),
         draft_path=draft_path,
         gap_report_path=gap_report_path,
         transform=report,
