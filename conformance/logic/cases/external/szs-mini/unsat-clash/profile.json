@@ -1,4 +1,5 @@
 {
   "verdict_mode": "consistency",
-  "mode": "native"
+  "mode": "native",
+  "szs_status": "Unsatisfiable"
 }
