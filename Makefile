@@ -556,7 +556,9 @@ TPTP_PROBLEMS_DIR ?= .tmp/tptp
 TPTP_SUBSET_URL ?=
 
 maint-tptp-corpus: ## Grade the native FOL path against a live/local TPTP subset (Lane-B, per-problem licensed, NEVER vendored); record divergences as a gmeow:Finding graph.
-	mkdir -p $(TPTP_PROBLEMS_DIR) generated/conformance
+	# `.tmp` holds the fetched subset tarball; create it explicitly so an overridden
+	# TPTP_PROBLEMS_DIR (pointing outside `.tmp`) does not leave `curl -o .tmp/...` without a parent.
+	mkdir -p .tmp $(TPTP_PROBLEMS_DIR) generated/conformance
 	# TPTP problems carry PER-PROBLEM licenses and are NEVER vendored/committed
 	# ($(TPTP_PROBLEMS_DIR) is a gitignored scratch dir). This lane parses the real
 	# FOF/CNF bodies, applies the FOL-negation reduction, lowers the EL/DL fragment,
