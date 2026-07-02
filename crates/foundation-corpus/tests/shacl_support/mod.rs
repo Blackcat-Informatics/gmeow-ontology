@@ -12,10 +12,10 @@
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock};
 
-use gmeow_rdf::parse_dataset;
-use gmeow_rdf_core::RdfDataset;
-use gmeow_shacl::engine::validate_dataset_graphs;
-use gmeow_shacl::report::{Severity, ValidationReport};
+use purrdf::parse_dataset;
+use purrdf::shapes::engine::validate_dataset_graphs;
+use purrdf::shapes::report::{Severity, ValidationReport};
+use purrdf::RdfDataset;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ pub const DSL_SHAPE_FILENAMES: &[&str] = &[
     "slice-manifest-shapes.ttl",
     // The derived validation-shape surface is a DECLARED ValidationOnly projection carried in
     // gmeow.gts but NOT enforced (an open-world someValuesFrom reading over-flags valid data);
-    // excluded exactly as `gmeow_shacl::shape_union::EXCLUDED` excludes it.
+    // excluded exactly as `purrdf::shapes::shape_union::EXCLUDED` excludes it.
     "validation-shapes.ttl",
 ];
 

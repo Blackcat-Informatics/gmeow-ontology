@@ -14,11 +14,11 @@ use std::sync::Arc;
 
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::fno::lower_fno;
-use gmeow_rdf::{
+use purrdf::slice::{ArtifactRole, SliceCatalog};
+use purrdf::{
     dataset_diff, parse_dataset, serialize_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder,
     SerializeGraph,
 };
-use gmeow_slice::{ArtifactRole, SliceCatalog};
 
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 
@@ -78,7 +78,11 @@ fn merge_slice_artifacts(root: &Path, role: ArtifactRole, b: &mut RdfDatasetBuil
     if !slices_dir.is_dir() {
         return;
     }
-    let catalog = SliceCatalog::discover(&slices_dir).expect("discover slices");
+    let catalog = SliceCatalog::discover(
+        &slices_dir,
+        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
+    )
+    .expect("discover slices");
     let mut artifacts: Vec<(PathBuf, Vec<u8>)> = Vec::new();
     for record in catalog.records() {
         for artifact in &record.artifacts {

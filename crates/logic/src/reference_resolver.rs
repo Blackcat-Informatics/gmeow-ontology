@@ -41,7 +41,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 use crate::provenance::term_n3;
 use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QGoal, QProgram, QTerm};

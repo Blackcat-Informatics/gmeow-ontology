@@ -175,16 +175,16 @@ fn gmeow_rdf_types_the_definition_flag_as_xsd_boolean() {
 ///
 /// `to_gmeow_rdf` assembles its N-Quads document by hand (`format!`/`push_str`),
 /// NOT through any gmeow-rdf serializer — so re-parsing it through the
-/// *independent* native N-Quads reader ([`gmeow_rdf::parse_dataset`]) proves the
+/// *independent* native N-Quads reader ([`purrdf::parse_dataset`]) proves the
 /// projection emits valid, round-trippable N-Quads without testing the codec
 /// against itself. (EPIC #906: docs is oxigraph-free; this carve-out moved from
 /// the oxigraph reader to the native reader, exactly the slice-crate migration.)
 #[test]
 fn gmeow_rdf_reparses_through_native_codec() {
-    use gmeow_rdf::{DatasetView, GraphMatch, TermRef, TermValue};
+    use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
     let nq = to_gmeow_rdf(&small_model());
-    let dataset = gmeow_rdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+    let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .expect("to_gmeow_rdf must emit valid, round-trippable N-Quads");
 
     let non_empty = nq.lines().filter(|l| !l.trim().is_empty()).count();

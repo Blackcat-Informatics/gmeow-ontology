@@ -192,7 +192,7 @@ impl fmt::Display for FindingCategory {
 /// A concrete source or logical location for a diagnostic.
 ///
 /// Beyond the file `path`/`line`/`column` and a free-form `logical` name, a
-/// location can carry GTS wire coordinates (mirroring `gmeow_rdf::RdfLocation`):
+/// location can carry GTS wire coordinates (mirroring `purrdf::RdfLocation`):
 /// the term-id, quad index, reifier-id, frame index, and segment index that
 /// point a finding back into the exact position inside a GTS bundle. These flow
 /// from the RDF/GTS adapter through the report into SARIF logical locations and
@@ -333,7 +333,7 @@ impl Rule {
 
 /// The role of a compilation unit in a diagnostic attribution (§9 / S5).
 ///
-/// This mirrors `gmeow_rdf::provenance::AttributionRole` but uses owned strings
+/// This mirrors `purrdf::provenance::AttributionRole` but uses owned strings
 /// so `gmeow-diagnostics` remains dep-free of `gmeow-rdf` (the layering rule:
 /// diagnostics must not import the RDF kernel). The canonical string form is
 /// identical to `AttributionRole::as_str()`.

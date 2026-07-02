@@ -27,7 +27,7 @@
 //! In all cases the invariant holds: **no Prolog answer is silently promoted to an asserted base
 //! fact**, and an explanation must be able to cite every step, virtual or materialized.
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 // ── Newtype wrappers ────────────────────────────────────────────────────────────────────────────
 

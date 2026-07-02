@@ -154,7 +154,7 @@ mod tests {
     use crate::provenance::{mint_derivation_id, mint_reifier};
     use crate::rule_ir::parse_eval_rules;
     use crate::store::WorldStore;
-    use gmeow_rdf::TermValue;
+    use purrdf::TermValue;
 
     const WF: &str = "https://example.org/profiles/well-founded/";
 

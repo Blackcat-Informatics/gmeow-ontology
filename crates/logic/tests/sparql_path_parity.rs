@@ -6,7 +6,7 @@
 //! The acceptance criterion for #914 is that the two implementations of one
 //! semantics agree on the corpus property-path shapes:
 //!
-//! - the **in-engine** wasm-safe evaluator (`gmeow_sparql_eval`, via the public
+//! - the **in-engine** wasm-safe evaluator (`purrdf::sparql`, via the public
 //!   `eval` entry over a `GraphPattern::Path`), and
 //! - the **lowered** Scryer tabling engine (`gmeow_logic::sparql_path_lower`).
 //!
@@ -20,7 +20,7 @@
 //!
 //! Scope note: the lowering models the subject/object endpoints as independent, so
 //! the same-variable reflexive case (`?x p ?x`) and the not-lowerable
-//! negated-set/wildcard paths are exercised in `gmeow_sparql_eval`'s own unit tests
+//! negated-set/wildcard paths are exercised in `purrdf::sparql`'s own unit tests
 //! (in-engine only), not here.  `ZeroOrOne` (`?`) and the composed-reflexive shapes
 //! (`p?/q`, `(p?)+`, `(p?)*`) ARE parity-checked here: they are the subtlest
 //! divergence point between the two engines (the lowering's `Sequence` skip-rules and
@@ -30,11 +30,9 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use gmeow_logic::sparql_path_lower::{evaluate_path_lowered, PathEnd};
-use gmeow_rdf_core::{RdfDataset, RdfDatasetBuilder, TermRef};
-use gmeow_sparql_algebra::{
-    GraphPattern, NamedNode, PropertyPathExpression, TermPattern, Variable,
-};
-use gmeow_sparql_eval::{eval, EvalCtx, SolutionTerm};
+use purrdf::sparql::{eval, EvalCtx, SolutionTerm};
+use purrdf::sparql::{GraphPattern, NamedNode, PropertyPathExpression, TermPattern, Variable};
+use purrdf::{RdfDataset, RdfDatasetBuilder, TermRef};
 
 const EX: &str = "https://example.org/";
 
@@ -75,9 +73,9 @@ fn path_end(e: End) -> PathEnd {
 fn build_dataset(edges: &[(&str, &str, &str)]) -> Arc<RdfDataset> {
     let mut b = RdfDatasetBuilder::new();
     for (s, p, o) in edges {
-        let s = b.intern_iri(full(s));
-        let p = b.intern_iri(full(p));
-        let o = b.intern_iri(full(o));
+        let s = b.intern_iri(&full(s));
+        let p = b.intern_iri(&full(p));
+        let o = b.intern_iri(&full(o));
         b.push_quad(s, p, o, None);
     }
     b.freeze().expect("freeze")

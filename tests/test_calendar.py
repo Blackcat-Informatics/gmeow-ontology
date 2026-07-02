@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from itertools import combinations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, XSD, Graph, Namespace, URIRef
+from purrdf.compat.rdflib import OWL, RDF, RDFS, XSD, Graph, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 

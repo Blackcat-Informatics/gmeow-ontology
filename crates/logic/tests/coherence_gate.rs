@@ -31,7 +31,7 @@
 use gmeow_logic::foundation::{evaluate as foundation_evaluate, AntiRigidityPolicy};
 use gmeow_logic::reason::dl_consistency;
 use gmeow_logic::store::WorldStore;
-use gmeow_rdf::{
+use purrdf::{
     dataset_from_bytes, import_gts_events, NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm,
 };
 use std::collections::BTreeSet;
@@ -198,7 +198,7 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
 ///
 /// The foundation chase is all-IRI, so literal- and blank-object triples are dropped; none
 /// bear on relator mediation.
-fn project_relator_facts(onto: &gmeow_rdf::RdfDataset) -> BTreeSet<String> {
+fn project_relator_facts(onto: &purrdf::RdfDataset) -> BTreeSet<String> {
     let mut lines: BTreeSet<String> = BTreeSet::new();
     for q in onto.owned_quads() {
         let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {

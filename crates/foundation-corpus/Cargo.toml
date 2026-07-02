@@ -26,7 +26,7 @@ python = ["dep:pyo3"]
 
 [dependencies]
 # Native RDF 1.2 graph building over the IR (no rdflib, no oxigraph).
-gmeow-rdf = { path = "../rdf" }
+purrdf = "0.2"
 serde = { version = "1", features = ["derive"] }
 # Keep serde_json's workspace-wide default map semantics. Ordered JSON-LD
 # projection keys are emitted by a crate-local writer in projections.rs.
@@ -44,6 +44,3 @@ tempfile = "3"
 # through the canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen
 # `RdfDataset` (`gmeow-rdf-core`), validated IR-natively via `validate_dataset_graphs`
 # and queried through the native `NativeSparqlEngine` (`gmeow-sparql-eval`).
-gmeow-shacl = { path = "../shacl" }
-gmeow-rdf-core = { path = "../rdf-core" }
-gmeow-sparql-eval = { path = "../sparql-eval" }

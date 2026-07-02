@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Namespace
+from purrdf.compat.rdflib import RDF, RDFS, Graph, Namespace
 
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
 

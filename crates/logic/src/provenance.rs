@@ -38,7 +38,7 @@
 //! under `{NAMESPACE}derivation/`.
 //! Sources are sorted for order-independence.
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 use sha1::{Digest, Sha1};
 
 // ── Namespace constants ────────────────────────────────────────────────────────

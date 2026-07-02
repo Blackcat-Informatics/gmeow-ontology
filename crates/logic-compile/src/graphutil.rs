@@ -22,7 +22,7 @@
 //! scattering per-item attributes.
 #![allow(dead_code)]
 
-use gmeow_rdf::{canonicalize, parse_dataset, BlankScope, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{canonicalize, parse_dataset, BlankScope, RdfDataset, TermId, TermRef, TermValue};
 use std::sync::Arc;
 
 // Well-known RDF IRIs (string constants — avoids per-call interning at the source).
@@ -263,7 +263,7 @@ fn object_id(ds: &RdfDataset, object: &Node) -> Option<TermId> {
 /// projection at the source (greenfield: one deterministic front door, not a
 /// per-back-end patch).
 ///
-/// Implementation: native full RDFC-1.0 (#910), the wasm-clean `gmeow_rdf::canonicalize`
+/// Implementation: native full RDFC-1.0 (#910), the wasm-clean `purrdf::canonicalize`
 /// (SHA-256), then re-parse the canonical N-Quads so the relabeled `_:c14nN` ids
 /// become the dataset's blank labels. The labeling is identical to the oxigraph
 /// `canonicalize_store` it replaces (both are conformant RDFC-1.0 / SHA-256), so the

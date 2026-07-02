@@ -38,7 +38,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
-use gmeow_rdf::prelude::{RdfDataset, TermRef};
+use purrdf::prelude::{RdfDataset, TermRef};
 
 // Re-export so consumers (e.g. the validator) reach the contradiction policy
 // through the coherence module rather than depending on logic-compile directly.

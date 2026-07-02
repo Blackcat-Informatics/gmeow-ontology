@@ -34,7 +34,7 @@ RETAINED here (not expressible as module-scoped declarative cells):
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
+from purrdf.compat.rdflib import RDF, RDFS, Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mappings import load_mappings

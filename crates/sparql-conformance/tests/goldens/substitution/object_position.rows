@@ -1,3 +1,0 @@
-this	s
-[Some(Iri("http://ex/carol")), Some(Blank { label: "bn", scope: BlankScope(0) })]
-[Some(Iri("http://ex/carol")), Some(Iri("http://ex/bob"))]

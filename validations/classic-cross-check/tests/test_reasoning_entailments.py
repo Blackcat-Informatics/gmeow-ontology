@@ -18,7 +18,7 @@ twin, so they are retained-with-reason rather than migrated.
 from __future__ import annotations
 
 import pytest
-from gmeow_rdf.compat.rdflib import RDF, Graph
+from purrdf.compat.rdflib import RDF, Graph
 
 from oracles import reasoning_cases
 

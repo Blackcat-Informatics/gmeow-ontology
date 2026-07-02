@@ -120,8 +120,8 @@ fn loss_ledger_and_diagnostics_reach_the_shipped_bundle() {
     // reading it (rather than rebuilding the whole snapshot here) is both faithful and
     // fast. This is the literal "the product reaches the bundle" assertion.
     let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("read gmeow.gts");
-    let bundle = gmeow_rdf::import_gts_events(&gts).expect("import_gts_events");
-    let quads = gmeow_rdf::flat_rdf_quads_from_dataset(bundle.dataset.as_ref());
+    let bundle = purrdf::import_gts_events(&gts).expect("import_gts_events");
+    let quads = purrdf::flat_rdf_quads_from_dataset(bundle.dataset.as_ref());
 
     let in_graph = |graph: &str| -> Vec<String> {
         quads

@@ -23,9 +23,9 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace
-from gmeow_rdf.compat.rdflib.namespace import XSD
-from gmeow_rdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib import RDF, Graph, Literal, Namespace
+from purrdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE
 

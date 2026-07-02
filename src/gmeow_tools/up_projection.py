@@ -18,8 +18,8 @@ from dataclasses import dataclass, field
 from types import ModuleType
 from typing import cast
 
-from gmeow_rdf.compat.rdflib import BNode, Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.term import Node
+from purrdf.compat.rdflib import BNode, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib.term import Node
 
 from gmeow_tools.language_tags import retag_graph_to_internal
 from gmeow_tools.up_projection_audit import (
@@ -89,13 +89,13 @@ def up_project(source: Graph) -> UpProjection:
 
 def _graph_from_native_nt(graph_nt: str | bytes) -> Graph:
     """Parse native N-Triples without rdflib parse-scope blank-node rewriting."""
-    import gmeow_rdf
+    import purrdf
 
     data = graph_nt.encode("utf-8") if isinstance(graph_nt, str) else graph_nt
     graph = Graph()
     if not data.strip():
         return graph
-    for quad in gmeow_rdf.parse(data, format=gmeow_rdf.RdfFormat.N_TRIPLES):
+    for quad in purrdf.parse(data, format=purrdf.RdfFormat.N_TRIPLES):
         graph.add(
             (
                 _rdflib_term(quad.subject),
@@ -107,13 +107,13 @@ def _graph_from_native_nt(graph_nt: str | bytes) -> Graph:
 
 
 def _rdflib_term(value: object) -> Node:
-    import gmeow_rdf
+    import purrdf
 
-    if isinstance(value, gmeow_rdf.NamedNode):
+    if isinstance(value, purrdf.NamedNode):
         return URIRef(value.value)
-    if isinstance(value, gmeow_rdf.BlankNode):
+    if isinstance(value, purrdf.BlankNode):
         return BNode(value.value)
-    if isinstance(value, gmeow_rdf.Literal):
+    if isinstance(value, purrdf.Literal):
         if value.language is not None:
             return Literal(value.value, lang=value.language)
         datatype = value.datatype.value

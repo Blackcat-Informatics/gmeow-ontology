@@ -10,7 +10,7 @@
 //! is written. The Python version walked a parsed `StatementDsl` (cells) plus the
 //! ontology rdflib graph; this version walks the **emitted OWL graph** from the
 //! native statements stage unioned with the ontology in one native
-//! [`gmeow_rdf::RdfDataset`].
+//! [`purrdf::RdfDataset`].
 //!
 //! # The OWL-axiom mapping
 //!
@@ -34,7 +34,7 @@
 
 use std::collections::HashSet;
 
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 
 use crate::model::{owl, rdf};
 
@@ -188,7 +188,7 @@ fn py_str_repr(s: &str) -> String {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The statement invariant + lossless checks over a native (`gmeow_rdf::RdfDataset`)
+// The statement invariant + lossless checks over a native (`purrdf::RdfDataset`)
 // graph (#906). Every check reproduces the legacy oxigraph `Store` implementation's
 // failing CONDITION, message TEXT, severity, and emission ORDER byte-identically —
 // the statement diagnostics feed the committed `graph/diagnostics` projection in
@@ -196,7 +196,7 @@ fn py_str_repr(s: &str) -> String {
 //
 // Term values are resolved to `TermId`s via `RdfDataset::term_id_by_value`, scanned
 // with `quads_for_pattern(..., GraphMatch::Default)`, and matched on the borrowed
-// [`gmeow_rdf::TermRef`]. The inputs are stand-alone Turtle/N-Triples documents whose
+// [`purrdf::TermRef`]. The inputs are stand-alone Turtle/N-Triples documents whose
 // data lands in the default graph, so the `GraphMatch::Default` filter sees the whole
 // union.
 //
@@ -205,7 +205,7 @@ fn py_str_repr(s: &str) -> String {
 // already sorts cells by reifier before emitting the OWL, so the order is observable).
 
 /// Resolve an IRI value to its dataset-local [`TermId`], if interned.
-fn ds_iri_id(ds: &RdfDataset, iri: &str) -> Option<gmeow_rdf::TermId> {
+fn ds_iri_id(ds: &RdfDataset, iri: &str) -> Option<purrdf::TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
 }
 
@@ -294,7 +294,7 @@ fn ds_rdf_types(ds: &RdfDataset, subject_iri: &str) -> Vec<String> {
 /// The first object of `(subject_id, predicate_iri, ?)` in the default graph.
 fn ds_first_object(
     ds: &RdfDataset,
-    subject_id: gmeow_rdf::TermId,
+    subject_id: purrdf::TermId,
     predicate_iri: &str,
 ) -> Option<NativeObject> {
     let p_id = ds_iri_id(ds, predicate_iri)?;
@@ -474,7 +474,7 @@ fn ds_sorted_difference<'a>(
 }
 
 /// Render any resolved term to the N-Triples lexical form used by [`ds_triple_set`].
-fn ds_term_n3(ds: &RdfDataset, id: gmeow_rdf::TermId) -> String {
+fn ds_term_n3(ds: &RdfDataset, id: purrdf::TermId) -> String {
     native_object_n3(&native_object(ds, ds.resolve(id)))
 }
 
@@ -637,7 +637,7 @@ fn native_term_repr(obj: &NativeObject) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::parse_dataset;
+    use purrdf::parse_dataset;
     use std::sync::Arc;
 
     /// Build a frozen native dataset from a Turtle fixture (the native statement OWL +
@@ -911,7 +911,7 @@ mod tests {
     }
 
     /// Parse a Turtle fixture into a frozen native dataset (no oxigraph round-trip).
-    fn dataset_from(ttl: &str) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+    fn dataset_from(ttl: &str) -> std::sync::Arc<purrdf::RdfDataset> {
         parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
     }
 

@@ -2,6 +2,206 @@
   "tool": "shacl",
   "findings": [
     {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureHumanTimbreObservation"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/observedFeature"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/fixtureTimbreToneEvent"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/Observation-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureMIRTimbreObservation"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/observedFeature"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/fixtureTimbreToneEvent"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/Observation-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralClaim"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/analysisResult"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/harmonicFunctionDominant"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralClaim"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/analysisTarget"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/fixtureSessionTake3Event"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralGermanSixthClaim"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/analysisResult"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/harmonicFunctionGermanSixth"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureRomanNumeralGermanSixthClaim"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/analysisTarget"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/fixtureSessionTake3Event"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/measurementCenozoicStart"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/observedFeature"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/periodCenozoic"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/Observation-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/measurementHoloceneStart"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/observedFeature"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/periodHolocene"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/Observation-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/measurementPhanerozoicStart"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/observedFeature"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/periodPhanerozoic"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/Observation-shape"
+    },
+    {
+      "severity": "error",
+      "code": "shacl.ClassConstraintComponent",
+      "message": "SHACL constraint violated",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/measurementQuaternaryStart"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/observedFeature"
+        },
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/periodQuaternary"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/Observation-shape"
+    },
+    {
       "severity": "warning",
       "code": "shacl.MinCountConstraintComponent",
       "message": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11).",
@@ -73,9 +273,9 @@
   "metadata": {
     "category": "shacl",
     "shaclConforms": false,
-    "shaclErrorCount": 0,
-    "shaclGatePassed": true,
-    "shaclResultCount": 4,
+    "shaclErrorCount": 10,
+    "shaclGatePassed": false,
+    "shaclResultCount": 14,
     "shaclWarningCount": 4,
     "stage": "stage-validate"
   }

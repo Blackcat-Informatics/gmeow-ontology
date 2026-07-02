@@ -3,13 +3,13 @@
 
 //! The dogfooded `graph/provenance` projection (#1132 C9).
 //!
-//! The pipeline's occurrence-based provenance sidecar ([`gmeow_rdf::provenance::DatasetProvenance`]) is
+//! The pipeline's occurrence-based provenance sidecar ([`purrdf::provenance::DatasetProvenance`]) is
 //! projected — THROUGH THE PUBLIC-IRI BOUNDARY (`public_projection`) — into a
 //! net-new named graph the bundle carries, so a repo-free consumer reads the full
 //! compilation-unit + per-lane carrier manifest WITHOUT re-running the build:
 //!
 //! * each compilation unit becomes a `gmeow:Procedure`-step input describing its
-//!   public name/IRI and its [`OriginKind`](gmeow_rdf::provenance::OriginKind), and
+//!   public name/IRI and its [`OriginKind`](purrdf::provenance::OriginKind), and
 //! * each carrier lane (dataset / logic / reasoning / relational-core / the report
 //!   lanes) becomes a `gmeow:ProcedureStep` carrying a `logic:loadBearing` bit
 //!   (true = a trim drops correctness, false = a droppable annotation/report lane).

@@ -1208,7 +1208,7 @@ mod tests {
     fn gmeow_rdf_projects_into_the_diagnostics_graph() {
         // Every projected line lands in the diagnostics named graph, and the
         // projection is deterministic. (Specific triples are locked by the
-        // gmeow_rdf snapshot; this asserts the graph-containment invariant.)
+        // purrdf snapshot; this asserts the graph-containment invariant.)
         let nquads = to_gmeow_rdf(&comprehensive_report());
         for line in nquads.lines() {
             assert!(

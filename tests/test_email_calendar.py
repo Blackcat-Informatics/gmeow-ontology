@@ -8,8 +8,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
-from gmeow_rdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
+from purrdf.compat.rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
 

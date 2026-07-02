@@ -28,7 +28,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use gmeow_slice::rdf_query::{Dataset, Object, Subject};
+use purrdf::slice::rdf_query::{Dataset, Object, Subject};
 use serde_json::Value;
 
 use crate::error::PipelineError;
@@ -940,7 +940,7 @@ pub fn render_evals(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineEr
     // (shared prefix authority, no banner) so the superset gate reconstructs it.
     out.insert(
         SCORES_PATH.to_string(),
-        gmeow_rdf::turtle_normalize::canonical_turtle(
+        purrdf::turtle_normalize::canonical_turtle(
             render_scores_ttl(&cards).as_bytes(),
             &crate::stages::superset::rdf_prefixes(),
         )

@@ -23,7 +23,7 @@
 //!      graph loader, never the carrier transport. Out of the scanned set.
 //!
 //! There is NO sanctioned-exception carve-out: the carrier's typed-literal value-space
-//! canonicalization is now NATIVE (`gmeow_xsd::parse_by_iri` + `XsdValue::canonical_lexical`
+//! canonicalization is now NATIVE (`purrdf::xsd::parse_by_iri` + `XsdValue::canonical_lexical`
 //! in `carrier::dataset_to_nquads`), so the former transient-`Store`
 //! `canonicalize_quad_literals` residual (#1132 C3) is GONE — the carrier path uses NO
 //! oxigraph `Store` at all.
@@ -118,7 +118,7 @@ fn carrier_transport_path_creates_no_oxigraph_store_for_accumulation() {
          the inter-stage carrier transport path. The composed value must ride the native \
          `RdfDataset` / `PipelineBundle` carrier (RdfDataset::union), NOT a Store. There is NO \
          sanctioned exception: the carrier's typed-literal value-space canonicalization is native \
-         (gmeow_xsd). Violations:\n{}",
+         (purrdf::xsd). Violations:\n{}",
         all_violations
             .iter()
             .map(|(tok, loc)| format!("  - `{tok}` at {loc}"))
@@ -130,7 +130,7 @@ fn carrier_transport_path_creates_no_oxigraph_store_for_accumulation() {
 #[test]
 fn carrier_literal_canonicalization_is_native_gmeow_xsd_not_an_oxigraph_store() {
     // The carrier's typed-literal value-space canonicalization (#1132 C3) is NATIVE:
-    // `carrier::dataset_to_nquads` maps each literal through `gmeow_xsd::parse_by_iri`
+    // `carrier::dataset_to_nquads` maps each literal through `purrdf::xsd::parse_by_iri`
     // + `XsdValue::canonical_lexical`, with NO transient oxigraph `Store`. The former
     // `canonicalize_quad_literals` residual is GONE — assert it is neither referenced by
     // the carrier nor present anywhere in the crate, so a reviewer sees the carve-out is
@@ -138,14 +138,14 @@ fn carrier_literal_canonicalization_is_native_gmeow_xsd_not_an_oxigraph_store() 
     let root = manifest_dir();
     let snapshot = read_module(&root, "src/stages/carrier.rs");
     assert!(
-        snapshot.contains("gmeow_xsd::parse_by_iri"),
+        snapshot.contains("purrdf::xsd::parse_by_iri"),
         "carrier-purity: carrier.rs must canonicalize typed literals via the native \
-         `gmeow_xsd::parse_by_iri` (the oxigraph `canonicalize_quad_literals` residual is retired)."
+         `purrdf::xsd::parse_by_iri` (the oxigraph `canonicalize_quad_literals` residual is retired)."
     );
     assert!(
         !snapshot.contains("canonicalize_quad_literals"),
         "carrier-purity: the retired oxigraph `canonicalize_quad_literals` value-space normalizer \
-         must no longer appear in the carrier — the canonicalization is native gmeow_xsd now."
+         must no longer appear in the carrier — the canonicalization is native purrdf::xsd now."
     );
 }
 
@@ -183,14 +183,14 @@ fn compose(upstream: &Foo) -> Result<RdfDataset, E> {
 
     /// The native gmeow-xsd literal canonicalization is NOT mistaken for an
     /// accumulation token: the carrier's value-space normalization is now
-    /// `gmeow_xsd::parse_by_iri` + `XsdValue::canonical_lexical` (no oxigraph `Store`),
+    /// `purrdf::xsd::parse_by_iri` + `XsdValue::canonical_lexical` (no oxigraph `Store`),
     /// which matches none of the forbidden transport tokens, so it survives the scan.
     #[test]
     fn native_xsd_canonicalization_is_not_flagged() {
         let native_canon = r#"
 fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), E> {
     if let Some(dt) = literal.datatype.as_deref() {
-        match gmeow_xsd::parse_by_iri(&literal.lexical_form, dt)? {
+        match purrdf::xsd::parse_by_iri(&literal.lexical_form, dt)? {
             Some(value) => literal.lexical_form = value.canonical_lexical(),
             None => {}
         }
@@ -201,7 +201,7 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), E> {
         let violations = scan_violations("src/stages/carrier.rs", native_canon);
         assert!(
             violations.is_empty(),
-            "the native gmeow_xsd literal canonicalization must NOT be flagged as a \
+            "the native purrdf::xsd literal canonicalization must NOT be flagged as a \
              transport-Store accumulation, got {violations:?}"
         );
     }

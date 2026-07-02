@@ -15,8 +15,6 @@
 
 from typing import Any, TypedDict
 
-from gmeow_rdf import Quad
-
 class LedgerEntry(TypedDict):
     preservation: str
     complexity: str
@@ -129,20 +127,6 @@ def rl_closure_nt(input: str) -> str:
     Returns the full closure (asserted + derived) rendered as a byte-stable
     N-Triples document — skolem IRI → blank node, literal display, de-dup and sort
     all happen in Rust (``RlClosure::to_ntriples``).
-
-    Raises ``ValueError`` on an N-Quads/N-Triples parse error and ``RuntimeError``
-    on a chase or decode failure.
-    """
-    ...
-
-def rl_closure_quads(input: str) -> list[Quad]:
-    """Compute the native OWL 2 RL/RDF closure as live ``gmeow_rdf.Quad`` objects.
-
-    The structured twin of :func:`rl_closure_nt`: the same closure, returned as a
-    list of ``gmeow_rdf.Quad`` so an rdflib adapter folds it straight back into a
-    graph with no intermediate Python-side N-Triples render/parse (issue #630).
-    Blank nodes round-trip as blank nodes; literals keep datatype/language; every
-    quad is in the default graph.
 
     Raises ``ValueError`` on an N-Quads/N-Triples parse error and ``RuntimeError``
     on a chase or decode failure.

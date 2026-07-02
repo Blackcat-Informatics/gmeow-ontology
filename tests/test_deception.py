@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Namespace, URIRef
+from purrdf.compat.rdflib import OWL, RDF, Graph, Namespace, URIRef
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
@@ -142,7 +142,7 @@ def test_licensed_falsehood_not_a_lie() -> None:
 def test_disinformation_boundary_query() -> None:
     """The boundary query correctly labels origin as disinformation and
     dupe/downstream as misinformation."""
-    from gmeow_rdf.compat.rdflib.query import ResultRow
+    from purrdf.compat.rdflib.query import ResultRow
 
     g = load_merged_graph(include_imports=False)
 

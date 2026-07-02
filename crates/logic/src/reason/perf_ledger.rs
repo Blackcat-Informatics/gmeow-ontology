@@ -26,7 +26,7 @@
 //! PR) lives only in the issue tracker, never in this code or its emitted Turtle.
 
 use crate::reason::artifacts::{escape_literal, gmeow, GMEOW_NS, RDFS_COMMENT, RDF_TYPE};
-use gmeow_rdf::turtle::emit_resource;
+use purrdf::turtle::emit_resource;
 
 /// The two honest statuses a perf-ledger row can carry.
 ///

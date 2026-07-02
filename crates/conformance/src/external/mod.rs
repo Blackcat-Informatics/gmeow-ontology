@@ -16,7 +16,7 @@
 //!   mapping table.
 //! * [`szs`] — TPTP `% SZS status` ingestion.
 //! * [`manifest`] — W3C `mf:` entailment-manifest ingestion (dogfoods
-//!   `gmeow_rdf::parse_dataset`).
+//!   `purrdf::parse_dataset`).
 //! * [`lower`] — the pure AC1 `runner_verdict_json` surface (declared external
 //!   outcome → runner verdict value).
 //!

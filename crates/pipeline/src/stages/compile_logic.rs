@@ -36,6 +36,7 @@ use std::sync::Arc;
 use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::LogicProgram;
+use gmeow_logic_compile::openehr_opt::read_opt_quantity_constraint;
 use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
     affine_triangle_worked_example, project_correspondence, CorrespondenceProgram,
@@ -48,9 +49,8 @@ use gmeow_logic_compile::projections::{compile_program, ProjectionResult};
 use gmeow_logic_compile::relational_core::{
     lower_program, project_relational_core, RelationalCoreProgram,
 };
-use gmeow_rdf::provenance::DatasetProvenance;
-use gmeow_rdf::{parse_dataset, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm};
-use gmeow_shacl::openehr_opt::read_opt_quantity_constraint;
+use purrdf::provenance::DatasetProvenance;
+use purrdf::{parse_dataset, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm};
 use serde::{Deserialize, Serialize};
 
 use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
@@ -308,7 +308,7 @@ impl Stage for CompileLogicStage {
         // (shared prefix authority, no banner) so the superset gate reconstructs it.
         artifacts.insert(
             GUFO_PATH.to_string(),
-            gmeow_rdf::turtle_normalize::canonical_turtle(
+            purrdf::turtle_normalize::canonical_turtle(
                 arts.gufo.as_bytes(),
                 &crate::stages::superset::rdf_prefixes(),
             )
@@ -505,7 +505,7 @@ fn build_logic_bundle(
         "application/n-quads",
         crate::stages::carrier::GRAPH_DIAGNOSTICS,
     )?;
-    let dataset = Arc::new(gmeow_rdf::RdfDataset::union(&[
+    let dataset = Arc::new(purrdf::RdfDataset::union(&[
         logic_dataset.as_ref(),
         rc_dataset.as_ref(),
         corr_dataset.as_ref(),
@@ -693,7 +693,7 @@ mod tests {
 
     use gmeow_logic_compile::frontend::{parse_logic_dataset, parse_logic_str};
     use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom};
-    use gmeow_rdf::ContentDigest;
+    use purrdf::ContentDigest;
 
     /// A small clean program whose canonical RDF-1.2 projection is an EXACT round-trip
     /// (the documented ExactPreservation case): only graph-derivable constructs —
@@ -841,7 +841,7 @@ mod tests {
         assert!(
             matches!(
                 err,
-                gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
+                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
             ),
             "the Logic handle pin must fail closed on a digest mismatch, got {err:?}"
         );
@@ -921,7 +921,7 @@ mod tests {
         assert!(
             matches!(
                 err,
-                gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
+                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
             ),
             "the RelationalCore handle pin must fail closed on a digest mismatch, got {err:?}"
         );
@@ -1142,7 +1142,7 @@ mod tests {
         assert!(
             matches!(
                 err,
-                gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
+                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
             ),
             "the Correspondence handle pin must fail closed on a digest mismatch, got {err:?}"
         );

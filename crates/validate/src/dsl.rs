@@ -9,7 +9,7 @@
 //! source cell. That provenance walk is net-new Rust here (#579): each file is
 //! parsed in document order, every named (IRI) subject is recorded against the
 //! first file it is seen in, and all triples are merged into one frozen native
-//! [`gmeow_rdf::RdfDataset`] for the (native) SHACL validator.
+//! [`purrdf::RdfDataset`] for the (native) SHACL validator.
 //!
 //! The merge is order-sensitive *only* for the provenance map (first-seen wins),
 //! exactly matching the legacy Python `for path in sorted(...): ... if subject
@@ -18,7 +18,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use gmeow_rdf::{
+use purrdf::{
     parse_dataset, serialize_dataset, DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder,
     SerializeGraph, TermRef,
 };

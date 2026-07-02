@@ -34,13 +34,13 @@ RETAINED here (load_mappings() / external generated-artifact reads):
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import (
+from purrdf.compat.rdflib import (
     RDF,
     Graph,
     Namespace,
     URIRef,
 )
-from gmeow_rdf.compat.rdflib.namespace import SKOS
+from purrdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.slices import module_path

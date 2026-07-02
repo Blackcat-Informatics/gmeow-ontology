@@ -61,15 +61,17 @@ def compute_fix_deps(
     ``gmeow:sliceDependsOn`` additions/removals.
     """
     try:
-        import gmeow_slice
+        from purrdf.purrdf_native import slice as gmeow_slice
     except ModuleNotFoundError as exc:
         raise RuntimeError(
-            "gmeow-slice native extension not found; "
-            "run `make native-py` to build and install the unified extension"
+            "purrdf slice extension not found; install the `purrdf` package (PyPI), "
+            "which provides the RDF/slice/SHACL Python surface"
         ) from exc
 
     try:
-        catalog = gmeow_slice.SliceCatalog.discover(str(slices_root))
+        catalog = gmeow_slice.SliceCatalog.discover(
+            str(slices_root), "https://blackcatinformatics.ca/gmeow/"
+        )
     except Exception as exc:
         raise RuntimeError(f"slice catalog discovery failed: {exc}") from exc
 

@@ -8,8 +8,8 @@ const SKOS_RELATED_MATCH: &str = "http://www.w3.org/2004/02/skos/core#relatedMat
 const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
 
-fn parse_nt(nt: &str) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
-    gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+fn parse_nt(nt: &str) -> std::sync::Arc<purrdf::RdfDataset> {
+    purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .expect("parse projection N-Triples")
 }
 

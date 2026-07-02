@@ -1,19 +1,19 @@
-"""Fast in-process SPARQL execution over the merged ontology via ``gmeow_rdf``.
+"""Fast in-process SPARQL execution over the merged ontology via ``purrdf``.
 
 rdflib's pure-Python SPARQL engine and its triple-by-triple graph copy dominate
-the non-Docker test runtime. The native :mod:`gmeow_rdf` binding (oxigraph, Rust)
+the non-Docker test runtime. The native :mod:`purrdf` binding (oxigraph, Rust)
 parses the merged ontology ~10x faster and runs the same SPARQL 1.1 ``SELECT`` /
 ``ASK`` / ``CONSTRUCT`` ~12x faster, so this module provides the fast lane the
 test suite and the query executors use.
 
-``gmeow_rdf`` is the in-repo oxigraph binding that replaced the external Python
+``purrdf`` is the in-repo oxigraph binding that replaced the external Python
 oxigraph package (#667): the same engine every gmeow-* Rust crate links, so
 nothing external sits on the build/test path (CONSTITUTION Principle 18). This is
 a **non-authoritative acceleration path**: ``gmeow_shacl`` (Rust + oxigraph) is
 the canonical SHACL engine (#579) and the native ``logic:`` solver is the
 reasoning authority (Principle 17). The
 :mod:`gmeow_tools.oracles.engine_crosscheck` gate proves rdflib and
-``gmeow_rdf`` return identical answers for every committed query, which is what
+``purrdf`` return identical answers for every committed query, which is what
 licenses callers to trust this engine (CONSTITUTION Principle 7 — verified by
 construction).
 
@@ -29,30 +29,28 @@ from io import BytesIO
 from pathlib import Path
 from typing import Protocol
 
-import gmeow_rdf
-from gmeow_rdf.compat.rdflib import Graph
-from gmeow_rdf.compat.rdflib.term import Identifier
+import purrdf
+from purrdf.compat.rdflib import Graph
+from purrdf.compat.rdflib.term import Identifier
 
 from gmeow_tools.graph import bind_prefixes, iter_source_files
 
-_TURTLE = gmeow_rdf.RdfFormat.TURTLE
-_NT = gmeow_rdf.RdfFormat.N_TRIPLES
+_TURTLE = purrdf.RdfFormat.TURTLE
+_NT = purrdf.RdfFormat.N_TRIPLES
 
-#: ``gmeow_rdf`` does not export a single ``Term`` union, so name the term types a
+#: ``purrdf`` does not export a single ``Term`` union, so name the term types a
 #: query solution / substitution can hold — the full set ``Store.query`` expects.
-#: ``gmeow_rdf.Triple`` (a quoted triple, RDF 1.2) is included for completeness,
+#: ``purrdf.Triple`` (a quoted triple, RDF 1.2) is included for completeness,
 #: but ``_to_rdflib`` rejects it explicitly: rdflib 7.6 has no quoted-triple *term*
 #: type, and the SELECT/CONSTRUCT queries this module serves never project one (the
-#: RDF 1.2 statement round-trip uses the native ``gmeow_rdf`` codec).
-type _OxTerm = (
-    gmeow_rdf.NamedNode | gmeow_rdf.BlankNode | gmeow_rdf.Literal | gmeow_rdf.Triple
-)
+#: RDF 1.2 statement round-trip uses the native ``purrdf`` codec).
+type _OxTerm = purrdf.NamedNode | purrdf.BlankNode | purrdf.Literal | purrdf.Triple
 
 
-def _load_base(store: gmeow_rdf.Store, include_imports: bool) -> None:
+def _load_base(store: purrdf.Store, include_imports: bool) -> None:
     """Load the merged-ontology sources into *store*.
 
-    The Turtle sources are loaded **directly** (``gmeow_rdf`` parses them
+    The Turtle sources are loaded **directly** (``purrdf`` parses them
     natively) rather than via an rdflib N-Triples hand-off: an
     rdflib→N-Triples→oxigraph round-trip silently breaks blank-node RDF
     collections (``owl:members`` lists), whereas a direct Turtle load preserves
@@ -78,19 +76,19 @@ def _load_base(store: gmeow_rdf.Store, include_imports: bool) -> None:
 
 
 @lru_cache(maxsize=2)
-def _base_store(include_imports: bool) -> gmeow_rdf.Store:
-    """A cached read-only ``gmeow_rdf`` store of the merged ontology.
+def _base_store(include_imports: bool) -> purrdf.Store:
+    """A cached read-only ``purrdf`` store of the merged ontology.
 
     Built once per ``include_imports`` flavour. Callers that only query must not
     mutate it; callers that need to add instance data should use
     :func:`store_with`, which returns a fresh store.
     """
-    store = gmeow_rdf.Store()
+    store = purrdf.Store()
     _load_base(store, include_imports)
     return store
 
 
-def merged_store(*, include_imports: bool = False) -> gmeow_rdf.Store:
+def merged_store(*, include_imports: bool = False) -> purrdf.Store:
     """Return the cached, read-only merged-ontology store (query only)."""
     return _base_store(include_imports)
 
@@ -111,7 +109,7 @@ def store_with(
     *sources: Path | bytes,
     include_imports: bool = False,
     extra_triples: _SerializableGraph | None = None,
-) -> gmeow_rdf.Store:
+) -> purrdf.Store:
     """Build a fresh store of the merged ontology plus extra instance data.
 
     Args:
@@ -122,10 +120,10 @@ def store_with(
             to N-Triples once) — for small ad-hoc additions without RDF lists.
 
     Returns:
-        A new ``gmeow_rdf`` store seeded with the merged ontology plus every
+        A new ``purrdf`` store seeded with the merged ontology plus every
         supplied source — fast (~30 ms) versus an rdflib deep copy (~140 ms).
     """
-    store = gmeow_rdf.Store()
+    store = purrdf.Store()
     _load_base(store, include_imports)
     for source in sources:
         if isinstance(source, bytes):
@@ -137,15 +135,15 @@ def store_with(
     return store
 
 
-def store_from_graph(graph: _SerializableGraph) -> gmeow_rdf.Store:
-    """Load an arbitrary graph (compat or rdflib) into a fresh ``gmeow_rdf`` store."""
-    store = gmeow_rdf.Store()
+def store_from_graph(graph: _SerializableGraph) -> purrdf.Store:
+    """Load an arbitrary graph (compat or rdflib) into a fresh ``purrdf`` store."""
+    store = purrdf.Store()
     store.load(graph.serialize(format="nt", encoding="utf-8"), format=_NT)
     return store
 
 
 def construct(
-    store: gmeow_rdf.Store,
+    store: purrdf.Store,
     query_text: str,
     *,
     substitutions: dict[str, Identifier] | None = None,
@@ -156,15 +154,15 @@ def construct(
         store: The store to query.
         query_text: A SPARQL ``CONSTRUCT`` query.
         substitutions: Optional variable bindings (``{"focus": URIRef(...)}``)
-            applied via ``gmeow_rdf``'s native substitution — never string-spliced.
+            applied via ``purrdf``'s native substitution — never string-spliced.
 
     Returns:
         A fresh rdflib graph of the constructed triples, prefixes bound.
     """
     results = store.query(query_text, substitutions=_subs(substitutions))
-    assert isinstance(results, gmeow_rdf.QueryTriples)
+    assert isinstance(results, purrdf.QueryTriples)
     buffer = BytesIO()
-    gmeow_rdf.serialize(results, buffer, format=_NT)
+    purrdf.serialize(results, buffer, format=_NT)
     out = Graph()
     out.parse(data=buffer.getvalue(), format="nt")
     bind_prefixes(out)
@@ -172,7 +170,7 @@ def construct(
 
 
 def select(
-    store: gmeow_rdf.Store,
+    store: purrdf.Store,
     query_text: str,
     *,
     substitutions: dict[str, Identifier] | None = None,
@@ -184,55 +182,54 @@ def select(
     set membership, datatype access — with no engine-specific handling.
     """
     results = store.query(query_text, substitutions=_subs(substitutions))
-    assert isinstance(results, gmeow_rdf.QuerySolutions)
+    assert isinstance(results, purrdf.QuerySolutions)
     variables = list(results.variables)
     return [
         tuple(_to_rdflib(solution[var]) for var in variables) for solution in results
     ]
 
 
-def ask(store: gmeow_rdf.Store, query_text: str) -> bool:
+def ask(store: purrdf.Store, query_text: str) -> bool:
     """Run an ``ASK`` query and return its boolean answer."""
     result = store.query(query_text)
-    assert isinstance(result, gmeow_rdf.QueryBoolean)
+    assert isinstance(result, purrdf.QueryBoolean)
     return bool(result)
 
 
 def _subs(
     substitutions: dict[str, Identifier] | None,
-) -> dict[gmeow_rdf.Variable, _OxTerm] | None:
-    """Translate ``{name: rdflib term}`` to ``gmeow_rdf`` substitution form."""
+) -> dict[purrdf.Variable, _OxTerm] | None:
+    """Translate ``{name: rdflib term}`` to ``purrdf`` substitution form."""
     if not substitutions:
         return None
     return {
-        gmeow_rdf.Variable(name): _to_ox_term(term)
-        for name, term in substitutions.items()
+        purrdf.Variable(name): _to_ox_term(term) for name, term in substitutions.items()
     }
 
 
 def _to_ox_term(term: Identifier) -> _OxTerm:
-    """Convert a single rdflib term to its ``gmeow_rdf`` counterpart via N-Triples."""
+    """Convert a single rdflib term to its ``purrdf`` counterpart via N-Triples."""
     quad = next(
-        iter(gmeow_rdf.parse(f"<urn:x> <urn:p> {term.n3()} .".encode(), format=_NT))
+        iter(purrdf.parse(f"<urn:x> <urn:p> {term.n3()} .".encode(), format=_NT))
     )
     return quad.object
 
 
 def _to_rdflib(value: _OxTerm | None) -> Identifier | None:
-    """Convert one ``gmeow_rdf`` result term back to its rdflib counterpart."""
-    from gmeow_rdf.compat.rdflib import BNode, Literal, URIRef
+    """Convert one ``purrdf`` result term back to its rdflib counterpart."""
+    from purrdf.compat.rdflib import BNode, Literal, URIRef
 
     if value is None:
         return None
-    if isinstance(value, gmeow_rdf.NamedNode):
+    if isinstance(value, purrdf.NamedNode):
         return URIRef(value.value)
-    if isinstance(value, gmeow_rdf.BlankNode):
+    if isinstance(value, purrdf.BlankNode):
         return BNode(value.value)
-    if isinstance(value, gmeow_rdf.Literal):
+    if isinstance(value, purrdf.Literal):
         if value.language is not None:
             return Literal(value.value, lang=value.language)
         datatype = value.datatype.value
-        # rdflib renders a plain literal with no datatype; gmeow_rdf tags it
+        # rdflib renders a plain literal with no datatype; purrdf tags it
         # xsd:string. Drop xsd:string so the rdflib terms match either origin.
         if datatype == "http://www.w3.org/2001/XMLSchema#string":
             return Literal(value.value)

@@ -19,18 +19,18 @@ use std::time::Instant;
 use std::sync::Arc;
 
 use gmeow_diagnostics::{Finding, FindingCategory, Report, Severity};
-use gmeow_gts::model::Graph;
 use gmeow_logic::certificate::ContradictionPolicy;
-use gmeow_rdf::{
-    pair_loss_ledger, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfTerm, RdfTriple,
+use purrdf::gts::model::Graph;
+use purrdf::{
+    pair_loss_ledger, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple,
     PROJECTION_CODECS,
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use gmeow_slice::catalog::SliceCatalog;
-use gmeow_slice::ownership::{DependencyEdge, OwnershipAnalyzer, OwnershipReport};
-use gmeow_slice::{product_unit_key, Phase, ToolchainContext};
+use purrdf::slice::catalog::SliceCatalog;
+use purrdf::slice::ownership::{DependencyEdge, OwnershipAnalyzer, OwnershipReport};
+use purrdf::slice::{product_unit_key, Phase, ToolchainContext};
 
 use crate::advisory::Advisory;
 use crate::cache::{CachedResult, ValidationCache};
@@ -131,7 +131,7 @@ pub struct ValidationRun {
     /// The shared ontology dataset built from `source_paths` (or the GTS bundle).
     pub dataset: Arc<RdfDataset>,
     /// The parsed normal SHACL shapes model.
-    pub shapes: gmeow_shacl::shapes::Shapes,
+    pub shapes: purrdf::shapes::shapes::Shapes,
     /// Per-phase timing records (populated when requested).
     pub timings: Vec<Timing>,
     /// The single canonical diagnostics report aggregated across all phases.
@@ -228,7 +228,7 @@ impl ValidationRun {
 
         // Parse the normal SHACL shapes once.
         let shapes = timed(&mut timings, "parse-shapes", options, None, || {
-            gmeow_shacl::engine::parse_shapes(shapes_ttl)
+            purrdf::shapes::engine::parse_shapes(shapes_ttl)
         })?;
 
         // Signature/trust verification pre-gate (#646).
@@ -411,7 +411,11 @@ impl ValidationRun {
         };
         let start = Instant::now();
         let (result, meta) = run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
-            let report = store::shacl_validate_dataset(&dataset, &shapes);
+            // Same class-membership materialization as the example phase: purrdf's
+            // spec-conformant `sh:class` needs the subClassOf→rdf:type closure made
+            // explicit (see [`materialize_subclass_type_closure`]).
+            let materialized = materialize_subclass_type_closure(&dataset)?;
+            let report = store::shacl_validate_dataset(&materialized, &shapes);
             Ok(shacl_findings_from_report(&report, None))
         })?;
         if options.timings {
@@ -607,7 +611,7 @@ impl ValidationRun {
 
     /// Serialize the diagnostic/timing output to JSON.
     ///
-    /// The shared [`Store`] and [`gmeow_shacl::shapes::Shapes`] are not
+    /// The shared [`Store`] and [`purrdf::shapes::shapes::Shapes`] are not
     /// serializable, so the JSON only carries the derived errors/warnings, the
     /// timings, and the declared-term list.
     pub fn to_json(&self) -> Result<String, serde_json::Error> {
@@ -640,7 +644,7 @@ impl ValidationRun {
 /// # Errors
 /// Returns `Err` if the GTS bundle cannot be read or the reasoning run fails.
 fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), String> {
-    let bundle = gmeow_rdf::import_gts_events(gts_bytes)
+    let bundle = purrdf::import_gts_events(gts_bytes)
         .map_err(|e| format!("validate --deep: GTS read error: {e}"))?;
     let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
         .map_err(|e| format!("validate --deep: native reasoning failed: {e}"))?;
@@ -657,10 +661,10 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
     // Build the scoped coherence certificate from the SAME reasoning result, under
     // the SAME resolved policy and bundle hash, and attach it to the report metadata
     // (C2). The validate and release lanes share ONE certificate constructor.
-    let bundle_hash = gmeow_gts::writer::digest_string(gts_bytes);
+    let bundle_hash = purrdf::gts::writer::digest_string(gts_bytes);
     let axiom_hashes = gmeow_logic::certificate::per_graph_axiom_hashes(
         bundle.dataset.as_ref(),
-        gmeow_gts::writer::digest_string,
+        purrdf::gts::writer::digest_string,
     );
     // Compute genuine projection-loss codes from the static loss ledger — the same
     // computation the release lane uses, ensuring validate and release agree.
@@ -926,8 +930,8 @@ fn merged_shacl_toolchain() -> ToolchainContext {
     let compiler_version = format!(
         "gmeow-validate={};gmeow-shacl={};gmeow-gts-wire={}",
         env!("CARGO_PKG_VERSION"),
-        gmeow_shacl::VERSION,
-        gmeow_gts::wire::VERSION,
+        purrdf::shapes::VERSION,
+        purrdf::gts::wire::VERSION,
     );
     ToolchainContext::new(compiler_version, "shacl")
 }
@@ -952,8 +956,11 @@ fn merged_shacl_merkle_root(slices_dir: &str) -> Result<String, String> {
 fn slice_catalog_and_ownership(
     slices_dir: &str,
 ) -> Result<(SliceCatalog, OwnershipReport), String> {
-    let catalog = SliceCatalog::discover(Path::new(slices_dir))
-        .map_err(|e| format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"))?;
+    let catalog = SliceCatalog::discover(
+        Path::new(slices_dir),
+        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
+    )
+    .map_err(|e| format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"))?;
     // S4 dependency edges (the same edges the ownership/dependency analyzer
     // produces) drive the Merkle dependency composition.
     let ownership = OwnershipAnalyzer::new(&catalog)
@@ -974,7 +981,7 @@ fn merged_shacl_merkle_root_from_parts(
         .iter()
         .map(|r| r.manifest.slice_iri.clone())
         .collect();
-    let product = gmeow_slice::product_unit(catalog, edges, &seeds);
+    let product = purrdf::slice::product_unit(catalog, edges, &seeds);
     let key = product_unit_key(Phase::Shacl, catalog, edges, &product, &toolchain)
         .map_err(|e| format!("merged-SHACL Merkle key: product key computation failed: {e}"))?;
     Ok(key.root)
@@ -1092,7 +1099,7 @@ type CachedPhaseResult = Result<(Vec<Finding>, Option<String>), String>;
 /// fresh `base ∪ example` native dataset per example.
 fn check_examples(
     dataset: &RdfDataset,
-    shapes: &gmeow_shacl::shapes::Shapes,
+    shapes: &purrdf::shapes::shapes::Shapes,
     slices_dir: &str,
     cache: Option<&ValidationCache>,
     base_key: &str,
@@ -1128,7 +1135,7 @@ fn check_examples(
         }
     }
 
-    let base_projected = gmeow_shacl::engine::project_dataset(dataset)
+    let base_projected = purrdf::shapes::engine::project_dataset(dataset)
         .map_err(|e| format!("example base SHACL projection failed: {e}"))?;
 
     let results: Vec<CachedPhaseResult> = examples
@@ -1191,12 +1198,141 @@ fn example_shacl_key(
     ]))
 }
 
+/// Materialize the `rdfs:subClassOf` → `rdf:type` transitive closure into a
+/// validation dataset so SHACL `sh:class` constraints resolve without relying on
+/// any RDF-engine's (non-)inference behavior.
+///
+/// # Why this exists — READ BEFORE TOUCHING THE SHACL PHASES (this WILL resurface)
+///
+/// SHACL's `sh:class C` is satisfied when the value node is a *SHACL instance* of
+/// `C`: it carries `rdf:type C`, or `rdf:type D` for some `D` that reaches `C`
+/// through `rdfs:subClassOf` (SHACL spec §2.1.4, the definition of "SHACL
+/// instance"). A **spec-conformant** SHACL processor performs NO other entailment
+/// — it does not run RDFS/OWL reasoning, and it does NOT synthesize `rdf:type`
+/// triples from `rdfs:subClassOf`. It only follows `subClassOf` edges that are
+/// *literally present in the data graph* when resolving `sh:class`.
+///
+/// A lenient SHACL engine that instead performs `rdfs:subClassOf` entailment while
+/// evaluating `sh:class` accepts an instance typed only as a deep subclass (e.g.
+/// `ex:x a gmeow:Proposition`, where `gmeow:Proposition ⊑* gmeow:Entity`) against
+/// `sh:class gmeow:Entity` even though `ex:x` never carries `rdf:type gmeow:Entity`.
+/// A conformant engine does NOT, so relying on that leniency is fragile.
+///
+/// A conformant engine walks `subClassOf` TRANSITIVELY, but only over the edges in
+/// the data graph, and never infers `rdf:type`. It therefore accepts the deep
+/// subclass case IFF the whole `subClassOf` chain up to the target class is in the
+/// validated graph; otherwise it (correctly) reports a `ClassConstraintComponent`
+/// violation. gmeow's example ABox files assert only the most specific type
+/// (`gmeow:Proposition`), and the class chain crosses namespaces
+/// (`gmeow:Proposition → logic:Object → logic:Endurant → gmeow:SocialObject →
+/// gmeow:Entity`), so depending on the validator to bridge that is fragile and
+/// engine-sensitive.
+///
+/// So gmeow makes the class membership EXPLICIT here instead of depending on the
+/// validator: it precomputes the transitive `subClassOf` closure of every class in
+/// the graph and materializes, for each asserted `s rdf:type C`, the derived
+/// `s rdf:type Super` for every transitive `Super` of `C`. After this pass a value
+/// typed `gmeow:Proposition` literally carries `rdf:type gmeow:Entity`, so
+/// `sh:class gmeow:Entity` is satisfied by a direct type check — independent of how
+/// any SHACL engine chooses to follow `subClassOf`. This keeps gmeow's closed-world
+/// SHACL semantics stable across RDF-engine versions and stays deterministic (no
+/// reasoner in the validate path).
+///
+/// Scope: this materializes ONLY the `subClassOf → rdf:type` closure (RDFS rule
+/// rdfs9 plus the transitivity of `subClassOf`). It is deliberately NOT a general
+/// reasoner — it does not touch `owl:*`, `rdfs:domain`/`range`, or property
+/// hierarchies. SHACL `sh:class` needs none of those, and adding them would
+/// over-approximate the validated graph and mask real closed-world violations.
+///
+/// Cost: one pass over the quads to build the direct-super map, a memoized DFS for
+/// the transitive closure (cycle-guarded — a malformed `A ⊑ A` loop yields no
+/// derived types rather than diverging), and one pass to emit the derived
+/// `rdf:type` quads. All derived quads are `(IRI, rdf:type, IRI)`; blank-node and
+/// literal subjects/types are ignored (they cannot participate in a `sh:class`
+/// class check).
+fn materialize_subclass_type_closure(data: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
+    use std::collections::{BTreeMap, BTreeSet};
+
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+    // Materialize the quad stream once — it is walked twice (build the super map,
+    // then emit derived types).
+    let quads: Vec<RdfQuad> = data.owned_quads().collect();
+
+    // 1. Direct super-class map: class IRI → the classes it is *directly* declared a
+    //    subclass of. Only IRI→IRI `subClassOf` edges participate (a blank-node
+    //    superclass is an anonymous OWL class expression, not a `sh:class` target).
+    let mut direct_supers: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    for q in &quads {
+        if q.predicate.as_str() == RDFS_SUBCLASSOF {
+            if let (RdfTerm::Iri(sub), RdfTerm::Iri(sup)) = (&q.subject, &q.object) {
+                direct_supers
+                    .entry(sub.as_str())
+                    .or_default()
+                    .insert(sup.as_str());
+            }
+        }
+    }
+
+    // 2. Transitive closure per class, memoized. `in_progress` guards subclass
+    //    cycles (`A ⊑ B ⊑ A`): a class already on the DFS stack contributes nothing
+    //    further, so the pass terminates on any (malformed) cyclic hierarchy.
+    fn supers_of<'a>(
+        cls: &'a str,
+        direct: &BTreeMap<&'a str, BTreeSet<&'a str>>,
+        cache: &mut BTreeMap<&'a str, BTreeSet<&'a str>>,
+        in_progress: &mut BTreeSet<&'a str>,
+    ) -> BTreeSet<&'a str> {
+        if let Some(hit) = cache.get(cls) {
+            return hit.clone();
+        }
+        if !in_progress.insert(cls) {
+            return BTreeSet::new();
+        }
+        let mut out = BTreeSet::new();
+        if let Some(directs) = direct.get(cls) {
+            for &sup in directs {
+                out.insert(sup);
+                out.extend(supers_of(sup, direct, cache, in_progress));
+            }
+        }
+        in_progress.remove(cls);
+        cache.insert(cls, out.clone());
+        out
+    }
+
+    let mut cache: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    let mut in_progress: BTreeSet<&str> = BTreeSet::new();
+
+    // 3. Emit `s rdf:type Super` for every transitive superclass of each asserted
+    //    `s rdf:type C`. The builder keeps the original graph verbatim first, so
+    //    the pass is purely additive (deterministic: BTree iteration order).
+    let mut builder = RdfDatasetBuilder::new();
+    builder.push_dataset(data);
+    for q in &quads {
+        if q.predicate.as_str() == RDF_TYPE {
+            if let RdfTerm::Iri(cls) = &q.object {
+                for sup in supers_of(cls.as_str(), &direct_supers, &mut cache, &mut in_progress) {
+                    builder.push_owned_quad(&RdfQuad::new(
+                        q.subject.clone(),
+                        RDF_TYPE,
+                        RdfTerm::iri(sup),
+                    ));
+                }
+            }
+        }
+    }
+
+    builder.freeze().map_err(|e| e.to_string())
+}
+
 /// The example file is parsed under its own blank scope, projected into the SHACL
 /// flattened view, merged with the already-projected base graph, then validated
 /// with the native SHACL engine.
 fn run_example_shacl(
     base_projected: &Arc<RdfDataset>,
-    shapes: &gmeow_shacl::shapes::Shapes,
+    shapes: &purrdf::shapes::shapes::Shapes,
     path: &Path,
     name: &str,
 ) -> Result<Vec<Finding>, String> {
@@ -1211,7 +1347,7 @@ fn run_example_shacl(
             .with_tool("validate")]);
         }
     };
-    let example_projected = gmeow_shacl::engine::project_dataset(example_ds.as_ref())
+    let example_projected = purrdf::shapes::engine::project_dataset(example_ds.as_ref())
         .map_err(|e| format!("example {name}: SHACL projection failed: {e}"))?;
     let mut builder = RdfDatasetBuilder::new();
     builder.push_dataset(base_projected);
@@ -1219,20 +1355,27 @@ fn run_example_shacl(
     let merged = builder
         .freeze()
         .map_err(|e| format!("example {name}: projected base ∪ example freeze failed: {e}"))?;
+    // Materialize the subClassOf→rdf:type closure so `sh:class` resolves against
+    // the example instances' full type set (the base graph carries the class
+    // hierarchy; the example asserts only the most-specific type). See
+    // [`materialize_subclass_type_closure`] for the full rationale.
+    let merged = materialize_subclass_type_closure(&merged)
+        .map_err(|e| format!("example {name}: class-membership materialization failed: {e}"))?;
     let report = if example_allows_focus_pruning(example_ds.as_ref()) {
         let affected = affected_focus_terms(example_projected.as_ref());
         // ABox-only examples cannot alter the ontology's target/class/property
         // structure, so the merged run only needs to recheck focus terms touched
         // by the example. Examples that edit schema or SHACL shapes take the
         // full-scan branch above.
-        gmeow_shacl::engine::validate_projected_dataset_with_focus_filter(
+        purrdf::shapes::engine::validate_projected_dataset_with_focus_filter(
             merged,
             shapes,
             |_, focus| affected.contains(focus),
         )
     } else {
-        gmeow_shacl::engine::validate_projected_dataset(merged, shapes)
-    };
+        purrdf::shapes::engine::validate_projected_dataset(merged, shapes)
+    }
+    .map_err(|e| format!("example {name}: SHACL validation failed: {e}"))?;
     Ok(shacl_findings_from_report(&report, Some(name)))
 }
 
@@ -1269,20 +1412,20 @@ fn is_schema_type(term: &RdfTerm) -> bool {
     )
 }
 
-fn affected_focus_terms(example_projected: &RdfDataset) -> HashSet<gmeow_shacl::term::Term> {
+fn affected_focus_terms(example_projected: &RdfDataset) -> HashSet<purrdf::shapes::term::Term> {
     let mut affected = HashSet::new();
     for quad in example_projected.owned_quads() {
         affected.insert(rdf_term_to_shacl_term(&quad.subject));
-        affected.insert(gmeow_shacl::term::Term::NamedNode(
-            gmeow_shacl::term::NamedNode::new_unchecked(quad.predicate),
+        affected.insert(purrdf::shapes::term::Term::NamedNode(
+            purrdf::shapes::term::NamedNode::new_unchecked(quad.predicate),
         ));
         affected.insert(rdf_term_to_shacl_term(&quad.object));
     }
     affected
 }
 
-fn rdf_term_to_shacl_term(term: &RdfTerm) -> gmeow_shacl::term::Term {
-    use gmeow_shacl::term::{NamedNode, Term};
+fn rdf_term_to_shacl_term(term: &RdfTerm) -> purrdf::shapes::term::Term {
+    use purrdf::shapes::term::{NamedNode, Term};
 
     match term {
         RdfTerm::Iri(iri) => Term::NamedNode(NamedNode::new_unchecked(iri.clone())),
@@ -1292,8 +1435,8 @@ fn rdf_term_to_shacl_term(term: &RdfTerm) -> gmeow_shacl::term::Term {
     }
 }
 
-fn rdf_triple_to_shacl_triple(triple: &RdfTriple) -> gmeow_shacl::term::Triple {
-    use gmeow_shacl::term::{NamedNode, Triple};
+fn rdf_triple_to_shacl_triple(triple: &RdfTriple) -> purrdf::shapes::term::Triple {
+    use purrdf::shapes::term::{NamedNode, Triple};
 
     let subject = rdf_term_to_shacl_term(&triple.subject);
     let predicate = NamedNode::new_unchecked(triple.predicate.clone());
@@ -1301,8 +1444,8 @@ fn rdf_triple_to_shacl_triple(triple: &RdfTriple) -> gmeow_shacl::term::Triple {
     Triple::new(subject, predicate, object)
 }
 
-fn rdf_literal_to_shacl_literal(literal: &RdfLiteral) -> gmeow_shacl::term::Literal {
-    use gmeow_shacl::term::Literal;
+fn rdf_literal_to_shacl_literal(literal: &RdfLiteral) -> purrdf::shapes::term::Literal {
+    use purrdf::shapes::term::Literal;
 
     match (&literal.language, &literal.datatype) {
         (Some(lang), _) => match literal.direction {
@@ -1318,7 +1461,7 @@ fn rdf_literal_to_shacl_literal(literal: &RdfLiteral) -> gmeow_shacl::term::Lite
         },
         (None, Some(datatype)) => Literal::new_typed_literal(
             literal.lexical_form.clone(),
-            gmeow_shacl::term::NamedNode::new_unchecked(datatype.clone()),
+            purrdf::shapes::term::NamedNode::new_unchecked(datatype.clone()),
         ),
         (None, None) => Literal::new_simple_literal(literal.lexical_form.clone()),
     }
@@ -1479,7 +1622,7 @@ mod tests {
     use super::*;
     use std::collections::{BTreeSet, HashSet};
 
-    use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch};
+    use purrdf::{parse_dataset, DatasetView, GraphMatch};
 
     fn write_tmp(name: &str, contents: &str) -> PathBuf {
         let path = std::env::temp_dir().join(name);
@@ -1498,7 +1641,7 @@ mod tests {
             None,
         )
         .unwrap();
-        let base_quads: Vec<gmeow_rdf::RdfQuad> = base.owned_quads().collect();
+        let base_quads: Vec<purrdf::RdfQuad> = base.owned_quads().collect();
 
         // An example carrying one duplicate of the base quad plus one new quad.
         let example_path = write_tmp(
@@ -1528,7 +1671,7 @@ mod tests {
 
     #[test]
     fn affected_focus_terms_include_predicate_iris() {
-        use gmeow_shacl::term::{NamedNode, Term};
+        use purrdf::shapes::term::{NamedNode, Term};
 
         let example = parse_dataset(
             b"@prefix ex: <https://example.org/> .\nex:s ex:p ex:o .\n",
@@ -1550,10 +1693,10 @@ mod tests {
     }
 
     fn minimal_gts_bytes() -> Vec<u8> {
-        use gmeow_gts::model::{Term, TermKind};
-        use gmeow_gts::writer::Writer;
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
 
-        let mut graph = gmeow_gts::model::Graph::default();
+        let mut graph = purrdf::gts::model::Graph::default();
         graph.terms.push(Term {
             kind: TermKind::Iri,
             value: Some("https://example.org/a".to_string()),
@@ -1652,7 +1795,7 @@ ex:B owl:disjointWith ex:C .
 ex:x rdf:type ex:A .
 ";
         let bytes = gts_bytes_from_turtle(inconsistent);
-        let bundle = gmeow_rdf::import_gts_events(&bytes).expect("gts read");
+        let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
         let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
         assert!(!result.is_consistent(), "the fixture must produce a glut");
 
@@ -1701,11 +1844,11 @@ ex:x rdf:type ex:A .
 
     /// Build canonical GTS bytes from a Turtle string for the deep-pass test.
     fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
-        let dataset = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-            .expect("parse test turtle");
-        gmeow_rdf::gts_write::to_gts(
+        let dataset =
+            purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse test turtle");
+        purrdf::gts_write::to_gts(
             &dataset,
-            &gmeow_rdf::RdfLookaside::default(),
+            &purrdf::RdfLookaside::default(),
             "gmeow-validate-deep-test",
         )
         .expect("encode GTS bytes")
@@ -1809,7 +1952,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         // on gmeow-validate — a cycle), so exercise the exact decision the release lane
         // makes: resolve the policy off the bundle, build the outcome, and assert it is
         // refused (release.rs returns Err on `outcome.is_refused()`).
-        let bundle = gmeow_rdf::import_gts_events(&bytes).expect("gts read");
+        let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
         let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
         let policy =
             ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref()).expect("policy");
@@ -1830,10 +1973,10 @@ ex:governingContract rdf:type logic:ReasoningContract ;
             .collect();
         let outcome = gmeow_logic::certificate::CoherenceOutcome::from_reasoning_result(
             &result,
-            gmeow_gts::writer::digest_string(&bytes),
+            purrdf::gts::writer::digest_string(&bytes),
             gmeow_logic::certificate::per_graph_axiom_hashes(
                 bundle.dataset.as_ref(),
-                gmeow_gts::writer::digest_string,
+                purrdf::gts::writer::digest_string,
             ),
             policy,
             "2026-06-28T00:00:00Z",
@@ -1883,9 +2026,9 @@ ex:governingContract rdf:type logic:ReasoningContract ;
 
         // The single triple (s,p,o) is present in the shared dataset.
         let ds = &run.dataset;
-        let s = ds.term_id_by_value(&gmeow_rdf::TermValue::iri("https://example.org/a"));
-        let p = ds.term_id_by_value(&gmeow_rdf::TermValue::iri("https://example.org/p"));
-        let o = ds.term_id_by_value(&gmeow_rdf::TermValue::iri("https://example.org/b"));
+        let s = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/a"));
+        let p = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/p"));
+        let o = ds.term_id_by_value(&purrdf::TermValue::iri("https://example.org/b"));
         assert!(
             ds.quads_for_pattern(s, p, o, GraphMatch::Any)
                 .next()
@@ -2007,18 +2150,19 @@ ex:governingContract rdf:type logic:ReasoningContract ;
     /// must carry `FindingCategory::DataShapeViolation`.
     #[test]
     fn shacl_violation_is_categorized_data_shape_violation() {
-        use gmeow_shacl::report::{ValidationReport, ValidationResult};
-        use gmeow_shacl::term::{Literal, NamedNode, Term};
+        use purrdf::shapes::report::{ValidationReport, ValidationResult};
+        use purrdf::shapes::term::{Literal, NamedNode, Term};
 
         let result = ValidationResult {
             focus_node: Term::NamedNode(NamedNode::new_unchecked("https://example.org/FocusA")),
             result_path: None,
+            path_structure: None,
             value: None,
             source_constraint_component: NamedNode::new_unchecked(
                 "http://www.w3.org/ns/shacl#MinCountConstraintComponent",
             ),
             source_shape: Term::NamedNode(NamedNode::new_unchecked("https://example.org/ShapeA")),
-            severity: gmeow_shacl::report::Severity::Violation,
+            severity: purrdf::shapes::report::Severity::Violation,
             message: Some("must have at least one value".to_owned()),
             source_box_roles: vec![],
             path_box_roles: vec![],
@@ -2051,7 +2195,7 @@ ex:governingContract rdf:type logic:ReasoningContract ;
     /// guard) must also carry `FindingCategory::DataShapeViolation`.
     #[test]
     fn shacl_nonconforming_guard_is_categorized_data_shape_violation() {
-        use gmeow_shacl::report::ValidationReport;
+        use purrdf::shapes::report::ValidationReport;
 
         let report = ValidationReport {
             conforms: false,

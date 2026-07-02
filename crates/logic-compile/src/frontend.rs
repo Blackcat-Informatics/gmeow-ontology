@@ -33,7 +33,7 @@ use std::fmt;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
-use gmeow_rdf::{parse_dataset, RdfDataset};
+use purrdf::{parse_dataset, RdfDataset};
 
 use super::compat;
 use super::graphutil::{

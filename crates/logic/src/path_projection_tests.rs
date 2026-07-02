@@ -14,7 +14,7 @@ use crate::rule_ir::{least_model_of_reduct, parse_eval_rules, Fact, FactStore};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{PathBase, PathShapeIr};
 use gmeow_logic_compile::projections::paths::*;
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 fn shape(iri: &str, base: PathBase, min: u32, max: Option<u32>, ns: Option<&str>) -> PathShapeIr {
     PathShapeIr::new(

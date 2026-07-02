@@ -6,13 +6,13 @@
 //!
 //! This is the root of the build DAG. It loads `ontology/gmeow.ttl`, every
 //! `slices/<group>/<name>/module.ttl`, and every `imports/*.ttl` into a single
-//! native [`RdfDataset`](gmeow_rdf::RdfDataset) — the RDF 1.1 base graph the Python
+//! native [`RdfDataset`](purrdf::RdfDataset) — the RDF 1.1 base graph the Python
 //! build assembled via `load_merged_graph(include_imports=…)`. The dataset is the
 //! frozen carrier downstream stages union and project from, with the N-Quads byte
 //! lane published alongside so the pre-carrier byte readers parse it from memory
 //! instead of re-reading `gmeow.gts` from disk per generator (the bottleneck #861
 //! removes). EPIC #906: oxigraph-free — every parse routes through the native
-//! `gmeow_rdf::parse_dataset` codecs and merges via `RdfDataset::union`.
+//! `purrdf::parse_dataset` codecs and merges via `RdfDataset::union`.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -20,8 +20,8 @@ use std::sync::Arc;
 
 use std::collections::HashMap;
 
-use gmeow_rdf::provenance::{DatasetProvenance, OriginKind};
-use gmeow_rdf::{
+use purrdf::provenance::{DatasetProvenance, OriginKind};
+use purrdf::{
     flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset, QuadHandle, RdfDataset, RdfQuad,
     RdfTerm, RdfTriple, SerializeGraph,
 };
@@ -53,14 +53,14 @@ fn authored_origin_kind(root: &Path, path: &Path) -> OriginKind {
 /// `imports/*.ttl`) is registered as one compilation [`unit`](DatasetProvenance::register_unit)
 /// — by its repo-relative path, with the path-derived [`OriginKind`] — and one
 /// [`artifact`](DatasetProvenance::register_artifact) under that same path. Each quad the
-/// file contributes is recorded as one [`AssertionOccurrence`](gmeow_rdf::provenance::AssertionOccurrence)
+/// file contributes is recorded as one [`AssertionOccurrence`](purrdf::provenance::AssertionOccurrence)
 /// keyed by a content-deduplicated [`QuadHandle`]: two files asserting the same triple
 /// collapse to ONE handle but TWO occurrences (the set-valued S0.3 invariant). Blank-node
 /// labels are standardized per file (the same FNV scope the load store uses), so a
 /// structurally-distinct blank axiom in two files keeps two handles.
 ///
 /// Returns `(provenance, expected_handles)` where `expected_handles` is every distinct
-/// handle minted — the coverage set [`check_provenance`](gmeow_rdf::provenance::check_provenance)
+/// handle minted — the coverage set [`check_provenance`](purrdf::provenance::check_provenance)
 /// asserts is fully attributed. An UNATTRIBUTED authored quad is impossible by
 /// construction (every quad is recorded as it is seen); the gate is the hard-fail proof.
 pub fn attributed_base_provenance(
@@ -112,7 +112,7 @@ pub fn attributed_base_provenance(
 }
 
 /// A stable (FNV-1a) blank-node label prefix for a source document — the native twin
-/// of `gmeow_rdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped`'s scoping, kept
+/// of `purrdf::oxigraph::flat_oxigraph_quads_from_dataset_scoped`'s scoping, kept
 /// byte-identical so the per-file provenance handle partition (and thus the committed
 /// `graph/provenance` projection) is preserved across the oxigraph removal (#906).
 /// Deterministic across processes and stages — the same `scope_key` always yields the
@@ -261,7 +261,7 @@ fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 /// is the single dataset → N-Quads projection the pipeline's in-memory dataflow speaks;
 /// the `gts_compose` stage projects the composed UNION dataset through it for its byte
 /// lane.
-pub fn dataset_to_sorted_nquads(dataset: &gmeow_rdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
+pub fn dataset_to_sorted_nquads(dataset: &purrdf::RdfDataset) -> Result<Vec<u8>, PipelineError> {
     let buf = serialize_dataset(dataset, "application/n-quads", SerializeGraph::Dataset)
         .map_err(|e| PipelineError::Parse(format!("serialize failed: {e}")))?;
     // Sort lines for determinism (serializer iteration order is not guaranteed).

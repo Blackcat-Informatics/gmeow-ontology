@@ -14,8 +14,8 @@ cannot see them. It is faithfully tested only over the FULL merged graph
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import Graph, URIRef
-from gmeow_rdf.compat.rdflib.namespace import RDFS
+from purrdf.compat.rdflib import Graph, URIRef
+from purrdf.compat.rdflib.namespace import RDFS
 
 from gmeow_tools.graph import load_merged_graph
 

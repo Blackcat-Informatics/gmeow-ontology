@@ -16,8 +16,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_rdf::provenance::DatasetProvenance;
-use gmeow_rdf::{PipelineBundle, RdfDataset};
+use purrdf::provenance::DatasetProvenance;
+use purrdf::{PipelineBundle, RdfDataset};
 
 use crate::bundle::{
     bundle_artifact, bundle_artifacts, bundle_from_artifacts, bundle_from_artifacts_over,

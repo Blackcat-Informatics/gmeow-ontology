@@ -393,12 +393,12 @@ fn reaches(m: &BTreeMap<String, BTreeSet<String>>, a: &str, b: &str) -> bool {
 
 /// Extract the IRI string from a native subject term (IRIs only; blank nodes and
 /// non-IRI terms yield `None`).
-fn named_iri(s: &gmeow_rdf::TermValue) -> Option<String> {
+fn named_iri(s: &purrdf::TermValue) -> Option<String> {
     s.as_iri().map(str::to_owned)
 }
 
-/// Extract the IRI string from a native object [`gmeow_rdf::TermValue`] (IRIs only).
-fn term_iri(o: &gmeow_rdf::TermValue) -> Option<String> {
+/// Extract the IRI string from a native object [`purrdf::TermValue`] (IRIs only).
+fn term_iri(o: &purrdf::TermValue) -> Option<String> {
     o.as_iri().map(str::to_owned)
 }
 

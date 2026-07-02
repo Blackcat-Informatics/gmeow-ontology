@@ -39,7 +39,7 @@ pub use py::register;
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_rdf::prelude::RdfDataset;
+use purrdf::prelude::RdfDataset;
 
 pub use budget::BudgetReport;
 pub use graphview::GraphView;
@@ -91,7 +91,7 @@ pub fn run_import(
         ("gmeow".to_string(), NAMESPACE.to_string()),
         ("corp".to_string(), CORP_PREFIX.to_string()),
     ];
-    let ttl = gmeow_rdf::turtle_normalize::render(&dataset, &prefixes);
+    let ttl = purrdf::turtle_normalize::render(&dataset, &prefixes);
     std::fs::write(out_dir.join("foundation.ttl"), ttl)?;
 
     // budget-report.txt (as_text() + "\n").

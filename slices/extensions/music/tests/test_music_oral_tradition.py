@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import RDF, RDFS, BNode, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib import RDF, RDFS, BNode, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 

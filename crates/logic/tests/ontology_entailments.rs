@@ -30,7 +30,7 @@
 use std::path::PathBuf;
 
 use gmeow_logic::reason::{rl_closure, RlClosure};
-use gmeow_rdf::{parse_dataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf::{parse_dataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 
 /// The gmeow ontology namespace (`config.NAMESPACE` = `ONTOLOGY_IRI + "/"`).
 pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -86,7 +86,7 @@ fn turtle_quads(rel_paths: &[String]) -> Vec<RdfQuad> {
     quads
 }
 
-fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in quads {
         builder.push_owned_quad(&quad);

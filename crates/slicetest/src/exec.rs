@@ -21,9 +21,9 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
-use gmeow_rdf_core::{RdfDataset, SparqlResult, TermValue};
-use gmeow_shacl::engine::{parse_shapes, validate_dataset};
 use gmeow_validate::findings::finding_from_shacl;
+use purrdf::shapes::engine::{parse_shapes, validate_dataset};
+use purrdf::{RdfDataset, SparqlResult, TermValue};
 
 use crate::dsl::{
     self, CompetencyQuestion, ExampleConformance, ExpectedRow, Outcome, Polarity, ReasoningProfile,

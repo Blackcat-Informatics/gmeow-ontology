@@ -12,7 +12,7 @@
 //! P2 registers one provenance unit per stage with the capability-derived origin; the
 //! per-quad occurrence recording is wired in P3, when stages emit real quads.
 
-use gmeow_rdf::provenance::{DatasetProvenance, OriginKind, UnitId};
+use purrdf::provenance::{DatasetProvenance, OriginKind, UnitId};
 
 use crate::node::SOURCE_ORIGIN;
 

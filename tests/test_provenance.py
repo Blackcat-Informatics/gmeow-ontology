@@ -20,7 +20,7 @@ RETAINED here (cross-slice subjects):
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, URIRef
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 

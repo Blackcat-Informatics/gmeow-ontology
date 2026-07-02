@@ -12,7 +12,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Protocol
 
-from gmeow_rdf.compat.rdflib import Graph
+from purrdf.compat.rdflib import Graph
 
 from gmeow_tools.config import (
     IMPORTS_DIR,

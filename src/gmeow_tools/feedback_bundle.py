@@ -20,7 +20,7 @@ import json
 from typing import Any
 
 import gts
-from gmeow_rdf.compat.rdflib import Dataset
+from purrdf.compat.rdflib import Dataset
 
 from gmeow_tools.gts_producer import _Builder
 

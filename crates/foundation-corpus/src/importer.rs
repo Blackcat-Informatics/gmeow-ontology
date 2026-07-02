@@ -20,9 +20,9 @@ use std::collections::BTreeMap;
 use std::io;
 use std::sync::Arc;
 
-use gmeow_rdf::ir::{RdfDatasetBuilder, TermId};
-use gmeow_rdf::model::RdfLiteral;
-use gmeow_rdf::prelude::RdfDataset;
+use purrdf::ir::{RdfDatasetBuilder, TermId};
+use purrdf::model::RdfLiteral;
+use purrdf::prelude::RdfDataset;
 
 use crate::budget::BudgetReport;
 use crate::model::{value_to_index, value_to_iri_component, Record};
@@ -156,7 +156,7 @@ impl FoundationImporter {
     // -- low-level interning helpers ------------------------------------- //
 
     fn iri(&mut self, iri: &str) -> TermId {
-        self.builder.intern_iri(iri.to_string())
+        self.builder.intern_iri(iri)
     }
     fn lang_lit(&mut self, text: &str) -> TermId {
         self.builder

@@ -13,11 +13,11 @@ here — the Rust codec is the single authority.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import Graph
+from purrdf.compat.rdflib import Graph
 
 
 def jsonld_star_to_graph(json_bytes: bytes) -> Graph:
-    """Parse JSON-LD-star into a ``gmeow_rdf.compat.rdflib.Graph``.
+    """Parse JSON-LD-star into a ``purrdf.compat.rdflib.Graph``.
 
     The Rust native parser downcasts RDF 1.2 quoted triples to native GMEOW
     statement-metadata triples before the data reaches the rdflib-compat
@@ -33,7 +33,7 @@ def jsonld_star_to_graph(json_bytes: bytes) -> Graph:
 
 
 def yaml_ld_to_graph(yaml_bytes: bytes) -> Graph:
-    """Parse YAML-LD-star into a ``gmeow_rdf.compat.rdflib.Graph``.
+    """Parse YAML-LD-star into a ``purrdf.compat.rdflib.Graph``.
 
     Routes YAML-LD-star through the Rust native downcast, which converts YAML to
     JSON-LD-star (hard-failing on YAML anchors/aliases), then downcasts RDF 1.2
