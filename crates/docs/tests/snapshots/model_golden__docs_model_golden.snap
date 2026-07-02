@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
@@ -290,11 +291,11 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 70,
-  "linkage_count": 1761,
+  "mapping_set_count": 71,
+  "linkage_count": 1770,
   "example_count": 110,
   "concern_count": 7,
-  "external_term_count": 1530,
+  "external_term_count": 1539,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
