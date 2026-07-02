@@ -491,6 +491,13 @@ const STRATUM_1: &[Rule] = &[
         distinct_pairs: NO_GUARD,
     },
     // causalPartOf(?X, ?Z) :- causalPartOf(?X, ?Y), causalPartOf(?Y, ?Z)
+    // Kept in-chase, NOT delegated to the generic property-characteristic post-pass:
+    // the causal⊑temporal lift above consumes the transitively-closed causalPartOf
+    // within the same fixpoint, so the closure must be visible to that downstream rule.
+    // A post-pass runs after the chase and cannot feed it — removing this rule drops
+    // both the closed causalPartOf edge and its temporalPartOf lift. The characteristic
+    // post-pass is additive: it fires only on a property carrying a characteristic
+    // marker/record (the occurrent fixtures carry none) and is idempotent with this rule.
     Rule {
         head: pos(
             var("?X"),
