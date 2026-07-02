@@ -231,6 +231,15 @@ pub fn project_validation_shapes_shacl(program: &LogicProgram) -> String {
 /// lossy component yields an empty vector (the `ValidationOnly` polarity with no residue).
 pub fn shacl_residue(shape: &ValidationShapeIr) -> Vec<String> {
     let mut residue = Vec::new();
+    // A standpoint-indexed shape holds only under its standpoint (world); a standpoint-blind
+    // SHACL/ShEx engine would apply it universally. There is no SHACL/ShEx standpoint facet, so
+    // the scope is carried in the canonical logic: layer, never silently flattened to universal.
+    if let Some(sp) = &shape.standpoint {
+        residue.push(format!(
+            "standpoint scope {sp} has no SHACL/ShEx form; the shape would be applied universally \
+             by a standpoint-blind engine, so its scope is carried in the canonical logic: layer"
+        ));
+    }
     for p in &shape.properties {
         for c in &p.components {
             match c {
@@ -576,6 +585,37 @@ mod tests {
             "{ttl}"
         );
         assert!(ttl.contains("sh:reificationRequired true"), "{ttl}");
+    }
+
+    #[test]
+    fn standpoint_scope_is_carried_as_projection_residue() {
+        // A standpoint-indexed shape (exercising the standpoint + reifier + reification fields
+        // together) has no faithful SHACL/ShEx form: its scope must be recorded in the loss
+        // ledger, never silently flattened to a universal shape.
+        let sp = "https://blackcatinformatics.ca/gmeow/clinicalStandpoint";
+        let s = ValidationShapeIr::new(
+            "https://ex/S",
+            ShapeTarget::Class("https://ex/C".into()),
+            vec![],
+            Some(sp.into()),
+            Some("https://ex/ReifierShape".into()),
+            true,
+        )
+        .unwrap();
+        assert_eq!(s.standpoint.as_deref(), Some(sp));
+        let shacl = shacl_residue(&s);
+        assert!(
+            shacl
+                .iter()
+                .any(|r| r.contains(sp) && r.contains("standpoint")),
+            "standpoint scope must be recorded in the SHACL residue: {shacl:?}"
+        );
+        // ShEx residue is a superset, so it inherits the standpoint residue too.
+        let shex = shex_residue(&s);
+        assert!(
+            shex.iter().any(|r| r.contains(sp)),
+            "standpoint scope must also be in the ShEx residue: {shex:?}"
+        );
     }
 
     #[test]
