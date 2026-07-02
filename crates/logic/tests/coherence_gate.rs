@@ -28,14 +28,29 @@
 //!   wired into `make check` via `CHECK_TARGETS`. The minimal test above remains a fast,
 //!   deterministic companion.
 
+use gmeow_logic::foundation::{evaluate as foundation_evaluate, AntiRigidityPolicy};
 use gmeow_logic::reason::dl_consistency;
+use gmeow_logic::store::WorldStore;
 use gmeow_rdf::{
     dataset_from_bytes, import_gts_events, NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm,
 };
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+const LOGIC_SUBCLASS_OF: &str = "https://blackcatinformatics.ca/logic/subClassOf";
+const LOGIC_MEDIATES: &str = "https://blackcatinformatics.ca/logic/mediates";
+const LOGIC_VIOLATION: &str = "https://blackcatinformatics.ca/logic/violation";
+const LOGIC_RELCOMP: &str = "https://blackcatinformatics.ca/logic/RelComp";
+const LOGIC_KIND: &str = "https://blackcatinformatics.ca/logic/Kind";
+const LOGIC_RELATOR: &str = "https://blackcatinformatics.ca/logic/Relator";
+// One synthetic world holding the whole bundle's relator schema — RelComp is a
+// class-level (TBox) discipline, so a single world is the correct scope.
+const BUNDLE_WORLD: &str = "https://blackcatinformatics.ca/gmeow/test/relcomp/world";
 
 // A self-contained clash in a fresh world so it can never interact with the shipped
 // ontology's own worlds: individual X is typed into A and B, which are disjoint.
@@ -169,5 +184,100 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
             .any(|w| w.individual.contains("coherence/x")),
         "the inconsistency witness must name the injected individual: {:?}",
         v1.inconsistencies
+    );
+}
+
+/// Project the committed bundle to the IRI-only fact set the foundation reasoner needs
+/// for the relator-mediation discipline, as world-scoped N-Quads in [`BUNDLE_WORLD`]:
+///
+/// - `rdf:type` triples whose object is a `logic:` stereotype or `owl:FunctionalProperty`
+///   (the stereotype puns + the functional-role markers),
+/// - every `rdfs:subClassOf` / `logic:subClassOf` edge (mapped to `logic:subClassOf`, so
+///   `subClassOfT` reaches `logic:Relator` and `hasLogicSubclass` distinguishes leaves),
+/// - every `logic:mediates` edge (the mediation roles).
+///
+/// The foundation chase is all-IRI, so literal- and blank-object triples are dropped; none
+/// bear on relator mediation.
+fn project_relator_facts(onto: &gmeow_rdf::RdfDataset) -> BTreeSet<String> {
+    let mut lines: BTreeSet<String> = BTreeSet::new();
+    for q in onto.owned_quads() {
+        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
+            continue;
+        };
+        let mapped_predicate = match q.predicate.as_str() {
+            RDF_TYPE if o.starts_with(LOGIC_NS) || o == OWL_FUNCTIONAL_PROPERTY => RDF_TYPE,
+            RDFS_SUBCLASS_OF | LOGIC_SUBCLASS_OF => LOGIC_SUBCLASS_OF,
+            LOGIC_MEDIATES => LOGIC_MEDIATES,
+            _ => continue,
+        };
+        lines.insert(format!(
+            "<{s}> <{mapped_predicate}> <{o}> <{BUNDLE_WORLD}> .\n"
+        ));
+    }
+    lines
+}
+
+/// Run the native foundation discipline over projected N-Quads and return the subject IRIs
+/// that fire `logic:violation logic:RelComp`.
+fn relcomp_offenders(nquads: &str) -> Vec<String> {
+    let store = WorldStore::new();
+    store
+        .load_nquads(nquads)
+        .expect("load the projected relator facts");
+    let quads = foundation_evaluate(&store, AntiRigidityPolicy::WitnessObligation)
+        .expect("foundation evaluate over the projected relator facts");
+    let relcomp_obj = format!("<{LOGIC_RELCOMP}>");
+    quads
+        .into_iter()
+        .filter(|q| q.predicate == LOGIC_VIOLATION && q.object == relcomp_obj)
+        .map(|q| q.subject)
+        .collect()
+}
+
+/// Whole-ontology relator-mediation gate. Projects the committed `gmeow.gts` to its
+/// relator schema and runs the native foundation discipline over the whole bundle — the
+/// canonical `logic:` enforcement mechanism, no longer confined to conformance fixtures.
+/// Every concrete production relator must reach at least two entities (two distinct roles,
+/// or one non-functional role), so the shipped ontology must produce ZERO RelComp
+/// violations. A degenerate relator injected on top (a single functional role) must fire,
+/// proving the gate has teeth.
+///
+/// Named `whole_bundle_..._gate` and matched by the `coherence-gate-teeth` selector; the
+/// whole-bundle chase is over the 25 s budget, so it is carved out of the budget-gated
+/// nextest profile by `default-filter` (budget-exempt, not gate-exempt).
+#[test]
+fn whole_bundle_relcomp_gate_holds_and_has_teeth() {
+    let gts_path = repo_root().join("generated/dist/gmeow.gts");
+    let bytes = std::fs::read(&gts_path)
+        .unwrap_or_else(|e| panic!("read committed bundle {}: {e}", gts_path.display()));
+    let bundle = import_gts_events(&bytes).expect("import the committed gmeow.gts bundle");
+    let facts = project_relator_facts(bundle.dataset.as_ref());
+    let projection: String = facts.iter().cloned().collect();
+
+    // The shipped ontology satisfies relator mediation: zero RelComp violations.
+    let offenders = relcomp_offenders(&projection);
+    assert!(
+        offenders.is_empty(),
+        "the committed gmeow.gts must satisfy relator mediation, but these concrete relators \
+         reach fewer than two entities (add a distinct mediation role, or make an existing \
+         role non-functional): {offenders:#?}"
+    );
+
+    // Teeth: a concrete subclass relator mediating a single FUNCTIONAL role reaches one
+    // entity → RelComp. Inject it on top of the real bundle and require the gate to fire.
+    let bad = "https://blackcatinformatics.ca/gmeow/test/relcomp/DegenerateRelator";
+    let role = "https://blackcatinformatics.ca/gmeow/test/relcomp/soleRole";
+    let poisoned = format!(
+        "{projection}\
+         <{bad}> <{RDF_TYPE}> <{LOGIC_KIND}> <{BUNDLE_WORLD}> .\n\
+         <{bad}> <{LOGIC_SUBCLASS_OF}> <{LOGIC_RELATOR}> <{BUNDLE_WORLD}> .\n\
+         <{bad}> <{LOGIC_MEDIATES}> <{role}> <{BUNDLE_WORLD}> .\n\
+         <{role}> <{RDF_TYPE}> <{OWL_FUNCTIONAL_PROPERTY}> <{BUNDLE_WORLD}> .\n"
+    );
+    let offenders = relcomp_offenders(&poisoned);
+    assert!(
+        offenders.iter().any(|s| s == bad),
+        "an injected concrete relator with a single functional role must fire RelComp: \
+         {offenders:#?}"
     );
 }

@@ -38,6 +38,8 @@ gmeow:SkillProficiency
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "Skill Proficiency"@x-gmeow-english ;
+    logic:mediates gmeow:skillProficiencyAgent ,
+        gmeow:skillProficiencyOf ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
