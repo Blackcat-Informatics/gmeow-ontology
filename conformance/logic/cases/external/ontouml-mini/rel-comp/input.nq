@@ -1,0 +1,6 @@
+<https://gmeow.example/ontouml-mini/rel-comp/Marriage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> <https://gmeow.example/ontouml-mini/rel-comp/w> .
+<https://gmeow.example/ontouml-mini/rel-comp/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://gmeow.example/ontouml-mini/rel-comp/med#end0> <https://gmeow.example/ontouml-mini/rel-comp/w> .
+<https://gmeow.example/ontouml-mini/rel-comp/Person> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> <https://gmeow.example/ontouml-mini/rel-comp/w> .
+<https://gmeow.example/ontouml-mini/rel-comp/Spouse> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> <https://gmeow.example/ontouml-mini/rel-comp/w> .
+<https://gmeow.example/ontouml-mini/rel-comp/Spouse> <https://blackcatinformatics.ca/logic/subClassOf> <https://gmeow.example/ontouml-mini/rel-comp/Person> <https://gmeow.example/ontouml-mini/rel-comp/w> .
+<https://gmeow.example/ontouml-mini/rel-comp/med#end0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://gmeow.example/ontouml-mini/rel-comp/w> .

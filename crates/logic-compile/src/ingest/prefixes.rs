@@ -42,6 +42,7 @@ pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("edoal", "http://ns.inria.org/edoal/1.0/#"),
     ("align", "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#"),
     ("gufo", "http://purl.org/nemo/gufo#"),
+    ("ontouml", "https://w3id.org/ontouml#"),
     ("umbel", "http://umbel.org/umbel#"),
     ("umbelrc", "http://umbel.org/umbel/rc/"),
     ("dul", "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#"),

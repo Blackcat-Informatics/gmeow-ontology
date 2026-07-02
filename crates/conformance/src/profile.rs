@@ -110,6 +110,11 @@ pub struct Profile {
     /// the soundness gate requires it for a TPTP `source/problem.p` case and pins it
     /// against the source's `% SZS status` line.
     pub szs_status: Option<String>,
+    /// The documented OntoUML anti-pattern label this catalog case carries,
+    /// preserved verbatim as provenance so the specific community-decided verdict
+    /// is NOT collapsed to a pass/gap at ingest — the lossy projection is applied
+    /// only at the comparison gate. `None` for endogenous/clean-control cases.
+    pub documented_antipattern: Option<String>,
 }
 
 impl Profile {
@@ -186,6 +191,7 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
     let verdict_mode = parse_verdict_mode(case_id, obj)?;
     let compositions = parse_compositions(case_id, obj)?;
     let szs_status = parse_szs_status_field(case_id, obj)?;
+    let documented_antipattern = parse_documented_antipattern_field(case_id, obj)?;
 
     Ok(Profile {
         semantic_profile,
@@ -199,6 +205,7 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         verdict_mode,
         compositions,
         szs_status,
+        documented_antipattern,
     })
 }
 
@@ -219,6 +226,26 @@ fn parse_szs_status_field(
         Some(other) => Err(format!(
             "case {case_id}: profile.json szs_status must be a non-empty string (the raw \
              TPTP SZS token), got {other}"
+        )),
+    }
+}
+
+/// Parse the optional `documented_antipattern` provenance field.
+///
+/// Absent ⇒ `None`. When present it MUST be a non-empty string (the documented
+/// OntoUML anti-pattern label, e.g. `"RelatorMediatesOne"`); a non-string or
+/// empty value is a hard error (no silent coercion). The lossy projection onto a
+/// pass/gap verdict is applied only at the comparison gate, never here.
+fn parse_documented_antipattern_field(
+    case_id: &str,
+    obj: &Map<String, Value>,
+) -> Result<Option<String>, String> {
+    match obj.get("documented_antipattern") {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::String(s)) if !s.trim().is_empty() => Ok(Some(s.clone())),
+        Some(other) => Err(format!(
+            "case {case_id}: profile.json documented_antipattern must be a non-empty string \
+             (the documented OntoUML anti-pattern label), got {other}"
         )),
     }
 }
@@ -406,6 +433,7 @@ mod tests {
         assert_eq!(p.verdict_mode, VerdictMode::Materialization);
         assert_eq!(p.query_profile(), DEFAULT_SEMANTIC_PROFILE);
         assert!(p.szs_status.is_none());
+        assert!(p.documented_antipattern.is_none());
     }
 
     #[test]
@@ -420,6 +448,30 @@ mod tests {
         assert!(parse_profile("c", &json!({ "szs_status": 7 })).is_err());
         assert!(parse_profile("c", &json!({ "szs_status": "" })).is_err());
         assert!(parse_profile("c", &json!({ "szs_status": "  " })).is_err());
+    }
+
+    #[test]
+    fn documented_antipattern_provenance_parses_and_validates() {
+        // The documented anti-pattern label is preserved verbatim (the specific
+        // community-decided verdict, not a pass/gap projection).
+        let p = parse_profile(
+            "c",
+            &json!({ "documented_antipattern": "RelatorMediatesOne" }),
+        )
+        .unwrap();
+        assert_eq!(
+            p.documented_antipattern.as_deref(),
+            Some("RelatorMediatesOne")
+        );
+        // Absent ⇒ None.
+        assert!(parse_profile("c", &json!({}))
+            .unwrap()
+            .documented_antipattern
+            .is_none());
+        // A non-string or empty label is a hard error (no silent coercion).
+        assert!(parse_profile("c", &json!({ "documented_antipattern": 7 })).is_err());
+        assert!(parse_profile("c", &json!({ "documented_antipattern": "" })).is_err());
+        assert!(parse_profile("c", &json!({ "documented_antipattern": "  " })).is_err());
     }
 
     #[test]

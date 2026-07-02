@@ -1,0 +1,8 @@
+{
+  "name": "ontouml-mini-divergence",
+  "spdx_license": "CC-BY-4.0",
+  "source_url": "https://github.com/OntoUML/ontouml-models",
+  "version_or_commit": "gmeow-self-authored-1",
+  "refresh_command": "cargo nextest run -p gmeow-conformance -E 'binary(ontouml_divergence_gate)'",
+  "lane": "divergence"
+}
