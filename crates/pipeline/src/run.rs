@@ -377,6 +377,12 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     }
     let products: BTreeMap<String, StageProduct> = result.products;
 
+    // PIPELINE_SPINE §4/§7: exactly one stage writes the bundle bytes. Assert it on the
+    // ACTUAL produced artifacts — stronger than the loader's capability-declaration gate
+    // — so a stage emitting `gmeow.gts` WITHOUT declaring `sinkCapability`, or a second
+    // declared sink, is a hard failure in BOTH regenerate and check modes.
+    assert_single_gts_writer(&products)?;
+
     let mut findings: Vec<Finding> = Vec::new();
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
@@ -605,6 +611,38 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
 /// Whether `path` is an RDF text artifact compared by graph isomorphism (its
 /// committed bytes were serialized by the retired Python build, so byte parity
 /// is not expected; the unit tests assert isomorphism, never bytes).
+/// PIPELINE_SPINE §4/§7 — exactly ONE stage writes the bundle bytes. The loader gate
+/// (`loader::validate`) asserts exactly one stage DECLARES `sinkCapability`; this asserts
+/// the stronger runtime property: exactly one produced product actually carries the
+/// `gmeow.gts` byte artifact. A stage emitting the bundle bytes without the capability, or
+/// a second declared sink, is a hard failure (no-optionality, fail-closed) — never a
+/// silent second terminal, in either regenerate or check mode.
+fn assert_single_gts_writer(
+    products: &BTreeMap<String, StageProduct>,
+) -> Result<(), PipelineError> {
+    let writers: Vec<&str> = products
+        .iter()
+        .filter(|(_, p)| p.artifact(GTS_PATH).is_some())
+        .map(|(id, _)| id.as_str())
+        .collect();
+    match writers.len() {
+        1 => Ok(()),
+        0 => Err(PipelineError::Stage {
+            stage: "pipeline".to_string(),
+            message: format!(
+                "no stage emits the `{GTS_PATH}` bundle bytes; PIPELINE_SPINE §4 requires exactly one terminal writer"
+            ),
+        }),
+        n => Err(PipelineError::Stage {
+            stage: "pipeline".to_string(),
+            message: format!(
+                "{n} stages emit the `{GTS_PATH}` bundle bytes ({}); exactly one terminal writer is allowed (PIPELINE_SPINE §4)",
+                writers.join(", ")
+            ),
+        }),
+    }
+}
+
 fn is_rdf_artifact(path: &str) -> bool {
     path.ends_with(".ttl") || path.ends_with(".nt") || path.ends_with(".nq")
 }
@@ -820,6 +858,64 @@ mod dag_profile_tests {
         assert_eq!(
             std::fs::read(dir.path().join("generated/sample.txt")).expect("read changed"),
             b"v2"
+        );
+    }
+}
+
+/// The runtime one-terminal gate (PIPELINE_SPINE §4): exactly one produced product may
+/// carry the `gmeow.gts` byte artifact.
+#[cfg(test)]
+mod single_writer_gate {
+    use super::{assert_single_gts_writer, GTS_PATH};
+    use crate::node::StageProduct;
+    use std::collections::BTreeMap;
+
+    fn gts_writer(id: &str) -> StageProduct {
+        let mut a: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        a.insert(GTS_PATH.to_string(), b"gts-bytes".to_vec());
+        StageProduct::from_artifacts(id, a)
+    }
+
+    fn plain(id: &str) -> StageProduct {
+        let mut a: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        a.insert("generated/other.ttl".to_string(), b"x".to_vec());
+        StageProduct::from_artifacts(id, a)
+    }
+
+    fn products(items: Vec<StageProduct>) -> BTreeMap<String, StageProduct> {
+        items.into_iter().map(|p| (p.stage_id.clone(), p)).collect()
+    }
+
+    #[test]
+    fn exactly_one_writer_passes() {
+        let p = products(vec![gts_writer("stage-gts-sink"), plain("stage-export")]);
+        assert!(assert_single_gts_writer(&p).is_ok());
+    }
+
+    #[test]
+    fn a_second_writer_is_rejected() {
+        let p = products(vec![
+            gts_writer("stage-gts-sink"),
+            gts_writer("stage-rogue"),
+        ]);
+        let msg = format!("{}", assert_single_gts_writer(&p).unwrap_err());
+        assert!(
+            msg.contains("2 stages emit") && msg.contains("exactly one"),
+            "a second GTS writer must hard-fail: got {msg}"
+        );
+        assert!(
+            msg.contains("stage-gts-sink") && msg.contains("stage-rogue"),
+            "the error must name both offending stages: got {msg}"
+        );
+    }
+
+    #[test]
+    fn no_writer_is_rejected() {
+        let p = products(vec![plain("stage-export")]);
+        let msg = format!("{}", assert_single_gts_writer(&p).unwrap_err());
+        assert!(
+            msg.contains("no stage emits"),
+            "zero GTS writers must hard-fail: got {msg}"
         );
     }
 }
