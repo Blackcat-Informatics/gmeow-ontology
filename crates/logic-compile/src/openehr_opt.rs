@@ -279,7 +279,7 @@ pub fn read_all_opt_constraints(
             Some("C_COMPLEX_OBJECT") => cardinality_from_occurrences(node, base_iri, label)?,
             // `<term_bindings>` is not an `xsi:type`-tagged node; match it by tag name.
             _ if node.tag_name().name() == "term_bindings" => {
-                terminology_from_bindings(node, base_iri)
+                terminology_from_bindings(node, base_iri)?
             }
             _ => None,
         };
@@ -581,15 +581,13 @@ fn cardinality_from_occurrences(
 /// Extract an external terminology binding from a `<term_bindings terminology="…">` block: the
 /// `terminology` attribute is the id, each `<items>/<value>/<code_string>` is a bound code. The
 /// codes are sorted (a binding set is order-free) so the lifted shape recovers to the identical
-/// IR. Returns `None` when the block binds no code.
-fn terminology_from_bindings(node: roxmltree::Node, base_iri: &str) -> Option<OptConstraintKind> {
-    let terminology_id = node
-        .attributes()
-        .find(|a| a.name() == "terminology")
-        .map(|a| a.value())
-        .unwrap_or("unknown")
-        .trim()
-        .to_owned();
+/// IR. Returns `Ok(None)` when the block binds no code; hard-fails when a block DOES bind codes but
+/// carries no (or an empty) `terminology` id — a malformed OPT, never mint a bogus `unknown`
+/// terminology (mirroring [`code_phrase_value_set`]).
+fn terminology_from_bindings(
+    node: roxmltree::Node,
+    base_iri: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
     let mut codes: Vec<String> = node
         .descendants()
         .filter(|d| d.is_element() && d.tag_name().name() == "code_string")
@@ -597,14 +595,22 @@ fn terminology_from_bindings(node: roxmltree::Node, base_iri: &str) -> Option<Op
         .map(|s| s.trim().to_owned())
         .collect();
     if codes.is_empty() {
-        return None;
+        return Ok(None);
     }
+    let terminology_id = node
+        .attributes()
+        .find(|a| a.name() == "terminology")
+        .map(|a| a.value().trim().to_owned())
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| {
+            opt_err("<term_bindings> with bound codes is missing its `terminology` id")
+        })?;
     codes.sort();
-    Some(OptConstraintKind::TerminologyBinding {
+    Ok(Some(OptConstraintKind::TerminologyBinding {
         path: format!("{base_iri}termBinding"),
         terminology_id,
         codes,
-    })
+    }))
 }
 #[cfg(test)]
 mod tests {
@@ -644,6 +650,18 @@ mod tests {
         let naming = std::collections::BTreeMap::new();
         let err = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap_err();
         assert!(err.to_string().contains("<lower> is missing"), "got: {err}");
+    }
+
+    #[test]
+    fn term_bindings_with_codes_but_no_terminology_hard_fails() {
+        // A <term_bindings> that binds codes but carries no `terminology` id is malformed —
+        // hard-fail rather than mint a bogus `unknown` terminology.
+        let xml = "<term_bindings>\
+                   <items><value><code_string>at0004</code_string></value></items>\
+                   </term_bindings>";
+        let naming = std::collections::BTreeMap::new();
+        let err = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap_err();
+        assert!(err.to_string().contains("terminology"), "got: {err}");
     }
 }
 
