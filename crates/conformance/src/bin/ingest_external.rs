@@ -1539,7 +1539,15 @@ fn collect_ontouml_models(dir: &Path) -> Result<Vec<PathBuf>, String> {
     let mut out = Vec::new();
     let mut stack = vec![dir.to_path_buf()];
     while let Some(d) = stack.pop() {
-        for entry in std::fs::read_dir(&d).map_err(|e| format!("read_dir {}: {e}", d.display()))? {
+        // A missing directory (the top-level catalog not yet populated, or a subdir
+        // removed mid-walk) is an empty listing, not an error — the caller decides
+        // what an empty model set means. Every other IO error still propagates.
+        let read = match std::fs::read_dir(&d) {
+            Ok(read) => read,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => return Err(format!("read_dir {}: {e}", d.display())),
+        };
+        for entry in read {
             let entry = entry.map_err(|e| e.to_string())?;
             let file_type = entry
                 .file_type()

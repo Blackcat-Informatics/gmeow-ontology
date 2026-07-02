@@ -45,6 +45,10 @@ pub fn lower_model(model: &OntoumlModel, world_iri: &str) -> Result<(String, usi
 
     let logic = |local: &str| format!("{LOGIC_NS}{local}");
 
+    // Predicate IRIs reused across every edge — built once, not per iteration.
+    let p_sub_class_of = logic("subClassOf");
+    let p_mediates = logic("mediates");
+
     // Classes: one rdf:type stereotype pun per asserted stereotype.
     for class in &model.classes {
         for stereo in &class.stereotypes {
@@ -56,7 +60,7 @@ pub fn lower_model(model: &OntoumlModel, world_iri: &str) -> Result<(String, usi
     // Generalizations: logic:subClassOf (the chase reads this, not rdfs:).
     let mut referenced: BTreeSet<&str> = BTreeSet::new();
     for edge in &model.generalizations {
-        push(&edge.specific, &logic("subClassOf"), &edge.general);
+        push(&edge.specific, &p_sub_class_of, &edge.general);
         referenced.insert(edge.specific.as_str());
         referenced.insert(edge.general.as_str());
     }
@@ -71,7 +75,7 @@ pub fn lower_model(model: &OntoumlModel, world_iri: &str) -> Result<(String, usi
     // where the bare NoStereo class is seen purely through its generalization).
     for class in &model.classes {
         if class.stereotypes.is_empty() && !referenced.contains(class.iri.as_str()) {
-            push(&class.iri, &logic("subClassOf"), &class.iri);
+            push(&class.iri, &p_sub_class_of, &class.iri);
         }
     }
 
@@ -80,7 +84,7 @@ pub fn lower_model(model: &OntoumlModel, world_iri: &str) -> Result<(String, usi
     for med in &model.mediations {
         for (idx, _relatum) in med.mediated.iter().enumerate() {
             let role = format!("{}#end{idx}", med.relation_iri);
-            push(&med.relator, &logic("mediates"), &role);
+            push(&med.relator, &p_mediates, &role);
             if med.functional {
                 push(&role, RDF_TYPE, OWL_FUNCTIONAL_PROPERTY);
             }
