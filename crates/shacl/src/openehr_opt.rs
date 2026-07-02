@@ -91,6 +91,23 @@ fn element_text_f64(node: roxmltree::Node, name: &str) -> Result<f64, OptError> 
         .map_err(|e| opt_err(format!("<{name}> value {text:?} is not a number: {e}")))
 }
 
+fn element_text_u32(node: roxmltree::Node, name: &str) -> Result<u32, OptError> {
+    let child = child_element(node, name).ok_or_else(|| {
+        opt_err(format!(
+            "missing <{name}> under <{}>",
+            node.tag_name().name()
+        ))
+    })?;
+    let text = child
+        .text()
+        .ok_or_else(|| opt_err(format!("<{name}> has no text content")))?;
+    text.trim().parse::<u32>().map_err(|e| {
+        opt_err(format!(
+            "<{name}> value {text:?} is not a non-negative integer: {e}"
+        ))
+    })
+}
+
 fn element_text_bool(node: roxmltree::Node, name: &str) -> Result<bool, OptError> {
     let child = child_element(node, name).ok_or_else(|| {
         opt_err(format!(
@@ -216,8 +233,9 @@ pub fn read_opt_quantity_constraint(
 }
 
 /// Walks an OPT document and extracts EVERY constraint it recognizes — `C_DV_QUANTITY`
-/// magnitude intervals, `C_STRING` regex patterns, and `C_CODE_PHRASE` coded value sets — as
-/// pure [`OptConstraintIr`] values in document order. Shape/class IRIs are minted
+/// magnitude intervals, `C_STRING` regex patterns, `C_CODE_PHRASE` coded value sets,
+/// `C_COMPLEX_OBJECT` `<occurrences>` cardinality, and `<term_bindings>` external terminology
+/// references — as pure [`OptConstraintIr`] values in document order. Shape/class IRIs are minted
 /// deterministically from `base_iri` + a document-order index, so the same OPT always yields
 /// the same shapes. Hard-fails on a recognized-but-malformed constraint node (no silent skip)
 /// and on an OPT with no recognized constraint at all.
@@ -255,6 +273,13 @@ pub fn read_all_opt_constraints(
                     })
             }
             Some("C_CODE_PHRASE") => code_phrase_value_set(node, base_iri),
+            // A complex-object node carries its multiplicity as a direct `<occurrences>`
+            // interval — the OPT's cardinality/occurrences constraint node kind.
+            Some("C_COMPLEX_OBJECT") => cardinality_from_occurrences(node, base_iri, idx)?,
+            // `<term_bindings>` is not an `xsi:type`-tagged node; match it by tag name.
+            _ if node.tag_name().name() == "term_bindings" => {
+                terminology_from_bindings(node, base_iri)
+            }
             _ => None,
         };
         if let Some(kind) = kind {
@@ -268,7 +293,8 @@ pub fn read_all_opt_constraints(
     }
     if out.is_empty() {
         return Err(opt_err(
-            "no C_DV_QUANTITY / C_STRING / C_CODE_PHRASE constraint found in OPT",
+            "no C_DV_QUANTITY / C_STRING / C_CODE_PHRASE / occurrences / term_binding constraint \
+             found in OPT",
         ));
     }
     Ok(out)
@@ -307,7 +333,7 @@ fn code_phrase_value_set(node: roxmltree::Node, base_iri: &str) -> Option<OptCon
         .unwrap_or("unknown")
         .trim()
         .to_owned();
-    let codes: Vec<String> = node
+    let mut codes: Vec<String> = node
         .children()
         .filter(|c| c.is_element() && c.tag_name().name() == "code_list")
         .filter_map(|c| c.text())
@@ -316,8 +342,69 @@ fn code_phrase_value_set(node: roxmltree::Node, base_iri: &str) -> Option<OptCon
     if codes.is_empty() {
         return None;
     }
+    // A value set is a SET — carry the members in canonical (sorted) order so the lifted shape
+    // (whose value-set members are sorted at construction) recovers to the identical IR.
+    codes.sort();
     Some(OptConstraintKind::ValueSet {
         path: format!("{base_iri}definingCode"),
+        codes,
+    })
+}
+
+/// Extract a cardinality constraint from a complex-object node's direct `<occurrences>`
+/// multiplicity interval — the OPT's `occurrences`/`existence` constraint node kind. Returns
+/// `None` when the node has no `<occurrences>` child. An unbounded end (`*_unbounded = true`)
+/// maps to an open count (`None`); a bounded end reads its non-negative-integer value.
+fn cardinality_from_occurrences(
+    node: roxmltree::Node,
+    base_iri: &str,
+    idx: usize,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let Some(occ) = child_element(node, "occurrences") else {
+        return Ok(None);
+    };
+    let min = if element_text_bool(occ, "lower_unbounded")? {
+        None
+    } else {
+        Some(element_text_u32(occ, "lower")?)
+    };
+    let max = if element_text_bool(occ, "upper_unbounded")? {
+        None
+    } else {
+        Some(element_text_u32(occ, "upper")?)
+    };
+    Ok(Some(OptConstraintKind::Cardinality {
+        path: format!("{base_iri}occurrences/{idx}"),
+        min,
+        max,
+    }))
+}
+
+/// Extract an external terminology binding from a `<term_bindings terminology="…">` block: the
+/// `terminology` attribute is the id, each `<items>/<value>/<code_string>` is a bound code. The
+/// codes are sorted (a binding set is order-free) so the lifted shape recovers to the identical
+/// IR. Returns `None` when the block binds no code.
+fn terminology_from_bindings(node: roxmltree::Node, base_iri: &str) -> Option<OptConstraintKind> {
+    let terminology_id = node
+        .attributes()
+        .find(|a| a.name() == "terminology")
+        .map(|a| a.value())
+        .unwrap_or("unknown")
+        .trim()
+        .to_owned();
+    let mut codes: Vec<String> = node
+        .descendants()
+        .filter(|d| d.is_element() && d.tag_name().name() == "code_string")
+        .filter_map(|d| d.text())
+        .map(|s| s.trim().to_owned())
+        .collect();
+    if codes.is_empty() {
+        return None;
+    }
+    codes.sort();
+    Some(OptConstraintKind::TerminologyBinding {
+        path: format!("{base_iri}termBinding"),
+        terminology_id,
         codes,
     })
 }
@@ -347,33 +434,32 @@ mod walker_tests {
     const BASE: &str = "https://gmeow.example/openehr/bp/";
 
     #[test]
-    fn walker_extracts_quantity_string_and_coded_families_from_the_real_opt() {
+    fn walker_extracts_every_constraint_family_present_in_the_real_opt() {
         let all = read_all_opt_constraints(&blutdruck(), BASE).expect("walk Blutdruck.opt");
-        // The vendored OPT has 2 C_DV_QUANTITY magnitudes, several C_STRING patterns, and
-        // a C_CODE_PHRASE code list — the walker must find all three families.
-        let has_quantity = all
-            .iter()
-            .any(|c| matches!(c.kind, OptConstraintKind::Quantity { .. }));
-        let has_pattern = all
-            .iter()
-            .any(|c| matches!(c.kind, OptConstraintKind::StringPattern { .. }));
-        let has_value_set = all
-            .iter()
-            .any(|c| matches!(c.kind, OptConstraintKind::ValueSet { .. }));
+        // The vendored OPT carries C_DV_QUANTITY magnitudes, C_STRING patterns, a C_CODE_PHRASE
+        // code list, C_COMPLEX_OBJECT <occurrences> cardinality, and a <term_bindings> block —
+        // the walker must surface every one of those families.
+        let has = |pred: fn(&OptConstraintKind) -> bool| all.iter().any(|c| pred(&c.kind));
         assert!(
-            has_quantity,
+            has(|k| matches!(k, OptConstraintKind::Quantity { .. })),
             "no quantity extracted from {} constraints",
             all.len()
         );
         assert!(
-            has_pattern,
-            "no string pattern extracted from {} constraints",
-            all.len()
+            has(|k| matches!(k, OptConstraintKind::StringPattern { .. })),
+            "no string pattern extracted"
         );
         assert!(
-            has_value_set,
-            "no coded value set extracted from {} constraints",
-            all.len()
+            has(|k| matches!(k, OptConstraintKind::ValueSet { .. })),
+            "no coded value set extracted"
+        );
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::Cardinality { .. })),
+            "no occurrences cardinality extracted"
+        );
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::TerminologyBinding { .. })),
+            "no terminology binding extracted"
         );
     }
 
