@@ -81,17 +81,17 @@ def _native_reason_result() -> dict[str, object]:
 
 
 def _parse_rdf12_turtle(ttl: str) -> int:
-    """Parse an RDF 1.2 Turtle document with gmeow_rdf; return the triple count.
+    """Parse an RDF 1.2 Turtle document with purrdf; return the triple count.
 
     The native-lane artifacts carry RDF 1.2 ``<< … >>`` triple terms, which
-    rdflib's Turtle parser cannot read — so gmeow_rdf (not rdflib) is the only
+    rdflib's Turtle parser cannot read — so purrdf (not rdflib) is the only
     parser the contract permits here.
     """
-    import gmeow_rdf
+    import purrdf
 
-    dataset = gmeow_rdf.Dataset()
-    for quad in gmeow_rdf.parse(ttl.encode("utf-8"), format=gmeow_rdf.RdfFormat.TURTLE):
-        dataset.add(gmeow_rdf.Quad(quad.subject, quad.predicate, quad.object))
+    dataset = purrdf.Dataset()
+    for quad in purrdf.parse(ttl.encode("utf-8"), format=purrdf.RdfFormat.TURTLE):
+        dataset.add(purrdf.Quad(quad.subject, quad.predicate, quad.object))
     return len(dataset)
 
 

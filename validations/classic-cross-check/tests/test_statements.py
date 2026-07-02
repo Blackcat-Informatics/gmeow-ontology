@@ -12,10 +12,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import gmeow_rdf
+import purrdf
 import pytest
-from gmeow_rdf.compat.rdflib import Graph
-from gmeow_rdf.compat.rdflib.compare import isomorphic
+from purrdf.compat.rdflib import Graph
+from purrdf.compat.rdflib.compare import isomorphic
 
 from gmeow_tools.config import (
     PROJECT_ROOT,
@@ -70,10 +70,10 @@ def test_native_statement_codec_round_trips_without_jena() -> None:
     via the native Rust codec, with neither Apache Jena nor Docker on the path.
     """
     owl_text = STATEMENT_OWL_FILE.read_text(encoding="utf-8")
-    rdf12 = gmeow_rdf.project_statements_rdf12(owl_text)
+    rdf12 = purrdf.project_statements_rdf12(owl_text)
     assert "<<(" in rdf12 and "#reifies>" in rdf12, "expected RDF 1.2 triple terms"
 
-    owl_back = gmeow_rdf.normalize_rdf12_to_owl(rdf12)
+    owl_back = purrdf.normalize_rdf12_to_owl(rdf12)
     authored = Graph().parse(data=owl_text, format="turtle")
     round_trip = Graph().parse(data=owl_back, format="turtle")
     assert isomorphic(authored, round_trip), "native RDF 1.2 round-trip is lossy"
