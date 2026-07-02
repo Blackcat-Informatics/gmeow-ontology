@@ -23,7 +23,7 @@ import purrdf as ox
 from gts import read
 from gts.model import Graph, Term
 
-from gmeow_tools.config import GTS_SNAPSHOT_FILE, PREFIXES
+from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE, PREFIXES
 from gmeow_tools.language_tags import LangSelector
 
 if TYPE_CHECKING:
@@ -199,12 +199,37 @@ class FoldView:
     # -- language boundary -----------------------------------------------------
 
     def tag_map(self) -> dict[str, str]:
-        """Internal language tag → BCP-47, from all bundled Language individuals."""
-        return dict(self._native.tag_map())
+        """Internal language tag → BCP-47, from all bundled Language individuals.
+
+        The mapping predicates (``gmeow:languageTag`` / ``gmeow:bcp47Tag``) are
+        gmeow vocabulary, so the namespace-neutral native fold's own ``tag_map``
+        cannot resolve them. Built here from the fold's native indexes over the
+        gmeow ``Language`` individuals — staying in the gts.model waist (no
+        rdflib), the single language authority for the read side.
+        """
+        lang_class = f"{NAMESPACE}Language"
+        language_tag_p = f"{NAMESPACE}languageTag"
+        bcp47_tag_p = f"{NAMESPACE}bcp47Tag"
+        mapping: dict[str, str] = {}
+        for s_tid in self._native.subjects_by_type(lang_class, ALL):
+            internal_tid = self._native.value(s_tid, language_tag_p, ALL)
+            bcp47_tid = self._native.value(s_tid, bcp47_tag_p, ALL)
+            if internal_tid is not None and bcp47_tid is not None:
+                mapping[self._native.lex(internal_tid)] = self._native.lex(bcp47_tid)
+        return mapping
 
     def available_languages(self) -> frozenset[str]:
-        """Public BCP-47 tags that actually have literals in the snapshot."""
-        return frozenset(self._native.available_languages())
+        """Public BCP-47 tags that actually have literals in the snapshot.
+
+        The native fold reports which raw tags carry literals; gmeow's tag map
+        projects each internal ``x-gmeow-*`` tag to its public BCP-47 form (an
+        already-public/external tag with no internal counterpart is left as-is,
+        matching the retag boundary).
+        """
+        mapping = self.tag_map()
+        return frozenset(
+            mapping.get(tag, tag) for tag in self._native.available_languages()
+        )
 
     def public_text(self, s_tid: int, p_iri: str, scope: str | None = DEFAULT) -> str:
         """The public-facing text for ``(s, p)`` — the projection boundary."""
