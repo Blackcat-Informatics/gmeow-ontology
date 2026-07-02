@@ -4,7 +4,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/logic/projection-report> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionReport> .
-<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/axiomCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/ruleCount> "0"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/profileCount> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/canonical-rdf12> .
@@ -17,6 +17,9 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/owl-dl> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/owl-el> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/shacl-af> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/shacl-core> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/shex> .
+<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/xcl> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <http://www.w3.org/2000/01/rdf-schema#label> "canonical-rdf12" .
 <https://blackcatinformatics.ca/logic/target/canonical-rdf12> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
@@ -54,7 +57,6 @@
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: rdf:type logic:GoalExpression on <https://example.org/transaction/protocol-timestamp-ordering/GoalExpression> has no gUFO equivalent" .
-<https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: rdf:type logic:ReasoningContract on <https://example.org/transaction/protocol-timestamp-ordering/TransactionContract> has no gUFO equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: reasoning contract (an anonymous faceted contract) is not representable in the gUFO bridge; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" .
 <https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/2000/01/rdf-schema#label> "n3" .
@@ -97,5 +99,22 @@
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the SHACL-AF surface is emit-only: there is no parse-back from sh:SPARQLRule into a logic: rule (the logic: canon is the authoring ground, Principle 4)" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "the stratified Horn-with-stratified-negation-and-aggregation rule fragment is projected (positive body → graph patterns, negation-as-failure → FILTER NOT EXISTS, inequality guards → FILTER, and a reduce rule → an aggregating sh:SPARQLRule with a GROUP-BY sub-SELECT): full first-order formula bodies, existential (value-inventing) rule heads, and ground-subject rules have no faithful SHACL-AF sh:SPARQLRule form and remain in the canonical logic: layer (carried by canonical-rdf12)" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: ground axiom <https://example.org/transaction/protocol-timestamp-ordering/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" .
-<https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: ground axiom <https://example.org/transaction/protocol-timestamp-ordering/TransactionContract> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ReasoningContract> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: reasoning contract (an anonymous faceted contract) is not representable in SHACL-AF; the full facet selection is dropped (preserved only in the canonical RDF 1.2 projection)" .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <http://www.w3.org/2000/01/rdf-schema#label> "shacl-core" .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/logic/complexityClass> "closed-world shape validation (SHACL Core)" .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/gmeow/lossyDrop> "a shape surface validates but does not entail (ValidationOnly)" .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/gmeow/lossyDrop> "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer" .
+<https://blackcatinformatics.ca/logic/target/shacl-core> <https://blackcatinformatics.ca/gmeow/lossyDrop> "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape" .
+<https://blackcatinformatics.ca/logic/target/shex> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/shex> <http://www.w3.org/2000/01/rdf-schema#label> "shex" .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/logic/complexityClass> "closed-world shape validation (ShEx, strictly narrower than SHACL Core)" .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/gmeow/lossyDrop> "a shape surface validates but does not entail (ValidationOnly)" .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/gmeow/lossyDrop> "ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no datetime-range facet; those conditions are carried in the canonical logic: layer" .
+<https://blackcatinformatics.ca/logic/target/shex> <https://blackcatinformatics.ca/gmeow/lossyDrop> "everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)" .
+<https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
+<https://blackcatinformatics.ca/logic/target/xcl> <http://www.w3.org/2000/01/rdf-schema#label> "xcl" .
+<https://blackcatinformatics.ca/logic/target/xcl> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
+<https://blackcatinformatics.ca/logic/target/xcl> <https://blackcatinformatics.ca/logic/complexityClass> "full first-order (semi-decidable)" .

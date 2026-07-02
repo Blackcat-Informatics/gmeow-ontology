@@ -30,6 +30,13 @@ pub const EXCLUDED: &[&str] = &[
     "statement-dsl-shapes.ttl",
     "test-dsl-shapes.ttl",
     "slice-manifest-shapes.ttl",
+    // The derived closed-world validation-shape surface (the OPT constraint axis + the
+    // OWL-restriction reading). It is a DECLARED ValidationOnly projection carried in
+    // gmeow.gts for a consumer that opts into the closed-world reading — NOT part of the
+    // enforced data-validation union: an OWL someValuesFrom is open-world, so enforcing its
+    // sh:class reading against our own open-world corpus would over-flag valid data
+    // (Principle 17; under-approximation, never claimed exact).
+    "validation-shapes.ttl",
 ];
 
 /// The ordered list of SHACL shape files that constrain the data graph.
@@ -52,9 +59,16 @@ pub fn shape_files(repo_root: &Path) -> Result<Vec<PathBuf>, String> {
     });
     files.extend(base);
 
-    // 2. generated/shapes/*.ttl — fail closed if none.
+    // 2. generated/shapes/*.ttl minus the excluded (declared-but-not-enforced) surfaces —
+    //    fail closed if none of the ENFORCED frame shapes exist.
     let generated_dir = repo_root.join("generated").join("shapes");
-    let generated = ttl_files(&generated_dir)?;
+    let mut generated = ttl_files(&generated_dir)?;
+    generated.retain(|p| {
+        p.file_name()
+            .and_then(|n| n.to_str())
+            .map(|n| !EXCLUDED.contains(&n))
+            .unwrap_or(false)
+    });
     if generated.is_empty() {
         return Err(format!(
             "no generated shapes under {} — run `gmeow regenerate frame-shapes` (P11 enforcement lives there)",

@@ -1,20 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Reads openEHR Operational Template (OPT) XML directly and lowers a
-//! `C_DV_QUANTITY` magnitude interval constraint to SHACL Turtle.
+//! Reads openEHR Operational Template (OPT) XML directly into the pure, crate-agnostic
+//! carrier the `logic:` constraint axis lowers from.
 //!
 //! An OPT is the flattened, fully-expressed form of an ADL archetype: every
 //! `ELEMENT` node carries a `node_id` (an at-code, e.g. `at0004`) and, when its
 //! value is constrained to a `DV_QUANTITY`, a `magnitude` interval with four
 //! boundary fields (`lower`, `upper`, `lower_included`, `upper_included`) plus
 //! a sibling `units` string. [`read_magnitude_interval`] walks the OPT DOM to
-//! find that interval for a given `node_id`, and [`lower_magnitude_to_shacl_ttl`]
-//! turns the parsed interval into a SHACL property shape, choosing
-//! `sh:minInclusive`/`sh:minExclusive` and `sh:maxInclusive`/`sh:maxExclusive`
-//! according to the interval's own inclusivity flags rather than a hardcoded
-//! assumption. The two responsibilities are kept separate: parsing never
-//! decides SHACL vocabulary, and lowering never touches XML.
+//! find that interval for a given `node_id`, and [`read_opt_quantity_constraint`]
+//! packages it as an [`gmeow_logic_compile::opt_lift::OptConstraintIr`] — the XML-free value
+//! the `logic:` lift and the SHACL Core / ShEx projections consume. This crate does the XML
+//! parsing ONLY; the SHACL/ShEx surfaces are projected in `gmeow-logic-compile` from the
+//! canonical `logic:ValidationShape` (Principle 4 — the canon is the authoring ground; there
+//! is no direct OPT→SHACL emit).
 //!
 //! OPT files reuse `lower_included`/`upper_included` field names inside many
 //! unrelated interval blocks (`occurrences`, `existence`, `precision`, and
@@ -26,6 +26,8 @@
 //! any step of that path is absent for the requested `node_id`.
 
 use std::fmt;
+
+use gmeow_logic_compile::opt_lift::{OptConstraintIr, OptConstraintKind, OptInterval};
 
 /// A parsed `C_DV_QUANTITY` magnitude interval, read verbatim from an OPT.
 #[derive(Debug, Clone, PartialEq)]
@@ -87,6 +89,23 @@ fn element_text_f64(node: roxmltree::Node, name: &str) -> Result<f64, OptError> 
     text.trim()
         .parse::<f64>()
         .map_err(|e| opt_err(format!("<{name}> value {text:?} is not a number: {e}")))
+}
+
+fn element_text_u32(node: roxmltree::Node, name: &str) -> Result<u32, OptError> {
+    let child = child_element(node, name).ok_or_else(|| {
+        opt_err(format!(
+            "missing <{name}> under <{}>",
+            node.tag_name().name()
+        ))
+    })?;
+    let text = child
+        .text()
+        .ok_or_else(|| opt_err(format!("<{name}> has no text content")))?;
+    text.trim().parse::<u32>().map_err(|e| {
+        opt_err(format!(
+            "<{name}> value {text:?} is not a non-negative integer: {e}"
+        ))
+    })
 }
 
 fn element_text_bool(node: roxmltree::Node, name: &str) -> Result<bool, OptError> {
@@ -183,124 +202,309 @@ pub fn read_magnitude_interval(
     )))
 }
 
-/// Formats a bound as an integer literal when it is a whole number, else as
-/// a plain decimal — matching how SHACL numeric literals are conventionally
-/// written in the ontology's Turtle sources.
-fn format_bound(value: f64) -> String {
-    if value.fract() == 0.0 && value.is_finite() {
-        format!("{}", value as i64)
-    } else {
-        format!("{value}")
-    }
-}
-
-/// Lowers a parsed [`MagnitudeInterval`] to a SHACL `sh:NodeShape` in Turtle,
-/// targeting `target_class` and constraining `path_predicate` under the
-/// property shape identified by `shape_iri`.
-///
-/// Inclusivity maps directly onto the corresponding SHACL constraint
-/// component: `lower_included` selects `sh:minInclusive` (true) or
-/// `sh:minExclusive` (false); `upper_included` selects `sh:maxInclusive`
-/// (true) or `sh:maxExclusive` (false).
-pub fn lower_magnitude_to_shacl_ttl(
-    interval: &MagnitudeInterval,
-    target_class: &str,
-    path_predicate: &str,
+/// Reads a `C_DV_QUANTITY` constraint for `node_id` and packages it as the pure,
+/// crate-agnostic [`OptConstraintIr`] the `logic:` lift consumes. Reuses the hard-fail
+/// fixed-path descent of [`read_magnitude_interval`]; `magnitude_path`/`units_path` are the
+/// domain predicates the lifted shape constrains.
+pub fn read_opt_quantity_constraint(
+    opt_xml: &str,
+    node_id: &str,
     shape_iri: &str,
-) -> String {
-    let min_predicate = if interval.lower_included {
-        "sh:minInclusive"
-    } else {
-        "sh:minExclusive"
-    };
-    let max_predicate = if interval.upper_included {
-        "sh:maxInclusive"
-    } else {
-        "sh:maxExclusive"
-    };
-
-    format!(
-        "@prefix sh:    <http://www.w3.org/ns/shacl#> .\n\
-         @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-         @prefix ex:    <https://gmeow.example/openehr/bp/> .\n\
-         \n\
-         {shape_iri} a sh:NodeShape ;\n\
-         \x20   sh:targetClass {target_class} ;\n\
-         \x20   sh:property [\n\
-         \x20       sh:path {path_predicate} ;\n\
-         \x20       {min_predicate} {lower} ;\n\
-         \x20       {max_predicate} {upper} ;\n\
-         \x20   ] .\n",
-        lower = format_bound(interval.lower),
-        upper = format_bound(interval.upper),
-    )
+    target_class: &str,
+    magnitude_path: &str,
+    units_path: &str,
+) -> Result<OptConstraintIr, OptError> {
+    let m = read_magnitude_interval(opt_xml, node_id)?;
+    Ok(OptConstraintIr {
+        shape_iri: shape_iri.to_owned(),
+        target_class: target_class.to_owned(),
+        kind: OptConstraintKind::Quantity {
+            magnitude_path: magnitude_path.to_owned(),
+            interval: OptInterval {
+                lower: Some(m.lower),
+                upper: Some(m.upper),
+                lower_included: m.lower_included,
+                upper_included: m.upper_included,
+            },
+            units_path: units_path.to_owned(),
+            units: m.units,
+        },
+    })
 }
 
+/// Walks an OPT document and extracts EVERY constraint it recognizes — `C_DV_QUANTITY`
+/// magnitude intervals, `C_STRING` regex patterns, `C_CODE_PHRASE` coded value sets,
+/// `C_COMPLEX_OBJECT` `<occurrences>` cardinality, and `<term_bindings>` external terminology
+/// references — as pure [`OptConstraintIr`] values in document order. Shape/class IRIs are minted
+/// deterministically from `base_iri` + a document-order index, so the same OPT always yields
+/// the same shapes. Hard-fails on a recognized-but-malformed constraint node (no silent skip)
+/// and on an OPT with no recognized constraint at all.
+///
+/// This is the general native-parser surface: `read_opt_quantity_constraint` targets one
+/// at-coded quantity ELEMENT (what the production pipeline lifts, the meaningful data-value
+/// constraints); this walker proves the reader handles the other ADL2 constraint node kinds
+/// present in a real OPT.
+pub fn read_all_opt_constraints(
+    opt_xml: &str,
+    base_iri: &str,
+) -> Result<Vec<OptConstraintIr>, OptError> {
+    let doc = roxmltree::Document::parse(opt_xml)
+        .map_err(|e| opt_err(format!("XML parse failure: {e}")))?;
+    let mut out = Vec::new();
+    let mut idx = 0usize;
+    for node in doc.descendants().filter(|n| n.is_element()) {
+        let kind = match xsi_type(node) {
+            Some("C_DV_QUANTITY") => {
+                let (interval, units) = magnitude_from_quantity(node, idx)?;
+                Some(OptConstraintKind::Quantity {
+                    magnitude_path: format!("{base_iri}magnitude"),
+                    interval,
+                    units_path: format!("{base_iri}units"),
+                    units,
+                })
+            }
+            Some("C_STRING") => {
+                child_element(node, "pattern")
+                    .and_then(|p| p.text())
+                    .map(|regex| OptConstraintKind::StringPattern {
+                        path: format!("{base_iri}text"),
+                        regex: regex.trim().to_owned(),
+                        flags: None,
+                    })
+            }
+            Some("C_CODE_PHRASE") => code_phrase_value_set(node, base_iri)?,
+            // A complex-object node carries its multiplicity as a direct `<occurrences>`
+            // interval — the OPT's cardinality/occurrences constraint node kind.
+            Some("C_COMPLEX_OBJECT") => cardinality_from_occurrences(node, base_iri, idx)?,
+            // `<term_bindings>` is not an `xsi:type`-tagged node; match it by tag name.
+            _ if node.tag_name().name() == "term_bindings" => {
+                terminology_from_bindings(node, base_iri)
+            }
+            _ => None,
+        };
+        if let Some(kind) = kind {
+            out.push(OptConstraintIr {
+                shape_iri: format!("{base_iri}shape-{idx}"),
+                target_class: format!("{base_iri}Constraint-{idx}"),
+                kind,
+            });
+            idx += 1;
+        }
+    }
+    if out.is_empty() {
+        return Err(opt_err(
+            "no C_DV_QUANTITY / C_STRING / C_CODE_PHRASE / occurrences / term_binding constraint \
+             found in OPT",
+        ));
+    }
+    Ok(out)
+}
+
+/// Extract the magnitude interval + units from a `C_DV_QUANTITY` node's `<list><magnitude>`.
+fn magnitude_from_quantity(
+    node: roxmltree::Node,
+    idx: usize,
+) -> Result<(OptInterval, String), OptError> {
+    let list = child_element(node, "list")
+        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: no <list>")))?;
+    let magnitude = child_element(list, "magnitude")
+        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: <list> has no <magnitude>")))?;
+    let units = child_element(list, "units")
+        .and_then(|u| u.text())
+        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: no <units>")))?
+        .to_owned();
+    Ok((
+        OptInterval {
+            lower: Some(element_text_f64(magnitude, "lower")?),
+            upper: Some(element_text_f64(magnitude, "upper")?),
+            lower_included: element_text_bool(magnitude, "lower_included")?,
+            upper_included: element_text_bool(magnitude, "upper_included")?,
+        },
+        units,
+    ))
+}
+
+/// Extract a coded value set (`<code_list>` codes qualified by `<terminology_id><value>`)
+/// from a `C_CODE_PHRASE` node. `Ok(None)` when the node carries no `<code_list>`; hard-fails
+/// when a `<code_list>` is present but its `<terminology_id>` qualifier is absent (a malformed
+/// OPT — never mint a bogus `unknown` terminology).
+fn code_phrase_value_set(
+    node: roxmltree::Node,
+    base_iri: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let raw_codes: Vec<&str> = node
+        .children()
+        .filter(|c| c.is_element() && c.tag_name().name() == "code_list")
+        .filter_map(|c| c.text())
+        .collect();
+    if raw_codes.is_empty() {
+        return Ok(None);
+    }
+    let terminology = child_element(node, "terminology_id")
+        .and_then(|t| child_element(t, "value"))
+        .and_then(|v| v.text())
+        .map(|s| s.trim().to_owned())
+        .ok_or_else(|| {
+            opt_err("C_CODE_PHRASE with a <code_list> is missing its <terminology_id>/<value>")
+        })?;
+    // A value set is a SET — carry the members in canonical (sorted) order so the lifted shape
+    // (whose value-set members are sorted at construction) recovers to the identical IR.
+    let mut codes: Vec<String> = raw_codes
+        .iter()
+        .map(|s| format!("{base_iri}terminology/{terminology}/{}", s.trim()))
+        .collect();
+    codes.sort();
+    Ok(Some(OptConstraintKind::ValueSet {
+        path: format!("{base_iri}definingCode"),
+        codes,
+    }))
+}
+
+/// Extract a cardinality constraint from a complex-object node's direct `<occurrences>`
+/// multiplicity interval — the OPT's `occurrences`/`existence` constraint node kind. Returns
+/// `None` when the node has no `<occurrences>` child. An unbounded end (`*_unbounded = true`)
+/// maps to an open count (`None`); a bounded end reads its non-negative-integer value.
+fn cardinality_from_occurrences(
+    node: roxmltree::Node,
+    base_iri: &str,
+    idx: usize,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let Some(occ) = child_element(node, "occurrences") else {
+        return Ok(None);
+    };
+    let min = if element_text_bool(occ, "lower_unbounded")? {
+        None
+    } else {
+        Some(element_text_u32(occ, "lower")?)
+    };
+    let max = if element_text_bool(occ, "upper_unbounded")? {
+        None
+    } else {
+        Some(element_text_u32(occ, "upper")?)
+    };
+    Ok(Some(OptConstraintKind::Cardinality {
+        path: format!("{base_iri}occurrences/{idx}"),
+        min,
+        max,
+    }))
+}
+
+/// Extract an external terminology binding from a `<term_bindings terminology="…">` block: the
+/// `terminology` attribute is the id, each `<items>/<value>/<code_string>` is a bound code. The
+/// codes are sorted (a binding set is order-free) so the lifted shape recovers to the identical
+/// IR. Returns `None` when the block binds no code.
+fn terminology_from_bindings(node: roxmltree::Node, base_iri: &str) -> Option<OptConstraintKind> {
+    let terminology_id = node
+        .attributes()
+        .find(|a| a.name() == "terminology")
+        .map(|a| a.value())
+        .unwrap_or("unknown")
+        .trim()
+        .to_owned();
+    let mut codes: Vec<String> = node
+        .descendants()
+        .filter(|d| d.is_element() && d.tag_name().name() == "code_string")
+        .filter_map(|d| d.text())
+        .map(|s| s.trim().to_owned())
+        .collect();
+    if codes.is_empty() {
+        return None;
+    }
+    codes.sort();
+    Some(OptConstraintKind::TerminologyBinding {
+        path: format!("{base_iri}termBinding"),
+        terminology_id,
+        codes,
+    })
+}
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn interval(lower_included: bool, upper_included: bool) -> MagnitudeInterval {
-        MagnitudeInterval {
-            lower: 0.0,
-            upper: 1000.0,
-            lower_included,
-            upper_included,
-            units: "mm[Hg]".to_string(),
-        }
-    }
-
-    #[test]
-    fn lower_included_true_emits_min_inclusive() {
-        let ttl = lower_magnitude_to_shacl_ttl(
-            &interval(true, false),
-            "gmeow:SystolicMeasurement",
-            "gmeow:quantityValue",
-            "ex:SystolicMeasurementShape",
-        );
-        assert!(ttl.contains("sh:minInclusive 0"));
-        assert!(!ttl.contains("sh:minExclusive"));
-    }
-
-    #[test]
-    fn lower_included_false_emits_min_exclusive() {
-        let ttl = lower_magnitude_to_shacl_ttl(
-            &interval(false, false),
-            "gmeow:SystolicMeasurement",
-            "gmeow:quantityValue",
-            "ex:SystolicMeasurementShape",
-        );
-        assert!(ttl.contains("sh:minExclusive 0"));
-        assert!(!ttl.contains("sh:minInclusive"));
-    }
-
-    #[test]
-    fn upper_included_true_emits_max_inclusive() {
-        let ttl = lower_magnitude_to_shacl_ttl(
-            &interval(true, true),
-            "gmeow:SystolicMeasurement",
-            "gmeow:quantityValue",
-            "ex:SystolicMeasurementShape",
-        );
-        assert!(ttl.contains("sh:maxInclusive 1000"));
-        assert!(!ttl.contains("sh:maxExclusive"));
-    }
-
-    #[test]
-    fn upper_included_false_emits_max_exclusive() {
-        let ttl = lower_magnitude_to_shacl_ttl(
-            &interval(true, false),
-            "gmeow:SystolicMeasurement",
-            "gmeow:quantityValue",
-            "ex:SystolicMeasurementShape",
-        );
-        assert!(ttl.contains("sh:maxExclusive 1000"));
-        assert!(!ttl.contains("sh:maxInclusive"));
-    }
 
     #[test]
     fn missing_node_id_hard_fails() {
         let err = read_magnitude_interval("<template></template>", "at9999").unwrap_err();
         assert!(err.to_string().contains("at9999"));
+    }
+
+    #[test]
+    fn code_phrase_without_terminology_hard_fails() {
+        // A <code_list> with no <terminology_id> is malformed — hard-fail rather than mint a
+        // bogus `unknown` terminology.
+        let xml = "<c xsi:type=\"C_CODE_PHRASE\" \
+                   xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\
+                   <code_list>at0004</code_list></c>";
+        let err = read_all_opt_constraints(xml, "https://ex/").unwrap_err();
+        assert!(err.to_string().contains("terminology_id"), "got: {err}");
+    }
+}
+
+#[cfg(test)]
+mod walker_tests {
+    use super::*;
+    use gmeow_logic_compile::opt_lift::{lift_opt_to_validation_shape, recover_opt_from_shape};
+    use std::path::PathBuf;
+
+    fn blutdruck() -> String {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("../../validations/openehr-bloodpressure/Blutdruck.opt");
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    }
+
+    const BASE: &str = "https://gmeow.example/openehr/bp/";
+
+    #[test]
+    fn walker_extracts_every_constraint_family_present_in_the_real_opt() {
+        let all = read_all_opt_constraints(&blutdruck(), BASE).expect("walk Blutdruck.opt");
+        // The vendored OPT carries C_DV_QUANTITY magnitudes, C_STRING patterns, a C_CODE_PHRASE
+        // code list, C_COMPLEX_OBJECT <occurrences> cardinality, and a <term_bindings> block —
+        // the walker must surface every one of those families.
+        let has = |pred: fn(&OptConstraintKind) -> bool| all.iter().any(|c| pred(&c.kind));
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::Quantity { .. })),
+            "no quantity extracted from {} constraints",
+            all.len()
+        );
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::StringPattern { .. })),
+            "no string pattern extracted"
+        );
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::ValueSet { .. })),
+            "no coded value set extracted"
+        );
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::Cardinality { .. })),
+            "no occurrences cardinality extracted"
+        );
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::TerminologyBinding { .. })),
+            "no terminology binding extracted"
+        );
+    }
+
+    #[test]
+    fn every_walked_constraint_round_trips_u_after_d_is_identity() {
+        // The section/retraction law holds on EVERY constraint the walker reads from real XML.
+        let all = read_all_opt_constraints(&blutdruck(), BASE).expect("walk");
+        assert!(
+            all.len() >= 3,
+            "expected several constraints, got {}",
+            all.len()
+        );
+        for c in &all {
+            let shape = lift_opt_to_validation_shape(c).expect("lift");
+            let recovered = recover_opt_from_shape(&shape).expect("recover");
+            assert_eq!(&recovered, c, "u∘d must be the identity on {c:?}");
+        }
+    }
+
+    #[test]
+    fn walker_is_deterministic_and_hard_fails_on_a_constraint_free_document() {
+        let a = read_all_opt_constraints(&blutdruck(), BASE).unwrap();
+        let b = read_all_opt_constraints(&blutdruck(), BASE).unwrap();
+        assert_eq!(a, b, "the walker must be deterministic in document order");
+        let err = read_all_opt_constraints("<template></template>", BASE).unwrap_err();
+        assert!(err.to_string().contains("no C_DV_QUANTITY"), "got: {err}");
     }
 }

@@ -3,7 +3,6 @@
 
 % === Ground facts (axioms) ===
 type("https://example.org/transaction/memory-triad-execute/GoalExpression", "https://blackcatinformatics.ca/logic/GoalExpression", "default").
-type("https://example.org/transaction/memory-triad-execute/TransactionContract", "https://blackcatinformatics.ca/logic/ReasoningContract", "default").
 executionMode("https://example.org/transaction/memory-triad-execute/TransactionContract", "https://blackcatinformatics.ca/logic/CommittedExecution", "default").
 
 % === Rules ===

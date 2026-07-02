@@ -33,7 +33,7 @@ use gmeow_rdf::RdfSeverity;
 use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
 use gmeow_slice::{
     emit_claim_view, emit_dsl_stats, emit_list_functions, emit_standpoint_sets,
-    lint_prefix_consistency, CLAIM_VIEW_FILE,
+    lint_dsl_mapping_purity, lint_prefix_consistency, CLAIM_VIEW_FILE,
 };
 
 use crate::error::PipelineError;
@@ -92,6 +92,27 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
             message: format!(
                 "prefix-consistency: {} registry-prefix shadow(s); first: {}",
                 prefix_problems.len(),
+                first.message
+            ),
+        });
+    }
+
+    // DSL mapping-purity gate: alignment linkage flows from slices. A
+    // `gmeow:TermEquivalence` cell authored under `dsl/mappings/` is a linkage
+    // restatement in the wrong place — it must live in the slice that defines its
+    // alignSubject. Hard-fail before emitting any artifact (no-optionality); this
+    // makes `regenerate` / `check-generated` / `make check` reject a stray cell.
+    let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message: format!("dsl mapping-purity gate failed: {e}"),
+    })?;
+    if let Some(first) = purity_problems.first() {
+        return Err(PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!(
+                "dsl-linkage-purity: {} dsl/mappings file(s) author alignment linkage that must \
+                 live in slices; first: {}",
+                purity_problems.len(),
                 first.message
             ),
         });
@@ -263,7 +284,7 @@ fn fold_up_projection_audit(
             .join(format!("{name}.ttl"));
         let ttl =
             std::fs::read_to_string(&path).map_err(|e| stage_err(format!("read {path:?}: {e}")))?;
-        let nt = crate::up_projection::ttl_to_nt(&ttl)
+        let nt = crate::up_projection_corpus::ttl_to_nt(&ttl)
             .map_err(|e| stage_err(format!("corpus {name} ttl→nt: {e}")))?;
         corpus_nts.push((name.to_string(), nt));
     }
@@ -457,11 +478,10 @@ impl Stage for MappingsStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v9: input_files now declares the slice Mapping cells (slices/**/mappings/*.ttl),
-        // which compile_mappings reads but module_files did not declare — a slice
-        // equivalence edit was silently cache-ignored. Bump busts the stage cache so
-        // existing cached reports are invalidated.
-        "mappings.v9-slice-mapping-cells-in-cache-key"
+        // v10: added the dsl mapping-purity gate (alignment linkage must be authored
+        // in slices, not dsl/mappings/). Bump busts the stage cache so the new gate
+        // runs against existing cached inputs.
+        "mappings.v10-dsl-linkage-purity-gate"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`

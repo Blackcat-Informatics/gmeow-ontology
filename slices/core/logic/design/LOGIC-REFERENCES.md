@@ -42,7 +42,9 @@ unless they themselves cite an external work; they are cross-references within G
   (Common Logic Interchange Format — first-order textual syntax), CGIF (Conceptual Graph Interchange
   Format — graph-based notation), and XCL (XML-based Common Logic notation). Common Logic is
   operationalized in this design as both a *generated* output dialect (see LOGIC.md) and an
-  *ingested* surface accepted by the reasoning pipeline (see LOGIC-CONFORMANCE.md).
+  *ingested* surface accepted by the reasoning pipeline (see LOGIC-CONFORMANCE.md), and the CLIF
+  export is independently cross-checked by an external first-order reasoner run as a standalone
+  validator-zoo lane outside the Docker-free gate (`validations/common-logic-fol/`).
 - ISO/IEC 21838-2:2021. *Basic Formal Ontology (BFO).* See also Arp, Smith & Spear, *Building
   Ontologies with Basic Formal Ontology* (MIT Press, 2015).
 - Berners-Lee, T., Connolly, D., Kagal, L., Scharf, Y. & Hendler, J. (2008). *N3Logic: A logical

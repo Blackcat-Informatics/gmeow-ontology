@@ -10,6 +10,5 @@
 
 # === Axioms ===
 <https://example.org/transaction/isolation-write-skew-serializable/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
-<https://example.org/transaction/isolation-write-skew-serializable/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
 
 # === Rules ===

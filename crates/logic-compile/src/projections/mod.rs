@@ -15,6 +15,8 @@
 //!   dialect, `PreservationKind::Exact` in both directions.
 //! * [`crate::cgif::project_cgif`] — the bidirectional **CGIF** conceptual-graph FOL
 //!   dialect, `PreservationKind::Exact` in both directions.
+//! * [`crate::xcl::project_xcl`] — the bidirectional **XCL** XML FOL dialect,
+//!   `PreservationKind::Exact` in both directions.
 //! * [`shacl_af::project_shacl_af`] — the SHACL-AF `sh:SPARQLRule` **computation**
 //!   surface (a byte-stable text target; the canon's derivation rules projected to a
 //!   SHACL rule dialect, never bolted onto SHACL — `design/LOGIC-SHACL-AF.md`).
@@ -51,6 +53,7 @@ pub mod report;
 // computation surface (design/LOGIC-SHACL-AF.md): computation added to the canon and
 // emitted, never bolted onto SHACL (Principle 17).
 pub mod shacl_af;
+pub mod shapes;
 // The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
 pub mod sparql;
 // The SSSOM correspondence lowering (1:1 lattice band → SSSOM TSV).
@@ -85,6 +88,8 @@ pub struct CompiledArtifacts {
     pub clif: String,
     /// `generated/cl/gmeow.cgif`.
     pub cgif: String,
+    /// `generated/cl/gmeow.xcl`.
+    pub xcl: String,
     /// `generated/shacl-af/gmeow.shacl-af.ttl` — the SHACL-AF rule (computation) surface.
     pub shacl_af: String,
     /// `generated/logic/projection-report.ttl`.
@@ -153,6 +158,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let nemo = text::project_nemo(program)?;
     let clif = crate::clif::project_clif(program)?;
     let cgif = crate::cgif::project_cgif(program)?;
+    let xcl = crate::xcl::project_xcl(program)?;
     let shacl_af = shacl_af::project_shacl_af(program);
 
     let results = [
@@ -165,6 +171,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         &nemo,
         &clif,
         &cgif,
+        &xcl,
         &shacl_af,
     ];
     let mut owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
@@ -197,6 +204,42 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         })
         .collect();
     owned.extend(path_results);
+
+    // Validation-shape surfaces: the closed-world SHACL Core + ShEx projections of every
+    // logic:ValidationShape, each a ledgered target (shacl-core / shex). Emitted as
+    // whole-program documents so the pipeline can write generated/shapes/validation-shapes.
+    // {ttl,shex}; a shape-free program yields empty documents and only the structural ledger
+    // rows (no per-shape residue), so the corpus is byte-stable until shapes are attached.
+    let shacl_shape_residue: Vec<String> = program
+        .validation_shapes
+        .iter()
+        .flat_map(shapes::shacl_residue)
+        .collect();
+    let (sc_kind, sc_compl, sc_struct) = target_meta("shacl-core");
+    owned.push(ProjectionResult {
+        target: "shacl-core".to_owned(),
+        content: shapes::project_validation_shapes_shacl(program),
+        is_rdf: false,
+        preservation: sc_kind,
+        complexity: sc_compl.to_owned(),
+        lossy_drops: sc_struct.into_iter().map(str::to_owned).collect(),
+        actual_drops: shacl_shape_residue,
+    });
+    let shex_shape_residue: Vec<String> = program
+        .validation_shapes
+        .iter()
+        .flat_map(shapes::shex_residue)
+        .collect();
+    let (sx_kind, sx_compl, sx_struct) = target_meta("shex");
+    owned.push(ProjectionResult {
+        target: "shex".to_owned(),
+        content: shapes::project_validation_shapes_shex(program),
+        is_rdf: false,
+        preservation: sx_kind,
+        complexity: sx_compl.to_owned(),
+        lossy_drops: sx_struct.into_iter().map(str::to_owned).collect(),
+        actual_drops: shex_shape_residue,
+    });
 
     // Teleology-specific lossy disclosure.  When the program carries the flat
     // gmeow:satisfiedBy edge generated from a factored logic:GoalEvaluation, the
@@ -284,6 +327,7 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         nemo: nemo.content,
         clif: clif.content,
         cgif: cgif.content,
+        xcl: xcl.content,
         shacl_af: shacl_af.content,
         report,
         nemo_rules,
@@ -388,11 +432,16 @@ fn dialect_target(dialect: &str) -> &str {
 /// per-instance, closed-tag form keeps the ledger informative and the goldens stable (no
 /// free text). Emitted only when the program carries formulas, so a formula-free program's
 /// ledger is byte-unchanged.
-pub(crate) fn formula_residue_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+pub(crate) fn formula_residue_notes(
+    program: &LogicProgram,
+    target_label: &str,
+    representable: &dyn Fn(&crate::ir::Formula) -> bool,
+) -> Vec<String> {
     program
         .formulas
         .iter()
         .enumerate()
+        .filter(|(_, f)| !representable(f))
         .map(|(i, f)| {
             let tags = f
                 .shape_tags()
@@ -525,6 +574,16 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             "full first-order (semi-decidable)",
             vec![],
         ),
+        // XCL: a bidirectional XML (eXtended Common Logic Markup Language) FOL dialect.
+        // ExactPreservation — the idiomatic XCL2 sentence channel (rules + formulas) is a
+        // human-readable view and the RDF/predication channel rides the lossless
+        // canonical-RDF-1.2 leg carried as N-Triples in <gmeow-rdf-meta>, so nothing is
+        // dropped (the production round-trip test pins this, as for its CLIF/CGIF siblings).
+        "xcl" => (
+            PreservationKind::Exact,
+            "full first-order (semi-decidable)",
+            vec![],
+        ),
         "shacl-af" => (
             PreservationKind::SoundUnder,
             "terminating/PTIME-data",
@@ -596,6 +655,30 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "world/standpoint scope and the put leg are not carried",
             ],
         ),
+        "shacl-core" => (
+            PreservationKind::ValidationOnly,
+            "closed-world shape validation (SHACL Core)",
+            vec![
+                "a shape surface validates but does not entail (ValidationOnly)",
+                "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and \
+                 cross-node conditions have no SHACL Core form and are carried in the canonical \
+                 logic: layer",
+                "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and \
+                 external terminology bindings have no faithful SHACL Core form; both are carried \
+                 and flagged per shape",
+            ],
+        ),
+        "shex" => (
+            PreservationKind::ValidationOnly,
+            "closed-world shape validation (ShEx, strictly narrower than SHACL Core)",
+            vec![
+                "a shape surface validates but does not entail (ValidationOnly)",
+                "ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no \
+                 datetime-range facet; those conditions are carried in the canonical logic: layer",
+                "everything SHACL Core drops (regex dialect, external terminology) is also dropped \
+                 by ShEx, plus the ShEx-only drops above (a strictly larger residue set)",
+            ],
+        ),
         other => panic!("unknown projection target: {other}"),
     }
 }
@@ -605,7 +688,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 15] = [
+const LEDGER_TARGETS: [&str; 18] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -615,6 +698,7 @@ const LEDGER_TARGETS: [&str; 15] = [
     "nemo",
     "clif",
     "cgif",
+    "xcl",
     "shacl-af",
     "property-path",
     // The correspondence-calculus alignment lowerings: each carries its own
@@ -623,6 +707,10 @@ const LEDGER_TARGETS: [&str; 15] = [
     "fno",
     "edoal",
     "sparql-construct",
+    // The closed-world validation-shape surfaces (SHACL Core + ShEx), each carrying its own
+    // per-target preservation judgment in the same loss ledger.
+    "shacl-core",
+    "shex",
 ];
 
 /// One row of the preservation loss ledger as a public, owned value: a projection
@@ -789,7 +877,11 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
 /// drop rather than silently discarded.  The canonical RDF 1.2 target preserves
 /// contracts losslessly and must NOT call this; the Nemo target consumes the
 /// contract as the engine-selecting input (it is not encoded in the `.rls`).
-pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+pub(crate) fn contract_drop_notes(
+    program: &LogicProgram,
+    target_label: &str,
+    representable: &dyn Fn(&crate::ir::Formula) -> bool,
+) -> Vec<String> {
     let mut notes: Vec<String> = program
         .contracts
         .iter()
@@ -808,7 +900,7 @@ pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) ->
     // The full-FOL formula layer is beyond every Horn-fragment target; disclose each formula
     // as its own shape-tagged drop (take1 §10.1 legalization — carried+flagged, never
     // silent). A formula-free program adds nothing, so its ledger is byte-unchanged.
-    notes.extend(formula_residue_notes(program, target_label));
+    notes.extend(formula_residue_notes(program, target_label, representable));
     notes
 }
 

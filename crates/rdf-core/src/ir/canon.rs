@@ -870,13 +870,14 @@ fn next_permutation(a: &mut [usize]) -> bool {
     true
 }
 
-/// Escape an IRI for `<…>` N-Quads form: control chars and the reserved delimiter
-/// set become `\uXXXX` (canonical N-Triples IRIREF rules). Clean ASCII IRIs pass
-/// through unchanged.
+/// Escape an IRI for `<…>` N-Quads form: control chars (C0, the space character, DEL,
+/// and the C1 block `0x80-0x9F`) and the reserved delimiter set become `\uXXXX`
+/// (canonical N-Triples IRIREF rules). Clean ASCII IRIs pass through unchanged.
 fn write_iri_escaped(iri: &str, out: &mut String) {
     for ch in iri.chars() {
         match ch {
-            '\u{00}'..='\u{20}' | '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
+            c if c.is_control() || c == ' ' => write_u_escape(c, out),
+            '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
                 write_u_escape(ch, out);
             }
             _ => out.push(ch),
@@ -897,7 +898,10 @@ fn write_literal_escaped(value: &str, out: &mut String) {
             '\u{08}' => out.push_str("\\b"),
             '\u{0c}' => out.push_str("\\f"),
             // Canonical N-Quads escapes C0 controls and U+007F (DEL) as \uXXXX; every
-            // other character (incl. all non-ASCII) is emitted verbatim as UTF-8.
+            // other character (incl. all non-ASCII, including the C1 block) is emitted
+            // verbatim as UTF-8 — the W3C RDFC-1.0 test suite fixtures (e.g. test060)
+            // pin the C1 block passing through raw in literals, unlike IRIs where the
+            // IRIREF grammar forbids the full control range.
             c if (c as u32) < 0x20 || c as u32 == 0x7f => write_u_escape(c, out),
             c => out.push(c),
         }
