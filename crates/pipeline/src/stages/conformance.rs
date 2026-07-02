@@ -366,22 +366,38 @@ impl Stage for ConformanceStage {
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The committed external corpus is a raw source read: every case's
-        // `source/manifest.ttl` and `expected/verdicts.json` busts this stage's
-        // cache (a corpus edit re-grades + re-folds the bundle).
+        // published source (W3C `source/manifest.ttl`, TPTP `source/problem.p`, or
+        // OntoUML `source/model.ttl`) plus its frozen native verdict busts this
+        // stage's cache (a corpus edit re-grades + re-folds the bundle).
         let external = root.join(EXTERNAL_ROOT);
         let mut files: Vec<PathBuf> = Vec::new();
         if external.is_dir() {
             for corpus_dir in sorted_dirs(&external)? {
                 for case_dir in sorted_dirs(&corpus_dir)? {
-                    // Whichever published source the case carries (W3C manifest or TPTP
-                    // SZS problem) plus its frozen native verdict busts the cache.
                     let manifest = case_dir.join("source").join("manifest.ttl");
                     let szs = case_dir.join("source").join("problem.p");
+                    let model = case_dir.join("source").join("model.ttl");
                     let verdicts = case_dir.join("expected").join("verdicts.json");
                     if manifest.is_file() {
                         files.push(manifest);
                     } else if szs.is_file() {
                         files.push(szs);
+                    } else if model.is_file() {
+                        // An OntoUML foundation-discipline case grades `source/model.ttl`
+                        // against its documented anti-pattern. The model, its frozen
+                        // `expected/materialized.nq` golden (absent for a source-only
+                        // divergence case), and the `profile.json` provenance all bust
+                        // the cache — without them a case edit would leave a stale fold.
+                        files.push(model);
+                        let materialized = case_dir.join("expected").join("materialized.nq");
+                        if materialized.is_file() {
+                            files.push(materialized);
+                        }
+                        let profile = case_dir.join("profile.json");
+                        if profile.is_file() {
+                            files.push(profile);
+                        }
+                        continue;
                     } else {
                         continue;
                     }
@@ -581,6 +597,38 @@ mod tests {
                     gmeow_conformance::divergence::CONFORMANCE_GRAPH
                 )),
                 "divergence quad not in the conformance graph: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn input_files_busts_cache_on_ontouml_case_files() {
+        // An OntoUML case carries neither `source/manifest.ttl` nor `source/problem.p`,
+        // so it must be caught by the `source/model.ttl` branch — otherwise the case is
+        // dropped from the cache key and a `model.ttl` / `materialized.nq` / `profile.json`
+        // edit would leave a stale `gmeow.gts` fold that the semantic drift gate cannot
+        // see (both sides agree on the stale value). Regression guard for that omission.
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let root = tmp.path();
+        let case = root
+            .join(EXTERNAL_ROOT)
+            .join("ontouml-mini")
+            .join("some-case");
+        std::fs::create_dir_all(case.join("source")).unwrap();
+        std::fs::create_dir_all(case.join("expected")).unwrap();
+        let model = case.join("source").join("model.ttl");
+        let materialized = case.join("expected").join("materialized.nq");
+        let profile = case.join("profile.json");
+        std::fs::write(&model, "# model\n").unwrap();
+        std::fs::write(&materialized, "# golden\n").unwrap();
+        std::fs::write(&profile, "{}\n").unwrap();
+
+        let files = ConformanceStage.input_files(root).expect("input_files");
+        for want in [&model, &materialized, &profile] {
+            assert!(
+                files.contains(want),
+                "cache key must include {} (else an OntoUML case edit leaves a stale fold), got {files:?}",
+                want.display()
             );
         }
     }
