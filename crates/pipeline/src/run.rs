@@ -556,7 +556,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     // gate above already proved every committed path is reconstructible.
     if mode == RunMode::Regenerate {
         let fanout_started = Instant::now();
-        let report = crate::fanout::fanout(root)?;
+        let report = crate::fanout::fanout(root, jobs)?;
         timings.push(TimingRecord {
             phase: "fanout".to_string(),
             elapsed_ms: fanout_started.elapsed().as_millis(),

@@ -14,6 +14,7 @@ pub mod dsl_stats_emit;
 pub mod error;
 pub mod fix_deps;
 pub mod list_functions;
+pub mod mapping_purity;
 pub mod mapping_support;
 pub mod ownership;
 pub mod prefix_emit;
@@ -45,6 +46,7 @@ pub use dsl_stats_emit::emit_dsl_stats;
 pub use error::SliceError;
 pub use fix_deps::{compute_fix_deps, ManifestPatch};
 pub use list_functions::emit_list_functions;
+pub use mapping_purity::lint_dsl_mapping_purity;
 pub use ownership::{
     ArtifactEvidence, DependencyEdge, EdgeEvidence, EdgeKind, OwnershipAnalyzer,
     OwnershipDiagnostic, OwnershipReport, OwnershipStatus, ReconciliationStatus, SliceIri,

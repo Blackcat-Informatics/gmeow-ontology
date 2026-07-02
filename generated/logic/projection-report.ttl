@@ -14539,6 +14539,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:06683983b3243618>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:06683983b3243618" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/logic/Module|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.wikidata.org/entity/Q5153563" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:06836dc46f4d09f6>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:06836dc46f4d09f6" ;
@@ -15452,17 +15463,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:144438ad52e63f20>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:144438ad52e63f20" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Activity|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/ns/prov#Activity" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:1444ed01d0c79769>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:1444ed01d0c79769" ;
@@ -16006,6 +16006,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:1b36b7a68112999a" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/imageOrientation|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/2003/12/exif/ns#orientation" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:1b381a83eec9bda0>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:1b381a83eec9bda0" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/MediaObject|http://www.w3.org/2004/02/skos/core#exactMatch|https://schema.org/MediaObject" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -16831,17 +16842,6 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:2589956467279d92" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/referenceFrameCAD|http://www.w3.org/2004/02/skos/core#exactMatch|https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/CAD" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
-<https://blackcatinformatics.ca/logic/target/sssom:25992f16910f28f1>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:25992f16910f28f1" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/wasDerivedFrom|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/ns/prov#wasDerivedFrom" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -18323,17 +18323,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:38ad8d4f02da2fd2>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:38ad8d4f02da2fd2" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/wasAttributedTo|http://www.w3.org/2002/07/owl#equivalentProperty|http://www.w3.org/ns/prov#wasAttributedTo" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:38b37ecabcfed992>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:38b37ecabcfed992" ;
@@ -18580,17 +18569,6 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:3c374db5d2b88eb9" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/GeoCoordinates|http://www.w3.org/2002/07/owl#equivalentClass|https://schema.org/GeoCoordinates" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
-<https://blackcatinformatics.ca/logic/target/sssom:3c4d8cde27ba7f87>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:3c4d8cde27ba7f87" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/wasDerivedFrom|http://www.w3.org/2002/07/owl#equivalentProperty|http://www.w3.org/ns/prov#wasDerivedFrom" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -19164,17 +19142,6 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:44b28573906d102b" ;
     gmeow:lossyDrop "actual: correspondence: https://schema.org/SoftwareApplication|http://www.w3.org/2004/02/skos/core#closeMatch|https://blackcatinformatics.ca/gmeow/SoftwareProduct" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
-<https://blackcatinformatics.ca/logic/target/sssom:44bbd88468f218d0>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:44bbd88468f218d0" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/wasGeneratedBy|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/ns/prov#wasGeneratedBy" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -20627,6 +20594,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:565f9fc385fdc4c2" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Observation|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/ns/sosa/Observation" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:566f194ccb21a8f8>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:566f194ccb21a8f8" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Activity|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.w3.org/ns/prov#Activity" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -25939,17 +25917,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:9ddf10a6d43a9d54>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:9ddf10a6d43a9d54" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/MediaObject|http://www.w3.org/2002/07/owl#equivalentClass|https://schema.org/MediaObject" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:9de5eda4c35cc101>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:9de5eda4c35cc101" ;
@@ -27196,17 +27163,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:b03e20c7582cbe84>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:b03e20c7582cbe84" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/wasGeneratedBy|http://www.w3.org/2002/07/owl#equivalentProperty|http://www.w3.org/ns/prov#wasGeneratedBy" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:b064bf95db55ee9b>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:b064bf95db55ee9b" ;
@@ -27670,17 +27626,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:b6e8e1022f8baaf9>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:b6e8e1022f8baaf9" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/wasAttributedTo|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/ns/prov#wasAttributedTo" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:b6f13951c488cd94>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:b6f13951c488cd94" ;
@@ -27982,6 +27927,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:bb6daca10cde115c" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/timeScaleTT|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.ivoa.net/rdf/timescale/TT" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:bb744f6fa7e3e99e>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:bb744f6fa7e3e99e" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/logic/CommonLogicProjection|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q5153563" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -28485,17 +28441,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:c287ef7b56571cac>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:c287ef7b56571cac" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/CreativeWork|http://www.w3.org/2004/02/skos/core#closeMatch|https://schema.org/CreativeWork" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:c2d999347fedd008>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:c2d999347fedd008" ;
@@ -28771,17 +28716,6 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
-<https://blackcatinformatics.ca/logic/target/sssom:c5a1e7b4e7ceb586>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:c5a1e7b4e7ceb586" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/MediaObject|http://www.w3.org/2004/02/skos/core#closeMatch|https://schema.org/MediaObject" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/sssom:c5a77a6c60e47945>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:c5a77a6c60e47945" ;
@@ -28797,6 +28731,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:c604e3cc9eb11d08" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/answers|http://www.w3.org/2004/02/skos/core#closeMatch|https://schema.org/answer" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:c61b63a8a86929b4>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:c61b63a8a86929b4" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/CreativeWork|http://www.w3.org/2004/02/skos/core#exactMatch|https://schema.org/CreativeWork" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -28997,17 +28942,6 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:c7f6b216ed2ddb7f" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/assessmentScoreValue|http://www.w3.org/2004/02/skos/core#closeMatch|https://schema.org/ratingValue" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
-<https://blackcatinformatics.ca/logic/target/sssom:c7fccf1e60cee35b>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:c7fccf1e60cee35b" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/StandpointClaim|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/ns/oa#Annotation" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -29637,17 +29571,6 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:d169946b130ab01f" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/SourceTree|http://www.w3.org/2004/02/skos/core#closeMatch|https://www.softwareheritage.org/data-model/Directory" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
-<https://blackcatinformatics.ca/logic/target/sssom:d18118d1cf8513dd>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:d18118d1cf8513dd" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Activity|http://www.w3.org/2002/07/owl#equivalentClass|http://www.w3.org/ns/prov#Activity" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -30959,17 +30882,6 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:e0bb894ac05ffe94" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/eventTrajectory|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.cidoc-crm.org/cidoc-crm/E92_Spacetime_Volume" ,
-        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
-        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
-        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
-        "world/standpoint scope and the put leg are not carried" ;
-    logic:complexityClass "N/A (1:1 lattice band)" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
-<https://blackcatinformatics.ca/logic/target/sssom:e0cb0f10ebc361e2>
-    a logic:ProjectionTarget ;
-    rdfs:label "sssom:e0cb0f10ebc361e2" ;
-    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/CreativeWork|http://www.w3.org/2002/07/owl#equivalentClass|https://schema.org/CreativeWork" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -34460,6 +34372,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:0633446f17472f53> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0646de98b2e93de7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0667db611bbc1774> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:06683983b3243618> ,
         <https://blackcatinformatics.ca/logic/target/sssom:06836dc46f4d09f6> ,
         <https://blackcatinformatics.ca/logic/target/sssom:06ab2873497e0e21> ,
         <https://blackcatinformatics.ca/logic/target/sssom:073dad6136588e2a> ,
@@ -34543,7 +34456,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:13e4c9bc94866c82> ,
         <https://blackcatinformatics.ca/logic/target/sssom:13e5582b6d219c78> ,
         <https://blackcatinformatics.ca/logic/target/sssom:13f493c3e8c0c316> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:144438ad52e63f20> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1444ed01d0c79769> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1445d8a035d1ff0e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:144cda450f554518> ,
@@ -34594,6 +34506,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:1aefab84204ec868> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1b0fb0f871859957> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1b36b7a68112999a> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:1b381a83eec9bda0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1b8e0e146c3bb6bb> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1bc2ae53c8ec595f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:1be348bbda42c188> ,
@@ -34669,7 +34582,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:252d80e2b52250a3> ,
         <https://blackcatinformatics.ca/logic/target/sssom:256be4e24a433c55> ,
         <https://blackcatinformatics.ca/logic/target/sssom:2589956467279d92> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:25992f16910f28f1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:25c8e2ba167c507c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:25ce8a365d053d87> ,
         <https://blackcatinformatics.ca/logic/target/sssom:25fe7ca9aedb061b> ,
@@ -34804,7 +34716,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:38476ac1afdf2b93> ,
         <https://blackcatinformatics.ca/logic/target/sssom:38a906895c203c02> ,
         <https://blackcatinformatics.ca/logic/target/sssom:38ac9299c828f99c> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:38ad8d4f02da2fd2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:38b37ecabcfed992> ,
         <https://blackcatinformatics.ca/logic/target/sssom:38e047469acace86> ,
         <https://blackcatinformatics.ca/logic/target/sssom:39455c15a3d4b5e5> ,
@@ -34828,7 +34739,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:3bd5383fa144e72a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3bef2c069842baa1> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3c374db5d2b88eb9> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:3c4d8cde27ba7f87> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3c540cca8867b5f8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3ca9bc3567fa1bde> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3d32fd654ac29b64> ,
@@ -34881,7 +34791,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:441a04372e330f15> ,
         <https://blackcatinformatics.ca/logic/target/sssom:4470ba5c1ad681ed> ,
         <https://blackcatinformatics.ca/logic/target/sssom:44b28573906d102b> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:44bbd88468f218d0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:44c779c98117f46b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:454496d3cdd728ea> ,
         <https://blackcatinformatics.ca/logic/target/sssom:454550114962691a> ,
@@ -35014,6 +34923,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:5620ffba0545fb03> ,
         <https://blackcatinformatics.ca/logic/target/sssom:563f3d88dcb4aaf7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:565f9fc385fdc4c2> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:566f194ccb21a8f8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:567a85d2a0c9f551> ,
         <https://blackcatinformatics.ca/logic/target/sssom:568afd953043c298> ,
         <https://blackcatinformatics.ca/logic/target/sssom:56a758be018b1a62> ,
@@ -35496,7 +35406,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:9d86df249c8eafb6> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9da7bfe7aa6e1194> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9dd5ae691721dd59> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:9ddf10a6d43a9d54> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9de5eda4c35cc101> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9e2637604979db5e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:9e45f699e9b4bab9> ,
@@ -35610,7 +35519,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:af5dc984df8c4451> ,
         <https://blackcatinformatics.ca/logic/target/sssom:afdbb81963e16d4c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b00a3ebca29abc48> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:b03e20c7582cbe84> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b064bf95db55ee9b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b0815bc9e70fe5d3> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b086d3cf2614c743> ,
@@ -35653,7 +35561,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:b634a038b9e58008> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b66eb197c85a2ee8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b69d352f452cb757> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:b6e8e1022f8baaf9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b6f13951c488cd94> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b76ba4d62a299353> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b7eba7b7fc303b26> ,
@@ -35682,6 +35589,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:bb5d7da21c572b32> ,
         <https://blackcatinformatics.ca/logic/target/sssom:bb5fba050525e3f5> ,
         <https://blackcatinformatics.ca/logic/target/sssom:bb6daca10cde115c> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:bb744f6fa7e3e99e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:bba481cc1396d9f2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:bbbdb32f9246cc41> ,
         <https://blackcatinformatics.ca/logic/target/sssom:bbcd321e5146cecd> ,
@@ -35727,7 +35635,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:c25294f63f214050> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c261e171db04fc9f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c269615204b66599> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:c287ef7b56571cac> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c2d999347fedd008> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c2e0a2e282cd7ff0> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c2f96cb5e3a15ce2> ,
@@ -35753,9 +35660,9 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:c56d35b29d41e469> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c57b76d682ab78ff> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c598b6661455b3a5> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:c5a1e7b4e7ceb586> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c5a77a6c60e47945> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c604e3cc9eb11d08> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:c61b63a8a86929b4> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c640c105dc4012ad> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c6866f8e56948151> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c6c9b3a3fe7f092c> ,
@@ -35774,7 +35681,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:c7cb169337d26353> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c7e3a145d21dd587> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c7f6b216ed2ddb7f> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:c7fccf1e60cee35b> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c842da7f759a573d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c868bf006968317a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:c8b533e20ca0a246> ,
@@ -35832,7 +35738,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:d0edfad3c23e436a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d16919063d1af5ac> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d169946b130ab01f> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:d18118d1cf8513dd> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d18484a537e333c9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d2000acea43f4159> ,
         <https://blackcatinformatics.ca/logic/target/sssom:d225476aca3e07ae> ,
@@ -35952,7 +35857,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:e09a8f61f458ba14> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e0a82da7c3ed509c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e0bb894ac05ffe94> ,
-        <https://blackcatinformatics.ca/logic/target/sssom:e0cb0f10ebc361e2> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e0ceca115b865416> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e15b9c8ed84ac496> ,
         <https://blackcatinformatics.ca/logic/target/sssom:e18a4edda6a81cf4> ,
