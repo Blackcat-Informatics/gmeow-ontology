@@ -19,10 +19,12 @@ type("https://example.org/deception/held-projected-no-intent/dhpdSharedBody", "h
 type("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "https://blackcatinformatics.ca/logic/Rule", "default").
 body("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "c14n0", "default").
 body("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "c14n1", "default").
-head("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "c14n2", "default").
+body("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "c14n2", "default").
+head("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "c14n3", "default").
 provenance("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "default").
 
 % === Rules ===
 standpointPairWitnessed(?e, ?p, ?C) :-
+    eventType(?e, "https://blackcatinformatics.ca/gmeow/eventTypeDeception", ?C),
     heldStandpoint(?e, ?h, ?C),
     projectedStandpoint(?e, ?p, ?C).
