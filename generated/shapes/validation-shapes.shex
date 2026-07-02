@@ -29,12 +29,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/Attestation-shape> {
   <https://blackcatinformatics.ca/gmeow/attestedSubject> IRI ;
   <https://blackcatinformatics.ca/gmeow/attester> IRI ;
-  <https://blackcatinformatics.ca/gmeow/issuedAt> IRI ;
+  <https://blackcatinformatics.ca/gmeow/issuedAt> <http://www.w3.org/2001/XMLSchema#dateTime> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/AttestationArtifact> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/AttestationArtifact-shape> {
-  <https://blackcatinformatics.ca/gmeow/artifactMediaType> IRI ;
+  <https://blackcatinformatics.ca/gmeow/artifactMediaType> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Availability> (associate via ShapeMap)
@@ -45,13 +45,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Block> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Block-shape> {
-  <https://blackcatinformatics.ca/gmeow/blockHash> IRI ;
-  <https://blackcatinformatics.ca/gmeow/blockNumber> IRI ;
+  <https://blackcatinformatics.ca/gmeow/blockHash> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/blockNumber> <http://www.w3.org/2001/XMLSchema#integer> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/BlockchainNetwork> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/BlockchainNetwork-shape> {
-  <https://blackcatinformatics.ca/gmeow/chainId> IRI ;
+  <https://blackcatinformatics.ca/gmeow/chainId> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/BuildActivity> (associate via ShapeMap)
@@ -375,12 +375,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/LedgerEvent> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/LedgerEvent-shape> {
-  <https://blackcatinformatics.ca/gmeow/logIndex> IRI ;
+  <https://blackcatinformatics.ca/gmeow/logIndex> <http://www.w3.org/2001/XMLSchema#integer> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/LedgerTransaction> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/LedgerTransaction-shape> {
-  <https://blackcatinformatics.ca/gmeow/transactionHash> IRI ;
+  <https://blackcatinformatics.ca/gmeow/transactionHash> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/License> (associate via ShapeMap)
@@ -526,7 +526,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/PitchSpelling> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/PitchSpelling-shape> {
-  <https://blackcatinformatics.ca/gmeow/spelledName> IRI ;
+  <https://blackcatinformatics.ca/gmeow/spelledName> <http://www.w3.org/2001/XMLSchema#string> ;
   <https://blackcatinformatics.ca/gmeow/spellingPitch> IRI ;
   <https://blackcatinformatics.ca/gmeow/spellingSystem> IRI ;
 }
@@ -604,7 +604,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/ScheduleException> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/ScheduleException-shape> {
-  <https://blackcatinformatics.ca/gmeow/exceptionOriginalDate> IRI ;
+  <https://blackcatinformatics.ca/gmeow/exceptionOriginalDate> <http://www.w3.org/2001/XMLSchema#dateTime> ;
   <https://blackcatinformatics.ca/gmeow/exceptionSchedule> IRI ;
 }
 
@@ -654,7 +654,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/SmartContract> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/SmartContract-shape> {
-  <https://blackcatinformatics.ca/gmeow/contractAddress> IRI ;
+  <https://blackcatinformatics.ca/gmeow/contractAddress> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/SpatialMeasurement> (associate via ShapeMap)
@@ -701,14 +701,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry-shape> {
-  <https://blackcatinformatics.ca/gmeow/logEntryIndex> IRI ;
-  <https://blackcatinformatics.ca/gmeow/logEntryUrl> IRI ;
+  <https://blackcatinformatics.ca/gmeow/logEntryIndex> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/logEntryUrl> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/TreeEntry> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/TreeEntry-shape> {
-  <https://blackcatinformatics.ca/gmeow/treeEntryMode> IRI ;
-  <https://blackcatinformatics.ca/gmeow/treeEntryName> IRI ;
+  <https://blackcatinformatics.ca/gmeow/treeEntryMode> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
+  <https://blackcatinformatics.ca/gmeow/treeEntryName> <http://www.w3.org/2000/01/rdf-schema#Literal> ;
   <https://blackcatinformatics.ca/gmeow/treeEntryObject> IRI ;
 }
 

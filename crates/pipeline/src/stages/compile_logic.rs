@@ -270,9 +270,10 @@ impl Stage for CompileLogicStage {
         // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
         // derived ontology shapes ride into gmeow.gts through the shape surfaces.
         let ontology = crate::stages::source_load::load_authored_dataset(input.root)?;
-        validation_shapes.extend(gmeow_logic_compile::frontend::derive_validation_shapes(
-            ontology.as_ref(),
-        ));
+        validation_shapes.extend(
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+                .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
+        );
         let program = program.with_validation_shapes(validation_shapes);
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
