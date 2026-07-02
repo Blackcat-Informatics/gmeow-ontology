@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native Rust evaluator for the OntoUML *foundation* disciplines (issue #636).
+//! Native Rust evaluator for the OntoUML *foundation* disciplines.
 //!
 //! This module is the **canonical** native evaluator for the OntoUML *foundation*
 //! disciplines.  (The Python foundation oracle that preceded it —
 //! `logic_foundation.py` plus the `enable_naf` chase path of
-//! `logic_materialize.py` — was retired in #636/#497.)  It lowers five OntoUML
+//! `logic_materialize.py` — was retired.)  It lowers five OntoUML
 //! structural disciplines into a small stratified Datalog program with
 //! negation-as-failure and inequality guards, runs that program *per world* as a
 //! semi-naive chase, and then applies two cross-world post-passes (positive
@@ -45,6 +45,8 @@
 //! returns `Err`).  A malformed inequality guard (an unbound guard variable) is a
 //! hard error.  There is no silent default and no degraded fallback.
 
+use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -82,6 +84,52 @@ const RIGIDITY_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/cross
 /// Rule IRI for the anti-rigidity witness pass (`logic:rule/anti-rigidity-witness`).
 const ANTI_RIGIDITY_RULE_IRI: &str =
     "https://blackcatinformatics.ca/logic/rule/anti-rigidity-witness";
+
+// ── Property-characteristic vocabulary (H4) ──────────────────────────────────────
+//
+// The characteristic post-pass reads BOTH the OWL characteristic classes (the
+// OWL-facing declaration on a `gmeow:` property) and their `logic:` analogues (the
+// canonical carrier, asserted centrally with a `logic:formalizes` back-ref), so
+// every declared characteristic — not just the ones re-stated in `logic:` — is
+// enforced by the native gate.
+
+/// `owl:TransitiveProperty` class IRI.
+const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+/// `owl:SymmetricProperty` class IRI.
+const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
+/// `owl:IrreflexiveProperty` class IRI.
+const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+/// `owl:AsymmetricProperty` class IRI.
+const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+
+/// Predicate linking a central characteristic record to the property it characterises.
+const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
+/// Predicate linking a central characteristic record to its characteristic sort.
+const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+
+/// Rule IRI stamped on a transitive-closure edge derived by the characteristic pass.
+const CHAR_TRANSITIVE_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-transitive";
+/// Rule IRI stamped on a symmetric-mirror edge derived by the characteristic pass.
+const CHAR_SYMMETRIC_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-symmetric";
+/// Rule IRI stamped on an irreflexivity/asymmetry violation raised by the pass.
+const CHAR_CLASH_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-clash";
+
+/// Violation discipline: an irreflexive property holds between an entity and itself.
+const IRREFLEXIVITY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/IrreflexivityViolation";
+/// Violation discipline: an asymmetric property holds in both directions of a pair.
+const ASYMMETRY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/AsymmetryViolation";
+/// Violation discipline: a DL-projectable `logic:` characteristic record whose OWL
+/// projection (`owl:{Transitive,Symmetric,Functional}Property`) is missing — the two
+/// carriers of one characteristic have drifted (Principle 17: the `logic:` record is
+/// canonical, the OWL marker is its projection, and the projection must not be dropped).
+const CHARACTERISTIC_CARRIER_DISAGREEMENT: &str =
+    "https://blackcatinformatics.ca/logic/CharacteristicCarrierDisagreement";
+/// Rule IRI stamped on a carrier-disagreement violation.
+const CHAR_CARRIER_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-carrier-agreement";
 
 /// The semantic-profile IRI stamped on every emitted quad — the only profile the
 /// v1 oracle applies.  Matches `py.rs::ASSERTED_PROFILE`.
@@ -127,7 +175,7 @@ impl AntiRigidityPolicy {
     /// # Errors
     ///
     /// Returns `Err` for any string outside the closed enum.
-    // Named `from_str` deliberately (the PyO3 seam + issue #636 spec call it by this
+    // Named `from_str` deliberately (the PyO3 seam + the spec call it by this
     // name); the fallible `String`-error signature does not match `std::str::FromStr`.
     #[allow(clippy::should_implement_trait)]
     pub fn from_str(value: &str) -> Result<Self, String> {
@@ -279,7 +327,7 @@ macro_rules! ancestor_marker {
 // violations), and the rule order WITHIN each stratum is the canonical
 // `LogicProgram` sort order (by each rule's `_sort_key`).  The body of every rule
 // is likewise in canonical sorted order.  This was captured from the live Python
-// oracle (issue #636) and is the parity anchor: chasing these strata in order with
+// oracle and is the parity anchor: chasing these strata in order with
 // first-wins dedup yields the same derivation IRIs as the oracle.
 
 // Stratum 0 is empty (no rule's head predicate lands in the lowest SCC layer, which
@@ -390,11 +438,11 @@ const STRATUM_1: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Typed/contextual mereology + holon kernel (issue #704, C1) ──────────────────
+    // ── Typed/contextual mereology + holon kernel (C1) ──────────────────
     // Positive prerequisites: overlap, the supplementation-profile marker, and the
     // unary holon projection.  All depend only on the asserted (EDB) relations
     // logic:properPartOf and logic:underMereologyProfile, so they are inert on inputs
-    // that carry neither — the pre-#704 foundation goldens are unaffected.
+    // that carry neither — the earlier foundation goldens are unaffected.
     //
     // overlaps(?A, ?B) :- properPartOf(?Z, ?A), properPartOf(?Z, ?B)
     Rule {
@@ -452,6 +500,13 @@ const STRATUM_1: &[Rule] = &[
         distinct_pairs: NO_GUARD,
     },
     // causalPartOf(?X, ?Z) :- causalPartOf(?X, ?Y), causalPartOf(?Y, ?Z)
+    // Kept in-chase, NOT delegated to the generic property-characteristic post-pass:
+    // the causal⊑temporal lift above consumes the transitively-closed causalPartOf
+    // within the same fixpoint, so the closure must be visible to that downstream rule.
+    // A post-pass runs after the chase and cannot feed it — removing this rule drops
+    // both the closed causalPartOf edge and its temporalPartOf lift. The characteristic
+    // post-pass is additive: it fires only on a property carrying a characteristic
+    // marker/record (the occurrent fixtures carry none) and is idempotent with this rule.
     Rule {
         head: pos(
             var("?X"),
@@ -507,7 +562,7 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic emergence: aggregate reduction (issue #705, C2) ──────────────────────
+    // ── Holonic emergence: aggregate reduction (C2) ──────────────────────
     // The positive, derivation-grounded verdict marker.  Under the assessment's declared
     // logic:ReductionTheory, the whole bears a property the theory's logic:reductionBasis
     // carries AND a proper part also bears it, so the property reduces to the parts — a
@@ -562,7 +617,7 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic governance: override marker (issue #706, C3) ─────────────────────────
+    // ── Holonic governance: override marker (C3) ─────────────────────────
     // The positive, derivation-grounded face of downward constraint, mirroring the C2
     // aggregate marker.  A logic:DownwardConstraint is OVERRIDDEN when it names an
     // override token (constraintOverride) and the constrained target actually bears
@@ -608,7 +663,7 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic agency: the two co-equal tendency markers (issue #707, C4) ────────────
+    // ── Holonic agency: the two co-equal tendency markers (C4) ────────────
     // Koestler's Janus-faced holon carries a self-assertive (autonomy-as-a-whole) and an
     // integrative (subordination-as-a-part) tendency.  These are CO-EQUAL vantage facets
     // (Principle 9): the two markers are built by IDENTICAL rules — a holon evidences a
@@ -617,7 +672,7 @@ const STRATUM_1: &[Rule] = &[
     // neither face is privileged in the vocabulary or the firing order.  Both settle in
     // stratum 1 so the pathology NAF (stratum 3) and the unknown NAF (stratum 4) are
     // stratified.  Inert on inputs with no logic:AgencyAssessment.  Agency is a DECLARED
-    // profile a holarchy adopts, not a universal rule (#775).  (LOGIC-FOUNDATION.md
+    // profile a holarchy adopts, not a universal rule.  (LOGIC-FOUNDATION.md
     // §mereology+holons.)
     //
     // selfAssertive(?A, ?A) :- agencyHolon(?A, ?H), agencyProfile(?A, ?Pr),
@@ -684,7 +739,7 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic level coherence: position presence marker (issue #708, C5) ───────────
+    // ── Holonic level coherence: position presence marker (C5) ───────────
     // A holon's logic:holonicLevel (mereological compositional depth) is READ OFF its
     // logic:HolonicPosition — the canonical relational construct of which logic:Holon
     // and a level are lossy projections (see logic:Holon / logic:holonicLevel defs).
@@ -717,7 +772,7 @@ const STRATUM_1: &[Rule] = &[
     },
     // multiplyPositioned(?X, ?X) :- positionEntity(?P1, ?X), positionEntity(?P2, ?X)  [?P1 != ?P2]
     //
-    // ME9 (#775), the positive companion to the stratum-4 logic:HolonicLevelIncoherence
+    // ME9, the positive companion to the stratum-4 logic:HolonicLevelIncoherence
     // (which fires for a profiled holon occupying NO position).  This marker fires when an
     // entity occupies TWO OR MORE distinct logic:HolonicPositions — the structural signature
     // of a DAG node sitting on several paths through a holarchy, so its logic:holonicLevel is
@@ -914,7 +969,7 @@ const STRATUM_2: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic emergence: aggregate verdict projection (issue #705, C2) ─────────────
+    // ── Holonic emergence: aggregate verdict projection (C2) ─────────────
     // assessmentVerdict(?A, logic:Aggregate) :- aggregateAssessed(?A, ?A)
     Rule {
         head: pos(
@@ -929,7 +984,7 @@ const STRATUM_2: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic governance: overridden verdict projection (issue #706, C3) ───────────
+    // ── Holonic governance: overridden verdict projection (C3) ───────────
     // constraintVerdict(?C, logic:ConstraintOverridden) :- overriddenConstraint(?C, ?C)
     Rule {
         head: pos(
@@ -944,7 +999,7 @@ const STRATUM_2: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic agency: integral verdict projection (issue #707, C4) ─────────────────
+    // ── Holonic agency: integral verdict projection (C4) ─────────────────
     // The positive, derivation-grounded verdict, mirroring the C2 Aggregate and C3
     // Overridden projections: a holon is INTEGRAL when BOTH co-equal tendency markers
     // hold — it asserts itself as a whole AND subordinates itself as a part.  The
@@ -1044,7 +1099,7 @@ const STRATUM_3: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Mereology NAF helpers (issue #704, C1) ──────────────────────────────────────
+    // ── Mereology NAF helpers (C1) ──────────────────────────────────────
     // Disjointness is the negation of overlap, scoped to co-parts of a common whole so
     // the NAF body is range-restricted (overlaps must be settled in a lower stratum).
     //
@@ -1100,7 +1155,7 @@ const STRATUM_3: &[Rule] = &[
         ],
         distinct_pairs: &[("?P", "?P2")],
     },
-    // ── Holonic emergence: emergent verdict (issue #705, C2) ─────────────────────────
+    // ── Holonic emergence: emergent verdict (C2) ─────────────────────────
     // Emergent by negation-as-failure over the aggregate reduction, WHILE the assessment
     // still binds a declared logic:ReductionTheory (?T) — so the verdict is theory-relative,
     // never a bare "unflagged" default, and failure-to-derive is not irreducibility.
@@ -1158,12 +1213,12 @@ const STRATUM_3: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic governance: binding marker (issue #706, C3) ──────────────────────────
+    // ── Holonic governance: binding marker (C3) ──────────────────────────
     // A downward constraint BINDS its named target by negation-as-failure over the
     // override derivation, WHILE the constraint still binds a declared logic:GovernanceRegime
     // (?R) whose activationBasis carries the constrained state (?S) — so the verdict is
     // regime-relative, never a bare "unconstrained" default.  NON-TRANSITIVE by default
-    // (#775): the constraint is read only for the explicitly named ?P (a proper part of
+    // the constraint is read only for the explicitly named ?P (a proper part of
     // ?W); there is no rule cascading it to ?P's own sub-parts.  overriddenConstraint
     // settles in stratum 1, so the NAF is stratified; ?C/?W/?P/?S/?R are all positively
     // bound, so the rule is DL-safe.
@@ -1230,7 +1285,7 @@ const STRATUM_3: &[Rule] = &[
         )],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic agency: the two co-equal pathology verdicts (issue #707, C4) ──────────
+    // ── Holonic agency: the two co-equal pathology verdicts (C4) ──────────
     // Koestler's two pathologies, each the collapse of ONE tendency, reached by
     // negation-as-failure over the corresponding stratum-1 marker WHILE the opposite
     // marker still holds — so each verdict is profile-relative, never a bare default.
@@ -1582,7 +1637,7 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Weak supplementation (issue #704, C1) ───────────────────────────────────────
+    // ── Weak supplementation (C1) ───────────────────────────────────────
     // A profile-scoped MereologyConstraint (NOT an OntoUML Discipline): a whole with a
     // proper part must have another proper part disjoint from the first.  Fires only
     // for wholes armed by supplementationScoped (declared under a logic:MereologyProfile).
@@ -1614,8 +1669,8 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic level coherence: incoherence violation (issue #708, C5) ─────────────────
-    // PROFILE-SCOPED, exactly like weak supplementation (and per #775 profile-relativity):
+    // ── Holonic level coherence: incoherence violation (C5) ─────────────────
+    // PROFILE-SCOPED, exactly like weak supplementation (and per profile-relativity):
     // a holon (isHolon — both a proper part of some whole AND itself has a proper part) is
     // charged with this coherence violation ONLY when it is declared under a mereology
     // profile (underMereologyProfile) yet occupies NO logic:HolonicPosition.  A holon
@@ -1661,7 +1716,7 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic emergence: unknown verdict (issue #705, C2) ──────────────────────────
+    // ── Holonic emergence: unknown verdict (C2) ──────────────────────────
     // ME9's first-class third value: the whole bears the property under assessment, but
     // neither an aggregate reduction nor a theory-relative emergence verdict is derivable
     // (the assessment declares no logic:assessmentReductionTheory, so emergentAssessed
@@ -1707,7 +1762,7 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic governance: unknown verdict (issue #706, C3) ─────────────────────────
+    // ── Holonic governance: unknown verdict (C3) ─────────────────────────
     // The first-class third value: the constraint names a target that is a proper part
     // of the governing whole, but neither an override-defeat nor a regime-relative
     // binding is derivable (no constraintRegime activates the state), so the binding
@@ -1754,7 +1809,7 @@ const STRATUM_4: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
-    // ── Holonic agency: unknown verdict (issue #707, C4) ─────────────────────────────
+    // ── Holonic agency: unknown verdict (C4) ─────────────────────────────
     // The first-class fourth value: the assessment names a holon and a profile, but the
     // holon evidences NEITHER tendency — neither the self-assertive nor the integrative
     // marker can fire — so the integrity question has no positive footing.  This subsumes
@@ -2704,6 +2759,429 @@ fn anti_rigidity_obligations(
     Ok(out)
 }
 
+// ── Property characteristics (post-pass, H4) ─────────────────────────────────────
+
+/// The property-characteristic sorts the pass understands.  `Functional` is
+/// recognised so a record/marker declaring it is not misread as unknown, but the
+/// pass takes no action on it: functional cardinality is enforced by the property's
+/// `owl:FunctionalProperty` declaration through native DL consistency.  (The
+/// stratum-1 in-chase `functionalProperty` marker is a distinct signal that only
+/// feeds the relator-mediation entity-count and does not apply to ordinary
+/// functional properties such as the lineage relations `gmeow:versionOf` /
+/// `gmeow:editionOf`.)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum CharSort {
+    Transitive,
+    Symmetric,
+    Irreflexive,
+    Asymmetric,
+    Functional,
+}
+
+/// Map a characteristic-sort IRI — either the OWL characteristic class or its
+/// `logic:` analogue — to the [`CharSort`] the pass enforces.  A non-characteristic
+/// IRI is `None`.
+fn char_sort_of(iri: &str) -> Option<CharSort> {
+    match iri {
+        OWL_TRANSITIVE_PROPERTY => Some(CharSort::Transitive),
+        OWL_SYMMETRIC_PROPERTY => Some(CharSort::Symmetric),
+        OWL_IRREFLEXIVE_PROPERTY => Some(CharSort::Irreflexive),
+        OWL_ASYMMETRIC_PROPERTY => Some(CharSort::Asymmetric),
+        OWL_FUNCTIONAL_PROPERTY => Some(CharSort::Functional),
+        _ => match iri.strip_prefix(LOGIC_NS) {
+            Some("transitiveProperty") => Some(CharSort::Transitive),
+            Some("symmetricProperty") => Some(CharSort::Symmetric),
+            Some("irreflexiveProperty") => Some(CharSort::Irreflexive),
+            Some("asymmetricProperty") => Some(CharSort::Asymmetric),
+            Some("functionalProperty") => Some(CharSort::Functional),
+            _ => None,
+        },
+    }
+}
+
+/// Whether a characteristic sort has an OWL projection under this ontology's
+/// convention.  Transitive/symmetric/functional are DL-clean and carried as OWL
+/// characteristic classes; irreflexive and asymmetric are deliberately `logic:`-only
+/// (they would break the OWL 2 EL profile), so they carry no OWL projection to
+/// cross-check.
+fn char_sort_has_owl_projection(sort: CharSort) -> bool {
+    matches!(
+        sort,
+        CharSort::Transitive | CharSort::Symmetric | CharSort::Functional
+    )
+}
+
+/// One DL-projectable characteristic sort asserted by a central `logic:` record, with
+/// the provenance needed to raise a carrier-disagreement violation.
+struct LogicCharacteristicRecord {
+    /// The property the record characterises.
+    property: String,
+    /// The characteristic sort asserted.
+    sort: CharSort,
+    /// The sort marker IRI (`logic:transitiveProperty` …) — provenance object.
+    sort_iri: String,
+    /// The record IRI (`?rec`) — provenance subject.
+    record: String,
+    /// The named graph the record's `logic:characteristicSort` quad lives in.
+    graph: String,
+}
+
+/// Split the characteristic declarations by carrier for the agreement check:
+/// - `owl_sorts`: property → sorts declared by a direct `owl:{…}Property` type marker.
+/// - `logic_records`: one entry per `logic:` record sort, in deterministic order.
+///
+/// Unlike [`collect_characteristics`] (which unions the two carriers), this keeps them
+/// separate so the agreement pass can detect a canonical record whose OWL projection is
+/// missing.
+fn collect_characteristic_carriers(
+    quads: &[FoundationQuad],
+) -> (
+    BTreeMap<String, BTreeSet<CharSort>>,
+    Vec<LogicCharacteristicRecord>,
+) {
+    let mut owl_sorts: BTreeMap<String, BTreeSet<CharSort>> = BTreeMap::new();
+    let mut rec_prop: HashMap<String, String> = HashMap::new();
+    let mut rec_sorts: HashMap<String, Vec<(CharSort, String, String)>> = HashMap::new();
+    for q in quads {
+        let Some(obj) = strip_angle_opt(&q.object) else {
+            continue;
+        };
+        if q.predicate == RDF_TYPE {
+            if let Some(sort) = char_sort_of(obj) {
+                owl_sorts.entry(q.subject.clone()).or_default().insert(sort);
+            }
+        } else if q.predicate == LOGIC_CHARACTERIZES {
+            rec_prop.insert(q.subject.clone(), obj.to_owned());
+        } else if q.predicate == LOGIC_CHARACTERISTIC_SORT {
+            if let Some(sort) = char_sort_of(obj) {
+                rec_sorts.entry(q.subject.clone()).or_default().push((
+                    sort,
+                    obj.to_owned(),
+                    q.graph.clone(),
+                ));
+            }
+        }
+    }
+    let mut logic_records: Vec<LogicCharacteristicRecord> = Vec::new();
+    for (rec, prop) in &rec_prop {
+        if let Some(sorts) = rec_sorts.get(rec) {
+            for (sort, sort_iri, graph) in sorts {
+                logic_records.push(LogicCharacteristicRecord {
+                    property: prop.clone(),
+                    sort: *sort,
+                    sort_iri: sort_iri.clone(),
+                    record: rec.clone(),
+                    graph: graph.clone(),
+                });
+            }
+        }
+    }
+    // The joins above iterate `HashMap`s, so sort into a canonical order before the
+    // agreement pass consumes them — output must be byte-stable across runs.
+    logic_records.sort_by(|a, b| {
+        (&a.property, a.sort, &a.sort_iri, &a.record, &a.graph).cmp(&(
+            &b.property,
+            b.sort,
+            &b.sort_iri,
+            &b.record,
+            &b.graph,
+        ))
+    });
+    (owl_sorts, logic_records)
+}
+
+/// Cross-check the two characteristic carriers for drift.  A central
+/// `logic:PropertyCharacteristicAssertion` of a DL-projectable sort
+/// (transitive/symmetric/functional) is the canonical characteristic; its OWL marker is
+/// the lossy projection.  When the canonical record is present but its OWL projection is
+/// missing, the carriers have drifted — raise `logic:violation
+/// logic:CharacteristicCarrierDisagreement` on the property, keyed per (graph, property).
+/// Irreflexive/asymmetric sorts are `logic:`-only by design and are never cross-checked.
+///
+/// # Errors
+///
+/// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
+fn characteristic_carrier_agreement_pass(
+    quads: &[FoundationQuad],
+) -> Result<Vec<FoundationQuad>, String> {
+    let (owl_sorts, logic_records) = collect_characteristic_carriers(quads);
+    let mut emitted: BTreeSet<(String, String)> = BTreeSet::new();
+    let mut out: Vec<FoundationQuad> = Vec::new();
+    for rec in &logic_records {
+        if !char_sort_has_owl_projection(rec.sort) {
+            continue;
+        }
+        let owl_has = owl_sorts
+            .get(&rec.property)
+            .is_some_and(|s| s.contains(&rec.sort));
+        if owl_has {
+            continue;
+        }
+        if !emitted.insert((rec.graph.clone(), rec.property.clone())) {
+            continue;
+        }
+        let sources = vec![triple_reifier(
+            &rec.record,
+            LOGIC_CHARACTERISTIC_SORT,
+            &rec.sort_iri,
+        )?];
+        let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+        let derivation_id = mint_derivation_id(CHAR_CARRIER_RULE_IRI, &source_refs);
+        out.push(FoundationQuad {
+            graph: rec.graph.clone(),
+            subject: rec.property.clone(),
+            predicate: format!("{LOGIC_NS}violation"),
+            object: n3(CHARACTERISTIC_CARRIER_DISAGREEMENT),
+            rule_iri: CHAR_CARRIER_RULE_IRI.to_owned(),
+            source_quad_ids: sources,
+            derivation_id,
+        });
+    }
+    Ok(out)
+}
+
+/// Collect, per property IRI, the union of characteristic sorts declared for it —
+/// from direct `rdf:type` markers (`?P a owl:TransitiveProperty` and the `logic:`
+/// analogues) and from central records (`?rec logic:characterizes ?P`,
+/// `?rec logic:characteristicSort ?sort`).  Characteristics are global (TBox), so the
+/// union is taken across all worlds and applied per-world to that world's edges.
+fn collect_characteristics(quads: &[FoundationQuad]) -> BTreeMap<String, BTreeSet<CharSort>> {
+    let mut prop_sorts: BTreeMap<String, BTreeSet<CharSort>> = BTreeMap::new();
+
+    // Direct type markers on the property itself.
+    for q in quads {
+        if q.predicate == RDF_TYPE {
+            if let Some(obj) = strip_angle_opt(&q.object) {
+                if let Some(sort) = char_sort_of(obj) {
+                    prop_sorts
+                        .entry(q.subject.clone())
+                        .or_default()
+                        .insert(sort);
+                }
+            }
+        }
+    }
+
+    // Central records: join `characterizes` and `characteristicSort` on the record IRI.
+    let mut rec_prop: HashMap<String, String> = HashMap::new();
+    let mut rec_sorts: HashMap<String, Vec<CharSort>> = HashMap::new();
+    for q in quads {
+        if q.predicate == LOGIC_CHARACTERIZES {
+            if let Some(obj) = strip_angle_opt(&q.object) {
+                rec_prop.insert(q.subject.clone(), obj.to_owned());
+            }
+        } else if q.predicate == LOGIC_CHARACTERISTIC_SORT {
+            if let Some(obj) = strip_angle_opt(&q.object) {
+                if let Some(sort) = char_sort_of(obj) {
+                    rec_sorts.entry(q.subject.clone()).or_default().push(sort);
+                }
+            }
+        }
+    }
+    for (rec, prop) in &rec_prop {
+        if let Some(sorts) = rec_sorts.get(rec) {
+            for sort in sorts {
+                prop_sorts.entry(prop.clone()).or_default().insert(*sort);
+            }
+        }
+    }
+
+    prop_sorts
+}
+
+/// Per-world, per-property edge sets: world IRI → property IRI → `{(subject, object)}`.
+type WorldPropEdges = BTreeMap<String, BTreeMap<String, BTreeSet<(String, String)>>>;
+
+/// A first-derivation record for a derived pair: `(rule IRI, sorted source reifiers)`.
+type Derivation = (&'static str, Vec<String>);
+
+/// Enforce property characteristics over the materialized quads, per world.
+///
+/// For each property carrying a characteristic, this closes transitive edges and
+/// mirrors symmetric edges (emitting only the derived edges not already
+/// materialized — so it is idempotent with the in-chase `causalPartOf`/`overlaps`
+/// rules), then raises `logic:violation logic:IrreflexivityViolation` /
+/// `logic:AsymmetryViolation` for irreflexive/asymmetric properties that hold of a
+/// self-pair or a mutual pair in the closed+mirrored relation.  An asymmetric
+/// property is treated as irreflexive too (asymmetry entails irreflexivity).
+///
+/// Determinism: worlds, properties, and pairs are visited in sorted order and the
+/// first derivation of each pair wins (matching the chase's first-wins provenance).
+///
+/// # Errors
+///
+/// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
+fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQuad>, String> {
+    let prop_sorts = collect_characteristics(quads);
+    if prop_sorts.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    // Existing materialized edges, for dedup of derived edges: (graph, s, p, o).
+    let mut existing: HashSet<(String, String, String, String)> = HashSet::new();
+    // Per-world, per-property base edge sets: world → property → {(s, o)}.
+    let mut edges: WorldPropEdges = BTreeMap::new();
+    for q in quads {
+        if let Some(obj) = strip_angle_opt(&q.object) {
+            existing.insert((
+                q.graph.clone(),
+                q.subject.clone(),
+                q.predicate.clone(),
+                obj.to_owned(),
+            ));
+            if prop_sorts.contains_key(&q.predicate) {
+                edges
+                    .entry(q.graph.clone())
+                    .or_default()
+                    .entry(q.predicate.clone())
+                    .or_default()
+                    .insert((q.subject.clone(), obj.to_owned()));
+            }
+        }
+    }
+
+    let mut out: Vec<FoundationQuad> = Vec::new();
+    for (world, props) in &edges {
+        for (prop, base) in props {
+            let sorts = prop_sorts
+                .get(prop)
+                .ok_or_else(|| format!("missing characteristic sorts for property {prop}"))?;
+            let transitive = sorts.contains(&CharSort::Transitive);
+            let symmetric = sorts.contains(&CharSort::Symmetric);
+            let asymmetric = sorts.contains(&CharSort::Asymmetric);
+            // Asymmetry entails irreflexivity, so a self-pair on an asymmetric
+            // property is an irreflexivity violation as well.
+            let irreflexive = asymmetric || sorts.contains(&CharSort::Irreflexive);
+
+            // Close + mirror to a combined fixpoint, recording the first derivation of
+            // each new pair (rule IRI + sorted source reifiers).
+            let mut current: BTreeSet<(String, String)> = base.clone();
+            let mut derived: BTreeMap<(String, String), Derivation> = BTreeMap::new();
+            if transitive || symmetric {
+                loop {
+                    let snapshot: Vec<(String, String)> = current.iter().cloned().collect();
+                    let mut round: Vec<((String, String), Derivation)> = Vec::new();
+                    if symmetric {
+                        for (s, o) in &snapshot {
+                            if s == o {
+                                continue;
+                            }
+                            let pair = (o.clone(), s.clone());
+                            if current.contains(&pair) || derived.contains_key(&pair) {
+                                continue;
+                            }
+                            let src = triple_reifier(s, prop, o)?;
+                            round.push((pair, (CHAR_SYMMETRIC_RULE_IRI, vec![src])));
+                        }
+                    }
+                    if transitive {
+                        // Group edges by subject once per round so the closure is
+                        // O(E·d) rather than O(E²): for each edge a→b, extend only over
+                        // b's out-neighbours.  `snapshot` is sorted, so each adjacency
+                        // list is already in sorted order and the derived pairs keep the
+                        // same first-wins visitation order as a full nested scan.
+                        let mut by_subject: HashMap<&str, Vec<&str>> = HashMap::new();
+                        for (x, y) in &snapshot {
+                            by_subject.entry(x.as_str()).or_default().push(y.as_str());
+                        }
+                        for (a, b) in &snapshot {
+                            let Some(neighbours) = by_subject.get(b.as_str()) else {
+                                continue;
+                            };
+                            for &c in neighbours {
+                                let pair = (a.clone(), c.to_owned());
+                                if current.contains(&pair) || derived.contains_key(&pair) {
+                                    continue;
+                                }
+                                let mut sources =
+                                    vec![triple_reifier(a, prop, b)?, triple_reifier(b, prop, c)?];
+                                sources.sort();
+                                round.push((pair, (CHAR_TRANSITIVE_RULE_IRI, sources)));
+                            }
+                        }
+                    }
+                    if round.is_empty() {
+                        break;
+                    }
+                    // First-wins: the earliest justification of each pair is kept (a pair
+                    // may be derived more than once within a round via distinct paths).
+                    for (pair, just) in round {
+                        if current.contains(&pair) {
+                            continue;
+                        }
+                        if let std::collections::btree_map::Entry::Vacant(slot) =
+                            derived.entry(pair.clone())
+                        {
+                            current.insert(pair);
+                            slot.insert(just);
+                        }
+                    }
+                }
+            }
+
+            // Emit derived edges not already materialized.
+            for ((s, o), (rule, sources)) in &derived {
+                if existing.contains(&(world.clone(), s.clone(), prop.clone(), o.clone())) {
+                    continue;
+                }
+                let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                let derivation_id = mint_derivation_id(rule, &source_refs);
+                out.push(FoundationQuad {
+                    graph: world.clone(),
+                    subject: s.clone(),
+                    predicate: prop.clone(),
+                    object: n3(o),
+                    rule_iri: (*rule).to_owned(),
+                    source_quad_ids: sources.clone(),
+                    derivation_id,
+                });
+            }
+
+            // Clash detection over the closed+mirrored relation.  Each violation is
+            // keyed on `(subject, discipline)` (first witnessing pair wins) and carries
+            // the reifier(s) of the offending edge(s) as its provenance sources.
+            if !irreflexive && !asymmetric {
+                continue;
+            }
+            use std::collections::btree_map::Entry;
+            let mut violated: BTreeMap<(String, String), Vec<String>> = BTreeMap::new();
+            for (a, b) in &current {
+                if a == b {
+                    if irreflexive {
+                        let key = (a.clone(), IRREFLEXIVITY_VIOLATION.to_owned());
+                        if let Entry::Vacant(slot) = violated.entry(key) {
+                            slot.insert(vec![triple_reifier(a, prop, a)?]);
+                        }
+                    }
+                } else if asymmetric && current.contains(&(b.clone(), a.clone())) {
+                    let key = (a.clone(), ASYMMETRY_VIOLATION.to_owned());
+                    if let Entry::Vacant(slot) = violated.entry(key) {
+                        let mut sources =
+                            vec![triple_reifier(a, prop, b)?, triple_reifier(b, prop, a)?];
+                        sources.sort();
+                        slot.insert(sources);
+                    }
+                }
+            }
+            for ((subject, discipline), sources) in violated {
+                let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                let derivation_id = mint_derivation_id(CHAR_CLASH_RULE_IRI, &source_refs);
+                out.push(FoundationQuad {
+                    graph: world.clone(),
+                    subject,
+                    predicate: format!("{LOGIC_NS}violation"),
+                    object: n3(&discipline),
+                    rule_iri: CHAR_CLASH_RULE_IRI.to_owned(),
+                    source_quad_ids: sources,
+                    derivation_id,
+                });
+            }
+        }
+    }
+
+    Ok(out)
+}
+
 // ── Public entry point ───────────────────────────────────────────────────────────
 
 /// Evaluate the foundation disciplines over `store` under the given policy.
@@ -2796,11 +3274,16 @@ pub fn evaluate(
         }
     }
 
-    // Cross-world post-passes operate over the union of all materialized quads.
+    // Cross-world post-passes operate over the union of all materialized quads.  Each
+    // reads the chase result, so they are computed before any is folded back in.
     let rigidity = cross_world_rigidity_violations(&all)?;
     let obligations = anti_rigidity_obligations(&all, policy)?;
+    let characteristics = property_characteristic_pass(&all)?;
+    let carrier_agreement = characteristic_carrier_agreement_pass(&all)?;
     all.extend(rigidity);
     all.extend(obligations);
+    all.extend(characteristics);
+    all.extend(carrier_agreement);
 
     // Final canonical sort (matches the runner's fold + sort).
     all.sort_by(|a, b| {
@@ -2815,10 +3298,10 @@ pub fn evaluate(
 }
 
 /// Evaluate the foundation disciplines and fold the result into a truth-maintenance
-/// [`crate::derivation_graph::DerivationGraph`] (issue #820, S6b).
+/// [`crate::derivation_graph::DerivationGraph`] (S6b).
 ///
 /// This is the chase→derivation-graph wiring: it runs [`evaluate`] (which preserves
-/// #824's per-world parallel chase and deterministic world/index-ordered fold) and
+/// the per-world parallel chase and deterministic world/index-ordered fold) and
 /// then records each materialized quad as one justification —
 /// [`crate::derivation_graph::from_foundation_quads`]. Because `evaluate` returns the
 /// quads in canonical content order, and `from_foundation_quads` keys everything by

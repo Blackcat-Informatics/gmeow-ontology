@@ -1,0 +1,2 @@
+<https://example.org/characteristic/irreflexive-clash/shadow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/irreflexiveProperty> <https://example.org/characteristic/irreflexive-clash/schema> .
+<https://example.org/characteristic/irreflexive-clash/G> <https://example.org/characteristic/irreflexive-clash/shadow> <https://example.org/characteristic/irreflexive-clash/G> <https://example.org/characteristic/irreflexive-clash/schema> .

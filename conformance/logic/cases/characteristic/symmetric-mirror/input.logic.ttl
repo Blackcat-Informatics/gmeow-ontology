@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: characteristic/symmetric-mirror
+# Property-characteristic enforcement (H4) — symmetric mirroring.
+#
+# ex:counter is typed logic:symmetricProperty. Given ex:A counter ex:B, the
+# native characteristic pass must derive the mirror ex:B counter ex:A.
+# The chase seeds only from input.nq; this is the mirror axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/characteristic/symmetric-mirror/> .
+
+ex:counter a logic:symmetricProperty .
+ex:A ex:counter ex:B .
