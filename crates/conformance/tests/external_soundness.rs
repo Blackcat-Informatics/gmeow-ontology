@@ -287,9 +287,9 @@ fn external_corpus_verdicts_match_their_third_party_source() {
     }
 
     assert!(
-        checked >= 37,
-        "expected ≥37 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19, \
-         tptp-mini ×6, ontouml-mini ×7; the *-divergence lanes are excluded above), \
+        checked >= 38,
+        "expected ≥38 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19, \
+         tptp-mini ×6, ontouml-mini ×8; the *-divergence lanes are excluded above), \
          found {checked}"
     );
     assert!(
