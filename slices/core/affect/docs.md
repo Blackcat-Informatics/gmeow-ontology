@@ -3,37 +3,41 @@
 
 # affect
 
-> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/affect` · **tier: extension**
+> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/affect` · **tier: core**
 
-Emotions and appraisals (the affect design) — **the thinnest slice in the
-repo, by commitment**.
+Emotions and appraisals — a **core** slice. An agent's felt mental life is part of
+the grounded-agent-memory flagship (Principle 14), so affect joins the kernel
+`gmeow:MentalMoment` family alongside cognition, epistemics, and teleology.
 
-## The thinness budget
+## The model and its staged build-out
 
-This slice ships exactly: `Emotion ⊑ gufo:IntrinsicMode` (the
-Desire/Intention pattern), an open Plutchik-seeded `EmotionType` vocabulary,
-and `Appraisal ⊑ Observation` with the PAD dimensions and an open
-`AestheticQuality` vocabulary. **Nothing else.** Principle 15 discipline:
-growth requires a *new consumer*, not modeling pleasure. The bar for
-expansion: a sensory-environment or narrative consumer demanding (e.g.) an
-emotion-tenure class, appraisal provenance structure, or a cognitive
-appraisal-theory layer. Until then, requests to grow this slice should be
-declined with a pointer here.
+Core is comprehensive by design, and this slice is on a staged build-out to the
+full affect model — the high-dimensional landscape, the affective-experience and
+evidence layers, and the external bridges — specified canonically in
+[`design/AFFECT-DESIGN.md`](./design/AFFECT-DESIGN.md). The current vocabulary is
+the **A1 kernel baseline, not a ceiling**: `gmeow:Emotion` (an intrinsic affective
+mode inhering in one agent, grafted under `gmeow:AffectiveMoment ⊑ gmeow:MentalMoment`),
+an open Plutchik-seeded `EmotionType`, `Appraisal ⊑ Observation` with the PAD
+dimensions and an open `AestheticQuality` vocabulary, and the emotion's
+`affectiveTarget` (aboutness) separated from its `affectiveElicitor` (cause).
 
-## What deliberately does NOT exist
+## Not yet built (on the staged build-out)
 
-- **No emotion tenure class** — episodic scope rides `validFrom`/`validUntil`
-  on the statement; promote to the StandpointTenure idiom only on consumer
-  demand.
-- **No attributed-vs-self-report machinery** — that's the vantage axis
-  (self-report is top authority for the subject's own standpoint, the
-  `facetVantage` precedent).
-- **No emotion or aesthetic hierarchies** — open value vocabularies,
-  contested by design (P9): traditions disagree about the inventory, and
-  the disagreement is data.
-- **No hard rubrics dependency** — `appraisalValue` is read against a
-  rubric `ScoreScale` *when loaded*, plain decimals otherwise (soft
-  reference).
+Present in the design RFC, not yet in the kernel:
+
+- **No affective-experience or mood/tenure class yet** (Stage 2) — episodic scope
+  currently rides `validFrom`/`validUntil` on the statement; a felt-episode surface
+  and mood tenure arrive with the mentation bridge.
+- **No dimensional landscape yet** (Stage 3) — the open two-family axis basis, scale
+  profiles, vector observations, and composition; `appraisalValue` is a plain decimal
+  until it is required to reference an `AffectScaleProfile`.
+- **No evidence spine yet** (Stage 4) — expression, classifier outputs, and telemetry
+  as attributed evidence.
+
+Permanent stances (true at every stage): **no emotion or aesthetic hierarchies** —
+open value vocabularies, contested by design (P9); and **attributed-vs-self-report is
+the vantage axis** (self-report is top authority for the subject's own standpoint, the
+`facetVantage` precedent), not new machinery.
 
 ## Deferred to the compiler-arc window
 
