@@ -161,6 +161,19 @@ filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests:
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
+# The docs "try-it" goldens (crates/pipeline/src/stages/carrier.rs, mod
+# docs_try_it_golden) each drive the native Nemo chase (reason_over_dataset)
+# to reason the reduced authored-default-world seed — and the reduced-vs-full-EDB
+# equivalence golden reasons the full object-level EDB as well. They are on-gate
+# lib unit tests, so keep them in the `engine` memory group (like the Nemo-driving
+# binaries above): otherwise they over-parallelize with the other chases and
+# OOM-thrash on the 16 GB runner. Each fixture is tiny, so the JUnit budget gate's
+# 25 s policy still holds; the longer terminate cliff is only a runaway backstop.
+filter = 'package(gmeow-pipeline) & test(/stages::carrier::docs_try_it_golden/)'
+test-group = 'engine'
+slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
 # Mapping-stage integration tests run the full `compile_mappings` registry check.
 # They are now on-gate and under budget, but concurrent full mapping compiles are
 # redundant and can contend for the same cache/filesystem work. Keep them
