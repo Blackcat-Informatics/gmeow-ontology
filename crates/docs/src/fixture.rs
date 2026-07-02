@@ -285,6 +285,7 @@ fn cache_key(root: &Path) -> String {
     for file in [
         "docs/four-boxes.md",
         "metadata/gmeow-self.ttl",
+        "dsl/mappings/mapping-sets.ttl",
         "generated/catalog/constraint-catalog.nq",
     ] {
         let p = root.join(file);

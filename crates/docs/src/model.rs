@@ -156,6 +156,12 @@ pub enum DocsError {
     /// (`generated/catalog/constraint-catalog.nq`) is missing, unreadable,
     /// unparsable, or carries a malformed `gmeow:ValidationRule` individual.
     ConstraintCatalog(String),
+    /// The cross-slice `dsl/mappings/mapping-sets.ttl` publication-header file
+    /// is present but unreadable or unparsable. Absent is fine (slices carry
+    /// their own sets); a present-but-broken file is a hard failure, never a
+    /// silent empty — a dropped `MappingSet` would leave relocated linkage
+    /// resolving its set IRI to the raw filename.
+    MappingSets(String),
 }
 
 impl std::fmt::Display for DocsError {
@@ -163,6 +169,7 @@ impl std::fmt::Display for DocsError {
         match self {
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
+            DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
         }
     }
 }
@@ -758,11 +765,19 @@ impl DocsModel {
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "5";
+    pub const VERSION: &'static str = "6";
 
     /// Build the documentation model from a discovered catalog and a computed
-    /// ownership report.
-    pub fn from_catalog(catalog: &SliceCatalog, ownership: &OwnershipReport) -> Self {
+    /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
+    /// `gmeow:MappingSet` publication headers (one per external vocabulary — they
+    /// aggregate cells authored across many slices, so they belong to no single
+    /// slice); they resolve each slice-authored linkage's `sssom_file` to its set
+    /// IRI and are documented alongside the slice-owned sets.
+    pub fn from_catalog(
+        catalog: &SliceCatalog,
+        ownership: &OwnershipReport,
+        central_mapping_sets: &[DocMappingSet],
+    ) -> Self {
         // ── Slices ──────────────────────────────────────────────────────────
         let mut slices: Vec<DocSlice> = catalog
             .records()
@@ -916,6 +931,10 @@ impl DocsModel {
                 linkages.extend(links);
             }
         }
+        // Cross-slice SSSOM publication headers (per external vocabulary): the
+        // linkage cells live in their owning slices, but the set-level metadata
+        // (setId/license/setComment) is shared, so it is authored centrally.
+        mapping_sets.extend(central_mapping_sets.iter().cloned());
         // Resolve each linkage's mapping_set IRI from its sssom_file, then count.
         let set_by_file: BTreeMap<String, String> = mapping_sets
             .iter()
@@ -1041,7 +1060,8 @@ impl DocsModel {
     pub fn discover(root: &Path) -> Result<Self, DocsError> {
         let catalog = SliceCatalog::discover(&root.join("slices"))?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
-        let mut model = Self::from_catalog(&catalog, &ownership);
+        let central_sets = read_central_mapping_sets(root)?;
+        let mut model = Self::from_catalog(&catalog, &ownership, &central_sets);
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
         // Concept DOI for the per-term citation block (#1026): the
         // `dcterms:identifier` on the `gmeow:Work` subject of the self-description.
@@ -1141,6 +1161,38 @@ fn read_concept_doi(root: &Path) -> Option<String> {
         .subjects_of_type(GMEOW_WORK)
         .into_iter()
         .find_map(|work| store.first_literal(&work, DCTERMS_IDENTIFIER))
+}
+
+/// Read the cross-slice SSSOM `gmeow:MappingSet` publication headers from
+/// `<root>/dsl/mappings/mapping-sets.ttl`. Each set aggregates linkage cells
+/// authored across many slices (one set per external vocabulary), so it has no
+/// single owning slice — it is marked with the ontology-root owner. Only the
+/// `gmeow:MappingSet` headers are read; the file carries no
+/// `gmeow:TermEquivalence` cells.
+///
+/// An **absent** file ⇒ `Ok(Vec::new())` (slices carry their own sets). A file
+/// that **exists but is unreadable or unparsable** is a hard failure, never a
+/// silent empty: a dropped set would leave every relocated slice linkage
+/// resolving its `MappingSet` IRI to the raw filename. This matches the
+/// hard-fail policy of the sibling readers in this impl block
+/// (`read_constraint_catalog`, module/shapes/competency).
+fn read_central_mapping_sets(root: &Path) -> Result<Vec<DocMappingSet>, DocsError> {
+    const CROSS_SLICE_OWNER: &str = "https://blackcatinformatics.ca/gmeow/";
+    let path = root.join("dsl/mappings/mapping-sets.ttl");
+    let bytes = match std::fs::read(&path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => {
+            return Err(DocsError::MappingSets(format!(
+                "cannot read {}: {e}",
+                path.display()
+            )));
+        }
+    };
+    let store = parse_turtle_lenient(&bytes)
+        .map_err(|e| DocsError::MappingSets(format!("cannot parse {}: {e}", path.display())))?;
+    let (sets, _links) = extract_mappings(&store, CROSS_SLICE_OWNER);
+    Ok(sets)
 }
 
 // ── Turtle parsing + term extraction ──────────────────────────────────────────
@@ -2027,6 +2079,41 @@ gmeow:hasOwner a owl:ObjectProperty ;
 
         let animal = terms.iter().find(|t| t.iri.ends_with("Animal")).unwrap();
         assert_eq!(animal.definition.as_deref(), Some("A living organism."));
+    }
+
+    /// `read_central_mapping_sets` distinguishes an absent file (fine — slices
+    /// carry their own sets) from a present-but-unparsable one (hard fail, never
+    /// a silent empty that would drop every relocated linkage's `MappingSet`).
+    #[test]
+    fn central_mapping_sets_absent_ok_but_malformed_hard_fails() {
+        let root = std::env::temp_dir().join(format!(
+            "gmeow-mapsets-test-{}-{}",
+            std::process::id(),
+            line!()
+        ));
+        std::fs::remove_dir_all(&root).ok();
+        let dir = root.join("dsl").join("mappings");
+        std::fs::create_dir_all(&dir).expect("mkdir");
+
+        // Absent file ⇒ Ok(empty).
+        assert!(
+            read_central_mapping_sets(&root)
+                .expect("absent mapping-sets.ttl must be Ok")
+                .is_empty(),
+            "an absent central mapping-sets.ttl yields no sets, not an error"
+        );
+
+        // Present but unparsable ⇒ hard fail (no silent empty).
+        std::fs::write(
+            dir.join("mapping-sets.ttl"),
+            "this is @@@ definitely not { valid ] turtle <<< ;;;",
+        )
+        .expect("write malformed");
+        let err = read_central_mapping_sets(&root)
+            .expect_err("a malformed central mapping-sets.ttl must hard-fail, not return empty");
+        assert!(matches!(err, DocsError::MappingSets(_)));
+
+        std::fs::remove_dir_all(&root).ok();
     }
 
     #[test]
