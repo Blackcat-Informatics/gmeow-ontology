@@ -1,15 +1,16 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "6",
   "slice_count": 75,
-  "term_count": 2276,
+  "term_count": 2277,
   "dependency_edge_count": 827,
   "term_count_by_category": {
-    "Class": 686,
+    "Class": 687,
     "Datatype": 1,
     "Individual": 3,
     "Property": 1586
