@@ -30,3 +30,18 @@ ex:saEmotionTypeNotFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:emotionType a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:emotionType MUST NOT be functional; blended emotions and rival traditions coexist." .
+
+ex:saAffectiveElicitorTargetDistinct a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:affectiveElicitor a owl:ObjectProperty ;
+        rdfs:domain gmeow:Emotion .
+    gmeow:affectiveTarget a owl:ObjectProperty ;
+        rdfs:domain gmeow:Emotion .
+    FILTER (gmeow:affectiveElicitor != gmeow:affectiveTarget)
+}""" ;
+    gmeow:saRationale "An emotion's cause (gmeow:affectiveElicitor) and its aboutness (gmeow:affectiveTarget) MUST be distinct object properties on gmeow:Emotion — aboutness is not cause (the Ithkuil OBJ distinction)." .
