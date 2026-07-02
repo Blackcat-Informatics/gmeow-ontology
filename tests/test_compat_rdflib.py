@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import purrdf
 from purrdf.compat.rdflib import (
+    DATASET_DEFAULT_GRAPH_ID,
     RDF,
     RDFS,
     BNode,
@@ -217,7 +218,9 @@ def test_dataset_named_graph_quads_filtering() -> None:
     ds.graph(EX.g).add((EX.named, EX.p, EX.o))
 
     assert set(ds.quads((None, None, None, None))) == {
-        (EX.default, EX.p, EX.o, None),
+        # rdflib names the default graph's context `urn:x-rdflib:default`
+        # (DATASET_DEFAULT_GRAPH_ID), not None.
+        (EX.default, EX.p, EX.o, DATASET_DEFAULT_GRAPH_ID),
         (EX.named, EX.p, EX.o, EX.g),
     }
     assert list(ds.quads((None, None, None, EX.g))) == [(EX.named, EX.p, EX.o, EX.g)]
