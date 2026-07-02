@@ -479,6 +479,23 @@ mod tests {
     }
 
     #[test]
+    fn negated_ground_conjecture_is_an_honest_gap() {
+        // A conjecture whose shape is `~C(a)` (a `Not(Atom)`) is not expressed by the
+        // EL refutation lowerer, so it must surface as an honest capability gap
+        // (LoweringGap) — never a silently-decided verdict. Extending the fragment to
+        // cover it is a separate, soundness-reviewed change, not a silent approximation.
+        let src = "\
+            fof(prem, axiom, c(a)).\n\
+            fof(goal, conjecture, ~c(a)).\n";
+        let err = decide(src).unwrap_err();
+        assert!(
+            err.reason.contains("refutable") || err.reason.contains("conjecture shape"),
+            "{}",
+            err.reason
+        );
+    }
+
+    #[test]
     fn ground_unary_non_theorem_refutes_to_consistent() {
         // Premises a(x) do NOT entail b(x): refutation stays satisfiable.
         let src = "\
