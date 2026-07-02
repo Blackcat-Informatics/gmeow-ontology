@@ -2308,7 +2308,14 @@ impl LogicProgram {
     /// segment is append-only at the fixed tail when present).
     pub fn with_validation_shapes(mut self, validation_shapes: Vec<ValidationShapeIr>) -> Self {
         let mut validation_shapes = validation_shapes;
-        validation_shapes.sort_by_cached_key(ValidationShapeIr::sort_key);
+        // Sort by IRI directly (no key clone). The IRI is the shape's identity, so two shapes
+        // sharing one would make `canonical_key` depend on supply order — a hard invariant
+        // violation, not a recoverable state, so reject it rather than silently keep both.
+        validation_shapes.sort_by(|a, b| a.iri.cmp(&b.iri));
+        assert!(
+            validation_shapes.windows(2).all(|w| w[0].iri != w[1].iri),
+            "LogicProgram.validation_shapes must not contain duplicate shape IRIs"
+        );
         self.validation_shapes = validation_shapes;
         self
     }

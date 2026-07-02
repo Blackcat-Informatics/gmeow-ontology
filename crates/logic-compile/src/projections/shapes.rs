@@ -27,13 +27,15 @@ use crate::ir::{
 const SHACL_PREFIXES: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
      @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\n";
 
-/// Emit an IRI as a Turtle term: a full IRI (containing `://`) is angle-bracketed; anything
-/// else (a prefixed name like `xsd:decimal`) is emitted verbatim.
+/// Emit an IRI as a Turtle term. A CURIE under one of the document's declared prefixes
+/// (`sh:` / `xsd:`, from [`SHACL_PREFIXES`]) is emitted verbatim; every other value is an
+/// absolute IRI — including a non-hierarchical one like `urn:uuid:…` or `mailto:…` that has no
+/// `://` — and is angle-bracketed so the Turtle/SPARQL stays valid.
 fn iri_term(s: &str) -> String {
-    if s.contains("://") {
-        format!("<{s}>")
-    } else {
+    if s.starts_with("sh:") || s.starts_with("xsd:") {
         s.to_owned()
+    } else {
+        format!("<{s}>")
     }
 }
 
