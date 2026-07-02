@@ -6936,3 +6936,425 @@ logic:coverObjectIndividuationFunctionalComplex
 logic:coverObjectIndividuationFunctionalComplexArg
     logic:termIndex 0 ;
     logic:termVariable "x" .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# H5 — Definitional axioms for the deception / standpoint / falsehood family.
+# Four object-level full-FOL logic:Formula definitions, each logic:formalizes-linked
+# to the gmeow: prose it encodes and paired with a reviewed logic:FormalizationCandidate
+# (harvest back-link + drift-checked source hash). Each formula exceeds the monotone
+# Horn+NAF fragment (nested existential, biconditional, strong negation), so it is
+# realized ONLY in the OWL / full-FOL projection and disclosed in the loss ledger — the
+# native StratifiedNAF chase does NOT enforce it (RiskProjectionOnly, mirroring the H2
+# class coverings). The intent-never-entailed guardrail is unaffected: none of these
+# formulas is a productive rule and none carries gmeow:deceptiveIntentClaim, so
+# logic:IntentNotFromDeceptionObligation's Arm A (no rule head) stays discharged.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Axiom 1: deception ⇒ a divergent held/projected doxastic pair (the gap IS the act) ──
+# ∀e. eventType(e, eventTypeDeception) →
+#     ∃h,p. heldStandpoint(e,h) ∧ projectedStandpoint(e,p)
+#           ∧ DoxasticStandpointClaim(h) ∧ DoxasticStandpointClaim(p)
+#           ∧ ¬∃m. (claimModality(h,m) ∧ claimModality(p,m))
+# A NECESSARY condition, never a biconditional: a licensed-falsehood projection also has a
+# held/projected gap yet is not deception (Axiom 3 carves it out), so the gap is necessary
+# but not sufficient for deception.
+logic:deceptionHeldProjectedDivergence
+    a logic:Formula ;
+    logic:formalizes gmeow:eventTypeDeception ;
+    logic:forall logic:dhpdBody ;
+    logic:quantifiedVariable logic:dhpdVarE .
+logic:dhpdVarE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:dhpdBody
+    a logic:Formula ;
+    logic:antecedent logic:dhpdAnte ;
+    logic:consequent logic:dhpdCons .
+logic:dhpdAnte
+    a logic:Formula ;
+    logic:relation gmeow:eventType ;
+    logic:argument logic:dhpdAnteArgE , logic:dhpdAnteArgKind .
+logic:dhpdAnteArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:dhpdAnteArgKind
+    logic:termIndex 1 ;
+    logic:termIri gmeow:eventTypeDeception .
+logic:dhpdCons
+    a logic:Formula ;
+    logic:exists logic:dhpdConsBody ;
+    logic:quantifiedVariable logic:dhpdVarH , logic:dhpdVarP .
+logic:dhpdVarH
+    logic:termIndex 0 ;
+    logic:termVariable "h" .
+logic:dhpdVarP
+    logic:termIndex 1 ;
+    logic:termVariable "p" .
+logic:dhpdConsBody
+    a logic:Formula ;
+    logic:and logic:dhpdHeld ,
+        logic:dhpdProjected ,
+        logic:dhpdHeldDox ,
+        logic:dhpdProjectedDox ,
+        logic:dhpdDivergent .
+logic:dhpdHeld
+    a logic:Formula ;
+    logic:relation gmeow:heldStandpoint ;
+    logic:argument logic:dhpdHeldArgE , logic:dhpdHeldArgH .
+logic:dhpdHeldArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:dhpdHeldArgH
+    logic:termIndex 1 ;
+    logic:termVariable "h" .
+logic:dhpdProjected
+    a logic:Formula ;
+    logic:relation gmeow:projectedStandpoint ;
+    logic:argument logic:dhpdProjectedArgE , logic:dhpdProjectedArgP .
+logic:dhpdProjectedArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:dhpdProjectedArgP
+    logic:termIndex 1 ;
+    logic:termVariable "p" .
+logic:dhpdHeldDox
+    a logic:Formula ;
+    logic:relation gmeow:DoxasticStandpointClaim ;
+    logic:argument logic:dhpdHeldDoxArg .
+logic:dhpdHeldDoxArg
+    logic:termIndex 0 ;
+    logic:termVariable "h" .
+logic:dhpdProjectedDox
+    a logic:Formula ;
+    logic:relation gmeow:DoxasticStandpointClaim ;
+    logic:argument logic:dhpdProjectedDoxArg .
+logic:dhpdProjectedDoxArg
+    logic:termIndex 0 ;
+    logic:termVariable "p" .
+logic:dhpdDivergent
+    a logic:Formula ;
+    logic:not logic:dhpdShared .
+logic:dhpdShared
+    a logic:Formula ;
+    logic:exists logic:dhpdSharedBody ;
+    logic:quantifiedVariable logic:dhpdVarM .
+logic:dhpdVarM
+    logic:termIndex 0 ;
+    logic:termVariable "m" .
+logic:dhpdSharedBody
+    a logic:Formula ;
+    logic:and logic:dhpdHeldModality , logic:dhpdProjectedModality .
+logic:dhpdHeldModality
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument logic:dhpdHeldModalityArgH , logic:dhpdHeldModalityArgM .
+logic:dhpdHeldModalityArgH
+    logic:termIndex 0 ;
+    logic:termVariable "h" .
+logic:dhpdHeldModalityArgM
+    logic:termIndex 1 ;
+    logic:termVariable "m" .
+logic:dhpdProjectedModality
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument logic:dhpdProjectedModalityArgP , logic:dhpdProjectedModalityArgM .
+logic:dhpdProjectedModalityArgP
+    logic:termIndex 0 ;
+    logic:termVariable "p" .
+logic:dhpdProjectedModalityArgM
+    logic:termIndex 1 ;
+    logic:termVariable "m" .
+
+# ── Axiom 2: falsehood ≡ a necessarily-denying standpoint claim (refuted, no isFalse flag) ──
+# ∀c. claimModality(c, gmeow:refuted) ↔
+#     (StandpointClaim(c) ∧ claimPolarity(c, gmeow:polarityDeny)
+#      ∧ claimModalForce(c, gmeow:modalForceNecessary))
+# An EQUIVALENCE definition: "falsehood = refuted StandpointClaim" made formal as the identity
+# of the refuted modality with its canonical axis signature □¬ (deny + necessary). Frame-relative
+# settled-false, never a global truth verdict — there is no isFalse flag; to be false-in-frame IS
+# to hold a claim of this necessarily-denying modality.
+logic:falsehoodIsRefutedClaim
+    a logic:Formula ;
+    logic:formalizes gmeow:refuted ;
+    logic:forall logic:firBody ;
+    logic:quantifiedVariable logic:firVarC .
+logic:firVarC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firBody
+    a logic:Formula ;
+    logic:iff logic:firRefuted , logic:firSignature .
+logic:firRefuted
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument logic:firRefutedArgC , logic:firRefutedArgV .
+logic:firRefutedArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firRefutedArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:refuted .
+logic:firSignature
+    a logic:Formula ;
+    logic:and logic:firClaim , logic:firPolarity , logic:firForce .
+logic:firClaim
+    a logic:Formula ;
+    logic:relation gmeow:StandpointClaim ;
+    logic:argument logic:firClaimArg .
+logic:firClaimArg
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firPolarity
+    a logic:Formula ;
+    logic:relation gmeow:claimPolarity ;
+    logic:argument logic:firPolarityArgC , logic:firPolarityArgV .
+logic:firPolarityArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firPolarityArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:polarityDeny .
+logic:firForce
+    a logic:Formula ;
+    logic:relation gmeow:claimModalForce ;
+    logic:argument logic:firForceArgC , logic:firForceArgV .
+logic:firForceArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firForceArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:modalForceNecessary .
+
+# ── Axiom 3: licensed falsehood ⊢ ¬deception (the fiction/satire safety partition) ──
+# ∀e,c. (projectedStandpoint(e,c) ∧ claimVeridicality(c, gmeow:veridicalityLicensedFalsehood))
+#       → ¬ eventType(e, gmeow:eventTypeDeception)
+# The safety property: a socially-licensed non-truth-asserting projection (fiction, satire,
+# sarcasm) is NOT deception, even though it too carries a held/projected gap. Composes with
+# Axiom 1 to partition the gap into deception vs. licensed non-deception.
+logic:licensedFalsehoodNotDeception
+    a logic:Formula ;
+    logic:formalizes gmeow:veridicalityLicensedFalsehood ;
+    logic:forall logic:lfndBody ;
+    logic:quantifiedVariable logic:lfndVarE , logic:lfndVarC .
+logic:lfndVarE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:lfndVarC
+    logic:termIndex 1 ;
+    logic:termVariable "c" .
+logic:lfndBody
+    a logic:Formula ;
+    logic:antecedent logic:lfndAnte ;
+    logic:consequent logic:lfndCons .
+logic:lfndAnte
+    a logic:Formula ;
+    logic:and logic:lfndProjected , logic:lfndVeridicality .
+logic:lfndProjected
+    a logic:Formula ;
+    logic:relation gmeow:projectedStandpoint ;
+    logic:argument logic:lfndProjectedArgE , logic:lfndProjectedArgC .
+logic:lfndProjectedArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:lfndProjectedArgC
+    logic:termIndex 1 ;
+    logic:termVariable "c" .
+logic:lfndVeridicality
+    a logic:Formula ;
+    logic:relation gmeow:claimVeridicality ;
+    logic:argument logic:lfndVeridicalityArgC , logic:lfndVeridicalityArgV .
+logic:lfndVeridicalityArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:lfndVeridicalityArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:veridicalityLicensedFalsehood .
+logic:lfndCons
+    a logic:Formula ;
+    logic:not logic:lfndDeception .
+logic:lfndDeception
+    a logic:Formula ;
+    logic:relation gmeow:eventType ;
+    logic:argument logic:lfndDeceptionArgE , logic:lfndDeceptionArgKind .
+logic:lfndDeceptionArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:lfndDeceptionArgKind
+    logic:termIndex 1 ;
+    logic:termIri gmeow:eventTypeDeception .
+
+# ── Axiom 4: the bullshit modality ≡ the truth-indifferent configuration (Frankfurt) ──
+# ∀c. claimModality(c, gmeow:bullshit) ↔
+#     (StandpointClaim(c) ∧ claimTruthDirectedness(c, gmeow:truthIndifferent))
+# An EQUIVALENCE definition: bullshit is the stance held with indifference to truth — neither
+# aimed at truth (as a sincere claim) nor at its negation (as a lie). truthIndifferent uniquely
+# picks the bullshit modality among the five, so it is definitional, not merely necessary.
+logic:bullshitTruthIndifference
+    a logic:Formula ;
+    logic:formalizes gmeow:bullshit ;
+    logic:forall logic:btiBody ;
+    logic:quantifiedVariable logic:btiVarC .
+logic:btiVarC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:btiBody
+    a logic:Formula ;
+    logic:iff logic:btiBullshit , logic:btiSignature .
+logic:btiBullshit
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument logic:btiBullshitArgC , logic:btiBullshitArgV .
+logic:btiBullshitArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:btiBullshitArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:bullshit .
+logic:btiSignature
+    a logic:Formula ;
+    logic:and logic:btiClaim , logic:btiTruth .
+logic:btiClaim
+    a logic:Formula ;
+    logic:relation gmeow:StandpointClaim ;
+    logic:argument logic:btiClaimArg .
+logic:btiClaimArg
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:btiTruth
+    a logic:Formula ;
+    logic:relation gmeow:claimTruthDirectedness ;
+    logic:argument logic:btiTruthArgC , logic:btiTruthArgV .
+logic:btiTruthArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:btiTruthArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:truthIndifferent .
+
+# ── Governance: reviewed FormalizationCandidates for the four axioms above ────────────
+# Each harvests its axiom from exactly one prose field (logic:candidateSourceField) of the
+# gmeow: term it formalizes; logic:candidateSourceHash is the sha256 of that field's
+# @x-gmeow-english lexical text, so a later prose edit surfaces as drift under make verify.
+# All four are realized in the OWL / full-FOL projection only (RiskProjectionOnly,
+# SoundUnderApproximation) and disclosed in the loss ledger — the native monotone chase does
+# not enforce a nested-existential, biconditional, or strong-negation head.
+
+logic:cqDeceptionDivergenceHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deception divergence holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the deception-divergence necessary-condition must satisfy: a gmeow:Event of gmeow:eventTypeDeception that carries a gmeow:heldStandpoint and a gmeow:projectedStandpoint — both gmeow:DoxasticStandpointClaims — whose claim modalities differ satisfies the axiom. The held/projected gap is the deceptive act; the well-formed case the formula admits."@x-gmeow-english .
+logic:cqDeceptionDivergenceGapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deception without a divergent gap is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the deception-divergence axiom must respect: a gmeow:Event typed gmeow:eventTypeDeception whose held and projected standpoints coincide (no divergent claim-state) violates the necessary condition in the OWL / full-FOL projection. HONEST SCOPE: the native monotone StratifiedNAF chase does NOT enforce this existential, negation-bearing condition, so the rejection is realized only in the projection and is disclosed in the loss ledger."@x-gmeow-english .
+logic:candidateDeceptionHeldProjectedDivergence
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deception is a divergent held/projected gap"@x-gmeow-english ;
+    skos:definition "The necessary-condition formalization candidate governing logic:deceptionHeldProjectedDivergence: every gmeow:eventTypeDeception event carries a gmeow:heldStandpoint and a gmeow:projectedStandpoint doxastic claim whose modalities diverge — the gap is the act, not a truth verdict. A necessary, not sufficient, condition (a licensed-falsehood projection also has a gap yet is not deception; see logic:candidateLicensedFalsehoodNotDeception). Realized in the OWL / full-FOL projection (nested existential with strong negation), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:eventTypeDeception's skos:definition, so an edit to that prose surfaces as drift. Accepted through review with a positive case (logic:cqDeceptionDivergenceHolds) and a negative countermodel (logic:cqDeceptionDivergenceGapRejected)."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b8643c1fb0583812f11a418b01244c78af2e5f97edc306479a6ae717dfcec391"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:eventTypeDeception's skos:definition, which states that a deception projects a standpoint diverging from the one actually held (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "necessary condition: gmeow:eventTypeDeception ⇒ a divergent held/projected DoxasticStandpointClaim pair"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNecessaryCondition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqDeceptionDivergenceHolds ;
+    logic:candidateNegativeCase logic:cqDeceptionDivergenceGapRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateFormalizes gmeow:eventTypeDeception ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+logic:cqFalsehoodRefutedHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "falsehood as refuted claim holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the falsehood-as-refuted-claim equivalence must satisfy: a gmeow:StandpointClaim whose gmeow:claimModality is gmeow:refuted is exactly one whose gmeow:claimPolarity is gmeow:polarityDeny and gmeow:claimModalForce is gmeow:modalForceNecessary (□¬ — settled-false-in-frame). The well-formed case the biconditional admits; there is no separate isFalse flag."@x-gmeow-english .
+logic:cqFalsehoodRefutedGlobalTruthRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "falsehood as global truth verdict is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the falsehood-as-refuted-claim equivalence must respect: reading gmeow:refuted as a frame-independent isFalse flag on the proposition — rather than as the necessarily-denying stance of one standpoint — is rejected (Principle 11: no global truth verdict). HONEST SCOPE: the equivalence is realized in the OWL / full-FOL projection; the native monotone chase does not enforce a biconditional, so this is disclosed in the loss ledger."@x-gmeow-english .
+logic:candidateFalsehoodIsRefutedClaim
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "falsehood is a refuted standpoint claim"@x-gmeow-english ;
+    skos:definition "The equivalence-definition formalization candidate governing logic:falsehoodIsRefutedClaim: to carry gmeow:claimModality gmeow:refuted is exactly to be a gmeow:StandpointClaim that necessarily denies its proposition (gmeow:polarityDeny ∧ gmeow:modalForceNecessary = □¬). This pins 'falsehood = refuted StandpointClaim' as a frame-relative configuration, never a global truth flag, and ties the legacy five-value modality twin to its canonical axes. Realized in the OWL / full-FOL projection (biconditional), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:refuted's skos:definition. Accepted through review with a positive case (logic:cqFalsehoodRefutedHolds) and a negative countermodel (logic:cqFalsehoodRefutedGlobalTruthRejected)."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:5a0209094cea0065b721afa45f2bda0dacaf1b8c659bf77f5c52c7632f6b0b0e"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:refuted's skos:definition, which states the standpoint DENIES the proposition (□¬, settled-false-in-frame) (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "equivalence: gmeow:claimModality gmeow:refuted ⟺ StandpointClaim with polarityDeny ∧ modalForceNecessary"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryEquivalenceDefinition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFalsehoodRefutedHolds ;
+    logic:candidateNegativeCase logic:cqFalsehoodRefutedGlobalTruthRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateFormalizes gmeow:refuted ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+logic:cqLicensedFalsehoodSafeHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "licensed falsehood is not deception holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the licensed-falsehood safety partition must satisfy: a gmeow:Event whose gmeow:projectedStandpoint carries gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood (fiction, satire, sarcasm) is NOT a gmeow:eventTypeDeception, even though it carries a held/projected gap. The well-formed case the exclusion admits."@x-gmeow-english .
+logic:cqLicensedFalsehoodDeceptionRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "licensed falsehood classified as deception is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the licensed-falsehood safety partition must respect: classifying a socially-licensed non-truth-asserting projection (a novel, a satire) as deception is rejected — the audience understands the non-asserting frame. HONEST SCOPE: the exclusion is realized in the OWL / full-FOL projection (strong negation in the head); the native monotone chase does not enforce it, disclosed in the loss ledger."@x-gmeow-english .
+logic:candidateLicensedFalsehoodNotDeception
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "licensed falsehood is not deception"@x-gmeow-english ;
+    skos:definition "The necessary-condition formalization candidate governing logic:licensedFalsehoodNotDeception: a gmeow:Event whose projected standpoint is gmeow:veridicalityLicensedFalsehood is excluded from gmeow:eventTypeDeception — the fiction/satire/sarcasm safety property that separates harmless non-truth-asserting frames from deception. Realized in the OWL / full-FOL projection (strong negation), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:veridicalityLicensedFalsehood's skos:definition. Accepted through review with a positive case (logic:cqLicensedFalsehoodSafeHolds) and a negative countermodel (logic:cqLicensedFalsehoodDeceptionRejected)."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:885472a556e60956181fc7f7e512fbee34b63d02349fb8ca1388f2736fdf6589"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:veridicalityLicensedFalsehood's skos:definition, which states the licensed-falsehood safety property separates fiction/satire/sarcasm from deception (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "necessary condition: a licensed-falsehood projected claim ⇒ ¬ gmeow:eventTypeDeception"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNecessaryCondition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqLicensedFalsehoodSafeHolds ;
+    logic:candidateNegativeCase logic:cqLicensedFalsehoodDeceptionRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateFormalizes gmeow:veridicalityLicensedFalsehood ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+logic:cqBullshitIndifferenceHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bullshit as truth-indifference holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the bullshit-modality equivalence must satisfy: a gmeow:StandpointClaim whose gmeow:claimModality is gmeow:bullshit is exactly one whose gmeow:claimTruthDirectedness is gmeow:truthIndifferent (Frankfurt) — held without regard for correspondence, distinct from a lie's truth-aimed denial. The well-formed case the biconditional admits."@x-gmeow-english .
+logic:cqBullshitIndifferenceLieRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bullshit conflated with lying is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the bullshit-modality equivalence must respect: conflating gmeow:bullshit with a truth-aimed lie (gmeow:truthAimed) is rejected — bullshit is indifferent to truth, a lie asserts against a believed truth. HONEST SCOPE: the equivalence is realized in the OWL / full-FOL projection; the native monotone chase does not enforce a biconditional, disclosed in the loss ledger."@x-gmeow-english .
+logic:candidateBullshitTruthIndifference
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bullshit is the truth-indifferent modality"@x-gmeow-english ;
+    skos:definition "The equivalence-definition formalization candidate governing logic:bullshitTruthIndifference: to carry gmeow:claimModality gmeow:bullshit is exactly to be a gmeow:StandpointClaim held with gmeow:claimTruthDirectedness gmeow:truthIndifferent — Frankfurt's bullshit, neither true nor false under the standpoint. truthIndifferent uniquely selects the bullshit modality among the five, so it is definitional. Realized in the OWL / full-FOL projection (biconditional), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:bullshit's skos:definition. Accepted through review with a positive case (logic:cqBullshitIndifferenceHolds) and a negative countermodel (logic:cqBullshitIndifferenceLieRejected)."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:c0c4ef42d3dded8c978b2667694654d06b5d470dc1c93fb882b801b296ddf50d"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:bullshit's skos:definition, which states the standpoint asserts with indifference to truth-value (Frankfurt) (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "equivalence: gmeow:claimModality gmeow:bullshit ⟺ StandpointClaim with claimTruthDirectedness truthIndifferent"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryEquivalenceDefinition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqBullshitIndifferenceHolds ;
+    logic:candidateNegativeCase logic:cqBullshitIndifferenceLieRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateFormalizes gmeow:bullshit ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
