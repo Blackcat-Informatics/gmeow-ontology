@@ -817,6 +817,29 @@ fn build_archive_blobs(
         root,
         &slice_named_files(root, "shapes.ttl")?,
     )?);
+    // REP_SHAPES is the FULL shape surface (like the DSL lints, carried for a repo-free
+    // consumer that opts into them); the validator applies `shape_union::EXCLUDED` to get the
+    // enforced data-graph union. `validation-shapes.ttl` is a `stage-compile-logic` PRODUCT
+    // (the OPT axis + the OWL-restriction derivation), so override the stale disk read with the fresh
+    // product bytes — otherwise the archive/fanout carry the last-committed file, never the
+    // freshly derived shapes (the axioms archive below reads from the product for this reason).
+    // The fresh product MUST exist (stage-compile-logic always emits it) — falling back to the
+    // stale on-disk read is exactly the failure this override exists to prevent, so hard-fail
+    // rather than silently carry last-committed bytes (no-optionality, fail-closed).
+    let rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string();
+    let fresh = axiom_artifacts
+        .get(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH)
+        .ok_or_else(|| {
+            stage_err(
+                "carrier: stage-compile-logic produced no validation-shapes.ttl product; refusing \
+                 to carry a stale on-disk read",
+            )
+        })?;
+    if let Some(entry) = shapes.iter_mut().find(|(k, _)| *k == rel) {
+        entry.1 = fresh.clone();
+    } else {
+        shapes.push((rel, fresh.clone()));
+    }
     shapes.sort_by(|a, b| a.0.cmp(&b.0));
     // axioms: the compiled logic/DL projection surface, member = repo-relative path.
     // Sourced from THIS run's `stage-compile-logic` product (not re-read from disk) so
@@ -1138,6 +1161,31 @@ fn build_fanout_opaque_blob(
     members.insert(
         crate::stages::compile_logic::SHACL_AF_PATH.to_string(),
         shacl_af,
+    );
+
+    // The validation-shape surfaces (SHACL Core + ShEx) — the OPT/ADL constraint axis lifted
+    // to logic:ValidationShape and projected — ride in from the same compile-logic product.
+    let validation_shacl = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| {
+            stage_err("missing generated/shapes/validation-shapes.ttl in stage-compile-logic")
+        })?;
+    members.insert(
+        crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string(),
+        validation_shacl,
+    );
+    let validation_shex = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| {
+            stage_err("missing generated/shapes/validation-shapes.shex in stage-compile-logic")
+        })?;
+    members.insert(
+        crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH.to_string(),
+        validation_shex,
     );
 
     // context.jsonld + dsl-stats ride in from the sink-consumed stage-mappings product
@@ -3102,6 +3150,13 @@ mod ustar_tests {
                 std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
             );
         }
+        // The validation-shapes.ttl product is required (fail-closed): mirror the committed
+        // file, as the production stage-compile-logic always emits it.
+        let vs_rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH;
+        axiom_artifacts.insert(
+            vs_rel.to_string(),
+            std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
+        );
         let blobs = build_archive_blobs(
             &root,
             b"",
@@ -3191,6 +3246,13 @@ mod ustar_tests {
                 std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
             );
         }
+        // The validation-shapes.ttl product is required (fail-closed): mirror the committed
+        // file, as the production stage-compile-logic always emits it.
+        let vs_rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH;
+        axiom_artifacts.insert(
+            vs_rel.to_string(),
+            std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
+        );
         let blobs = build_archive_blobs(
             &root,
             b"",

@@ -21707,6 +21707,4414 @@
             "gmeowFindingHash/v2": "2a609af84d8aed0c"
           },
           "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: a shape surface validates but does not entail (ValidationOnly)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2927a1f28cc4604c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4bdfcdcbbbe56580"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4e45e053c0a52f7c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no datetime-range facet; those conditions are carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "03c9cdee07c1aa58"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: a shape surface validates but does not entail (ValidationOnly)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c24857f95056b75d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/analysisResult has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "779243f6865397c9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/analysisTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a662b028de4cb9a1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/mitigationCounters has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cf003684fba84196"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/mitigationMeasure has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7793fd3fb032826b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class http://www.w3.org/2002/07/owl#Thing on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c5779f0afa2242d2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AccessibilityFacet on https://blackcatinformatics.ca/gmeow/assertionFacet has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d7de70d0df7baa9c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AccessibilityPolarity on https://blackcatinformatics.ca/gmeow/assertionPolarity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f7d6ee2395b3d9c8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/accountHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "48e6184aecee1650"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/attester has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bbe36ae6b98fb37f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/authoredBy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c9a114f30c951e50"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/availabilityAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "21ba88c4f0aff2a3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/certifiedIdentity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d77f695931264362"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/certifier has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dcba7723a22549b2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/contributor has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "25d237ad29e7862c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/copyrightHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4b8dd0fb9694bfa6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/epistemicAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "25f1406948056e27"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/facetVantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7b8fff5f09bbbc88"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/holdingAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "269b2694c851ee15"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/invitationInvitee has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6b5cbd51aabc38e4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/invoiceIssuer has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a29e688a65cb8ac7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/invoiceRecipient has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "83c9508cbf409a9f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/jurisdictionPolity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "04eb654f355bbe99"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "311998735eafa481"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/learner has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "11b8d08fa4b284b8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/ledgerAccountHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "612255c45b021899"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/licensor has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "061a96b30f75ab92"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/membershipAuthority has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9bf3f75bd4256024"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/membershipMember has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0d56ecf7802f8e37"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/memoryOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c8f5f525b642bf2b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/orderBuyer has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e4d30a486687d01c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/orderSeller has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3d6f86e6603a9ae6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/overlayAuthority has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2506a62ae47db7da"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/relationshipParty has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "978725f277b2e34d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/skillProficiencyAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "44f2131a228cf192"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/stateAuthority has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3ab0737dc2ab9067"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/taggingTagger has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dcaea68dc2a1e284"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/teacher has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bead810e50c150a1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/tenureParty has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cfc1fc7f9d3e32a0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/trademarkHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "568bbce71cc85d9c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/trustee has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "aaa2caed25c8d727"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/trustor has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "12bf1c0168a148a6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "423a60a2da216045"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "423a60a2da216045"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "423a60a2da216045"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "423a60a2da216045"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AnalysisProperty on https://blackcatinformatics.ca/gmeow/analysisProperty has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f8fddadc80072cb4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AnnotationMotivation on https://blackcatinformatics.ca/gmeow/annotationMotivation has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "149e94f1ee862b04"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Appellation on https://blackcatinformatics.ca/gmeow/usageAppellation has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "49ed43c93b7e4fcd"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Asset on https://blackcatinformatics.ca/gmeow/holdingAsset has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ce5c2813acec9e0f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AuthorIdentity on https://blackcatinformatics.ca/gmeow/commitAuthorIdentity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "680656c1faf20f5b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AuthorIdentity on https://blackcatinformatics.ca/gmeow/commitCommitterIdentity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "195b62123bc4873a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CitationIntent on https://blackcatinformatics.ca/gmeow/citationIntent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "97039b88af18dd04"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CollectionMemberRole on https://blackcatinformatics.ca/gmeow/membershipRole has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c574425e9edc3ba0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Commit on https://blackcatinformatics.ca/gmeow/diffFrom has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "79b6e65b8775a856"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Commit on https://blackcatinformatics.ca/gmeow/diffTo has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "174953a9b0d04ec1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Community on https://blackcatinformatics.ca/gmeow/summarizesCommunity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "47f2eb037a1def5e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Concept on https://blackcatinformatics.ca/gmeow/conceptHoldsFor has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "44f93f1cca3a25c7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Concept on https://blackcatinformatics.ca/gmeow/observationResult has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7f709bbe5ca1f691"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Constraint on https://blackcatinformatics.ca/gmeow/logicConstraintMember has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "280c53e2e177cb36"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ConstraintLogic on https://blackcatinformatics.ca/gmeow/constraintLogic has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a1817367aab366a8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ConstraintOperator on https://blackcatinformatics.ca/gmeow/constraintOperator has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9ca8831ed3f8cc54"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ContributionRole on https://blackcatinformatics.ca/gmeow/contributionRole has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a5afe90ac88c4db6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CreativeWork on https://blackcatinformatics.ca/gmeow/attestedInSource has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dd99b014b326cae8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CreativeWork on https://blackcatinformatics.ca/gmeow/citedEntity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "92df374b249e4530"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CreativeWork on https://blackcatinformatics.ca/gmeow/contributionTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ac01184da256c453"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CreativeWork on https://blackcatinformatics.ca/gmeow/derivationProduct has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "18b70b6b9a5df432"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CreativeWork on https://blackcatinformatics.ca/gmeow/derivationSource has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a5c9997e9854eabe"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CreativeWork on https://blackcatinformatics.ca/gmeow/hasMythTelling has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ebb07750b8ccad1f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/CryptographicKey on https://blackcatinformatics.ca/gmeow/certifiedKey has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2ebf03225f2aed44"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DerivationKind on https://blackcatinformatics.ca/gmeow/derivationKind has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "16b469ea846b3bf4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DerivationType on https://blackcatinformatics.ca/gmeow/derivationType has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2d308a02be794538"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DeterminationStatus on https://blackcatinformatics.ca/gmeow/dofStatus has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d7c69c60ea19ef1a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DiagnosticSeverity on https://blackcatinformatics.ca/gmeow/findingSeverity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "080727c15c06ce74"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DistanceMetric on https://blackcatinformatics.ca/gmeow/distanceMetric has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "40870afc6613a544"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Distribution on https://blackcatinformatics.ca/gmeow/buildOutput has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8bbfcc06fc5904bf"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DoxasticState on https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "54a2fdaffa66f7fe"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EmailAddress on https://blackcatinformatics.ca/gmeow/participantAddress has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5b76a0a4a0f039c7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EmailMessage on https://blackcatinformatics.ca/gmeow/participantMessage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1654ab4fe8b724f5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EmploymentType on https://blackcatinformatics.ca/gmeow/employmentType has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7ae0dd6ab647ffd2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/annotationTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "26abf5d174709461"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/assertionSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5f5ec2262f715735"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/assessedEntity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7dcd1415b9d7e599"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/attestedSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ab25adc5e0769557"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/citingEntity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "abe756ede8104294"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/contradictsClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dcd96157a2d3c253"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/depictionSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9099035140886c12"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/existenceEntity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "db1d3a40bf22cd0a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/isHostedBy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bd2ee8f4a474e42f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d8a051ca5950b412"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/meterCarrier has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5a0481e568b39aac"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/notationUsageTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ad8581c0cb717a07"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "86a8921e100e22f5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "86a8921e100e22f5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "86a8921e100e22f5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/participationParticipant has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cff15621d6ae141f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/participationParticipant has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cff15621d6ae141f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/sensoryObservationOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4db2752838b0ec6d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/statementAbout has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c5ed9de48a93a577"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/streamOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b42a3158d7bc53ea"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/taggingTagged has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "78f8fc8d01810b26"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/usageNamed has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a6324ddd4eeb1e25"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f58d090002c603d1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f58d090002c603d1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f58d090002c603d1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f58d090002c603d1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f58d090002c603d1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f58d090002c603d1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/vantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f58d090002c603d1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Entity on https://blackcatinformatics.ca/gmeow/versionMember has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "894313244c2b96f9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Event on https://blackcatinformatics.ca/gmeow/decisionPerformance has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7c230e024ffade5c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Event on https://blackcatinformatics.ca/gmeow/invitationEvent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d78aaf75083e9d8b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Event on https://blackcatinformatics.ca/gmeow/participationEvent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "794e575af05fabb5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Event on https://blackcatinformatics.ca/gmeow/participationEvent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "794e575af05fabb5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Event on https://blackcatinformatics.ca/gmeow/reminderTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "78b4cbfb24ab3549"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Event on https://blackcatinformatics.ca/gmeow/scheduleTemplateEvent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "31d00ca4bff3ccaf"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EventSchedule on https://blackcatinformatics.ca/gmeow/exceptionSchedule has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "83d3b7ae6e62d5a7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EvidenceSpan on https://blackcatinformatics.ca/gmeow/annotationTargetSpan has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f37f9abd5672d807"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ExtractedEntity on https://blackcatinformatics.ca/gmeow/relationshipSource has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9fc24b702cae3e12"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ExtractedEntity on https://blackcatinformatics.ca/gmeow/relationshipTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1d286dd8bf97ce32"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Gender on https://blackcatinformatics.ca/gmeow/genderValue has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f24a856eea885cc7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/GenderExpressionStyle on https://blackcatinformatics.ca/gmeow/expressionValue has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "734a30bd87d824f1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/GenerativeProcessKind on https://blackcatinformatics.ca/gmeow/processKind has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e1867db7c5e06e6e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ImageRegion on https://blackcatinformatics.ca/gmeow/sceneObject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "04dfe55a5cc4e48a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ImageRegion on https://blackcatinformatics.ca/gmeow/sceneSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ed15b391d8f9f3d9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/chunkOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a58a7ee4c0ce3cd3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/copyrightWork has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a940baff7da9b8c7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/derivationTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b011a8e504119af1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/embeddingOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f95de0aa4dd8dfbb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/etymonSource has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d1d422774ff27c40"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/licensedWork has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9a03ffa95b25ac9d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Inscription on https://blackcatinformatics.ca/gmeow/attributionTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "30f8bc3f7447e52a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Inscription on https://blackcatinformatics.ca/gmeow/readingOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9ca7dee7dba0c8e5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Inscription on https://blackcatinformatics.ca/gmeow/translationOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1eed2d2e3906d098"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Inscription on https://blackcatinformatics.ca/gmeow/transliterationOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ba2a02e36e47766e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InstrumentModification on https://blackcatinformatics.ca/gmeow/configurationModification has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "73c9cf674422eda3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/JournalEntry on https://blackcatinformatics.ca/gmeow/postingJournalEntry has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b49fbf52df490354"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/KnowledgeLevel on https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevel has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "481f97a83f475feb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Language on https://blackcatinformatics.ca/gmeow/stateLanguage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5a5b298eeb32c029"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/LedgerAccount on https://blackcatinformatics.ca/gmeow/postingAccount has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c4b204c7b87b43ab"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/LedgerAccountType on https://blackcatinformatics.ca/gmeow/ledgerAccountType has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "89fae15b73a61e10"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/LeftOperand on https://blackcatinformatics.ca/gmeow/leftOperand has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a440d374436e2ae8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/LexicalForm on https://blackcatinformatics.ca/gmeow/attestedForm has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9cf9b9e859a39b2c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Location on https://blackcatinformatics.ca/gmeow/environmentAtLocation has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e005af6bb20790e6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Mark on https://blackcatinformatics.ca/gmeow/trademarkMark has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "026c149a44465427"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MediaObject on https://blackcatinformatics.ca/gmeow/depictionImage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "234994443e8bf7f7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MediaObject on https://blackcatinformatics.ca/gmeow/regionOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "aa9695f3290c7f34"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MessageParticipantRole on https://blackcatinformatics.ca/gmeow/participantRole has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c1b422267d3e5b9d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MetricStructure on https://blackcatinformatics.ca/gmeow/assignedMeter has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ff5b28c537fdc310"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MonetaryAmount on https://blackcatinformatics.ca/gmeow/invoiceAmount has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e5f4269ae3506bda"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MonetaryAmount on https://blackcatinformatics.ca/gmeow/orderAmount has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "55ac52c53d9c57cb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MonetaryAmount on https://blackcatinformatics.ca/gmeow/postingAmount has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "31f3bd3748dc61c5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MonetaryAmount on https://blackcatinformatics.ca/gmeow/transactionAmount has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d98ae517ef3b097b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MusicalParameter on https://blackcatinformatics.ca/gmeow/dofParameter has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a6af6d02979ab44f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MusicalSegment on https://blackcatinformatics.ca/gmeow/transformationSource has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "10d51b1fbc802a41"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MusicalSegment on https://blackcatinformatics.ca/gmeow/transformationTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d84aff3a56eb519d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MusicalTimeFrame on https://blackcatinformatics.ca/gmeow/hasMusicalTimeFrame has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ada9e69beda94ffe"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MusicalTimeFrame on https://blackcatinformatics.ca/gmeow/modulationFromFrame has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "deeb48fbf6c8256f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MusicalTimeFrame on https://blackcatinformatics.ca/gmeow/modulationToFrame has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b85b5085e3c77d5e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/MusicalTimeSpan on https://blackcatinformatics.ca/gmeow/assignmentSpan has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5df8dde63963563c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/NotationSystem on https://blackcatinformatics.ca/gmeow/notationUsageNotationSystem has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9132e0c74fac2e99"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/NotationUsageRole on https://blackcatinformatics.ca/gmeow/notationUsageRole has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "616e084599d05154"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ObservableProperty on https://blackcatinformatics.ca/gmeow/sensoryProperty has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f892790f668e7d46"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Organization on https://blackcatinformatics.ca/gmeow/membershipOrganization has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "573afb58113e318c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Organization on https://blackcatinformatics.ca/gmeow/postIn has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f34a4af88f2d6c72"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/OrnamentProfileKind on https://blackcatinformatics.ca/gmeow/ornamentProfileKind has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "72b826103c8fc4d8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ParticipantRole on https://blackcatinformatics.ca/gmeow/participationRole has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9189a939d81d20e0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Person on https://blackcatinformatics.ca/gmeow/facetSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6956b285f5cb5fe8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Person on https://blackcatinformatics.ca/gmeow/relationshipChild has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6d939a87574f2e11"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Person on https://blackcatinformatics.ca/gmeow/relationshipParent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4240e7fe80d19a01"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PhysicalObject on https://blackcatinformatics.ca/gmeow/findContextTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4dda191b867e1ba1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PipelineStage on https://blackcatinformatics.ca/gmeow/buildFlowFrom has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f42b929babdc52f0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PipelineStage on https://blackcatinformatics.ca/gmeow/buildFlowTo has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c922ee6633c8364b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PitchCollection on https://blackcatinformatics.ca/gmeow/membershipCollection has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2aa1dc9d4099bda2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PitchSpellingSystem on https://blackcatinformatics.ca/gmeow/spellingSystem has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "26d2aa22f76a86f8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PitchTrajectory on https://blackcatinformatics.ca/gmeow/controlPointOfTrajectory has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "83de671956105b5c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PitchValue on https://blackcatinformatics.ca/gmeow/controlPointPitch has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "eac83d145ecb9088"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PitchValue on https://blackcatinformatics.ca/gmeow/membershipPitch has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e45bb962787acd9d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PitchValue on https://blackcatinformatics.ca/gmeow/spellingPitch has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4d9cff9c043b8067"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Place on https://blackcatinformatics.ca/gmeow/containmentChild has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f24035d419c2ded9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Place on https://blackcatinformatics.ca/gmeow/containmentParent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "477aeb5a13a39779"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Place on https://blackcatinformatics.ca/gmeow/jurisdictionPlace has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "643cba6c9f5c59a5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Place on https://blackcatinformatics.ca/gmeow/observedFeature has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e690e0eec02f29b7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Place on https://blackcatinformatics.ca/gmeow/overlayPlace has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e6c4bca2f3be5dd2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Place on https://blackcatinformatics.ca/gmeow/tenurePlace has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9f7923532123c323"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Posting on https://blackcatinformatics.ca/gmeow/journalEntryPostings has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7d49cc643b2cf14c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PostingDirection on https://blackcatinformatics.ca/gmeow/postingDirection has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "491f8cc5cffb0d24"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Procedure on https://blackcatinformatics.ca/gmeow/executesProcedure has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "50f0383c1cfcccb0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProcedureStep on https://blackcatinformatics.ca/gmeow/dataFlowSource has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "841ddfa1c3d365a4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProcedureStep on https://blackcatinformatics.ca/gmeow/dataFlowTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1eb539f004b37dcc"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProcedureStep on https://blackcatinformatics.ca/gmeow/executesStep has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7ceaa9f45ef58cfd"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProcedureStep on https://blackcatinformatics.ca/gmeow/flowSource has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7f408fac7a501af4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProcedureStep on https://blackcatinformatics.ca/gmeow/flowTarget has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8bb79321fafe069c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProcedureStep on https://blackcatinformatics.ca/gmeow/hasProcedureStep has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "347eaacaf27a3b7a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProficiencyLevel on https://blackcatinformatics.ca/gmeow/skillProficiencyLevel has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a8d15138d4b8f159"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProficiencyScale on https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScale has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0168c24e072989e2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ProficiencyScale on https://blackcatinformatics.ca/gmeow/skillProficiencyScale has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f381faccf07a20f5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Project on https://blackcatinformatics.ca/gmeow/releaseOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bfb832c39c47f467"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Proposition on https://blackcatinformatics.ca/gmeow/doxasticContent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "71af28d2d17a6672"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Question on https://blackcatinformatics.ca/gmeow/tenureQuestion has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "aa0f14bad93abf77"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ReferenceFrame on https://blackcatinformatics.ca/gmeow/analysisFrame has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ab425ca6d31f4211"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ReferenceFrame on https://blackcatinformatics.ca/gmeow/currency has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1d868dff58198cf9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/RightsAction on https://blackcatinformatics.ca/gmeow/ruleAction has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "09b9c7211bd8469b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/RomanticOrientationValue on https://blackcatinformatics.ca/gmeow/romanticOrientationValue has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "abe06891a294e78e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SensoryEnvironment on https://blackcatinformatics.ca/gmeow/perceptionEnvironment has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a870e23c7f850b84"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SensoryQuantity on https://blackcatinformatics.ca/gmeow/sensoryResult has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e80a7930d70b2828"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SexualOrientationValue on https://blackcatinformatics.ca/gmeow/sexualOrientationValue has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ed11b1718146dcc4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Skill on https://blackcatinformatics.ca/gmeow/skillProficiencyOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d07b1c95181c4b80"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SoftwareAgent on https://blackcatinformatics.ca/gmeow/embeddingModel has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8dda678a5fa5f76c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SourceNode on https://blackcatinformatics.ca/gmeow/treeEntryObject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2c20bf2950c33ee4"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SourceTree on https://blackcatinformatics.ca/gmeow/commitTree has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "702cee7eeb8655b8"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Standpoint on https://blackcatinformatics.ca/gmeow/tenureStandpoint has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "796173cb5a03670f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/StandpointClaim on https://blackcatinformatics.ca/gmeow/doxasticClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b2112decf95cfee7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/StandpointClaim on https://blackcatinformatics.ca/gmeow/standpointClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "575d7886b4ff5d68"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Tag on https://blackcatinformatics.ca/gmeow/taggingTag has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "435c725341ffe7a7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/availabilitySlot has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d8483a6e97121003"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/duringInterval has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "097f1571919b8f76"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/duringInterval has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "097f1571919b8f76"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/notationUsageInterval has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1a94852ae1b079b6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TransformationType on https://blackcatinformatics.ca/gmeow/transformationType has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "523df4ce253e9030"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TraversalConstraint on https://blackcatinformatics.ca/gmeow/decisionConstraint has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "72427ae46aaf3e0e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TuningSystem on https://blackcatinformatics.ca/gmeow/configurationTuningFrame has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5a34210ef8a6a8b6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TuningSystem on https://blackcatinformatics.ca/gmeow/pitchAnchorOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7ff8ae64409291ec"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/VectorIndex on https://blackcatinformatics.ca/gmeow/againstIndex has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1f952c13efc1423e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/VerificationStatus on https://blackcatinformatics.ca/gmeow/hasVerificationStatus has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4b17fac85b54227a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/VersionSet on https://blackcatinformatics.ca/gmeow/versionSet has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7db393d40c912ce6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/WalletScheme on https://blackcatinformatics.ca/gmeow/walletScheme has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4ecc0ecfc705c606"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ab0236ab73f14a05"
+          },
+          "ruleId": "logic-compile.lossy-drop"
         }
       ],
       "tool": {

@@ -166,6 +166,9 @@ mod tests {
             // The SHACL-AF rule (computation) surface the generated-fanout archive pulls
             // from the compile-logic product (design/LOGIC-SHACL-AF.md).
             crate::stages::compile_logic::SHACL_AF_PATH,
+            // The validation-shape surfaces (SHACL Core + ShEx) — the OPT/ADL constraints axis.
+            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+            crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH,
             crate::stages::compile_logic::N3_PATH,
             crate::stages::compile_logic::CLIF_PATH,
             crate::stages::compile_logic::CGIF_PATH,

@@ -1,0 +1,624 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/AccessibilityAssertion-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AccessibilityAssertion> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assertionFacet> ; sh:class <https://blackcatinformatics.ca/gmeow/AccessibilityFacet> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assertionSubject> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assertionPolarity> ; sh:class <https://blackcatinformatics.ca/gmeow/AccessibilityPolarity> ] .
+
+<https://blackcatinformatics.ca/gmeow/Annotation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Annotation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/annotationTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/annotationMotivation> ; sh:class <https://blackcatinformatics.ca/gmeow/AnnotationMotivation> ] .
+
+<https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/findContextTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/PhysicalObject> ] .
+
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AtomicConstraint> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/leftOperand> ; sh:class <https://blackcatinformatics.ca/gmeow/LeftOperand> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/constraintOperator> ; sh:class <https://blackcatinformatics.ca/gmeow/ConstraintOperator> ] .
+
+<https://blackcatinformatics.ca/gmeow/Attestation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Attestation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/attester> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/issuedAt> ; sh:datatype <http://www.w3.org/2001/XMLSchema#dateTime> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/attestedSubject> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/AttestationArtifact-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AttestationArtifact> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/artifactMediaType> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+
+<https://blackcatinformatics.ca/gmeow/Availability-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Availability> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/availabilitySlot> ; sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/availabilityAgent> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/Block-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Block> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/blockHash> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/blockNumber> ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .
+
+<https://blackcatinformatics.ca/gmeow/BlockchainNetwork-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/BlockchainNetwork> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/chainId> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+
+<https://blackcatinformatics.ca/gmeow/BuildActivity-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/BuildActivity> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/buildOutput> ; sh:class <https://blackcatinformatics.ca/gmeow/Distribution> ] .
+
+<https://blackcatinformatics.ca/gmeow/BuildDataFlow-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/BuildDataFlow> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/buildFlowTo> ; sh:class <https://blackcatinformatics.ca/gmeow/PipelineStage> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/buildFlowFrom> ; sh:class <https://blackcatinformatics.ca/gmeow/PipelineStage> ] .
+
+<https://blackcatinformatics.ca/gmeow/Certification-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Certification> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/certifier> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/certifiedKey> ; sh:class <https://blackcatinformatics.ca/gmeow/CryptographicKey> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/certifiedIdentity> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/Chunk-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Chunk> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/chunkOf> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] .
+
+<https://blackcatinformatics.ca/gmeow/CitationAct-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/CitationAct> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/citedEntity> ; sh:class <https://blackcatinformatics.ca/gmeow/CreativeWork> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/citingEntity> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/citationIntent> ; sh:class <https://blackcatinformatics.ca/gmeow/CitationIntent> ] .
+
+<https://blackcatinformatics.ca/gmeow/Commit-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Commit> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/authoredBy> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/commitTree> ; sh:class <https://blackcatinformatics.ca/gmeow/SourceTree> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/commitAuthorIdentity> ; sh:class <https://blackcatinformatics.ca/gmeow/AuthorIdentity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/commitCommitterIdentity> ; sh:class <https://blackcatinformatics.ca/gmeow/AuthorIdentity> ] .
+
+<https://blackcatinformatics.ca/gmeow/CommunitySummary-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/CommunitySummary> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/summarizesCommunity> ; sh:class <https://blackcatinformatics.ca/gmeow/Community> ] .
+
+<https://blackcatinformatics.ca/gmeow/ConceptCategorization-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ConceptCategorization> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observationResult> ; sh:class <https://blackcatinformatics.ca/gmeow/Concept> ] .
+
+<https://blackcatinformatics.ca/gmeow/ConceptTenure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ConceptTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/duringInterval> ; sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/conceptHoldsFor> ; sh:class <https://blackcatinformatics.ca/gmeow/Concept> ] .
+
+<https://blackcatinformatics.ca/gmeow/ContainmentTenure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ContainmentTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/containmentChild> ; sh:class <https://blackcatinformatics.ca/gmeow/Place> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/containmentParent> ; sh:class <https://blackcatinformatics.ca/gmeow/Place> ] .
+
+<https://blackcatinformatics.ca/gmeow/Contradiction-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Contradiction> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contradictsClaim> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/Contribution-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Contribution> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contributor> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contributionRole> ; sh:class <https://blackcatinformatics.ca/gmeow/ContributionRole> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contributionTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/CreativeWork> ] .
+
+<https://blackcatinformatics.ca/gmeow/ControlFlow-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ControlFlow> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/flowSource> ; sh:class <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/flowTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] .
+
+<https://blackcatinformatics.ca/gmeow/CoordinateObservation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/CoordinateObservation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:class <https://blackcatinformatics.ca/gmeow/Place> ] .
+
+<https://blackcatinformatics.ca/gmeow/Copyright-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Copyright> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/copyrightWork> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/copyrightHolder> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/CreativeDerivation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/CreativeDerivation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/derivationType> ; sh:class <https://blackcatinformatics.ca/gmeow/DerivationType> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/derivationSource> ; sh:class <https://blackcatinformatics.ca/gmeow/CreativeWork> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/derivationProduct> ; sh:class <https://blackcatinformatics.ca/gmeow/CreativeWork> ] .
+
+<https://blackcatinformatics.ca/gmeow/CryptoWallet-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/CryptoWallet> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/walletScheme> ; sh:class <https://blackcatinformatics.ca/gmeow/WalletScheme> ] .
+
+<https://blackcatinformatics.ca/gmeow/DataFlow-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DataFlow> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/dataFlowSource> ; sh:class <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/dataFlowTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] .
+
+<https://blackcatinformatics.ca/gmeow/DegreeOfFreedom-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DegreeOfFreedom> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/dofStatus> ; sh:class <https://blackcatinformatics.ca/gmeow/DeterminationStatus> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/dofParameter> ; sh:class <https://blackcatinformatics.ca/gmeow/MusicalParameter> ] .
+
+<https://blackcatinformatics.ca/gmeow/DepictionUsage-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DepictionUsage> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/depictionImage> ; sh:class <https://blackcatinformatics.ca/gmeow/MediaObject> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/depictionSubject> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/Diff-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Diff> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/diffTo> ; sh:class <https://blackcatinformatics.ca/gmeow/Commit> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/diffFrom> ; sh:class <https://blackcatinformatics.ca/gmeow/Commit> ] .
+
+<https://blackcatinformatics.ca/gmeow/DoxasticState-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DoxasticState> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/doxasticClaim> ; sh:class <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/epistemicAgent> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/doxasticContent> ; sh:class <https://blackcatinformatics.ca/gmeow/Proposition> ] .
+
+<https://blackcatinformatics.ca/gmeow/DoxasticTenure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DoxasticTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/duringInterval> ; sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureOfDoxasticState> ; sh:class <https://blackcatinformatics.ca/gmeow/DoxasticState> ] .
+
+<https://blackcatinformatics.ca/gmeow/Embedding-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Embedding> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/embeddingOf> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/distanceMetric> ; sh:class <https://blackcatinformatics.ca/gmeow/DistanceMetric> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/embeddingModel> ; sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] .
+
+<https://blackcatinformatics.ca/gmeow/Employment-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Employment> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/employmentType> ; sh:class <https://blackcatinformatics.ca/gmeow/EmploymentType> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipMember> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipOrganization> ; sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] .
+
+<https://blackcatinformatics.ca/gmeow/EntityExistence-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EntityExistence> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/existenceEntity> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/EtymologicalDerivation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EtymologicalDerivation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/etymonSource> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/derivationKind> ; sh:class <https://blackcatinformatics.ca/gmeow/DerivationKind> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/derivationTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] .
+
+<https://blackcatinformatics.ca/gmeow/EventInvitation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EventInvitation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/invitationEvent> ; sh:class <https://blackcatinformatics.ca/gmeow/Event> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/invitationInvitee> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/EventSchedule-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EventSchedule> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/scheduleTemplateEvent> ; sh:class <https://blackcatinformatics.ca/gmeow/Event> ] .
+
+<https://blackcatinformatics.ca/gmeow/Execution-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Execution> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/executesStep> ; sh:class <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/executesProcedure> ; sh:class <https://blackcatinformatics.ca/gmeow/Procedure> ] .
+
+<https://blackcatinformatics.ca/gmeow/ExtractedRelationship-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/relationshipSource> ; sh:class <https://blackcatinformatics.ca/gmeow/ExtractedEntity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/relationshipTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/ExtractedEntity> ] .
+
+<https://blackcatinformatics.ca/gmeow/FinancialAccount-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/FinancialAccount> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/accountHolder> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/FinancialTransaction-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/FinancialTransaction> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/transactionAmount> ; sh:class <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] .
+
+<https://blackcatinformatics.ca/gmeow/Finding-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Finding> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/findingSeverity> ; sh:class <https://blackcatinformatics.ca/gmeow/DiagnosticSeverity> ] .
+
+<https://blackcatinformatics.ca/gmeow/GenderExpression-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/GenderExpression> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/expressionValue> ; sh:class <https://blackcatinformatics.ca/gmeow/GenderExpressionStyle> ] .
+
+<https://blackcatinformatics.ca/gmeow/GenderIdentity-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/GenderIdentity> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/genderValue> ; sh:class <https://blackcatinformatics.ca/gmeow/Gender> ] .
+
+<https://blackcatinformatics.ca/gmeow/GenerativeProcess-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/GenerativeProcess> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/processKind> ; sh:class <https://blackcatinformatics.ca/gmeow/GenerativeProcessKind> ] .
+
+<https://blackcatinformatics.ca/gmeow/Highlight-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Highlight> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/annotationTargetSpan> ; sh:class <https://blackcatinformatics.ca/gmeow/EvidenceSpan> ] .
+
+<https://blackcatinformatics.ca/gmeow/Holding-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Holding> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/holdingAgent> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/holdingAsset> ; sh:class <https://blackcatinformatics.ca/gmeow/Asset> ] .
+
+<https://blackcatinformatics.ca/gmeow/IdentityFacet-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/IdentityFacet> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/facetSubject> ; sh:class <https://blackcatinformatics.ca/gmeow/Person> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/facetVantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/ImageRegion-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ImageRegion> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/regionOf> ; sh:class <https://blackcatinformatics.ca/gmeow/MediaObject> ] .
+
+<https://blackcatinformatics.ca/gmeow/InquiryTenure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InquiryTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureQuestion> ; sh:class <https://blackcatinformatics.ca/gmeow/Question> ] .
+
+<https://blackcatinformatics.ca/gmeow/InscriptionReading-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InscriptionReading> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/readingOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Inscription> ] .
+
+<https://blackcatinformatics.ca/gmeow/InscriptionTranslation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InscriptionTranslation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/translationOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Inscription> ] .
+
+<https://blackcatinformatics.ca/gmeow/InscriptionTransliteration-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InscriptionTransliteration> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/transliterationOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Inscription> ] .
+
+<https://blackcatinformatics.ca/gmeow/InstrumentConfiguration-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InstrumentConfiguration> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/configurationTuningFrame> ; sh:class <https://blackcatinformatics.ca/gmeow/TuningSystem> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/configurationModification> ; sh:class <https://blackcatinformatics.ca/gmeow/InstrumentModification> ] .
+
+<https://blackcatinformatics.ca/gmeow/InterpersonalRelationship-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InterpersonalRelationship> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/relationshipParty> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/Invoice-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Invoice> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/invoiceAmount> ; sh:class <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/invoiceIssuer> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/invoiceRecipient> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/JournalEntry-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/JournalEntry> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/journalEntryPostings> ; sh:class <https://blackcatinformatics.ca/gmeow/Posting> ] .
+
+<https://blackcatinformatics.ca/gmeow/JurisdictionTenure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/JurisdictionTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/jurisdictionPlace> ; sh:class <https://blackcatinformatics.ca/gmeow/Place> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/jurisdictionPolity> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/KnowledgeProficiency-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/KnowledgeProficiency> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/knowledgeProficiencyAgent> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/knowledgeProficiencyLevel> ; sh:class <https://blackcatinformatics.ca/gmeow/KnowledgeLevel> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/knowledgeProficiencyScale> ; sh:class <https://blackcatinformatics.ca/gmeow/ProficiencyScale> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/knowledgeProficiencySubject> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/LandTenure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/LandTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureParty> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenurePlace> ; sh:class <https://blackcatinformatics.ca/gmeow/Place> ] .
+
+<https://blackcatinformatics.ca/gmeow/LanguageState-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/LanguageState> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/stateLanguage> ; sh:class <https://blackcatinformatics.ca/gmeow/Language> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/stateAuthority> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/LedgerAccount-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/LedgerAccount> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/ledgerAccountType> ; sh:class <https://blackcatinformatics.ca/gmeow/LedgerAccountType> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/ledgerAccountHolder> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/LedgerEvent-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/LedgerEvent> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/logIndex> ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .
+
+<https://blackcatinformatics.ca/gmeow/LedgerTransaction-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/LedgerTransaction> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/transactionHash> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+
+<https://blackcatinformatics.ca/gmeow/License-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/License> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/licensor> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/licensedWork> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] .
+
+<https://blackcatinformatics.ca/gmeow/LogicalConstraint-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/LogicalConstraint> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/constraintLogic> ; sh:class <https://blackcatinformatics.ca/gmeow/ConstraintLogic> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/logicConstraintMember> ; sh:class <https://blackcatinformatics.ca/gmeow/Constraint> ] .
+
+<https://blackcatinformatics.ca/gmeow/MemoryItem-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/MemoryItem> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/memoryOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/MentalReferenceFrame-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/MentalReferenceFrame> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/isHostedBy> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/MessageParticipant-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/MessageParticipant> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/participantRole> ; sh:class <https://blackcatinformatics.ca/gmeow/MessageParticipantRole> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/participantAddress> ; sh:class <https://blackcatinformatics.ca/gmeow/EmailAddress> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/participantMessage> ; sh:class <https://blackcatinformatics.ca/gmeow/EmailMessage> ] .
+
+<https://blackcatinformatics.ca/gmeow/MeterAssignment-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/MeterAssignment> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/meterCarrier> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assignedMeter> ; sh:class <https://blackcatinformatics.ca/gmeow/MetricStructure> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assignmentSpan> ; sh:class <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan> ] .
+
+<https://blackcatinformatics.ca/gmeow/MetricModulation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/MetricModulation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/modulationToFrame> ; sh:class <https://blackcatinformatics.ca/gmeow/MusicalTimeFrame> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/modulationFromFrame> ; sh:class <https://blackcatinformatics.ca/gmeow/MusicalTimeFrame> ] .
+
+<https://blackcatinformatics.ca/gmeow/Mitigation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Mitigation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationMeasure> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mitigationCounters> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] .
+
+<https://blackcatinformatics.ca/gmeow/MonetaryAmount-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/currency> ; sh:class <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] .
+
+<https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisFrame> ; sh:class <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisResult> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisTarget> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analysisProperty> ; sh:class <https://blackcatinformatics.ca/gmeow/AnalysisProperty> ] .
+
+<https://blackcatinformatics.ca/gmeow/MusicalTimeSpan-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasMusicalTimeFrame> ; sh:class <https://blackcatinformatics.ca/gmeow/MusicalTimeFrame> ] .
+
+<https://blackcatinformatics.ca/gmeow/Myth-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Myth> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasMythTelling> ; sh:class <https://blackcatinformatics.ca/gmeow/CreativeWork> ] .
+
+<https://blackcatinformatics.ca/gmeow/NameUsage-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/NameUsage> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/usageNamed> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/usageAppellation> ; sh:class <https://blackcatinformatics.ca/gmeow/Appellation> ] .
+
+<https://blackcatinformatics.ca/gmeow/NotationSystemUsage-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/NotationSystemUsage> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/notationUsageRole> ; sh:class <https://blackcatinformatics.ca/gmeow/NotationUsageRole> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/notationUsageTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/notationUsageInterval> ; sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/notationUsageNotationSystem> ; sh:class <https://blackcatinformatics.ca/gmeow/NotationSystem> ] .
+
+<https://blackcatinformatics.ca/gmeow/Observation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Observation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:class <http://www.w3.org/2002/07/owl#Thing> ] .
+
+<https://blackcatinformatics.ca/gmeow/Order-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Order> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/orderBuyer> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/orderAmount> ; sh:class <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/orderSeller> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/OrnamentProfile-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/OrnamentProfile> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/ornamentProfileKind> ; sh:class <https://blackcatinformatics.ca/gmeow/OrnamentProfileKind> ] .
+
+<https://blackcatinformatics.ca/gmeow/ParentChildRelationship-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ParentChildRelationship> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/relationshipChild> ; sh:class <https://blackcatinformatics.ca/gmeow/Person> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/relationshipParent> ; sh:class <https://blackcatinformatics.ca/gmeow/Person> ] .
+
+<https://blackcatinformatics.ca/gmeow/Participation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Participation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/participationEvent> ; sh:class <https://blackcatinformatics.ca/gmeow/Event> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/participationParticipant> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/PerformanceDecision-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/PerformanceDecision> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decisionConstraint> ; sh:class <https://blackcatinformatics.ca/gmeow/TraversalConstraint> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decisionPerformance> ; sh:class <https://blackcatinformatics.ca/gmeow/Event> ] .
+
+<https://blackcatinformatics.ca/gmeow/PerformanceParticipation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/PerformanceParticipation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/participationRole> ; sh:class <https://blackcatinformatics.ca/gmeow/ParticipantRole> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/participationEvent> ; sh:class <https://blackcatinformatics.ca/gmeow/Event> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/participationParticipant> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/PitchAnchor-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/PitchAnchor> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/pitchAnchorOf> ; sh:class <https://blackcatinformatics.ca/gmeow/TuningSystem> ] .
+
+<https://blackcatinformatics.ca/gmeow/PitchCollectionMembership-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/PitchCollectionMembership> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipRole> ; sh:class <https://blackcatinformatics.ca/gmeow/CollectionMemberRole> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipPitch> ; sh:class <https://blackcatinformatics.ca/gmeow/PitchValue> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipCollection> ; sh:class <https://blackcatinformatics.ca/gmeow/PitchCollection> ] .
+
+<https://blackcatinformatics.ca/gmeow/PitchSpelling-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/PitchSpelling> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/spelledName> ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/spellingPitch> ; sh:class <https://blackcatinformatics.ca/gmeow/PitchValue> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/spellingSystem> ; sh:class <https://blackcatinformatics.ca/gmeow/PitchSpellingSystem> ] .
+
+<https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/controlPointPitch> ; sh:class <https://blackcatinformatics.ca/gmeow/PitchValue> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/controlPointOfTrajectory> ; sh:class <https://blackcatinformatics.ca/gmeow/PitchTrajectory> ] .
+
+<https://blackcatinformatics.ca/gmeow/Post-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Post> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/postIn> ; sh:class <https://blackcatinformatics.ca/gmeow/Organization> ] .
+
+<https://blackcatinformatics.ca/gmeow/Posting-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Posting> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/postingAmount> ; sh:class <https://blackcatinformatics.ca/gmeow/MonetaryAmount> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/postingAccount> ; sh:class <https://blackcatinformatics.ca/gmeow/LedgerAccount> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/postingDirection> ; sh:class <https://blackcatinformatics.ca/gmeow/PostingDirection> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/postingJournalEntry> ; sh:class <https://blackcatinformatics.ca/gmeow/JournalEntry> ] .
+
+<https://blackcatinformatics.ca/gmeow/Procedure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Procedure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasProcedureStep> ; sh:class <https://blackcatinformatics.ca/gmeow/ProcedureStep> ] .
+
+<https://blackcatinformatics.ca/gmeow/QualityAssessment-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/QualityAssessment> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assessedEntity> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/RegulatoryOverlay-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/RegulatoryOverlay> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/overlayPlace> ; sh:class <https://blackcatinformatics.ca/gmeow/Place> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/overlayAuthority> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/Release-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Release> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/releaseOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Project> ] .
+
+<https://blackcatinformatics.ca/gmeow/Reminder-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Reminder> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/reminderTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/Event> ] .
+
+<https://blackcatinformatics.ca/gmeow/RetrievalEvent-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/RetrievalEvent> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/againstIndex> ; sh:class <https://blackcatinformatics.ca/gmeow/VectorIndex> ] .
+
+<https://blackcatinformatics.ca/gmeow/RightsStatement-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/RightsStatement> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/statementAbout> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/RomanticOrientation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/RomanticOrientation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/romanticOrientationValue> ; sh:class <https://blackcatinformatics.ca/gmeow/RomanticOrientationValue> ] .
+
+<https://blackcatinformatics.ca/gmeow/Rule-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Rule> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/ruleAction> ; sh:class <https://blackcatinformatics.ca/gmeow/RightsAction> ] .
+
+<https://blackcatinformatics.ca/gmeow/SceneGraphEdge-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SceneGraphEdge> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/sceneObject> ; sh:class <https://blackcatinformatics.ca/gmeow/ImageRegion> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/sceneSubject> ; sh:class <https://blackcatinformatics.ca/gmeow/ImageRegion> ] .
+
+<https://blackcatinformatics.ca/gmeow/ScheduleException-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ScheduleException> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/exceptionSchedule> ; sh:class <https://blackcatinformatics.ca/gmeow/EventSchedule> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/exceptionOriginalDate> ; sh:datatype <http://www.w3.org/2001/XMLSchema#dateTime> ] .
+
+<https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/attributionTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/Inscription> ] .
+
+<https://blackcatinformatics.ca/gmeow/SegmentTransformation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SegmentTransformation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/transformationType> ; sh:class <https://blackcatinformatics.ca/gmeow/TransformationType> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/transformationSource> ; sh:class <https://blackcatinformatics.ca/gmeow/MusicalSegment> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/transformationTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/MusicalSegment> ] .
+
+<https://blackcatinformatics.ca/gmeow/SensoryEnvironment-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SensoryEnvironment> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/environmentAtLocation> ; sh:class <https://blackcatinformatics.ca/gmeow/Location> ] .
+
+<https://blackcatinformatics.ca/gmeow/SensoryObservation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SensoryObservation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/sensoryResult> ; sh:class <https://blackcatinformatics.ca/gmeow/SensoryQuantity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/sensoryProperty> ; sh:class <https://blackcatinformatics.ca/gmeow/ObservableProperty> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/sensoryObservationOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/SensoryPerception-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SensoryPerception> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/perceptionEnvironment> ; sh:class <https://blackcatinformatics.ca/gmeow/SensoryEnvironment> ] .
+
+<https://blackcatinformatics.ca/gmeow/SexualOrientation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SexualOrientation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/sexualOrientationValue> ; sh:class <https://blackcatinformatics.ca/gmeow/SexualOrientationValue> ] .
+
+<https://blackcatinformatics.ca/gmeow/SkillProficiency-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SkillProficiency> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/skillProficiencyOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Skill> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/skillProficiencyAgent> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/skillProficiencyLevel> ; sh:class <https://blackcatinformatics.ca/gmeow/ProficiencyLevel> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/skillProficiencyScale> ; sh:class <https://blackcatinformatics.ca/gmeow/ProficiencyScale> ] .
+
+<https://blackcatinformatics.ca/gmeow/SmartContract-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SmartContract> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contractAddress> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+
+<https://blackcatinformatics.ca/gmeow/SpatialMeasurement-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SpatialMeasurement> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/StandpointTenure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/StandpointTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/standpointClaim> ; sh:class <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureStandpoint> ; sh:class <https://blackcatinformatics.ca/gmeow/Standpoint> ] .
+
+<https://blackcatinformatics.ca/gmeow/Stream-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Stream> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/streamOf> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/Tagging-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Tagging> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/taggingTag> ; sh:class <https://blackcatinformatics.ca/gmeow/Tag> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/taggingTagged> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/taggingTagger> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/Teaching-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Teaching> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/learner> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/teacher> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] .
+
+<https://blackcatinformatics.ca/gmeow/Trademark-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Trademark> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/trademarkMark> ; sh:class <https://blackcatinformatics.ca/gmeow/Mark> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/trademarkHolder> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/TransparencyLogEntry-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/logEntryUrl> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/logEntryIndex> ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .
+
+<https://blackcatinformatics.ca/gmeow/TreeEntry-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/TreeEntry> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/treeEntryMode> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/treeEntryName> ; sh:datatype <http://www.w3.org/2000/01/rdf-schema#Literal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/treeEntryObject> ; sh:class <https://blackcatinformatics.ca/gmeow/SourceNode> ] .
+
+<https://blackcatinformatics.ca/gmeow/TrustAssertion-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/TrustAssertion> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/trustee> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/trustor> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/UsageAttestation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/UsageAttestation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/attestedForm> ; sh:class <https://blackcatinformatics.ca/gmeow/LexicalForm> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/attestedInSource> ; sh:class <https://blackcatinformatics.ca/gmeow/CreativeWork> ] .
+
+<https://blackcatinformatics.ca/gmeow/VerificationResult-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/VerificationResult> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasVerificationStatus> ; sh:class <https://blackcatinformatics.ca/gmeow/VerificationStatus> ] .
+
+<https://blackcatinformatics.ca/gmeow/VersionMembership-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/VersionMembership> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/versionSet> ; sh:class <https://blackcatinformatics.ca/gmeow/VersionSet> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/versionMember> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipAuthority> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/DiastolicShape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string> ) ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 1000 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/SystolicShape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string> ) ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 1000 ] .
