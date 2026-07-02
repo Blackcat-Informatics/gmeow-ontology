@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! TPTP SZS status ingestion (#753).
+//! TPTP SZS status ingestion.
 //!
 //! Reads the TPTP result line — `% SZS status <Status> [for <name>]` — and maps the
 //! status token onto a normalized [`ExternalOutcome`] via the shared

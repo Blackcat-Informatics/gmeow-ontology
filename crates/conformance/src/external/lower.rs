@@ -1,18 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Lowering an external problem's declared outcome into the runner verdict shape (#753).
+//! Lowering an external problem's declared outcome into the runner verdict shape.
 //!
-//! [`runner_verdict_json`] is the AC1 deliverable: given an external problem's
-//! declared [`ExternalOutcome`], produce the runner's `verdicts.json` value (the
-//! same world-indexed shape the engine emits). This is "the runner ingests a
-//! manifest / SZS problem and produces a runner verdict".
+//! [`runner_verdict_json`] gives, for an external problem's declared
+//! [`ExternalOutcome`], the runner's `verdicts.json` value (the same world-indexed
+//! shape the engine emits) — "the runner ingests a manifest / SZS problem and
+//! produces a runner verdict".
 //!
-//! Lowering an external *source* into the on-disk case anatomy (`input.nq`) is NOT
-//! done here: for the TPTP/W3C entailment seeds it requires the general FOL-negation
-//! reduction that is explicitly X2/X3 scope (#754–#755). The seed `input.nq` files
-//! are authored by hand with the negated conclusion pre-baked; `runner_verdict_json`
-//! is the pure surface the `ingest-external` binary uses to re-derive the verdict.
+//! Lowering an external *source* into the on-disk case anatomy (`input.nq`) is a
+//! separate concern. For a TPTP FOF/CNF problem it is fully mechanical — the
+//! [`crate::external::tptp`] pipeline parses the body, applies the FOL-negation
+//! reduction, and lowers the EL/DL-expressible fragment to a world-scoped EDB. For
+//! the W3C entailment seeds the negated conclusion is pre-baked in the authored
+//! `input.nq`. [`premise_ds_to_world_nquads`] is the shared world-scoping waist both
+//! paths (and the W3C-manifest ingest) funnel their default-graph triples through.
 
 use std::collections::BTreeMap;
 

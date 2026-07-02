@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The external-corpus soundness gate (#753, X1 keystone of epic #752).
+//! The external-corpus soundness gate.
 //!
-//! This is the *external ground truth* check that distinguishes #753 from the
-//! endogenous goldens (#641): for every vendored case under
+//! This is the *external ground truth* check that distinguishes external corpora
+//! from the endogenous goldens: for every vendored case under
 //! `conformance/logic/cases/external/<corpus>/<case>/`, the verdict the native
 //! engine produced (the committed `expected/verdicts.json`, which the conformance
 //! harness independently re-asserts against the live engine on every run) MUST equal
