@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# foundation-lowering native case. This default-graph logic: stereotype ABox
+# is GENERATED from source/model.ttl by `ingest-external --vendor-ontouml`
+# (OntoUML metamodel → logic: stereotype lowering); input.nq world-scopes the
+# same facts for the native foundation evaluator.
+<https://gmeow.example/ontouml-mini/mix-iden/Employee> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SubKind> .
+<https://gmeow.example/ontouml-mini/mix-iden/Employee> <https://blackcatinformatics.ca/logic/subClassOf> <https://gmeow.example/ontouml-mini/mix-iden/Organization> .
+<https://gmeow.example/ontouml-mini/mix-iden/Employee> <https://blackcatinformatics.ca/logic/subClassOf> <https://gmeow.example/ontouml-mini/mix-iden/Person> .
+<https://gmeow.example/ontouml-mini/mix-iden/Organization> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> .
+<https://gmeow.example/ontouml-mini/mix-iden/Person> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> .
