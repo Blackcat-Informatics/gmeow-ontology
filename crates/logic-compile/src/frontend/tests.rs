@@ -918,6 +918,89 @@ fn derive_class_target_stays_sh_class() {
 }
 
 #[test]
+fn derive_owl_thing_target_lowers_to_node_kind_not_sh_class() {
+    // A someValuesFrom owl:Thing is an intentionally-open range ("any individual"). Under
+    // spec-conformant SHACL, sh:class owl:Thing would demand a never-materialized rdf:type
+    // owl:Thing edge and flag every value; the faithful projection is sh:nodeKind
+    // sh:BlankNodeOrIRI (any resource, not a literal).
+    let ds = shape_dataset(
+        "g:Observation a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:observedFeature ; owl:someValuesFrom owl:Thing ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::BlankNodeOrIri)
+        )),
+        "an owl:Thing target must emit sh:nodeKind sh:BlankNodeOrIRI: {comps:?}"
+    );
+    assert!(
+        !comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(_))),
+        "an owl:Thing target must never emit sh:class: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_rdfs_literal_target_lowers_to_node_kind_not_sh_datatype() {
+    // A someValuesFrom rdfs:Literal is an intentionally-open literal range ("any literal").
+    // Under spec-conformant SHACL, sh:datatype rdfs:Literal never matches a concrete literal
+    // (rdfs:Literal is the class of all literals, not a lexical datatype), so it would flag
+    // every value; the faithful projection is sh:nodeKind sh:Literal.
+    let ds = shape_dataset(
+        "g:Artifact a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:artifactMediaType ; owl:someValuesFrom rdfs:Literal ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::Literal)
+        )),
+        "an rdfs:Literal target must emit sh:nodeKind sh:Literal: {comps:?}"
+    );
+    assert!(
+        !comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Datatype(_))),
+        "an rdfs:Literal target must never emit sh:datatype: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_owl_thing_target_lowers_to_node_kind_even_when_classified_as_datatype() {
+    // Robustness guard for the universal-top projection. `is_datatype` treats anything typed
+    // `a rdfs:Datatype` as a datatype range, so a quirk axiom `owl:Thing a rdfs:Datatype`
+    // classifies the range with the datatype flag set. The projection must still emit the
+    // faithful open node-kind (sh:BlankNodeOrIRI) rather than falling through to a vacuous
+    // `sh:datatype owl:Thing` — i.e. the special-case guard is decoupled from the flag.
+    let ds = shape_dataset(
+        "owl:Thing a rdfs:Datatype .\n\
+         g:Observation a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:observedFeature ; owl:someValuesFrom owl:Thing ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::BlankNodeOrIri)
+        )),
+        "an owl:Thing target must emit sh:nodeKind sh:BlankNodeOrIRI even when flagged a datatype: {comps:?}"
+    );
+    assert!(
+        !comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Datatype(_))),
+        "an owl:Thing target must never emit sh:datatype: {comps:?}"
+    );
+}
+
+#[test]
 fn derive_owl_cardinality_lifts_with_owl_provenance() {
     // Unqualified owl:min/maxCardinality lower to sh:minCount/sh:maxCount tagged as
     // OwlRestriction provenance — the open-world axiom read closed-world (ValidationOnly).

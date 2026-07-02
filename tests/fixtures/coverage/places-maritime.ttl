@@ -15,8 +15,12 @@ ex:standpoint-state-a  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandp
 ex:standpoint-state-b  a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
 
 # --- Agents ------------------------------------------------------------------ #
-ex:stateA        a gmeow:Organization ; rdfs:label "State A Foreign Ministry"@en .
-ex:stateB        a gmeow:Organization ; rdfs:label "State B Foreign Ministry"@en .
+# Multi-typed gmeow:Agent: this fixture is validated standalone (no ontology
+# import), and the generated RegulatoryOverlay/JurisdictionTenure range shapes
+# require gmeow:overlayAuthority / gmeow:jurisdictionPolity to resolve to a
+# gmeow:Agent in the SAME data graph (Principle 11).
+ex:stateA        a gmeow:Organization , gmeow:Agent ; rdfs:label "State A Foreign Ministry"@en .
+ex:stateB        a gmeow:Organization , gmeow:Agent ; rdfs:label "State B Foreign Ministry"@en .
 
 # --- Places ------------------------------------------------------------------ #
 ex:disputedSeaArea a gmeow:Place ;

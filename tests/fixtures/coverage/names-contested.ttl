@@ -13,15 +13,22 @@ ex:standpoint-community a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStand
 
 # A person with a self-asserted chosen name and a state-registered legal name.
 # Both are co-equal; neither is primary.
-ex:person a gmeow:Person ;
+# Multi-typed: this fixture is validated standalone (no ontology import), and
+# the generated NameUsage range shape requires gmeow:usageNamed/usageAppellation
+# to resolve to a gmeow:Entity / gmeow:Appellation in the SAME data graph
+# (Principle 11).
+ex:person a gmeow:Person ,
+        gmeow:Entity ;
     gmeow:hasName ex:chosenName , ex:legalName .
 
-ex:chosenName a gmeow:PersonName ;
+ex:chosenName a gmeow:PersonName ,
+        gmeow:Appellation ;
     gmeow:fullName "River"@x-gmeow-en ;
     gmeow:namePurpose gmeow:namePurposeChosen ;
     gmeow:displayable true .
 
-ex:legalName a gmeow:PersonName ;
+ex:legalName a gmeow:PersonName ,
+        gmeow:Appellation ;
     gmeow:fullName "Alex Smith"@x-gmeow-en ;
     gmeow:namePurpose gmeow:namePurposeLegal ;
     gmeow:displayable true .

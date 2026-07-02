@@ -13,10 +13,20 @@ ex:standpoint-hr-a a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint
 ex:standpoint-hr-b a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
 
 # A contested employment: two rival HR departments claim the same person as an employee.
-ex:worker a gmeow:Person .
+# Multi-typed gmeow:Agent: this fixture is validated standalone (no ontology
+# import), and the generated Employment range shape requires
+# gmeow:membershipMember to resolve to a gmeow:Agent in the SAME data graph
+# (Principle 11).
+ex:worker a gmeow:Person ,
+        gmeow:Agent .
 
 ex:orgA a gmeow:Organization .
 ex:orgB a gmeow:Organization .
+
+# EmploymentType vocabulary values, restated locally for the same reason.
+gmeow:employmentTypeFullTime a gmeow:EmploymentType .
+gmeow:employmentTypeContract a gmeow:EmploymentType .
+gmeow:employmentTypeIntern a gmeow:EmploymentType .
 
 # Flat memberOf claims (the 80% case) coexist.
 ex:worker gmeow:memberOf ex:orgA , ex:orgB .

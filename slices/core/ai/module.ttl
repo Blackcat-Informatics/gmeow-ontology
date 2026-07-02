@@ -35,7 +35,7 @@ gmeow:Contradiction
         [
             a owl:Restriction ;
             owl:onProperty gmeow:contradictsClaim ;
-            owl:someValuesFrom gmeow:Entity ;
+            owl:someValuesFrom owl:Thing ;
         ] ;
     skos:definition "A reified conflict between two or more claim nodes — surfaced, attributed (gmeow:detectedBy), kind-classified (gmeow:contradictionKind), and NEVER resolved by rank. Conflicting claims coexist accordingTo their standpoints (P9); a standpoint may mark one refuted via the EXISTING gmeow:claimModality, but no winner machinery exists anywhere in the graph. Detection is itself contestable: two detectors disagreeing are two Contradiction individuals."@x-gmeow-english ;
     skos:example "ex:conflict1 a gmeow:Contradiction ; gmeow:contradictsClaim ex:claimA, ex:claimB ; gmeow:detectedBy ex:nliJudge ; gmeow:contradictionKind gmeow:contradictionKindFactual ."@x-gmeow-english ;

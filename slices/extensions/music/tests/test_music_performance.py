@@ -286,6 +286,10 @@ def test_degree_of_freedom_valid_passes_shacl() -> None:
     g.add((dof, GMEOW.dofWork, EX.work))
     g.add((dof, GMEOW.dofParameter, GMEOW.musicalParameterDuration))
     g.add((dof, GMEOW.dofStatus, GMEOW.determinationConstrained))
+    # Standalone fixture (no ontology import): type the referenced value
+    # individuals in-graph so the generated sh:class shapes resolve (P11).
+    g.add((GMEOW.musicalParameterDuration, RDF.type, GMEOW.MusicalParameter))
+    g.add((GMEOW.determinationConstrained, RDF.type, GMEOW.DeterminationStatus))
     g.add(
         (
             dof,
@@ -369,6 +373,20 @@ def test_performance_decision_valid_passes_shacl() -> None:
     g.add((pd, GMEOW.decisionPerformance, EX.performance))
     g.add((pd, GMEOW.decisionConstraint, EX.constraint))
     g.add((pd, GMEOW.decisionSequence, Literal("A → B → C")))
+    # Standalone fixture (no ontology import): type + complete the referenced
+    # targets in-graph. The generated sh:class range shapes require the types;
+    # TraversalConstraintShape then requires the constraint to apply to an entity
+    # and carry rule text. Honest ABox completion (P11).
+    g.add((EX.performance, RDF.type, GMEOW.Event))
+    g.add((EX.constraint, RDF.type, GMEOW.TraversalConstraint))
+    g.add((EX.constraint, GMEOW.constraintAppliesTo, EX.performance))
+    g.add(
+        (
+            EX.constraint,
+            GMEOW.constraintText,
+            Literal("Perform section A before section B.", lang="x-gmeow-english"),
+        )
+    )
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 
@@ -395,6 +413,8 @@ def test_generative_process_valid_passes_shacl() -> None:
     proc = EX.processValid
     g.add((proc, RDF.type, GMEOW.GenerativeProcess))
     g.add((proc, GMEOW.processKind, GMEOW.generativeProcessKindPhasing))
+    # Standalone fixture: type the referenced value individual in-graph (P11).
+    g.add((GMEOW.generativeProcessKindPhasing, RDF.type, GMEOW.GenerativeProcessKind))
     g.add(
         (
             proc,
@@ -430,6 +450,8 @@ def test_ornament_profile_valid_passes_shacl() -> None:
     g.add((prof, RDF.type, GMEOW.OrnamentProfile))
     g.add((prof, GMEOW.ornamentProfileKind, GMEOW.ornamentProfileKindGamaka))
     g.add((prof, GMEOW.appliesToVoice, EX.voice))
+    # Standalone fixture: type the referenced value individual in-graph (P11).
+    g.add((GMEOW.ornamentProfileKindGamaka, RDF.type, GMEOW.OrnamentProfileKind))
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 

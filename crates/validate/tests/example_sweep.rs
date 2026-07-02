@@ -49,7 +49,13 @@ const NON_CONFORMANT: &[&str] = &[
     // is meant to be read alongside the full ontology; standalone it is
     // illustrative, not valid instance data.
     "slices/core/ai/examples/grounded-claim.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/attestation/examples/release-evidence-bundle.ttl", // gmeow:attestedSubject/attester → Entity/Agent not typed standalone (CreativeWork/SoftwareAgent); gmeow:hasVerificationStatus → shared VerificationStatus individual untyped standalone
+    "slices/core/attestation/examples/software-release.ttl", // gmeow:attestedSubject/attester → Entity/Agent not typed standalone; gmeow:hasVerificationStatus → shared VerificationStatus individual untyped standalone
     "slices/core/calendar/examples/recurring-meeting.ttl", // gmeow:invitationStatus → shared status individual untyped standalone
+    "slices/core/citations/examples/citation-act.ttl", // gmeow:citationIntent → shared CitationIntent individual untyped standalone; gmeow:citingEntity → Entity not typed standalone
+    "slices/core/cognition/examples/attention-interest-memory.ttl", // gmeow:memoryOf → Agent not typed standalone
+    "slices/core/cognition/examples/dunning-kruger.ttl", // gmeow:knowledgeProficiencyAgent/Subject → Agent/Entity not typed standalone; gmeow:knowledgeProficiencyLevel/Scale → shared KnowledgeLevel/ProficiencyScale individuals untyped standalone
+    "slices/core/cognition/examples/knowledge-proficiency.ttl", // gmeow:knowledgeProficiencyAgent/Subject → Agent/Entity not typed standalone; gmeow:knowledgeProficiencyLevel/Scale → shared KnowledgeLevel/ProficiencyScale individuals untyped standalone
     "slices/core/deception/examples/blame-deflection.ttl", // gmeow:doxasticClaim → StandpointClaim not typed standalone
     "slices/core/diagnostics/examples/shacl-violation-finding.ttl", // gmeow:findingSeverity → shared DiagnosticSeverity untyped standalone
     "slices/core/epistemics/examples/belief-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
@@ -57,6 +63,10 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/epistemics/examples/flagship-epistemic-ledger.ttl", // gmeow:epistemicAgent → Agent not typed standalone
     "slices/core/epistemics/examples/justification-and-defeat.ttl", // gmeow:hasDefeatStatus / supportUnderStandard → shared status/standard individuals untyped standalone
     "slices/core/epistemics/examples/locally-factive-knowledge.ttl", // gmeow:underStandard → gmeow:standardScientific (shared EpistemicStandard) + gmeow:knowerAgent → Agent untyped standalone
+    "slices/core/events/examples/wedding.ttl", // gmeow:participationParticipant → Entity not typed standalone (the principals/officiant are gmeow:Person, standalone lacks the subClassOf→Entity chain)
+    "slices/core/evidence/examples/notability-assessment.ttl", // gmeow:citationIntent → shared CitationIntent individual untyped standalone; gmeow:citingEntity → Entity not typed standalone
+    "slices/core/expertise/examples/skill-proficiency.ttl", // gmeow:attestedSubject/attester/skillProficiencyAgent → Entity/Agent not typed standalone
+    "slices/core/gender/examples/self-asserted-facets.ttl", // gmeow:expressionValue/genderValue → shared GenderExpressionStyle/Gender individuals untyped standalone
     "slices/core/gts/examples/dist-package.ttl", // gmeow:gtsProfile → shared profile individual untyped standalone
     "slices/core/imagination/examples/reality-monitoring.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inference/examples/abduction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
@@ -70,18 +80,34 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
     "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/metacognition/examples/reflection-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/names/examples/person-names.ttl", // gmeow:usageAppellation/usageNamed → Appellation/Entity not typed standalone
     "slices/core/observations/examples/blood-pressure.ttl", // gmeow:observationMethod (methodInstrumentalReading) + the reference frame's shared component individuals (determinacyCrisp, frameKindScalar, frameRealmMeasurement, axisScalar) untyped standalone
     "slices/core/observations/examples/temperature-reading.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/pipeline/examples/minimal-pipeline.ttl", // gmeow:hasCapability → shared gmeow:StageCapability untyped standalone
+    "slices/core/places/examples/located-place.ttl", // gmeow:vantage → Agent not typed standalone (the survey team is gmeow:Organization)
     "slices/core/profiles/examples/named-profile-membership.ttl", // gmeow:profileAppliesTo → owl:Class target not typed standalone
+    "slices/core/quality/examples/dataset-completeness.ttl", // gmeow:assessedEntity → Entity not typed standalone (the dataset is gmeow:Dataset)
+    "slices/core/rights/examples/licensed-dataset.ttl", // gmeow:licensedWork/copyrightWork/statementAbout → InformationObject/Entity not typed standalone; gmeow:licensor/copyrightHolder → Agent not typed standalone
+    "slices/core/sexuality/examples/split-attraction.ttl", // gmeow:romanticOrientationValue/sexualOrientationValue → shared RomanticOrientationValue/SexualOrientationValue individuals untyped standalone
     "slices/core/standpoint/examples/contested-authorship.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/tags/examples/folksonomy.ttl", // gmeow:taggingTagged/taggingTagger → Entity/Agent not typed standalone
+    "slices/core/trust/examples/web-of-trust.ttl", // gmeow:certifier/certifiedIdentity/trustor/trustee → Agent not typed standalone
+    "slices/core/versions/examples/release-channels.ttl", // gmeow:membershipAuthority/versionMember → Agent/Entity not typed standalone
+    "slices/extensions/accessibility/examples/location-access.ttl", // gmeow:assertionFacet/assertionPolarity → shared AccessibilityFacet/AccessibilityPolarity individuals untyped standalone; gmeow:assertionSubject → Entity not typed standalone
     "slices/extensions/aggregation/examples/spatial-bins.ttl", // gmeow:aggregationFunction → shared function individual untyped standalone
+    "slices/extensions/archaeological-evidence/examples/inscription-reading.ttl", // gmeow:vantage → Entity not typed standalone (the epigraphers are gmeow:Person)
     "slices/extensions/dreaming/examples/ai-offline-replay.ttl", // gmeow:gtsProfile → shared profile individual untyped standalone
+    "slices/extensions/dreaming/examples/lucid-dream.ttl", // gmeow:vantage → Entity not typed standalone (the dreamer is gmeow:Person)
+    "slices/extensions/employment/examples/job.ttl", // gmeow:employmentType → shared EmploymentType individual untyped standalone; gmeow:membershipMember → Agent not typed standalone
     "slices/extensions/finance/examples/double-entry.ttl", // gmeow:ledgerAccountHolder → Agent not typed standalone
+    "slices/extensions/graphrag/examples/lillith-dataset.ttl", // gmeow:licensedWork → InformationObject not typed standalone; gmeow:licensor → Agent not typed standalone
+    "slices/extensions/graphrag/examples/lillith-pipeline.ttl", // gmeow:chunkOf/embeddingOf → InformationObject not typed standalone; gmeow:distanceMetric → shared DistanceMetric individual untyped standalone
     "slices/extensions/images/examples/photo-metadata.ttl", // gmeow:selectorType → shared selector-type individual untyped standalone
+    "slices/extensions/lexicon/examples/word-etymology.ttl", // gmeow:derivationKind → shared DerivationKind individual untyped standalone; gmeow:derivationTarget/etymonSource → InformationObject not typed standalone
     "slices/extensions/music/examples/score-as-lossy-projection.ttl", // gmeow:realizes → Work not typed standalone
     "slices/extensions/notes/examples/annotations-and-notes.ttl", // gmeow:commentParent → Entity not typed standalone
     "slices/extensions/sensory/examples/sensor-reading.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/extensions/sensory-environment/examples/measured-vs-perceived.ttl", // gmeow:environmentAtLocation → Location not typed standalone (the room is gmeow:Place)
     // Bucket B — `sh:minCount` (MinCountConstraintComponent): the example omits a
     // P11-required reference / temporal frame on a value or interval. The frame
     // lives in the full ontology context; standalone the fixture is illustrative.
