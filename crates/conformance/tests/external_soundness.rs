@@ -128,6 +128,69 @@ fn szs_provenance_failure(case_dir: &Path) -> Option<String> {
     }
 }
 
+/// The `logic:Discipline` local names a case's committed `expected/materialized.nq`
+/// records as fired (`<s> <logic:violation> <logic:{Discipline}> <g> .`). The lossy
+/// projection of the rich foundation output down to the discipline set is applied
+/// only here, at the gate — never at ingest.
+fn fired_disciplines_in_golden(case_dir: &Path) -> BTreeSet<String> {
+    const VIOLATION: &str = "<https://blackcatinformatics.ca/logic/violation>";
+    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    let path = case_dir.join("expected").join("materialized.nq");
+    let text =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let mut fired = BTreeSet::new();
+    for line in text.lines() {
+        let mut toks = line.split_whitespace();
+        let (_s, p, o) = (toks.next(), toks.next(), toks.next());
+        if p != Some(VIOLATION) {
+            continue;
+        }
+        if let Some(obj) = o {
+            let iri = obj.trim_start_matches('<').trim_end_matches('>');
+            if let Some(local) = iri.strip_prefix(LOGIC_NS) {
+                fired.insert(local.to_owned());
+            }
+        }
+    }
+    fired
+}
+
+/// Cross-check one OntoUML foundation-discipline case (`source/model.ttl`): the fired
+/// `logic:Discipline` set in the committed golden MUST contain the model's documented
+/// anti-pattern (agreement), and a clean-control case (no `documented_antipattern`) MUST
+/// fire NOTHING — a fired discipline there is a soundness-breaking false positive. This
+/// is the discipline analogue of the SZS provenance check. Returns a failure string, or
+/// `None` when the case is sound / not an OntoUML case.
+fn ontouml_soundness_failure(case_dir: &Path) -> Option<String> {
+    if !case_dir.join("source").join("model.ttl").is_file() {
+        return None;
+    }
+    let profile_path = case_dir.join("profile.json");
+    let profile_text = std::fs::read_to_string(&profile_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", profile_path.display()));
+    let profile_value: serde_json::Value = serde_json::from_str(&profile_text)
+        .unwrap_or_else(|e| panic!("parse {}: {e}", profile_path.display()));
+    let case_id = case_dir.file_name().and_then(|s| s.to_str()).unwrap_or("");
+    let profile = parse_profile(case_id, &profile_value)
+        .unwrap_or_else(|e| panic!("{}: profile parse: {e}", profile_path.display()));
+
+    let fired = fired_disciplines_in_golden(case_dir);
+    match profile.documented_antipattern.as_deref() {
+        Some(label) if !fired.contains(label) => Some(format!(
+            "{}: documented anti-pattern {label:?} is NOT reproduced by the native \
+             disciplines (fired: {fired:?}) — a divergence belongs in the sibling \
+             -divergence corpus, never Lane-A",
+            case_dir.display()
+        )),
+        None if !fired.is_empty() => Some(format!(
+            "{}: clean-control case fired disciplines {fired:?} — a soundness-breaking \
+             false positive; a Lane-A clean control must fire nothing",
+            case_dir.display()
+        )),
+        _ => None,
+    }
+}
+
 /// The set of `status` strings in a case's committed `expected/verdicts.json`.
 fn committed_statuses(case_dir: &Path) -> BTreeSet<String> {
     let path = case_dir.join("expected").join("verdicts.json");
@@ -187,6 +250,19 @@ fn external_corpus_verdicts_match_their_third_party_source() {
             if !case_dir.join("profile.json").is_file() {
                 continue;
             }
+
+            // OntoUML foundation-discipline cases (source/model.ttl) carry no
+            // consistency verdict to compare; their soundness check is that the fired
+            // discipline set contains the documented anti-pattern (and clean controls
+            // fire nothing). Route them to the dedicated cross-check.
+            if case_dir.join("source").join("model.ttl").is_file() {
+                checked += 1;
+                if let Some(f) = ontouml_soundness_failure(&case_dir) {
+                    failures.push(f);
+                }
+                continue;
+            }
+
             let declared = declared_outcome(&case_dir).verdict_status().as_str();
             let committed = committed_statuses(&case_dir);
             checked += 1;
@@ -211,10 +287,10 @@ fn external_corpus_verdicts_match_their_third_party_source() {
     }
 
     assert!(
-        checked >= 30,
-        "expected ≥30 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19, \
-         tptp-mini ×6; the w3c-owl2-el-divergence and tptp-mini-divergence lanes are \
-         excluded above), found {checked}"
+        checked >= 38,
+        "expected ≥38 external cases (szs-mini ×3, w3c-mini ×2, w3c-owl2-el ×19, \
+         tptp-mini ×6, ontouml-mini ×8; the *-divergence lanes are excluded above), \
+         found {checked}"
     );
     assert!(
         failures.is_empty(),

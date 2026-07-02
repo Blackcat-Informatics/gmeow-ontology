@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# OntoUML metamodel model — the FreeRole anti-pattern (documented in the OntoUML
+# anti-pattern catalogue at https://ontouml.readthedocs.io/en/latest/anti-patterns/).
+#
+# An anti-rigid sortal (a role) must specialize a rigid sortal (kind/subkind) to
+# inherit a principle of identity. ex:Customer is a role with NO rigid ancestor, so
+# it violates the discipline (and, tracing to zero Kinds, additionally trips the
+# identity discipline — the faithful full lint set). The documented verdict is
+# FreeRole; the native disciplines must reproduce it.
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini/free-role/> .
+
+ex:Customer a ontouml:Class ; ontouml:stereotype ontouml:role .

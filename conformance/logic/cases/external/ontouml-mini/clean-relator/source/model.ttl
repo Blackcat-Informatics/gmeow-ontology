@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# OntoUML metamodel model — a CLEAN control (no documented anti-pattern).
+#
+# ex:Marriage is a relator that mediates TWO distinct entities (ex:Spouse and
+# ex:Witness), so it satisfies relator-completeness. Both mediated roles specialize
+# the kind ex:Person, so they are well-founded. No structural discipline is
+# violated: the native disciplines must fire NOTHING (a false positive here is a
+# soundness breach the Lane-A vendor gate rejects).
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini/clean-relator/> .
+
+ex:Person   a ontouml:Class ; ontouml:stereotype ontouml:kind .
+ex:Spouse   a ontouml:Class ; ontouml:stereotype ontouml:role .
+ex:Witness  a ontouml:Class ; ontouml:stereotype ontouml:role .
+ex:Marriage a ontouml:Class ; ontouml:stereotype ontouml:relator .
+
+ex:g1 a ontouml:Generalization ;
+    ontouml:general  ex:Person ;
+    ontouml:specific ex:Spouse .
+ex:g2 a ontouml:Generalization ;
+    ontouml:general  ex:Person ;
+    ontouml:specific ex:Witness .
+
+ex:med a ontouml:Relation ;
+    ontouml:stereotype  ontouml:mediation ;
+    ontouml:relatorEnd  ex:Marriage ;
+    ontouml:mediatedEnd ex:Spouse ,
+                        ex:Witness .
