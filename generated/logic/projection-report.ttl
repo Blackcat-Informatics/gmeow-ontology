@@ -7888,6 +7888,11 @@
     a logic:ProjectionTarget ;
     rdfs:label "shacl-core" ;
     gmeow:lossyDrop "a shape surface validates but does not entail (ValidationOnly)" ,
+        "actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*" ,
+        "actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1" ,
+        "actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1" ,
+        "actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1" ,
+        "actual: terminology binding on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding to SNOMED-CT (4 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer" ,
         "an intentionally-open existential range (owl:someValuesFrom owl:Thing / rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / sh:Literal): the existential's at-least-one force and the vacuous universal-top class membership are dropped, and the open range is carried in the canonical logic: layer" ,
         "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer" ,
         "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape" ;
@@ -8105,6 +8110,11 @@
         "actual: sh:class https://blackcatinformatics.ca/gmeow/VerificationStatus on https://blackcatinformatics.ca/gmeow/hasVerificationStatus has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/VersionSet on https://blackcatinformatics.ca/gmeow/versionSet has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
         "actual: sh:class https://blackcatinformatics.ca/gmeow/WalletScheme on https://blackcatinformatics.ca/gmeow/walletScheme has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer" ,
+        "actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*" ,
+        "actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1" ,
+        "actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1" ,
+        "actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1" ,
+        "actual: terminology binding on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding to SNOMED-CT (4 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer" ,
         "everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)" ;
     logic:complexityClass "closed-world shape validation (ShEx, strictly narrower than SHACL Core)" ;
     logic:preservationKind logic:ValidationOnly .

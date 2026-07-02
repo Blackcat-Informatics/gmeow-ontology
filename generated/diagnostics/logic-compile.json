@@ -13765,6 +13765,72 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-core drops: actual: terminology binding on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding to SNOMED-CT (4 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shacl-core drops: an intentionally-open existential range (owl:someValuesFrom owl:Thing / rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / sh:Literal): the existential's at-least-one force and the vacuous universal-top class membership are dropped, and the open range is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -16230,6 +16296,72 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/WalletScheme on https://blackcatinformatics.ca/gmeow/walletScheme has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/core/logic/module.ttl"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: terminology binding on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding to SNOMED-CT (4 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {

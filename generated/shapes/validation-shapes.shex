@@ -736,14 +736,129 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/membershipAuthority> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality-2> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality-2Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0005> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality-3> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality-3Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0005> . ? ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinalityShape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0005> . + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/DiastolicShape> {
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ["mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string>] ;
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 1000 ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality-2> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality-2Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality-3> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality-3Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> . ? ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinalityShape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-valueSet> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-valueSetShape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/definingCode> [<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0010> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0011> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0012> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0013>] ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/SystolicShape> {
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ["mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string>] ;
   <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXEXCLUSIVE 1000 ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-2> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-2Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/definingCode> [<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/openehr/433>] ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-3> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-3Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-4> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-4Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-5> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-5Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0001-2> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0001-2Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0001> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0001> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0001Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0001> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0002> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0002Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /.*/ ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0003> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0003Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0003> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0006> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0006Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0006> . ? ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0007> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0007Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0007> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0011> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0011Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0011> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1025> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1025Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /openEHR-EHR-CLUSTER\.device(-[a-zA-Z0-9_]+)*\.v1/ ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1030> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1030Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /openEHR-EHR-CLUSTER\.level_of_exertion(-[a-zA-Z0-9_]+)*\.v1/ ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1057> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1057Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /openEHR-EHR-CLUSTER\.anatomical_location(-[a-zA-Z0-9_]+)*\.v1/ ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1058> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1058Shape> {
+  <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> . /.*/ ;
 }

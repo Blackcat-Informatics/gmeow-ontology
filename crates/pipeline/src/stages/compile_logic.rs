@@ -36,7 +36,7 @@ use std::sync::Arc;
 use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::LogicProgram;
-use gmeow_logic_compile::openehr_opt::read_opt_quantity_constraint;
+use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;
 use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
     affine_triangle_worked_example, project_correspondence, CorrespondenceProgram,
@@ -210,29 +210,29 @@ impl Default for CompileLogicStage {
     }
 }
 
-/// Lift the vendored openEHR OPT C_DV_QUANTITY constraints (systolic at0004, diastolic
-/// at0005) to logic:ValidationShapes. Hard-fails on any read/lift error (no optional path).
+/// Lift EVERY constraint the vendored openEHR OPT walker recognizes — not just the curated
+/// blood-pressure quantity pair — to `logic:ValidationShape`s. `naming` pins the two production
+/// data-value constraints (systolic at0004, diastolic at0005) to their established shape/target
+/// identity; every other recognized constraint is named from its own enclosing at-code (see
+/// [`gmeow_logic_compile::openehr_opt::read_all_opt_constraints`]). Hard-fails on any read/lift
+/// error (no optional path).
 fn lift_opt_constraints(
     opt_xml: &str,
 ) -> Result<Vec<gmeow_logic_compile::ir::ValidationShapeIr>, PipelineError> {
     const BP: &str = "https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/";
-    let mut shapes = Vec::new();
-    for (node, local) in [("at0004", "Systolic"), ("at0005", "Diastolic")] {
-        let constraint = read_opt_quantity_constraint(
-            opt_xml,
-            node,
-            &format!("{BP}{local}Shape"),
-            &format!("{BP}{local}"),
-            &format!("{BP}magnitude"),
-            &format!("{BP}units"),
-        )
-        .map_err(|e| stage_err(format!("OPT read {node}: {e}")))?;
-        shapes.push(
-            lift_opt_to_validation_shape(&constraint)
-                .map_err(|e| stage_err(format!("OPT lift {node}: {e}")))?,
-        );
-    }
-    Ok(shapes)
+    let naming = BTreeMap::from([
+        ("at0004".to_string(), "Systolic".to_string()),
+        ("at0005".to_string(), "Diastolic".to_string()),
+    ]);
+    let constraints = read_all_opt_constraints(opt_xml, BP, &naming)
+        .map_err(|e| stage_err(format!("OPT walk: {e}")))?;
+    constraints
+        .iter()
+        .map(|constraint| {
+            lift_opt_to_validation_shape(constraint)
+                .map_err(|e| stage_err(format!("OPT lift {}: {e}", constraint.shape_iri)))
+        })
+        .collect()
 }
 
 impl Stage for CompileLogicStage {
@@ -243,7 +243,7 @@ impl Stage for CompileLogicStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "compile-logic.v3"
+        "compile-logic.v4"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The compiler parses the logic: source and the vendored OPT, and derives validation
