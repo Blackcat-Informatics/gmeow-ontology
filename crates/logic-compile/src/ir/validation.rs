@@ -20,6 +20,22 @@
 
 use super::{opt_axis_key, NodeKind, SEP};
 
+/// Length-prefix a free-form fragment so field boundaries can never collide when fragments are
+/// concatenated into a content key: `{predicate:"a=b", value:"c"}` and
+/// `{predicate:"a", value:"b=c"}` MUST fold to distinct keys, not the same `a=b=c`.
+fn key_field(s: &str) -> String {
+    format!("{}:{s}", s.len())
+}
+
+/// Concatenate already-formatted fragments unambiguously — a count prefix plus every fragment
+/// length-prefixed — so neither the element count nor any element boundary can be forged by a
+/// value that happens to contain the delimiter.
+fn key_list<I: IntoIterator<Item = String>>(items: I) -> String {
+    let items: Vec<String> = items.into_iter().collect();
+    let body: String = items.iter().map(|s| key_field(s)).collect();
+    format!("{}[{body}]", items.len())
+}
+
 /// The focus-node selector of a [`ValidationShapeIr`].
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ShapeTarget {
@@ -40,9 +56,9 @@ impl ShapeTarget {
     /// `ValueKeyed` never collide).
     fn content_key(&self) -> String {
         match self {
-            ShapeTarget::Class(c) => format!("class={c}"),
+            ShapeTarget::Class(c) => format!("class={}", key_field(c)),
             ShapeTarget::ValueKeyed { predicate, value } => {
-                format!("valuekeyed={predicate}={value}")
+                format!("valuekeyed={}{}", key_field(predicate), key_field(value))
             }
         }
     }
@@ -99,15 +115,16 @@ impl ShapeValue {
     /// A deterministic content-key fragment (variant-tagged).
     fn content_key(&self) -> String {
         match self {
-            ShapeValue::Iri(i) => format!("iri:{i}"),
+            ShapeValue::Iri(i) => format!("iri={}", key_field(i)),
             ShapeValue::Literal {
                 lexical,
                 datatype,
                 lang,
             } => format!(
-                "lit:{lexical}^^{}@{}",
-                datatype.as_deref().unwrap_or(""),
-                lang.as_deref().unwrap_or("")
+                "lit={}dt={}lang={}",
+                key_field(lexical),
+                key_field(datatype.as_deref().unwrap_or("")),
+                key_field(lang.as_deref().unwrap_or("")),
             ),
         }
     }
@@ -211,8 +228,39 @@ impl ConstraintComponent {
         )
     }
 
+    /// Canonicalize the component's inner collections — sort the `In` value-set members, the
+    /// `LanguageIn` tags, and the `TerminologyBinding` codes — so supply order never affects
+    /// identity, and reject an `In` literal that illegally carries BOTH a datatype and a
+    /// language tag (the [`ShapeValue::Literal`] invariant is datatype XOR lang). Called at
+    /// construction so the stored form — not just the key — is canonical.
+    fn normalize(&mut self) -> Result<(), String> {
+        match self {
+            ConstraintComponent::In(vs) => {
+                for v in vs.iter() {
+                    if let ShapeValue::Literal {
+                        datatype: Some(_),
+                        lang: Some(_),
+                        ..
+                    } = v
+                    {
+                        return Err("ConstraintComponent::In: a value-set literal may carry a \
+                                    datatype XOR a language tag, never both"
+                            .to_owned());
+                    }
+                }
+                vs.sort_by_cached_key(ShapeValue::content_key);
+            }
+            ConstraintComponent::LanguageIn(langs) => langs.sort(),
+            ConstraintComponent::TerminologyBinding { codes, .. } => codes.sort(),
+            _ => {}
+        }
+        Ok(())
+    }
+
     /// A deterministic, variant-tagged content-key fragment. Numeric bounds route through
-    /// [`super::opt_axis_key`] so `-0.0` and `0.0` fold identically (signed-zero determinism).
+    /// [`super::opt_axis_key`] so `-0.0` and `0.0` fold identically (signed-zero determinism);
+    /// every free-form string routes through [`key_field`] / [`key_list`] so distinct IR states
+    /// can never collapse to the same key.
     fn content_key(&self) -> String {
         match self {
             ConstraintComponent::NumericRange {
@@ -225,26 +273,22 @@ impl ConstraintComponent {
                 opt_axis_key(*min),
                 opt_axis_key(*max),
             ),
-            ConstraintComponent::Datatype(d) => format!("datatype={d}"),
-            ConstraintComponent::Class(c) => format!("class={c}"),
+            ConstraintComponent::Datatype(d) => format!("datatype={}", key_field(d)),
+            ConstraintComponent::Class(c) => format!("class={}", key_field(c)),
             ConstraintComponent::NodeKindShacl(k) => format!("nodekind={}", k.as_str()),
             ConstraintComponent::In(vs) => {
-                let members = vs
-                    .iter()
-                    .map(ShapeValue::content_key)
-                    .collect::<Vec<_>>()
-                    .join(",");
-                format!("in=[{members}]")
+                format!("in={}", key_list(vs.iter().map(ShapeValue::content_key)))
             }
-            ConstraintComponent::Pattern { regex, flags } => {
-                format!(
-                    "pattern={regex}{SEP}flags={}",
-                    flags.as_deref().unwrap_or("")
-                )
-            }
+            ConstraintComponent::Pattern { regex, flags } => format!(
+                "pattern={}flags={}",
+                key_field(regex),
+                key_field(flags.as_deref().unwrap_or("")),
+            ),
             ConstraintComponent::MinLength(n) => format!("minlength={n}"),
             ConstraintComponent::MaxLength(n) => format!("maxlength={n}"),
-            ConstraintComponent::LanguageIn(langs) => format!("languagein=[{}]", langs.join(",")),
+            ConstraintComponent::LanguageIn(langs) => {
+                format!("languagein={}", key_list(langs.iter().cloned()))
+            }
             ConstraintComponent::DateTimeRange {
                 min,
                 max,
@@ -252,13 +296,17 @@ impl ConstraintComponent {
                 max_inclusive,
             } => format!(
                 "datetime{SEP}min={}{SEP}max={}{SEP}mincl={min_inclusive}{SEP}maxcl={max_inclusive}",
-                min.as_deref().unwrap_or(""),
-                max.as_deref().unwrap_or(""),
+                key_field(min.as_deref().unwrap_or("")),
+                key_field(max.as_deref().unwrap_or("")),
             ),
             ConstraintComponent::TerminologyBinding {
                 terminology_id,
                 codes,
-            } => format!("termbind={terminology_id}{SEP}codes=[{}]", codes.join(",")),
+            } => format!(
+                "termbind={}codes={}",
+                key_field(terminology_id),
+                key_list(codes.iter().cloned()),
+            ),
         }
     }
 }
@@ -314,6 +362,9 @@ impl PropertyConstraintIr {
             );
         }
         let mut components = components;
+        for component in &mut components {
+            component.normalize()?;
+        }
         components.sort_by_cached_key(ConstraintComponent::content_key);
         Ok(Self {
             path,
@@ -324,17 +375,14 @@ impl PropertyConstraintIr {
         })
     }
 
-    /// A deterministic content-key over a FIXED field order.
+    /// A deterministic content-key over a FIXED field order. Every free-form field is
+    /// length-prefixed and the component list is count-prefixed ([`key_field`] / [`key_list`])
+    /// so no path or component value can forge a field boundary.
     fn content_key(&self) -> String {
-        let comps = self
-            .components
-            .iter()
-            .map(ConstraintComponent::content_key)
-            .collect::<Vec<_>>()
-            .join(SEP.to_string().as_str());
+        let comps = key_list(self.components.iter().map(ConstraintComponent::content_key));
         format!(
-            "path={}{SEP}min={}{SEP}max={}{SEP}prov={}{SEP}comps=[{comps}]",
-            self.path,
+            "path={}{SEP}min={}{SEP}max={}{SEP}prov={}{SEP}comps={comps}",
+            key_field(&self.path),
             self.min_count.map(|n| n.to_string()).unwrap_or_default(),
             self.max_count.map(|n| n.to_string()).unwrap_or_default(),
             self.cardinality_provenance
@@ -445,20 +493,105 @@ impl ValidationShapeIr {
     /// A deterministic full-content key for canonical equality. Public to the crate so
     /// `LogicProgram::canonical_key` can fold it into the program key at the fixed tail.
     pub(crate) fn content_key(&self) -> String {
-        let props = self
-            .properties
-            .iter()
-            .map(PropertyConstraintIr::content_key)
-            .collect::<Vec<_>>()
-            .join("\n");
+        let props = key_list(
+            self.properties
+                .iter()
+                .map(PropertyConstraintIr::content_key),
+        );
         format!(
-            "{}{SEP}kind={}{SEP}{}{SEP}sp={}{SEP}reifier={}{SEP}reifreq={}{SEP}PROPS\n{props}",
-            self.iri,
+            "{}{SEP}kind={}{SEP}{}{SEP}sp={}{SEP}reifier={}{SEP}reifreq={}{SEP}PROPS={props}",
+            key_field(&self.iri),
             self.node_kind.as_str(),
             self.target.content_key(),
-            self.standpoint.as_deref().unwrap_or(""),
-            self.reifier_shape.as_deref().unwrap_or(""),
+            key_field(self.standpoint.as_deref().unwrap_or("")),
+            key_field(self.reifier_shape.as_deref().unwrap_or("")),
             self.reification_required,
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn value_set_members_are_order_independent() {
+        let members = |a: &str, b: &str| {
+            PropertyConstraintIr::new(
+                "https://ex/p",
+                None,
+                None,
+                None,
+                vec![ConstraintComponent::In(vec![
+                    ShapeValue::Iri(a.to_owned()),
+                    ShapeValue::Iri(b.to_owned()),
+                ])],
+            )
+            .unwrap()
+        };
+        let ab = members("https://ex/a", "https://ex/b");
+        let ba = members("https://ex/b", "https://ex/a");
+        assert_eq!(
+            ab.content_key(),
+            ba.content_key(),
+            "value-set member order must not affect identity"
+        );
+        assert_eq!(ab, ba, "normalized components must be structurally equal");
+    }
+
+    #[test]
+    fn value_set_literal_with_datatype_and_lang_is_rejected() {
+        let err = PropertyConstraintIr::new(
+            "https://ex/p",
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::In(vec![ShapeValue::Literal {
+                lexical: "x".into(),
+                datatype: Some("https://ex/dt".into()),
+                lang: Some("en".into()),
+            }])],
+        )
+        .unwrap_err();
+        assert!(err.contains("XOR"), "got: {err}");
+    }
+
+    #[test]
+    fn value_keyed_target_key_is_unambiguous() {
+        // The classic delimiter collision: `"a=b" + "c"` and `"a" + "b=c"` must fold to DISTINCT
+        // keys, never the same `a=b=c`.
+        let x = ShapeTarget::ValueKeyed {
+            predicate: "a=b".into(),
+            value: "c".into(),
+        };
+        let y = ShapeTarget::ValueKeyed {
+            predicate: "a".into(),
+            value: "b=c".into(),
+        };
+        assert_ne!(
+            x.content_key(),
+            y.content_key(),
+            "distinct value-keyed targets must not share a content key"
+        );
+    }
+
+    #[test]
+    fn language_and_terminology_codes_are_sorted_at_construction() {
+        let p = PropertyConstraintIr::new(
+            "https://ex/p",
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::LanguageIn(vec![
+                "fr".into(),
+                "en".into(),
+                "de".into(),
+            ])],
+        )
+        .unwrap();
+        match &p.components[0] {
+            ConstraintComponent::LanguageIn(langs) => assert_eq!(langs, &["de", "en", "fr"]),
+            other => panic!("expected LanguageIn, got {other:?}"),
+        }
     }
 }
