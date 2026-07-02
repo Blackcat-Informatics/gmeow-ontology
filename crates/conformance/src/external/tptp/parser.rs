@@ -601,6 +601,11 @@ impl<'a> Parser<'a> {
         }
         self.expect(&Tok::RBracket)?;
         self.expect(&Tok::Colon)?;
+        // The quantifier body is a `<fof_unit_formula>` (unitary or unary) per the
+        // TPTP BNF — NOT a full binary formula. So `![X] : a(X) => b(X)` parses as
+        // `(![X] : a(X)) => b(X)`; a quantified implication must be parenthesized as
+        // `![X] : (a(X) => b(X))`. Do NOT "fix" this to `fof_formula()`: that would
+        // bind `=>`/`|`/`&` under the quantifier and make the parser non-conformant.
         let body = Box::new(self.fof_unitary()?);
         if universal {
             Ok(Formula::Forall { vars, body })
@@ -807,6 +812,31 @@ mod tests {
                 assert!(matches!(**body, Formula::Implies(_, _)));
             }
             other => panic!("expected Forall, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn quantifier_binds_only_a_unit_body_not_a_binary_formula() {
+        // TPTP BNF: `<fof_quantified_formula> ::= <quantifier> [vars] : <fof_unit_formula>`.
+        // The body is unitary/unary, so an un-parenthesized `=>` binds OUTSIDE the
+        // quantifier: `![X] : a(X) => b(X)` == `(![X] : a(X)) => b(X)`. This pins the
+        // BNF-correct precedence against a "fix" that would swallow the whole
+        // implication as the body (which would bind `X` free in `b(X)`).
+        let af = one("fof(prec, axiom, ![X] : a(X) => b(X)).\n");
+        match &af.formula {
+            Formula::Implies(l, r) => {
+                assert!(
+                    matches!(**l, Formula::Forall { .. }),
+                    "lhs should be the quantified `a(X)`, got {l:?}"
+                );
+                assert!(
+                    matches!(**r, Formula::Atom { .. }),
+                    "rhs should be the bare `b(X)`, got {r:?}"
+                );
+            }
+            other => panic!(
+                "expected a top-level Implies (quantifier binds only its unit body), got {other:?}"
+            ),
         }
     }
 
