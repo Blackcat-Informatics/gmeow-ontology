@@ -4297,6 +4297,82 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "73b6809aab02a213"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "73b6809aab02a213"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "62b0d13a728720be"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "62b0d13a728720be"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -9883,6 +9959,82 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6515ffa56cf14a73"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6515ffa56cf14a73"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "71655e9fb440cf9c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "71655e9fb440cf9c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -15108,6 +15260,82 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4beed44a1b88a7dd"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4beed44a1b88a7dd"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "507052d383669560"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "507052d383669560"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -16438,6 +16666,44 @@
             }
           ],
           "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ControlFlowEdge> <https://blackcatinformatics.ca/logic/mediates> <https://blackcatinformatics.ca/logic/flowFrom> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2e9bb0e7b1c4e33e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/ControlFlowEdge> <https://blackcatinformatics.ca/logic/mediates> <https://blackcatinformatics.ca/logic/flowTo> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "27077f2d9f6fb1ad"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> <https://blackcatinformatics.ca/logic/obligationDischargeCondition> <https://blackcatinformatics.ca/logic/DischargeSyntacticReachability> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
@@ -16480,6 +16746,44 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "7835ad27943997cb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/DataFlowEdge> <https://blackcatinformatics.ca/logic/mediates> <https://blackcatinformatics.ca/logic/flowFrom> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ae4f3a52b2f2c0ff"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/DataFlowEdge> <https://blackcatinformatics.ca/logic/mediates> <https://blackcatinformatics.ca/logic/flowTo> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5c833c185eeb7a28"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -18547,10 +18851,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateScope> \"every class subClassOf logic:Relator; a concrete relator (one with no logic: subclass) must carry at least two distinct logic:mediates relata or fire logic:violation logic:RelComp\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateRelatorMediation> <https://blackcatinformatics.ca/logic/candidateScope> \"every class subClassOf logic:Relator; a concrete relator (one with no logic: subclass) must reach at least two distinct entities — two distinct logic:mediates roles, or one non-functional role — or fire logic:violation logic:RelComp\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "da1e992d143290ae"
+            "gmeowFindingHash/v2": "576e9bfa940a1e65"
           },
           "ruleId": "logic-compile.lossy-drop"
         },

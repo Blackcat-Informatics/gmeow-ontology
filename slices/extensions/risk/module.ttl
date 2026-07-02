@@ -21,6 +21,8 @@ gmeow:CausalLink
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Causal Link"@x-gmeow-english ;
+    logic:mediates gmeow:linkAntecedent ,
+        gmeow:linkConsequent ;
     rdfs:subClassOf logic:Relator ,
         gmeow:RiskFactor ;
     skos:definition "A reified type-level causal claim — antecedent kind × consequent kind × modality, with optional mechanism prose and solver-input strength. Mint one when HOW the causation works must be first-class; the 80% case stays flat gmeow:typeCauses (reify-on-demand, Principle 4). Whose claim it is rides the statement layer; two analysts' divergent links coexist (Principle 9)."@x-gmeow-english ;

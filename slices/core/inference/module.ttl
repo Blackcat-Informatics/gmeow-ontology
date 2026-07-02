@@ -154,7 +154,8 @@ gmeow:PremiseUse
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Premise Use"@x-gmeow-english ;
-    logic:mediates gmeow:premiseUsed ;
+    logic:mediates gmeow:premiseUsed ,
+        gmeow:hasPremiseUse ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified USE of a premise within a gmeow:Argument — the basing fact that this argument actually rests on this premise (gmeow:premiseUsed), distinct from the merely AVAILABLE premises of the underlying gmeow:InferenceCommitment (available != used). The target of an undermining gmeow:Attack, which denies the used premise. Reached from its argument via gmeow:hasPremiseUse."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
