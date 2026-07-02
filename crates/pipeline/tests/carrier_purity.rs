@@ -31,7 +31,7 @@
 //! What this gate FORBIDS — and FAILS on if reintroduced — is a `Store::new()`
 //! accumulation (or a `store_from_dataset` / `dataset_from_store` store round-trip)
 //! creeping back into the CARRIER functions: `gts_compose::compose`'s union path or
-//! `carrier`'s named-graph assembly (`build_snapshot` / `load_authored_default` /
+//! `carrier`'s named-graph assembly (`assemble_carrier` / `load_authored_default` /
 //! `load_imports` / `build_snapshot_bundle` and the native helpers around them). Those
 //! two modules' PRODUCTION source (everything outside their `#[cfg(test)]` region) is
 //! scanned token-by-token; reintroducing oxigraph accumulation there turns this test

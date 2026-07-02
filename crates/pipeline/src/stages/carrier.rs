@@ -68,21 +68,6 @@ pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
-/// Assemble the structured `dist` snapshot bytes from the repo `root` and the
-/// upstream stage products (statements RDF 1.2, mappings SSSOM, docs graph).
-///
-/// Mirrors the two-pass `build_snapshot_bytes`: pass 1 omits the verify graph,
-/// the native verify lane runs over it, and pass 2 folds the attestation in as
-/// `gmeow:graph/verify`.
-pub fn build_snapshot(
-    upstream: &BTreeMap<String, StageProduct>,
-    blobs: Vec<BlobRow>,
-    report_blobs: Vec<BlobRow>,
-) -> Result<Vec<u8>, PipelineError> {
-    let carrier = assemble_carrier(upstream)?;
-    serialize_snapshot(&carrier, blobs, report_blobs)
-}
-
 /// Gather the by-reference archive blobs (#699/#746/#897/#940) + the SHACL report
 /// blobs from `upstream`, and serialize the ALREADY-ASSEMBLED `carrier` into the
 /// terminal `gmeow.gts` package — the SINGLE serialization the terminal gts sink
@@ -1341,26 +1326,85 @@ fn build_docs_archive(
 }
 
 /// Compute the build-time [`gmeow_docs::ExecutableDocsData`] the "live" docs surfaces
-/// need — from the carrier, the reasoning EDB, and the on-disk worked examples.
+/// need — from the carrier, the authored ontology, and the on-disk worked examples.
 ///
-/// - **Try it:** reason ONCE over `(ontology EDB ∪ all example ABoxes)` and slice the
-///   resulting closure by each example's own subjects, diffed against the base
-///   ontology closure (`stage-reason`'s committed closure) and the example's asserted
-///   triples. Inferences not attributable to a single example (shared / Skolem
-///   witnesses) go to a `cross_example` bucket — never silently dropped.
+/// - **Try it:** reason over `(authored default-world ontology ∪ all example ABoxes)` and
+///   slice the resulting closure by each example's own subjects, diffed (witness-
+///   insensitively) against `stage-reason`'s committed base closure and the example's
+///   asserted triples. Inferences not attributable to a single example go to a
+///   `cross_example` bucket — never silently dropped. This does NOT re-derive the full
+///   ontology closure: that runs ONCE, in stage-reason (reason-once, project-many); the
+///   examples can only propagate through the authored default-world axioms (the calculus
+///   is same-world and imports ride named worlds), so the small seed is sufficient.
 /// - **Playground asset:** `documentation graph ∪ reasoned ontology closure`, TriG.
-/// - **Export handle:** the asserted ontology EDB (for `purrdf::describe`).
 fn build_executable_docs_data(
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
     model: &gmeow_docs::model::DocsModel,
 ) -> Result<gmeow_docs::ExecutableDocsData, PipelineError> {
-    use std::collections::{BTreeMap as StdBTreeMap, BTreeSet, HashSet};
+    // The reasoning seed for the "try it" hypothetical is the AUTHORED default-world
+    // ontology ALONE — NOT the full object-level EDB. Reason-once, project-many
+    // (PIPELINE_SPINE §3.2/§8): the expensive full-EDB closure is computed exactly ONCE, in
+    // stage-reason. The try-it must not re-derive it. It can't: worked examples parse into
+    // the DEFAULT world and the EL/RL calculus is same-world (`?w`), while imports /
+    // statements / alignments / logic ride NAMED worlds — so an example can ONLY propagate
+    // through the authored default-world axioms. Reasoning that small seed (instead of the
+    // full EDB with its import bulk) yields byte-identical attributed inferences at a
+    // fraction of the cost (verified against the full EDB over the real ontology).
+    let base_seed = std::sync::Arc::new(
+        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    );
+    // The base ontology closure stage-reason already committed: the core subtracts it
+    // (witness-insensitively) so only EXAMPLE-INDUCED inferences remain — reuse, not a
+    // second authority.
+    let base_bytes = upstream
+        .get("stage-reason")
+        .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
+        .ok_or_else(|| stage_err("missing stage-reason inferred-closure artifact"))?;
+    // Lower the discovered docs model to the reason-and-attribute core's plain inputs, so
+    // the core is exercisable over a fixed fixture without a full pipeline product map.
+    let sources: Vec<ExampleSource> = model
+        .examples
+        .iter()
+        .map(|ex| ExampleSource {
+            slice: ex.slice.clone(),
+            logical_path: ex.logical_path.clone(),
+            text: ex.text.clone(),
+        })
+        .collect();
+    executable_docs_from_sources(base_seed.as_ref(), base_bytes, &sources, carrier)
+}
 
-    // The exact object-level EDB the reason stage reasons over — also the export handle.
-    // The EDB reads its authored / imports / alignments graphs off the stage-source-load
-    // product (not from disk), so neither it nor this computation needs `root`.
-    let edb = assemble_object_level_edb(upstream)?;
+/// One worked example's authored source — its slice IRI, logical path (extension drives
+/// the parse dispatch), and raw text. The reason-and-attribute core takes these instead of
+/// the whole discovered [`gmeow_docs::model::DocsModel`] so it is exercisable over a fixed
+/// fixture without a full pipeline product map.
+pub(crate) struct ExampleSource {
+    pub slice: String,
+    pub logical_path: String,
+    pub text: String,
+}
+
+/// The reason-and-attribute core of the executable "try it" docs (see
+/// [`build_executable_docs_data`] for how the pipeline gathers the inputs).
+///
+/// Reason over `(reason_seed ∪ every example ABox)`, subtract the committed `base_closure`
+/// (witness-insensitively) and each example's own assertions, and attribute every
+/// remaining (example-induced) inference to the example that owns its subject. Inferences
+/// with no owning example subject (shared / Skolem witnesses) go to the `cross_example`
+/// bucket — never silently dropped. The playground asset is
+/// `documentation graph ∪ base_closure`, TriG.
+///
+/// `reason_seed` is the authored default-world ontology (not the full object-level EDB):
+/// the examples can only propagate through the same-world authored axioms, so this small
+/// seed reproduces the full-EDB attribution exactly without re-deriving the base closure.
+pub(crate) fn executable_docs_from_sources(
+    reason_seed: &purrdf::RdfDataset,
+    base_closure_bytes: &[u8],
+    examples: &[ExampleSource],
+    carrier: &purrdf::RdfDataset,
+) -> Result<gmeow_docs::ExecutableDocsData, PipelineError> {
+    use std::collections::{BTreeMap as StdBTreeMap, BTreeSet, HashSet};
 
     // Parse every worked example's ABox; remember its subjects + asserted display lines.
     struct ExampleAbox {
@@ -1369,8 +1413,8 @@ fn build_executable_docs_data(
         asserted: Vec<String>,
         dataset: std::sync::Arc<purrdf::RdfDataset>,
     }
-    let mut examples: Vec<ExampleAbox> = Vec::new();
-    for ex in &model.examples {
+    let mut parsed: Vec<ExampleAbox> = Vec::new();
+    for ex in examples {
         let ds = parse_example(&ex.logical_path, &ex.text)?;
         let mut subjects = BTreeSet::new();
         let mut asserted = Vec::new();
@@ -1382,7 +1426,7 @@ fn build_executable_docs_data(
         }
         asserted.sort();
         asserted.dedup();
-        examples.push(ExampleAbox {
+        parsed.push(ExampleAbox {
             key: gmeow_docs::example_key(&ex.slice, &ex.logical_path),
             subjects,
             asserted,
@@ -1390,11 +1434,11 @@ fn build_executable_docs_data(
         });
     }
 
-    // Reason ONCE over (EDB ∪ every example ABox). push_dataset standardizes blanks
+    // Reason over (reason_seed ∪ every example ABox). push_dataset standardizes blanks
     // apart per merged dataset, so example blanks never collide.
     let mut union = RdfDatasetBuilder::new();
-    union.push_dataset(edb.as_ref());
-    for ex in &examples {
+    union.push_dataset(reason_seed);
+    for ex in &parsed {
         union.push_dataset(ex.dataset.as_ref());
     }
     let union_ds = union
@@ -1406,27 +1450,47 @@ fn build_executable_docs_data(
 
     // The base ontology-only closure (already committed by the reason stage): subtract
     // it so only EXAMPLE-INDUCED inferences remain (reuse, not a second authority).
-    let base_bytes = upstream
-        .get("stage-reason")
-        .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
-        .ok_or_else(|| stage_err("missing stage-reason inferred-closure artifact"))?;
-    let base_closure = parse_dataset(base_bytes, "text/turtle", None)
+    //
+    // Witness-insensitive: a Skolem witness edge (an `X ⊑ ∃r.C` restriction materialized
+    // as `X ⊑ <skolem>`) carries a content-addressed IRI that depends on the reasoning
+    // context, so raw-IRI matching would leak the ontology-level edge into `cross_example`.
+    // Normalizing the witness object lets an ontology edge cancel against the base
+    // regardless of context, while example-SUBJECT facts (absent from the base) are kept.
+    let witness_norm = |line: &str| -> String {
+        line.split(' ')
+            .map(|t| {
+                if t.starts_with("_:") || t.contains("blackcatinformatics.ca/gmeow/skolem/") {
+                    "<skolem>".to_string()
+                } else {
+                    t.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
+    let base_closure = parse_dataset(base_closure_bytes, "text/turtle", None)
         .map_err(|e| stage_err(&format!("base closure parse: {e}")))?;
     let base_set: HashSet<String> = base_closure
         .owned_quads()
-        .map(|q| format_triple(&q))
+        .map(|q| witness_norm(&format_triple(&q)))
         .collect();
-    let asserted_set: HashSet<String> = examples
+    let asserted_set: HashSet<String> = parsed
         .iter()
         .flat_map(|e| e.asserted.iter().cloned())
         .collect();
 
-    // Map each example subject to its example key (subjects are distinct across
-    // examples by construction — distinct example individuals).
-    let mut subject_to_example: StdBTreeMap<String, String> = StdBTreeMap::new();
-    for ex in &examples {
+    // Map each example subject to its owning example key. A subject named by exactly one
+    // example maps to `Some(key)`; a subject shared by 2+ examples is ambiguous (we cannot
+    // tell which example induced a given inference on it) and is recorded as `None` so it
+    // routes to `cross_example` rather than being silently misattributed to whichever
+    // example happened to insert last.
+    let mut subject_to_example: StdBTreeMap<String, Option<String>> = StdBTreeMap::new();
+    for ex in &parsed {
         for s in &ex.subjects {
-            subject_to_example.insert(s.clone(), ex.key.clone());
+            subject_to_example
+                .entry(s.clone())
+                .and_modify(|owner| *owner = None)
+                .or_insert_with(|| Some(ex.key.clone()));
         }
     }
 
@@ -1435,14 +1499,19 @@ fn build_executable_docs_data(
     let mut cross_example: Vec<String> = Vec::new();
     for q in union_closure.owned_quads() {
         let line = format_triple(&q);
-        if base_set.contains(&line) || asserted_set.contains(&line) {
+        if base_set.contains(&witness_norm(&line)) || asserted_set.contains(&line) {
             continue; // ontology-only inference or the example's own assertion.
         }
         let subject_iri = match &q.subject {
             RdfTerm::Iri(iri) => Some(iri.clone()),
             _ => None,
         };
-        match subject_iri.and_then(|s| subject_to_example.get(&s).cloned()) {
+        // Unknown subject or an ambiguous (multi-example) subject both fall through to
+        // `cross_example`; only an unambiguous single-owner subject attributes directly.
+        match subject_iri
+            .and_then(|s| subject_to_example.get(&s).cloned())
+            .flatten()
+        {
             Some(key) => per_example.entry(key).or_default().push(line),
             None => cross_example.push(line),
         }
@@ -1452,7 +1521,7 @@ fn build_executable_docs_data(
 
     // Assemble the per-example asserted-vs-inferred diffs.
     let mut example_inferences: StdBTreeMap<String, gmeow_docs::InferenceDiff> = StdBTreeMap::new();
-    for ex in &examples {
+    for ex in &parsed {
         let mut inferred = per_example.remove(&ex.key).unwrap_or_default();
         inferred.sort();
         inferred.dedup();
@@ -1772,13 +1841,14 @@ fn archive_blob(rep: &str, members: &[(String, Vec<u8>)]) -> Result<BlobRow, Pip
 
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
-/// The `stage-snapshot` Transform stage (#861 P6): assembles the structured
-/// multi-named-graph `dist` snapshot bytes (`build_snapshot`) as an in-memory
-/// artifact. The split from the sink lets every fold-reading export leaf consume
-/// THIS run's freshly-composed fold rather than re-reading the committed file
-/// from disk; the sole [`crate::stages::gts_sink::GtsSinkStage`] then just writes
-/// these bytes to `generated/dist/gmeow.gts` (the narrow-waist invariant — one
-/// Sink, the disk writer).
+/// The `stage-snapshot` Transform stage: assembles the fully-accumulated
+/// multi-named-graph `dist` carrier as an in-memory value and attaches it to its
+/// product — it serializes NOTHING (no bytes on the product). The split from the
+/// sink lets every fold-reading export leaf consume THIS run's freshly-assembled
+/// carrier rather than re-reading the committed file from disk; the sole
+/// [`crate::stages::gts_sink::GtsSinkStage`] then presents that carrier as the
+/// `generated/dist/gmeow.gts` bytes — the single serialization boundary (the
+/// narrow-waist invariant: one Sink, the sole byte writer).
 pub struct SnapshotStage {
     consumes: Vec<String>,
 }
@@ -1915,21 +1985,23 @@ impl Stage for SnapshotStage {
         // Assemble the terminal carrier ONCE — the single native RdfDataset that every
         // export leaf (N-Quads/TriG/JSON-LD/OKF/LPG/metadata/logic AND the gts export)
         // reads off this product's bundle. NOTHING is serialized here: GTS is exit-only,
-        // produced by the `stage-export-gts` leaf like any other export format.
+        // presented as bytes by the sole terminal writer (`gts_sink::GtsSinkStage`),
+        // never by this stage — the snapshot product carries the carrier, no byte lane.
         let carrier = assemble_carrier(input.upstream)?;
-        let bundle = build_snapshot_bundle(carrier, input.upstream, BTreeMap::new())?;
+        let bundle = build_snapshot_bundle(carrier, input.upstream)?;
         Ok(StageOutput {
             product: StageProduct::from_bundle(self.id(), std::sync::Arc::new(bundle)),
         })
     }
 }
 
-/// Build the snapshot product bundle: the byte-artifact lane (the emitted `gmeow.gts`)
-/// riding over a dataset whose `graph/logic` and `graph/reasoning` named graphs are the
+/// Build the snapshot product bundle: the fully-assembled carrier dataset — this stage
+/// attaches NO byte artifacts (the sole terminal `gts_sink` serializes the carrier to
+/// `gmeow.gts`) — whose `graph/logic` and `graph/reasoning` named graphs are the
 /// canonical projections of the compiled program and the typed reasoning result, with
-/// the upstream typed [`PipelineHandle::Logic`] (#1132 C6) and
-/// [`PipelineHandle::Reasoning`](crate::bundle::PipelineHandle::Reasoning) (#1132 C7)
-/// re-pinned to those graphs' canonical digests.
+/// the upstream typed [`PipelineHandle::Logic`] and
+/// [`PipelineHandle::Reasoning`](crate::bundle::PipelineHandle::Reasoning) re-pinned to
+/// those graphs' canonical digests.
 ///
 /// Each handle's payload is taken from its upstream product's handle (never
 /// re-compiled / re-run); the backing graph is re-derived from the SAME projection the
@@ -1938,7 +2010,6 @@ impl Stage for SnapshotStage {
 fn build_snapshot_bundle(
     carrier: std::sync::Arc<purrdf::RdfDataset>,
     upstream: &BTreeMap<String, StageProduct>,
-    artifacts: BTreeMap<String, Vec<u8>>,
 ) -> Result<purrdf::PipelineBundle<crate::bundle::PipelineHandle>, PipelineError> {
     // ── the Logic handle payload + its backing graph/logic projection ────────────
     let compile = upstream
@@ -1998,8 +2069,13 @@ fn build_snapshot_bundle(
     // value serialized to gmeow.gts) — never a second, partial assembly. The carried
     // graph/logic + relational-core + correspondence + reasoning are already folded into
     // it, so each typed handle re-pins to ITS graph in the carrier (digest hard-checked).
-    let mut bundle =
-        crate::bundle::bundle_from_artifacts_over(carrier, artifacts, DatasetProvenance::new());
+    // The snapshot product carries the carrier ALONE — no byte artifacts (only the
+    // terminal `gts_sink` emits bytes), so the artifact map is empty by construction.
+    let mut bundle = crate::bundle::bundle_from_artifacts_over(
+        carrier,
+        BTreeMap::new(),
+        DatasetProvenance::new(),
+    );
     let pinned_logic = bundle.graph_digest(crate::stages::compile_logic::GRAPH_LOGIC);
     bundle
         .pin_handle(
@@ -3469,8 +3545,8 @@ mod conformance_fold_tests {
             "the synthetic divergence must emit Findings"
         );
 
-        // Fold it through the SAME add_named path build_snapshot uses, emit, and
-        // read the bundle back.
+        // Fold it through the SAME add_named path the snapshot serialization uses, emit,
+        // and read the bundle back.
         let mut builder = SnapshotBuilder::new();
         // A non-empty default graph so the bundle is well-formed.
         add_base_nq(
@@ -3522,7 +3598,7 @@ mod conformance_fold_tests {
             "base",
         )
         .expect("fold base graph");
-        // Mirror build_snapshot's guard: an empty graph is never add_named'd.
+        // Mirror the snapshot serialization guard: an empty graph is never add_named'd.
         let conformance: Vec<u8> = Vec::new();
         if !conformance.is_empty() {
             add_named(&mut builder, &conformance, GRAPH_CONFORMANCE, "conformance").expect("fold");
@@ -4216,6 +4292,486 @@ mod native_assembly_tests {
             text.as_bytes(),
             again.as_slice(),
             "the native authored assembly must be byte-deterministic"
+        );
+    }
+}
+
+/// Semantic golden over the executable "try it" docs core
+/// ([`executable_docs_from_sources`]). This surface is otherwise UNGUARDED — the
+/// superset gate excludes `REP_ONTOLOGY_DOCS`, and the fold gates compare RDF quads, not
+/// the dangling docs blob — so a change to WHICH inferences are attributed to WHICH
+/// example (e.g. from a future incremental-reasoning path replacing the full-union pass)
+/// could pass every default gate. This test pins the *semantic content* over a fixed
+/// fixture: the per-example asserted-vs-inferred attribution, the cross-example bucket,
+/// and the playground asset — each Skolem/blank-normalized so it survives a witness-IRI
+/// shift while still catching an attribution divergence.
+#[cfg(test)]
+mod docs_try_it_golden {
+    use super::*;
+
+    // A minimal TBox: a two-step subclass chain. Reasoning propagates an individual's
+    // type up the chain, so an example asserting `a Dog` yields inferred `a Animal`,
+    // `a LivingThing` — the canonical "try it" shape, with no existentials (hence no
+    // Skolem witnesses) so the fixture is fully deterministic.
+    const EDB_TTL: &str = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:Dog rdfs:subClassOf ex:Animal .
+ex:Animal rdfs:subClassOf ex:LivingThing .
+";
+    const EX_DOG_TTL: &str = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+ex:rex a ex:Dog .
+";
+    const EX_CAT_TTL: &str = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+ex:felix a ex:Animal .
+";
+    const SLICE: &str = "https://example.org/gmeow-try-it/slice";
+
+    /// Normalize a display line so the golden pins WHICH inferences land WHERE, not the
+    /// non-stable identity of blank / content-addressed Skolem witnesses. Blank labels
+    /// collapse to `_:_`; any Skolem-witness IRI collapses to `<skolem>`. (The fixture is
+    /// witness-free by design, so this is a defensive no-op here — present so the golden
+    /// is robust if a future reasoning path starts materializing witnesses.)
+    fn norm(line: &str) -> String {
+        line.split(' ')
+            .map(|tok| {
+                if tok.starts_with("_:") {
+                    "_:_".to_string()
+                } else if tok.contains("blackcatinformatics.ca/gmeow/skolem/") {
+                    "<skolem>".to_string()
+                } else {
+                    tok.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+
+    fn norm_all(lines: &[String]) -> Vec<String> {
+        let mut v: Vec<String> = lines.iter().map(|l| norm(l)).collect();
+        v.sort();
+        v.dedup();
+        v
+    }
+
+    fn compute() -> gmeow_docs::ExecutableDocsData {
+        let edb = parse_dataset(EDB_TTL.as_bytes(), "text/turtle", None).expect("parse EDB");
+        // The base ontology-only closure = reason(EDB), exactly as the reason stage
+        // commits it — subtracted so only EXAMPLE-INDUCED inferences survive.
+        let base = crate::stages::reason::reason_over_dataset(edb.as_ref()).expect("reason base");
+        let sources = vec![
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/dog.ttl".to_string(),
+                text: EX_DOG_TTL.to_string(),
+            },
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/cat.ttl".to_string(),
+                text: EX_CAT_TTL.to_string(),
+            },
+        ];
+        // The carrier here is the bare EDB (no documentation named graph), so the
+        // playground asset is exactly the base closure routed into `graph/reasoning`.
+        executable_docs_from_sources(
+            edb.as_ref(),
+            base.closure.as_bytes(),
+            &sources,
+            edb.as_ref(),
+        )
+        .expect("executable docs")
+    }
+
+    #[test]
+    fn try_it_attribution_is_semantically_pinned() {
+        const NS: &str = "https://example.org/gmeow-try-it/";
+        let data = compute();
+
+        // ── Per-example attribution: each example's OWN subject carries its induced
+        //    inferences; the told triple stays in `asserted`, never `inferred`. ──
+        assert_eq!(
+            data.example_inferences.len(),
+            2,
+            "both examples induce an inference"
+        );
+        let dog = data
+            .example_inferences
+            .get(&gmeow_docs::example_key(SLICE, "examples/dog.ttl"))
+            .expect("dog example diff");
+        assert_eq!(
+            norm_all(&dog.asserted),
+            vec![format!("<{NS}rex> rdf:type <{NS}Dog>")]
+        );
+        assert_eq!(
+            norm_all(&dog.inferred),
+            vec![
+                format!("<{NS}rex> rdf:type <{NS}Animal>"),
+                format!("<{NS}rex> rdf:type <{NS}LivingThing>"),
+            ]
+        );
+        let cat = data
+            .example_inferences
+            .get(&gmeow_docs::example_key(SLICE, "examples/cat.ttl"))
+            .expect("cat example diff");
+        assert_eq!(
+            norm_all(&cat.asserted),
+            vec![format!("<{NS}felix> rdf:type <{NS}Animal>")]
+        );
+        assert_eq!(
+            norm_all(&cat.inferred),
+            vec![format!("<{NS}felix> rdf:type <{NS}LivingThing>")]
+        );
+
+        // ── No inference in this fixture is unattributable — the cross-example bucket
+        //    is empty (there are no shared / Skolem-witness inferences here). ──
+        assert!(
+            norm_all(&data.cross_example).is_empty(),
+            "no unattributable inferences: got {:?}",
+            norm_all(&data.cross_example)
+        );
+
+        // ── Playground asset = documentation graph (∅ here) ∪ base closure. Pin it by
+        //    its triple set (graph-dropped, normalized) so its assembly is guarded
+        //    without coupling to the exact TriG serialization. ──
+        let edb = parse_dataset(EDB_TTL.as_bytes(), "text/turtle", None).expect("parse EDB");
+        let base = crate::stages::reason::reason_over_dataset(edb.as_ref()).expect("reason base");
+        let base_ds = parse_dataset(base.closure.as_bytes(), "text/turtle", None)
+            .expect("parse base closure");
+        let base_triples: std::collections::BTreeSet<String> = base_ds
+            .owned_quads()
+            .map(|q| norm(&format_triple(&q)))
+            .collect();
+        let pg_ds = parse_dataset(&data.playground_trig, "application/trig", None)
+            .expect("parse playground");
+        let pg_triples: std::collections::BTreeSet<String> = pg_ds
+            .owned_quads()
+            .map(|q| norm(&format_triple(&q)))
+            .collect();
+        assert_eq!(
+            pg_triples, base_triples,
+            "playground asset must be documentation(∅) ∪ base closure"
+        );
+
+        // ── Determinism: the core is a pure function of its inputs. ──
+        let again = compute();
+        assert_eq!(
+            data.example_inferences, again.example_inferences,
+            "attribution must be deterministic"
+        );
+        assert_eq!(
+            data.cross_example, again.cross_example,
+            "cross_example must be deterministic"
+        );
+        assert_eq!(
+            data.playground_trig, again.playground_trig,
+            "playground asset must be byte-deterministic"
+        );
+    }
+
+    /// The witness-insensitive subtraction: an ONTOLOGY-level Skolem-witness edge whose
+    /// content-addressed IRI differs between the reduced-seed reasoning context and the
+    /// committed base closure must still cancel against the base (never leak into
+    /// `cross_example`), while an example-SUBJECT fact (absent from the base) survives.
+    /// Without normalization the context-shifted witness IRI fails to match and pollutes
+    /// the bucket — the exact divergence the full-EDB-vs-reduced-seed validation surfaced
+    /// on the real ontology.
+    #[test]
+    fn ontology_witness_cancels_across_skolem_iri_shift() {
+        // Seed: C ⊑ Mid ⊑ <skolem/aaa> — transitivity DERIVES `C ⊑ <skolem/aaa>`, a
+        // non-example-subject witness edge (a cross_example candidate).
+        let seed_ttl = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:C rdfs:subClassOf ex:Mid .
+ex:Mid rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/skolem/aaa> .
+";
+        let seed = parse_dataset(seed_ttl.as_bytes(), "text/turtle", None).expect("parse seed");
+        // The committed base closure carries the SAME edge under a DIFFERENT skolem IRI.
+        let base_ttl = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:C rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/skolem/bbb> .
+";
+        let sources = vec![ExampleSource {
+            slice: SLICE.to_string(),
+            logical_path: "examples/probe.ttl".to_string(),
+            text: "@prefix ex: <https://example.org/gmeow-try-it/> .\nex:x a ex:C .\n".to_string(),
+        }];
+        let data = executable_docs_from_sources(
+            seed.as_ref(),
+            base_ttl.as_bytes(),
+            &sources,
+            seed.as_ref(),
+        )
+        .expect("executable docs");
+
+        // The ontology witness edge (C ⊑ <skolem/aaa>) is SUBTRACTED despite the base
+        // carrying it under <skolem/bbb> — so it never reaches cross_example.
+        assert!(
+            !data
+                .cross_example
+                .iter()
+                .any(|l| l.contains("/C>") && l.contains("skolem")),
+            "context-shifted ontology witness leaked into cross_example: {:?}",
+            data.cross_example
+        );
+        // The example subject still receives its derived type (x a C told; x a Mid derived).
+        let probe = data
+            .example_inferences
+            .get(&gmeow_docs::example_key(SLICE, "examples/probe.ttl"))
+            .expect("probe example diff");
+        assert!(
+            probe
+                .inferred
+                .iter()
+                .any(|l| l.contains("/x>") && l.contains("/Mid>")),
+            "example subject must still receive its derived type: {:?}",
+            probe.inferred
+        );
+    }
+
+    /// Two DIFFERENT worked examples naming the SAME subject IRI are ambiguous: neither
+    /// example can be said to have solely induced an inference on that shared subject, so
+    /// the induced inferences must route to `cross_example`, never to either example's
+    /// `.inferred` (a plain last-write-wins map would misattribute them to whichever
+    /// example happened to be parsed last).
+    #[test]
+    fn shared_subject_across_examples_routes_to_cross_example() {
+        const NS: &str = "https://example.org/gmeow-try-it/";
+        let edb = parse_dataset(EDB_TTL.as_bytes(), "text/turtle", None).expect("parse EDB");
+        let base = crate::stages::reason::reason_over_dataset(edb.as_ref()).expect("reason base");
+        let shared_ttl = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+ex:shared a ex:Dog .
+";
+        let sources = vec![
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/shared-a.ttl".to_string(),
+                text: shared_ttl.to_string(),
+            },
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/shared-b.ttl".to_string(),
+                text: shared_ttl.to_string(),
+            },
+        ];
+        let data = executable_docs_from_sources(
+            edb.as_ref(),
+            base.closure.as_bytes(),
+            &sources,
+            edb.as_ref(),
+        )
+        .expect("executable docs");
+
+        // Both `ex:shared a ex:Animal` and `ex:shared a ex:LivingThing` are induced by an
+        // asserted `ex:shared a ex:Dog`, but which example "owns" `ex:shared` is
+        // ambiguous — they must land in cross_example, not in either example's diff.
+        let expected_cross = vec![
+            format!("<{NS}shared> rdf:type <{NS}Animal>"),
+            format!("<{NS}shared> rdf:type <{NS}LivingThing>"),
+        ];
+        assert_eq!(
+            norm_all(&data.cross_example),
+            expected_cross,
+            "ambiguous shared-subject inferences must route to cross_example: {:?}",
+            norm_all(&data.cross_example)
+        );
+
+        // Neither example's diff carries the ambiguous inferences (both would be
+        // present, and only their own `asserted` line, if attribution were unambiguous
+        // — but a shared subject must never appear in a per-example `.inferred`).
+        for key in [
+            gmeow_docs::example_key(SLICE, "examples/shared-a.ttl"),
+            gmeow_docs::example_key(SLICE, "examples/shared-b.ttl"),
+        ] {
+            if let Some(diff) = data.example_inferences.get(&key) {
+                assert!(
+                    diff.inferred.is_empty(),
+                    "shared-subject inference must not be attributed to a single example {key}: {:?}",
+                    diff.inferred
+                );
+            }
+        }
+    }
+
+    /// `build_executable_docs_data`'s core correctness claim: reasoning the reduced seed
+    /// `source_load_dataset(upstream).project_named_graph(GRAPH_AUTHORED_DEFAULT)`
+    /// reproduces the attribution `assemble_object_level_edb`'s FULL object-level EDB
+    /// would give, because worked examples parse into the default world and the calculus
+    /// is same-world (imports/statements/alignments/logic ride NAMED worlds the examples
+    /// cannot reach). This mirrors `assemble_object_level_edb`'s real shape (carrier.rs
+    /// ~515-556): the authored-default content is projected OUT of its internal transport
+    /// tag into the true default graph, then UNIONED with the other pipeline products,
+    /// each rooted in ITS OWN named-world graph (never the default graph).
+    ///
+    /// The fixture is DISCRIMINATING: the full EDB's "import" named world carries an
+    /// axiom (`ex:Animal rdfs:subClassOf ex:ImportedExtra`) that WOULD transitively fire
+    /// on the example's own asserted type — yielding `ex:rex a ex:ImportedExtra` — if it
+    /// were (wrongly) merged into the default world the examples inhabit; a control
+    /// computation below reasons the SAME axioms flattened into one world to prove that.
+    /// In the real (world-separated) fixture that axiom lives only in the full seed's
+    /// `import` named graph, structurally absent from the reduced (authored-default
+    /// projection) seed — so if the reduced-seed optimization, or the reasoner's
+    /// world-scoping it relies on, were unsound, this test would see `reduced != full`
+    /// or the `ImportedExtra` type leaking into an example's `.inferred`.
+    #[test]
+    fn reduced_seed_attribution_matches_full_edb_attribution() {
+        // Mirrors what `source_load_dataset(upstream)` carries: the authored default-
+        // world chain under the GRAPH_AUTHORED_DEFAULT internal transport tag.
+        let raw_source_load_trig = format!(
+            "@prefix ex: <https://example.org/gmeow-try-it/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             GRAPH <{GRAPH_AUTHORED_DEFAULT}> {{\n\
+             \x20 ex:Dog rdfs:subClassOf ex:Animal .\n\
+             \x20 ex:Animal rdfs:subClassOf ex:LivingThing .\n\
+             }}\n"
+        );
+        let raw_source_load =
+            parse_dataset(raw_source_load_trig.as_bytes(), "application/trig", None)
+                .expect("parse raw source-load fixture");
+        // The reduced seed: exactly `build_executable_docs_data`'s
+        // `source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT)`
+        // call — the authored chain re-rooted into the true default graph.
+        let reduced_seed = raw_source_load.project_named_graph(GRAPH_AUTHORED_DEFAULT);
+
+        // A SEPARATE named "import" world (standing in for GRAPH_IMPORTS /
+        // GRAPH_ALIGNMENTS / the logic graphs `assemble_object_level_edb` unions in),
+        // carrying an additional superclass edge off `ex:Animal` that only a
+        // world-isolation bug would let leak into the default-world reasoning the
+        // examples participate in.
+        let import_world_trig = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+GRAPH <https://example.org/gmeow-try-it/import> {
+  ex:Animal rdfs:subClassOf ex:ImportedExtra .
+}
+";
+        let import_world = parse_dataset(import_world_trig.as_bytes(), "application/trig", None)
+            .expect("parse import-world fixture");
+
+        // Control computation proving the fixture is DISCRIMINATING: flatten the SAME
+        // authored-chain + import axioms into a single (default) world and reason over
+        // `(flat_edb ∪ the dog example)` directly — no reduced/full split at all. If
+        // `ex:Animal rdfs:subClassOf ex:ImportedExtra` were reachable from a default-
+        // world example, this is where it would show up.
+        let flat_probe_ttl = "\
+@prefix ex: <https://example.org/gmeow-try-it/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex:Dog rdfs:subClassOf ex:Animal .
+ex:Animal rdfs:subClassOf ex:LivingThing .
+ex:Animal rdfs:subClassOf ex:ImportedExtra .
+ex:rex a ex:Dog .
+";
+        let flat_probe = parse_dataset(flat_probe_ttl.as_bytes(), "text/turtle", None)
+            .expect("parse flat probe fixture");
+        let flat_reasoned = crate::stages::reason::reason_over_dataset(flat_probe.as_ref())
+            .expect("reason flat probe");
+        assert!(
+            flat_reasoned.closure.contains("ImportedExtra"),
+            "fixture is not discriminating: merging the import axiom into the default \
+             world never yields an ImportedExtra inference on the example subject: {}",
+            flat_reasoned.closure
+        );
+
+        // The full object-level EDB, shaped exactly like `assemble_object_level_edb`:
+        // the default-world projection UNIONED with the other named-world graphs.
+        let full_edb = purrdf::RdfDataset::union(&[&reduced_seed, import_world.as_ref()]);
+
+        // What stage-reason would commit for this full EDB: the base ontology-only
+        // closure, subtracted (witness-insensitively) in both runs below. Because the
+        // reasoner is world-scoped by design (PIPELINE_SPINE's same-world calculus),
+        // this closure does NOT show the import axiom crossing into the default world —
+        // that is exactly the invariant this test locks down, via the reduced-vs-full
+        // attribution comparison below rather than via this closure alone.
+        let base =
+            crate::stages::reason::reason_over_dataset(&full_edb).expect("reason full-EDB base");
+
+        let sources = vec![
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/dog.ttl".to_string(),
+                text: EX_DOG_TTL.to_string(),
+            },
+            ExampleSource {
+                slice: SLICE.to_string(),
+                logical_path: "examples/cat.ttl".to_string(),
+                text: EX_CAT_TTL.to_string(),
+            },
+        ];
+
+        // Run 1 — production behavior: reason the REDUCED seed (the authored
+        // default-world projection alone), exactly as `build_executable_docs_data` does.
+        let reduced = executable_docs_from_sources(
+            &reduced_seed,
+            base.closure.as_bytes(),
+            &sources,
+            &reduced_seed,
+        )
+        .expect("executable docs (reduced seed)");
+
+        // Run 2 — the ground truth: reason the FULL object-level EDB, import world and
+        // all, exactly as `assemble_object_level_edb` + stage-reason would.
+        let full =
+            executable_docs_from_sources(&full_edb, base.closure.as_bytes(), &sources, &full_edb)
+                .expect("executable docs (full EDB)");
+
+        // The reduction must be attribution-lossless: same per-example diffs, same
+        // cross-example bucket. Normalize with the module's witness-insensitive `norm_all`
+        // — this fixture has no existentials so it is a no-op here, but keeps the
+        // comparison robust to incidental witness IRIs.
+        let reduced_keys: Vec<&String> = reduced.example_inferences.keys().collect();
+        let full_keys: Vec<&String> = full.example_inferences.keys().collect();
+        assert_eq!(
+            reduced_keys, full_keys,
+            "reduced- and full-seed runs must attribute to the same set of examples"
+        );
+        for key in full.example_inferences.keys() {
+            let reduced_diff = reduced
+                .example_inferences
+                .get(key)
+                .unwrap_or_else(|| panic!("reduced run missing diff for {key}"));
+            let full_diff = &full.example_inferences[key];
+            assert_eq!(
+                norm_all(&reduced_diff.asserted),
+                norm_all(&full_diff.asserted),
+                "asserted lines diverged for {key}"
+            );
+            assert_eq!(
+                norm_all(&reduced_diff.inferred),
+                norm_all(&full_diff.inferred),
+                "reduced-seed attribution diverged from full-EDB attribution for {key}"
+            );
+        }
+        assert_eq!(
+            norm_all(&reduced.cross_example),
+            norm_all(&full.cross_example),
+            "cross_example diverged between reduced- and full-seed runs"
+        );
+
+        // Neither run's example diffs pick up the import-world's `ex:ImportedExtra` edge
+        // — the flat probe above proved it WOULD if the worlds merged, so its absence
+        // here is the world boundary holding, not the fixture being inert.
+        for diff in full
+            .example_inferences
+            .values()
+            .chain(reduced.example_inferences.values())
+        {
+            assert!(
+                diff.inferred.iter().all(|l| !l.contains("ImportedExtra")),
+                "import-world axiom leaked into example attribution: {:?}",
+                diff.inferred
+            );
+        }
+        assert!(
+            reduced
+                .cross_example
+                .iter()
+                .chain(full.cross_example.iter())
+                .all(|l| !l.contains("ImportedExtra")),
+            "import-world axiom leaked into cross_example"
         );
     }
 }
