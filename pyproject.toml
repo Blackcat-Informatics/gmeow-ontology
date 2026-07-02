@@ -142,20 +142,27 @@ module = ["markdown.*", "owlrl.*", "linkml.*", "linkml_runtime.*", "yaml", "mlcr
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-# The untyped native-extension shims (gmeow_diagnostics / gmeow_shacl).
-# Single-cdylib unification put every legacy-name shim package under
-# mypy_path = crates/native/python, so mypy now *finds* these shim sources —
-# but they only do a runtime `sys.modules` swap and carry no API stub.
-# `follow_imports = skip` makes mypy treat them as `Any` (the pre-unification
-# behaviour when they were simply not on mypy_path), so call sites type-check
-# unchanged.
-# gmeow_rdf / gmeow_logic / gmeow_validate are deliberately NOT here: they ship
-# typed stubs (__init__.pyi) beside their shims so their call sites stay checked.
-# gmeow_docs carries no API stub yet (the typed renderer surface lands in
-# Task 6); skip it for now, like the other stub-less shims.
+# The untyped native-extension shims (gmeow_diagnostics) and the external
+# purrdf native extension (purrdf.purrdf_native — the SHACL / slice engine the
+# ontology tooling calls). Single-cdylib unification put every legacy-name shim
+# package under mypy_path = crates/native/python, so mypy now *finds* the shim
+# sources — but they only do a runtime `sys.modules` swap and carry no API stub;
+# purrdf's compiled `purrdf_native.abi3.so` ships no submodule stub either.
+# `follow_imports = skip` / ignore_missing_imports makes mypy treat them as `Any`
+# (the pre-unification behaviour when they were simply not on mypy_path), so call
+# sites type-check unchanged.
+# gmeow_logic / gmeow_validate are deliberately NOT here: they ship typed stubs
+# (__init__.pyi) beside their shims so their call sites stay checked.
+# gmeow_docs carries no API stub yet; skip it like the other stub-less shims.
 # gmeow_native.pipeline is the run_pipeline submodule on the unified cdylib;
 # it carries no API stub yet, so skip it like the other stub-less shims.
-module = ["gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_docs.*", "gmeow_native.*"]
+module = [
+    "gmeow_diagnostics.*",
+    "gmeow_docs.*",
+    "gmeow_native.*",
+    "purrdf.purrdf_native",
+    "purrdf.purrdf_native.*",
+]
 ignore_missing_imports = true
 follow_imports = "skip"
 
