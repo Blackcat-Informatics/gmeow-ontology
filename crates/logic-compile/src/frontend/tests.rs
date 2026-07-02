@@ -972,6 +972,35 @@ fn derive_rdfs_literal_target_lowers_to_node_kind_not_sh_datatype() {
 }
 
 #[test]
+fn derive_owl_thing_target_lowers_to_node_kind_even_when_classified_as_datatype() {
+    // Robustness guard for the universal-top projection. `is_datatype` treats anything typed
+    // `a rdfs:Datatype` as a datatype range, so a quirk axiom `owl:Thing a rdfs:Datatype`
+    // classifies the range with the datatype flag set. The projection must still emit the
+    // faithful open node-kind (sh:BlankNodeOrIRI) rather than falling through to a vacuous
+    // `sh:datatype owl:Thing` — i.e. the special-case guard is decoupled from the flag.
+    let ds = shape_dataset(
+        "owl:Thing a rdfs:Datatype .\n\
+         g:Observation a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:observedFeature ; owl:someValuesFrom owl:Thing ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NodeKindShacl(crate::ir::ShaclNodeKind::BlankNodeOrIri)
+        )),
+        "an owl:Thing target must emit sh:nodeKind sh:BlankNodeOrIRI even when flagged a datatype: {comps:?}"
+    );
+    assert!(
+        !comps
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Datatype(_))),
+        "an owl:Thing target must never emit sh:datatype: {comps:?}"
+    );
+}
+
+#[test]
 fn derive_owl_cardinality_lifts_with_owl_provenance() {
     // Unqualified owl:min/maxCardinality lower to sh:minCount/sh:maxCount tagged as
     // OwlRestriction provenance — the open-world axiom read closed-world (ValidationOnly).

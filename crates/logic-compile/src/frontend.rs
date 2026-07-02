@@ -1110,6 +1110,13 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         let mut properties = Vec::new();
         for d in derived {
             let pc = match d {
+                // The two universal-tops project to an open node-kind constraint regardless of
+                // how the range was classified: both guards match `_` on the datatype flag and
+                // sit ahead of the general arms, so a classifier flip (a custom axiom or
+                // triplestore quirk parsing `rdfs:Literal` as a class, or `owl:Thing` as a
+                // datatype) can never fall through to a vacuous `sh:class rdfs:Literal` /
+                // `sh:datatype owl:Thing`.
+                //
                 // A universal-literal-top (`rdfs:Literal`) `someValuesFrom` says "any literal" —
                 // an intentionally open literal range. Under spec-conformant SHACL `sh:datatype
                 // rdfs:Literal` matches only a literal whose datatype IRI is literally `rdfs:Literal`
@@ -1117,7 +1124,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                 // every plain literal; the faithful projection of "any literal" is
                 // `sh:nodeKind sh:Literal`. Closed-world reading of the open range, `ValidationOnly`
                 // polarity, never an entailment (Principle 17).
-                Derived::Value(on, target, true) if target == rdfs_literal => {
+                Derived::Value(on, target, _) if target == rdfs_literal => {
                     PropertyConstraintIr::new(
                         &on,
                         None,
@@ -1126,6 +1133,23 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                         vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal)],
                     )?
                 }
+                // A universal-top (`owl:Thing`) `someValuesFrom` says "any individual" — an
+                // intentionally open range. Under spec-conformant SHACL `sh:class owl:Thing`
+                // demands an explicit `rdf:type owl:Thing` edge (never materialized), which would
+                // flag every value; the faithful projection of "any individual, not a literal" is
+                // `sh:nodeKind sh:BlankNodeOrIRI`. This is the closed-world reading of the open
+                // range — still `logic:ValidationOnly` polarity, never an entailment (Principle 17).
+                Derived::Value(on, target, _) if target == owl_thing => PropertyConstraintIr::new(
+                    &on,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::NodeKindShacl(
+                        ShaclNodeKind::BlankNodeOrIri,
+                    )],
+                )?,
+                // Concrete datatype range (`true`) → `sh:datatype`; concrete class range
+                // (`false`) → `sh:class`.
                 Derived::Value(on, target, true) => PropertyConstraintIr::new(
                     &on,
                     None,
@@ -1133,23 +1157,6 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                     None,
                     vec![ConstraintComponent::Datatype(target)],
                 )?,
-                // A universal-top (`owl:Thing`) `someValuesFrom` says "any individual" — an
-                // intentionally open range. Under spec-conformant SHACL `sh:class owl:Thing`
-                // demands an explicit `rdf:type owl:Thing` edge (never materialized), which would
-                // flag every value; the faithful projection of "any individual, not a literal" is
-                // `sh:nodeKind sh:BlankNodeOrIRI`. This is the closed-world reading of the open
-                // range — still `logic:ValidationOnly` polarity, never an entailment (Principle 17).
-                Derived::Value(on, target, false) if target == owl_thing => {
-                    PropertyConstraintIr::new(
-                        &on,
-                        None,
-                        None,
-                        None,
-                        vec![ConstraintComponent::NodeKindShacl(
-                            ShaclNodeKind::BlankNodeOrIri,
-                        )],
-                    )?
-                }
                 Derived::Value(on, target, false) => PropertyConstraintIr::new(
                     &on,
                     None,
