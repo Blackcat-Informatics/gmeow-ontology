@@ -121,7 +121,7 @@ Three consequences worth internalizing:
 - **Individuals, not subclass explosions.** A named thing is an individual of a small
   class; a new OWL class exists only for a genuine class of individuals (the grounding
   design sets fix this pattern). Open value spaces are kind-individuals
-  (`gmeow:signSystemKind`-style), not class ladders.
+  (`lang:signSystemKind`-style), not class ladders.
 - **Flat-first, reify-on-demand** (CONSTITUTION, recurring patterns). Pair the 80% flat
   shortcut with a relator for when period, provenance, confidence, or standpoint must be
   first-class — and declare the pairing (`gmeow:pairsWith`) so the promotion path is
