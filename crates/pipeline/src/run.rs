@@ -218,6 +218,7 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-catalog", "catalog"),
         ("stage-export-profiles", "profiles"),
         ("stage-export-frame-shapes", "frame_shapes"),
+        ("stage-export-constraint-shapes", "constraint_shapes"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-json-schema", "json_schema"),
         ("stage-export-matrix", "matrix"),
@@ -253,6 +254,10 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-agreement",
             "stage-export-apache",
             "stage-export-bench",
+            // constraint-shapes.ttl (logic: FOL-axiom SHACL projection) is folded fresh into
+            // REP_SHAPES by build_archive_blobs, so the sink consumes it (kept in sorted
+            // position to match the registry consumes()); a first run has no on-disk file.
+            "stage-export-constraint-shapes",
             "stage-export-evals",
             "stage-export-json-schema",
             "stage-export-matrix",
