@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance fixtures for the inhabitation slice — the
+# test-DSL twin of "this counter-example must be rejected with THIS code". The
+# gmeow:exampleFile path is SLICE-RELATIVE (resolved against
+# slices/core/inhabitation/, not the repo root).
+#
+# This pins the constant-configuration invariant (INHABITED-COMPETENCY.md CQ2)
+# as a TESTED SHACL shape, not an assumption: gmeow:InhabitationConfigurationShape
+# constrains gmeow:configurationEmbodiment to sh:maxCount 1, so a configuration
+# with two embodiments over one interval MUST be rejected. The
+# expectedViolationCode string is the native SHACL finding code
+# finding_from_shacl builds as "shacl.<ConstraintComponentLocalName>"
+# (crates/validate/src/findings.rs), confirmed by running the harness over the
+# counter-example merged with the module + slice shapes.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/tests/> .
+
+# --- Violating: a configuration that changes embodiment without opening a new one.
+ex:ecConfigTwoEmbodiments a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/config-two-embodiments.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares one gmeow:InhabitationConfiguration with two gmeow:configurationEmbodiment values over a single interval. gmeow:InhabitationConfigurationShape enforces the constant-configuration invariant via sh:maxCount 1 on gmeow:configurationEmbodiment, so validation MUST emit shacl.MaxCountConstraintComponent — a changed embodiment must open a NEW configuration, never a second embodiment on the existing one." .

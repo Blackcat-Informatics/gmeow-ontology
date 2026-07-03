@@ -95,7 +95,7 @@ gmeow:EmbodimentAssignmentShape
 gmeow:InhabitationConfigurationShape
     a sh:NodeShape ;
     rdfs:label "InhabitationConfiguration well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:InhabitationConfiguration: at most one gmeow:configurationOfTenure (an InhabitationTenure). The 'constant configuration over the interval' invariant is semantic and is checked by the solver, not by cardinality here."@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:InhabitationConfiguration. The 'constant configuration over the interval' invariant is ENFORCED, not assumed: a configuration is scoped to exactly one gmeow:duringInterval and carries at most one of each varying facet (gmeow:configurationEmbodiment), so any facet CHANGE forces a new configuration rather than mutating an existing one. Cross-slice reasoning still ranks/overlaps configurations, but the single-interval, single-facet-per-configuration constancy is a checked cardinality here, not a solver-only assumption (INHABITED-COMPETENCY.md CQ2)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     sh:targetClass gmeow:InhabitationConfiguration ;
     sh:property [
@@ -106,10 +106,19 @@ gmeow:InhabitationConfigurationShape
         sh:message "An InhabitationConfiguration is a sub-interval of at most one gmeow:InhabitationTenure via gmeow:configurationOfTenure." ;
     ] ;
     sh:property [
+        sh:path gmeow:duringInterval ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:TimeInterval ;
+        sh:severity sh:Violation ;
+        sh:message "A constant configuration is scoped to EXACTLY ONE gmeow:duringInterval — 'the interval' the configuration is constant over must be well-defined; a facet change opens a new configuration with its own interval." ;
+    ] ;
+    sh:property [
         sh:path gmeow:configurationEmbodiment ;
+        sh:maxCount 1 ;
         sh:class gmeow:EmbodimentAssignment ;
         sh:severity sh:Violation ;
-        sh:message "If present, gmeow:configurationEmbodiment must reference a gmeow:EmbodimentAssignment." ;
+        sh:message "A configuration holds AT MOST ONE gmeow:configurationEmbodiment (a gmeow:EmbodimentAssignment) — the constant-configuration invariant: if the embodiment facet changes, open a new gmeow:InhabitationConfiguration rather than adding a second embodiment to this one." ;
     ] .
 
 # =========================================================================== #
