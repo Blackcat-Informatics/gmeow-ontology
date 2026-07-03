@@ -8,8 +8,8 @@
 //! `stage-conformance` already ran: that stage attaches the per-corpus tallies as an
 //! in-memory carrier artifact ([`super::conformance::AGREEMENT_TALLIES_PATH`]), and
 //! [`AgreementMatrixStage`] consumes them and renders the committed, drift-gated
-//! Markdown dashboard (`generated/conformance/agreement-matrix.md`). No corpus is
-//! re-walked or re-graded here (PIPELINE_SPINE §3.2/§8, the razor).
+//! Markdown dashboard (`generated/agreement-matrix.md`). No corpus is re-walked or
+//! re-graded here (PIPELINE_SPINE §3.2/§8, the razor).
 //!
 //! The render is PURELY deterministic — the tallies are integer counts in sorted
 //! `BTreeMap` order and the agree rate is integer permille math (no `f64`→string) —
@@ -29,8 +29,11 @@ use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::conformance::{TallyRecord, AGREEMENT_TALLIES_PATH};
 
-/// Committed, drift-gated agreement-matrix dashboard artifact.
-pub const AGREEMENT_MATRIX_PATH: &str = "generated/conformance/agreement-matrix.md";
+/// Committed, drift-gated agreement-matrix dashboard artifact. Lives at the
+/// `generated/` root (a committed surface, like `generated/module-status.md`) — NOT
+/// under `generated/conformance/`, which is gitignored for the ephemeral
+/// release-evidence conformance roll-up.
+pub const AGREEMENT_MATRIX_PATH: &str = "generated/agreement-matrix.md";
 
 /// The `divergence` lane token (a corpus whose native↔published disagreements are
 /// documented and intended, not defects).
@@ -222,6 +225,38 @@ impl Stage for AgreementMatrixStage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::Path;
+
+    /// Repo root (the workspace, two levels up from this crate's manifest).
+    fn repo_root() -> std::path::PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap()
+    }
+
+    #[test]
+    fn agreement_matrix_is_byte_identical_to_committed() {
+        // The committed generated/agreement-matrix.md must be reproduced byte-for-byte
+        // from the single external-corpus grade (the drift gate): grade → tally → render.
+        let root = repo_root();
+        let by_corpus =
+            crate::stages::conformance::grade_external_corpora(&root).expect("grade corpus");
+        let tallies = crate::stages::conformance::agreement_tallies_json(&root, &by_corpus)
+            .expect("build tallies");
+        let arts = render_agreement_matrix(&tallies).expect("render matrix");
+        let built = arts.get(AGREEMENT_MATRIX_PATH).expect("matrix produced");
+        let committed = std::fs::read(root.join(AGREEMENT_MATRIX_PATH))
+            .expect("committed generated/agreement-matrix.md exists");
+        assert_eq!(
+            built,
+            &committed,
+            "generated/agreement-matrix.md drifted from committed (built {} vs committed {} bytes)",
+            built.len(),
+            committed.len()
+        );
+    }
 
     /// A tally JSON with two agreement-expected corpora and one documented-divergence
     /// corpus, exercising a perfect corpus, a partial corpus, and a divergence corpus.
