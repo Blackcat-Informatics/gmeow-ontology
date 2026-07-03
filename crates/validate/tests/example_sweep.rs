@@ -90,6 +90,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/rights/examples/licensed-dataset.ttl", // gmeow:licensedWork/copyrightWork/statementAbout → InformationObject/Entity not typed standalone; gmeow:licensor/copyrightHolder → Agent not typed standalone
     "slices/core/sexuality/examples/split-attraction.ttl", // gmeow:romanticOrientationValue/sexualOrientationValue → shared RomanticOrientationValue/SexualOrientationValue individuals untyped standalone
     "slices/core/standpoint/examples/contested-authorship.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/tags/examples/contested-tagging.ttl", // gmeow:taggingTagged/taggingTagger → Entity/Agent not typed standalone; gmeow:hasTemporalFrame → shared temporalFrameUTCGregorian individual untyped standalone
     "slices/core/tags/examples/folksonomy.ttl", // gmeow:taggingTagged/taggingTagger → Entity/Agent not typed standalone
     "slices/core/trust/examples/web-of-trust.ttl", // gmeow:certifier/certifiedIdentity/trustor/trustee → Agent not typed standalone
     "slices/core/versions/examples/release-channels.ttl", // gmeow:membershipAuthority/versionMember → Agent/Entity not typed standalone
