@@ -292,11 +292,17 @@ pub fn read_all_opt_constraints(
         if let Some(kind) = kind {
             let family = family_tag(&kind);
             let is_priority_family = matches!(kind, OptConstraintKind::Quantity { .. });
+            // Non-pinned names are scoped by the OPT's own archetype/template tag so that at-codes
+            // reused across different OPTs (every template restarts at at0000) never collide in the
+            // FLAT keyspace a downstream projection derives (e.g. the JSON Schema / OpenAPI `$defs`
+            // key, which is the target-class local name alone). Only a pinned priority name
+            // (systolic/diastolic, from the naming map) bypasses the scope, keeping its
+            // established hand-wired identity.
             let candidate = match &at_code {
                 Some(code) => match naming.get(code) {
                     Some(name) if is_priority_family => name.clone(),
-                    Some(name) => format!("{name}-{family}"),
-                    None => code.clone(),
+                    Some(name) => format!("{archetype_tag}-{name}-{family}"),
+                    None => format!("{archetype_tag}-{code}"),
                 },
                 None => format!("{archetype_tag}-{family}"),
             };

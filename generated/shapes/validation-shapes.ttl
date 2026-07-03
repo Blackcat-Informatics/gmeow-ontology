@@ -613,104 +613,619 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/versionMember> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/membershipAuthority> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality-2Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality-2> ;
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0005> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality-3> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0005> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality-3Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality-3> ;
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality-4> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0005> ; sh:minCount 0 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinalityShape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic-cardinality> ;
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0005> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinalityShape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Diastolic-cardinality> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0005> ; sh:minCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0004> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0004> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-6Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality-6> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0004> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinalityShape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-cardinality> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-valueSetShape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-Systolic-valueSet> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/definingCode> ; sh:in ( <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0010> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0011> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0012> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0013> ) ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-10Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-10> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-11Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-11> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-12Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-12> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-13Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-13> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-14Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-14> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding> ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/definingCode> ; sh:in ( <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/openehr/433> ) ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-6Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-6> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-7Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-7> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-8Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-8> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-9Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000-9> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0000> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0001-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0001-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0001> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0001-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0001-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0001> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0001-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0001-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0001> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0001Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0001> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0001> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0002Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0002> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern ".*" ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0003-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0003-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0003> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0003Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0003> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0003> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0006-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0006-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0006> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0006-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0006-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0006> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0006Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0006> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0006> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0007-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0007-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0007> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0007Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0007> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0007> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0011-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0011-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/existence/at0011> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0011Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at0011> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0011> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1025Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1025> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern "openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1" ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1030Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1030> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern "openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1" ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1057Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1057> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern "openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1" ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1058Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Blutdruck-at1058> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern ".*" ] .
 
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/DiastolicShape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Diastolic> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string> ) ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 1000 ] .
-
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality-2Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality-2> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> ; sh:minCount 1 ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality-3Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality-3> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> ; sh:minCount 0 ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinalityShape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-cardinality> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0004> ; sh:minCount 1 ; sh:maxCount 1 ] .
-
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-valueSetShape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic-valueSet> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/definingCode> ; sh:in ( <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0010> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0011> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0012> <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/local/at0013> ) ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 1000 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/precision> ; sh:minInclusive 0 ; sh:maxInclusive 0 ] .
 
 <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/SystolicShape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/Systolic> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "mm[Hg]"^^<http://www.w3.org/2001/XMLSchema#string> ) ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 1000 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 1000 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/precision> ; sh:minInclusive 0 ; sh:maxInclusive 0 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-2Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-2> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/definingCode> ; sh:in ( <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/terminology/openehr/433> ) ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-3Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-3> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-4Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-4> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/definingCode> ; sh:in ( <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/openehr/433> ) ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-5Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000-5> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding> ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0000> ; sh:minCount 0 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0000> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-6Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000-6> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0001-2Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0001-2> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0001> ; sh:minCount 1 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0000> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0000> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0001Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0001> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0001> ; sh:minCount 1 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0001-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0001-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0001> ; sh:minCount 0 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0002Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0002> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern ".*" ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0001Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0001> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0001> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0003Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0003> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0003> ; sh:minCount 1 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0002-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0002-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0002> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0006Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0006> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0006> ; sh:minCount 0 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0002Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0002> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0002> ; sh:minCount 0 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0007Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0007> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0007> ; sh:minCount 1 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0003-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0003-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0003> ; sh:minCount 0 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0011Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at0011> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/occurrences/at0011> ; sh:minCount 1 ; sh:maxCount 1 ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0003Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0003> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0003> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1025Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1025> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern "openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1" ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0004-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0004-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0004> ; sh:minCount 0 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1030Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1030> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern "openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1" ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0004-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0004-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0004> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1057Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1057> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern "openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1" ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0004Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0004> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0004> ; sh:minCount 0 ; sh:maxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1058Shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/at1058> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text> ; sh:pattern ".*" ] .
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0005> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0005> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0005> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/definingCode> ; sh:in ( <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/local/at0007> <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/local/at0008> <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/local/at0009> ) ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0005> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0005> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0006-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0006-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0006> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0006-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0006-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0006> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0006-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0006-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0006> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0006Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0006> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0006> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0010-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0010-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0010> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0010-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0010-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "°C"^^<http://www.w3.org/2001/XMLSchema#string> ) ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxInclusive 40 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0010Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0010> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0010> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0011-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0011-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0011> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0011-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0011-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0011> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0011-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0011-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0011> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0011Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0011> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0011> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0012> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0012> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0012> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value> ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0012> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0012> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0013-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0013-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0013> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0013-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0013-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value> ; sh:in ( <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/local/at0014> <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/local/at0015> <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/local/at0016> ) ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0013Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0013> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0013> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0017-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0017-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0017> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0017-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0017-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0017> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0017-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0017-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0017> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0017Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0017> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0017> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0018-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0018-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0018> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0018-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0018-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0018> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0018-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0018-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0018> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0018Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0018> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0018> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0019> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0019> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0019> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0019> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-6Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-6> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0019> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-7Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-7> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0019> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-8Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-8> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0019> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-9Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019-9> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0019> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0019> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0019> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0020> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0020> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0020> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "mg"^^<http://www.w3.org/2001/XMLSchema#string> ) ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 1 ; sh:maxInclusive 1000 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/precision> ; sh:minInclusive 1 ; sh:maxInclusive 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-6Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-6> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0020> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-7Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020-7> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/units> ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "mg"^^<http://www.w3.org/2001/XMLSchema#string> ) ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/magnitude> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 1 ; sh:maxInclusive 1000 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/precision> ; sh:minInclusive 1 ; sh:maxInclusive 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0020> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0020> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-10Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-10> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0021> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-11Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-11> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value> ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0021> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0021> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0021> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0021> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-6Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-6> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0021> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-7Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-7> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value> ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-8Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-8> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0021> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-9Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021-9> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0021> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0021> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0021> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0022> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0022> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0022> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/definingCode> ; sh:in ( <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/IANA_media-types/application/dicom> <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/IANA_media-types/image/jpeg> <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/terminology/IANA_media-types/image/png> ) ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0022> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0022> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0023-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0023-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0023> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0023-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0023-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0023> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0023Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0023> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0023> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0024> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0024> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0024> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0024> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0024> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0024> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0025> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0025> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0025> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-5Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-5> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> ; sh:pattern "issuerA" ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-6Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-6> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0025> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-7Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-7> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> ; sh:pattern "typeB" ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-8Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-8> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0025> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-9Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025-9> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text> ; sh:pattern "assignerC" ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0025> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0025> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0026-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0026-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0026> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0026-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0026-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0026> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0026-4Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0026-4> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0026> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0026Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0026> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0026> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0027-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0027-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0027> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0027-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0027-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0027> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0027Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0027> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0027> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0028-2Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0028-2> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/existence/at0028> ; sh:minCount 0 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0028-3Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0028-3> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0028> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0028Shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/test_all_datatypes.en.v1-at0028> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/occurrences/at0028> ; sh:minCount 0 ; sh:maxCount 1 ] .
