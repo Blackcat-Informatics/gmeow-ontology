@@ -622,7 +622,23 @@ math:functionComposition
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "function composition"@x-gmeow-english ;
-    skos:definition "Relates a composite function g ∘ f to a function it is built from. Domain and range math:Function (stated in prose). Composition is well-formed when the codomain of the inner function is the domain of the outer."@x-gmeow-english ;
+    skos:definition "Relates a composite function g ∘ f to a function it is built from. Domain and range math:Function (stated in prose). Composition is non-commutative (g ∘ f ≠ f ∘ g in general), so this order-agnostic super-property — which holds of either component — is refined by math:compositionOuter and math:compositionInner, through which the order-bearing decomposition is asserted. Composition is well-formed when the codomain of the inner function is the domain of the outer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compositionOuter
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf math:functionComposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "composition outer"@x-gmeow-english ;
+    skos:definition "Relates a composite function g ∘ f to its outer (left) component g — the function applied second, whose math:domain is the math:codomain of the inner component. The order-bearing refinement of math:functionComposition that, together with math:compositionInner, preserves the non-commutative order of composition so g ∘ f is never confused with f ∘ g. Domain and range math:Function (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compositionInner
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf math:functionComposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "composition inner"@x-gmeow-english ;
+    skos:definition "Relates a composite function g ∘ f to its inner (right) component f — the function applied first, whose math:codomain is the math:domain of the outer component. The order-bearing refinement of math:functionComposition that, together with math:compositionOuter, preserves the non-commutative order of composition so g ∘ f is never confused with f ∘ g. Domain and range math:Function (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:inverseFunction

@@ -93,12 +93,18 @@ Core classes: `math:Relation`, `math:Function` (from the object layer), `math:Fu
 `math:PartialFunction` as declared properties/subclasses.
 
 Core properties: `math:domain`, `math:codomain`, `math:image`, `math:isInjective`,
-`math:isSurjective`, `math:functionComposition`, and `math:inverseFunction`.
+`math:isSurjective`, `math:functionComposition` (with its order-bearing refinements
+`math:compositionOuter`/`math:compositionInner`), and `math:inverseFunction`.
 
 A `math:Function` declares its `math:domain` and `math:codomain` — a function without them is
 ill-formed. Injectivity, surjectivity, and bijectivity are declared properties (checkable, not
 assumed); composition is a first-class `math:functionComposition` (associative, matching the
-category-theoretic morphism composition of the object layer); and a `math:FunctionSpace` is the set
+category-theoretic morphism composition of the object layer). Because composition is
+non-commutative (`g ∘ f ≠ f ∘ g`), the composite→component relation is order-bearing: the
+refinements `math:compositionOuter` (the function applied second) and `math:compositionInner`
+(the function applied first) name which component is which, so the order is never lost, while the
+order-agnostic super-property `math:functionComposition` still holds of either. A
+`math:FunctionSpace` is the set
 of functions between two objects, so higher-order constructions (an operator taking a function to a
 function — a derivative, [`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md))
 have a referent. A relation is a subset of a Cartesian product; a function is a relation with the
