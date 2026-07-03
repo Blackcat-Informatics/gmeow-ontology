@@ -168,9 +168,11 @@ statistical object *and* the result of an inference/analysis act recorded as an 
 
 ## Slice placement, tier, and manifest
 
-The slice is placed at `slices/core/mathematics/` and declares `gmeow:tierCore` — the manifest, not
-the directory, is the source of tier (the build reads the tier from `gmeow:sliceTier`; the
-`core`/`extensions` path segment is human organization it never reads). Core tier is the deliberate
+The slice is placed at `slices/grounding/math/` — the `grounding` group is the grounding layers'
+home, and the directory name matches the `math:` namespace prefix — and declares `gmeow:tierCore` —
+the manifest, not the directory, is the source of tier (the build reads the tier from
+`gmeow:sliceTier`; the `core`/`extensions`/`grounding` path segment is human organization it never
+reads). Core tier is the deliberate
 commitment the manifesto makes: mathematical objects, probability, statistics, proofs, and
 distributions are part of the default mental model that the scientific, research, finance, risk, AI,
 and analysis layers build on, not an optional extension they each re-derive. Because the slice is
