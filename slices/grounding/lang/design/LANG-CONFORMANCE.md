@@ -8,7 +8,7 @@
 > the preservation vocabulary the projection layer uses so semiotic loss is queryable alongside
 > every other GMEOW lowering. It is the language peer of
 > `slices/core/logic/design/LOGIC-CONFORMANCE.md` and
-> `slices/core/mathematics/design/MATHEMATICS-CONFORMANCE.md`. Where a sibling charter says
+> `slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md`. Where a sibling charter says
 > "established by shapes, competency queries, and the loss ledger", this document says *by which
 > shape, which query, which validator, and what failure is raised*.
 >

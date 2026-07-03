@@ -193,12 +193,14 @@ a shim.
 
 ## Slice placement, tier, and manifest
 
-The slice is placed at `slices/core/lang/` and declares `gmeow:tierCore` — the manifest, not the
+The slice is placed at `slices/grounding/lang/` — the `slices/grounding/` group is the grounding
+layers' home, peer to `slices/grounding/math/`, with `logic`'s relocation from `slices/core/logic`
+queued as its own mechanical change — and declares `gmeow:tierCore` — the manifest, not the
 directory, is the source of tier. Core tier is the deliberate commitment: forms, denotations,
 interpretations, renderings, and translations are part of the default mental model every textual
-surface builds on, not an optional extension. The directory name `lang` matches the namespace
-prefix (where `mathematics`/`math:` differ); the namespace is the identity, the path is human
-organization the build never reads.
+surface builds on, not an optional extension. Each grounding layer's directory name matches its
+namespace prefix; the namespace is the identity, the path is human organization the build never
+reads.
 
 A skeleton manifest — the actual `manifest.ttl` is authored when implementation begins; this fixes
 the identity, tier, and dependency contract now:

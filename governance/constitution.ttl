@@ -507,8 +507,8 @@ meta:Principle18 a meta:Principle ;
 meta:practice-grounding-design a meta:Practice ;
     rdfs:label "grounding-layer design-set review practice"@x-gmeow-english ;
     meta:artifact "slices/core/logic/design/LOGIC.md",
-        "slices/core/mathematics/design/MATHEMATICS.md",
-        "slices/core/lang/design/LANG.md" .
+        "slices/grounding/math/design/MATHEMATICS.md",
+        "slices/grounding/lang/design/LANG.md" .
 
 meta:Principle19 a meta:Principle ;
     meta:number 19 ;
