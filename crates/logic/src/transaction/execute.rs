@@ -26,7 +26,7 @@ use crate::teleology::{triple_reifier, TeleologyQuad, WorldFacts};
 ///
 /// A public mirror of the engine's `pub(crate)` `ExecutionMode`, so the façade can take the
 /// mode explicitly while the engine internals stay crate-private. It is the commit-vs-discard
-/// `ExecutionMode` facet, NOT modal possibility — see `slices/core/logic/design/LOGIC-TRANSACTION.md`.
+/// `ExecutionMode` facet, NOT modal possibility — see `slices/grounding/logic/design/LOGIC-TRANSACTION.md`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CommitMode {
     /// Materialize the effects (the default for a write that is finalized).

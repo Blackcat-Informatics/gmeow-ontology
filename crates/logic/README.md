@@ -247,8 +247,8 @@ assert_eq!(worlds, vec!["http://world/A", "http://world/B"]);
 
 ## Developer documentation
 
-- [Logic Runtime Architecture](../../slices/core/logic/design/LOGIC-RUNTIME.md)
-- [Logic Semantics](../../slices/core/logic/design/LOGIC-SEMANTICS.md)
+- [Logic Runtime Architecture](../../slices/grounding/logic/design/LOGIC-RUNTIME.md)
+- [Logic Semantics](../../slices/grounding/logic/design/LOGIC-SEMANTICS.md)
 - [Project Rationale](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/docs/RATIONALE.md)
 - [GMEOW Constitution](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/CONSTITUTION.md)
 - [Repository AGENTS.md](https://github.com/Blackcat-Informatics/gmeow-ontology/blob/main/AGENTS.md)

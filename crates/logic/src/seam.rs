@@ -100,7 +100,7 @@ impl std::fmt::Display for BudgetStatus {
 /// consulting any secondary index.
 ///
 /// Field names and semantics match the design contract in
-/// `slices/core/logic/design/LOGIC-RUNTIME.md §"The seam data contract"` verbatim:
+/// `slices/grounding/logic/design/LOGIC-RUNTIME.md §"The seam data contract"` verbatim:
 ///
 /// ```text
 /// Nemo output (per derived quad written to oxigraph):

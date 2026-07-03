@@ -7,7 +7,7 @@
 //! row-set cardinality — plus the shape a query expects on its input.
 //!
 //! This module is **pure data** — no I/O, no graph parsing. It is the Rust
-//! authority (Principle 17); `slices/core/logic/module.ttl` carries the lossy
+//! authority (Principle 17); `slices/grounding/logic/module.ttl` carries the lossy
 //! ontology projection of these types, and the harness
 //! (`crates/slicetest`) projects an `oxigraph::Term` into the [`ObservedTerm`]
 //! surface this module checks.

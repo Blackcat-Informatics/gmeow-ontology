@@ -4,7 +4,7 @@
 # Conformance case: cognition/hasskill-defeasible-evidence
 # AC (ME12): gmeow:hasSkill → gmeow:knowsAbout is DEFEASIBLE evidence, not a strict
 # subproperty entailment. The shipped reasoning never materializes knowsAbout from a
-# skill (no such rule ships in slices/core/logic); this case is the ONLY home of the
+# skill (no such rule ships in slices/grounding/logic); this case is the ONLY home of the
 # opt-in defeasible rule, run under an explicit StratifiedNAF contract. It derives
 # gmeow:knowsAbout from gmeow:hasSkill by default, BUT is defeated when the
 # competence is declared purely tacit (gmeow:competenceIsPurelyTacit) — negation as

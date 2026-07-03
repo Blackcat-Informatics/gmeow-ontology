@@ -452,10 +452,11 @@ mod tests {
 
     // The committed `.rq` files ARE the queries under test (include_str! keeps the
     // tests in lockstep with what `make verify` runs).
-    const COUNTERPART_Q: &str =
-        include_str!("../../../slices/core/logic/queries/verify/non-entailment-counterpart.rq");
+    const COUNTERPART_Q: &str = include_str!(
+        "../../../slices/grounding/logic/queries/verify/non-entailment-counterpart.rq"
+    );
     const REVIEWER_Q: &str =
-        include_str!("../../../slices/core/logic/queries/verify/reviewer-gate.rq");
+        include_str!("../../../slices/grounding/logic/queries/verify/reviewer-gate.rq");
 
     fn gm(local: &str) -> String {
         format!("{GMEOW}{local}")
@@ -662,10 +663,10 @@ mod tests {
     // ── Typed formalization governance: conditional-carrier verify queries ───────
 
     const NON_ENT_CARRIER_Q: &str = include_str!(
-        "../../../slices/core/logic/queries/verify/non-entailment-carrier-required.rq"
+        "../../../slices/grounding/logic/queries/verify/non-entailment-carrier-required.rq"
     );
     const PROMOTION_CASES_Q: &str =
-        include_str!("../../../slices/core/logic/queries/verify/promotion-cases-required.rq");
+        include_str!("../../../slices/grounding/logic/queries/verify/promotion-cases-required.rq");
 
     #[test]
     fn non_entailment_carrier_required_green_then_red() {

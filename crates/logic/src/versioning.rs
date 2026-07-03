@@ -5,7 +5,7 @@
 //!
 //! # Design authority
 //!
-//! Verbatim from `slices/core/logic/design/LOGIC-RUNTIME.md` §"Graph versioning and staleness":
+//! Verbatim from `slices/grounding/logic/design/LOGIC-RUNTIME.md` §"Graph versioning and staleness":
 //!
 //! > A materialized world graph is keyed by `(source_graph_hash, rule_set_hash, profile_id,
 //! > solver_version, budget_params)`.

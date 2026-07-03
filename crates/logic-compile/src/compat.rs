@@ -7,7 +7,7 @@
 //! every combination is soundly evaluable: some facet pairs name semantics that
 //! cannot coexist (the LOGIC-CONTRACT.md "forbidden combination" examples).  This
 //! module is the **authority** for which contracts are supported; the ontology
-//! surface (`logic:CompatibilityRule` individuals in `slices/core/logic/module.ttl`)
+//! surface (`logic:CompatibilityRule` individuals in `slices/grounding/logic/module.ttl`)
 //! is a lossy documentation projection of the [`RULES`] table (Principle 17).
 //!
 //! # Design — a data table, not a cascade of `if`s
@@ -428,7 +428,7 @@ pub fn check(contract: &ReasoningContract) -> ContractVerdict {
 /// Build the expanded facet contract for each of the six named presets, as the
 /// front-end would after expanding `logic:expandsToFacet`.  Used by the tests to
 /// assert every preset's contract is supported.  Mirrors the `expandsToFacet`
-/// bundles in `slices/core/logic/module.ttl`.
+/// bundles in `slices/grounding/logic/module.ttl`.
 #[cfg(test)]
 fn preset_contracts() -> Vec<ReasoningContract> {
     use super::ir::SemanticProfileId;

@@ -7,7 +7,7 @@
 > in the sibling charters into a specific, traceable gate with a named failure class, and it fixes
 > the preservation vocabulary the projection layer uses so mathematics loss is queryable alongside
 > every other GMEOW lowering. It is the mathematical peer of
-> `slices/core/logic/design/LOGIC-CONFORMANCE.md`. Where a sibling charter says "established by
+> `slices/grounding/logic/design/LOGIC-CONFORMANCE.md`. Where a sibling charter says "established by
 > shapes, competency queries, and the loss ledger", this document says *by which shape, which query,
 > which validator, and what failure is raised*.
 >
@@ -24,7 +24,7 @@ most declarative to most procedural:
   native reasoner over the reasoned graph.
 - **SHACL Core** — node/property shapes in `shapes.ttl` (cardinality, datatype, value range,
   `sh:in`) lowered from the canonical `logic:` validation-shape node kind
-  (`slices/core/logic/design/LOGIC-VALIDATION.md`).
+  (`slices/grounding/logic/design/LOGIC-VALIDATION.md`).
 - **SHACL-SPARQL** — constraints that need a query (uniqueness across a set, cross-node
   cardinality-by-role, contiguity), authored as `logic:` rules and projected to
   `sh:SPARQLConstraint`.
@@ -137,7 +137,7 @@ lowerings. The mathematics slice mints **no** near-synonyms.
 
 A mathematics projection is therefore a `logic:Correspondence` lowering carrying a
 `logic:preservationKind` and, where lossy, an enumeration of unsupported constructs — the same shape
-the correspondence calculus uses (`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`). "Lossy with
+the correspondence calculus uses (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`). "Lossy with
 named drops" is not a fourth polarity; it is a non-exact preservation with its drops enumerated.
 
 ## The conformance corpus

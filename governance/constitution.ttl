@@ -484,8 +484,8 @@ meta:gate-projection-compute-purity a meta:Gate ;
     meta:artifact "crates/validate/src/repo_static.rs",
         "crates/logic-compile/src/projections/shacl_af.rs",
         "generated/shacl-af/gmeow.shacl-af.ttl",
-        "slices/core/logic/design/LOGIC-SHACL-AF.md",
-        "slices/core/logic/design/LOGIC-RDFQUERY.md" ;
+        "slices/grounding/logic/design/LOGIC-SHACL-AF.md",
+        "slices/grounding/logic/design/LOGIC-RDFQUERY.md" ;
     meta:symbol "check_projection_compute_purity", "project_shacl_af" ;
     meta:cliCommand "crate-check", "check-generated" ;
     meta:makeTarget "crate-check", "check-generated" .
@@ -503,7 +503,7 @@ meta:gate-projection-shape-purity a meta:Gate ;
     meta:artifact "crates/validate/src/repo_static.rs",
         "crates/pipeline/src/stages/constraint_shapes.rs",
         "generated/shapes/constraint-shapes.ttl",
-        "slices/core/logic/design/LOGIC-VALIDATION.md" ;
+        "slices/grounding/logic/design/LOGIC-VALIDATION.md" ;
     meta:symbol "check_projection_shape_purity", "render_constraint_shapes" ;
     meta:cliCommand "crate-check", "check-generated" ;
     meta:makeTarget "crate-check", "check-generated" .
@@ -525,7 +525,7 @@ meta:Principle18 a meta:Principle ;
 # hand-off, in prose).
 meta:practice-grounding-design a meta:Practice ;
     rdfs:label "grounding-layer design-set review practice"@x-gmeow-english ;
-    meta:artifact "slices/core/logic/design/LOGIC.md",
+    meta:artifact "slices/grounding/logic/design/LOGIC.md",
         "slices/grounding/math/design/MATHEMATICS.md",
         "slices/grounding/lang/design/LANG.md" .
 

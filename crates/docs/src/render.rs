@@ -1832,7 +1832,7 @@ fn md_logic_index(model: &DocsModel) -> String {
     line(
         &mut out,
         "Terms grouped by their lowered OntoUML/UFO stereotype (the `logic:` discipline \
-         each term carries). See the slice doctrine under `slices/core/logic` for the \
+         each term carries). See the slice doctrine under `slices/grounding/logic` for the \
          stereotype semantics.",
     );
 
