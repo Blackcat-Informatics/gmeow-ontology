@@ -39,6 +39,7 @@ A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a t
 - `closeMatch` → [http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging](http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging) — *approximate match (close) — not an exact equivalence.*
 - `closeMatch` → [http://www\.w3\.org/ns/oa\#Annotation](http://www\.w3\.org/ns/oa\#Annotation) — *approximate match (close) — not an exact equivalence.*
 - *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
+- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Logic stereotypes
 
@@ -84,4 +85,5 @@ A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a t
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/Tagging>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/Tagging@blake3:366ec5981eea8c1dec316fd2b38236f18cbeed934bd90165fff15c665fc13285`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
