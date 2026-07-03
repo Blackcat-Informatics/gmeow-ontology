@@ -131,6 +131,46 @@ declared normalization transform (a string spec). The affect analogue of the
 rubrics facility's `gmeow:ScoreScale`, minted in core because affect cannot depend
 on the norms extension. Scale arithmetic is solver work (P12).
 
+### gmeow:AffectVectorObservation · gmeow:vectorComponent · gmeow:vectorProfile
+
+The stable, queryable identity for "the vector reading" — a reified multidimensional
+assessment (the `logic:GoalEvaluation`/`logic:AgencyAssessment` idiom, ⊑
+`gmeow:Observation`) grouping the per-axis `gmeow:Appraisal` cells that share
+vantage/target/elicitor/time (`vectorComponent`) and naming its metric/basis
+(`vectorProfile`, functional). One cell per axis is preserved; the grouping is the
+handle that makes the vector citable, signable, and suppressible as a unit.
+
+### gmeow:AffectComposite · gmeow:affectiveConstituent
+
+Model up, don't mint. A `gmeow:AffectComposite` (⊑ `gmeow:Emotion`) is a named
+emotion whose meaning is a *declared composition* — a core-affect vector bound by
+relations to elicitor, target, agency, norm, and other emotions
+(`affectiveConstituent`, mandatory). *Schadenfreude* = positive core affect whose
+elicitor is another agent's goal-incongruent outcome + other-directed agency +
+deservingness; *saudade* = bittersweet mixed valence + a past/absent target +
+prospective longing (see `examples/schadenfreude.ttl`, `examples/saudade.ttl`). A
+compound that cannot be decomposed is evidence the axis basis is incomplete (add an
+axis), never a licence for an opaque primitive. Named EmotionType prototypes
+(`gmeow:emotionSchadenfreude`, `gmeow:emotionSaudade`) are minted for usability and
+mapping *only because* the instances carry the decomposition.
+
+### gmeow:DerivedAffectIntensityObservation · gmeow:fnAffectiveIntensity · gmeow:intensityBasis · gmeow:metricProfile · gmeow:weightingPolicy · gmeow:normFunction
+
+Overall intensity is a **derived view**, never a stored fact. The norm of an
+`AffectVectorObservation` is computed *outside the logic* (P12) under a declared
+metric — and because the basis is non-orthogonal (valence correlates with
+goal-congruence, dominance overlaps coping), a raw L² norm is **not** the default.
+An intensity record MUST declare its basis, scale (`metricProfile`),
+`weightingPolicy`, and `normFunction` (SHACL hard-fail rule 8); `fnAffectiveIntensity`
+is the CLI-exposed function handle.
+
+### gmeow:AffectEvaluationConcluded
+
+"Checked and found flat" ≠ "never checked". A positive, queryable `Observation`
+recording that an affect evaluation ran over a target and found zero active
+magnitudes — so downstream logic can tell a concluded-flat baseline from the
+absence of any evaluation, without ever modelling a forbidden `neutral` EmotionType.
+
 ### gmeow:AestheticQuality · gmeow:appraisalQuality
 
 The qualitative form: an OPEN vocabulary seeded with elegance, sublimity, kitsch —

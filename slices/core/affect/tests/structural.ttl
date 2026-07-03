@@ -119,3 +119,90 @@ ex:saFeltAffectNotFunctional a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:feltAffect a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:feltAffect MUST NOT be functional — one felt episode may manifest several coexisting affective modes (a blended feeling), inheriting the non-functional character of gmeow:realizesMentalMoment." .
+
+# ── The dimensional landscape (axes, scale profile, vector, composites, intensity) ──
+
+ex:saCoreAffectDimensionSubOfAppraisal a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CoreAffectDimension a owl:Class ;
+        rdfs:subClassOf gmeow:AppraisalDimension .
+    gmeow:dimensionValence a gmeow:CoreAffectDimension ;
+        gmeow:dimensionFamily gmeow:familyCoreAffect .
+    gmeow:dimensionAgency gmeow:dimensionFamily gmeow:familyAppraisal .
+}""" ;
+    gmeow:saRationale "The two axis families MUST be distinguished BOTH by type (gmeow:CoreAffectDimension ⊑ gmeow:AppraisalDimension) AND by the gmeow:dimensionFamily tag — valence is a core-affect axis, agency a cognitive appraisal axis. Belt and suspenders; the vocabulary stays open (Principle 9)." .
+
+ex:saAppraisalValueRequiresProfile a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:appraisalScaleProfile a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Appraisal ;
+        rdfs:range gmeow:AffectScaleProfile .
+    gmeow:AffectScaleProfile a owl:Class .
+}""" ;
+    gmeow:saRationale "The reshape MUST provide the framing property: gmeow:appraisalScaleProfile (functional, Appraisal → gmeow:AffectScaleProfile) is how a dimensional reading declares the scale it is read against, replacing the removed bare-decimal floor (Principle 6/11). The SHACL AppraisalShape enforces its presence whenever gmeow:appraisalValue is asserted." .
+
+ex:saVectorObservationGroupsCells a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AffectVectorObservation a owl:Class ;
+        rdfs:subClassOf gmeow:Observation .
+    gmeow:vectorComponent a owl:ObjectProperty ;
+        rdfs:domain gmeow:AffectVectorObservation ;
+        rdfs:range gmeow:Appraisal .
+    gmeow:vectorProfile a owl:FunctionalProperty ;
+        rdfs:range gmeow:AffectScaleProfile .
+}""" ;
+    gmeow:saRationale "gmeow:AffectVectorObservation (⊑ gmeow:Observation, the reified-factored idiom) MUST group per-axis gmeow:Appraisal cells via gmeow:vectorComponent and name its basis via functional gmeow:vectorProfile — the queryable identity for a vector reading, one cell per axis preserved." .
+
+ex:saCompositeConstituentNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:affectiveConstituent a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:affectiveConstituent MUST NOT be functional — a composite (schadenfreude, saudade) decomposes into SEVERAL constituents (a core vector plus differentiating relations); the SHACL AffectCompositeShape requires at least one (no unanalyzed primitives)." .
+
+ex:saCompositeIsEmotion a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AffectComposite a owl:Class ;
+        rdfs:subClassOf gmeow:Emotion .
+    gmeow:affectiveConstituent a owl:ObjectProperty ;
+        rdfs:domain gmeow:AffectComposite .
+}""" ;
+    gmeow:saRationale "gmeow:AffectComposite MUST be a named gmeow:Emotion carrying its decomposition via gmeow:affectiveConstituent — modeling up compounds from axes and relations, never minting opaque primitives." .
+
+ex:saDerivedIntensityIsObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:DerivedAffectIntensityObservation a owl:Class ;
+        rdfs:subClassOf gmeow:Observation .
+    gmeow:intensityBasis a owl:FunctionalProperty ;
+        rdfs:range gmeow:AffectVectorObservation .
+    gmeow:metricProfile a owl:FunctionalProperty ;
+        rdfs:range gmeow:AffectScaleProfile .
+    gmeow:fnAffectiveIntensity a gmeow:AffectFunction .
+}""" ;
+    gmeow:saRationale "Overall intensity is a DERIVED gmeow:Observation (⊑ gmeow:Observation) over a declared gmeow:intensityBasis under a declared gmeow:metricProfile, exposed via the named gmeow:fnAffectiveIntensity function — a computed view under a named metric (Principle 12), never a stored ground fact. The SHACL shape enforces the full basis/scale/weighting/norm declaration." .
