@@ -511,6 +511,12 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
          equivalent. See the [preservation loss ledger]",
     ),
     (
+        "body_caveat_edoal_fno_pre",
+        "These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation \
+         correspondences, FnO) — sound but lossy under-approximations of the canonical \
+         correspondence. See the [preservation loss ledger]",
+    ),
+    (
         "body_caveat_narrow",
         "narrower match — the external term is more specific",
     ),
@@ -926,9 +932,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 106 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 107 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 166);
+        assert_eq!(UI_TEMPLATES.len(), 167);
     }
 
     #[test]

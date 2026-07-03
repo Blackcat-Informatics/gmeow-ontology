@@ -1423,17 +1423,33 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
                 None => push_line(&mut out, &format!("- `{tag}` → {target}")),
             }
         }
+        let ledger_href = rel(&from, &Page::LogicLossLedger.dir());
         // One section-level disclosure when any crosswalk is an approximate
         // (lossy) SKOS match, cross-linking the preservation loss ledger that
         // records the per-target structural drops. The prose halves resolve through
         // the UI-chrome catalog; the link target is the language-independent path.
         if any_lossy {
-            let ledger_href = rel(&from, &Page::LogicLossLedger.dir());
             push_line(
                 &mut out,
                 &format!(
                     "- *{}({ledger_href}index.md) {}*",
                     model.ui("body_caveat_disclosure_pre"),
+                    model.ui("body_caveat_disclosure_post"),
+                ),
+            );
+        }
+        // Even an EXACT SKOS/OWL match is a lossy projection once it is LOWERED to
+        // the EDOAL / FnO alignment formats — those targets under-approximate the
+        // canonical correspondence (they drop the SOL caveats + preservation
+        // judgment). Disclose that per-term whenever the term has any crosswalk and
+        // the loss ledger declares those lowerings lossy (sourced from the ledger,
+        // never hardcoded — an exact EDOAL/FnO row would suppress this note).
+        if edoal_fno_lowering_is_lossy() {
+            push_line(
+                &mut out,
+                &format!(
+                    "- *{}({ledger_href}index.md) {}*",
+                    model.ui("body_caveat_edoal_fno_pre"),
                     model.ui("body_caveat_disclosure_post"),
                 ),
             );
@@ -3382,6 +3398,18 @@ fn approximate_match_note(model: &DocsModel, predicate: &str) -> Option<String> 
     Some(model.ui(key).to_string())
 }
 
+/// Whether the EDOAL / FnO correspondence lowerings are declared lossy in the
+/// canonical projection loss ledger. The alignment section discloses that any
+/// crosswalk — even an exact SKOS/OWL match — is a lossy projection once lowered
+/// to those alignment formats; sourcing the verdict from the ledger (rather than
+/// hardcoding it) means an EDOAL/FnO row that ever became exact would suppress the
+/// note automatically.
+fn edoal_fno_lowering_is_lossy() -> bool {
+    gmeow_logic_compile::projections::projection_ledger_rows()
+        .iter()
+        .any(|row| (row.target == "edoal" || row.target == "fno") && !row.lossy_drops.is_empty())
+}
+
 fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
     if let Some(slice) = model.slices.iter().find(|s| s.iri == iri) {
         let href = rel(from, &Page::Slice(slice_slug(slice)).dir());
@@ -4611,6 +4639,15 @@ mod tests {
         assert!(
             md.contains("preservation loss ledger"),
             "loss-ledger cross-link present for an approximate alignment"
+        );
+        // Any crosswalk also discloses that its EDOAL/FnO lowering is lossy.
+        assert!(
+            edoal_fno_lowering_is_lossy(),
+            "the EDOAL/FnO lowerings are declared lossy in the projection ledger"
+        );
+        assert!(
+            md.contains("lowered to EDOAL"),
+            "per-term EDOAL/FnO lowering caveat present on an aligned term"
         );
 
         // Bar carries no advice/alignments → neither section appears on its page.
