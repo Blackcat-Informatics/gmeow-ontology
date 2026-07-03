@@ -26,8 +26,8 @@ use rstest::rstest;
         .fails()
         .violations(&[
             "exactly one gmeow:intentBearer",
-            "distinct from its committed agent",
-            "never its own counter-goal",
+            "gmeow:commitmentBeneficiary and gmeow:committedAgent must be distinct",
+            "its own gmeow:counterGoal",
             "exactly one gmeow:tenureAgent",
         ])
 )]

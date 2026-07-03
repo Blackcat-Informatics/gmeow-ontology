@@ -50,7 +50,7 @@ use rstest::rstest;
         .violations(&[
             "exactly one gmeow:Gender value",
             "must use exactly one appellation",
-            "may fill at most one identity axis",
+            "may fill at most one of these mutually disjoint classes",
         ])
         .warnings(&["should set gmeow:displayable false"])
 )]
@@ -69,7 +69,7 @@ ex:x a gmeow:SexualOrientation .
 "
     )
     .fails()
-    .violations(&["may fill at most one identity axis"])
+    .violations(&["may fill at most one of these mutually disjoint classes"])
 )]
 #[case::wellformed_facet_cardinality_passes(Case::inline(
     "\

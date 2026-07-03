@@ -39,7 +39,7 @@ ex:x rdf:type gmeow:SoftwareProduct .
 "
     ))
         .fails()
-        .violations(&["may fill at most one software facet"])
+        .violations(&["may fill at most one of these mutually disjoint classes"])
 )]
 #[case::fixture_parses_and_shacl_passes(Case::repo_path("tests/fixtures/software.ttl"))]
 fn software(#[case] case: Case) {
