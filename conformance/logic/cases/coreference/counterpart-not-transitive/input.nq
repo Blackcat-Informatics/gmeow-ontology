@@ -1,0 +1,2 @@
+<https://example.org/coreference/counterpart-not-transitive/a> <https://blackcatinformatics.ca/gmeow/counterpartOf> <https://example.org/coreference/counterpart-not-transitive/b> <https://example.org/coreference/counterpart-not-transitive/world> .
+<https://example.org/coreference/counterpart-not-transitive/b> <https://blackcatinformatics.ca/gmeow/counterpartOf> <https://example.org/coreference/counterpart-not-transitive/c> <https://example.org/coreference/counterpart-not-transitive/world> .

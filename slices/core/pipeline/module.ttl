@@ -320,6 +320,7 @@ gmeow:pipeline-build
         gmeow:stage-validate ,
         gmeow:stage-conformance ,
         gmeow:stage-constraint-catalog ,
+        gmeow:stage-term-manifest ,
         gmeow:stage-docs-render ,
         gmeow:stage-snapshot ,
         gmeow:stage-export-schemas ,
@@ -464,6 +465,17 @@ gmeow:stage-constraint-catalog
     gmeow:stageImpl "constraint_catalog" ;
     gmeow:dataflowConsumes gmeow:stage-reason .
 
+gmeow:stage-term-manifest
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "term content manifest"@x-gmeow-english ;
+    skos:definition "Generate the machine-readable term content manifest: one gmeow:definitionDigest per documented term — the RDFC-1.0-canonical blake3 content-address of the term's defining triples (its concise bounded description with the per-term provenance predicates excluded) — plus its first-seen gmeow:addedInVersion and a reified gmeow:hasChangelogEntry for every release whose digest diverged from the prior committed manifest. Consumes gmeow:stage-reason so it runs after the reasoned closure, mirroring the constraint-catalog leaf; the computed changelog drives the per-term change detection surfaced in the docs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "term_manifest" ;
+    gmeow:dataflowConsumes gmeow:stage-reason .
+
 # ── Snapshot assembly (structured multi-named-graph dist bundle) ──
 
 gmeow:stage-snapshot
@@ -489,6 +501,7 @@ gmeow:stage-snapshot
         gmeow:stage-reason ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
+        gmeow:stage-term-manifest ,
         gmeow:stage-validate .
 
 # ── Export leaves (parallel fan-out, each folds one artifact set) ──
@@ -740,11 +753,13 @@ gmeow:stage-gts-sink
         gmeow:stage-export-apache ,
         gmeow:stage-export-bench ,
         gmeow:stage-export-evals ,
+        gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-json-schema ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-references ,
         gmeow:stage-export-research-objects ,
+        gmeow:stage-export-result-shapes ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,

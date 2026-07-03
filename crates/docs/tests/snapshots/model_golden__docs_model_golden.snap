@@ -1,19 +1,18 @@
 ---
 source: crates/docs/tests/model_golden.rs
-assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "6",
+  "version": "7",
   "slice_count": 76,
-  "term_count": 2336,
-  "dependency_edge_count": 859,
+  "term_count": 2339,
+  "dependency_edge_count": 875,
   "term_count_by_category": {
-    "Class": 707,
+    "Class": 708,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1625
+    "Property": 1627
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -194,8 +193,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:d6470c559d25036e50b4d84de570b8ba8dedd056a39e7e972c5cf5f92d744a2d",
       "profiles": [
         "claims",
         "dreaming",
@@ -243,8 +243,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:4f5b4ea54d5738f764aab4111804bd4ffb80874d178369db4b84a72c8495b12c",
       "profiles": [
         "claims",
         "dreaming",
@@ -280,8 +281,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:9377d5bb8e26abf8a92e498d619ffdf9307be63122874c3230d1853052a68c68",
       "profiles": [
         "claims",
         "dreaming",
@@ -293,10 +295,10 @@ expression: summary
     }
   ],
   "mapping_set_count": 72,
-  "linkage_count": 1778,
-  "example_count": 114,
+  "linkage_count": 1781,
+  "example_count": 117,
   "concern_count": 7,
-  "external_term_count": 1540,
+  "external_term_count": 1543,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -414,8 +416,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 298,
-  "competency_count": 55,
+  "shape_count": 299,
+  "competency_count": 65,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
@@ -425,15 +427,10 @@ expression: summary
     "owner_slice": "root"
   },
   "sample_competency": {
-    "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqMentalLife",
-    "rationale": "GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings (gmeow:CognitiveState), beliefs (gmeow:DoxasticState), and intentions (gmeow:IntentionalMode) — the agent-memory flagship capability. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant.",
-    "query_file": "slices/core/affect/queries/competency/mental-life.rq",
-    "exercises": [
-      "https://blackcatinformatics.ca/gmeow/CognitiveState",
-      "https://blackcatinformatics.ca/gmeow/DoxasticState",
-      "https://blackcatinformatics.ca/gmeow/Emotion",
-      "https://blackcatinformatics.ca/gmeow/IntentionalMode"
-    ],
+    "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqFeltEpisodes",
+    "rationale": "An agent's felt mental life is queryable — a felt gmeow:AffectiveExperience (occurrent) is joined to the enduring gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment), the episode's experiencer being the mode's bearer (one agent, two aspects). The overlay felt-anger scene makes the whole bridge present.",
+    "query_file": "slices/core/affect/queries/competency/felt-episodes.rq",
+    "exercises": [],
     "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/affect"
   }
 }

@@ -25,7 +25,7 @@
 | [`MATHEMATICS-ALGEBRA.md`](MATHEMATICS-ALGEBRA.md) | algebra | the structure hierarchy (groups→rings→fields→Lie), homomorphisms as declared laws, root systems and Weyl groups (the E8 flagship), and ring homomorphisms under encryption (the homomorphic-encryption flagship) |
 | [`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md) | analysis & geometry | calculus as AST-native binders, special functions, topology, and differential geometry / manifolds (Lorentzian metrics — the math side of the physical-frame case); the named-complement gate |
 | [`MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md) | linear algebra & learning | inner-product spaces and decompositions, PCA (the KG-projection flagship), embeddings and latent spaces, and the tensor structure of AI systems (the AI-self-structure flagship) |
-| [`MATHEMATICS-BRIDGES.md`](MATHEMATICS-BRIDGES.md) | ingestion bridges | the parse-into front-ends — R→`math:` (any script), ONNX→`math:`, and proof-as-process — each splitting input across the two grounding layers and hard-failing on the unliftable |
+| [`MATHEMATICS-BRIDGES.md`](MATHEMATICS-BRIDGES.md) | ingestion bridges | the parse-into front-ends — R→`math:` (any script), ONNX→`math:`, and proof-as-process — each splitting input across the `logic:` and `math:` grounding layers and hard-failing on the unliftable |
 
 > **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
 > realization implements X, established by the slice's shapes, competency queries, and the
@@ -58,9 +58,12 @@ notation, OpenMath for content, RDF Data Cube for statistical cubes, QUDT for un
 statistical methods, Wikidata for named-concept identity. None of those becomes a second source of
 truth; each is a generated view with a recorded preservation judgment.
 
-## The two grounding layers
+## The grounding layers
 
-GMEOW has two co-foundational grounding layers, and mathematics is the second of them. `logic:`
+GMEOW has three co-foundational grounding layers (CONSTITUTION.md Principle 19), and mathematics
+is one of them; the third, `lang:` — meaning and expression — is chartered in its own design set
+([`../../lang/design/LANG.md`](../../lang/design/LANG.md)) and does not depend on `math:`, so
+this manifesto's concern remains the `logic:`/`math:` relationship it fixes here. `logic:`
 grounds **reasoning** — truth, inference, proof, modality — as a Turing-complete computational
 substrate built on a relational core (predicates, rules, resolution). `math:` grounds **quantity
 and structure** — number, space, operation, measure, dimension — as the canonical structural
@@ -89,7 +92,7 @@ DAG stays acyclic.
 
 The symmetry is made concrete in the namespace. The grounding layer's terms live in the **`math:`**
 namespace (`https://blackcatinformatics.ca/math/`), peer to **`logic:`**
-(`https://blackcatinformatics.ca/logic/`) — the two grounding layers each own a namespace, distinct
+(`https://blackcatinformatics.ca/logic/`) — the grounding layers each own a namespace, distinct
 from the general `gmeow:` ontology namespace the domain slices share. Terms this layer *borrows* from
 other slices keep their home namespace — the `observations` spine (`gmeow:Observation`,
 `gmeow:Quantity`, `gmeow:vantage`), `provenance`/`events` (`gmeow:Activity`, `gmeow:wasGeneratedBy`),
@@ -165,9 +168,11 @@ statistical object *and* the result of an inference/analysis act recorded as an 
 
 ## Slice placement, tier, and manifest
 
-The slice is placed at `slices/core/mathematics/` and declares `gmeow:tierCore` — the manifest, not
-the directory, is the source of tier (the build reads the tier from `gmeow:sliceTier`; the
-`core`/`extensions` path segment is human organization it never reads). Core tier is the deliberate
+The slice is placed at `slices/grounding/math/` — the `grounding` group is the grounding layers'
+home, and the directory name matches the `math:` namespace prefix — and declares `gmeow:tierCore` —
+the manifest, not the directory, is the source of tier (the build reads the tier from
+`gmeow:sliceTier`; the `core`/`extensions`/`grounding` path segment is human organization it never
+reads). Core tier is the deliberate
 commitment the manifesto makes: mathematical objects, probability, statistics, proofs, and
 distributions are part of the default mental model that the scientific, research, finance, risk, AI,
 and analysis layers build on, not an optional extension they each re-derive. Because the slice is
