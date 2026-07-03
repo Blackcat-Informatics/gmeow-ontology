@@ -80,6 +80,19 @@ gmeow:affectiveElicitor
     gmeow:howToUse "Point it from an Emotion at the occurrent (event/act/state) that gave rise to it; leave the range open (constrained to an IRI by SHACL)."@x-gmeow-english ;
     gmeow:useWhen "Use to record the trigger/cause of an affective state, kept separate from its aboutness."@x-gmeow-english .
 
+gmeow:elicits
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:affectiveElicitor ;
+    rdfs:range gmeow:Emotion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "elicits"@x-gmeow-english ;
+    skos:definition "Trigger-to-emotion inverse of gmeow:affectiveElicitor: the occurrent (event, state, or act) that gave rise to an emotion, read from the trigger's side. Domain is intentionally open (anything can elicit); the range is gmeow:Emotion. A query/projection convenience — assert gmeow:affectiveElicitor and read gmeow:elicits as its inverse."@x-gmeow-english ;
+    skos:example "ex:suddenBark gmeow:elicits ex:startle ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting gmeow:elicits directly; prefer asserting gmeow:affectiveElicitor from the Emotion and let gmeow:elicits follow by inversion. Do not use it for what an emotion is ABOUT (that is gmeow:affectiveTarget, whose inverse is not this property)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it from a trigger to the emotion(s) it elicited; reach for it explicitly only in trigger-rooted projections where the inverse direction is the natural one to state."@x-gmeow-english ;
+    gmeow:useWhen "Use when traversing or projecting from a trigger to the emotions it elicited."@x-gmeow-english .
+
 gmeow:affectiveTarget
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Emotion ;
