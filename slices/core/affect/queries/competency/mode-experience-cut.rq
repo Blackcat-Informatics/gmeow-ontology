@@ -1,0 +1,15 @@
+# Competency question (Stage 2): the mode/experience cut holds over the whole
+# ontology. The occurrent felt episode (gmeow:AffectiveExperience) sits on the
+# mental-PROCESS spine (⊑ gmeow:MentalProcess) and is NEVER in the endurant
+# gmeow:MentalMoment family — modes are endurants (logic:Mode), experiences are
+# occurrents (logic:Event), and the foundation's logic:Endurant/logic:Perdurant
+# disjointness keeps them apart. Asserted lane; runs over the merged ontology
+# (the Experience ⊑ MentalProcess edge lives in the mentation slice).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+
+ASK {
+    gmeow:AffectiveExperience rdfs:subClassOf* gmeow:MentalProcess .
+    FILTER NOT EXISTS { gmeow:AffectiveExperience rdfs:subClassOf* gmeow:MentalMoment . }
+}
