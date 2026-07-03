@@ -424,7 +424,7 @@ expression: summary
   },
   "sample_competency": {
     "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqFeltEpisodes",
-    "rationale": "Stage 2 acceptance: an agent's felt mental life is queryable — a felt gmeow:AffectiveExperience (occurrent) is joined to the enduring gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment), the episode's experiencer being the mode's bearer (one agent, two aspects). The overlay felt-anger scene makes the whole bridge present.",
+    "rationale": "An agent's felt mental life is queryable — a felt gmeow:AffectiveExperience (occurrent) is joined to the enduring gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment), the episode's experiencer being the mode's bearer (one agent, two aspects). The overlay felt-anger scene makes the whole bridge present.",
     "query_file": "slices/core/affect/queries/competency/felt-episodes.rq",
     "exercises": [],
     "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/affect"
