@@ -479,6 +479,10 @@ fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, Pipe
 /// sorted. Walks the tree directly (the gate enumerates the on-disk committed set,
 /// not a stage product).
 fn committed_generated_paths(root: &Path) -> Result<Vec<String>, PipelineError> {
+    // GENERATED-READ-OK: the superset gate VERIFIES the shipped bundle is a superset of the
+    // committed generated/ tree, so it must enumerate that on-disk tree — a verification read,
+    // not a produce-stage fold of a stale projection. Nothing here folds into gmeow.gts; this
+    // read is the oracle the gate checks the freshly-projected bundle against.
     let base = root.join("generated");
     let mut out = Vec::new();
     walk(&base, root, &mut out)?;
