@@ -143,9 +143,11 @@ pub(crate) fn serialize_carrier_snapshot(
         &openapi_json,
         &compile_artifacts,
         &mappings_artifacts,
-        &result_shapes_ttl,
-        &frame_shapes_ttl,
-        &constraint_shapes_ttl,
+        &ShapeSurfaces {
+            result: &result_shapes_ttl,
+            frame: &frame_shapes_ttl,
+            constraint: &constraint_shapes_ttl,
+        },
     )?;
     blobs.extend(build_guide_blobs(root)?);
     // The rendered docs site embeds the per-term reasoning badge, so it carries the
@@ -831,22 +833,28 @@ fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     Ok(blobs)
 }
 
+/// THIS run's three generated SHACL shape surfaces, folded into REP_SHAPES from the
+/// producing export leaves' products (never a stale disk read). Grouped into named
+/// fields so the three same-typed `&[u8]` cannot be transposed at the call site.
+struct ShapeSurfaces<'a> {
+    result: &'a [u8],
+    frame: &'a [u8],
+    constraint: &'a [u8],
+}
+
 /// Build the bundle archive blobs from the repo tree: mappings, cells, queries,
 /// tests, schemas, the SHACL shape surface, and the compiled logic/DL axiom
 /// surface. The SHACL-derived JSON Schema + OpenAPI bytes are passed in from
 /// THIS run's `stage-export-json-schema` product (not re-read from disk) so a single
 /// regenerate folds the fresh schema — the committed `generated/schemas/*.json` are
 /// not flushed until phase 1 returns.
-#[allow(clippy::too_many_arguments)] // one fresh-product byte slice per generated-shape leaf
 fn build_archive_blobs(
     root: &Path,
     schema_json: &[u8],
     openapi_json: &[u8],
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
-    result_shapes_ttl: &[u8],
-    frame_shapes_ttl: &[u8],
-    constraint_shapes_ttl: &[u8],
+    shape_surfaces: &ShapeSurfaces<'_>,
 ) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
@@ -944,15 +952,15 @@ fn build_archive_blobs(
     for (rel, fresh_bytes) in [
         (
             crate::stages::result_shapes::RESULT_SHAPES_PATH,
-            result_shapes_ttl,
+            shape_surfaces.result,
         ),
         (
             crate::stages::frame_shapes::FRAME_SHAPES_PATH,
-            frame_shapes_ttl,
+            shape_surfaces.frame,
         ),
         (
             crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
-            constraint_shapes_ttl,
+            shape_surfaces.constraint,
         ),
     ] {
         if let Some(entry) = shapes.iter_mut().find(|(k, _)| k == rel) {
@@ -3412,9 +3420,11 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &fresh_result_shapes_from_disk(&root),
-            &fresh_frame_shapes_from_disk(&root),
-            &fresh_constraint_shapes_from_disk(&root),
+            &ShapeSurfaces {
+                result: &fresh_result_shapes_from_disk(&root),
+                frame: &fresh_frame_shapes_from_disk(&root),
+                constraint: &fresh_constraint_shapes_from_disk(&root),
+            },
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3511,9 +3521,11 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &fresh_result_shapes_from_disk(&root),
-            &fresh_frame_shapes_from_disk(&root),
-            &fresh_constraint_shapes_from_disk(&root),
+            &ShapeSurfaces {
+                result: &fresh_result_shapes_from_disk(&root),
+                frame: &fresh_frame_shapes_from_disk(&root),
+                constraint: &fresh_constraint_shapes_from_disk(&root),
+            },
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3545,9 +3557,11 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &fresh_result_shapes_from_disk(&root),
-            &fresh_frame_shapes_from_disk(&root),
-            &fresh_constraint_shapes_from_disk(&root),
+            &ShapeSurfaces {
+                result: &fresh_result_shapes_from_disk(&root),
+                frame: &fresh_frame_shapes_from_disk(&root),
+                constraint: &fresh_constraint_shapes_from_disk(&root),
+            },
         )
         .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
