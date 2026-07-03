@@ -1104,27 +1104,99 @@ fn md_about(model: &DocsModel) -> String {
     out
 }
 
+/// A total-order sort key for a version string: the parsed `(major, minor,
+/// patch)` numeric triple when the string is dotted-numeric, else a sentinel that
+/// sorts unparsable versions last; the original string is the final tiebreak so
+/// the order is total and deterministic (never a branchy comparator).
+fn version_sort_key(version: &str) -> ((u64, u64, u64, u8), String) {
+    let mut parts = version.split('.');
+    let mut next = || parts.next().and_then(|p| p.parse::<u64>().ok());
+    match (next(), next(), next()) {
+        (Some(major), Some(minor), Some(patch)) if parts.next().is_none() => {
+            ((major, minor, patch, 0), version.to_string())
+        }
+        // Unparsable / non-triple versions sort after every semver triple (the
+        // trailing sentinel byte = 1), ordered among themselves by their string.
+        _ => ((u64::MAX, u64::MAX, u64::MAX, 1), version.to_string()),
+    }
+}
+
+/// The changelog surface, derived from the per-term content-address provenance:
+/// every term's `added_in_version` seeds an "Added" row under that release, and
+/// every reified changelog entry (a content-digest divergence) a "Changed" row.
+/// Releases are listed newest-first; within a release, terms are CURIE-sorted.
 fn md_changelog(model: &DocsModel) -> String {
+    let from = Page::Changelog.dir();
+    // release version → (added terms, changed (term, note) rows). BTreeMap keeps
+    // the collection deterministic; the explicit version_sort_key drives display.
+    let mut added: BTreeMap<String, Vec<&DocTerm>> = BTreeMap::new();
+    let mut changed: BTreeMap<String, Vec<(&DocTerm, Option<String>)>> = BTreeMap::new();
+    for term in &model.terms {
+        if let Some(version) = &term.added_in_version {
+            added.entry(version.clone()).or_default().push(term);
+        }
+        for entry in &term.changelog {
+            changed
+                .entry(entry.version.clone())
+                .or_default()
+                .push((term, entry.note.clone()));
+        }
+    }
+
+    // Every release that carries either an addition or a change, newest-first.
+    let mut versions: Vec<String> = added.keys().chain(changed.keys()).cloned().collect();
+    versions.sort_by_key(|v| std::cmp::Reverse(version_sort_key(v)));
+    versions.dedup();
+
     let mut out = String::new();
     heading(&mut out, 1, model.ui("body_changelog"));
     line(
         &mut out,
-        "This documentation surface is regenerated from the slice catalog on every build, so it \
-         always reflects the current state of the ontology.",
+        "Each release below is derived from the per-term content-address manifest: a term is \
+         listed under the release it was first seen in, and again whenever its canonical \
+         definition digest changed.",
     );
-    heading(
-        &mut out,
-        2,
-        &format!("Documentation model v{}", md_escape(&model.version)),
-    );
-    push_line(
-        &mut out,
-        &format!(
-            "- {} terms and {} slices documented.",
-            model.terms.len(),
-            model.slices.len()
-        ),
-    );
+
+    let term_link = |from: &str, term: &DocTerm| {
+        format!(
+            "[`{}`]({}index.md){}",
+            code_escape(&term.curie),
+            rel(from, &Page::Term(term_slug(term)).dir()),
+            label_suffix(term)
+        )
+    };
+
+    for version in &versions {
+        heading(&mut out, 2, &md_escape(version));
+        if let Some(terms) = added.get(version) {
+            let mut terms = terms.clone();
+            terms.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+            heading(&mut out, 3, model.ui("body_changelog_added"));
+            for term in terms {
+                push_line(&mut out, &format!("- {}", term_link(&from, term)));
+            }
+            blank(&mut out);
+        }
+        if let Some(rows) = changed.get(version) {
+            let mut rows = rows.clone();
+            rows.sort_by(|a, b| {
+                a.0.curie
+                    .cmp(&b.0.curie)
+                    .then_with(|| a.0.iri.cmp(&b.0.iri))
+            });
+            heading(&mut out, 3, model.ui("body_changelog_changed"));
+            for (term, note) in rows {
+                match note {
+                    Some(note) => push_line(
+                        &mut out,
+                        &format!("- {} — {}", term_link(&from, term), md_escape(&note)),
+                    ),
+                    None => push_line(&mut out, &format!("- {}", term_link(&from, term))),
+                }
+            }
+            blank(&mut out);
+        }
+    }
     blank(&mut out);
     out
 }
@@ -1609,7 +1681,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
-    // ── Changelog (#1026 — added-in version + reified per-release entries) ───────
+    // ── Changelog (added-in version + reified per-release entries) ──────────────
     if term.added_in_version.is_some() || !term.changelog.is_empty() {
         heading(&mut out, 2, model.ui("body_changelog"));
         if let Some(version) = &term.added_in_version {
@@ -1634,15 +1706,28 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
-    // ── Citation (#1026 — content-addressed permalink + cite-this affordance) ────
-    // The term IRI is the dereferenceable, content-addressed permalink; the
-    // concept DOI (read from metadata/gmeow-self.ttl) cites the whole ontology;
-    // the owner slice's identifier cites the slice when one is registered.
+    // ── Citation (permalink + genuine content address + cite-this affordance) ───
+    // The term IRI is the dereferenceable permalink. The content address is the
+    // RDFC-1.0 canonical digest of the term's defining triples (gmeow:definitionDigest),
+    // so `<iri>@<digest>` pins the exact definition this page describes. The concept
+    // DOI (read from metadata/gmeow-self.ttl) cites the whole ontology; the owner
+    // slice's identifier cites the slice when one is registered.
     heading(&mut out, 2, model.ui("body_citation"));
     push_line(
         &mut out,
         &format!("- **{}:** <{}>", model.ui("body_label_permalink"), term.iri),
     );
+    if !term.content_digest.is_empty() {
+        push_line(
+            &mut out,
+            &format!(
+                "- **{}:** `{}@{}`",
+                model.ui("body_label_content_address"),
+                term.iri,
+                code_escape(&term.content_digest)
+            ),
+        );
+    }
     if let Some(doi) = &model.concept_doi {
         push_line(
             &mut out,

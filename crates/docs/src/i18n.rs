@@ -519,6 +519,8 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "related match — associative, not an equivalence",
     ),
     ("body_changelog", "Changelog"),
+    ("body_changelog_added", "Added"),
+    ("body_changelog_changed", "Changed"),
     ("body_citation", "Citation"),
     ("body_compiler_diagnostics", "Compiler diagnostics"),
     ("body_compiler_products", "Compiler products"),
@@ -557,6 +559,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_label_alignment_density", "Alignment density"),
     ("body_label_cite_ontology", "Cite the ontology"),
     ("body_label_cite_slice", "Cite the slice"),
+    ("body_label_content_address", "Content address"),
     ("body_label_help_link", "Help link"),
     ("body_label_orphan_terms", "Orphan terms"),
     ("body_label_permalink", "Permalink"),
@@ -923,9 +926,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 103 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 106 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 163);
+        assert_eq!(UI_TEMPLATES.len(), 166);
     }
 
     #[test]
