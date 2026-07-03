@@ -32,11 +32,11 @@ Docker-optional classic-cross-check report at
 ## Documented divergences (native EL intentionally differs — not defects)
 
 These `divergence`-lane corpora are vendored to PROVE the native engine correctly
-declines or differs from the published DL/Full answer; their corpus-only rows are
-expected and are excluded from the headline agreement rate above.
+declines (a dl-gap) or differs (a corpus-only row) from the published DL/Full answer;
+both are documented, intended, and excluded from the headline agreement rate above.
 
-| corpus | cases | corpus-only (documented) | dl-gap |
-|---|---|---|---|
-| w3c-owl2-el-divergence | 2 | 0 | 2 |
+| corpus | cases | agree | corpus-only (documented) | dl-gap |
+|---|---|---|---|---|
+| w3c-owl2-el-divergence | 2 | 0 | 0 | 2 |
 
 5 agreement-expected corpus(es), 1 documented-divergence corpus(es).

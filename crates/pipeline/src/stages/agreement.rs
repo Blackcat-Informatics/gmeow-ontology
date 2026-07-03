@@ -152,20 +152,23 @@ pub(crate) fn render_agreement_matrix(
             .to_string(),
     );
     lines.push(
-        "declines or differs from the published DL/Full answer; their corpus-only rows are"
+        "declines (a dl-gap) or differs (a corpus-only row) from the published DL/Full answer;"
             .to_string(),
     );
-    lines.push("expected and are excluded from the headline agreement rate above.".to_string());
+    lines.push(
+        "both are documented, intended, and excluded from the headline agreement rate above."
+            .to_string(),
+    );
     lines.push(String::new());
     if divergence.is_empty() {
         lines.push("_(none in the committed corpus)_".to_string());
     } else {
-        lines.push("| corpus | cases | corpus-only (documented) | dl-gap |".to_string());
-        lines.push("|---|---|---|---|".to_string());
+        lines.push("| corpus | cases | agree | corpus-only (documented) | dl-gap |".to_string());
+        lines.push("|---|---|---|---|---|".to_string());
         for (corpus, r) in &divergence {
             lines.push(format!(
-                "| {corpus} | {} | {} | {} |",
-                r.cases, r.corpus_only, r.dl_gap
+                "| {corpus} | {} | {} | {} | {} |",
+                r.cases, r.agree, r.corpus_only, r.dl_gap
             ));
         }
     }
@@ -320,8 +323,9 @@ mod tests {
             !head.contains("w3c-owl2-el-divergence"),
             "divergence corpus must not appear in the agreement section"
         );
+        // Divergence table carries its own agree column: cases | agree | corpus-only | dl-gap.
         assert!(
-            tail.contains("| w3c-owl2-el-divergence | 2 | 2 | 0 |"),
+            tail.contains("| w3c-owl2-el-divergence | 2 | 0 | 2 | 0 |"),
             "divergence corpus row missing: {tail}"
         );
     }
