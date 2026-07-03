@@ -496,3 +496,23 @@ meta:Principle18 a meta:Principle ;
         meta:gate-classic-cross-check, meta:gate-native-oracle-superset,
         meta:tests-lane-purity, meta:gate-release-evidence ;
     meta:extends meta:Principle17, meta:Principle13 .
+
+# The grounding-layer triad. The logic: layer's share is gate-enforced today
+# (the Principle 17 conformance/round-trip gates, re-cited below); the math:
+# and lang: layers are design-stage, enforced by design-set review practice
+# until their slices land with the conformance charters their design sets
+# specify — at which point this principle's enforcement is amended to the
+# real gates (the CONSTITUTION.md § 19 "Tested by" clause states the same
+# hand-off, in prose).
+meta:practice-grounding-design a meta:Practice ;
+    rdfs:label "grounding-layer design-set review practice"@x-gmeow-english ;
+    meta:artifact "slices/core/logic/design/LOGIC.md",
+        "slices/core/mathematics/design/MATHEMATICS.md",
+        "slices/core/lang/design/LANG.md" .
+
+meta:Principle19 a meta:Principle ;
+    meta:number 19 ;
+    meta:title "Three co-foundational grounding layers — reasoning, structure, and meaning" ;
+    meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
+        meta:practice-grounding-design ;
+    meta:extends meta:Principle17 .
