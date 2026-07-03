@@ -7,7 +7,7 @@ expression: summary
   "version": "6",
   "slice_count": 75,
   "term_count": 2280,
-  "dependency_edge_count": 827,
+  "dependency_edge_count": 831,
   "term_count_by_category": {
     "Class": 687,
     "Datatype": 1,
@@ -413,7 +413,7 @@ expression: summary
     ]
   },
   "shape_count": 291,
-  "competency_count": 54,
+  "competency_count": 55,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
@@ -423,21 +423,15 @@ expression: summary
     "owner_slice": "root"
   },
   "sample_competency": {
-    "iri": "https://blackcatinformatics.ca/gmeow/examples/citations/tests/cqCitationIntents",
-    "rationale": "GMEOW must model citation intents (CiTO-aligned): cites-as-data-source, uses-method-in, extends, is-inspired-by, conforms-to, derived-from, documents, supports, disagrees-with, bridged-by-reference.",
-    "query_file": "queries/competency/citation-intents.rq",
+    "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqMentalLife",
+    "rationale": "GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings (gmeow:CognitiveState), beliefs (gmeow:DoxasticState), and intentions (gmeow:IntentionalMode) — the agent-memory flagship capability. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant.",
+    "query_file": "slices/core/affect/queries/competency/mental-life.rq",
     "exercises": [
-      "https://blackcatinformatics.ca/gmeow/intentBridgedByReference",
-      "https://blackcatinformatics.ca/gmeow/intentCitesAsDataSource",
-      "https://blackcatinformatics.ca/gmeow/intentConformsTo",
-      "https://blackcatinformatics.ca/gmeow/intentDerivedFrom",
-      "https://blackcatinformatics.ca/gmeow/intentDisagreesWith",
-      "https://blackcatinformatics.ca/gmeow/intentDocuments",
-      "https://blackcatinformatics.ca/gmeow/intentExtends",
-      "https://blackcatinformatics.ca/gmeow/intentIsInspiredBy",
-      "https://blackcatinformatics.ca/gmeow/intentSupports",
-      "https://blackcatinformatics.ca/gmeow/intentUsesMethodIn"
+      "https://blackcatinformatics.ca/gmeow/CognitiveState",
+      "https://blackcatinformatics.ca/gmeow/DoxasticState",
+      "https://blackcatinformatics.ca/gmeow/Emotion",
+      "https://blackcatinformatics.ca/gmeow/IntentionalMode"
     ],
-    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/citations"
+    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/affect"
   }
 }
