@@ -49,6 +49,7 @@
   "gmeow-notation.sssom.tsv": 8,
   "gmeow-notes.sssom.tsv": 16,
   "gmeow-observations.sssom.tsv": 75,
+  "gmeow-ontouml.sssom.tsv": 9,
   "gmeow-places.sssom.tsv": 221,
   "gmeow-privacy.sssom.tsv": 24,
   "gmeow-procedures.sssom.tsv": 43,
@@ -69,8 +70,8 @@
   "gmeow-versions.sssom.tsv": 4,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1761,
+ "equivalences": 1770,
  "functions": 59,
- "mapping_sets": 69,
+ "mapping_sets": 70,
  "projections": 527
 }

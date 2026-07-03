@@ -1,0 +1,2 @@
+<https://gmeow.example/ontouml-mini/stereotype-cardinality/Thing> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind> <https://gmeow.example/ontouml-mini/stereotype-cardinality/w> .
+<https://gmeow.example/ontouml-mini/stereotype-cardinality/Thing> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> <https://gmeow.example/ontouml-mini/stereotype-cardinality/w> .

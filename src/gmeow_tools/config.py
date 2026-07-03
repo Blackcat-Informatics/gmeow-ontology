@@ -351,6 +351,7 @@ PREFIXES: dict[str, str] = {
     "align": "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
     # Upper-ontology spine
     "gufo": "http://purl.org/nemo/gufo#",
+    "ontouml": "https://w3id.org/ontouml#",
     "umbel": "http://umbel.org/umbel#",
     "umbelrc": "http://umbel.org/umbel/rc/",
     "dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
@@ -608,6 +609,9 @@ class AlignmentTarget:
 #: the policy is derived from each target's license automatically.
 ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "gufo": AlignmentTarget("gUFO", PREFIXES["gufo"], "MIT", "upper"),
+    # OntoUML metamodel vocabulary — CC-BY-SA-4.0 (ReferenceOnly): aligned BY
+    # REFERENCE only (skos:exactMatch stereotype puns), never vendored as a snapshot.
+    "ontouml": AlignmentTarget("OntoUML", PREFIXES["ontouml"], "CC-BY-SA-4.0", "upper"),
     "umbel": AlignmentTarget("UMBEL", PREFIXES["umbel"], "CC-BY-3.0", "upper"),
     "dolce": AlignmentTarget("DOLCE/DUL", PREFIXES["dul"], "LGPL", "upper"),
     "bfo": AlignmentTarget(

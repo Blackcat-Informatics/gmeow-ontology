@@ -22,6 +22,12 @@
 //!   construct outside that fragment is a typed capability gap, never a silent skip.
 //! * [`manifest`] — W3C `mf:` entailment-manifest ingestion (dogfoods
 //!   `purrdf::parse_dataset`).
+//! * [`ontouml`] — FAIR OntoUML/UFO catalog ingestion: a native Turtle reader
+//!   lifts the metamodel into a typed model, lowers it onto the world-scoped
+//!   all-IRI `logic:` stereotype ABox the foundation-discipline chase consumes,
+//!   and grades the fired discipline set against a documented anti-pattern label.
+//!   A stereotype or mediation shape outside the five-discipline fragment is a
+//!   typed capability gap, never a silent skip.
 //! * [`lower`] — the pure AC1 `runner_verdict_json` surface (declared external
 //!   outcome → runner verdict value).
 //!
@@ -33,6 +39,7 @@
 pub mod corpus;
 pub mod lower;
 pub mod manifest;
+pub mod ontouml;
 pub mod status;
 pub mod szs;
 pub mod tptp;
@@ -44,6 +51,11 @@ pub use lower::runner_verdict_json;
 pub use manifest::{
     manifest_entries, parse_test_manifest, parse_test_manifest_rdfxml, ManifestEntry,
     ManifestTestKind, OntologyDoc,
+};
+pub use ontouml::{
+    compare, fired_disciplines, lower_and_evaluate, lower_model, native_verdict_string,
+    parse_ontouml_model, DisciplineVerdict, Generalization, Mediation, OntoClass, OntoumlError,
+    OntoumlModel, LOGIC_NS as ONTOUML_LOGIC_NS, ONTOUML_NS, VIOLATION_PRED,
 };
 pub use status::{outcome_for_szs, ExternalOutcome};
 pub use szs::{outcome_from_szs, parse_szs_status};

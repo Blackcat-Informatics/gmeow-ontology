@@ -1,0 +1,8 @@
+{
+  "name": "ontouml-mini",
+  "spdx_license": "CC-BY-4.0",
+  "source_url": "https://github.com/OntoUML/ontouml-models",
+  "version_or_commit": "gmeow-self-authored-1",
+  "refresh_command": "cargo run -p gmeow-conformance --bin ingest-external -- --vendor-ontouml conformance/logic/cases/external/ontouml-mini",
+  "lane": "a"
+}

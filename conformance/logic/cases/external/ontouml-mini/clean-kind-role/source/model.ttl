@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# OntoUML metamodel model — a CLEAN control (no documented anti-pattern).
+#
+# ex:Student is a role that specializes the kind ex:Person, so it has a rigid
+# identity provider and traces to exactly one Kind. No structural discipline is
+# violated: the native disciplines must fire NOTHING. A discipline firing here would
+# be a soundness-breaking false positive, which the Lane-A vendor gate rejects.
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini/clean-kind-role/> .
+
+ex:Person  a ontouml:Class ; ontouml:stereotype ontouml:kind .
+ex:Student a ontouml:Class ; ontouml:stereotype ontouml:role .
+
+ex:g1 a ontouml:Generalization ;
+    ontouml:general  ex:Person ;
+    ontouml:specific ex:Student .
