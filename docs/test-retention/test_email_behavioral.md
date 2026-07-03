@@ -1,11 +1,10 @@
 # Retention: `tests/test_email_behavioral.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Structural guards for email behavioral metadata: MessageKind, header facets,
-and disposition-notification request.
+Structural guards for email behavioral metadata: MessageKind, header facets, and disposition-notification request.
 
 Retained dynamic tests:
 
@@ -13,10 +12,6 @@ Retained dynamic tests:
 - `test_fixture_auto_generated_message` — msgAuto is auto-generated and linked to a SoftwareAgent.
 - `test_fixture_read_receipt_request` — msg3 requests a read receipt via dispositionNotificationTo.
 
-## Why it cannot move to Rust today
+## Why it cannot be deleted or moved to Rust today
 
-Whole-merged-graph sweeps that cannot be scoped to a single slice module; abox fixture instance checks; python-only file or value inspections.
-
-## What is needed to move it to Rust
-
-Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

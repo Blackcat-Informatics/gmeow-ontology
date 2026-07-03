@@ -6,10 +6,12 @@
 
 FFI-contract smoke tests for the PyO3 ``gmeow_logic.materialize`` binding.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Tests a PyO3 binding's marshalling / error-surfacing — the seam itself, which Rust cannot test from the inside; the engine substance is already Rust-tested.
+- `test_materialize_ffi_marshals_quad_dicts` — The binding returns a ``{quads, preservation}`` disclosure dict.
+- `test_empty_case_trivial` — AC: empty materialize input → empty result (the trivial zero case).
+- `test_compile_logic_empty_source_rejected` — The Rust compiler rejects an empty/whitespace-only source (fail-fast).
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Delete when the Python surface that owns the seam is removed (the binding drops once nothing Python imports it); the engine is covered by its Rust crate.
+Tests Python-to-Rust marshalling and error surfacing for the PyO3 binding, which Rust cannot exercise from the inside.

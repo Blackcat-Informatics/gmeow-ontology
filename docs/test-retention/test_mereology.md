@@ -1,19 +1,15 @@
 # Retention: `tests/test_mereology.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-Universal mereology spine — structural TBox well-formedness (#76).
+Universal mereology spine — structural TBox well-formedness.
 
 Retained dynamic tests:
 
-- `test_no_winner_or_cardinality_terms_for_parts`
+- `test_no_winner_or_cardinality_terms_for_parts` — Retained dynamic test.
 
-## Why it cannot move to Rust today
+## Why it cannot be deleted or moved to Rust today
 
-Whole-merged-graph sweeps that cannot be scoped to a single slice module.
-
-## What is needed to move it to Rust
-
-Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

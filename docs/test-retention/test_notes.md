@@ -1,15 +1,22 @@
 # Retention: `tests/test_notes.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
 SHACL + cross-slice structural guards for the notes & annotation building block.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_evidence_span_is_information_object` — Retained dynamic test.
+- `test_selector_sub_class_of_evidence_span` — Retained dynamic test.
+- `test_motivation_values_are_individuals` — Retained dynamic test.
+- `test_notes_are_standpoint_indexed` — The standpoint machinery (accordingTo) is available on notes via the statement/provenance layer; the TBox does not forbid it.
+- `test_notes_oa_projection_executable` — Retained dynamic test.
+- `test_notes_schema_projection_executable` — Retained dynamic test.
+- `test_notes_as_projection_executable` — Retained dynamic test.
+- `test_notes_markdown_projection_executable` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+: EvidenceSpan subject is in the evidencespan slice, not in notes/module.ttl (cross-slice). - : Selector subject is in the evidencespan slice (cross-slice). - : accordingTo subject is in the standpoint slice (cross-slice). - : the len(...)==10 count assertion is a dynamic whole-graph numeric check; the 10 seed individuals and banned-class guards are covered in structural.ttl cells sa10MotivationSeeds and saMotivationNotClasses. - All projection SPARQL parse tests (generated-artifact, numeric/parse check).

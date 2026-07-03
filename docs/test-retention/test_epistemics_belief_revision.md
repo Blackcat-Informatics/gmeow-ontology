@@ -1,6 +1,6 @@
 # Retention: `tests/test_epistemics_belief_revision.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Python tool algorithm
 
 ## What it tests
 
@@ -15,10 +15,6 @@ Retained dynamic tests:
 - `test_new_doxastic_tenure_is_open` — Verify the revised tenure interval has started but has not yet ended.
 - `test_qualitative_modality_via_linked_standpoint_claim` — Verify both beliefs link to standpoint claims with the expected modalities.
 
-## Why it cannot move to Rust today
+## Why it cannot be deleted or moved to Rust today
 
-Abox fixture instance checks; python-only file or value inspections.
-
-## What is needed to move it to Rust
-
-Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

@@ -1,6 +1,6 @@
 # Retention: `tests/test_agentic.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Python tool algorithm
 
 ## What it tests
 
@@ -8,13 +8,9 @@ The agentic extension: tool-call provenance, gated.
 
 Retained dynamic tests:
 
-- `test_memory_records_and_reads_tool_calls`
-- `test_memory_applies_the_verbatim_or_digest_doctrine`
+- `test_memory_records_and_reads_tool_calls` — Retained dynamic test.
+- `test_memory_applies_the_verbatim_or_digest_doctrine` — Retained dynamic test.
 
-## Why it cannot move to Rust today
+## Why it cannot be deleted or moved to Rust today
 
-Dynamic assertions that do not map cleanly to module-scoped sparql ask/select cells.
-
-## What is needed to move it to Rust
-
-Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.
+All runtime/Memory/MCP integration tests that are not expressible as module-scoped SPARQL ASK cells or example-file competency questions.

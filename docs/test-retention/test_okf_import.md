@@ -1,15 +1,16 @@
 # Retention: `tests/test_okf_import.py`
 
-**Category:** Python CLI surface
+**Category:** Oracle / Docker orchestration
 
 ## What it tests
 
 Acceptance tests for the OKF (Open Knowledge Format) import lane.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Drives the Python `gmeow`/`gmeow-dev` Typer CLI via `CliRunner`/subprocess — behavior that does not exist outside Python.
+- `test_gts_from_okf_folds_our_bundle` — The bundle we emit is conformant: ``gts from-okf`` folds it without error.
+- `test_lift_roundtrips_recognized_subset_and_retains_unknown` — Lift maps the recognized okf: subset and retains unknown keys verbatim.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Port the command surface to a Rust binary (`clap`) with `assert_cmd`/`trycmd` integration tests, then delete this file.
+Drives external reasoners or Docker-backed tooling that has no Rust twin by design.

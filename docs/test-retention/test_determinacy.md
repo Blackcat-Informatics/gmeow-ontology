@@ -1,19 +1,15 @@
 # Retention: `tests/test_determinacy.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Merged-graph guard
 
 ## What it tests
 
-The universal determinacy vocabulary (#71).
+The universal determinacy vocabulary.
 
 Retained dynamic tests:
 
-- `test_no_preferred_or_primary_term_is_declared` — No GMEOW vocabulary term is a preferred/primary selector (Principle 9).
+- `test_no_preferred_or_primary_term_is_declared` — No GMEOW vocabulary term is a preferred/primary selector.
 
-## Why it cannot move to Rust today
+## Why it cannot be deleted or moved to Rust today
 
-Whole-merged-graph sweeps that cannot be scoped to a single slice module.
-
-## What is needed to move it to Rust
-
-Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.
+Whole-merged-graph sweeps over terms declared across many slice modules; cannot be faithfully scoped to a single slice module.

@@ -1,15 +1,17 @@
 # Retention: `tests/test_logic_compile_diagnostics.py`
 
-**Category:** PyO3 seam
+**Category:** Python tool algorithm
 
 ## What it tests
 
-The logic-compile diagnostics surface (#809, #856).
+The logic-compile diagnostics surface.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Tests a PyO3 binding's marshalling / error-surfacing — the seam itself, which Rust cannot test from the inside; the engine substance is already Rust-tested.
+- `test_compile_logic_returns_a_native_diagnostics_report` — compile_logic exposes a live ``diagnostics_report`` (not a dict list).
+- `test_clean_source_compiles_to_an_ok_report` — The committed logic: source compiles without error findings.
+- `test_findings_carry_the_logic_compile_namespace` — Any parse finding is tool-tagged and code-prefixed by the Rust core.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Delete when the Python surface that owns the seam is removed (the binding drops once nothing Python imports it); the engine is covered by its Rust crate.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

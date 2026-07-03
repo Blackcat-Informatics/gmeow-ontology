@@ -4,12 +4,12 @@
 
 ## What it tests
 
-Closed-world SHACL data-shape tests (#39, epic #35).
+Closed-world SHACL data-shape tests.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-A static assertion about the repository itself (Python AST / filesystem / workflow / manifest).
+- `test_no_nodeshape_iri_collision_across_shape_files` — Every sh:NodeShape IRI is owned by exactly one shape file.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Reimplement as a Rust gate (Python-aware parse) or enforce structurally via crate-layering, then delete this file.
+Whole-tooling IRI uniqueness sweep across all shape files; requires Python's filesystem + rdflib graph scan and has no stable mapping to a Rust integration test.

@@ -1,15 +1,16 @@
 # Retention: `tests/test_bundle_blob_integrity.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Python tool algorithm
 
 ## What it tests
 
-Bundle blob integrity — the coverage that was MISSING when the #861 pipeline
+Bundle blob integrity — the coverage that was MISSING when the pipeline cutover silently dropped the gmeow.gts blob writer.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+- `test_bundle_carries_the_consumer_archives` — The wheel-mode consumer archives are folded into gmeow.
+- `test_no_dangling_guide_blob_references` — Every gmeow:guideBlob digest reference is backed by a blob actually present in the bundle — the docs guide content is embedded, not a dangling pointer.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Python-only algorithm or generated-artifact checks with no declarative slice-test equivalent.

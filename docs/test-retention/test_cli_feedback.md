@@ -4,12 +4,17 @@
 
 ## What it tests
 
-CLI wiring for the ``gmeow-dev feedback`` diagnostics-output knobs (#662).
+CLI wiring for the ``gmeow-dev feedback`` diagnostics-output knobs.
 
-## Why it cannot move to Rust today
+Retained dynamic tests:
 
-Drives the Python `gmeow`/`gmeow-dev` Typer CLI via `CliRunner`/subprocess — behavior that does not exist outside Python.
+- `test_feedback_writes_all_artifacts_by_default` — Retained dynamic test.
+- `test_feedback_artifacts_none_writes_only_the_bundle` — Retained dynamic test.
+- `test_feedback_artifacts_none_preserves_exit_code_on_failure` — Retained dynamic test.
+- `test_feedback_category_lands_in_sarif_automation_details` — Retained dynamic test.
+- `test_feedback_env_category_is_honored` — Retained dynamic test.
+- `test_feedback_silent_console_suppresses_finding_lines` — Retained dynamic test.
 
-## What is needed to move it to Rust
+## Why it cannot be deleted or moved to Rust today
 
-Port the command surface to a Rust binary (`clap`) with `assert_cmd`/`trycmd` integration tests, then delete this file.
+The CLIs under test are Typer applications; their behavior is exercised through CliRunner and subprocess integration, which is inherently Python-only surface.
