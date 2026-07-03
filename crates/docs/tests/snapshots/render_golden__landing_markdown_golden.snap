@@ -6,14 +6,14 @@ expression: "to_markdown(&model, &Page::Landing)"
 
 Version **7**.
 
-This site documents **2339** vocabulary terms across **76** slices.
+This site documents **2389** vocabulary terms across **76** slices.
 
 ## Vocabulary by category
 
 | Category | Terms |
 | --- | --- |
-| [Classes](classes/index.md) | 708 |
-| [Properties](properties/index.md) | 1627 |
+| [Classes](classes/index.md) | 725 |
+| [Properties](properties/index.md) | 1660 |
 | [Individuals](individuals/index.md) | 3 |
 | [Datatypes](datatypes/index.md) | 1 |
 
@@ -21,9 +21,9 @@ This site documents **2339** vocabulary terms across **76** slices.
 
 - [All slices](slices/index.md) — the 76 compilation units.
 - [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
-- [Linkages](linkages/index.md) — 1781 term equivalences to external vocabularies.
-- [Examples](examples/index.md) — 117 worked examples.
-- [External ontologies](external-ontologies/index.md) — 1543 external terms referenced.
+- [Linkages](linkages/index.md) — 1818 term equivalences to external vocabularies.
+- [Examples](examples/index.md) — 120 worked examples.
+- [External ontologies](external-ontologies/index.md) — 1555 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)
 - [What GMEOW enforces](enforced-constraints/index.md) — 52 validation rules the toolchain enforces.
 - [Recipes](recipes/index.md) — 6 task-oriented adoption recipes.

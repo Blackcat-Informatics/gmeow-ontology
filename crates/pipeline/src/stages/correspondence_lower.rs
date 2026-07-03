@@ -18,7 +18,7 @@ use std::sync::Arc;
 use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
-use gmeow_logic_compile::projections::{edoal, fno, sparql, sssom, ProjectionResult};
+use gmeow_logic_compile::projections::{edoal, emotionml, fno, sparql, sssom, ProjectionResult};
 use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
 use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue};
@@ -37,6 +37,10 @@ pub struct CorrespondenceArtifacts {
     pub edoal: BTreeMap<String, String>,
     /// `<profile>.rq` → SPARQL CONSTRUCT.
     pub sparql: BTreeMap<String, String>,
+    /// The `gmeow-affect.emotionml.xml` document — the many-to-one EmotionML XML lowering
+    /// of the affect category + dimension vocabularies. Its loss-ledger row (the collapse
+    /// record) rides in `ledger` alongside the four alignment dialects.
+    pub emotionml: String,
     /// The per-correspondence loss ledger aggregated across all four dialects — one
     /// `ProjectionResult` per correspondence per dialect that drops something. The
     /// mappings stage unions this with the logic projection rows and serializes the
@@ -90,19 +94,27 @@ pub fn lower_all(root: &Path) -> Result<CorrespondenceArtifacts, SliceError> {
     let edoal = edoal::lower_edoal(&dsl_view, &onto_view, &lookup).map_err(SliceError::Parse)?;
     let sparql = sparql::lower_sparql(&dsl_view, &onto_view, &lookup).map_err(SliceError::Parse)?;
 
-    // Aggregate the per-correspondence ledger across all four dialects. Each dialect
-    // already attributes its residue to the dropping (get) leg.
+    // The EmotionML XML lowering enumerates the affect category (gmeow:EmotionType) and
+    // dimension (gmeow:AppraisalDimension / gmeow:CoreAffectDimension) vocabularies straight
+    // out of the merged ontology view — a many-to-one, lossy-by-construction emitter that
+    // needs no external RDF namespace. Its collapse record joins the shared loss ledger.
+    let emotionml = emotionml::lower_emotionml(&onto_view);
+
+    // Aggregate the per-correspondence ledger across all four dialects plus the EmotionML
+    // collapse row. Each dialect already attributes its residue to the dropping (get) leg.
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     ledger.extend(sssom.ledger);
     ledger.extend(fno.ledger);
     ledger.extend(edoal.ledger);
     ledger.extend(sparql.ledger);
+    ledger.extend(emotionml.ledger);
 
     Ok(CorrespondenceArtifacts {
         sssom: sssom.sets,
         fno: fno.catalog,
         edoal: edoal.alignments,
         sparql: sparql.queries,
+        emotionml: emotionml.document,
         ledger,
         correspondences,
     })

@@ -10,7 +10,7 @@ Tier-2 uplift backlog.
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | accessibility | extension | extensions | 2 | 3 | 6 | 0 | 1 | - | full |
 | accounts | core | core | 1 | 4 | 10 | 0 | 1 | 14/14 | full |
-| affect | core | core | 3 | 7 | 10 | 0 | 2 | 6/17 | full |
+| affect | core | core | 4 | 24 | 43 | 0 | 5 | 21/67 | full |
 | agentic | extension | extensions | 6 | 1 | 4 | 0 | 5 | - | full |
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 5/5 | full |
@@ -85,4 +85,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**76 slices** · documentation: 76 full guides, 0 stubs remaining (#325); advisory coverage: 1250/1939 core class/property terms (#471).
+**76 slices** · documentation: 76 full guides, 0 stubs remaining (#325); advisory coverage: 1265/1989 core class/property terms (#471).
