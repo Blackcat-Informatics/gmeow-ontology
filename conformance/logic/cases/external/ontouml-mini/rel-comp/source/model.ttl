@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# OntoUML metamodel model — the RelComp (relator-completeness) anti-pattern
+# (documented in the OntoUML anti-pattern catalogue at
+# https://ontouml.readthedocs.io/en/latest/anti-patterns/).
+#
+# A concrete relator must mediate at least two distinct entities. ex:Marriage is a
+# relator with a single, functional (upper-bound-1) mediation to ex:Spouse, so it
+# reaches only one relatum and violates the discipline. ex:Spouse specializes the
+# kind ex:Person, so the role is well-founded and only the relator fires. The
+# documented verdict is RelComp.
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini/rel-comp/> .
+
+ex:Person   a ontouml:Class ; ontouml:stereotype ontouml:kind .
+ex:Spouse   a ontouml:Class ; ontouml:stereotype ontouml:role .
+ex:Marriage a ontouml:Class ; ontouml:stereotype ontouml:relator .
+
+ex:g1 a ontouml:Generalization ;
+    ontouml:general  ex:Person ;
+    ontouml:specific ex:Spouse .
+
+ex:med a ontouml:Relation ;
+    ontouml:stereotype        ontouml:mediation ;
+    ontouml:relatorEnd        ex:Marriage ;
+    ontouml:mediatedEnd       ex:Spouse ;
+    ontouml:functionalMediation true .

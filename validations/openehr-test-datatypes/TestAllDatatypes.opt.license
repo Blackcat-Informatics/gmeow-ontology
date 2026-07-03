@@ -1,0 +1,17 @@
+SPDX-FileCopyrightText: CaboLabs Health Informatics (Pablo Pazos Gutiérrez)
+SPDX-License-Identifier: Apache-2.0
+
+Vendored verbatim from https://github.com/ppazos/cabolabs-ehrserver
+opts/e9d13294-bce7-44e7-9635-8e906da0c914/bkp_for_testing/b498242e-633a-4127-94db-0dedaa3151ba.opt
+— the CaboLabs EHRServer "Test all datatypes" openEHR Operational Template (ADL 1.4
+OPT). It is a synthetic template that deliberately exercises every openEHR RM datatype,
+authored by CaboLabs and licensed Apache-2.0 (no clinical-archetype CC-BY-SA provenance).
+
+Vendored here as the on-gate round-trip law fixture for the openEHR constraints axis: it
+is the only real, permissively-licensed OPT that carries BOTH a C_DATE_TIME constraint
+(a `<pattern>yyyy-mm-ddTHH:MM:SS</pattern>` validity pattern) and a C_DV_ORDINAL
+constraint (a `<list>` of `<value>` integer + `<defining_code>` symbol pairs) — the two
+constraint families no available clinical OPT carries together. It is a law fixture ONLY
+(it proves recover∘lift = id on parsed XML for those families); being a synthetic
+datatype-exercising template, it is NOT wired as a production generator input and its
+constraints do not flow into the shipped gmeow.gts.
