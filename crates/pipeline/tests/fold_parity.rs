@@ -106,6 +106,13 @@ fn spine() -> PipelineSpec {
             // The external-corpus divergence grader the snapshot folds into
             // graph/conformance; a source-reading Transform that consumes nothing.
             spec("stage-conformance", "conformance", &[]),
+            // The agreement-matrix dashboard projects stage-conformance's attached
+            // tallies (a consuming Transform, never a re-grade).
+            spec(
+                "stage-export-agreement",
+                "agreement",
+                &["stage-conformance"],
+            ),
             // The fanout-member producers: the snapshot reads the profiles / evals /
             // research-object RDF graphs off these products, and the sink reads their
             // opaque members + references / bench / apache / matrix / metadata off theirs
@@ -142,6 +149,7 @@ fn spine() -> PipelineSpec {
                 "gts_sink",
                 &[
                     "stage-compile-logic",
+                    "stage-export-agreement",
                     "stage-export-apache",
                     "stage-export-bench",
                     "stage-export-evals",
