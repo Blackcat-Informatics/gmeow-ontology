@@ -3273,25 +3273,22 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
 ///
 /// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
 fn relatum_distinctness_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQuad>, String> {
-    // Collect the assertion records. A record is any subject that declares itself a
-    // distinctness assertion — by type, by naming a target, or by naming a role; the
-    // dedicated `logic:distinctnessTarget`/`logic:distinctnessRole` predicates carry
-    // `rdfs:domain logic:RelatumDistinctnessAssertion`, so any subject using them IS one.
-    let assertion_ty = format!("{LOGIC_NS}RelatumDistinctnessAssertion");
-    let mut records: BTreeSet<String> = BTreeSet::new();
+    // Collect the assertion records: record IRI → target class, record IRI → {roles}.
+    // A record is enforced HERE only when its `distinctnessTarget` is present in this
+    // fact set: partial projections (e.g. the relator-mediation fact set) carry the
+    // `rdf:type` stereotype pun WITHOUT the target/role edges, and there is nothing to
+    // enforce there. Whether a target-bearing record is well-formed is what this pass
+    // validates; completeness of an authored record (target present at all) is the
+    // projector's job over the full ontology.
     let mut rec_target: HashMap<String, String> = HashMap::new();
     let mut rec_roles: HashMap<String, BTreeSet<String>> = HashMap::new();
     for q in quads {
         let Some(obj) = strip_angle_opt(&q.object) else {
             continue;
         };
-        if q.predicate == RDF_TYPE && obj == assertion_ty {
-            records.insert(q.subject.clone());
-        } else if q.predicate == LOGIC_DISTINCTNESS_TARGET {
-            records.insert(q.subject.clone());
+        if q.predicate == LOGIC_DISTINCTNESS_TARGET {
             rec_target.insert(q.subject.clone(), obj.to_owned());
         } else if q.predicate == LOGIC_DISTINCTNESS_ROLE {
-            records.insert(q.subject.clone());
             rec_roles
                 .entry(q.subject.clone())
                 .or_default()
@@ -3299,22 +3296,20 @@ fn relatum_distinctness_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQ
         }
     }
     // One `(target, role1, role2)` constraint per record, roles ordered by IRI for a
-    // stable emit. A malformed record — missing target, or a role count other than two —
-    // is a HARD FAIL that fails closed, exactly as the SHACL projector rejects the same
-    // record (no-optionality: the native and projected halves of one axiom must agree on
-    // malformed input, never silently disagree).
+    // stable emit. A record that names a target but NOT exactly two roles is a malformed
+    // axiom and HARD-FAILS — mirroring the SHACL projector (constraint_shapes.rs), so the
+    // native and projected halves of one axiom agree on malformed input rather than the
+    // native side silently dropping it (no-optionality).
     let mut constraints: BTreeSet<(String, String, String)> = BTreeSet::new();
-    for rec in &records {
-        let target = rec_target.get(rec).ok_or_else(|| {
-            format!("relatum-distinctness assertion {rec} lacks a distinctnessTarget")
-        })?;
+    for (rec, target) in &rec_target {
         let role_count = rec_roles.get(rec).map_or(0, BTreeSet::len);
         if role_count != 2 {
             return Err(format!(
                 "relatum-distinctness assertion {rec} must name exactly two distinctnessRole values, found {role_count}"
             ));
         }
-        let mut it = rec_roles[rec].iter();
+        let roles = &rec_roles[rec];
+        let mut it = roles.iter();
         let r1 = it.next().expect("two roles").clone();
         let r2 = it.next().expect("two roles").clone();
         constraints.insert((target.clone(), r1, r2));
