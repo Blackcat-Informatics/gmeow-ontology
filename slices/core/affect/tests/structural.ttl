@@ -206,3 +206,43 @@ ASK {
     gmeow:fnAffectiveIntensity a gmeow:AffectFunction .
 }""" ;
     gmeow:saRationale "Overall intensity is a DERIVED gmeow:Observation (⊑ gmeow:Observation) over a declared gmeow:intensityBasis under a declared gmeow:metricProfile, exposed via the named gmeow:fnAffectiveIntensity function — a computed view under a named metric (Principle 12), never a stored ground fact. The SHACL shape enforces the full basis/scale/weighting/norm declaration." .
+
+# ── The evidence spine (attributed evidence, never inner-state truth) ──────────
+
+ex:saClassifierOutputIsObservationNotEmotion a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AffectClassifierOutput a owl:Class ;
+        rdfs:subClassOf gmeow:Observation .
+    gmeow:ModelInferenceRun a owl:Class .
+    gmeow:supportsAffectiveClaim a owl:ObjectProperty ;
+        rdfs:range gmeow:AffectiveClaim .
+    gmeow:modelRevision a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "A classifier output MUST be a gmeow:Observation (evidence), produced by a gmeow:ModelInferenceRun, and it SUPPORTS a gmeow:AffectiveClaim (never entails it) — the evidence/claim boundary. Model provenance (gmeow:modelRevision) is a first-class datatype property; the SHACL shapes enforce completeness and the claim boundary." .
+
+ex:saAffectVocabulariesAreOpen a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:EmotionType owl:oneOf ?x }
+    UNION { gmeow:ScoreSemantics owl:oneOf ?x }
+    UNION { gmeow:DimensionFamily owl:oneOf ?x }
+    UNION { gmeow:ScalePolarity owl:oneOf ?x }
+    UNION { gmeow:AppraisalDimension owl:oneOf ?x }
+    UNION { gmeow:AestheticQuality owl:oneOf ?x }
+}""" ;
+    gmeow:saRationale "A closed enum anywhere in canonical affect is a hard fail (hard-fail rule 6): every affect value vocabulary — EmotionType, ScoreSemantics, DimensionFamily, ScalePolarity, AppraisalDimension, AestheticQuality — MUST stay an open individual vocabulary (logic:AbstractIndividualType ⊑ logic:QualityValue), NEVER an owl:oneOf enumeration. Closed sets are projection artifacts only." .
+
+ex:saClassifierLabelNotEmotionType a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { ?label a gmeow:AffectClassifierLabel , gmeow:EmotionType . }""" ;
+    gmeow:saRationale "No gmeow:AffectClassifierLabel (including the seeded GoEmotions/Ekman/SST-2/Cardiff labels and any example-loaded label) may ALSO be a gmeow:EmotionType — 'neutral' as an EmotionType is a hard fail (rule 3); labels are external identities, never canonical emotion vocabulary." .
