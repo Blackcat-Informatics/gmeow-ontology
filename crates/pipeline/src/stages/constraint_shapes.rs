@@ -306,6 +306,7 @@ impl Stage for ConstraintShapesStage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::stages::native_query;
     use purrdf::shapes::engine::parse_shapes;
 
     fn repo_root() -> std::path::PathBuf {
@@ -355,6 +356,49 @@ mod tests {
             9,
             "every projected shape must carry a logic:formalizes back-reference"
         );
+    }
+
+    #[test]
+    fn projection_flags_each_family_and_passes_clean_data() {
+        // Prove the projection is NOT vacuous: the REAL generated constraint-shapes must
+        // flag a planted violation of each family (irreflexivity, distinctness, acyclicity,
+        // disjointness) and pass a clean control — the equivalence-before-deletion evidence
+        // that the migrated axioms keep their SHACL teeth.
+        use purrdf::shapes::engine::{parse_shapes, validate_dataset};
+
+        let root = repo_root();
+        let ttl = render_constraint_shapes(&root).expect("render");
+        let shapes = parse_shapes(&ttl).expect("parse generated constraint-shapes");
+
+        let data = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:selfGoal a gmeow:Goal ; gmeow:counterGoal ex:selfGoal .\n\
+            ex:okGoal   a gmeow:Goal ; gmeow:counterGoal ex:otherGoal .\n\
+            ex:selfCommit a gmeow:Commitment ; gmeow:committedAgent ex:a ; gmeow:commitmentBeneficiary ex:a .\n\
+            ex:okCommit   a gmeow:Commitment ; gmeow:committedAgent ex:a ; gmeow:commitmentBeneficiary ex:b .\n\
+            ex:cycleLink a gmeow:CausalLink ; gmeow:linkNext ex:cycleLink .\n\
+            ex:overtyped a gmeow:GenderIdentity, gmeow:GenderExpression .\n";
+        let store = native_query::dataset_from_turtle(data.as_bytes(), "test").unwrap();
+        let report = validate_dataset(&store, &shapes).unwrap();
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+
+        for bad in ["selfGoal", "selfCommit", "cycleLink", "overtyped"] {
+            assert!(
+                flagged.iter().any(|f| f.contains(bad)),
+                "the {bad} violation must be flagged; flagged: {flagged:?}"
+            );
+        }
+        for good in ["okGoal", "okCommit"] {
+            assert!(
+                !flagged.iter().any(|f| f.contains(good)),
+                "the clean {good} node must NOT be flagged; flagged: {flagged:?}"
+            );
+        }
     }
 
     #[test]
