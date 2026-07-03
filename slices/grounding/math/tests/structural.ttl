@@ -71,3 +71,15 @@ ASK {
     FILTER (STRSTARTS(STR(?p), "https://blackcatinformatics.ca/math/"))
 }""" ;
     gmeow:saRationale "No math: property MUST carry a symmetric, asymmetric, irreflexive, functional, or inverse-functional OWL characteristic — the profile is kept EL-clean; such characteristics (e.g. the symmetry of math:inverseFunction) are documented in prose. Transitivity (math:subsetOf, math:subsystemOf) is EL-valid and permitted." .
+
+# --- 5. Order-bearing composition refines math:functionComposition (MUST) ---
+ex:saCompositionOrder a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:compositionOuter rdfs:subPropertyOf math:functionComposition .
+    math:compositionInner rdfs:subPropertyOf math:functionComposition .
+}""" ;
+    gmeow:saRationale "Function composition is non-commutative (g ∘ f ≠ f ∘ g), so the composite→component relation MUST carry order: math:compositionOuter (applied second) and math:compositionInner (applied first) refine math:functionComposition. A single order-agnostic property would lose which component is inner and which is outer." .

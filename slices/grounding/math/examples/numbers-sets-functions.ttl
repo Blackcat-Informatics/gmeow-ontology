@@ -4,7 +4,8 @@
 # An illustrative, well-formed scene over the mathematics bedrock: a situated exact
 # number and a distinct approximation of it, an exact named constant, a finite set
 # with a cardinality, an intensional set whose condition denotes a logic: formula,
-# and a function with a declared frame. It validates cleanly under the global gate.
+# a function with a declared frame, and a composite function whose non-commutative
+# order is preserved. It validates cleanly under the global gate.
 
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -55,6 +56,21 @@ ex:negation a math:Function ;
     math:isInjective true ;
     math:isSurjective true ;
     math:isBijective true .
+
+ex:square a math:Function ;
+    rdfs:label "n ↦ n² on ℤ"@x-gmeow-english ;
+    math:domain ex:integerSet ;
+    math:codomain ex:integerSet .
+
+# A composite function square ∘ negation = n ↦ (−n)², with its non-commutative order
+# preserved: math:compositionInner (negation, applied first) and math:compositionOuter
+# (square, applied second). The codomain of the inner is the domain of the outer.
+ex:negateThenSquare a math:Function ;
+    rdfs:label "n ↦ (−n)² on ℤ"@x-gmeow-english ;
+    math:domain ex:integerSet ;
+    math:codomain ex:integerSet ;
+    math:compositionInner ex:negation ;
+    math:compositionOuter ex:square .
 
 ex:integerSet a math:Set ;
     rdfs:label "ℤ"@x-gmeow-english ;
