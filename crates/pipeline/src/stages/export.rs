@@ -837,7 +837,6 @@ fn fold_owner_slice_map(view: &FoldView) -> std::collections::HashMap<String, St
 /// The local name of an IRI: the tail after the last `/` or `#`. Mirrors
 /// `gmeow_docs::render::local_name` so the folded card's `slice:` value matches
 /// the docs-site card byte-for-byte.
-#[cfg(any(feature = "python", test))]
 fn slice_local_name(iri: &str) -> &str {
     let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
     &iri[cut..]
@@ -994,7 +993,6 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
 /// carry the SAME slice. When the term has no recovered slice (e.g. a doc graph
 /// is absent), `Card::slice` is `None` and the header line is omitted — never a
 /// blank value.
-#[cfg(any(feature = "python", test))]
 pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
     let category = match t.category {
         "class" => "Class",
@@ -1678,6 +1676,60 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
     gmeow_docs::llms::render_index(title, &prose, &sections).into_bytes()
 }
 
+/// The `llms-full.txt` surface: the complete, link-free inlined index — the
+/// standard header (with the canonical summary blockquote) then every term as a
+/// `### {curie}{signature}` block with its full card body, rendered through the
+/// shared `gmeow_docs::card` renderer. Emitted in a deterministic total order and
+/// bounded by [`gmeow_docs::llms::LLMS_FULL_TOKEN_BUDGET`] (the elided remainder is
+/// disclosed, never silently dropped). Shared by the flat `dist/llms-full.txt`
+/// export and the MCP `llms_full` surface — the folded-`Term` twin of the
+/// docs-site `gmeow_docs::render::llms_full_txt`.
+pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> String {
+    let prose = llms_prose(
+        version,
+        "Complete inlined form — every term, its definition, and its usage advice in full, \
+         bounded by a fixed token budget.",
+    );
+    let mut out = gmeow_docs::llms::llms_header(title, &prose);
+    out.push_str("## Terms\n\n");
+    // Emit whole term blocks in a deterministic total order (CURIE then IRI) so the
+    // token-budget elision boundary is byte-stable regardless of the input ordering.
+    let mut ordered: Vec<&Term> = terms.iter().collect();
+    ordered.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+    let budget = gmeow_docs::llms::LLMS_FULL_TOKEN_BUDGET;
+    let mut used = gmeow_docs::llms::estimate_tokens(&out);
+    let mut emitted = 0usize;
+    for t in &ordered {
+        let block = format!(
+            "### {}{}\n\n{}\n",
+            t.curie,
+            llms_signature(t),
+            gmeow_docs::card::render_card_body(&term_to_card(t))
+        );
+        let cost = gmeow_docs::llms::estimate_tokens(&block);
+        // Always emit at least one block; otherwise stop before the budget is
+        // exceeded (a hard cap, never a mid-block truncation).
+        if emitted > 0 && used + cost > budget {
+            break;
+        }
+        out.push_str(&block);
+        used += cost;
+        emitted += 1;
+    }
+    let elided = ordered.len() - emitted;
+    if elided > 0 {
+        // Disclose the cap rather than silently truncating (no silent caps): the
+        // elided terms remain reachable via the MCP lookup tools and the docs site.
+        out.push_str(&format!(
+            "> {elided} of {} terms elided to fit the {budget}-token llms-full budget; \
+             resolve any omitted term via the MCP `lookup_term` / `doc_card` tools or the \
+             full documentation site.\n",
+            ordered.len()
+        ));
+    }
+    out
+}
+
 // ── MCP consumer surfaces ────────────────────────────────────────────────────
 //
 // The native MCP server exposes five `export`-backed surfaces: `lookup_term`,
@@ -1695,8 +1747,7 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
 
 #[cfg(any(feature = "python", test))]
 pub(crate) use consumer::{
-    consumer_llms_full, consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope,
-    okf_index_envelope,
+    consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope, okf_index_envelope,
 };
 
 #[cfg(any(feature = "python", test))]
@@ -1804,26 +1855,6 @@ mod consumer {
         };
         let title = format!("{}{}", t.curie, llms_signature(t));
         gmeow_docs::card::render_card(&title, &super::term_to_card(t))
-    }
-
-    /// The `llms-full.txt` MCP resource (#1027): the complete, link-free inlined
-    /// index — the standard header (with the canonical summary blockquote) then
-    /// every term as a `### {curie}{signature}` block with its full card body,
-    /// rendered through the shared `gmeow_docs::card` renderer. The folded-`Term`
-    /// twin of the docs-site `gmeow_docs::render::llms_full_txt`.
-    pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> String {
-        let prose = llms_prose(
-            version,
-            "Complete inlined form — every term, its definition, and its usage advice in full.",
-        );
-        let mut out = gmeow_docs::llms::llms_header(title, &prose);
-        out.push_str("## Terms\n\n");
-        for t in terms {
-            out.push_str(&format!("### {}{}\n\n", t.curie, llms_signature(t)));
-            out.push_str(&gmeow_docs::card::render_card_body(&super::term_to_card(t)));
-            out.push('\n');
-        }
-        out
     }
 
     /// Build a `term-IRI → site URL` map from the `gmeow:graph/documentation`
@@ -2456,6 +2487,10 @@ pub(crate) fn render_all_with_languages(
         write_llms_txt(&terms, &title, &version),
     );
     out.insert(
+        format!("{DIST_DIR}/llms-full.txt"),
+        consumer_llms_full(&terms, &title, &version).into_bytes(),
+    );
+    out.insert(
         format!("{DIST_DIR}/gmeow.nq"),
         write_nquads(dataset, view.tag_map())?,
     );
@@ -2581,7 +2616,7 @@ mod tests {
         let graph = read_fold(&root).expect("read fold");
         let arts = render_all(&graph).expect("render");
 
-        // All 13 expected logical paths present and non-empty.
+        // All 14 expected logical paths present and non-empty.
         let expected = [
             "gmeow-classes.csv",
             "gmeow-properties.csv",
@@ -2590,6 +2625,7 @@ mod tests {
             "gmeow-terms.jsonl",
             "gmeow-terms.md",
             "llms.txt",
+            "llms-full.txt",
             "gmeow.nq",
             "gmeow.trig",
             "gmeow-statements.jsonl",
@@ -2825,10 +2861,11 @@ mod tests {
         assert_eq!(miss, "Term not found: gmeow:NoSuchTerm\n");
     }
 
-    /// `llms_full` / `llms-full.txt`: the standard header then a `### ` block
-    /// per term inlined in full (no links).
+    /// `llms_full` / `llms-full.txt`: the standard header then `### ` term blocks
+    /// inlined in full (no links), emitted in CURIE order and bounded by the fixed
+    /// token budget, with the elided remainder disclosed (never silently dropped).
     #[test]
-    fn consumer_llms_full_inlines_terms() {
+    fn consumer_llms_full_inlines_terms_within_the_token_budget() {
         let (terms, title, version) = english_terms();
         let full = consumer_llms_full(&terms, &title, &version);
         assert!(full.starts_with(&format!(
@@ -2836,17 +2873,38 @@ mod tests {
             gmeow_docs::llms::GMEOW_SUMMARY
         )));
         assert!(full.contains("## Terms\n\n"));
-        assert!(full.contains("### gmeow:langFrench"));
         // No markdown links in the complete form (it is self-contained).
         assert!(
             !full.contains("](terms/"),
             "llms-full must be link-free (inlined content)"
         );
+        // Blocks are emitted in a deterministic CURIE order, so the CURIE-first
+        // term is always inlined.
+        let mut ordered: Vec<&Term> = terms.iter().collect();
+        ordered.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
         let headings = full.lines().filter(|l| l.starts_with("### ")).count();
+        assert!(headings >= 1, "expected at least one inlined term block");
         assert!(
-            headings >= terms.len() / 2,
-            "expected roughly one block per term, got {headings} for {} terms",
-            terms.len()
+            full.contains(&format!("### {}", ordered[0].curie)),
+            "the CURIE-first term ({}) must be inlined",
+            ordered[0].curie
+        );
+        // The full vocabulary far exceeds the token budget, so some terms are
+        // elided — and the elision is disclosed, not silent.
+        assert!(
+            headings < terms.len(),
+            "full vocab should exceed the budget"
+        );
+        assert!(
+            full.contains("elided to fit"),
+            "the token-budget elision must be disclosed"
+        );
+        // The emitted document respects the budget (plus at most one overflow block
+        // and the trailing disclosure line).
+        assert!(
+            gmeow_docs::llms::estimate_tokens(&full)
+                <= gmeow_docs::llms::LLMS_FULL_TOKEN_BUDGET * 2,
+            "llms-full must stay within a small multiple of the token budget"
         );
     }
 
