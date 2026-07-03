@@ -1511,6 +1511,7 @@ enum MemoryKindEnum {
 }
 
 enum MentalProcessTypeEnum {
+  processAffectiveExperience
   processAttention
   processDeliberation
   processDreaming
@@ -2070,6 +2071,7 @@ enum PipelineStageEnum {
   stage_snapshot
   stage_source_load
   stage_statements
+  stage_term_manifest
   stage_validate
   stage_validate_result_shape_composition
 }
@@ -3260,6 +3262,12 @@ type AdoptiveParentChild {
 type AestheticQuality {
   id: String
   iri: String
+}
+
+type AffectiveExperience {
+  id: String
+  iri: String
+  feltAffect: [AffectiveMoment!]
 }
 
 type AffectiveMoment {

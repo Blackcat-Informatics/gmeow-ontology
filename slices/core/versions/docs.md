@@ -194,7 +194,7 @@ are standpoint-scoped claims, never intrinsic types); `VersionScale` over
 `scaleTrivial` / `scaleMinor` / `scaleMajor`. Domain-specific values are minted as
 fresh individuals carrying `rdfs:label`.
 
-### gmeow:TermStability · gmeow:termStability · gmeow:addedInVersion · gmeow:ChangelogEntry · gmeow:hasChangelogEntry · gmeow:entryVersion · gmeow:entryNote
+### gmeow:TermStability · gmeow:termStability · gmeow:addedInVersion · gmeow:ChangelogEntry · gmeow:hasChangelogEntry · gmeow:entryVersion · gmeow:entryNote · gmeow:definitionDigest
 
 Per-term lifecycle metadata — maturity and changelog signals about a
 **vocabulary term** (a class or property in the TBox), as distinct from the
@@ -212,6 +212,12 @@ extension → experimental) and from `owl:deprecated`, and an explicit
 `gmeow:termStability` overrides it. `gmeow:addedInVersion` seeds the per-term
 changelog with the release a term debuted in; `gmeow:hasChangelogEntry` attaches
 reified `gmeow:ChangelogEntry` records (`gmeow:entryVersion` + optional
-`gmeow:entryNote` prose), ordered by version on the term's docs page. Full
-population is eventually automated from release-as-evidence content-address diffs
-(CONSTITUTION §18); today it is seeded editorially.
+`gmeow:entryNote` prose), ordered by version on the term's docs page.
+`gmeow:definitionDigest` is the RDFC-1.0-canonical blake3 content-address of a
+term's defining triples — computed by the pipeline (never hand-authored) over the
+term's concise bounded description with the per-term provenance predicates
+excluded, so recording provenance never perturbs the digest. It drives the
+**computed** changelog: a term whose definition digest differs from the prior
+release records an automatic change entry, realizing the release-as-evidence
+content-address diffs (CONSTITUTION §18) that the editorially-seeded entries above
+anticipate; it also serves as a stable citation permalink for the term's meaning.
