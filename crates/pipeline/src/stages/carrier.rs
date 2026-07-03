@@ -3453,7 +3453,18 @@ mod ustar_tests {
         axiom_artifacts
     }
 
-    /// FIXED-POINT PROOF (acceptance criterion 3): a change to the `stage-mappings`
+    // DOCUMENTED SWEEP — the four single-file generated edit kinds each reach the bundle
+    // product-sourced in ONE fold, so a single `regenerate` is a fixed point for
+    // `check-generated` regardless of which one was edited:
+    //   - generated query    → stage-mappings product          → REP_QUERIES  (members_basename_from_artifacts)
+    //   - generated SSSOM map → stage-mappings product          → REP_MAPPINGS (members_basename_from_artifacts)
+    //   - frame-shape source  → stage-export-frame-shapes prod  → REP_SHAPES   (ShapeSurfaces.frame)
+    //   - competency test     → result-shapes projection        → stage-export-result-shapes prod → REP_SHAPES (ShapeSurfaces.result)
+    // Shared invariant proven by the probes below: every archived `generated/` member is
+    // sourced from an in-memory stage PRODUCT, never a disk read. Were any fold still a
+    // `list_files(generated/…)` disk read (the stale-disk-fold bug), a product-only probe
+    // could never reach the bundle and `regenerate`/`check-generated` would disagree forever.
+    /// FIXED-POINT PROOF: a change to the `stage-mappings`
     /// product's generated SPARQL surface reaches the bundle in ONE fold. REP_QUERIES is
     /// product-sourced (`members_basename_from_artifacts`), not a disk read, so a query that
     /// exists ONLY in the in-memory product — never on disk — MUST appear in the archive. Were
@@ -3510,6 +3521,138 @@ mod ustar_tests {
             format!("{err:?}").contains("queries archive would fold empty"),
             "unexpected error: {err:?}"
         );
+    }
+
+    /// FIXED-POINT PROOF: a change to the `stage-mappings` product's generated SSSOM
+    /// surface reaches the bundle in ONE fold. REP_MAPPINGS is product-sourced
+    /// (`members_basename_from_artifacts`), an exact mirror of REP_QUERIES, so a mapping
+    /// that exists ONLY in the in-memory product — never on disk — MUST appear in the
+    /// archive. A stale disk read would leave the product-only probe stranded and make
+    /// `regenerate`/`check-generated` disagree forever.
+    #[test]
+    fn a_mapping_present_only_in_the_stage_mappings_product_reaches_the_bundle_in_one_fold() {
+        let root = repo_root();
+        let axiom_artifacts = axiom_artifacts_from_disk(&root);
+        let shapes = ShapeSurfaces {
+            result: &fresh_result_shapes_from_disk(&root),
+            frame: &fresh_frame_shapes_from_disk(&root),
+            constraint: &fresh_constraint_shapes_from_disk(&root),
+        };
+
+        // A probe mapping that exists ONLY in the product — it is NOT committed under
+        // generated/mappings/, so a disk read could never surface it.
+        const PROBE_NAME: &str = "zzz-fixed-point-probe.sssom.tsv";
+        let probe_rel = format!("generated/mappings/{PROBE_NAME}");
+        assert!(
+            !root.join(&probe_rel).exists(),
+            "the probe must not exist on disk, or the test proves nothing"
+        );
+        let probe_bytes = b"# fixed-point probe: product-only SSSOM mapping\n".to_vec();
+
+        let mut mappings = mappings_artifacts_from_disk(&root);
+        mappings.insert(probe_rel.clone(), probe_bytes.clone());
+
+        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &mappings, &shapes)
+            .expect("archive blobs");
+        let archive = blobs
+            .iter()
+            .find(|b| b.rep == REP_MAPPINGS)
+            .expect("REP_MAPPINGS blob present");
+        let members = parse(&archive.data);
+        let probe = members
+            .iter()
+            .find(|(n, _)| n == PROBE_NAME)
+            .expect("product-only probe mapping MUST reach REP_MAPPINGS (fold is product-sourced)");
+        assert_eq!(
+            probe.1, probe_bytes,
+            "the folded probe bytes must be the product bytes, not a disk read"
+        );
+
+        // Fail-closed: an empty mappings surface in the product is a hard error, never a
+        // silent fallback to a stale disk read.
+        let mut no_mappings = mappings_artifacts_from_disk(&root);
+        no_mappings.retain(|k, _| !k.starts_with("generated/mappings/"));
+        let err = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &no_mappings, &shapes)
+            .expect_err("empty mappings product must fail closed");
+        assert!(
+            format!("{err:?}").contains("mappings archive would fold empty"),
+            "unexpected error: {err:?}"
+        );
+    }
+
+    /// FIXED-POINT PROOF: the frame-shape source, the competency test (which flows through
+    /// the result-shapes ResultShape projection), and the constraint-shape source each reach
+    /// the bundle in ONE fold. REP_SHAPES folds the `ShapeSurfaces { result, frame,
+    /// constraint }` product BYTES — never a disk read — into members named by the full
+    /// repo-relative projection paths, so a product-only surface that differs from the
+    /// committed file MUST appear verbatim in the archive.
+    #[test]
+    fn product_only_shape_surfaces_reach_the_bundle_in_one_fold() {
+        let root = repo_root();
+
+        // Three distinct product-only surfaces, each differing from its committed file, so a
+        // match in the archive proves the fold used the PRODUCT bytes, not a disk read.
+        let result_probe = b"# fixed-point probe: product-only result-shapes surface\n".to_vec();
+        let frame_probe = b"# fixed-point probe: product-only frame-shapes surface\n".to_vec();
+        let constraint_probe =
+            b"# fixed-point probe: product-only constraint-shapes surface\n".to_vec();
+        assert_ne!(
+            result_probe,
+            fresh_result_shapes_from_disk(&root),
+            "the result probe must differ from disk, or the test proves nothing"
+        );
+        assert_ne!(
+            frame_probe,
+            fresh_frame_shapes_from_disk(&root),
+            "the frame probe must differ from disk, or the test proves nothing"
+        );
+        assert_ne!(
+            constraint_probe,
+            fresh_constraint_shapes_from_disk(&root),
+            "the constraint probe must differ from disk, or the test proves nothing"
+        );
+
+        let blobs = build_archive_blobs(
+            &root,
+            b"",
+            b"",
+            &axiom_artifacts_from_disk(&root),
+            &mappings_artifacts_from_disk(&root),
+            &ShapeSurfaces {
+                result: &result_probe,
+                frame: &frame_probe,
+                constraint: &constraint_probe,
+            },
+        )
+        .expect("archive blobs");
+        let archive = blobs
+            .iter()
+            .find(|b| b.rep == REP_SHAPES)
+            .expect("REP_SHAPES blob present");
+        let members = parse(&archive.data);
+
+        for (path, probe) in [
+            (
+                crate::stages::result_shapes::RESULT_SHAPES_PATH,
+                &result_probe,
+            ),
+            (crate::stages::frame_shapes::FRAME_SHAPES_PATH, &frame_probe),
+            (
+                crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
+                &constraint_probe,
+            ),
+        ] {
+            let member = members.iter().find(|(n, _)| n == path).unwrap_or_else(|| {
+                panic!(
+                    "a product-only shape surface MUST reach REP_SHAPES from the product, \
+                     not a disk read: {path}"
+                )
+            });
+            assert_eq!(
+                &member.1, probe,
+                "the folded {path} bytes must be the product bytes, not a disk read"
+            );
+        }
     }
 
     #[test]
