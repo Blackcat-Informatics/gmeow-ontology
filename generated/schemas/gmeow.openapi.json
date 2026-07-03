@@ -33079,92 +33079,38 @@
           "math:codomain": {
             "anyOf": [
               {
-                "anyOf": [
-                  {
-                    "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                    "type": "string"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
+                "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                "type": "string"
               },
               {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                      "type": "string"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
                 },
-                "minItems": 1,
-                "type": "array"
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           },
           "math:domain": {
             "anyOf": [
               {
-                "anyOf": [
-                  {
-                    "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                    "type": "string"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
+                "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                "type": "string"
               },
               {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                      "type": "string"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
                 },
-                "minItems": 1,
-                "type": "array"
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           }
@@ -33325,34 +33271,15 @@
             ]
           },
           "math:memberCondition": {
-            "anyOf": [
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
