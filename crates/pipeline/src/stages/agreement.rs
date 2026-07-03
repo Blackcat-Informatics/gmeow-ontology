@@ -46,16 +46,25 @@ fn stage_err(message: &str) -> PipelineError {
     }
 }
 
-/// The integer permille agree rate `agree/cases` rendered as `"N.N%"` (no `f64`).
-/// A zero-`cases` corpus is a corpus-integrity failure, never a rendered `0.0%`.
+/// The agree rate `agree/cases` rendered as `"N.N%"`, rounded to the nearest tenth of
+/// a percent with integer math (no `f64`). A zero-`cases` corpus is a corpus-integrity
+/// failure, never a rendered `0.0%`.
+///
+/// Rounding is half-up but with a HONESTY GUARD: a corpus renders `100.0%` only when it
+/// is exactly perfect (`agree == cases`). An imperfect corpus whose rate rounds up to
+/// `1000` permille is clamped to `99.9%` — the benchmark must never round a real
+/// disagreement or coverage gap away into a false "100%".
 fn agree_rate(agree: usize, cases: usize) -> Result<String, PipelineError> {
     if cases == 0 {
         return Err(stage_err(
             "agreement tally has zero cases — corpus-integrity failure (no degraded 0% row)",
         ));
     }
-    // permille = floor(1000 * agree / cases); split into whole/tenth of a percent.
-    let permille = 1000 * agree / cases;
+    // permille = round_half_up(1000 * agree / cases) = floor((2000*agree + cases) / (2*cases)).
+    let mut permille = (2000 * agree + cases) / (2 * cases);
+    if agree < cases && permille >= 1000 {
+        permille = 999;
+    }
     Ok(format!("{}.{}%", permille / 10, permille % 10))
 }
 
@@ -341,5 +350,26 @@ mod tests {
             render_agreement_matrix(&t).unwrap(),
             render_agreement_matrix(&t).unwrap()
         );
+    }
+
+    #[test]
+    fn agree_rate_rounds_to_nearest_tenth() {
+        // Round half up, not floor: 2/3 = 66.66..% → 66.7% (floor would say 66.6%);
+        // 37/38 = 97.36..% → 97.4% (floor would say 97.3%).
+        assert_eq!(agree_rate(2, 3).unwrap(), "66.7%");
+        assert_eq!(agree_rate(37, 38).unwrap(), "97.4%");
+        // Exact tenths and a perfect corpus are unchanged.
+        assert_eq!(agree_rate(18, 19).unwrap(), "94.7%");
+        assert_eq!(agree_rate(6, 6).unwrap(), "100.0%");
+    }
+
+    #[test]
+    fn agree_rate_never_overclaims_100() {
+        // An imperfect corpus that rounds up to 1000 permille is clamped to 99.9% — the
+        // benchmark must never render a real gap/disagreement away into a false 100%.
+        assert_eq!(agree_rate(9999, 10000).unwrap(), "99.9%");
+        assert_eq!(agree_rate(1999, 2000).unwrap(), "99.9%");
+        // Only an exactly-perfect corpus earns 100.0%.
+        assert_eq!(agree_rate(10000, 10000).unwrap(), "100.0%");
     }
 }
