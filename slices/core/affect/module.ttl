@@ -16,6 +16,21 @@ gmeow:AestheticQuality
     skos:definition "A qualitative aesthetic reading — an OPEN vocabulary seeded with elegance, sublimity, kitsch. No AestheticQuality hierarchy exists or ever will (Principle 9): aesthetic traditions disagree about the inventory, and that disagreement is data."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+gmeow:AffectiveMoment
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affective Moment"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ,
+        gmeow:MentalMoment ;
+    skos:definition "The abstract affective member of the kernel gmeow:MentalMoment family (alongside cognition's gmeow:CognitiveState, epistemics' doxastic states, and teleology's gmeow:IntentionalMode) — intrinsic affective modes inhering in one agent, so an agent's whole mental life, including what it feels, is queryable as one family (Principles 14, 15). Never instantiated directly: instances are Emotions (later stages add Moods and affective dispositions)."@x-gmeow-english ;
+    skos:example "ex:awe a gmeow:Emotion ; gmeow:emotionBearer ex:reader .  # an AffectiveMoment by inheritance"@x-gmeow-english ;
+    skos:scopeNote "The affective branch of gmeow:MentalMoment; groups the affective MODES (endurants). NOT the occurrent felt episode — that is the perdurant gmeow:AffectiveExperience (under mentation's gmeow:Experience), minted in a later stage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid instantiating it directly (type the specific mode — an Emotion, and later a Mood or affective disposition); and avoid it for the occurrent felt EPISODE, which is gmeow:AffectiveExperience (a perdurant), not a MentalMoment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Subclass the concrete affective mode (gmeow:Emotion, later gmeow:Mood) under it, so one agent-memory query over gmeow:MentalMoment returns an agent's feelings alongside its knowings, beliefs, and intentions."@x-gmeow-english ;
+    gmeow:useWhen "Use as the shared parent for an agent's affective modes, or to query the whole affective branch of an agent's mental life as one family (Principles 14, 15)."@x-gmeow-english .
+
 gmeow:Appraisal
     a logic:SubKind ,
         owl:Class ;
@@ -39,9 +54,8 @@ gmeow:Emotion
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Emotion"@x-gmeow-english ;
-    rdfs:subClassOf logic:Mode ,
-        gmeow:Entity ;
-    skos:definition "An emotion as an intrinsic mode inhering in one agent (the Desire/Intention grounding, teleology design). Episodic temporal scope rides validFrom/validUntil on the statement — deliberately no tenure class (thin means thin). Whether an emotion is self-reported or attributed is the vantage axis of the claims about it; self-report is top authority for the subject's own standpoint."@x-gmeow-english ;
+    rdfs:subClassOf gmeow:AffectiveMoment ;
+    skos:definition "An emotion as an intrinsic affective mode inhering in one agent, grafted under gmeow:AffectiveMoment ⊑ gmeow:MentalMoment — the kernel agent-mental-life family, sibling to teleology's gmeow:IntentionalMode (the Desire/Intention grounding). Episodic temporal scope rides validFrom/validUntil on the statement; the felt-episode and mood surfaces are part of the fuller model in design/AFFECT-DESIGN.md. Whether an emotion is self-reported or attributed is the vantage axis of the claims about it; self-report is top authority for the subject's own standpoint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:EmotionType
@@ -51,7 +65,45 @@ gmeow:EmotionType
     rdfs:label "Emotion Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of an emotion — an OPEN value vocabulary seeded with Plutchik's primary eight (the EmotionML standard set). Registry-independent and contestable, never a tree (the Genre/Register precedent): traditions disagree about the emotion inventory itself, and that disagreement is data, not error (Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "Typed logic:AbstractIndividualType ⊑ logic:QualityValue — the repo-wide idiom for an open value vocabulary of individuals. Purist note: logic:Mode is defined as an aspect lacking a quality value, so classifying an emotion's TYPE with points in a quality space is a mild UFO category tension; GMEOW uses logic:QualityValue as the universal genus for any open value vocabulary (status enums, algorithm names, etc.), so this is house style, not a defect."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:affectiveElicitor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Emotion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "affective elicitor"@x-gmeow-english ;
+    skos:definition "The event, state, or act that TRIGGERED an emotion — its elicitor/cause (the bark that frightened, the news that saddened). Distinct from gmeow:affectiveTarget (what the emotion is ABOUT) and gmeow:emotionBearer (in whom it inheres); conflating cause with aboutness is a modeling error. Range intentionally open; non-functional (several things may contribute)."@x-gmeow-english ;
+    skos:example "ex:startle gmeow:affectiveElicitor ex:suddenBark ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for what the emotion is ABOUT (its intentional object) — that is gmeow:affectiveTarget; and avoid it for the bearer (gmeow:emotionBearer)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point it from an Emotion at the occurrent (event/act/state) that gave rise to it; leave the range open (constrained to an IRI by SHACL)."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the trigger/cause of an affective state, kept separate from its aboutness."@x-gmeow-english .
+
+gmeow:elicits
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:affectiveElicitor ;
+    rdfs:range gmeow:Emotion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "elicits"@x-gmeow-english ;
+    skos:definition "Trigger-to-emotion inverse of gmeow:affectiveElicitor: the occurrent (event, state, or act) that gave rise to an emotion, read from the trigger's side. Domain is intentionally open (anything can elicit); the range is gmeow:Emotion. A query/projection convenience — assert gmeow:affectiveElicitor and read gmeow:elicits as its inverse."@x-gmeow-english ;
+    skos:example "ex:suddenBark gmeow:elicits ex:startle ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting gmeow:elicits directly; prefer asserting gmeow:affectiveElicitor from the Emotion and let gmeow:elicits follow by inversion. Do not use it for what an emotion is ABOUT (that is gmeow:affectiveTarget, whose inverse is not this property)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Read it from a trigger to the emotion(s) it elicited; reach for it explicitly only in trigger-rooted projections where the inverse direction is the natural one to state."@x-gmeow-english ;
+    gmeow:useWhen "Use when traversing or projecting from a trigger to the emotions it elicited."@x-gmeow-english .
+
+gmeow:affectiveTarget
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Emotion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "affective target"@x-gmeow-english ;
+    skos:definition "What an emotion is ABOUT — its intentional object (the dog one fears, the outcome one is proud of). Distinct from gmeow:affectiveElicitor (what TRIGGERED it) and gmeow:emotionBearer (in whom it inheres). Range intentionally open; non-functional (an emotion may be about several things)."@x-gmeow-english ;
+    skos:example "ex:fearOfDog gmeow:affectiveTarget ex:theDog ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for what merely TRIGGERED the emotion (that is gmeow:affectiveElicitor) or for the bearer (gmeow:emotionBearer)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point it from an Emotion at its intentional object; leave the range open (constrained to an IRI by SHACL)."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what an emotion is directed at / about, kept separate from its trigger."@x-gmeow-english .
 
 gmeow:appraisalDimension
     a owl:ObjectProperty ;
@@ -210,16 +262,16 @@ gmeow:qualitySublimity
 <https://blackcatinformatics.ca/gmeow/slices/affect>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment """Emotions and appraisals — the thinnest slice in the repo, by commitment.
+    rdfs:comment """Emotions and appraisals — a CORE slice: an agent's felt mental life is part of the Principle 14 grounded-agent-memory flagship.
 
 DOCTRINE.
-  * THIN MEANS THIN (Principle 15 discipline): this slice ships the minimum its named consumers require and STOPS. Growth requires a new consumer, not modeling pleasure; docs.md records the size budget and what demand would justify expansion (a sensory-environment or narrative consumer).
-  * An Emotion is an intrinsic mode inhering in one agent (the Desire/Intention pattern, teleology design). Episodic scope rides validFrom/validUntil on the statement — NO tenure class here (thin means thin); promote to the StandpointTenure idiom only if a consumer ever demands it.
+  * CORE AND COMPREHENSIVE: affect is core because affective memory is load-bearing for grounded agent memory (P14); GMEOW core is comprehensive by design, not a minimal kernel. This module is the kernel baseline of the affect model — the fuller high-dimensional landscape, the affective-experience and evidence layers, and the external bridges are specified canonically in design/AFFECT-DESIGN.md.
+  * An Emotion is an intrinsic affective mode inhering in one agent, grafted under gmeow:AffectiveMoment ⊑ gmeow:MentalMoment — the kernel agent-mental-life family, sibling to cognition's CognitiveState, epistemics' doxastic states, and teleology's IntentionalMode. Its aboutness (gmeow:affectiveTarget) is separated from its cause (gmeow:affectiveElicitor) and its bearer (gmeow:emotionBearer). Episodic scope rides validFrom/validUntil on the statement; the felt-episode and mood surfaces are part of the fuller model in design/AFFECT-DESIGN.md.
   * EmotionType is an OPEN vocabulary seeded from the EmotionML standard sets (Plutchik's primary eight); registry-independent, contestable, never a tree (the Genre/Register precedent).
-  * APPRAISALS ARE OBSERVATIONS: dimensional readings (PAD: valence, arousal, dominance) and qualitative aesthetic judgements (elegance, sublimity, kitsch — open) are vantage-indexed cells. Two critics disagreeing are two cells (Principle 9). Attributed emotion vs self-report is the vantage axis too: self-report is top authority for the subject's own standpoint (the facetVantage precedent) — docs, no new machinery.
-  * ALIGNMENTS DEFERRED to the compiler-arc window: MFOEM (linkage-only, BFO lineage), EmotionML vocabularies, WordNet-Affect; W3C EmotionML projection with declared loss (vantage collapses to EmotionML's single-annotator model — flagged). Target list fixed in."""@x-gmeow-english ;
+  * APPRAISALS ARE OBSERVATIONS: dimensional readings (PAD: valence, arousal, dominance) and qualitative aesthetic judgements (elegance, sublimity, kitsch — open) are vantage-indexed cells. Two critics disagreeing are two cells (Principle 9). Attributed emotion vs self-report is the vantage axis too: self-report is top authority for the subject's own standpoint (the facetVantage precedent).
+  * ALIGNMENTS: MFOEM (linkage-only, BFO lineage), EmotionML vocabularies, WordNet-Affect, and classifier registries are generated logic:Correspondence lowerings carrying declared preservation (the W3C EmotionML projection is many-to-one and declares its loss). Target list fixed in the alignment ledger."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "GMEOW Affect Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Affect Module — emotions as intrinsic modes and appraisals as vantage-indexed observations. DELIBERATELY THIN."@x-gmeow-english ;
+    skos:definition "The GMEOW Affect Module — emotions as intrinsic affective modes (kernel gmeow:MentalMoment family) and appraisals as vantage-indexed observations. Core; the fuller affect model is specified canonically in design/AFFECT-DESIGN.md."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .

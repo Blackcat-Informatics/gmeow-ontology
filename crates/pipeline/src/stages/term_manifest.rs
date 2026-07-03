@@ -462,11 +462,16 @@ impl Stage for TermManifestStage {
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // The digests are computed over the authored default graph (root ontology +
         // slice modules); declare them so a vocabulary edit that changes a term's
-        // definition busts the cache. The committed manifest itself is declared too,
-        // so a manifest edit (the prior-state input to change detection) re-runs it.
+        // definition busts the cache. The committed manifest is the prior-state input
+        // to change detection, so declare it too (a manifest edit re-runs the stage) —
+        // but it is ALSO this stage's own output, hence absent on the one-shot
+        // bootstrap build that first mints it; declare it only when present.
         let mut files = vec![root.join("ontology").join("gmeow.ttl")];
         files.extend(module_files(root)?);
-        files.push(root.join(TERM_MANIFEST_RDF_PATH));
+        let prior = root.join(TERM_MANIFEST_RDF_PATH);
+        if prior.is_file() {
+            files.push(prior);
+        }
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {

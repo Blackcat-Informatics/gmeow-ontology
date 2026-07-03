@@ -23,6 +23,7 @@
     rdfs:label "GMEOW"@x-gmeow-english ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow> ;
     owl:imports <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
+        <https://blackcatinformatics.ca/gmeow/slices/affect> ,
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
         <https://blackcatinformatics.ca/gmeow/slices/ai> ,
         <https://blackcatinformatics.ca/gmeow/slices/attestation> ,
