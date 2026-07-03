@@ -3,10 +3,10 @@
 
 //! Native MCP surfaces over the bundled GMEOW snapshot.
 //!
-//! `McpView` loads the bundled `gmeow.gts` snapshot ONCE (the narrow waist #267,
+//! `McpView` loads the bundled `gmeow.gts` snapshot ONCE (the narrow waist,
 //! bundle-only — never the repo) and serves the `export`-backed surfaces —
 //! `lookup_term`, `llms_txt`, `llms_full`, `doc_card`, `okf_index` — over a
-//! per-language [`FoldView`]. The standard `llms.txt`/`doc_card` surfaces (#1027)
+//! per-language [`FoldView`]. The standard `llms.txt`/`doc_card` surfaces
 //! make the docs themselves agent-consumable: the index links into the published
 //! site (URLs recovered from the `gmeow:graph/documentation` graph) and the card
 //! is the per-term, context-window-ready twin of the site's `card.md`. `McpServer`
@@ -43,8 +43,8 @@ const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
 #[pyclass(name = "McpView", skip_from_py_object)]
 pub struct McpView {
-    /// THIS server's view of the bundled snapshot as the native carrier dataset
-    /// (#1132): the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
+    /// THIS server's view of the bundled snapshot as the native carrier dataset:
+    /// the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
     /// the carrier representation ONCE and serves every surface off the shared export
     /// `FoldView`, exactly as the in-pipeline export leaf does.
     dataset: Arc<purrdf::RdfDataset>,
@@ -217,18 +217,18 @@ impl McpView {
     }
 
     /// The standard llmstxt.org vocabulary index (`llms.txt`) for `requested`,
-    /// with bullets linking into the published docs site (#1027).
+    /// with bullets linking into the published docs site.
     fn llms_txt(&self, requested: Vec<String>) -> String {
         self.llms_txt_text(requested)
     }
 
-    /// The complete inlined index (`llms-full.txt`) for `requested` (#1027) — the
+    /// The complete inlined index (`llms-full.txt`) for `requested` — the
     /// single-file, link-free surface an agent can ingest whole.
     fn llms_full(&self, requested: Vec<String>) -> String {
         self.llms_full_text(requested)
     }
 
-    /// A prompt-ready Markdown card for one term (#1027) for `requested` — the
+    /// A prompt-ready Markdown card for one term for `requested` — the
     /// live twin of the docs-site `terms/{slug}/card.md`.
     fn doc_card(&self, term: &str, requested: Vec<String>) -> String {
         self.doc_card_text(term, requested)

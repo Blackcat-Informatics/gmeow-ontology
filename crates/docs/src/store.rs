@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Oxigraph-free RDF query surface for the docs model + i18n extractors (EPIC #906).
+//! Oxigraph-free RDF query surface for the docs model + i18n extractors.
 //!
 //! The docs crate used to parse each slice's `module.ttl` / example / mapping
 //! Turtle into an `oxigraph::store::Store` and pattern-match it. Every store/term

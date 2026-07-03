@@ -406,7 +406,7 @@ pub(crate) fn rdf_prefixes() -> Vec<(String, String)> {
 /// `.nt`/`.nq` graph) and the producing stage (emitting the committed file), so
 /// `file == fold` holds by construction — idempotent even with blank nodes.
 pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> Result<Vec<u8>, String> {
-    // Native RDFC-1.0 over the FLATTENED carrier (#910): the statement overlay is
+    // Native RDFC-1.0 over the FLATTENED carrier: the statement overlay is
     // re-materialized to plain `rdf:reifies`/annotation triples before canonicalizing.
     // Format-adaptive: a default-graph dataset yields N-Triples lines, a graph-labelled
     // one N-Quads — byte-identical to the prior oxigraph-flat path.
@@ -526,7 +526,7 @@ mod tests {
 
     #[test]
     fn rdfstar_closure_folds_byte_identically() {
-        // The reasoning closure is RDF-1.2 with thousands of ANONYMOUS reifiers (#1155).
+        // The reasoning closure is RDF-1.2 with thousands of ANONYMOUS reifiers.
         // With the parse (anon-reifier collapse), `rdf:reifies` interning, render
         // (side-table emission) and content-stable Triple-signature fixes, a per-file
         // carrier fold must reproduce the canonical bytes exactly.

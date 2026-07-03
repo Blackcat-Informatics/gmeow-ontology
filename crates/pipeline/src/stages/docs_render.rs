@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `docs_render` stage (#861 P5): the typed documentation model as data.
+//! The `docs_render` stage: the typed documentation model as data.
 //!
-//! Pure WIRING of the Rust docs crate (#853) — no port. It discovers the
+//! Pure WIRING of the Rust docs crate — no port. It discovers the
 //! `gmeow_docs::DocsModel` from the slice catalog and projects it to the
 //! self-hosting documentation named graph via `gmeow_docs::to_gmeow_rdf` — the
 //! exact N-Quads the Python `DocSet.to_gmeow_rdf()` folds into `gmeow.gts`. The
@@ -122,7 +122,7 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), Pipel
 /// bodies ride the bundle only as blake3 digests), so any stage that derives an
 /// artifact from the docs model must declare them as `input_files` for cache
 /// soundness. Shared by `DocsRenderStage` (the documentation graph) and
-/// `SnapshotStage` (the embedded rendered site, #897).
+/// `SnapshotStage` (the embedded rendered site).
 pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     for module in crate::stages::source_load::module_files(root)? {
@@ -214,9 +214,9 @@ impl Stage for DocsRenderStage {
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
-        // four-boxes / per-slice i18n catalog edit busts the cache (cache soundness,
-        // #863). The snapshot stage embeds the rendered SITE from these same sources
-        // (#897), so it shares this list via `docs_source_files`.
+        // four-boxes / per-slice i18n catalog edit busts the cache (cache soundness).
+        // The snapshot stage embeds the rendered SITE from these same sources,
+        // so it shares this list via `docs_source_files`.
         docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
