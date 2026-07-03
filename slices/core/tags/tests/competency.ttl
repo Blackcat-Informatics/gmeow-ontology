@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions authored as slice-resident test-DSL data,
+# executed by the native Rust slice-test harness (crates/slicetest), asserted
+# lane (gmeow:reasoningNone). The three cells pin the three questions the slice
+# exists to answer (docs/SLICE_GUIDE.md §3): the auditable act, the
+# suppression-honoring current view, and the optional-hierarchy rollup — one
+# ASK-with-overlay, one RowsExact, one RowsContains, exercising all three
+# cardinality modes on purpose.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/tests/> .
+@prefix exd:   <https://blackcatinformatics.ca/gmeow/examples/tags/> .
+
+# --- 1. The auditable act (ASK + overlay) -------------------------------------
+# "Who tagged what, with which tag, under which scheme, with what confidence,
+# over which period?" — the reified gmeow:Tagging relator's whole promise, held
+# together in one scene.
+ex:cqAuditableTagging a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/tags/queries/competency/auditable-tagging.rq" ;
+    gmeow:cqDataFile "examples/contested-tagging.ttl" ;
+    gmeow:cqRationale "A tagging act MUST be fully auditable: the reified gmeow:Tagging binds tagged x tag x tagger, names its gmeow:taggingScheme, and carries gmeow:confidence and a first-class gmeow:taggingInterval. This is the promotion target gmeow:hasTag pairsWith — if the relator cannot answer the audit question, the flat/reified pairing is broken. The contested-tagging overlay supplies a complete act (Maria's wildlife-scheme tagging with confidence and interval)." ;
+    gmeow:cqExpectAsk true .
+
+# --- 2. Current tags, honoring suppression (RowsExact + overlay) --------------
+# The retracted off-topic tagging is RETAINED in the data (displayable false)
+# and MUST NOT surface; the contested jaguar pair MUST both surface, co-equal.
+# RowsExact: the answer is exactly these two tags — the suppressed one appearing
+# would be an erasure-contract leak, a third row a scene drift.
+ex:cqCurrentTags a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/tags/queries/competency/current-tags.rq" ;
+    gmeow:cqDataFile "examples/contested-tagging.ttl" ;
+    gmeow:cqRationale "The current-tags view MUST honor suppression-never-erasure (Principle 10): the retracted tagging is retained with gmeow:displayable false yet excluded from display queries, while BOTH contested taggings surface as co-equal claims with no winner (Principle 9). RowsExact pins the leak in either direction: a suppressed tag surfacing, or a contested tag being silently dropped." ;
+    gmeow:cqResultShape ex:cqCurrentTagsShape ;
+    gmeow:cqExpectRow ex:cqCTRowAnimal , ex:cqCTRowCar .
+
+ex:cqCurrentTagsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "tag" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqCTRowAnimal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "tag" ; gmeow:cellValueIri exd:tagJaguarAnimal ] .
+
+ex:cqCTRowCar a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "tag" ; gmeow:cellValueIri exd:tagJaguarCar ] .
+
+# --- 3. The tag rollup (RowsContains + overlay) --------------------------------
+# The optional hierarchy answers "which broader topics does this tag roll up
+# to?" via the transitive gmeow:broaderTag walked as a property path in the
+# asserted lane. RowsContains (witness mode): the folksonomy scene guarantees
+# the artificial-intelligence witness; a deeper ladder added to the scene later
+# must not break the cell.
+ex:cqTagRollup a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/tags/queries/competency/tag-rollup.rq" ;
+    gmeow:cqDataFile "examples/folksonomy.ttl" ;
+    gmeow:cqRationale "The optional folksonomy hierarchy MUST answer the rollup question: gmeow:broaderTag is transitive, and walking it with a property path in the asserted lane reaches every broader topic without requiring reasoner closure. The folksonomy overlay pins machine-learning rolling up to artificial-intelligence; RowsContains keeps the cell stable if the scene's ladder deepens." ;
+    gmeow:cqResultShape ex:cqTagRollupShape ;
+    gmeow:cqExpectRow ex:cqTRRowAI .
+
+ex:cqTagRollupShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "broader" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqTRRowAI a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "broader" ; gmeow:cellValueIri exd:tagAI ] .
