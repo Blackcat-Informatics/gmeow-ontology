@@ -107,6 +107,11 @@ const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characte
 /// Predicate linking a central characteristic record to its characteristic sort.
 const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
 
+/// Predicate linking a `logic:RelatumDistinctnessAssertion` to its target class.
+const LOGIC_DISTINCTNESS_TARGET: &str = "https://blackcatinformatics.ca/logic/distinctnessTarget";
+/// Predicate linking a `logic:RelatumDistinctnessAssertion` to one of its two roles.
+const LOGIC_DISTINCTNESS_ROLE: &str = "https://blackcatinformatics.ca/logic/distinctnessRole";
+
 /// Rule IRI stamped on a transitive-closure edge derived by the characteristic pass.
 const CHAR_TRANSITIVE_RULE_IRI: &str =
     "https://blackcatinformatics.ca/logic/rule/property-characteristic-transitive";
@@ -121,6 +126,19 @@ const CHAR_CLASH_RULE_IRI: &str =
 const IRREFLEXIVITY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/IrreflexivityViolation";
 /// Violation discipline: an asymmetric property holds in both directions of a pair.
 const ASYMMETRY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/AsymmetryViolation";
+/// Violation discipline: an acyclic property's transitive closure returns to its start —
+/// a node reaches itself by following the property one or more steps.
+const ACYCLICITY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/AcyclicityViolation";
+/// Rule IRI stamped on an acyclicity violation raised by the characteristic pass.
+const CHAR_ACYCLIC_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/property-characteristic-acyclic";
+/// Violation discipline: a relator's two distinctness roles bind the same value on one
+/// focus node (the mutual-inequality integrity condition is broken).
+const RELATUM_DISTINCTNESS_VIOLATION: &str =
+    "https://blackcatinformatics.ca/logic/RelatumDistinctnessViolation";
+/// Rule IRI stamped on a relatum-distinctness violation.
+const RELATUM_DISTINCTNESS_RULE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/rule/relatum-distinctness";
 /// Violation discipline: a DL-projectable `logic:` characteristic record whose OWL
 /// projection (`owl:{Transitive,Symmetric,Functional}Property`) is missing — the two
 /// carriers of one characteristic have drifted (Principle 17: the `logic:` record is
@@ -2776,6 +2794,7 @@ enum CharSort {
     Irreflexive,
     Asymmetric,
     Functional,
+    Acyclic,
 }
 
 /// Map a characteristic-sort IRI — either the OWL characteristic class or its
@@ -2794,6 +2813,7 @@ fn char_sort_of(iri: &str) -> Option<CharSort> {
             Some("irreflexiveProperty") => Some(CharSort::Irreflexive),
             Some("asymmetricProperty") => Some(CharSort::Asymmetric),
             Some("functionalProperty") => Some(CharSort::Functional),
+            Some("acyclicProperty") => Some(CharSort::Acyclic),
             _ => None,
         },
     }
@@ -3137,6 +3157,53 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
                 });
             }
 
+            // Acyclicity: a node that reaches itself by following `prop` one or more
+            // steps is a violation.  Reachability is computed INTERNALLY over the asserted
+            // immediate edges and never emitted, so an acyclic-but-not-transitive property
+            // such as gmeow:linkNext keeps its one-step semantics — no `prop+` closure edge
+            // is materialised (design/LOGIC-VALIDATION.md; the risk-slice linkNext prose
+            // states it is NOT transitive).  Full reachability (a visited set), not a depth
+            // cap, so a cycle longer than any bound is still caught.
+            if sorts.contains(&CharSort::Acyclic) {
+                let mut adj: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+                for (s, o) in base {
+                    adj.entry(s.as_str()).or_default().push(o.as_str());
+                }
+                for (start, succs) in &adj {
+                    let mut seen: HashSet<&str> = HashSet::new();
+                    let mut stack: Vec<&str> = succs.clone();
+                    let mut cyclic = false;
+                    while let Some(n) = stack.pop() {
+                        if n == *start {
+                            cyclic = true;
+                            break;
+                        }
+                        if seen.insert(n) {
+                            if let Some(next) = adj.get(n) {
+                                stack.extend(next.iter().copied());
+                            }
+                        }
+                    }
+                    if cyclic {
+                        // Provenance: the node's first outgoing edge on the property (the
+                        // step that opens the cycle); deterministic since `base` is sorted.
+                        let first = succs.first().copied().unwrap_or(*start);
+                        let source = triple_reifier(start, prop, first)?;
+                        let derivation_id =
+                            mint_derivation_id(CHAR_ACYCLIC_RULE_IRI, &[source.as_str()]);
+                        out.push(FoundationQuad {
+                            graph: world.clone(),
+                            subject: (*start).to_owned(),
+                            predicate: format!("{LOGIC_NS}violation"),
+                            object: n3(ACYCLICITY_VIOLATION),
+                            rule_iri: CHAR_ACYCLIC_RULE_IRI.to_owned(),
+                            source_quad_ids: vec![source],
+                            derivation_id,
+                        });
+                    }
+                }
+            }
+
             // Clash detection over the closed+mirrored relation.  Each violation is
             // keyed on `(subject, discipline)` (first witnessing pair wins) and carries
             // the reifier(s) of the offending edge(s) as its provenance sources.
@@ -3179,6 +3246,121 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
         }
     }
 
+    Ok(out)
+}
+
+/// Enforce relatum-distinctness assertions over the materialized quads, per world.
+///
+/// For each `logic:RelatumDistinctnessAssertion` naming a target class
+/// (`logic:distinctnessTarget`) and exactly two roles (`logic:distinctnessRole`), this
+/// raises `logic:violation logic:RelatumDistinctnessViolation` on any focus node of that
+/// class whose two roles bind the **same** value — a coincident-value equality join, the
+/// broken half of the mutual-inequality condition (OWL functionality would infer
+/// `owl:sameAs` here, never a rejection; only this closed-world join rejects it).
+///
+/// Determinism: worlds, subjects, constraints, and values are visited in sorted order and
+/// the first coincident value witnesses the violation.
+///
+/// # Errors
+///
+/// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
+fn relatum_distinctness_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQuad>, String> {
+    // Collect the assertion records: record IRI → target class, record IRI → {roles}.
+    let mut rec_target: HashMap<String, String> = HashMap::new();
+    let mut rec_roles: HashMap<String, BTreeSet<String>> = HashMap::new();
+    for q in quads {
+        let Some(obj) = strip_angle_opt(&q.object) else {
+            continue;
+        };
+        if q.predicate == LOGIC_DISTINCTNESS_TARGET {
+            rec_target.insert(q.subject.clone(), obj.to_owned());
+        } else if q.predicate == LOGIC_DISTINCTNESS_ROLE {
+            rec_roles
+                .entry(q.subject.clone())
+                .or_default()
+                .insert(obj.to_owned());
+        }
+    }
+    // One `(target, role1, role2)` constraint per well-formed record (exactly two roles,
+    // ordered by IRI for a stable emit).
+    let mut constraints: BTreeSet<(String, String, String)> = BTreeSet::new();
+    for (rec, target) in &rec_target {
+        if let Some(roles) = rec_roles.get(rec) {
+            if roles.len() == 2 {
+                let mut it = roles.iter();
+                let r1 = it.next().expect("two roles").clone();
+                let r2 = it.next().expect("two roles").clone();
+                constraints.insert((target.clone(), r1, r2));
+            }
+        }
+    }
+    if constraints.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    // Index, per world: the type edges of each subject, and the values each relevant role
+    // binds on each subject.
+    let relevant_roles: BTreeSet<&str> = constraints
+        .iter()
+        .flat_map(|(_, r1, r2)| [r1.as_str(), r2.as_str()])
+        .collect();
+    let mut types: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
+    let mut role_vals: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
+    for q in quads {
+        let Some(obj) = strip_angle_opt(&q.object) else {
+            continue;
+        };
+        if q.predicate == RDF_TYPE {
+            types
+                .entry(q.graph.clone())
+                .or_default()
+                .entry(q.subject.clone())
+                .or_default()
+                .insert(obj.to_owned());
+        } else if relevant_roles.contains(q.predicate.as_str()) {
+            role_vals
+                .entry((q.graph.clone(), q.subject.clone(), q.predicate.clone()))
+                .or_default()
+                .insert(obj.to_owned());
+        }
+    }
+
+    let empty: BTreeSet<String> = BTreeSet::new();
+    let mut out: Vec<FoundationQuad> = Vec::new();
+    for (world, subjects) in &types {
+        for (subject, classes) in subjects {
+            for (target, r1, r2) in &constraints {
+                if !classes.contains(target) {
+                    continue;
+                }
+                let v1 = role_vals
+                    .get(&(world.clone(), subject.clone(), r1.clone()))
+                    .unwrap_or(&empty);
+                let v2 = role_vals
+                    .get(&(world.clone(), subject.clone(), r2.clone()))
+                    .unwrap_or(&empty);
+                let Some(v) = v1.intersection(v2).next() else {
+                    continue;
+                };
+                let mut sources = vec![
+                    triple_reifier(subject, r1, v)?,
+                    triple_reifier(subject, r2, v)?,
+                ];
+                sources.sort();
+                let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                let derivation_id = mint_derivation_id(RELATUM_DISTINCTNESS_RULE_IRI, &source_refs);
+                out.push(FoundationQuad {
+                    graph: world.clone(),
+                    subject: subject.clone(),
+                    predicate: format!("{LOGIC_NS}violation"),
+                    object: n3(RELATUM_DISTINCTNESS_VIOLATION),
+                    rule_iri: RELATUM_DISTINCTNESS_RULE_IRI.to_owned(),
+                    source_quad_ids: sources,
+                    derivation_id,
+                });
+            }
+        }
+    }
     Ok(out)
 }
 
@@ -3280,10 +3462,12 @@ pub fn evaluate(
     let obligations = anti_rigidity_obligations(&all, policy)?;
     let characteristics = property_characteristic_pass(&all)?;
     let carrier_agreement = characteristic_carrier_agreement_pass(&all)?;
+    let distinctness = relatum_distinctness_pass(&all)?;
     all.extend(rigidity);
     all.extend(obligations);
     all.extend(characteristics);
     all.extend(carrier_agreement);
+    all.extend(distinctness);
 
     // Final canonical sort (matches the runner's fold + sort).
     all.sort_by(|a, b| {
