@@ -318,6 +318,40 @@ type SurfaceThunk = fn(&Path) -> Result<Report, String>;
 
 fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
     vec![
+        ("alignment", |root| {
+            let findings =
+                gmeow_pipeline::stages::correspondence_soundness::lint_correspondence_soundness(
+                    root, false,
+                )
+                .map_err(|e| e.to_string())?;
+            let mut r = Report::new("alignment");
+            for d in findings {
+                let sev = Severity::parse(&d.severity.to_lowercase()).unwrap_or(Severity::Info);
+                r.add_finding(Finding::new(
+                    sev,
+                    format!("alignment.{}", d.check),
+                    d.message,
+                ));
+            }
+            Ok(r)
+        }),
+        ("coverage", |root| {
+            let rep = gmeow_validate::coverage::run_coverage(
+                &root.join("tests/fixtures/coverage"),
+                &root.join("generated/mappings"),
+                NAMESPACE,
+            )?;
+            Ok(gmeow_validate::coverage::coverage_to_diagnostics(&rep))
+        }),
+        ("acceptance", |root| {
+            let results = gmeow_pipeline::scoreboards::run_acceptance_corpus(root, None)?;
+            Ok(gmeow_pipeline::scoreboards::acceptance_diagnostics(
+                &results,
+            ))
+        }),
+        ("wikidata", |root| {
+            gmeow_validate::mapping_eval::wikidata_diagnostics(&root.join("generated/mappings"))
+        }),
         ("constitution", |root| {
             let findings = gmeow_validate::constitution::constitution_full_report(
                 &root.join("governance").join("constitution.ttl"),
@@ -348,35 +382,148 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 NAMESPACE,
             ))
         }),
-        ("coverage", |root| {
-            let rep = gmeow_validate::coverage::run_coverage(
-                &root.join("tests/fixtures/coverage"),
-                &root.join("generated/mappings"),
-                NAMESPACE,
-            )?;
-            Ok(gmeow_validate::coverage::coverage_to_diagnostics(&rep))
+        ("audit", |root| {
+            // The claim-audit gate over the committed hallucination corpus (the
+            // ungrounded / contradicted / stale finder), exactly the corpus the
+            // retired Python `_audit` folded.
+            let corpus = root.join("tests/fixtures/coverage/hallucination-kg.ttl");
+            let report = gmeow_pipeline::scoreboards::claim_audit(root, &[corpus])?;
+            Ok(gmeow_pipeline::scoreboards::claim_audit_diagnostics(
+                &report,
+            ))
         }),
-        ("wikidata", |root| {
-            gmeow_validate::mapping_eval::wikidata_diagnostics(&root.join("generated/mappings"))
-        }),
-        ("alignment", |root| {
-            let findings =
-                gmeow_pipeline::stages::correspondence_soundness::lint_correspondence_soundness(
-                    root, false,
-                )
-                .map_err(|e| e.to_string())?;
-            let mut r = Report::new("alignment");
-            for d in findings {
-                let sev = Severity::parse(&d.severity.to_lowercase()).unwrap_or(Severity::Info);
-                r.add_finding(Finding::new(
-                    sev,
-                    format!("alignment.{}", d.check),
-                    d.message,
+        ("generated", |root| {
+            // The build-drift surface: run the pipeline in CHECK mode (the build
+            // authority) and project its drift into `generator.drift` error findings
+            // plus the run's own error findings.
+            let jobs = std::thread::available_parallelism()
+                .map(|n| n.get())
+                .unwrap_or(1);
+            let run =
+                gmeow_pipeline::run::run_full(root, jobs, gmeow_pipeline::run::RunMode::Check)
+                    .map_err(|e| e.to_string())?;
+            let mut r = Report::new("generated");
+            let mut drifted = run.drifted.clone();
+            drifted.sort();
+            for rel in drifted {
+                let mut finding = Finding::new(Severity::Error, "generator.drift", rel.clone())
+                    .with_tool("pipeline");
+                finding.add_location(gmeow_diagnostics::Location::new(
+                    Some(rel),
+                    None,
+                    None,
+                    None,
                 ));
+                r.add_finding(finding);
+            }
+            for finding in run.findings {
+                if finding.severity == Severity::Error {
+                    r.add_finding(finding);
+                }
+            }
+            Ok(r)
+        }),
+        (
+            "engine-cross-check",
+            crate::dev_gates::crosscheck_queries_report,
+        ),
+        ("logic-compile", |root| {
+            // The `logic:` compile diagnostics surface: parse diagnostics projected
+            // into the canonical report; a hard parse/compile failure is surfaced as
+            // one `logic-compile.failed` error rather than aborting the whole fold.
+            let source = root.join("slices/grounding/logic/module.ttl");
+            let source_ttl = std::fs::read_to_string(&source)
+                .map_err(|e| format!("logic: source not found: {} ({e})", source.display()))?;
+            match compile_logic_report(&source_ttl) {
+                Ok(r) => Ok(r),
+                Err(msg) => {
+                    let mut r = Report::new("logic-compile");
+                    r.add_finding(
+                        Finding::new(
+                            Severity::Error,
+                            "logic-compile.failed",
+                            format!("logic: compile failed: {msg}"),
+                        )
+                        .with_tool("logic-compile"),
+                    );
+                    Ok(r)
+                }
+            }
+        }),
+        ("statement-compile", |root| {
+            // The native statement compiler's invariant + losslessness diagnostics,
+            // over the merged ontology (no imports) — the `include_imports=False`
+            // graph the invariant twin unions with the emitted OWL.
+            let ontology_nt = merged_ontology_nt(root)?;
+            Ok(gmeow_pipeline::stages::statements::compile_diagnostics_report(root, &ontology_nt))
+        }),
+        ("mapping-compile", |root| {
+            Ok(gmeow_pipeline::stages::mappings::compile_diagnostics_report(root))
+        }),
+        ("slice-ownership", |root| {
+            // The FULL native slice-ownership report: ownership defects (Conflict /
+            // Mismatch / Unowned) as errors PLUS the dependency observations the
+            // focused `validate` gate keeps out, folded here as structured warnings.
+            let slices = root.join("slices");
+            let catalog = purrdf::slice::SliceCatalog::discover(
+                &slices,
+                purrdf::SliceVocab::for_namespace(NAMESPACE),
+            )
+            .map_err(|e| e.to_string())?;
+            let analysis = purrdf::slice::OwnershipAnalyzer::new(&catalog)
+                .analyze()
+                .map_err(|e| e.to_string())?;
+            let mut r = Report::new("slice-ownership");
+            for finding in gmeow_validate::slice_ownership::ownership_findings(&analysis) {
+                r.add_finding(finding);
             }
             Ok(r)
         }),
     ]
+}
+
+/// Compile the `logic:` source and project its parse diagnostics into the
+/// canonical report — the native twin of `compile_logic`'s `diagnostics_report`.
+/// A parse or compile hard error is returned as `Err` for the caller to surface
+/// as a single `logic-compile.failed` finding.
+fn compile_logic_report(source_ttl: &str) -> Result<Report, String> {
+    let (program, diagnostics) =
+        gmeow_logic_compile::frontend::parse_logic_str(source_ttl, None).map_err(|e| e.0)?;
+    gmeow_logic_compile::projections::compile_program(&program)?;
+    Ok(gmeow_logic::logic_diagnostics::diagnostics_report(
+        &diagnostics,
+    ))
+}
+
+/// The merged ontology (root `ontology/gmeow.ttl` + every slice `module.ttl`, no
+/// imports) serialized to N-Triples — the `include_imports=False` graph the
+/// statement-compile invariant twin unions with the emitted OWL. Each file is
+/// parsed standalone and unioned (blank scopes standardized apart) exactly as the
+/// pipeline's ontology loader does.
+fn merged_ontology_nt(root: &Path) -> Result<String, String> {
+    use gmeow_pipeline::stages::source_load;
+    let mut files = vec![root.join("ontology").join("gmeow.ttl")];
+    files.extend(source_load::module_files(root).map_err(|e| e.to_string())?);
+    let mut datasets = Vec::new();
+    for file in &files {
+        if !file.exists() {
+            continue;
+        }
+        let bytes = std::fs::read(file).map_err(|e| format!("read {}: {e}", file.display()))?;
+        datasets.push(
+            source_load::turtle_bytes_to_dataset(&bytes, &file.display().to_string())
+                .map_err(|e| e.to_string())?,
+        );
+    }
+    let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
+    let merged = purrdf::RdfDataset::union(&refs);
+    let bytes = purrdf::serialize_dataset(
+        &merged,
+        "application/n-quads",
+        purrdf::SerializeGraph::DefaultGraph,
+    )
+    .map_err(|e| format!("serialize ontology: {e}"))?;
+    String::from_utf8(bytes).map_err(|e| format!("serialize ontology (utf8): {e}"))
 }
 
 // ── slice-fix-deps ─────────────────────────────────────────────────────────────
@@ -464,4 +611,46 @@ fn unified_diff(original: &str, patched: &str, path: &str) -> String {
         out.push_str(&format!("+{line}\n"));
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::surfaces;
+
+    /// The canonical offline dev-gate surface set `feedback` folds into one report
+    /// — the Rust twin of the retired Python `_EXPECTED_SURFACES`. Pinned here so a
+    /// future edit that adds or drops a fold surface without updating this set fails
+    /// the gate (the drift guard the deleted `test_feedback_surfaces.py` provided).
+    const EXPECTED_SURFACES: &[&str] = &[
+        "alignment",
+        "coverage",
+        "acceptance",
+        "wikidata",
+        "constitution",
+        "crate-layering",
+        "repo-static",
+        "box-roles",
+        "audit",
+        "generated",
+        "engine-cross-check",
+        "logic-compile",
+        "statement-compile",
+        "mapping-compile",
+        "slice-ownership",
+    ];
+
+    /// `surfaces()` folds EXACTLY the canonical dev-gate surface set — no surface
+    /// silently dropped (the coverage regression) and none silently added. On-gate:
+    /// this inspects only the `(label, _)` table, never running any thunk.
+    #[test]
+    fn surfaces_cover_exactly_the_canonical_set() {
+        let mut got: Vec<&str> = surfaces().iter().map(|(label, _)| *label).collect();
+        got.sort_unstable();
+        let mut expected: Vec<&str> = EXPECTED_SURFACES.to_vec();
+        expected.sort_unstable();
+        assert_eq!(
+            got, expected,
+            "feedback surface set drifted from the canonical dev-gate surfaces"
+        );
+    }
 }
