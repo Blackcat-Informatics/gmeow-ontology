@@ -10,7 +10,7 @@ TARGET ?= foaf
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= "chore: regenerate checked-in artifacts"
-GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
+GMEOW_DEV ?= cargo run -q -p gmeow-dev-cli --
 NPROC ?= $(shell nproc 2>/dev/null || echo 4)
 # check-generated reproduces every committed artifact through the gmeow-pipeline DAG;
 # its stages mix CPU work with artifact IO, so oversubscribing jobs past the core
@@ -101,8 +101,9 @@ help: ## Show the task plan.
 		/^[A-Za-z0-9_.-]+:.*## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' \
 		$(MAKEFILE_LIST)
 
-install: ## Sync the uv environment and configure repo-local Git merge drivers.
+install: ## Sync the uv environment, build the Rust CLIs, and configure repo-local Git merge drivers.
 	uv sync --all-packages
+	$(MAKE) cli-build
 	bash scripts/bootstrap-git-merge-drivers.sh
 
 fmt: ## Rewrite Python formatting with ruff.
@@ -154,6 +155,13 @@ lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage
 	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
 	@echo "gmeow-lsp release binary staged at dist/bin/gmeow-lsp"
 
+cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/.
+	cargo build -p gmeow-cli -p gmeow-dev-cli --release
+	mkdir -p dist/bin
+	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
+	cp $(CARGO_TARGET_DIR)/release/gmeow-dev dist/bin/gmeow-dev
+	@echo "gmeow + gmeow-dev release binaries staged at dist/bin/"
+
 lsp-sarif: lsp-release ## Emit SARIF from all .ttl files in the workspace root (report-only).
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
 	@echo "SARIF written to $(CARGO_TARGET_DIR)/lsp-sarif/gmeow-feedback.sarif"
@@ -200,7 +208,7 @@ docs: regenerate ## Regenerate gmeow.gts docs and extract ontology-docs/.
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize
 
-build: ## Build serializations and JSON-LD context into dist/.
+build: cli-build ## Build the Rust CLIs plus serializations and JSON-LD context into dist/.
 	$(GMEOW_DEV) build
 
 project: ## Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles.
@@ -406,6 +414,10 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
+	$(MAKE) maint-dev-cli-heavy
+
+maint-dev-cli-heavy: rust-build ## Run the off-gate gmeow-dev CLI heavy parity lane (whole-pipeline/gate commands: feedback, validate, logic compile --check, up-projection-audit).
+	GMEOW_DEV_CLI_HEAVY=1 cargo nextest run -p gmeow-dev-cli --run-ignored ignored-only $(NEXTEST_PARTITION_ARG)
 
 slicetest: ## Run the slice-resident test-DSL harness in isolation.
 	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)

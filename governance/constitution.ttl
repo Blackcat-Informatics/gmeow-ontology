@@ -80,7 +80,7 @@ meta:gate-generator-registry a meta:Gate ;
 meta:tests-narrow-waist a meta:Gate ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
     meta:artifact "crates/validate/src/repo_static.rs", "docs/gts-narrow-waist.md" ;
-    meta:symbol "check_repo_static", "check_narrow_waist" ;
+    meta:symbol "check_repo_static", "check_no_rdflib_in_runtime" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 

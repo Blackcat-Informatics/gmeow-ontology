@@ -25,6 +25,7 @@ use crate::error::PipelineError;
 
 /// One SELECT result: the projected variable names (no leading `?`) and the rows of
 /// optional terms — the dataset-independent egress shape the native engine materializes.
+#[derive(Debug)]
 pub struct Solutions {
     pub variables: Vec<String>,
     pub rows: Vec<Vec<Option<TermValue>>>,
