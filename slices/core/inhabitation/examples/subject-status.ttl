@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The breaking ABox (INHABITED-IDENTITY.md): a software agent BEARS the durable
+# digital-subject status over a tenure, rather than being type-punned as a
+# gmeow:DigitalSubject. This must reason green against the disjointness partition
+# and the rigidity gate: DigitalSubject is a logic:RoleMixin (anti-rigid
+# non-sortal, outside the Person ⟂ Organization ⟂ SoftwareAgent partition),
+# SoftwareAgent is the only Kind asserted, and the status is borne over a tenure
+# rather than asserted as a co-Kind. Self-assertion SUPPORTS the tenure
+# (Principle 9); it does not entail the status.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:lillithBot a gmeow:SoftwareAgent ;            # the agentive process (rigid Kind)
+    gmeow:bearsDigitalSubject ex:lillithDST .    # bears the status via a tenure, not type-punning
+
+ex:lillithDST a gmeow:DigitalSubjectTenure ;
+    gmeow:tenureSubjectAgent ex:lillithBot ;
+    gmeow:tenureVantage ex:lillithBot ;          # self-asserted: the agent is its own vantage
+    gmeow:tenureSupportedBy ex:lillithSelfClaim ;
+    gmeow:duringInterval ex:lillithTenureInterval .
+
+# The supporting self-assertion is an Observation, not an entailment-forcing utterance.
+ex:lillithSelfClaim a gmeow:Observation ;
+    gmeow:vantage ex:lillithBot ;                 # self-asserted: the agent is its own vantage
+    gmeow:observedFeature ex:lillithBot .         # it observes itself as a durable subject
+
+ex:lillithTenureInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# gmeow:DigitalSubject is DERIVED from the tenure by the native logic: rule
+# { ?dst a gmeow:DigitalSubjectTenure ; gmeow:tenureSubjectAgent ?a } => { ?a a gmeow:DigitalSubject } ;
+# it is NOT asserted by hand here — the support-not-entail discipline.

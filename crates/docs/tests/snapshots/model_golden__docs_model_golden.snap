@@ -1,18 +1,19 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "6",
-  "slice_count": 75,
-  "term_count": 2282,
-  "dependency_edge_count": 837,
+  "slice_count": 76,
+  "term_count": 2336,
+  "dependency_edge_count": 859,
   "term_count_by_category": {
-    "Class": 687,
+    "Class": 707,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1591
+    "Property": 1625
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -53,6 +54,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/images",
     "https://blackcatinformatics.ca/gmeow/slices/imagination",
     "https://blackcatinformatics.ca/gmeow/slices/inference",
+    "https://blackcatinformatics.ca/gmeow/slices/inhabitation",
     "https://blackcatinformatics.ca/gmeow/slices/inquiry",
     "https://blackcatinformatics.ca/gmeow/slices/kernel",
     "https://blackcatinformatics.ca/gmeow/slices/language",
@@ -290,11 +292,11 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 71,
-  "linkage_count": 1770,
-  "example_count": 110,
+  "mapping_set_count": 72,
+  "linkage_count": 1778,
+  "example_count": 114,
   "concern_count": 7,
-  "external_term_count": 1539,
+  "external_term_count": 1540,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -412,7 +414,7 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 291,
+  "shape_count": 298,
   "competency_count": 55,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",

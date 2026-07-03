@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 249
 expression: head
 ---
 <svg xmlns="http://www.w3.org/2000/svg" width="1108" height="1748" viewBox="0 0 1108 1748" role="img" aria-label="Slice dependency graph">
@@ -12,5 +13,5 @@ expression: head
   </defs>
   <g stroke="#7a8aa0" stroke-width="1.5" fill="none">
     <line x1="134" y1="46" x2="134" y2="598" marker-end="url(#arrow)" />
-    <line x1="134" y1="46" x2="974" y2="874" marker-end="url(#arrow)" />
-    <line x1="134" y1="46" x2="414" y2="1334" marker-end="url(#arrow)" />
+    <line x1="134" y1="46" x2="134" y2="966" marker-end="url(#arrow)" />
+    <line x1="134" y1="46" x2="694" y2="1334" marker-end="url(#arrow)" />

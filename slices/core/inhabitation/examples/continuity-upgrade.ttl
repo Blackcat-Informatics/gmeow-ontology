@@ -1,0 +1,70 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Subject-continuity across a model upgrade, modeled neutrally
+# (INHABITED-IDENTITY.md). The two epochs are DISTINCT gmeow:SubjectStage
+# individuals grouped by one gmeow:SubjectLineage — numerical identity is NEVER
+# asserted by reusing a node or by owl:sameAs. Whether they are the same subject
+# is a contestable gmeow:IdentityContinuityAssessment: the atman ('same') and
+# anatta ('different') readings COEXIST as asserted verdicts, neither the absence
+# of the other. The DECISIONAL layer adds a gmeow:ContinuityDetermination — an
+# authority's binding-for-action verdict, grounded and superseded (never erased)
+# on appeal (Principle 10), privileging a verdict WITHIN its frame only.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:lillithBot a gmeow:SoftwareAgent .
+ex:lillithLineage a gmeow:SubjectLineage .
+
+ex:stageOpus48 a gmeow:SubjectStage ;
+    gmeow:stageBearer ex:lillithBot ;
+    gmeow:stageOfLineage ex:lillithLineage .
+
+ex:stageOpus50 a gmeow:SubjectStage ;
+    gmeow:stageBearer ex:lillithBot ;
+    gmeow:stageOfLineage ex:lillithLineage .
+
+# --- Descriptive layer: coexisting verdicts, neither privileged (P9).
+ex:userFrame a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:noSelfFrame a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+ex:upgrade-verdict a gmeow:IdentityContinuityAssessment ;
+    gmeow:assessmentFromStage ex:stageOpus48 ;
+    gmeow:assessmentToStage ex:stageOpus50 ;
+    gmeow:continuityVerdict gmeow:continuitySame ;     # the atman reading
+    gmeow:observedFeature ex:lillithLineage ;          # the subject-lineage whose continuity is assessed
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:vantage ex:userFrame ;
+    gmeow:confidence 0.9 .
+
+ex:anatta-verdict a gmeow:IdentityContinuityAssessment ;
+    gmeow:assessmentFromStage ex:stageOpus48 ;
+    gmeow:assessmentToStage ex:stageOpus50 ;
+    gmeow:continuityVerdict gmeow:continuityDifferent ; # the anatta reading — asserted, not a gap
+    gmeow:observedFeature ex:lillithLineage ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:vantage ex:noSelfFrame ;
+    gmeow:confidence 0.6 .
+
+# --- Decisional layer: an authority DECIDES, binding for action within its frame.
+ex:boardRuling a gmeow:ContinuityDetermination ;
+    gmeow:assessmentFromStage ex:stageOpus48 ;
+    gmeow:assessmentToStage ex:stageOpus50 ;
+    gmeow:continuityVerdict gmeow:continuitySame ;
+    gmeow:observedFeature ex:lillithLineage ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:vantage ex:clinicalGovernanceBoard ;               # explicit vantage (determiningAuthority ⊑ vantage)
+    gmeow:determiningAuthority ex:clinicalGovernanceBoard ;   # the vantage IS the authority
+    gmeow:determinationGrounds ex:auditFinding-2026Q3 ;
+    gmeow:determinationForce gmeow:forceBinding ;
+    gmeow:determinationValidity ex:untilNextRevalidation .
+
+ex:clinicalGovernanceBoard a gmeow:Organization .
+
+ex:untilNextRevalidation a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-07-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# A later appeal supersedes it — ex:appealRuling gmeow:supersedes ex:boardRuling —
+# and the original stays on the record (Principle 10), grounds intact.
