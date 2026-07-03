@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "7",
   "slice_count": 75,
-  "term_count": 2335,
-  "dependency_edge_count": 842,
+  "term_count": 2285,
+  "dependency_edge_count": 841,
   "term_count_by_category": {
-    "Class": 705,
+    "Class": 688,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1626
+    "Property": 1593
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -294,10 +294,10 @@ expression: summary
     }
   ],
   "mapping_set_count": 71,
-  "linkage_count": 1804,
-  "example_count": 114,
+  "linkage_count": 1770,
+  "example_count": 111,
   "concern_count": 7,
-  "external_term_count": 1548,
+  "external_term_count": 1539,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -415,8 +415,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 299,
-  "competency_count": 59,
+  "shape_count": 292,
+  "competency_count": 58,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
@@ -426,13 +426,10 @@ expression: summary
     "owner_slice": "root"
   },
   "sample_competency": {
-    "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqCompositeDecomposition",
-    "rationale": "A named emotion is modeled UP, not minted: schadenfreude decomposes into a positive core-affect vector over another agent's misfortune with an other-directed agency structure. The query projects the per-axis readings that decompose the composite — answering 'is this schadenfreude a positive vector over another's misfortune?' directly from the data (positive valence AND other-directed negative agency).",
-    "query_file": "slices/core/affect/queries/competency/composite-decomposition.rq",
-    "exercises": [
-      "https://blackcatinformatics.ca/gmeow/dimensionAgency",
-      "https://blackcatinformatics.ca/gmeow/dimensionValence"
-    ],
+    "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqFeltEpisodes",
+    "rationale": "An agent's felt mental life is queryable — a felt gmeow:AffectiveExperience (occurrent) is joined to the enduring gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment), the episode's experiencer being the mode's bearer (one agent, two aspects). The overlay felt-anger scene makes the whole bridge present.",
+    "query_file": "slices/core/affect/queries/competency/felt-episodes.rq",
+    "exercises": [],
     "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/affect"
   }
 }

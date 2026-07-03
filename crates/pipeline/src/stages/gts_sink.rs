@@ -48,6 +48,11 @@ impl GtsSinkStage {
                 // product (read, not re-loaded from disk).
                 "stage-source-load".to_string(),
                 "stage-export-json-schema".to_string(),
+                // THIS run's freshly-projected result-shapes.ttl, folded into REP_SHAPES by
+                // `build_archive_blobs` (via `serialize_carrier_snapshot`). Without this edge
+                // the sink would re-read the previous-run committed file from disk and lag a
+                // regenerate behind a competency ResultShape edit (§3.2 transform-once).
+                "stage-export-result-shapes".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),
