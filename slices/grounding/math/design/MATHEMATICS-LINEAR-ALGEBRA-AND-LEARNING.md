@@ -104,7 +104,7 @@ structure of the system using it, lifted from any ONNX/model graph via the bridg
 > **Flagship — AI self-structure.** Answerable when a tensor computational graph is a `math:` object
 > (the expression AST over tensors), weights are matrices in a parameter space, embeddings are latent
 > geometry with residual meaning held as observations, and the reflection on it is `logic:`
-> metalevel + metacognition — self-reference without paradox, across the two grounding layers.
+> metalevel + metacognition — self-reference without paradox, across the `math:` and `logic:` grounding layers.
 
 ## A worked example — the KG residual PCA
 

@@ -181,6 +181,82 @@
       ],
       "type": "object"
     },
+    "AffectiveExperience": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:experiencer": {},
+        "gmeow:feltAffect": {
+          "anyOf": [
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:mentalProcessType": {
+          "anyOf": [
+            {
+              "const": {
+                "@id": "gmeow:processAffectiveExperience"
+              }
+            },
+            {
+              "items": {
+                "const": {
+                  "@id": "gmeow:processAffectiveExperience"
+                }
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "gmeow:experiencer",
+        "gmeow:feltAffect"
+      ],
+      "type": "object"
+    },
     "Analogy": {
       "properties": {
         "@annotation": {
@@ -8989,43 +9065,18 @@
         "gmeow:configurationEmbodiment": {
           "anyOf": [
             {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/EmbodimentAssignment"
-                },
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                }
-              ]
+              "$ref": "#/$defs/EmbodimentAssignment"
             },
             {
-              "items": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/EmbodimentAssignment"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
               },
-              "type": "array"
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             }
           ]
         },
@@ -9046,8 +9097,29 @@
               "type": "object"
             }
           ]
+        },
+        "gmeow:duringInterval": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeInterval"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
         }
       },
+      "required": [
+        "gmeow:duringInterval"
+      ],
       "type": "object"
     },
     "InhabitationTenure": {
@@ -13370,6 +13442,31 @@
           },
           "then": {
             "$ref": "#/$defs/AdequacyAssessment"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:AffectiveExperience"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:AffectiveExperience"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/AffectiveExperience"
           }
         },
         {

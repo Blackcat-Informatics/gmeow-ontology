@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The structured multi-named-graph snapshot assembly (#861 P6 fold-parity gate).
+//! The structured multi-named-graph snapshot assembly (fold-parity gate).
 //!
 //! This re-cuts `src/gmeow_tools/gts_gen.py::build_snapshot_bytes` natively: the
 //! committed `generated/dist/gmeow.gts` is NOT everything-in-the-default-graph —
@@ -68,10 +68,10 @@ pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
-/// Gather the by-reference archive blobs (#699/#746/#897/#940) + the SHACL report
+/// Gather the by-reference archive blobs + the SHACL report
 /// blobs from `upstream`, and serialize the ALREADY-ASSEMBLED `carrier` into the
 /// terminal `gmeow.gts` package — the SINGLE serialization the terminal gts sink
-/// performs (#1132 Stage C). The carrier is taken off the snapshot product's bundle,
+/// performs. The carrier is taken off the snapshot product's bundle,
 /// never re-assembled (the razor: transform transport→form at most once per pipeline).
 ///
 /// Mirrors the former snapshot-stage blob gathering exactly: REP_AXIOMS/schemas from
@@ -110,12 +110,29 @@ pub(crate) fn serialize_carrier_snapshot(
         .get("stage-mappings")
         .ok_or_else(|| stage_err("missing stage-mappings product"))?
         .artifacts();
+    // THIS run's generated shape surfaces (REP_SHAPES members), from the producing
+    // export leaves' products so the archive never lags a competency/frame edit:
+    // the committed generated/shapes/*.ttl are projected back from the bundle by the
+    // fanout, so a stale disk read here would freeze them forever (the exact trap the
+    // validation-shapes.ttl override documents). Hard-fail if absent (no-optionality).
+    let result_shapes_ttl = upstream
+        .get("stage-export-result-shapes")
+        .and_then(|p| p.artifact(crate::stages::result_shapes::RESULT_SHAPES_PATH))
+        .ok_or_else(|| stage_err("missing stage-export-result-shapes result-shapes.ttl artifact"))?
+        .to_vec();
+    let frame_shapes_ttl = upstream
+        .get("stage-export-frame-shapes")
+        .and_then(|p| p.artifact(crate::stages::frame_shapes::FRAME_SHAPES_PATH))
+        .ok_or_else(|| stage_err("missing stage-export-frame-shapes frame-shapes.ttl artifact"))?
+        .to_vec();
     let mut blobs = build_archive_blobs(
         root,
         &schema_json,
         &openapi_json,
         &compile_artifacts,
         &mappings_artifacts,
+        &result_shapes_ttl,
+        &frame_shapes_ttl,
     )?;
     blobs.extend(build_guide_blobs(root)?);
     // The rendered docs site embeds the per-term reasoning badge, so it carries the
@@ -130,6 +147,7 @@ pub(crate) fn serialize_carrier_snapshot(
     let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
         .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
     docs_model.attach_reasoning(reasoning_verdict);
+    assert_okf_docs_cover_documented_terms(carrier, &docs_model)?;
     let docs_exec = build_executable_docs_data(upstream, carrier, &docs_model)?;
     blobs.push(build_docs_archive(root, &docs_model, &docs_exec)?);
     blobs.push(build_reasoning_blob(upstream)?);
@@ -160,6 +178,68 @@ pub(crate) fn serialize_carrier_snapshot(
         },
     ];
     serialize_snapshot(carrier, blobs, report_blobs)
+}
+
+/// Hard-fail if any documented class/property/individual term would link to an OKF
+/// document the OKF bundle does not emit. The docs term surface
+/// (`gmeow_docs::model::DocsModel::terms`) and the OKF term surface
+/// (`crate::stages::export::collect_term_surface`) are collected by different paths, so
+/// this enforces "no dangling OKF link" — a missing document is a HARD FAIL, never a
+/// silent dangling reference. Reuses the renderer's own `okf_doc_reference` (the exact
+/// path the site links) and the OKF stage's `doc_relpath` (the exact path it emits), so
+/// the two can never diverge in scheme; this gate only checks existence.
+fn assert_okf_docs_cover_documented_terms(
+    carrier: &purrdf::RdfDataset,
+    model: &gmeow_docs::model::DocsModel,
+) -> Result<(), PipelineError> {
+    let (_, _, terms) = crate::stages::export::collect_term_surface(carrier)?;
+    let emitted: std::collections::BTreeSet<String> =
+        terms.iter().map(crate::stages::okf::doc_relpath).collect();
+    let links: Vec<Option<String>> = model
+        .terms
+        .iter()
+        .map(gmeow_docs::okf_doc_reference)
+        .collect();
+    let missing = okf_link_targets_missing_from(&emitted, &links);
+    if !missing.is_empty() {
+        let mut curies: Vec<String> = missing
+            .into_iter()
+            .map(|i| model.terms[i].curie.clone())
+            .collect();
+        curies.sort();
+        return Err(stage_err(&format!(
+            "OKF projection is missing documents for {} documented term(s), which would \
+             ship as dangling links: {}",
+            curies.len(),
+            curies.join(", ")
+        )));
+    }
+    Ok(())
+}
+
+/// The pure set-comparison the OKF-coverage gate delegates to: given the bundle-relative
+/// paths the OKF projection actually emits and the ordered list of link targets the docs
+/// site would generate (`None` for categories the OKF bundle deliberately skips), return
+/// the indices of `links` whose target the OKF bundle does not emit. Kept as a standalone
+/// function so the hard-fail logic itself is directly unit-testable, independent of a
+/// live `DocsModel`/carrier fixture.
+fn okf_link_targets_missing_from(
+    emitted: &std::collections::BTreeSet<String>,
+    links: &[Option<String>],
+) -> Vec<usize> {
+    links
+        .iter()
+        .enumerate()
+        .filter_map(|(i, link)| {
+            let link = link.as_ref()?;
+            let relpath = link.strip_prefix("gmeow-okf/").unwrap_or(link);
+            if emitted.contains(relpath) {
+                None
+            } else {
+                Some(i)
+            }
+        })
+        .collect()
 }
 
 /// Assemble the FULL snapshot carrier: every named graph parsed into ONE native
@@ -486,6 +566,12 @@ fn rdf_fanout_members(
             "stage-constraint-catalog",
             crate::stages::constraint_catalog::CONSTRAINT_CATALOG_RDF_PATH,
         ),
+        // The generated term content manifest `.nq` — its own fanout named graph,
+        // reconstructed byte-for-byte by the superset gate.
+        (
+            "stage-term-manifest",
+            crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH,
+        ),
     ] {
         let bytes = upstream
             .get(stage)
@@ -616,7 +702,7 @@ fn snapshot_product(
 }
 
 /// THIS run's terminal carrier dataset, read DIRECTLY off the `stage-snapshot`
-/// product's bundle (#1132). The single internal transport: every export leaf reads
+/// product's bundle. The single internal transport: every export leaf reads
 /// the carrier here instead of re-parsing the `gmeow.gts` bytes — GTS is exit-only,
 /// produced by the terminal writer (`gts_sink`), never an internal transport.
 ///
@@ -631,14 +717,14 @@ pub(crate) fn snapshot_dataset(
     Ok(snapshot_product(upstream)?.bundle().dataset_arc())
 }
 
-// ── Archive blobs (#861 regression fix) ─────────────────────────────────────────
+// ── Archive blobs (regression fix) ──────────────────────────────────────────────
 //
 // The pre-pipeline generator folded five TAR archives into `gmeow.gts` —
 // `mappings-archive` / `cells-archive` / `queries-archive` / `tests-archive` /
 // `schemas-archive` —
 // that the wheel-mode consumer loaders read back (`gmeow_tools.bundle`:
 // `bundled_sssom` / `bundled_cells` / `bundled_queries` / `bundled_tests`). The
-// #861 pipeline cutover dropped the WRITER (only the reader survived, orphaned),
+// pipeline cutover dropped the WRITER (only the reader survived, orphaned),
 // so a repo-free `gmeow.gts` lost its lift maps / cells / queries / test specs and
 // every wheel-mode consumer (up-projection, docs-from-bundle, export) broke. This
 // restores the writer as a dep-free, byte-deterministic USTAR codec (sorted
@@ -658,32 +744,32 @@ const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
 const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
-/// tar of the SHACL-derived JSON Schema + OpenAPI (#700), member = bare filename.
+/// tar of the SHACL-derived JSON Schema + OpenAPI, member = bare filename.
 const REP_SCHEMAS: &str = "schemas-archive";
-/// tar of the JSON-LD-star + YAML-LD-star serializations (#699).
+/// tar of the JSON-LD-star + YAML-LD-star serializations.
 const REP_YAMLLD: &str = "yaml-ld-archive";
-/// tar of the Rust-rendered OKF bundle (#940), member = `gmeow-okf/...`.
+/// tar of the Rust-rendered OKF bundle, member = `gmeow-okf/...`.
 const REP_OKF: &str = "okf-export";
-/// The full rendered ontology-docs static site (#897). The rep MUST equal the
+/// The full rendered ontology-docs static site. The rep MUST equal the
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
 /// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
 const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
-/// tar of the FULL SHACL shape surface (#746), member = repo-relative path:
+/// tar of the FULL SHACL shape surface, member = repo-relative path:
 /// every `shapes/*.ttl` (incl. the 4 DSL/manifest lints the consumer's DSL phases
 /// need) + every `generated/shapes/*.ttl` (P11 frame shapes) + every per-slice
 /// `slices/<g>/<n>/shapes.ttl`. The full surface — NOT the validator's filtered
-/// union — so a repo-free `gmeow validate` (#747) can re-derive both the data-graph
+/// union — so a repo-free `gmeow validate` can re-derive both the data-graph
 /// union and the DSL phases. The Python reader (`bundle.bundled_shapes`) MUST use
 /// this exact rep string.
 const REP_SHAPES: &str = "shapes-archive";
-/// tar of the compiled logic/DL projection surface (#746), member = repo-relative
+/// tar of the compiled logic/DL projection surface, member = repo-relative
 /// path: the small committed projections in [`AXIOM_FILES`]. NOT the big reasoning
 /// OUTPUTS (inferred-closure / reasoning-explanations / dl-el-crosscheck-report),
 /// which ride other channels. The Python reader (`bundle.bundled_axioms`) MUST use
 /// this exact rep string.
 const REP_AXIOMS: &str = "axioms-archive";
-/// The compiled logic/DL projection files folded as [`REP_AXIOMS`] (#746): the
-/// small, committed, drift-gated projections a repo-free consumer (#747) needs. The
+/// The compiled logic/DL projection files folded as [`REP_AXIOMS`]: the
+/// small, committed, drift-gated projections a repo-free consumer needs. The
 /// big reasoning outputs are deliberately excluded. Order is canonical for the
 /// fail-closed scan; the archive re-sorts members by key for determinism.
 const AXIOM_FILES: [&str; 5] = [
@@ -693,7 +779,7 @@ const AXIOM_FILES: [&str; 5] = [
     "generated/logic/gmeow.rls",
     "generated/datalog/gmeow.dl",
 ];
-/// tar of the native reasoner's REPORT artifacts (#667, wired #746): the entailment
+/// tar of the native reasoner's REPORT artifacts: the entailment
 /// explanations + the DL/EL cross-check ledger over THIS run's reasoned closure. The
 /// closure itself already rides the bundle GRAPH (gts-compose folds `stage-reason`'s
 /// closure); the reports are deliberately kept OUT of the ontology graph, so this
@@ -705,7 +791,7 @@ const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 
 /// The per-slice guide content blobs (each slice's `docs.md`), backing the
 /// `gmeow:guideBlob "blake3:<hex>"` reference triples [`add_guide_blobs`] writes
-/// into the documentation graph. The #861 cutover dropped these too — the
+/// into the documentation graph. The cutover dropped these too — the
 /// references shipped dangling. The blob digest the gts writer assigns
 /// (`digest_string` = `blake3:<hex>`) equals the reference, so adding the SAME
 /// `guide.content` bytes resolves the reference. The `doc-guide` rep is read by
@@ -733,8 +819,8 @@ fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
 }
 
 /// Build the bundle archive blobs from the repo tree: mappings, cells, queries,
-/// tests, schemas, the SHACL shape surface (#746), and the compiled logic/DL axiom
-/// surface (#746). The SHACL-derived JSON Schema + OpenAPI bytes are passed in from
+/// tests, schemas, the SHACL shape surface, and the compiled logic/DL axiom
+/// surface. The SHACL-derived JSON Schema + OpenAPI bytes are passed in from
 /// THIS run's `stage-export-json-schema` product (not re-read from disk) so a single
 /// regenerate folds the fresh schema — the committed `generated/schemas/*.json` are
 /// not flushed until phase 1 returns.
@@ -744,6 +830,8 @@ fn build_archive_blobs(
     openapi_json: &[u8],
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
+    result_shapes_ttl: &[u8],
+    frame_shapes_ttl: &[u8],
 ) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
@@ -763,7 +851,7 @@ fn build_archive_blobs(
     }
     // queries: member = bare filename.
     let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?)?;
-    // schemas: the SHACL-derived JSON Schema + OpenAPI (#700), member = bare
+    // schemas: the SHACL-derived JSON Schema + OpenAPI, member = bare
     // filename, taken from the in-memory stage product so the bundle never lags the
     // committed files by a regenerate. Byte-identical to the prior `members_basename`
     // member names (`gmeow.schema.json` / `gmeow.openapi.json`), so the fold is stable.
@@ -786,10 +874,10 @@ fn build_archive_blobs(
     // tests: slices/*/*/tests/*.ttl (non-recursive), member = repo-relative path.
     let mut tests = members_relpath(root, &slice_files(root, "tests")?)?;
     tests.sort_by(|a, b| a.0.cmp(&b.0));
-    // shapes (#746): the FULL SHACL surface, member = repo-relative path —
+    // shapes: the FULL SHACL surface, member = repo-relative path —
     // shapes/*.ttl + generated/shapes/*.ttl (P11, fail-closed if none) +
     // slices/<g>/<n>/shapes.ttl. Carried whole so a repo-free `gmeow validate`
-    // (#747) can reassemble both the data-graph union and the DSL phases.
+    // can reassemble both the data-graph union and the DSL phases.
     let mut shapes: Vec<(String, Vec<u8>)> =
         members_relpath(root, &list_files(&root.join("shapes"), "ttl")?)?;
     let generated_shapes = list_files(&root.join("generated/shapes"), "ttl")?;
@@ -827,6 +915,29 @@ fn build_archive_blobs(
         entry.1 = fresh.clone();
     } else {
         shapes.push((rel, fresh.clone()));
+    }
+    // The generated ResultShape SHACL projection and the P11 frame shapes are the
+    // OTHER two generated/shapes/*.ttl members, and they need the identical override:
+    // both are products of source-reading export leaves whose committed files are
+    // projected back from the bundle by the fanout, so carrying the disk read would
+    // freeze the committed bytes forever (a new competency ResultShape could never
+    // land). Fresh product bytes are passed in from the snapshot's consumed products;
+    // absence hard-fails at the call site (no-optionality, fail-closed).
+    for (rel, fresh_bytes) in [
+        (
+            crate::stages::result_shapes::RESULT_SHAPES_PATH,
+            result_shapes_ttl,
+        ),
+        (
+            crate::stages::frame_shapes::FRAME_SHAPES_PATH,
+            frame_shapes_ttl,
+        ),
+    ] {
+        if let Some(entry) = shapes.iter_mut().find(|(k, _)| k == rel) {
+            entry.1 = fresh_bytes.to_vec();
+        } else {
+            shapes.push((rel.to_string(), fresh_bytes.to_vec()));
+        }
     }
     shapes.sort_by(|a, b| a.0.cmp(&b.0));
     // axioms: the compiled logic/DL projection surface, member = repo-relative path.
@@ -1207,7 +1318,7 @@ fn build_fanout_opaque_blob(
 }
 
 /// Fold the native reasoner's explanation + DL/EL cross-check ledger REPORTS into a
-/// deterministic [`REP_REASONING`] archive blob (#667, wired #746). Sourced from
+/// deterministic [`REP_REASONING`] archive blob. Sourced from
 /// `stage-reason`'s in-memory product (a `stage-snapshot` consumes-edge), so the fold
 /// is ONE-PASS: no disk read, no dependency on the post-snapshot `stage-export-logic`
 /// leaf, no convergence lag. The reasoned closure is NOT re-bundled here — it already
@@ -1245,7 +1356,7 @@ fn build_reasoning_blob(
 }
 
 /// Pack the JSON-LD-star + YAML-LD-star serializations into a deterministic tar
-/// archive blob (#699). Member names mirror the `dist/` logical paths.
+/// archive blob. Member names mirror the `dist/` logical paths.
 fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, PipelineError> {
     let members = vec![
         ("gmeow.jsonld".to_string(), jsonld.to_vec()),
@@ -1284,7 +1395,7 @@ fn build_okf_blob_from_dataset(carrier: &purrdf::RdfDataset) -> Result<BlobRow, 
 }
 
 /// Render the full ontology-docs static site and pack it into the single
-/// `ontology-docs` archive blob (#897) — the producer half of repo-free
+/// `ontology-docs` archive blob — the producer half of repo-free
 /// `gmeow extract-docs`.
 ///
 /// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
@@ -1741,7 +1852,7 @@ fn slice_files(root: &Path, sub: &str) -> Result<Vec<PathBuf>, PipelineError> {
 /// a `<sub>/*.ttl` *directory* — this targets one named file per slice. Mirrors the
 /// shacl crate's private `shape_union::slice_shape_files` walk (re-implemented here
 /// because it is not `pub`, the same way [`slice_files`] duplicates a walk). A read
-/// error HARD-FAILS so a slice subtree is never silently dropped (#746).
+/// error HARD-FAILS so a slice subtree is never silently dropped.
 fn slice_named_files(root: &Path, file: &str) -> Result<Vec<PathBuf>, PipelineError> {
     let slices = root.join("slices");
     let mut out: Vec<PathBuf> = Vec::new();
@@ -1889,7 +2000,7 @@ impl SnapshotStage {
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
                 "stage-mappings".to_string(),
-                // The SHACL→JSON-Schema export leaf (#700): its in-memory product
+                // The SHACL→JSON-Schema export leaf: its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
                 // bytes, which `build_archive_blobs` folds into the `schemas-archive`
                 // blob. Without this edge the snapshot would re-read the (previous-run)
@@ -1904,6 +2015,9 @@ impl SnapshotStage {
                 // re-loading + re-canonicalizing the sources (PIPELINE_SPINE §3.2/§4).
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
+                // The generated term content manifest `.nq`, folded as the
+                // graph/fanout/catalog/term-content-manifest.nq named graph.
+                "stage-term-manifest".to_string(),
                 "stage-validate".to_string(),
             ],
         }
@@ -1926,15 +2040,15 @@ impl Stage for SnapshotStage {
     fn impl_version(&self) -> &str {
         // v5: fold the `schemas-archive` from the in-memory
         // `stage-export-json-schema` product (THIS run's fresh bytes) instead of
-        // re-reading the committed `generated/schemas/*.json` from disk (#700) —
+        // re-reading the committed `generated/schemas/*.json` from disk —
         // a single regenerate now folds the fresh schema. v4: render+tar+embed the
-        // full ontology-docs site as the `ontology-docs` blob (#897). v3 added the
+        // full ontology-docs site as the `ontology-docs` blob. v3 added the
         // mappings/cells/queries/tests archive blobs + per-slice docs guide blobs.
-        // v7 folds both the JSON-LD-star/YAML-LD-star archive (#699) and the
-        // DAG-native SHACL diagnostics graph/report blobs (#936/#937). v8 folds
-        // the Rust-rendered OKF archive into gmeow.gts (#940). v9 folds the full
+        // v7 folds both the JSON-LD-star/YAML-LD-star archive and the
+        // DAG-native SHACL diagnostics graph/report blobs. v8 folds
+        // the Rust-rendered OKF archive into gmeow.gts. v9 folds the full
         // SHACL shape surface (REP_SHAPES) and the compiled logic/DL axiom surface
-        // (REP_AXIOMS) so a repo-free `gmeow validate` is self-sufficient (#746).
+        // (REP_AXIOMS) so a repo-free `gmeow validate` is self-sufficient.
         // v10 wires the orphaned REP_REASONING reader to a writer: folds the native
         // reasoner's explanation + DL/EL cross-check ledger reports from stage-reason's
         // in-memory product routed through the first-class-output rail. v11 folds the compiler's projection-report
@@ -1946,7 +2060,7 @@ impl Stage for SnapshotStage {
         // published expected verdict. v13 folds the dogfooded occurrence-based
         // provenance projection (graph/provenance) — the public compilation-unit +
         // per-lane carrier manifest (no runtime ids, S0.5) — and gates that every
-        // authored quad carries ≥1 stage-origin (#1132 C9). v14 folds the byte-exact
+        // authored quad carries ≥1 stage-origin. v14 folds the byte-exact
         // generated metadata, statement, reasoning, and preservation projections into
         // REP_GENERATED so the superset gate can reconstruct every committed
         // generated file without re-reading disk.
@@ -1964,7 +2078,12 @@ impl Stage for SnapshotStage {
         // off those products instead of re-rendering from disk (§3.2 transform-once).
         // v18 additionally consumes stage-constraint-catalog and folds its generated
         // `.nq` as the graph/fanout/catalog/constraint-catalog.nq named graph.
-        "snapshot.v18-constraint-catalog-fanout-presenter"
+        // v19 sources REP_SHAPES' generated members (result-shapes.ttl +
+        // frame-shapes.ttl) from the consumed export-leaf products instead of the
+        // stale disk read, matching the validation-shapes.ttl freshness rule — a
+        // new competency ResultShape now reaches the bundle (and the fanout) in one
+        // regenerate.
+        "snapshot.v19-fresh-generated-shape-surfaces"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -1972,7 +2091,7 @@ impl Stage for SnapshotStage {
         // `docs/four-boxes.md` / per-slice `i18n/<lang>.po` translation catalogs),
         // which the consumed upstream products do not fully reflect. Declare them so
         // a doc-source edit busts this stage and re-renders the embedded site (cache
-        // soundness, #897) — shared with `DocsRenderStage` via `docs_source_files`.
+        // soundness) — shared with `DocsRenderStage` via `docs_source_files`.
         let mut files = crate::stages::docs_render::docs_source_files(root)?;
         // The folded shape surface (REP_SHAPES) is read from disk in
         // `build_archive_blobs`; declare it so a shape edit busts this stage and re-folds
@@ -2128,7 +2247,7 @@ fn build_snapshot_bundle(
 /// Build the per-quad provenance sidecar for the authored base graph, GATE it
 /// (every authored quad must carry ≥1 occurrence — an unattributed quad is a HARD
 /// FAIL, no-optionality), and project its PUBLIC projection into the deterministic
-/// `graph/provenance` N-Triples (#1132 C9). Only public unit names/IRIs + kinds +
+/// `graph/provenance` N-Triples. Only public unit names/IRIs + kinds +
 /// artifact paths reach the projection — NO runtime `UnitId` / `ArtifactId` /
 /// `OriginSetId` (S0.5). The fixed carrier-lane manifest + the realized process
 /// vocab (`gmeow:Procedure` / `gmeow:ProcedureStep` / `gmeow:Execution`) round it out.
@@ -2208,7 +2327,7 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, PipelineError> {
     let onto = root.join("ontology").join("gmeow.ttl");
     // The root ontology is REQUIRED — the authored default graph is meaningless
     // without it. A missing `ontology/gmeow.ttl` HARD-fails rather than silently
-    // assembling a partial default graph (no-optionality, #863).
+    // assembling a partial default graph (no-optionality).
     if !onto.is_file() {
         return Err(stage_err(&format!(
             "required root ontology {} is missing",
@@ -2752,7 +2871,7 @@ fn add_base_nq(
 /// RDF-1.2 statement layer rides the dataset's reifier/annotation side-tables (which
 /// `add_dataset` folds), never a base quoted-triple object. A quoted triple here would
 /// be a real defect — HARD-fail rather than let it shrink the fold (no-optionality /
-/// no silent data loss, #863).
+/// no silent data loss).
 fn reject_quoted_triples(quads: &[RdfQuad], graph_name: &str) -> Result<(), PipelineError> {
     if quads.iter().any(|q| matches!(q.object, RdfTerm::Triple(_))) {
         return Err(stage_err(&format!(
@@ -2767,7 +2886,7 @@ fn reject_quoted_triples(quads: &[RdfQuad], graph_name: &str) -> Result<(), Pipe
 /// Canonicalize a graph's blank-node labels under RDFC-1.0, returning N-Quads.
 /// Mirrors `compile_gts`'s `to_canonical_graph` before each `add_graph`.
 fn canonicalize_nq(nq_bytes: &[u8], _scope: &str) -> Result<String, PipelineError> {
-    // Native full RDFC-1.0 (#910 / EPIC #906), replacing oxrdf `Dataset::canonicalize`.
+    // Native full RDFC-1.0, replacing oxrdf `Dataset::canonicalize`.
     // `canonical_flat_nquads` parses → flattens the RDF 1.2 statement overlay → RDFC-1.0
     // canonicalizes, byte-identical to the prior oxigraph `canonicalize_quads` flat path
     // (conformant SHA-256 RDFC-1.0, identical blank labeling). The returned N-Quads lines
@@ -3161,6 +3280,21 @@ mod ustar_tests {
         out
     }
 
+    /// The committed ResultShape SHACL projection — the stand-in for the
+    /// stage-export-result-shapes product in blob-archive unit tests (production
+    /// sources these from the in-memory product).
+    fn fresh_result_shapes_from_disk(root: &Path) -> Vec<u8> {
+        let rel = crate::stages::result_shapes::RESULT_SHAPES_PATH;
+        std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}"))
+    }
+
+    /// The committed P11 frame shapes — the stand-in for the
+    /// stage-export-frame-shapes product in blob-archive unit tests.
+    fn fresh_frame_shapes_from_disk(root: &Path) -> Vec<u8> {
+        let rel = crate::stages::frame_shapes::FRAME_SHAPES_PATH;
+        std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}"))
+    }
+
     #[test]
     fn build_docs_archive_packs_the_rendered_site() {
         // The archive packing is exercised with a model-only render (empty executable
@@ -3203,7 +3337,7 @@ mod ustar_tests {
                 "expected site asset {want}"
             );
         }
-        // The #1027 per-term card surface: at least one `card.md` file must
+        // The per-term card surface: at least one `card.md` file must
         // be present in the archive under the English carrier tag.
         let card_md_present = members
             .iter()
@@ -3249,6 +3383,8 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
+            &fresh_result_shapes_from_disk(&root),
+            &fresh_frame_shapes_from_disk(&root),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3345,6 +3481,8 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
+            &fresh_result_shapes_from_disk(&root),
+            &fresh_frame_shapes_from_disk(&root),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3376,6 +3514,8 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
+            &fresh_result_shapes_from_disk(&root),
+            &fresh_frame_shapes_from_disk(&root),
         )
         .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
@@ -3475,6 +3615,41 @@ mod ustar_tests {
 
         let blob2 = build_okf_blob_from_dataset(dataset.as_ref()).expect("second okf archive");
         assert_eq!(blob.data, blob2.data, "OKF archive must be deterministic");
+    }
+
+    #[test]
+    fn okf_docs_cover_every_documented_term_on_the_committed_ontology() {
+        // Happy path: the real committed ontology must not ship a single dangling
+        // OKF link — every documented class/property/individual term the docs site
+        // would link to has a corresponding document in the OKF projection.
+        let root = repo_root();
+        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gts");
+        let dataset = purrdf::import_gts_events(&gts)
+            .expect("import committed gts")
+            .dataset;
+        let model = gmeow_docs::model::DocsModel::discover(&root).expect("docs model");
+        assert_okf_docs_cover_documented_terms(dataset.as_ref(), &model)
+            .expect("committed ontology must not have dangling OKF links");
+    }
+
+    #[test]
+    fn okf_link_targets_missing_from_flags_only_the_absent_target() {
+        // Pure-logic test of the hard-fail comparison itself: prove it does not
+        // silently accept a link whose target the OKF bundle never emits, and does
+        // not false-positive on a link whose target IS emitted.
+        let emitted: std::collections::BTreeSet<String> =
+            ["classes/Present.md".to_string()].into_iter().collect();
+        let links = vec![
+            Some("gmeow-okf/classes/Present.md".to_string()),
+            Some("gmeow-okf/classes/Absent.md".to_string()),
+            None, // e.g. a Datatype/Other term the OKF bundle deliberately skips
+        ];
+        let missing = okf_link_targets_missing_from(&emitted, &links);
+        assert_eq!(
+            missing,
+            vec![1],
+            "only the link whose target is absent from the emitted set must be flagged"
+        );
     }
 
     #[test]
@@ -3699,7 +3874,7 @@ mod logic_graph_golden_tests {
         rows.join("\n")
     }
 
-    /// Byte golden (#1132 C6): the `graph/logic` named-graph content of an emitted
+    /// Byte golden: the `graph/logic` named-graph content of an emitted
     /// snapshot, over a FIXED synthetic program. Pins the per-graph fold path
     /// (canonical RDF-1.2 → N-Quads → add_named canonicalization → emit → read-back)
     /// byte-for-byte, independent of the full gmeow.gts. A second emit is asserted
@@ -3773,7 +3948,7 @@ mod logic_graph_golden_tests {
         )
     }
 
-    /// Byte golden (#1132 C7): the `graph/reasoning` named-graph content of an emitted
+    /// Byte golden: the `graph/reasoning` named-graph content of an emitted
     /// snapshot, over a FIXED synthetic reasoning result. Pins the per-graph fold path
     /// (project → N-Triples → add_named canonicalization → emit → read-back)
     /// byte-for-byte, independent of the full gmeow.gts. A second emit is asserted
@@ -3863,7 +4038,7 @@ mod logic_graph_golden_tests {
         lower_program(&program)
     }
 
-    /// Byte golden (#1132 C8): the `graph/relational-core` named-graph content of an
+    /// Byte golden: the `graph/relational-core` named-graph content of an
     /// emitted snapshot, over a FIXED synthetic relational-core program. Pins the
     /// per-graph fold path (lower → project N-Triples → add_named canonicalization →
     /// emit → read-back) byte-for-byte, independent of the full gmeow.gts. A second emit
@@ -3923,7 +4098,7 @@ mod logic_graph_golden_tests {
 
     const GRAPH_CORRESPONDENCE: &str = crate::stages::compile_logic::GRAPH_CORRESPONDENCE;
 
-    /// Byte golden (#1132 C10): the `graph/correspondence` named-graph content of an
+    /// Byte golden: the `graph/correspondence` named-graph content of an
     /// emitted snapshot, over the §14 affine-triangle worked example. Pins the per-graph
     /// fold path (construct → project N-Triples → add_named canonicalization → emit →
     /// read-back) byte-for-byte, independent of the full gmeow.gts. Also asserts the
@@ -4035,7 +4210,7 @@ mod logic_graph_golden_tests {
         ]
     }
 
-    /// Byte golden (#1132 C9): the `graph/provenance` named-graph content of an emitted
+    /// Byte golden: the `graph/provenance` named-graph content of an emitted
     /// snapshot, over a FIXED synthetic provenance projection. Pins the per-graph fold
     /// path (public projection → N-Triples → add_named canonicalization → emit →
     /// read-back) byte-for-byte, independent of the full gmeow.gts. A second emit is
@@ -4107,7 +4282,7 @@ mod logic_graph_golden_tests {
         );
     }
 
-    /// The hard-fail attribution gate passes on the REAL ontology (#1132 C9): every
+    /// The hard-fail attribution gate passes on the REAL ontology: every
     /// authored quad carries ≥1 stage-origin occurrence. Builds the real per-quad
     /// provenance sidecar and runs `check_provenance` over its full coverage set.
     #[test]
@@ -4223,7 +4398,7 @@ mod native_assembly_tests {
 
     /// The projection-ledger named graph built natively (`turtle_to_nquads`)
     /// canonicalizes to a STABLE, idempotent RDFC-1.0 N-Quads form that carries every
-    /// authored triple (typed literals + the blank-node structural-drop list). EPIC #906
+    /// authored triple (typed literals + the blank-node structural-drop list). This
     /// retired the prior oxigraph-`Store` cross-check: the conversion is now fully native
     /// (`turtle_to_nquads` → `canonical_flat_nquads`), so the meaningful invariant is
     /// canonical idempotence + content fidelity, not equality to a removed oxigraph path.

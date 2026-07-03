@@ -55,6 +55,6 @@
 <https://blackcatinformatics.ca/gmeow/profiles/music> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .
 <https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
 <https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://purl.org/dc/terms/title> "GMEOW — narrative profile"@en .
-<https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 4 declared slice(s), 28 in the import closure."@en .
+<https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://purl.org/dc/terms/description> "Slim dependency-closed profile: 4 declared slice(s), 29 in the import closure."@en .
 <https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://www.w3.org/ns/dcat#landingPage> <https://blackcatinformatics.ca/gmeow/profiles/narrative> .
 <https://blackcatinformatics.ca/gmeow/profiles/narrative> <http://purl.org/dc/terms/isPartOf> <https://blackcatinformatics.ca/gmeow/full> .

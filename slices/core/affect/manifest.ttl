@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/affect>
     a gmeow:Slice ;
     rdfs:label "affect"@x-gmeow-english ;
-    skos:definition "The affect slice of the GMEOW ontology (core tier): GMEOW Affect Module — emotions and appraisals (and, in later stages, the affective evidence and dimensional model). Core because Principle 14 makes affective memory load-bearing for grounded agent memory. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The affect slice of the GMEOW ontology (core tier): GMEOW Affect Module — emotions, appraisals, and the occurrent affective-experience branch. Core because Principle 14 makes affective memory load-bearing for grounded agent memory. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     dcterms:title "GMEOW Affect Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
@@ -17,5 +17,6 @@
     gmeow:sliceProfile "narrative" ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     gmeow:sliceConsumer "The grounded-agent-memory engine (an agent's felt mental life is part of the Principle 14 memory flagship, alongside the kernel gmeow:MentalMoment family), the lbox principia importer (affect/aesthetic annotations), and the narrative arc samples (sampleState draws on EmotionType by soft reference, never dependency). Core and comprehensive: the affect model grows with its consumers, per the fuller design in design/AFFECT-DESIGN.md."@x-gmeow-english.

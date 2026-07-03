@@ -10,7 +10,7 @@ Tier-2 uplift backlog.
 |---|---|---|---:|---:|---:|---:|---:|---:|---|
 | accessibility | extension | extensions | 2 | 3 | 6 | 0 | 1 | - | full |
 | accounts | core | core | 1 | 4 | 10 | 0 | 1 | 14/14 | full |
-| affect | core | core | 2 | 6 | 9 | 0 | 1 | 4/15 | full |
+| affect | core | core | 3 | 7 | 10 | 0 | 2 | 6/17 | full |
 | agentic | extension | extensions | 6 | 1 | 4 | 0 | 5 | - | full |
 | aggregation | extension | extensions | 2 | 3 | 3 | 0 | 1 | - | full |
 | agreements | core | core | 2 | 3 | 2 | 0 | 1 | 5/5 | full |
@@ -46,7 +46,7 @@ Tier-2 uplift backlog.
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
 | imagination | core | core | 1 | 1 | 4 | 0 | 2 | 5/5 | full |
 | inference | core | core | 6 | 16 | 35 | 0 | 6 | 0/51 | full |
-| inhabitation | core | core | 11 | 20 | 34 | 0 | 4 | 20/54 | full |
+| inhabitation | core | core | 11 | 20 | 34 | 0 | 5 | 20/54 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 17 | 27 | 0 | 1 | 28/44 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 10/10 | full |
@@ -54,7 +54,7 @@ Tier-2 uplift backlog.
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | core | 0 | 178 | 332 | 333 | 6 | 0/510 | full |
+| logic | core | core | 0 | 178 | 333 | 341 | 6 | 0/511 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
@@ -79,10 +79,10 @@ Tier-2 uplift backlog.
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 3/3 | full |
 | standpoint | core | core | 3 | 11 | 22 | 0 | 1 | 23/33 | full |
-| tags | core | core | 2 | 3 | 11 | 0 | 1 | 14/14 | full |
+| tags | core | core | 2 | 3 | 11 | 0 | 2 | 14/14 | full |
 | teleology | core | core | 3 | 7 | 10 | 0 | 1 | 17/17 | full |
 | temporal | core | core | 2 | 11 | 41 | 0 | 1 | 48/52 | full |
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
-| versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
+| versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**76 slices** · documentation: 76 full guides, 0 stubs remaining (#325); advisory coverage: 1247/1935 core class/property terms (#471).
+**76 slices** · documentation: 76 full guides, 0 stubs remaining (#325); advisory coverage: 1250/1939 core class/property terms (#471).

@@ -1,0 +1,17 @@
+# Competency question: which tags apply to a resource RIGHT NOW, honoring
+# suppression? A retracted tagging is retained (gmeow:displayable false) but must
+# not surface (Principle 10 — suppression, never erasure): the query excludes it
+# without the data ever being deleted. The contested pair (jaguar-the-animal vs
+# jaguar-the-car) BOTH surface — coexisting claims, no winner (Principle 9).
+# Asserted lane; the gmeow:cqDataFile overlay supplies the contested-tagging scene.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/>
+
+SELECT ?tag WHERE {
+    ?act a gmeow:Tagging ;
+        gmeow:taggingTagged ex:photo ;
+        gmeow:taggingTag    ?tag .
+    FILTER NOT EXISTS { ?act gmeow:displayable false }
+}
+ORDER BY ?tag

@@ -7,6 +7,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 
 # ─────────────────────────────────────────────────────────────────────────────
 # GMEOW Inhabitation Module (core tier).
@@ -28,6 +29,16 @@
 # stays central in slices/core/logic and is referenced here by prose only — no
 # asserted logic: triples beyond the stereotype types.
 # ─────────────────────────────────────────────────────────────────────────────
+
+<https://blackcatinformatics.ca/gmeow/slices/inhabitation>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "The inhabitation topology: which transformations preserve the same durable digital subject and which do not. A subject inhabits a host over a tenure (a logic:Situation), the durable subject is a logic:RoleMixin borne over a DigitalSubjectTenure and supported — never entailed — by self-assertion, and continuity is a contestable IdentityContinuityAssessment over SubjectStages topped by a decisional ContinuityDetermination, never owl:sameAs. Contested (spiritual / fictional / legal) inhabitation stays an unasserted InhabitationClaim so no range entailment fires (Principle 9)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
+    rdfs:label "GMEOW Inhabitation Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Inhabitation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
 
 gmeow:ContinuityDetermination
     a logic:SubKind ,
