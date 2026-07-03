@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Co-tenancy control (INHABITED-TOPOLOGY.md): two agents share one host, and
+# "who was driving at T" is answered ONLY from recorded gmeow:ControlAssessments
+# — one per attributed control fact, binding the driver with gmeow:controlAgent,
+# what is driven with gmeow:controlOver, the degree with gmeow:controlLevel, and
+# the window with gmeow:controlInterval. There is deliberately NO
+# gmeow:primaryInhabitant: precedence among co-tenants is a solver's ranking over
+# these assessments, never an asserted privilege (Principles 9, 12). Each
+# assessment is a gmeow:Observation, so it carries gmeow:vantage,
+# gmeow:observationMethod, and gmeow:confidence.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:coTenantA a gmeow:SoftwareAgent .
+ex:coTenantB a gmeow:SoftwareAgent .
+ex:sharedHost a gmeow:PhysicalObject .
+ex:opsMonitor a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- Co-tenant A is fully driving the host over the noon window.
+ex:controlAtNoonA a gmeow:ControlAssessment ;
+    gmeow:controlAgent ex:coTenantA ;
+    gmeow:controlOver ex:sharedHost ;
+    gmeow:controlLevel gmeow:controlFull ;
+    gmeow:controlInterval ex:noonInterval ;
+    gmeow:vantage ex:opsMonitor ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:confidence 0.8 .
+
+# --- Co-tenant B holds only partial control over the same host and window —
+#     a coexisting attributed fact, not a contradiction; the solver ranks them.
+ex:controlAtNoonB a gmeow:ControlAssessment ;
+    gmeow:controlAgent ex:coTenantB ;
+    gmeow:controlOver ex:sharedHost ;
+    gmeow:controlLevel gmeow:controlPartial ;
+    gmeow:controlInterval ex:noonInterval ;
+    gmeow:vantage ex:opsMonitor ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:confidence 0.7 .
+
+ex:noonInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-03-01T12:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2026-03-01T13:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
