@@ -302,7 +302,7 @@ ex:saNoPrimaryInhabitant a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-ASK { { gmeow:primaryInhabitant ?p ?o } UNION { ?s ?p gmeow:primaryInhabitant } }""" ;
+ASK { { gmeow:primaryInhabitant ?p ?o } UNION { ?s gmeow:primaryInhabitant ?o } UNION { ?s ?p gmeow:primaryInhabitant } }""" ;
     gmeow:saRationale "There MUST be no gmeow:primaryInhabitant -- precedence among co-tenants is resolved over recorded gmeow:ControlAssessments, never asserted as a privileged inhabitant (Principles 9, 12; INHABITED-TOPOLOGY.md)." .
 
 # --- 23. The module asserts no gufo:inheresIn (MUST-NOT) ----------------------

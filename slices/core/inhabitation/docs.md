@@ -38,7 +38,7 @@ models, and vendors (Principle 14).
 | `gmeow:ControlAssessment` | `logic:SubKind ⊑ Observation` | who causally controls a host/embodiment (not deception) |
 | `gmeow:TransferManifest` | `logic:Kind ⊑ InformationObject` | what crossed a migration boundary (coarse-grained) |
 | `gmeow:eventTypeInhabitationTransition` | `gmeow:EventType` | migration as a lifecycle-value event (`portalFrom`/`portalTo`) |
-| `gmeow:InhabitationLocusKind` / `ControlLevel` / `DeterminationForce` / `ContinuityVerdict` | `logic:AbstractIndividualType ⊑ QualityValue` | the closed value vocabularies |
+| `gmeow:InhabitationLocusKind` / `gmeow:ControlLevel` / `gmeow:DeterminationForce` / `gmeow:ContinuityVerdict` | `logic:AbstractIndividualType ⊑ QualityValue` | the closed value vocabularies |
 
 ## The load-bearing invariants (tested in `tests/structural.ttl`)
 
