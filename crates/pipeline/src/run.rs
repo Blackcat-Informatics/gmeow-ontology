@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The full-build entry point (#861 P6 integration): [`run_full`] runs the WHOLE
+//! The full-build entry point: [`run_full`] runs the WHOLE
 //! dogfooded DAG single-pass and either WRITES every produced artifact to disk
 //! (regenerate mode) or COMPARES each against the committed bytes and collects
 //! drift [`Finding`]s (check mode).
@@ -163,6 +163,10 @@ pub fn full_spec() -> PipelineSpec {
             "constraint_catalog",
             &["stage-reason"],
         ),
+        // The generated term content manifest: one gmeow:definitionDigest per
+        // documented term (plus first-seen version + computed changelog entries),
+        // folded into the bundle by stage-snapshot.
+        st("stage-term-manifest", "term_manifest", &["stage-reason"]),
         st(
             "stage-snapshot",
             "snapshot",
@@ -177,7 +181,7 @@ pub fn full_spec() -> PipelineSpec {
                 // render ran once, in the leaf): profiles / evals scores / research-object
                 // graphs. The presenter reads them off these products, never re-rendered.
                 "stage-export-evals",
-                // #700: fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
+                // Fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
                 "stage-export-profiles",
                 "stage-export-research-objects",
@@ -190,6 +194,8 @@ pub fn full_spec() -> PipelineSpec {
                 // them off this product instead of re-loading + re-canonicalizing sources.
                 "stage-source-load",
                 "stage-statements",
+                // Fold the generated term content manifest into graph/fanout/catalog.
+                "stage-term-manifest",
                 "stage-validate",
             ],
         ),
@@ -232,7 +238,7 @@ pub fn full_spec() -> PipelineSpec {
         &[],
     ));
 
-    // ── the single Sink: the terminal gts ARCHIVE writer (#1132 Stage C). It
+    // ── the single Sink: the terminal gts ARCHIVE writer. It
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
     //    re-assembly) and folds the by-reference blob archives gathered from the
     //    in-memory JSON-Schema / axiom / reasoning / SHACL-report products. ──
@@ -266,7 +272,7 @@ pub fn full_spec() -> PipelineSpec {
     ));
 
     // ── the schemas tail: a fold-reading export leaf over the carrier dataset
-    //    (#1132) — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
+    //    — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
     stages.push(st(SCHEMAS_STAGE, "schemas", &["stage-snapshot"]));
 
     PipelineSpec {
@@ -340,7 +346,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     let total_started = Instant::now();
     let spec = full_spec();
 
-    // Single-pass (#1132 Stage C): the schemas leaf is now a normal carrier-reading
+    // Single-pass: the schemas leaf is now a normal carrier-reading
     // export leaf (it consumes `stage-snapshot`, not the sink bytes), so the WHOLE DAG —
     // the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
     // No producer/serialization re-derivation, no SINK_STAGE-only sub-run.
@@ -422,7 +428,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             // `merge=ours` bundle survives an `integrate-main` + regenerate, the exact
             // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
             // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
-            // has encoding skew (#595) — so it is only counted here; the fold gate is
+            // has encoding skew — so it is only counted here; the fold gate is
             // `tests/full_parity.rs`.
             if path == GTS_PATH {
                 if mode == RunMode::Regenerate {
@@ -722,7 +728,7 @@ fn graphs_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
 /// canonicalized quad set as sorted strings. `None` on a parse error.
 fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
     // Try Turtle first, then N-Quads — the leaves emit one of these.
-    // Native text ingress (#909) + native full RDFC-1.0 (#910): no oxigraph::io
+    // Native text ingress + native full RDFC-1.0: no oxigraph::io
     // parse, no oxrdf `Dataset::canonicalize`. The parsed IR is FLATTENED back to its
     // un-folded plain-quad stream (`flat_rdf_quads_from_dataset`) before re-freezing
     // and canonicalizing, so the RDF 1.2 statement overlay canonicalizes as the same

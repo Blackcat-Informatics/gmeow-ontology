@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Oxigraph-free RDF query surface for the docs model + i18n extractors (EPIC #906).
+//! Oxigraph-free RDF query surface for the docs model + i18n extractors.
 //!
 //! The docs crate used to parse each slice's `module.ttl` / example / mapping
 //! Turtle into an `oxigraph::store::Store` and pattern-match it. Every store/term
@@ -204,6 +204,51 @@ impl Store {
         out.sort();
         out.dedup();
         out
+    }
+
+    /// Every distinct named subject carrying `?s <pred> ?o` across *any* graph
+    /// (sorted, deduped). The manifest reader uses it to enumerate the terms that
+    /// carry a `gmeow:definitionDigest` in the named fanout graph.
+    pub(crate) fn subjects_with_predicate_any(&self, pred: &str) -> Vec<String> {
+        let Some(p) = self.iri_id(pred) else {
+            return Vec::new();
+        };
+        let mut out: Vec<String> = self
+            .ds
+            .quads_for_pattern(None, Some(p), None, GraphMatch::Any)
+            .filter_map(|q| match self.node_of(q.s) {
+                Some(Node::Named(iri)) => Some(iri),
+                _ => None,
+            })
+            .collect();
+        out.sort();
+        out.dedup();
+        out
+    }
+
+    /// Every object term of `<node> <pred> ?o` across *any* graph, where `node` may
+    /// be a blank-node subject (reified manifest changelog rows live in the named
+    /// fanout graph). Graph-agnostic twin of [`Store::objects_of_node`].
+    pub(crate) fn objects_of_node_any(&self, subject: &Node, pred: &str) -> Vec<Object> {
+        let (Some(s), Some(p)) = (self.node_id(subject), self.iri_id(pred)) else {
+            return Vec::new();
+        };
+        self.ds
+            .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Any)
+            .map(|q| self.object_of(q.o))
+            .collect()
+    }
+
+    /// The lowest lexical literal value of `<node> <pred> ?o` across *any* graph
+    /// (deterministic), or `None`. Graph-agnostic twin of [`Store::first_literal_of`].
+    pub(crate) fn first_literal_of_any(&self, subject: &Node, pred: &str) -> Option<String> {
+        self.objects_of_node_any(subject, pred)
+            .into_iter()
+            .filter_map(|o| match o {
+                Object::Literal(v) => Some(v),
+                _ => None,
+            })
+            .min()
     }
 
     /// All NamedNode subjects of `?s a <type>` across *any* graph (sorted,
