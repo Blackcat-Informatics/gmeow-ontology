@@ -53,7 +53,6 @@ pub mod up_projection_corpus;
 pub mod up_projection_gates;
 pub mod up_projection_report;
 
-#[cfg(feature = "python")]
 pub mod mcp;
 #[cfg(feature = "python")]
 pub mod py;

@@ -1074,10 +1074,22 @@ pub fn crossref(out: &Path, gts: Option<&Path>) -> i32 {
 
 // ── mcp ──────────────────────────────────────────────────────────────────────
 
-/// `gmeow mcp` — stubbed; the native MCP server is wired in the MCP task.
+/// `gmeow mcp` — serve the native, bundle-only MCP consumer surface over stdio.
+///
+/// The embedded [`BUNDLE_GTS`] snapshot is the sole ontology source (repo-free);
+/// `root = None` so no repo-reading dev tools are exposed. Blocks on the stdio
+/// JSON-RPC loop until EOF, then exits `0`; a construction or I/O error maps to a
+/// nonzero exit.
 pub fn mcp() -> i32 {
-    eprintln!("mcp: wired in the MCP task");
-    0
+    use gmeow_pipeline::mcp::{McpMode, McpServer};
+    let server = match McpServer::from_snapshot(BUNDLE_GTS, None, McpMode::Consumer) {
+        Ok(server) => server,
+        Err(e) => return fail(format!("mcp: {e}")),
+    };
+    match server.run_stdio() {
+        Ok(()) => 0,
+        Err(e) => fail(format!("mcp: {e}")),
+    }
 }
 
 /// A tiny scoped temp file: writes bytes to a uniquely named file under the
