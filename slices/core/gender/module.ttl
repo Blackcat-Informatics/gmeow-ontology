@@ -392,8 +392,12 @@ gmeow:sexAssignedAtBirth
 # on the generated identity-axis orthogonality shape (a blank axiom node cannot).
 gmeow:identityAxisDisjointness
     a owl:AllDisjointClasses ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
+    rdfs:label "identity-axis disjointness"@x-gmeow-english ;
+    skos:definition "The named carrier of the seven-axis identity-orthogonality axiom: GenderIdentity, GenderExpression, SexAssignedAtBirth, SexualOrientation, RomanticOrientation, PronounSet, and Honorific are mutually disjoint — no individual fills two (Principle 9, anti-overtyping). Named (not a blank axiom node) so the generated SHACL orthogonality shape can carry a logic:formalizes back-reference to it."@x-gmeow-english ;
     owl:members ( gmeow:GenderIdentity gmeow:GenderExpression gmeow:SexAssignedAtBirth gmeow:SexualOrientation gmeow:RomanticOrientation gmeow:PronounSet gmeow:Honorific ) ;
-    logic:formalizes gmeow:GenderIdentity .
+    logic:formalizes gmeow:GenderIdentity ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 _:b1
     a owl:AllDisjointClasses ;
