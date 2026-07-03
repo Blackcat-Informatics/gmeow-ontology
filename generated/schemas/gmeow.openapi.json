@@ -477,6 +477,7 @@
         "type": "object"
       },
       "AffectScaleProfile": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -962,15 +963,22 @@
             ]
           },
           "gmeow:appraisalScaleProfile": {
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AffectScaleProfile"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:appraisalValue": {
             "anyOf": [

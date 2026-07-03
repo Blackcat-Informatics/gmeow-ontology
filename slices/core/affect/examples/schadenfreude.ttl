@@ -41,14 +41,14 @@ ex:sfCoreVector a gmeow:AffectVectorObservation ;
 
 ex:sfValenceCell a gmeow:Appraisal ;
     gmeow:vantage ex:observer ;
-    gmeow:appraisalOf ex:schadenfreude ;
+    gmeow:appraisalOf ex:rivalSetback ;
     gmeow:appraisalDimension gmeow:dimensionValence ;
     gmeow:appraisalValue 0.7 ;
     gmeow:appraisalScaleProfile ex:padUnitScale .
 
 ex:sfArousalCell a gmeow:Appraisal ;
     gmeow:vantage ex:observer ;
-    gmeow:appraisalOf ex:schadenfreude ;
+    gmeow:appraisalOf ex:rivalSetback ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
     gmeow:appraisalValue 0.4 ;
     gmeow:appraisalScaleProfile ex:padUnitScale .

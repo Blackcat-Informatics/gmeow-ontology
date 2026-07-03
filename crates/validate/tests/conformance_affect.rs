@@ -120,6 +120,18 @@ fn conforms(#[case] case: Case) {
         .fails()
         .violations(&["unanalyzed primitive"])
 )]
+// ── Stage-3 reshape: the named frame is not actually a frame (non-profile referent) ─
+#[case::appraisal_scale_profile_not_a_profile(
+    Case::inline(ttl("ex:a a gmeow:Appraisal ; gmeow:vantage ex:critic ; gmeow:appraisalOf ex:work ; gmeow:appraisalDimension gmeow:dimensionValence ; gmeow:appraisalValue 0.9 ; gmeow:appraisalScaleProfile ex:notAProfile .\n"))
+        .fails()
+        .violations(&["non-profile IRI"])
+)]
+// ── Stage-3 reshape: a scale profile with an inverted (degenerate) range ───────
+#[case::profile_range_inverted(
+    Case::inline(ttl("ex:p a gmeow:AffectScaleProfile ; gmeow:profileRangeMin 1.0 ; gmeow:profileRangeMax -1.0 .\n"))
+        .fails()
+        .violations(&["must strictly exceed"])
+)]
 fn hard_fails(#[case] case: Case) {
     case.run();
 }
