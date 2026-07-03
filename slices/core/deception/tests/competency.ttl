@@ -218,9 +218,9 @@ ex:cqDeceptionLicensedFalsehoodShape a logic:ResultShape ;
 # ── E. Disinformation boundary query (#1120) ──────────────────────────────────
 ex:cqDisinformationBoundary a gmeow:CompetencyQuestion ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX ex: <https://example.org/test/>
+PREFIX exd: <https://example.org/test/>
 SELECT ?event ?label ?hopType WHERE {
-    VALUES ?event { ex:originEvent ex:dupeEvent ex:downstreamEvent }
+    VALUES ?event { exd:originEvent exd:dupeEvent exd:downstreamEvent }
     ?event a gmeow:Event .
 
     OPTIONAL {
