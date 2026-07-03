@@ -279,12 +279,20 @@ fn info_summarizes_the_bundle() {
 }
 
 #[test]
-fn mcp_is_stubbed_pending_the_mcp_task() {
+fn mcp_serves_a_native_jsonrpc_initialize() {
+    // The consumer `gmeow mcp` runs the native stdio MCP server over the
+    // embedded bundle: a JSON-RPC `initialize` request returns a well-formed
+    // response identifying the server, and the transport closes cleanly on EOF.
     gmeow()
         .arg("mcp")
+        .write_stdin("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{}}\n")
         .assert()
         .success()
-        .stderr(predicate::str::contains("wired in the MCP task"));
+        .stdout(
+            predicate::str::contains("\"jsonrpc\":\"2.0\"")
+                .and(predicate::str::contains("protocolVersion"))
+                .and(predicate::str::contains("serverInfo")),
+        );
 }
 
 #[test]
