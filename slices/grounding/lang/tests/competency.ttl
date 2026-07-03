@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the language slice (crates/slicetest): the
+# bedrock questions the term surface must answer about the typed form AST. Each query
+# runs over the merged ontology unioned with the shared fixture (gmeow:cqDataFile),
+# and its expected rows are pinned exactly (logic:RowsExact).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
+@prefix exf:   <http://example.org/lang/> .
+
+# === Q1 — explicitly unanalyzed surfaces =================================== #
+
+ex:cqUnanalyzedSurfaces a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/unanalyzed-surfaces.rq" ;
+    gmeow:cqDataFile "tests/fixtures/forms.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A surface reports whether it is explicitly held as lang:UnanalyzedProse at lang:rawLevel; over the fixture the answer is exactly {rawSurface}, distinct from the parsed surface of the same text." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqUnanalyzedShape ;
+    gmeow:cqExpectRow ex:rowRawSurface .
+
+ex:cqUnanalyzedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "surface" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRawSurface a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "surface" ; gmeow:cellValueIri exf:rawSurface ] .
+
+# === Q2 — constituents of a composed form in slot-index order ============== #
+
+ex:cqConstituentsInOrder a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/constituents-in-order.rq" ;
+    gmeow:cqDataFile "tests/fixtures/forms.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A composed form reports its slot forms in lang:slotIndex order; over the fixture the answer for exf:cf is exactly its two constituents {cats (0), sleep (1)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConstituentsShape ;
+    gmeow:cqExpectRow ex:rowConstituentCats , ex:rowConstituentSleep .
+
+ex:cqConstituentsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "form" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConstituentCats a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:wfCats ] .
+
+ex:rowConstituentSleep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "form" ; gmeow:cellValueIri exf:wfSleep ] .
+
+# === Q3 — word forms with their lexeme and Number value ==================== #
+
+ex:cqWordFormMorphology a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/word-form-morphology.rq" ;
+    gmeow:cqDataFile "tests/fixtures/forms.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A word form reports the lexeme it inflects and its typed Number value drawn from the feature inventory; over the fixture the answer is exactly {wfCats → (cat, Plur), wfSleep → (sleep, Plur)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMorphologyShape ;
+    gmeow:cqExpectRow ex:rowMorphCats , ex:rowMorphSleep .
+
+ex:cqMorphologyShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "wf" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "lex" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "val" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowMorphCats a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "wf" ; gmeow:cellValueIri exf:wfCats ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lex" ; gmeow:cellValueIri exf:lexCat ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "val" ; gmeow:cellValueIri lang:valPlur ] .
+
+ex:rowMorphSleep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "wf" ; gmeow:cellValueIri exf:wfSleep ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lex" ; gmeow:cellValueIri exf:lexSleep ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "val" ; gmeow:cellValueIri lang:valPlur ] .

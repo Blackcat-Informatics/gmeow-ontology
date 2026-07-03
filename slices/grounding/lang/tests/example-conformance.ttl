@@ -1,0 +1,149 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance fixtures for the language slice — the test-DSL
+# twin of the SHACL shapes in slices/grounding/lang/shapes.ttl ("this instance
+# must validate, that counter-example must be rejected"). The harness
+# (crates/slicetest run_conformance_cell) validates lang/module.ttl + the one
+# bound gmeow:exampleFile against lang/shapes.ttl and compares finding codes.
+#
+# Each counter-example isolates ONE violation, so the (fixture, code) pair pins
+# the specific constraint. Conforming fixtures live under tests/conformance-fixtures/
+# and counter-examples under tests/counter-examples/, so the global `make validate`
+# gate never loads the intentional violations as data. Every conforming fixture
+# gives each lang:Form a sign system (all lang:Form instances are gated by
+# lang:FormSituatedShape), and every counter-example satisfies all other shapes so
+# exactly the named finding fires.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
+
+# === Rule: every form names exactly one sign system ========================= #
+
+ex:ecFormSituated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/form-situated.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:WordForm naming exactly one lang:SignSystem through lang:inSignSystem satisfies lang:FormSituatedShape and validates with no findings." .
+
+ex:ecFormMissingSignSystem a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/form-missing-sign-system.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits lang:inSignSystem on a lang:WordForm (sh:minCount 1 on lang:FormSituatedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnsituatedForm)." .
+
+# === Rule: analyzed or explicitly unanalyzed; structure matches level ======= #
+
+ex:ecSurfaceAnalyzed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/surface-analyzed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:UnanalyzedProse surface at lang:rawLevel with full material identity satisfies lang:SurfaceAnalysisShape and validates with no findings." .
+
+ex:ecSurfaceLevelMismatch a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/surface-level-mismatch.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares lang:parsedLevel but does not lang:realize a lang:ComposedForm (the SPARQL constraint of lang:SurfaceAnalysisShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:MisdeclaredAnalysis)." .
+
+# === Rule: slot indexes are unique per composed form ======================== #
+
+ex:ecSlotIndexUnique a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/slot-index-unique.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:ComposedForm whose two slots carry distinct contiguous indexes 0 and 1 satisfies lang:SlotIndexUniqueShape and validates with no findings." .
+
+ex:ecSlotIndexDuplicate a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/slot-index-duplicate.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example gives two slots of one composed form the same lang:slotIndex 0 (the SPARQL constraint of lang:SlotIndexUniqueShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DuplicateSlotIndex)." .
+
+# === Rule: slot indexes are zero-based and contiguous ======================= #
+
+ex:ecSlotContiguous a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/slot-contiguous.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:ComposedForm with slots at indexes 0 and 1 satisfies lang:SlotContiguityShape and validates with no findings." .
+
+ex:ecSlotGap a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/slot-gap.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example has slots at indexes 0, 1, and 3 with an internal gap at 2 (the SPARQL constraint of lang:SlotContiguityShape, which compares the max index against the slot count), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:NonContiguousSlots)." .
+
+# === Rule: dependency edges stay in their analysis, acyclic ================= #
+
+ex:ecDependencyIntegral a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/dependency-integral.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two slots in the same lang:Analysis, one depending on the other, satisfy lang:DependencyIntegrityShape and validate with no findings." .
+
+ex:ecDependencyDangling a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/dependency-dangling.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's lang:dependsOn head reference points at a slot in a different lang:Analysis (the SPARQL constraint of lang:DependencyIntegrityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:DanglingDependency)." .
+
+# === Rule: morphology is typed from the feature inventory =================== #
+
+ex:ecMorphologyTyped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/morphology-typed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:MorphFeature naming a lang:FeatureKey and a lang:FeatureValue individual satisfies lang:TypedMorphologyShape and validates with no findings." .
+
+ex:ecMorphologyUntyped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/morphology-untyped.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits the typed lang:featureValue on a lang:MorphFeature (sh:minCount 1 on lang:TypedMorphologyShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UntypedMorphology)." .
+
+# === Rule: surfaces declare their material identity ========================= #
+
+ex:ecSurfaceHashable a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/surface-hashable.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:UnanalyzedProse surface declaring text, script, normalization, and collation locale satisfies lang:SurfaceMaterialShape and validates with no findings." .
+
+ex:ecSurfaceUnhashable a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/surface-unhashable.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits lang:collationLocale on a surface (sh:minCount 1 on lang:SurfaceMaterialShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnhashableSurface)." .
+
+# === Rule: anchors declare source, span, and offset space =================== #
+
+ex:ecAnchorComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/anchor-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:SurfaceAnchor declaring source, start, end, and offset space satisfies lang:AnchorCompleteShape and validates with no findings." .
+
+ex:ecAnchorUnanchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/anchor-unanchored.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits lang:offsetSpace on a lang:SurfaceAnchor (sh:minCount 1 on lang:AnchorCompleteShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnanchoredOffset)." .
+
+# === Rule: structural positions hold forms, not literals ==================== #
+
+ex:ecSlotFormResource a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/slot-form-resource.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:FormSlot whose lang:slotForm points at a lang:WordForm resource satisfies lang:SlotFormStructuralShape and validates with no findings." .
+
+ex:ecSlotFormLiteral a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/slot-form-literal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example gives lang:slotForm a bare string literal (sh:nodeKind sh:BlankNodeOrIRI on lang:SlotFormStructuralShape), so validation MUST emit shacl.NodeKindConstraintComponent and NO other finding (lang:StringOnlyForm)." .
+
+# === Rule: graphemes are grounded in their script's repertoire ============== #
+
+ex:ecGraphemeGrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/grapheme-grounded.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A lang:Grapheme listed in its lang:Script's repertoire through lang:hasGrapheme satisfies lang:GraphemeGroundedShape and validates with no findings." .
+
+ex:ecGraphemeUngrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/grapheme-ungrounded.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's lang:Grapheme declares a lang:Script that does not list it through lang:hasGrapheme (the SPARQL constraint of lang:GraphemeGroundedShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UngroundedGrapheme)." .
