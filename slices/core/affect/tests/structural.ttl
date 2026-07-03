@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the affect slice. Each assertion runs as
+# a SPARQL ASK over affect/module.ttl under the native Rust slicetest harness.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/tests/> .
+
+ex:saEmotionIsModeKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Emotion a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:AffectiveMoment .
+    gmeow:AffectiveMoment rdfs:subClassOf gmeow:MentalMoment .
+    gmeow:emotionBearer a owl:FunctionalProperty ;
+        rdfs:range gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:Emotion MUST be a logic:Kind grafted under gmeow:AffectiveMoment (an affective member of the kernel gmeow:MentalMoment family), with one bearer. Mode-ness is inherited via MentalMoment (logic:Mode); the reparent joins emotions to the agent-mental-life family." .
+
+ex:saEmotionTypeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:emotionType a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:emotionType MUST NOT be functional; blended emotions and rival traditions coexist." .
+
+ex:saAffectiveElicitorTargetDistinct a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:affectiveElicitor a owl:ObjectProperty ;
+        rdfs:domain gmeow:Emotion .
+    gmeow:affectiveTarget a owl:ObjectProperty ;
+        rdfs:domain gmeow:Emotion .
+    FILTER (gmeow:affectiveElicitor != gmeow:affectiveTarget)
+}""" ;
+    gmeow:saRationale "An emotion's cause (gmeow:affectiveElicitor) and its aboutness (gmeow:affectiveTarget) MUST be distinct object properties on gmeow:Emotion — aboutness is not cause (the Ithkuil OBJ distinction)." .
+
+ex:saElicitsIsInverseOfAffectiveElicitor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:elicits a owl:ObjectProperty ;
+        owl:inverseOf gmeow:affectiveElicitor ;
+        rdfs:range gmeow:Emotion .
+}""" ;
+    gmeow:saRationale "gmeow:elicits is the trigger-to-emotion inverse of gmeow:affectiveElicitor (the emotion-to-trigger cause property); asserting the elicitor from the emotion side lets the trigger-rooted reading follow by inversion, mirroring the gmeow:partOf / gmeow:hasPart convention." .

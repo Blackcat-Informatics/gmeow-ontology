@@ -1,0 +1,6 @@
+{
+  "https://example.org/derivation/tenure-claim-surfacing/world": {
+    "quads": 5,
+    "status": "consistent"
+  }
+}

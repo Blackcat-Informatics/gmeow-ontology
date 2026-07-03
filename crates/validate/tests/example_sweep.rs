@@ -114,7 +114,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/creative-works/examples/wemi-novel.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
     "slices/core/documents/examples/web-presence.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
     "slices/core/learning/examples/skill-acquisition-trajectory.ttl", // TimeInterval missing gmeow:hasTemporalFrame (P11)
-    "slices/extensions/affect/examples/two-critics.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
+    "slices/core/affect/examples/two-critics.ttl", // Expression missing gmeow:hasReferenceFrame (P11)
     "slices/extensions/narrative/examples/flashback.ttl", // Event missing gmeow:eventTemporalFrame (P11)
 ];
 

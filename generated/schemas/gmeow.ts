@@ -2044,6 +2044,7 @@ export enum PipelineStageEnum {
     stage_conformance = "stage-conformance",
     stage_constraint_catalog = "stage-constraint-catalog",
     stage_docs_render = "stage-docs-render",
+    stage_export_agreement = "stage-export-agreement",
     stage_export_apache = "stage-export-apache",
     stage_export_bench = "stage-export-bench",
     stage_export_catalog = "stage-export-catalog",
@@ -3235,6 +3236,9 @@ export interface AdoptiveParentChild extends ParentChildRelationship {
 export interface AestheticQuality {
 }
 
+export interface AffectiveMoment extends Entity {
+}
+
 export interface Agent extends Entity {
     accepts?: string[],
     asks?: string[],
@@ -4147,7 +4151,9 @@ export interface Embedding extends InformationObject {
     vectorRef?: string[],
 }
 
-export interface Emotion extends Entity {
+export interface Emotion extends AffectiveMoment {
+    affectiveElicitor?: string[],
+    affectiveTarget?: string[],
     emotionBearer?: Agent,
     emotionType?: EmotionType[],
 }
@@ -4200,6 +4206,7 @@ export interface Entity {
     hasVersion?: Entity[],
     hasVoice?: Voice[],
     hasWebPage?: WebPage[],
+    indirectContributor?: Agent[],
     instanceOfConcept?: Concept[],
     isAbout?: Entity[],
     isAccessibleForFree?: boolean[],
@@ -4736,6 +4743,7 @@ export interface Issue extends InformationObject {
 export interface Item extends CreativeWork {
     exemplifies?: Manifestation[],
     hasCarrier?: PhysicalObject[],
+    instantiatesWork?: Work[],
 }
 
 export interface JournalEntry extends Event {

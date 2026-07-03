@@ -2068,6 +2068,7 @@ class PipelineStageEnum(str, Enum):
     stage_conformance = "stage-conformance"
     stage_constraint_catalog = "stage-constraint-catalog"
     stage_docs_render = "stage-docs-render"
+    stage_export_agreement = "stage-export-agreement"
     stage_export_apache = "stage-export-apache"
     stage_export_bench = "stage-export-bench"
     stage_export_catalog = "stage-export-catalog"
@@ -3414,6 +3415,7 @@ class Entity(ConfiguredBaseModel):
     hasVersion: list[Entity] | None = Field(default=None)
     hasVoice: list[Voice] | None = Field(default=None)
     hasWebPage: list[WebPage] | None = Field(default=None)
+    indirectContributor: list[Agent] | None = Field(default=None)
     instanceOfConcept: list[Concept] | None = Field(default=None)
     isAbout: list[Entity] | None = Field(default=None)
     isAccessibleForFree: list[bool] | None = Field(default=None)
@@ -3437,6 +3439,12 @@ class Entity(ConfiguredBaseModel):
     versionOf: Entity | None = Field(default=None)
     wasAttributedTo: list[Agent] | None = Field(default=None)
     wasGeneratedBy: list[Activity] | None = Field(default=None)
+
+
+class AffectiveMoment(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectiveMoment"
+    is_a: ClassVar[str] = "Entity"
+    pass
 
 
 class Agent(Entity):
@@ -4932,9 +4940,11 @@ class Embedding(InformationObject):
     vectorRef: list[str] | None = Field(default=None)
 
 
-class Emotion(Entity):
+class Emotion(AffectiveMoment):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Emotion"
-    is_a: ClassVar[str] = "Entity"
+    is_a: ClassVar[str] = "AffectiveMoment"
+    affectiveElicitor: list[str] | None = Field(default=None)
+    affectiveTarget: list[str] | None = Field(default=None)
     emotionBearer: Agent | None = Field(default=None)
     emotionType: list[EmotionType] | None = Field(default=None)
 
@@ -5598,6 +5608,7 @@ class Item(CreativeWork):
     is_a: ClassVar[str] = "CreativeWork"
     exemplifies: list[Manifestation] | None = Field(default=None)
     hasCarrier: list[PhysicalObject] | None = Field(default=None)
+    instantiatesWork: list[Work] | None = Field(default=None)
 
 
 class JournalEntry(Event):

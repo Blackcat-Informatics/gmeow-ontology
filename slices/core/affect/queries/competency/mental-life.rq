@@ -1,0 +1,12 @@
+# Competency question: "What kinds of mental moment does an agent have?"
+# The agent-mental-life family: emotions (affect) alongside knowings (cognition),
+# beliefs (epistemics), and intentions (teleology), all under gmeow:MentalMoment.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?moment WHERE {
+    ?moment rdfs:subClassOf* gmeow:MentalMoment .
+    FILTER(isIRI(?moment))
+}
+ORDER BY ?moment

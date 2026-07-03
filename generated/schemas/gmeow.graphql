@@ -2044,6 +2044,7 @@ enum PipelineStageEnum {
   stage_conformance
   stage_constraint_catalog
   stage_docs_render
+  stage_export_agreement
   stage_export_apache
   stage_export_bench
   stage_export_catalog
@@ -3257,6 +3258,11 @@ type AdoptiveParentChild {
 }
 
 type AestheticQuality {
+  id: String
+  iri: String
+}
+
+type AffectiveMoment {
   id: String
   iri: String
 }
@@ -4520,6 +4526,8 @@ type Embedding {
 type Emotion {
   id: String
   iri: String
+  affectiveElicitor: [String!]
+  affectiveTarget: [String!]
   emotionBearer: Agent
   emotionType: [EmotionType!]
 }
@@ -4580,6 +4588,7 @@ type Entity {
   hasVersion: [Entity!]
   hasVoice: [Voice!]
   hasWebPage: [WebPage!]
+  indirectContributor: [Agent!]
   instanceOfConcept: [Concept!]
   isAbout: [Entity!]
   isAccessibleForFree: [Boolean!]
@@ -5320,6 +5329,7 @@ type Item {
   iri: String
   exemplifies: [Manifestation!]
   hasCarrier: [PhysicalObject!]
+  instantiatesWork: [Work!]
 }
 
 type JournalEntry {
