@@ -163,14 +163,27 @@ the authored sources (`slices/`, `shapes/`, `dsl/`) rather than under the genera
 either a hand-authored second source of truth — which is **forbidden** — or it carries a
 `logic:formalizes` back-reference naming the `logic:` validation shape it is the projection
 of. The static seal that enforces this is the **shape half** of the projection-purity gate
-in [`governance/constitution.ttl`](../../../../governance/constitution.ttl): the computation
-gate seals `sh:rule` / `sh:SPARQLRule`; the shape gate seals `sh:NodeShape` / `sh:PropertyShape`
-and the ShEx surface, closing the exemption that currently lets a hand-authored constraint
-shape pass. The two frame/result shape stages that already emit SHACL under the generated
-tree are the projector's first realized fragment; the remaining hand-authored slice shapes
-migrate under equivalence-before-deletion ([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)):
-the current committed shapes are the golden oracle the new projector must reproduce
-before the hand-authored versions are deleted.
+in [`governance/constitution.ttl`](../../../../governance/constitution.ttl) (`meta:gate-projection-shape-purity`,
+`check_projection_shape_purity`): the computation gate seals `sh:rule` / `sh:SPARQLRule`; the
+shape gate seals `sh:NodeShape` / `sh:PropertyShape` and the ShEx surface, closing the exemption
+that currently lets a hand-authored constraint shape pass.
+
+The shape gate is realized **incrementally**, exactly as the frame/result shape stages that
+already emit SHACL under the generated tree are "the projector's first realized fragment." The
+first realized fragment of the *constraint* half is the **`sh:sparql` procedural-constraint
+signature** of the open-world FOL axioms (irreflexivity, acyclicity, relatum-distinctness): each
+is authored once in `logic:` (a `logic:PropertyCharacteristicAssertion` /
+`logic:RelatumDistinctnessAssertion` / named `owl:AllDisjointClasses`), reasoned over by the
+native coherence gate, and projected to `sh:SPARQLConstraint` node shapes in
+`generated/shapes/constraint-shapes.ttl`; the seal red-fails on an authored `sh:select`
+re-encoding one of those axiom signatures without a `logic:formalizes` back-reference. The
+remaining fragment — the declarative `sh:PropertyShape` closed-world checks (cardinality,
+datatype, node-kind, value-set) and the ShEx surface — migrates next, under
+equivalence-before-deletion ([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)): the current
+committed shapes are the golden oracle the projector must reproduce before the hand-authored
+versions are deleted. (SPARQL/cross-node constraints have no ShEx form — ShEx has no
+SPARQL-based constraint — so the FOL-axiom fragment is SHACL-only, recorded as a `logic:unsupported`
+ShEx drop in the loss ledger.)
 
 ## A named consumer (P15)
 

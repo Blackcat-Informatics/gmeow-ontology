@@ -92,6 +92,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_lane_purity(root, &mut report);
     check_no_rdflib_in_runtime(root, &mut report);
     check_projection_compute_purity(root, &mut report);
+    check_projection_shape_purity(root, &mut report);
     report
 }
 
@@ -356,6 +357,122 @@ fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
                  (design/LOGIC-SHACL-AF.md)",
                 node_label(&ds, *subj),
                 constructs.join(", ")
+            ));
+        }
+    }
+}
+
+/// The gmeow domain namespace — the migrated FOL-axiom predicates live under it.
+const GMEOW_NS_STATIC: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The migrated irreflexive/acyclic predicates: a hand-authored `sh:select` self-reference
+/// `$this <P> $this` (optionally `+`/`*`) IS an irreflexivity/acyclicity axiom — a logical
+/// characteristic that must be authored in the logic: canon and PROJECTED, not hand-authored.
+const MIGRATED_SELF_PREDS: &[&str] = &["counterGoal", "overrides", "linkNext"];
+
+/// The migrated relatum-distinctness role-pairs: a `sh:select` binding both roles to one value
+/// IS a mutual-inequality axiom (`logic:RelatumDistinctnessAssertion`). Detected by both role
+/// IRIs co-occurring in one select body — a pattern the retained closed-world checks never use.
+const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
+    ("committedAgent", "commitmentBeneficiary"),
+    ("precedenceHigher", "precedenceLower"),
+    ("rewardPole", "penaltyPole"),
+    ("linkAntecedent", "linkConsequent"),
+];
+
+/// The shape-half of the projection-purity seal (the peer of [`check_projection_compute_purity`]):
+/// an authored `sh:sparql`/`sh:select` that re-encodes a migrated open-world FOL axiom
+/// (irreflexivity / acyclicity / relatum-distinctness — the distinctive self-reference and
+/// coincident-role signatures) is a hand-authored second source of truth. It must be authored in
+/// the logic: canon and PROJECTED to `generated/shapes/constraint-shapes.ttl` (Principle 17), or
+/// carry a `logic:formalizes` back-reference on the construct or its owning shape. This realizes
+/// the `sh:sparql` procedural-constraint fragment of the shape gate
+/// (`design/LOGIC-VALIDATION.md`); the declarative `sh:PropertyShape` fragment follows as the
+/// remaining closed-world shapes migrate (the same incremental realization the frame/result shape
+/// stages are already described under). Scans `shapes/` (where the FOL SHACL lived) as well as
+/// `slices/` + `dsl/`.
+fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
+    let mut ttl_files = Vec::new();
+    for sub in ["shapes", "slices", "dsl"] {
+        let dir = root.join(sub);
+        if dir.is_dir() {
+            collect_ttl_files(&dir, report, &mut ttl_files);
+        }
+    }
+    ttl_files.sort();
+    for path in ttl_files {
+        let text = match fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        if !text.contains(SHACL_NS) {
+            continue;
+        }
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+            Ok(ds) => ds,
+            Err(err) => {
+                report.error(format!("{rel}: does not parse as Turtle: {err}"));
+                continue;
+            }
+        };
+
+        // Parents: a `sh:sparql` / `sh:target` construct block → its owning shape, so a
+        // `logic:formalizes` on the shape legalizes the block (the upward walk).
+        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
+        for local in ["sparql", "target"] {
+            let Some(pid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
+                continue;
+            };
+            for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        let mut directly_backed: BTreeSet<TermId> = BTreeSet::new();
+        if let Some(fid) = iri_id_static(&ds, PROJECTION_FORMALIZES_IRI) {
+            for q in ds.quads_for_pattern(None, Some(fid), None, GraphMatch::Any) {
+                directly_backed.insert(q.s);
+            }
+        }
+
+        let Some(sel_id) = iri_id_static(&ds, &format!("{SHACL_NS}select")) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(sel_id), None, GraphMatch::Any) {
+            let TermRef::Literal { lexical, .. } = ds.resolve(q.o) else {
+                continue;
+            };
+            let sel = lexical;
+            let mut matched: Option<String> = None;
+            for p in MIGRATED_SELF_PREDS {
+                let base = format!("{GMEOW_NS_STATIC}{p}>");
+                if sel.contains(&format!("{base} $this")) || sel.contains(&format!("{base}+ $this"))
+                {
+                    matched = Some(format!("irreflexivity/acyclicity on gmeow:{p}"));
+                }
+            }
+            for (a, b) in MIGRATED_DISTINCT_PAIRS {
+                if sel.contains(&format!("{GMEOW_NS_STATIC}{a}>"))
+                    && sel.contains(&format!("{GMEOW_NS_STATIC}{b}>"))
+                {
+                    matched = Some(format!("relatum-distinctness on gmeow:{a}/gmeow:{b}"));
+                }
+            }
+            let Some(desc) = matched else {
+                continue;
+            };
+            if formalizes_backed(q.s, &directly_backed, &parents) {
+                continue;
+            }
+            report.error(format!(
+                "{rel}: a hand-authored sh:sparql re-encodes the migrated FOL axiom \
+                 ({desc}) without a `logic:formalizes` back-reference on it or its owning \
+                 shape: this axiom is authored in the logic: canon and PROJECTED to \
+                 generated/shapes/constraint-shapes.ttl (Principle 17, H8), never \
+                 hand-authored as a second source of truth (design/LOGIC-VALIDATION.md)"
             ));
         }
     }
@@ -1122,6 +1239,86 @@ mod tests {
             .errors
             .iter()
             .any(|e| e.contains("target \"ci\"") && e.contains("maint-verify-docker")));
+    }
+
+    #[test]
+    fn shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_world() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let g = "https://blackcatinformatics.ca/gmeow/";
+
+        // A hand-authored irreflexivity self-reference axiom with NO logic:formalizes → flagged.
+        write(
+            &root.join("shapes/bad-irreflexive.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:S a sh:NodeShape ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}counterGoal> $this . }}\"\"\" ] .\n"
+            ),
+        );
+        // A hand-authored coincident-role distinctness axiom, unbacked → flagged.
+        write(
+            &root.join("shapes/bad-distinct.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:S a sh:NodeShape ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}committedAgent> ?v . $this <{g}commitmentBeneficiary> ?v . }}\"\"\" ] .\n"
+            ),
+        );
+        // The SAME irreflexivity axiom WITH a logic:formalizes on its owning shape → legal.
+        write(
+            &root.join("shapes/good-backed.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+                 ex:S a sh:NodeShape ; logic:formalizes ex:someAxiom ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}counterGoal> $this . }}\"\"\" ] .\n"
+            ),
+        );
+        // A retained closed-world check (FILTER NOT EXISTS existence) → NOT a migrated axiom,
+        // must NOT be flagged even without logic:formalizes.
+        write(
+            &root.join("shapes/closed-world.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:S a sh:NodeShape ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}deonticModality> ?m . FILTER NOT EXISTS {{ $this <{g}normIssuer> ?i . }} }}\"\"\" ] .\n"
+            ),
+        );
+
+        let mut report = RepoStaticReport::default();
+        check_projection_shape_purity(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("bad-irreflexive.ttl")),
+            "an unbacked irreflexivity self-reference axiom must be flagged; got {:?}",
+            report.errors
+        );
+        assert!(
+            report.errors.iter().any(|e| e.contains("bad-distinct.ttl")),
+            "an unbacked coincident-role distinctness axiom must be flagged; got {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(|e| e.contains("good-backed.ttl")),
+            "a logic:formalizes-backed axiom must pass; got {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(|e| e.contains("closed-world.ttl")),
+            "a retained closed-world check must NOT be flagged; got {:?}",
+            report.errors
+        );
     }
 
     #[test]

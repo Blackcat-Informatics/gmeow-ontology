@@ -455,7 +455,8 @@ meta:Principle17 a meta:Principle ;
     meta:title "The logic itself is canonical — OWL is a projection of it, not its ceiling" ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
         meta:gate-foundation-conformance, meta:gate-logic-gufo-superset,
-        meta:shapes-result-generated, meta:gate-projection-compute-purity .
+        meta:shapes-result-generated, meta:gate-projection-compute-purity,
+        meta:gate-projection-shape-purity .
 
 # The executable lane-purity seal: the two-lane split (primary lane
 # Java/Docker-free; classic-cross-check the SOLE oracle lane) is enforced by an
@@ -486,6 +487,24 @@ meta:gate-projection-compute-purity a meta:Gate ;
         "slices/core/logic/design/LOGIC-SHACL-AF.md",
         "slices/core/logic/design/LOGIC-RDFQUERY.md" ;
     meta:symbol "check_projection_compute_purity", "project_shacl_af" ;
+    meta:cliCommand "crate-check", "check-generated" ;
+    meta:makeTarget "crate-check", "check-generated" .
+
+# The shape-half peer of gate-projection-compute-purity: an open-world FOL axiom
+# (irreflexivity / acyclicity / relatum-distinctness) is authored in the logic: canon
+# and PROJECTED to generated/shapes/constraint-shapes.ttl, never hand-authored as a
+# sh:sparql second source of truth. The repo-static seal red-fails on an authored
+# sh:select re-encoding a migrated axiom signature without a logic:formalizes
+# back-reference. This realizes the sh:sparql procedural-constraint fragment of the
+# shape gate (design/LOGIC-VALIDATION.md); the declarative sh:PropertyShape fragment
+# follows as the remaining closed-world shapes migrate. Sharpens Principles 17 + 4.
+meta:gate-projection-shape-purity a meta:Gate ;
+    rdfs:label "validation constraints are projections of logic:, not hand-authored second sources"@x-gmeow-english ;
+    meta:artifact "crates/validate/src/repo_static.rs",
+        "crates/pipeline/src/stages/constraint_shapes.rs",
+        "generated/shapes/constraint-shapes.ttl",
+        "slices/core/logic/design/LOGIC-VALIDATION.md" ;
+    meta:symbol "check_projection_shape_purity", "render_constraint_shapes" ;
     meta:cliCommand "crate-check", "check-generated" ;
     meta:makeTarget "crate-check", "check-generated" .
 
