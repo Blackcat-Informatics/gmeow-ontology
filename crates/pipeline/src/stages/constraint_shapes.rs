@@ -24,7 +24,7 @@
 //! Byte-deterministic → compared byte-for-byte to the committed
 //! `generated/shapes/constraint-shapes.ttl`. Emit-only; the canon is the authoring ground.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use purrdf::slice::rdf_query::{Dataset, DatasetAccumulator, Object, Subject};
@@ -112,9 +112,15 @@ impl ListEdges {
     /// A non-blank node (rdf:nil or a stray term) ends the walk.
     fn members(&self, head: &Object) -> Vec<String> {
         let mut out = Vec::new();
+        let mut seen: BTreeSet<String> = BTreeSet::new();
         let mut node = head.clone();
         while let Object::Blank(label) = &node {
             let label = label.clone();
+            // Guard against a malformed/cyclic list whose rdf:rest loops back to an
+            // already-visited node: stop the walk instead of spinning forever.
+            if !seen.insert(label.clone()) {
+                break;
+            }
             if let Some(m) = self.first.get(&label) {
                 out.push(m.clone());
             }
@@ -315,6 +321,28 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
+    }
+
+    #[test]
+    fn members_terminates_on_a_cyclic_list() {
+        // A malformed list whose rdf:rest loops b0 -> b1 -> b0 must not hang the walk;
+        // each node is visited once and the walk stops when the cycle closes.
+        let mut first = BTreeMap::new();
+        first.insert("b0".to_string(), "https://example.org/M0".to_string());
+        first.insert("b1".to_string(), "https://example.org/M1".to_string());
+        let mut rest = BTreeMap::new();
+        rest.insert("b0".to_string(), Object::Blank("b1".to_string()));
+        rest.insert("b1".to_string(), Object::Blank("b0".to_string()));
+        let edges = ListEdges { first, rest };
+        let members = edges.members(&Object::Blank("b0".to_string()));
+        assert_eq!(
+            members,
+            vec![
+                "https://example.org/M0".to_string(),
+                "https://example.org/M1".to_string()
+            ],
+            "a cyclic list must terminate after visiting each node once"
+        );
     }
 
     #[test]
