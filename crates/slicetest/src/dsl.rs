@@ -615,8 +615,10 @@ mod tests {
         assert!(agents.exact_rows);
         assert_eq!(
             agents.expected_rows.len(),
-            6,
-            "six fully-enumerated agent kinds"
+            8,
+            "eight fully-enumerated agent kinds: the six rigid Kinds (Agent, Builder, \
+             Organization, Person, Sensor, SoftwareAgent) plus the inhabitation-slice \
+             role-mixins DigitalSubject and Inhabitant, both grounded rdfs:subClassOf gmeow:Agent"
         );
         // Each row has exactly one cell binding ?agentKind to a gmeow: IRI.
         for row in &agents.expected_rows {

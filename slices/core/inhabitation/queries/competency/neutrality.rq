@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CQ12 / neutrality (INHABITED-COMPETENCY.md, INHABITED-TRADITIONS.md): a
+# CONTESTED inhabitation MUST NOT appear as a base-graph relationship. The
+# possession fixture carries the lwa-mounts-horse relation ONLY inside an
+# gmeow:InhabitationClaim's quoted gmeow:InhabitationDescription (range-open
+# gmeow:describedSubject / gmeow:describedHost), so the asserted base graph is
+# silent on the metaphysics — no gmeow:inhabitationSubject / gmeow:inhabitedHost
+# edge and no gmeow:InhabitationTenure individual. This ASK MUST return false
+# (gmeow:cqExpectAsk false); a true would mean the contest leaked into the base
+# graph and (range gmeow:Agent / gmeow:Entity) would globally infer the spirit's
+# type, collapsing the frame-neutrality Principle 9 requires.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    { ?s gmeow:inhabitationSubject ?o }
+    UNION { ?s gmeow:inhabitedHost ?o }
+    UNION { ?t a gmeow:InhabitationTenure }
+}
