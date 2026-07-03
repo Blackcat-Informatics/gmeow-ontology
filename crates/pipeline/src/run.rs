@@ -225,11 +225,19 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),
-        ("stage-export-research-objects", "research-objects"),
         ("stage-export-bench", "bench"),
     ] {
         stages.push(st(id, impl_key, &[]));
     }
+    // research-objects reads the generated DCAT CONSTRUCT query off the stage-mappings
+    // product (never the stale committed generated/queries/dcat.rq on disk), so it
+    // consumes that stage rather than running source-only (kept in sorted position to
+    // match the registry consumes() and the module.ttl dataflowConsumes).
+    stages.push(st(
+        "stage-export-research-objects",
+        "research-objects",
+        &["stage-mappings"],
+    ));
 
     // ── source-reading validation leaf: enforces the typed result-shape
     //    composition contract across competency files (emits no bundle artifact). ──
