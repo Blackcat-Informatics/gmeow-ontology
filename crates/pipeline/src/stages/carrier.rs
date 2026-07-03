@@ -40,7 +40,7 @@ pub const SNAPSHOT_PATH: &str = "generated/dist/gmeow.gts";
 /// The named-graph IRIs (mirror `config.GTS_GRAPH_*`).
 const GRAPH_IMPORTS: &str = "https://blackcatinformatics.ca/gmeow/graph/imports";
 const GRAPH_METADATA: &str = "https://blackcatinformatics.ca/gmeow/graph/metadata";
-const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
+pub(crate) const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
 pub(crate) const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
 const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
@@ -302,11 +302,17 @@ pub(crate) fn self_description_source_files(root: &Path) -> Result<Vec<PathBuf>,
 /// The returned dataset carries, each in its final named graph: the authored default
 /// ([`GRAPH_AUTHORED_DEFAULT`], re-rooted into the carrier's default graph by the
 /// presenter), the import closure ([`GRAPH_IMPORTS`]), self-description metadata
-/// ([`GRAPH_METADATA`]), SSSOM alignment axioms ([`GRAPH_ALIGNMENTS`]), the slice-analysis
-/// graph ([`GRAPH_SLICE_ANALYSIS`]), the native verify attestation ([`GRAPH_VERIFY`], over
-/// the authored ∪ imports EDB), and the occurrence-based provenance projection
+/// ([`GRAPH_METADATA`]), the slice-analysis graph ([`GRAPH_SLICE_ANALYSIS`]), the native
+/// verify attestation ([`GRAPH_VERIFY`], over the authored ∪ imports EDB), and the
+/// occurrence-based provenance projection
 /// ([`crate::stages::provenance_graph::GRAPH_PROVENANCE`]). Byte-identical to the former
 /// in-snapshot construction — the SAME loaders and canonicalizers, relocated verbatim.
+///
+/// The SSSOM alignment axioms ([`GRAPH_ALIGNMENTS`]) are NO LONGER built here: they are a
+/// projection of the compiled SSSOM, so `stage-mappings` builds that graph from its fresh
+/// product (via [`alignment_nquads_from_artifacts`]) and the presenter + reasoning EDB read
+/// it back through `producer_graph`. Building it here would re-read the stale committed
+/// `generated/mappings/*.sssom.tsv` off disk (the stale-disk-fold class).
 pub(crate) fn build_self_description_dataset(
     root: &Path,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
@@ -320,7 +326,6 @@ pub(crate) fn build_self_description_dataset(
 
     let imports = load_imports(root)?;
     let metadata = load_metadata(root)?;
-    let alignments = load_alignments(root)?;
     let slice_analysis = build_slice_analysis(root, &authored)?;
     let verify_attestation = {
         let imports_ds = parse_dataset(&imports, "text/turtle", None)
@@ -334,7 +339,6 @@ pub(crate) fn build_self_description_dataset(
         rooted_in_graph(&base, GRAPH_AUTHORED_DEFAULT)?,
         parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
         parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
-        parse_into_graph(&alignments, "application/n-quads", GRAPH_ALIGNMENTS)?,
         parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
         parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
         parse_into_graph(
@@ -455,7 +459,9 @@ fn assemble_carrier(
         // The self-description graphs are read (not re-loaded) off stage-source-load.
         source_load_graph(upstream, GRAPH_IMPORTS)?,
         source_load_graph(upstream, GRAPH_METADATA)?,
-        source_load_graph(upstream, GRAPH_ALIGNMENTS)?,
+        // graph/alignments is a projection of the compiled SSSOM, so it rides off the
+        // fresh stage-mappings product (not source-load's stale disk read).
+        producer_graph(upstream, "stage-mappings", GRAPH_ALIGNMENTS)?,
         source_load_graph(upstream, GRAPH_SLICE_ANALYSIS)?,
         source_load_graph(upstream, GRAPH_VERIFY)?,
         source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
@@ -614,15 +620,18 @@ fn rdf_fanout_members(
 /// Skolem witnesses. Excluding them makes the closure (and its witness IRIs) a
 /// function of the ontology alone, not of its self-description. This is the single
 /// EDB the sole `stage-reason` pass reasons over; it depends only on the
-/// `stage-statements`, `stage-compile-logic`, and `stage-source-load` products (the
-/// authored / imports / alignments self-description graphs) — never on the snapshot, so
-/// reasoning need not wait on carrier assembly.
+/// `stage-statements`, `stage-compile-logic`, `stage-source-load` products (the authored
+/// / imports self-description graphs) and `stage-mappings` (graph/alignments, a compiled
+/// SSSOM projection) — never on the snapshot, so reasoning need not wait on carrier
+/// assembly. `stage-reason` already consumes all four (see `run.rs`).
 pub(crate) fn assemble_object_level_edb(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
-    // The authored default, imports, and alignments are read (not re-loaded) off
-    // stage-source-load — the same self-description graphs the presenter folds — so the
-    // reasoned closure's worlds match the bundle's by construction, with ONE load.
+    // The authored default and imports are read (not re-loaded) off stage-source-load —
+    // the same self-description graphs the presenter folds — so the reasoned closure's
+    // worlds match the bundle's by construction, with ONE load. graph/alignments is a
+    // projection of the compiled SSSOM and rides off the fresh stage-mappings product
+    // (both the presenter and this EDB read the SAME graph, so the worlds still match).
     let base = std::sync::Arc::new(
         source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
     );
@@ -642,7 +651,7 @@ pub(crate) fn assemble_object_level_edb(
         base,
         parse_into_graph(&rdf12, "text/turtle", GRAPH_STATEMENTS)?,
         source_load_graph(upstream, GRAPH_IMPORTS)?,
-        source_load_graph(upstream, GRAPH_ALIGNMENTS)?,
+        producer_graph(upstream, "stage-mappings", GRAPH_ALIGNMENTS)?,
         rooted_in_graph(
             &compile.bundle().dataset().project_named_graph(logic_iri),
             logic_iri,
@@ -2598,24 +2607,25 @@ fn ontology_version(authored_nq: &[u8]) -> Result<String, PipelineError> {
 
 /// Build the SSSOM alignment-axiom graph: one `(subject, predicate, object)`
 /// triple per SSSOM data row with CURIEs expanded through the per-file
-/// `# curie_map:` header, deduplicated. Mirrors
-/// `mappings.build_alignment_graph(load_mappings())`. The source is the committed
-/// `generated/mappings/*.sssom.tsv` (the mappings stage's byte-parity output).
-fn load_alignments(root: &Path) -> Result<Vec<u8>, PipelineError> {
-    let dir = root.join("generated").join("mappings");
-    let mut files: Vec<std::path::PathBuf> = Vec::new();
-    for entry in std::fs::read_dir(&dir)? {
-        let path = entry?.path();
-        if path.to_string_lossy().ends_with(".sssom.tsv") {
-            files.push(path);
-        }
-    }
-    files.sort();
-
+/// `# curie_map:` header, deduplicated. Sourced from THIS run's `stage-mappings`
+/// product artifacts (`generated/mappings/*.sssom.tsv`), NOT the committed disk files:
+/// the alignment graph is a projection of the freshly-compiled SSSOM, so reading disk
+/// here would carry the last-committed mappings forever (the stale-disk-fold class).
+/// The mappings stage builds `graph/alignments` from this helper and unions it into its
+/// product; the presenter and the reasoning EDB read it back via `producer_graph`.
+pub(crate) fn alignment_nquads_from_artifacts(
+    artifacts: &BTreeMap<String, Vec<u8>>,
+) -> Result<Vec<u8>, PipelineError> {
+    // BTreeMap iterates by key (repo-relative path), so the `generated/mappings/*.sssom.tsv`
+    // are visited in the same sorted order the former disk `read_dir(...).sort()` produced.
     let mut quads: Vec<RdfQuad> = Vec::new();
-    for path in files {
-        let text = std::fs::read_to_string(&path)?;
-        for (s, p, o) in alignment_rows(&text)? {
+    for (path, bytes) in artifacts {
+        if !(path.starts_with("generated/mappings/") && path.ends_with(".sssom.tsv")) {
+            continue;
+        }
+        let text = std::str::from_utf8(bytes)
+            .map_err(|e| stage_err(&format!("sssom {path} is not utf-8: {e}")))?;
+        for (s, p, o) in alignment_rows(text)? {
             quads.push(RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)));
         }
     }
