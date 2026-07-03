@@ -1,0 +1,172 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Affect correspondence bridges — authored in-slice, lowered to SSSOM (and the
+# shared projection-report loss ledger) by the pipeline. GMEOW-first: external
+# vocabularies are LINKED, never imported. closeMatch by default; exactMatch is
+# earned only after review, and never for a caveated overlap (the overclaim gate
+# reds an unearned equivalence). Classifier labels are the first bridge layer
+# (A5), then the ontology bridges (PROV-O, Web Annotation, MFOEM). EmotionML,
+# WordNet-Affect, the Emotion Frame Ontology, and Ithkuil remain declared targets
+# in design/AFFECT-DESIGN.md pending settled, verifiable RDF namespaces.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .
+@prefix gmeow-hf: <https://blackcatinformatics.ca/gmeow-registry/hf/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
+@prefix mfoem: <http://purl.obolibrary.org/obo/MFOEM_> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+
+# ── Classifier registries → canonical GMEOW (closeMatch, never == ) ────────────
+# GoEmotions labels are annotation categories over Reddit comments, not guaranteed
+# to denote the same ontological thing as a GMEOW emotion mode; closeMatch, and
+# exactMatch only after review.
+
+gmeow:eqAffect001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-goemotions:anger ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionAnger ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-goemotions:fear ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionFear ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-goemotions:joy ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionJoy ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-goemotions:sadness ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionSadness ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-goemotions:disgust ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionDisgust ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-goemotions:surprise ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionSurprise ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-goemotions:grief ; gmeow:alignPredicate skos:broadMatch ; gmeow:alignObject gmeow:emotionSadness ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.8 ; gmeow:comment "grief is an intense, bereavement-scoped sadness — a narrower reading, so the GoEmotions label broad-matches the canonical sadness type" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+# desire is a CONATIVE label — it bridges to teleology's gmeow:Desire, not an emotion type.
+gmeow:eqAffect008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-goemotions:desire ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:Desire ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "a conative label — GoEmotions 'desire' bridges to teleology's gmeow:Desire, not to any emotion type" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+# neutral has NO canonical mapping — a no-detected-affect label is not an EmotionType.
+
+# j-hartmann Ekman-7 labels → canonical emotion types.
+gmeow:eqAffect009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:ekmanAnger ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionAnger ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect010 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:ekmanFear ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionFear ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect011 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:ekmanJoy ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionJoy ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect012 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:ekmanSadness ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionSadness ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect013 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:ekmanDisgust ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionDisgust ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect014 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:ekmanSurprise ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionSurprise ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+# Sentiment labels bridge to the VALENCE appraisal axis of the target text, never
+# to an emotion (positive sentiment is not joy) — a deliberately weak relatedMatch.
+gmeow:eqAffect015 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:sst2Positive ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject gmeow:dimensionValence ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:comment "SST-2 POSITIVE is a valence appraisal of the target text (above midpoint), never an emotion — relatedMatch to the valence axis" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:sst2Negative ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject gmeow:dimensionValence ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:comment "SST-2 NEGATIVE is a valence appraisal of the target text (below midpoint), never an emotion — relatedMatch to the valence axis" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:cardiffPositive ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject gmeow:dimensionValence ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow-hf:cardiffNegative ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject gmeow:dimensionValence ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.75 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+# ── PROV-O: the inference-output activity/entity chain ─────────────────────────
+gmeow:eqAffect019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:ModelInferenceRun ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject prov:Activity ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:comment "a model run is a prov:Activity; closeMatch, since GMEOW pins richer model provenance than PROV requires" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect020 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:AffectClassifierOutput ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject prov:Entity ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect021 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:producedBy ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject prov:wasGeneratedBy ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect022 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:usedInput ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject prov:used ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+# ── Web Annotation: evidence spans and media segments ──────────────────────────
+gmeow:eqAffect023 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:AffectiveExpression ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject oa:Annotation ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ; gmeow:comment "an affective expression observed over a span is annotation-shaped; relatedMatch — an expression is evidence, not a bare annotation" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect024 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:classifiedTarget ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject oa:hasTarget ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.7 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+# ── MFOEM (Emotion Ontology, BFO lineage) — linkage-only, closeMatch ───────────
+gmeow:eqAffect025 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Emotion ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject mfoem:000001 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "MFOEM_000001 'emotion process'; closeMatch — GMEOW's Emotion is the endurant mode, MFOEM's is the occurrent process, so not exact" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect026 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionAnger ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject mfoem:000009 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect027 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionDisgust ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject mfoem:000019 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect028 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionFear ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject mfoem:000026 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect029 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionSurprise ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject mfoem:000032 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect030 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionJoy ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject mfoem:000034 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect031 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionSadness ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject mfoem:000056 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.9 ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+# ── Wikidata authority links (each QID curl-verified against its English label) ─
+gmeow:eqAffect032 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Emotion ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject wd:Q9415 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "wd:Q9415 'emotion'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect033 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionAnger ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject wd:Q260704 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "wd:Q260704 'anger'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect034 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionDisgust ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject wd:Q208351 ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "wd:Q208351 'disgust'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
