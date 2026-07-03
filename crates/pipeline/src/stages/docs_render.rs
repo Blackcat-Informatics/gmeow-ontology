@@ -84,7 +84,9 @@ pub(crate) fn reasoning_verdict_from_reason(
 /// Discover the docs model under `root`, attach the native-reasoner `verdict`, and
 /// project it to the documentation named graph (N-Quads). The verdict is required
 /// so the SPARQL surface always carries the per-term reasoning status (never a
-/// fabricated default).
+/// fabricated default). The per-term content-address provenance is read from the
+/// committed manifest (self-healing on a term-adding build; see
+/// `gmeow_docs::model::DocsModel::discover`).
 pub fn render_docs_graph(root: &Path, verdict: ReasoningVerdict) -> Result<String, PipelineError> {
     let mut model = DocsModel::discover(root).map_err(|e| PipelineError::Stage {
         stage: "stage-docs-render".to_string(),
@@ -205,9 +207,10 @@ impl Stage for DocsRenderStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v2: the documentation graph now carries per-term `gmeow:docReasoningStatus`
-        // (the stage consumes stage-reason). Bumped so the cache re-derives it.
-        "docs_render.v2"
+        // v3: the documentation graph now carries the per-term content-address
+        // provenance (definitionDigest / addedInVersion / changelog) read from the
+        // committed manifest. Bumped so the cache re-derives it.
+        "docs_render.v3"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // The raw-source half of this DocsRender leaf — declared so a guide /

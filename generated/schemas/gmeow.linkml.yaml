@@ -70,6 +70,10 @@ classes:
   AestheticQuality:
     class_uri: https://blackcatinformatics.ca/gmeow/AestheticQuality
     title: Aesthetic Quality
+  AffectiveMoment:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectiveMoment
+    title: Affective Moment
+    is_a: Entity
   Agent:
     class_uri: https://blackcatinformatics.ca/gmeow/Agent
     title: Agent
@@ -1174,8 +1178,10 @@ classes:
   Emotion:
     class_uri: https://blackcatinformatics.ca/gmeow/Emotion
     title: Emotion
-    is_a: Entity
+    is_a: AffectiveMoment
     slots:
+    - affectiveElicitor
+    - affectiveTarget
     - emotionBearer
     - emotionType
   EmotionType:
@@ -1231,6 +1237,7 @@ classes:
     - hasVersion
     - hasVoice
     - hasWebPage
+    - indirectContributor
     - instanceOfConcept
     - isAbout
     - isAccessibleForFree
@@ -1879,6 +1886,7 @@ classes:
     slots:
     - exemplifies
     - hasCarrier
+    - instantiatesWork
   JournalEntry:
     class_uri: https://blackcatinformatics.ca/gmeow/JournalEntry
     title: Journal Entry
@@ -4493,6 +4501,18 @@ slots:
     range: Language
     domain: LanguageChangeEvent
     multivalued: true
+  affectiveElicitor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/affectiveElicitor
+    title: affective elicitor
+    range: uriorcurie
+    domain: Emotion
+    multivalued: true
+  affectiveTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/affectiveTarget
+    title: affective target
+    range: uriorcurie
+    domain: Emotion
+    multivalued: true
   after:
     slot_uri: https://blackcatinformatics.ca/gmeow/after
     title: after
@@ -6644,6 +6664,11 @@ slots:
     title: elevation
     range: decimal
     domain: GeoCoordinates
+    multivalued: true
+  elicits:
+    slot_uri: https://blackcatinformatics.ca/gmeow/elicits
+    title: elicits
+    range: Emotion
     multivalued: true
   eligibleForConsumer:
     slot_uri: https://blackcatinformatics.ca/gmeow/eligibleForConsumer
@@ -8849,6 +8874,12 @@ slots:
     range: Corpus
     domain: VectorIndex
     multivalued: true
+  indirectContributor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/indirectContributor
+    title: indirect contributor
+    range: Agent
+    domain: Entity
+    multivalued: true
   industryClassification:
     slot_uri: https://blackcatinformatics.ca/gmeow/industryClassification
     title: industry classification
@@ -8927,6 +8958,12 @@ slots:
     range: datetime
     domain: Instant
     multivalued: false
+  instantiatesWork:
+    slot_uri: https://blackcatinformatics.ca/gmeow/instantiatesWork
+    title: instantiates work
+    range: Work
+    domain: Item
+    multivalued: true
   intentBearer:
     slot_uri: https://blackcatinformatics.ca/gmeow/intentBearer
     title: intent bearer

@@ -1099,8 +1099,11 @@ impl DocsModel {
         // The per-term content-address manifest, read from the committed N-Quads
         // fanout artifact. It sets each documented term's content digest and
         // first-seen version and unions the computed changelog into the authored
-        // one. A missing/unparsable manifest, or a documented term with no manifest
-        // entry (a coverage gap), is a broken invariant — hard-fail.
+        // one. A term absent from the committed manifest is a term added since the
+        // last commit — its content-address self-heals on the next regenerate pass
+        // (the stage recomputes the manifest THIS build; the committed docs catch up
+        // the next), so it is skipped rather than a hard-fail (the two-phase
+        // fixed-point convergence, not a coverage bug).
         apply_term_manifest(&mut model, root)?;
         Ok(model)
     }
@@ -1129,10 +1132,35 @@ struct TermProvenance {
 /// optional input.
 fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, DocsError> {
     let path = root.join("generated/catalog/term-content-manifest.nq");
-    let bytes = std::fs::read(&path)
-        .map_err(|e| DocsError::TermManifest(format!("cannot read {}: {e}", path.display())))?;
-    let store = Store::parse_nquads(&bytes)
-        .map_err(|e| DocsError::TermManifest(format!("cannot parse {}: {e}", path.display())))?;
+    let bytes = match std::fs::read(&path) {
+        Ok(bytes) => bytes,
+        // Absent only during the one-shot bootstrap build that first mints the
+        // manifest (the stage writes it THIS build; the committed docs pick it up
+        // the next pass). An empty map skips every term's content-address for this
+        // pass — the two-phase fixed-point convergence. `check-generated` still
+        // guarantees the committed manifest is present + current in a landed tree,
+        // so a genuinely-missing committed manifest is caught there, not silently.
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
+        Err(e) => {
+            return Err(DocsError::TermManifest(format!(
+                "cannot read {}: {e}",
+                path.display()
+            )))
+        }
+    };
+    parse_term_manifest(&bytes, &path.display().to_string())
+}
+
+/// Parse term-content-manifest N-Quads (`source` names them for diagnostics) into
+/// the per-term provenance map. Shared by the committed-file reader
+/// ([`read_term_manifest`]) and the fresh-stage-product path
+/// ([`DocsModel::discover_with_manifest`]).
+fn parse_term_manifest(
+    bytes: &[u8],
+    source: &str,
+) -> Result<BTreeMap<String, TermProvenance>, DocsError> {
+    let store = Store::parse_nquads(bytes)
+        .map_err(|e| DocsError::TermManifest(format!("cannot parse {source}: {e}")))?;
     let mut out: BTreeMap<String, TermProvenance> = BTreeMap::new();
     for term in store.subjects_with_predicate_any(GMEOW_DEFINITION_DIGEST) {
         // The digest is the identity; a term subject with none is malformed
@@ -1141,8 +1169,7 @@ fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, D
             .first_literal_any(&term, GMEOW_DEFINITION_DIGEST)
             .ok_or_else(|| {
                 DocsError::TermManifest(format!(
-                    "term {term} in {} carries no gmeow:definitionDigest",
-                    path.display()
+                    "term {term} in {source} carries no gmeow:definitionDigest"
                 ))
             })?;
         let added_in_version = store.first_literal_any(&term, GMEOW_ADDED_IN_VERSION);
@@ -1177,17 +1204,21 @@ fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, D
 /// term's `content_digest` and (manifest-authoritative) `added_in_version`, and
 /// UNION the manifest's computed changelog with the authored one (keyed by version;
 /// the authored `entryNote` wins a collision; authored-only and manifest-only
-/// versions are both kept). A documented term with no manifest entry is a coverage
-/// gap — hard-fail.
+/// versions are both kept).
+///
+/// A documented term with NO manifest entry is a term added since the last commit:
+/// the stage recomputes the manifest to cover it THIS build, but the committed file
+/// the model reads still lags by one build. Such a term keeps its authored
+/// provenance (empty `content_digest`, so the content-address citation line is
+/// simply omitted until the next regenerate pass promotes the fresh manifest) — the
+/// two-phase fixed-point convergence, never a hard-fail that would brick a
+/// term-adding regenerate.
 fn apply_term_manifest(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
     let manifest = read_term_manifest(root)?;
     for term in &mut model.terms {
-        let provenance = manifest.get(&term.iri).ok_or_else(|| {
-            DocsError::TermManifest(format!(
-                "documented term {} has no entry in the term content manifest",
-                term.iri
-            ))
-        })?;
+        let Some(provenance) = manifest.get(&term.iri) else {
+            continue;
+        };
         term.content_digest = provenance.digest.clone();
         term.added_in_version = provenance.added_in_version.clone();
         // Union by version: seed with the manifest entries, then let the authored
