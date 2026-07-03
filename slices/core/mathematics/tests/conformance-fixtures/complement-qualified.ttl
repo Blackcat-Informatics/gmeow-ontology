@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a complement naming its ambient set. Conforms to math:ComplementShape.
+# Bound by ex:ecComplementQualified.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:oddComplement a math:Complement ;
+    math:setOperationOn ex:evenSet ;
+    math:complementWithin ex:naturalSet .
+
+ex:evenSet a math:Set .
+ex:naturalSet a math:Set .

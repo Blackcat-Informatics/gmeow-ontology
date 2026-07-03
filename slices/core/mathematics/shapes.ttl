@@ -1,0 +1,161 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# =========================================================================== #
+# Mathematics slice SHACL shapes — the bedrock hard-rule gates
+#
+# Each shape enforces one numbers-and-sets hard rule and names, through
+# math:enforcesFailureClass, the typed math:MathConformanceFailure it raises. The
+# machine-checkable failure identity is the SHACL constraint-component code, pinned
+# per counter-example in tests/example-conformance.ttl.
+# =========================================================================== #
+
+# Rule 1 — a number declares its number system.
+math:NumberSituatedShape
+    a sh:NodeShape ;
+    rdfs:label "Number situatedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Number: every number situates itself in exactly one math:NumberSystem through math:inNumberSystem. An unsituated number is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    math:enforcesFailureClass math:UnsituatedNumber ;
+    sh:targetClass math:Number ;
+    sh:property [
+        sh:path math:inNumberSystem ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:NumberSystem ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Number must declare exactly one math:inNumberSystem naming the math:NumberSystem (ℕ, ℤ, ℚ, ℝ, or ℂ) it belongs to; an unsituated number is ill-formed." ;
+    ] .
+
+# Rule 2 — an approximation names what it approximates and its error.
+math:ApproximateValueShape
+    a sh:NodeShape ;
+    rdfs:label "Approximate value shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:ApproximateValue: it names, through math:approximates, the exact math:Number it stands in for, and declares its math:approximationError. An exact number and an approximation of it are distinct objects."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    math:enforcesFailureClass math:ExactApproximateConflation ;
+    sh:targetClass math:ApproximateValue ;
+    sh:property [
+        sh:path math:approximates ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Number ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ApproximateValue must name, through math:approximates, exactly one exact math:Number it stands in for; conflating an approximation with the exact value is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:approximationError ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ApproximateValue must declare its math:approximationError — how far it may deviate from the exact value." ;
+    ] .
+
+# Rule 3 — a named constant is an exact individual, not a decimal literal.
+math:MathematicalConstantShape
+    a sh:NodeShape ;
+    rdfs:label "Mathematical constant shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:MathematicalConstant: it is exact (math:isExact true) and never carries a raw numeric literal directly (math:quantityValue is forbidden on it). A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    math:enforcesFailureClass math:ConstantAsDecimalLiteral ;
+    sh:targetClass math:MathematicalConstant ;
+    sh:property [
+        sh:path math:isExact ;
+        sh:minCount 1 ;
+        sh:hasValue true ;
+        sh:severity sh:Violation ;
+        sh:message "A math:MathematicalConstant must declare math:isExact true — a named constant is an exact value." ;
+    ] ;
+    sh:property [
+        sh:path math:quantityValue ;
+        sh:maxCount 0 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:MathematicalConstant must not carry a raw math:quantityValue — it is not a decimal literal; its decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it." ;
+    ] .
+
+# Rule 4 — an intensional set's condition denotes a logic: formula, not a string.
+math:IntensionalSetShape
+    a sh:NodeShape ;
+    rdfs:label "Intensional set condition shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:SetBuilderExpression: its math:memberCondition denotes a logic: formula (a resource, the denotation seam), never an opaque literal string."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    math:enforcesFailureClass math:StringOnlyMemberCondition ;
+    sh:targetClass math:SetBuilderExpression ;
+    sh:property [
+        sh:path math:memberCondition ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:SetBuilderExpression must name its math:memberCondition as a resource denoting a logic: formula, not an opaque literal string." ;
+    ] .
+
+# Rule 5 — a complement names its ambient set.
+math:ComplementShape
+    a sh:NodeShape ;
+    rdfs:label "Complement ambient-set shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Complement: it names the ambient set it is taken relative to through math:complementWithin. An unqualified complement is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    math:enforcesFailureClass math:UnqualifiedComplement ;
+    sh:targetClass math:Complement ;
+    sh:property [
+        sh:path math:complementWithin ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Set ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Complement must name its ambient set through math:complementWithin; an unqualified complement is ill-formed." ;
+    ] .
+
+# Rule 6 — a set is extensional or intensional, not silently both.
+math:SetExtentShape
+    a sh:NodeShape ;
+    rdfs:label "Set extent shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:Set: a set is given extensionally (math:hasElement) or intensionally (math:memberCondition), not silently both without a declared equality."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    math:enforcesFailureClass math:AmbiguousSetExtent ;
+    sh:targetClass math:Set ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:Set must be extensional or intensional, not both: a node carrying both math:hasElement and math:memberCondition without a declared equality has an ambiguous extent." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/hasElement> ?element .
+                $this <https://blackcatinformatics.ca/math/memberCondition> ?condition .
+            }
+        """ ;
+    ] .
+
+# Rule 7 — a function declares its domain and codomain.
+math:FunctionFramingShape
+    a sh:NodeShape ;
+    rdfs:label "Function framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Function: it declares both its math:domain and its math:codomain. A function without its frame is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    math:enforcesFailureClass math:UnframedFunction ;
+    sh:targetClass math:Function ;
+    sh:property [
+        sh:path math:domain ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Set ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Function must declare its math:domain naming the source set; a function without a domain is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:codomain ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Set ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Function must declare its math:codomain naming the target set; a function without a codomain is ill-formed." ;
+    ] .

@@ -297,7 +297,15 @@ math:SetOperation
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
     rdfs:label "Set Operation"@x-gmeow-english ;
-    skos:definition "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. A complement operation additionally names its ambient set through math:complementWithin; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."@x-gmeow-english ;
+    skos:definition "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient set through math:complementWithin; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Complement
+    a owl:Class ;
+    rdfs:subClassOf math:SetOperation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:label "Complement"@x-gmeow-english ;
+    skos:definition "The complement construction Sᶜ = U ∖ S: the set of elements of an ambient set U that are not in S. A subclass of math:SetOperation that always names its ambient set through math:complementWithin — a complement is relative to an ambient set, so an unqualified complement is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PowerSet

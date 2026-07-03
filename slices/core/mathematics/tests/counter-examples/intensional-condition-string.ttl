@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IntensionalSetShape: a math:SetBuilderExpression whose
+# math:memberCondition is an opaque string literal instead of a resource denoting a
+# logic: formula (sh:nodeKind sh:BlankNodeOrIRI), so validation MUST emit
+# shacl.NodeKindConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecIntensionalConditionString).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:conditionAsString a math:SetBuilderExpression ;
+    math:memberCondition "x mod 2 = 0" .

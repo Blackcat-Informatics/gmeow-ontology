@@ -1,0 +1,107 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance fixtures for the mathematics slice — the test-DSL
+# twin of the SHACL shapes in slices/core/mathematics/shapes.ttl ("this instance
+# must validate, that counter-example must be rejected"). The harness
+# (crates/slicetest run_conformance_cell) validates mathematics/module.ttl + the one
+# bound gmeow:exampleFile against mathematics/shapes.ttl and compares finding codes.
+#
+# Each counter-example isolates ONE violation, so the (fixture, code) pair pins the
+# specific constraint. The conforming fixtures live under tests/conformance-fixtures/
+# and the counter-examples under tests/counter-examples/, so the global
+# `make validate` gate never loads the intentional violations as data.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/> .
+
+# === Rule 1: a number declares its number system ============================ #
+
+ex:ecNumberSituated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/number-situated.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:RationalNumber situated in math:rationalNumbers with math:isExact true satisfies math:NumberSituatedShape and validates with no findings." .
+
+ex:ecNumberMissingSystem a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/number-missing-system.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:inNumberSystem (sh:minCount 1 on math:NumberSituatedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnsituatedNumber)." .
+
+# === Rule 2: an approximation names what it approximates and its error ====== #
+
+ex:ecApproximationFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/approximation-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ApproximateValue naming its exact math:Number and its math:approximationError satisfies math:ApproximateValueShape and validates with no findings." .
+
+ex:ecApproximationMissingError a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/approximation-missing-error.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:approximationError (sh:minCount 1 on math:ApproximateValueShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:ExactApproximateConflation)." .
+
+# === Rule 3: a named constant is an exact individual, not a decimal ========= #
+
+ex:ecConstantExact a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/constant-exact.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:MathematicalConstant that is exact and carries no raw math:quantityValue satisfies math:MathematicalConstantShape and validates with no findings." .
+
+ex:ecConstantAsDecimal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/constant-as-decimal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries a raw math:quantityValue on a math:MathematicalConstant (sh:maxCount 0 on math:MathematicalConstantShape), so validation MUST emit shacl.MaxCountConstraintComponent and NO other finding (math:ConstantAsDecimalLiteral)." .
+
+# === Rule 4: an intensional condition denotes a logic: formula ============== #
+
+ex:ecIntensionalSet a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/intensional-set.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:SetBuilderExpression whose math:memberCondition is a resource denoting a logic: formula satisfies math:IntensionalSetShape and validates with no findings." .
+
+ex:ecIntensionalConditionString a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/intensional-condition-string.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NodeKindConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example gives math:memberCondition an opaque string literal (sh:nodeKind sh:BlankNodeOrIRI on math:IntensionalSetShape), so validation MUST emit shacl.NodeKindConstraintComponent and NO other finding (math:StringOnlyMemberCondition)." .
+
+# === Rule 5: a complement names its ambient set ============================= #
+
+ex:ecComplementQualified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/complement-qualified.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Complement naming its ambient set through math:complementWithin satisfies math:ComplementShape and validates with no findings." .
+
+ex:ecComplementUnqualified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/complement-unqualified.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:complementWithin on a math:Complement (sh:minCount 1 on math:ComplementShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnqualifiedComplement)." .
+
+# === Rule 6: a set is extensional or intensional, not both ================== #
+
+ex:ecExtensionalSet a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/extensional-set.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:FiniteSet given extensionally by math:hasElement, with no math:memberCondition, satisfies math:SetExtentShape and validates with no findings." .
+
+ex:ecSetBothExtents a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/set-both-extents.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries both math:hasElement and math:memberCondition on one set (the SPARQL constraint of math:SetExtentShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:AmbiguousSetExtent)." .
+
+# === Rule 7: a function declares its domain and codomain =================== #
+
+ex:ecFunctionFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/function-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Function declaring both math:domain and math:codomain satisfies math:FunctionFramingShape and validates with no findings." .
+
+ex:ecFunctionMissingCodomain a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/function-missing-codomain.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:codomain on a math:Function (sh:minCount 1 on math:FunctionFramingShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedFunction)." .

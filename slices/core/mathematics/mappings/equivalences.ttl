@@ -1,0 +1,135 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:   <https://blackcatinformatics.ca/math/> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+#
+# Named constants and the number systems are anchored to Wikidata (the identity
+# hub — CC0), and each named constant additionally carries its OEIS decimal-
+# expansion locator (link-only, by reference; Principle 5 — every object IRI is a
+# real external entity, curl-validated). A constant's Wikidata QID is its identity
+# (skos:exactMatch); a number system's QID names the number-type concept, a close
+# but not invertible match to the system individual (skos:closeMatch); an OEIS
+# A-number locates the decimal digits of a constant, a related resource rather than
+# its identity (skos:relatedMatch).
+
+# --- Named constants → Wikidata (identity) --------------------------------- #
+
+gmeow:eqMathPi a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:pi ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q167 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "pi" ;
+    gmeow:comment "math:pi is the exact constant π; wd:Q167 (pi) is the same constant — the ratio of a circle's circumference to its diameter. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathEulerNumber a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:eulerNumber ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q82435 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Euler's number" ;
+    gmeow:comment "math:eulerNumber is the exact constant e; wd:Q82435 (Euler's number) is the same constant — the base of the natural logarithm. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathEulerMascheroni a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:eulerMascheroni ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q273023 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Euler–Mascheroni constant" ;
+    gmeow:comment "math:eulerMascheroni is the exact constant γ; wd:Q273023 (Euler–Mascheroni constant) is the same constant — the limiting difference between the harmonic series and the natural logarithm. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Named constants → OEIS (decimal-expansion locator, by reference) ------ #
+
+gmeow:eqMathPiOeis a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:pi ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://oeis.org/A000796> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "A000796" ;
+    gmeow:comment "OEIS A000796 is the decimal expansion of π — a locator for the digits of math:pi, a related resource rather than the constant's identity, so skos:relatedMatch. Link-only (OEIS is CC BY-SA 4.0, aligned by reference)." ;
+    gmeow:sssomFile "gmeow-oeis.sssom.tsv" .
+
+gmeow:eqMathEulerNumberOeis a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:eulerNumber ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://oeis.org/A001113> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "A001113" ;
+    gmeow:comment "OEIS A001113 is the decimal expansion of e — a locator for the digits of math:eulerNumber, a related resource rather than the constant's identity, so skos:relatedMatch. Link-only (OEIS is CC BY-SA 4.0, aligned by reference)." ;
+    gmeow:sssomFile "gmeow-oeis.sssom.tsv" .
+
+gmeow:eqMathEulerMascheroniOeis a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:eulerMascheroni ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://oeis.org/A001620> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "A001620" ;
+    gmeow:comment "OEIS A001620 is the decimal expansion of the Euler–Mascheroni constant γ — a locator for the digits of math:eulerMascheroni, a related resource rather than the constant's identity, so skos:relatedMatch. Link-only (OEIS is CC BY-SA 4.0, aligned by reference)." ;
+    gmeow:sssomFile "gmeow-oeis.sssom.tsv" .
+
+# --- Number systems → Wikidata (number-type concept, closeMatch) ----------- #
+
+gmeow:eqMathNaturalNumbers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:naturalNumbers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q21199 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "natural number" ;
+    gmeow:comment "math:naturalNumbers is the system ℕ; wd:Q21199 (natural number) names the number-type concept. closeMatch, not identity: the system individual and the (deliberately ambiguous — non-negative or positive) number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIntegers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:integers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q12503 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "integer" ;
+    gmeow:comment "math:integers is the system ℤ; wd:Q12503 (integer) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRationalNumbers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:rationalNumbers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1244890 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "rational number" ;
+    gmeow:comment "math:rationalNumbers is the system ℚ; wd:Q1244890 (rational number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRealNumbers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:realNumbers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q12916 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "real number" ;
+    gmeow:comment "math:realNumbers is the system ℝ; wd:Q12916 (real number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathComplexNumbers a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:complexNumbers ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q11567 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "complex number" ;
+    gmeow:comment "math:complexNumbers is the system ℂ; wd:Q11567 (complex number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

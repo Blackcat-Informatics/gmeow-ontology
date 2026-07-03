@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:ApproximateValue naming the exact number it approximates and
+# its error, distinct from that exact number. Conforms to math:ApproximateValueShape.
+# Bound by ex:ecApproximationFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:oneThirdApprox a math:ApproximateValue ;
+    math:approximates ex:oneThirdExact ;
+    math:approximationError "3.3e-6"^^xsd:double ;
+    math:quantityValue "0.333333"^^xsd:double ;
+    math:numericDatatype xsd:double .
+
+ex:oneThirdExact a math:RationalNumber ;
+    math:inNumberSystem math:rationalNumbers ;
+    math:isExact true .
