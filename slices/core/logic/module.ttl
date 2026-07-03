@@ -4402,6 +4402,7 @@ logic:candidateSocialInformationOverlap
     logic:candidateScope "the deliberately-preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap: an explicit, reviewed non-assertion of disjointness"^^xsd:string ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryDeliberateOverlap ;
+    logic:candidateDeliberateNonAssertion true ;
     logic:candidateLifecycle logic:CandidateAccepted ;
     logic:reviewedBy logic:reviewerLogicFoundation ;
     logic:candidatePositiveCase logic:cqSocialInformationOverlapHolds ;
@@ -4831,6 +4832,15 @@ logic:candidateSourceField
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidate source field"@x-gmeow-english ;
     skos:definition "Names which annotation field of the logic:candidateFormalizes term a candidate harvested — a logic:ProseField from the closed set (logic:ProseFieldDefinition, logic:ProseFieldUseWhen, logic:ProseFieldAvoidWhen). Together with logic:candidateFormalizes it pins the harvested axiom to the exact source triple. Co-present with logic:candidateFormalizes: a candidate carrying one of the pair without the other is a hard governance error (verify.harvest-link-paired), never a half-link. Single-valued. Domain logic:FormalizationCandidate, range logic:ProseField."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateDeliberateNonAssertion
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate deliberate non-assertion"@x-gmeow-english ;
+    skos:definition "Marks a logic:FormalizationCandidate as one of the ontology's deliberate-non-assertion boundaries — an intentional refusal to over-assert that the foundation commits to and is held against: a forbidden entailment carried by a logic:NonEntailmentObligation, an integrity constraint whose violation is a finding, or a deliberately preserved class overlap. Its role is enumerability: the marked set IS the deliberate-non-assertion report, and it deliberately cuts across logic:candidateCategory (a boundary may be a logic:CategoryNonEntailmentObligation, a logic:CategoryIntegrityConstraint or a logic:CategoryDeliberateOverlap), so the whole boundary set is queryable as one report rather than inferred from an overloaded category facet (an integrity-constraint boundary is not distinguishable from an ordinary integrity constraint by category alone). Present and true on exactly the guardrail candidates; single-valued, xsd:boolean. Domain logic:FormalizationCandidate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Obligation carrier properties (RBox) ─────────────────────────────────────────
@@ -7685,6 +7695,7 @@ logic:candidateIntentNotEntailed
     logic:candidateScope "gmeow:deceptiveIntentClaim over deception events: intent stays an attributed, defeasible claim, never a reasoned entailment"^^xsd:string ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryNonEntailmentObligation ;
+    logic:candidateDeliberateNonAssertion true ;
     logic:candidateLifecycle logic:CandidateAccepted ;
     logic:reviewedBy logic:reviewerLogicFoundation ;
     logic:candidateNonEntailment logic:IntentNotFromDeceptionObligation ;
@@ -7705,6 +7716,7 @@ logic:candidateCounterpartNonTransitive
     logic:candidateScope "gmeow:counterpartOf across realms, frames and datasets: symmetric-only, never transitively chained"^^xsd:string ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryNonEntailmentObligation ;
+    logic:candidateDeliberateNonAssertion true ;
     logic:candidateLifecycle logic:CandidateAccepted ;
     logic:reviewedBy logic:reviewerLogicFoundation ;
     logic:candidateNonEntailment logic:CounterpartNonTransitivityObligation ;
@@ -7737,6 +7749,7 @@ logic:candidateFrameRelativity
     logic:candidateScope "the true-quantity/measured-value seam: a logic:measuredValue is frame-relative and ill-formed without its logic:referenceFrame; no frame-free equality collapse"^^xsd:string ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateDeliberateNonAssertion true ;
     logic:candidateLifecycle logic:CandidateAccepted ;
     logic:reviewedBy logic:reviewerLogicFoundation ;
     logic:candidatePositiveCase logic:cqFrameRelativityHolds ;
@@ -7770,6 +7783,7 @@ logic:candidateNoOverTyping
     logic:candidateScope "logic:Kind identity supply: an instance's sortal traces to exactly one ultimate Kind; two disjoint Kinds on one instance is over-typing"^^xsd:string ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateDeliberateNonAssertion true ;
     logic:candidateLifecycle logic:CandidateAccepted ;
     logic:reviewedBy logic:reviewerLogicFoundation ;
     logic:candidatePositiveCase logic:cqNoOverTypingHolds ;

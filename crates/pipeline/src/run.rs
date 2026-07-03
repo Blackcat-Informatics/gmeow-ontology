@@ -253,6 +253,9 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-metadata",
             "stage-export-references",
             "stage-export-research-objects",
+            // THIS run's freshly-projected result-shapes.ttl, folded into REP_SHAPES so a
+            // competency ResultShape edit reaches the bundle without a manual disk write.
+            "stage-export-result-shapes",
             "stage-mappings",
             "stage-reason",
             "stage-snapshot",
