@@ -561,3 +561,52 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "gmeow:partOf and gmeow:hasPart MUST NOT be owl:FunctionalProperty and MUST NOT have rdfs:domain or rdfs:range — the spine is intentionally broad so event, location, information-object and endurant parthood all remain possible in OWL 2 DL. Mirrors test_universal_part_properties_are_broad_transitive_inverses (negative part)." .
+
+# =============================================================================
+# 10. MentalMoment umbrella + proficiency vocabulary (migrated from
+#     tests/test_cognition.py and tests/test_teleology.py, #1120)
+# =============================================================================
+
+# test_mental_moment_is_category_under_intrinsic_mode
+ex:saMentalMomentIsCategoryUnderMode a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:MentalMoment a owl:Class , logic:Category ;
+        rdfs:subClassOf logic:Mode .
+}""" ;
+    gmeow:saRationale "gmeow:MentalMoment MUST be an owl:Class typed logic:Category and a subclass of logic:Mode — the umbrella for all agent mental moments (cognition, doxastic, conative) lives in the kernel slice so it can be queried uniformly (Principle 15)." .
+
+# test_proficiency_vocab_relocated_to_kernel
+ex:saProficiencyVocabInKernel a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ProficiencyScale a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:ProficiencyLevel a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:ProficiencyModality a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ProficiencyScale, gmeow:ProficiencyLevel, and gmeow:ProficiencyModality MUST be logic:AbstractIndividualType subclasses of logic:QualityValue and defined by the kernel slice — the domain-neutral proficiency ruler is minted in kernel so expertise, languages, and cognition reuse it without a cross-slice dependency cycle (Principle 6)." .
+
+# test_intrinsic_modes_are_grounded (MentalMoment half)
+ex:saMentalMomentGroundsIntrinsicModes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:MentalMoment rdfs:subClassOf logic:Mode .
+}""" ;
+    gmeow:saRationale "gmeow:MentalMoment MUST subclass logic:Mode — this is the native-logic grounding that keeps IntentionalMode and other intrinsic modes transitively under Mode without a direct gufo:IntrinsicMode assertion." .

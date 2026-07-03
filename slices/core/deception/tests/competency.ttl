@@ -214,3 +214,64 @@ ex:cqDeceptionLicensedFalsehoodShape a logic:ResultShape ;
         [ logic:columnVariable "fictionClaim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 .
+
+# ── E. Disinformation boundary query (#1120) ──────────────────────────────────
+ex:cqDisinformationBoundary a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex: <https://example.org/test/>
+SELECT ?event ?label ?hopType WHERE {
+    VALUES ?event { ex:originEvent ex:dupeEvent ex:downstreamEvent }
+    ?event a gmeow:Event .
+
+    OPTIONAL {
+        ?event gmeow:heldStandpoint ?heldClaim .
+        ?event gmeow:projectedStandpoint ?projectedClaim .
+        FILTER(?heldClaim != ?projectedClaim)
+        ?event gmeow:deceptiveIntentClaim ?intentClaim .
+        BIND("disinformation" AS ?labelA)
+    }
+
+    OPTIONAL {
+        ?event gmeow:projectedStandpoint ?projClaim .
+        ?projClaim gmeow:claimVeridicality gmeow:veridicalityUntrue .
+        FILTER NOT EXISTS { ?event gmeow:deceptiveIntentClaim ?anyIntent }
+        FILTER NOT EXISTS {
+            ?event gmeow:heldStandpoint ?heldClaim2 .
+            FILTER(?heldClaim2 != ?projClaim)
+        }
+        BIND("misinformation" AS ?labelB)
+    }
+
+    BIND(COALESCE(?labelA, ?labelB) AS ?label)
+    BIND(COALESCE(?label, "unknown") AS ?hopType)
+}""" ;
+    gmeow:cqDataFile "tests/fixtures/disinformation-boundary.ttl" ;
+    gmeow:cqRationale "The disinformation/misinformation boundary query must label the origin event as disinformation (held ≠ projected + deceptive intent) and the dupe/downstream events as misinformation (held = projected + veridicalityUntrue + no intent). Scoped to the fixture events so the exact-row assertion is stable against other gmeow:Event individuals in the merged ontology." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDisinformationBoundaryShape ;
+    gmeow:cqExpectRow
+        ex:rowOriginDisinformation ,
+        ex:rowDupeMisinformation ,
+        ex:rowDownstreamMisinformation .
+
+ex:cqDisinformationBoundaryShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "label" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "hopType" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowOriginDisinformation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exd:originEvent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueLiteral "disinformation" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "hopType" ; gmeow:cellValueLiteral "disinformation" ] .
+
+ex:rowDupeMisinformation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exd:dupeEvent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueLiteral "misinformation" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "hopType" ; gmeow:cellValueLiteral "misinformation" ] .
+
+ex:rowDownstreamMisinformation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exd:downstreamEvent ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "label" ; gmeow:cellValueLiteral "misinformation" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "hopType" ; gmeow:cellValueLiteral "misinformation" ] .

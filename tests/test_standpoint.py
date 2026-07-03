@@ -11,7 +11,10 @@ gmeow:universalStandpoint). See slices/core/standpoint/module.ttl.
 
 Asserted-TBox invariants whose ASK subjects are all local to the standpoint
 module have been migrated to slices/core/standpoint/tests/structural.ttl
-(#867). Retained here: dynamic-set sweeps, whole-graph guards, bnode-list
+(#867, #1120). The StandpointModality vocabulary (including gmeow:bullshit)
+is pinned there by saStandpointModalitySeeds / saNoExtraStandpointModality.
+
+Retained here: dynamic-set sweeps, whole-graph guards, bnode-list
 walks, run_shacl ExampleConformance calls, .rq projection checks, DSL checks,
 load_mappings SSSOM checks, and filesystem existence checks.
 """
@@ -55,25 +58,10 @@ def _graph() -> Graph:
 # --------------------------------------------------------------------------- #
 # NOTE: accordingTo/standpointModality AnnotationProperty, Standpoint class
 # hierarchy, sharpens transitivity, universalStandpoint individual,
-# standpointClaim property shape, and claimModality property shape have been
-# migrated to slices/core/standpoint/tests/structural.ttl (#867, cells 1-14).
+# standpointClaim property shape, claimModality property shape, and the
+# StandpointModality five-value vocabulary have been migrated to
+# slices/core/standpoint/tests/structural.ttl (#867, #1120).
 # --------------------------------------------------------------------------- #
-
-
-def test_modality_value_vocab_spans_belief_values() -> None:
-    """gmeow:StandpointModality is the belief-value axis — at least as expressive
-    as both the Standpoint-Logic □/◊ AND the CRMinf belief value
-    (true/probable/possible/false). Refuted (denial) is the term that makes GMEOW
-    ≥ CRMinf: a standpoint can hold a proposition FALSE, not merely be silent."""
-    g = _graph()
-    members = set(g.subjects(RDF.type, GM.StandpointModality))
-    assert members == {
-        GM.unequivocal,
-        GM.probable,
-        GM.conceivable,
-        GM.refuted,
-        GM.bullshit,
-    }
 
 
 def test_three_axes_are_orthogonal() -> None:

@@ -75,3 +75,64 @@ ASK {
     FILTER (?c != ?vocab)
 }""" ;
     gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric and gmeow:IndexAlgorithm are vocabularies of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of either. New metrics/algorithms extend the vocabulary as individuals. VALUES ranges over the two closed value-vocabulary classes the slice declares." .
+
+# --- Migrated from tests/test_ai_claims.py (#1120) --------------------------------
+
+# test_invocation_and_retrieval_are_activities (RetrievalEvent half; ModelInvocation half lives in ai)
+ex:saRetrievalEventIsActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RetrievalEvent a owl:Class ;
+        rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:RetrievalEvent MUST be an owl:Class subclass of gmeow:Activity — a retrieval episode is an occurrent activity in the GraphRAG provenance chain." .
+
+# test_vectors_stay_outside_the_graph
+ex:saVectorRefIsDatatypePropertyNoVectorValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:vectorRef a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "gmeow:vectorRef MUST be an owl:DatatypeProperty — vector payloads stay outside the graph and are referenced, not embedded (Principle 12)." .
+
+ex:saNoVectorValueProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:vectorValue ?p ?o . }""" ;
+    gmeow:saRationale "gmeow:vectorValue MUST NOT be declared in the graphrag module — the vector payload stays outside the graph; only gmeow:vectorRef is permitted." .
+
+# test_extracted_descriptions_are_not_entities
+ex:saExtractedDescriptionsAreInformationObjects a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ExtractedEntity a owl:Class ;
+        rdfs:subClassOf gmeow:InformationObject .
+    gmeow:ExtractedRelationship a owl:Class ;
+        rdfs:subClassOf gmeow:InformationObject .
+    gmeow:Community a owl:Class ;
+        rdfs:subClassOf gmeow:InformationObject .
+    gmeow:CommunitySummary a owl:Class ;
+        rdfs:subClassOf gmeow:Summary .
+}""" ;
+    gmeow:saRationale "GraphRAG artifacts (ExtractedEntity, ExtractedRelationship, Community) MUST be subclasses of gmeow:InformationObject and CommunitySummary MUST subclass gmeow:Summary — they are descriptions ABOUT putative entities, not entities themselves (Principle 5)." .
+
+# test_invocation_and_retrieval_are_activities (retrievalScore annotation-property half)
+ex:saRetrievalScoreIsAnnotationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:retrievalScore a owl:AnnotationProperty . }""" ;
+    gmeow:saRationale "gmeow:retrievalScore MUST be an owl:AnnotationProperty — per-result relevance scores are statement-level annotations so competing scores coexist and the OWL downcast stays DL-clean (Principle 3, Principle 9)." .

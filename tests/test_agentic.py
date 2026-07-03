@@ -6,8 +6,12 @@ TBox structural assertions (ToolCall idiom, property ends/functionality, and
 the no-forward-output closed-set sweep) have been migrated to the declarative
 slicetest DSL in slices/extensions/agentic/tests/structural.ttl (#867).
 
-Retained here: the example competency query, and all runtime/Memory/MCP
-integration tests that are not expressible as module-scoped SPARQL ASK cells.
+The worked-example competency query
+(test_example_answers_which_tool_under_which_invocation) has been migrated to
+slices/extensions/agentic/tests/competency.ttl (#1120).
+
+Retained here: all runtime/Memory/MCP integration tests that are not expressible
+as module-scoped SPARQL ASK cells or example-file competency questions.
 
 Migrated to crates/validate/tests/conformance_agentic.rs (#867):
   - test_double_valued_toolcall_violates_the_closed_world_twins
@@ -17,54 +21,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from purrdf.compat.rdflib import Graph, Namespace
-
-from gmeow_tools.graph import load_merged_graph
-
-GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/")
-
-
-def _graph() -> Graph:
-    return load_merged_graph(include_imports=False)
-
-
-# --------------------------------------------------------------------------- #
-# Competency — the example trajectory answers the issue's question
-# --------------------------------------------------------------------------- #
-
-
-def test_example_answers_which_tool_under_which_invocation() -> None:
-    """'Which tool produced this entity, called by which invocation, with
-    what arguments?' — answerable from the worked example alone (#390)."""
-    from gmeow_tools.config import PROJECT_ROOT
-
-    g = _graph()
-    example = (
-        PROJECT_ROOT / "slices" / "extensions" / "agentic" / "examples"
-    ) / "agent-trajectory.ttl"
-    g.parse(example, format="turtle")
-    rows = list(
-        g.query(
-            """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT ?tool ?invocation ?args WHERE {
-                ?entity gmeow:wasGeneratedBy ?call .
-                ?call a gmeow:ToolCall ;
-                      gmeow:usedTool ?tool ;
-                      gmeow:calledByInvocation ?invocation ;
-                      gmeow:toolArguments ?args .
-            }
-            """,
-            initBindings={"entity": EX["note-2200"]},
-        )
-    )
-    assert len(rows) == 1
-    tool, invocation, args = rows[0]
-    assert tool == EX.storeClaim
-    assert invocation == EX["invocation-7"]
-    assert "GTS spec" in str(args)
-
+from gts.examples.agent_memory import Memory
 
 # --------------------------------------------------------------------------- #
 # The first live producer — the memory layer and the MCP triad dogfood
@@ -72,8 +29,6 @@ def test_example_answers_which_tool_under_which_invocation() -> None:
 
 
 def test_memory_records_and_reads_tool_calls(tmp_path: Path) -> None:
-    from gts.examples.agent_memory import Memory
-
     mem = Memory(tmp_path / "m.gts")
     claim = mem.store("the spec mandates deterministic encoding")
     record = mem.record_tool_call(
@@ -94,8 +49,6 @@ def test_memory_records_and_reads_tool_calls(tmp_path: Path) -> None:
 
 
 def test_memory_applies_the_verbatim_or_digest_doctrine(tmp_path: Path) -> None:
-    from gts.examples.agent_memory import Memory
-
     mem = Memory(tmp_path / "m.gts")
     big = "x" * 5000
     record = mem.record_tool_call("urn:gmeow:tool:write_file", arguments=big)
