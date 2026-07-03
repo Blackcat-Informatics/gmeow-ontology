@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: derivation/org-membership-propagation
+#
+# AC: a cross-slice derivation rule's head appears in the native materialization.
+#
+# input.nq models a two-level organizational nest as DATA: alice gmeow:memberOf a finance
+# department that is gmeow:subOrganizationOf a company that is gmeow:subOrganizationOf a
+# holding company. The rule is recursive on gmeow:memberOf, so it climbs the whole nest.
+#
+# The rule under test — a monotone positive-Horn logic:Rule mirroring the production
+# logic:ruleOrgMembershipPropagation (gmeow:memberOf ∘ gmeow:subOrganizationOf ⇒
+# gmeow:memberOf). Because gmeow:memberOf occurs in both head and body, the least-fixpoint
+# chase propagates membership up an arbitrarily deep nest: materialized.nq is a strict
+# superset of input.nq carrying the derived memberships all the way to the holding company
+# — proof the recursive propagation materializes (logic:ExactPreservation). This is the
+# native-chase form of the same propagation the gmeow:memberOf owl:propertyChainAxiom
+# expresses for the OWL 2 RL closure.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/derivation/org-membership-propagation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# gmeow:memberOf(agent, org) ∧ gmeow:subOrganizationOf(org, parent)
+#   ⇒ gmeow:memberOf(agent, parent)
+ex:ruleOrgMembershipPropagation
+    a logic:Rule ;
+    logic:provenance ex:ruleOrgMembershipPropagation ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:memberOf ;
+        rdf:object    "?parent"
+    ] ;
+    logic:body [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:memberOf ;
+        rdf:object    "?org"
+    ] ;
+    logic:body [
+        rdf:subject   "?org" ;
+        rdf:predicate gmeow:subOrganizationOf ;
+        rdf:object    "?parent"
+    ] .

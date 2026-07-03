@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: derivation/tenure-claim-surfacing
+#
+# AC: a cross-slice derivation rule's head appears in the native materialization.
+#
+# input.nq models a standpoint tenure as DATA: a gmeow:StandpointTenure that
+# gmeow:standpointClaim a generated claim, gmeow:tenureStandpoint a frame, and
+# gmeow:tenurePosition a held proposition. The two rules surface the frame and position
+# onto the generated claim.
+#
+# The rules under test — two monotone positive-Horn logic:Rules mirroring the production
+# logic:ruleTenureClaimVantage and logic:ruleTenureClaimObservedFeature: the tenureStandpoint
+# becomes the claim's gmeow:vantage and the tenurePosition its gmeow:observedFeature. Every
+# head variable is a frontier variable, so the chase DERIVES both heads: materialized.nq is a
+# strict superset of input.nq carrying the derived gmeow:vantage and gmeow:observedFeature
+# edges on the claim — proof the surfacing materializes (logic:ExactPreservation). The
+# directional mapping is fixed (frame→vantage, position→observedFeature), never swapped.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/derivation/tenure-claim-surfacing/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# gmeow:standpointClaim(tenure, claim) ∧ gmeow:tenureStandpoint(tenure, standpoint)
+#   ⇒ gmeow:vantage(claim, standpoint)
+ex:ruleTenureClaimVantage
+    a logic:Rule ;
+    logic:provenance ex:ruleTenureClaimVantage ;
+    logic:head [
+        rdf:subject   "?claim" ;
+        rdf:predicate gmeow:vantage ;
+        rdf:object    "?standpoint"
+    ] ;
+    logic:body [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:standpointClaim ;
+        rdf:object    "?claim"
+    ] ;
+    logic:body [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:tenureStandpoint ;
+        rdf:object    "?standpoint"
+    ] .
+
+# gmeow:standpointClaim(tenure, claim) ∧ gmeow:tenurePosition(tenure, position)
+#   ⇒ gmeow:observedFeature(claim, position)
+ex:ruleTenureClaimObservedFeature
+    a logic:Rule ;
+    logic:provenance ex:ruleTenureClaimObservedFeature ;
+    logic:head [
+        rdf:subject   "?claim" ;
+        rdf:predicate gmeow:observedFeature ;
+        rdf:object    "?position"
+    ] ;
+    logic:body [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:standpointClaim ;
+        rdf:object    "?claim"
+    ] ;
+    logic:body [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:tenurePosition ;
+        rdf:object    "?position"
+    ] .
