@@ -4086,6 +4086,31 @@ gmeow:EmotionShape
         sh:message "gmeow:affectiveTarget must be an IRI — the emotion's intentional object (open range)." ;
     ] .
 
+gmeow:AffectiveExperienceShape
+    a sh:NodeShape ;
+    rdfs:label "Affective Experience Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectiveExperience ;
+    sh:property [
+        sh:path gmeow:experiencer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectiveExperience must have exactly one gmeow:experiencer — the agent undergoing the felt episode (a mental occurrent inheres in exactly one agent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:mentalProcessType ;
+        sh:hasValue gmeow:processAffectiveExperience ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectiveExperience must carry gmeow:mentalProcessType gmeow:processAffectiveExperience (the pinned occurrent kind — assert it explicitly; SHACL does not infer the OWL hasValue restriction)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:feltAffect ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectiveExperience must realize at least one affective mode via gmeow:feltAffect (an IRI — a felt episode realizes some gmeow:AffectiveMoment by definition)." ;
+    ] .
+
 gmeow:AppraisalShape
     a sh:NodeShape ;
     rdfs:label "Appraisal Shape"@x-gmeow-english ;
