@@ -4292,6 +4292,7 @@ gmeow:DerivedAffectIntensityObservationShape
     sh:property [
         sh:path gmeow:weightingPolicy ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:datatype xsd:string ;
         sh:severity sh:Violation ;
         sh:message "A derived affect intensity must declare its gmeow:weightingPolicy — the basis is non-orthogonal, so the weighting is explicit, never assumed." ;
@@ -4299,6 +4300,7 @@ gmeow:DerivedAffectIntensityObservationShape
     sh:property [
         sh:path gmeow:normFunction ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:datatype xsd:string ;
         sh:severity sh:Violation ;
         sh:message "A derived affect intensity must declare its gmeow:normFunction (the norm/distance) — a raw L² over the non-orthogonal affect basis is not a default; the metric is explicit or it is a hard fail." ;
@@ -4311,14 +4313,16 @@ gmeow:ModelInferenceRunShape
     sh:property [
         sh:path gmeow:modelIdentifier ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A ModelInferenceRun must declare a gmeow:modelIdentifier (the model repo id) — run provenance is mandatory." ;
+        sh:message "A ModelInferenceRun must declare exactly one gmeow:modelIdentifier (the model repo id) — run provenance is mandatory and single-valued." ;
     ] ;
     sh:property [
         sh:path gmeow:modelRevision ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A ModelInferenceRun must declare a pinned gmeow:modelRevision — a model name without a pinned revision fails reproducibility (a hard fail)." ;
+        sh:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
     ] .
 
 gmeow:AffectClassifierLabelShape
@@ -4380,9 +4384,10 @@ gmeow:AffectClassifierOutputShape
     sh:property [
         sh:path gmeow:scoreSemantics ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
-        sh:message "An AffectClassifierOutput must declare its gmeow:scoreSemantics (sigmoid/softmax/…) — a bare score with no declared meaning is uninterpretable." ;
+        sh:message "An AffectClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;

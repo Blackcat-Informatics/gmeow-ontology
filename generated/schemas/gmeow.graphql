@@ -3316,7 +3316,7 @@ type AffectClassifierOutput {
   emittedLabel: [AffectClassifierLabel!]
   producedBy: ModelInferenceRun
   scoreCalibration: [String!]
-  scoreSemantics: [ScoreSemantics!]
+  scoreSemantics: ScoreSemantics
   thresholdApplied: [Float!]
 }
 
@@ -6080,8 +6080,8 @@ type ModelInferenceRun {
   iri: String
   labelSetRevision: [String!]
   modelFramework: [String!]
-  modelIdentifier: [String!]
-  modelRevision: [String!]
+  modelIdentifier: String
+  modelRevision: String
   modelTask: [String!]
   tokenizerRevision: [String!]
   usedInput: [String!]

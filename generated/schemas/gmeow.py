@@ -3503,7 +3503,7 @@ class AffectClassifierOutput(Observation):
     emittedLabel: list[AffectClassifierLabel] | None = Field(default=None)
     producedBy: ModelInferenceRun | None = Field(default=None)
     scoreCalibration: list[str] | None = Field(default=None)
-    scoreSemantics: list[ScoreSemantics] | None = Field(default=None)
+    scoreSemantics: ScoreSemantics | None = Field(default=None)
     thresholdApplied: list[float] | None = Field(default=None)
 
 
@@ -6270,8 +6270,8 @@ class ModelInferenceRun(Entity):
     is_a: ClassVar[str] = "Entity"
     labelSetRevision: list[str] | None = Field(default=None)
     modelFramework: list[str] | None = Field(default=None)
-    modelIdentifier: list[str] | None = Field(default=None)
-    modelRevision: list[str] | None = Field(default=None)
+    modelIdentifier: str | None = Field(default=None)
+    modelRevision: str | None = Field(default=None)
     modelTask: list[str] | None = Field(default=None)
     tokenizerRevision: list[str] | None = Field(default=None)
     usedInput: list[str] | None = Field(default=None)

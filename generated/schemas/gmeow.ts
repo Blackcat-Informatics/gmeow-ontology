@@ -3286,7 +3286,7 @@ export interface AffectClassifierOutput extends Observation {
     emittedLabel?: AffectClassifierLabel[],
     producedBy?: ModelInferenceRun,
     scoreCalibration?: string[],
-    scoreSemantics?: ScoreSemantics[],
+    scoreSemantics?: ScoreSemantics,
     thresholdApplied?: number[],
 }
 
@@ -5300,8 +5300,8 @@ export interface ModelCard extends InformationObject {
 export interface ModelInferenceRun extends Entity {
     labelSetRevision?: string[],
     modelFramework?: string[],
-    modelIdentifier?: string[],
-    modelRevision?: string[],
+    modelIdentifier?: string,
+    modelRevision?: string,
     modelTask?: string[],
     tokenizerRevision?: string[],
     usedInput?: string[],

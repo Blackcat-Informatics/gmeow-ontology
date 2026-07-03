@@ -10179,7 +10179,7 @@ slots:
     title: model identifier
     range: string
     domain: ModelInferenceRun
-    multivalued: true
+    multivalued: false
   modelProvider:
     slot_uri: https://blackcatinformatics.ca/gmeow/modelProvider
     title: model provider
@@ -10191,7 +10191,7 @@ slots:
     title: model revision
     range: string
     domain: ModelInferenceRun
-    multivalued: true
+    multivalued: false
   modelTask:
     slot_uri: https://blackcatinformatics.ca/gmeow/modelTask
     title: model task
@@ -12236,7 +12236,7 @@ slots:
     title: score semantics
     range: ScoreSemantics
     domain: AffectClassifierOutput
-    multivalued: true
+    multivalued: false
   scriptCode:
     slot_uri: https://blackcatinformatics.ca/gmeow/scriptCode
     title: script code
