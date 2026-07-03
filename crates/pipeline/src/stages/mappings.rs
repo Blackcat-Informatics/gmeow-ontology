@@ -48,6 +48,8 @@ use crate::stages::correspondence_lower;
 pub const SSSOM_DIR: &str = "generated/mappings";
 /// Committed logical path of the FnO transform catalog.
 pub const FNO_PATH: &str = "generated/projections/functions.fno.ttl";
+/// Committed logical path of the EmotionML XML projection of the affect vocabulary.
+pub const EMOTIONML_PATH: &str = "generated/projections/gmeow-affect.emotionml.xml";
 /// Directory (logical-path prefix) of the EDOAL alignment Turtle files.
 pub const EDOAL_DIR: &str = "generated/projections";
 /// Directory (logical-path prefix) of the SPARQL CONSTRUCT projection queries
@@ -140,6 +142,10 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     for (filename, rq) in aligned.sparql {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
+    // The EmotionML XML projection of the affect category + dimension vocabularies. Its
+    // many-to-one collapse row already rides in `aligned.ledger` (folded into the union
+    // projection-report below), so writing the document is all that remains here.
+    artifacts.insert(EMOTIONML_PATH.to_string(), aligned.emotionml.into_bytes());
     let ledger = aligned.ledger;
 
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical

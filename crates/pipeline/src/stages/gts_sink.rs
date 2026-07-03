@@ -207,7 +207,8 @@ mod tests {
             crate::stages::compile_logic::PROJECTION_REPORT_PATH.to_string(),
             b"@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://example.org/projection-report> a owl:Ontology .\n".to_vec(),
         );
-        // The fanout presenter reads dsl-stats + the JSON-LD context off this product.
+        // The fanout presenter reads dsl-stats + the JSON-LD context + the EmotionML XML
+        // projection off this product.
         mapping_artifacts.insert(
             crate::stages::mappings::DSL_STATS_PATH.to_string(),
             b"{}".to_vec(),
@@ -215,6 +216,10 @@ mod tests {
         mapping_artifacts.insert(
             crate::stages::mappings::JSONLD_CONTEXT_PATH.to_string(),
             b"{}".to_vec(),
+        );
+        mapping_artifacts.insert(
+            crate::stages::mappings::EMOTIONML_PATH.to_string(),
+            b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<emotionml/>\n".to_vec(),
         );
         let mappings = StageProduct::from_artifacts("stage-mappings", mapping_artifacts);
 

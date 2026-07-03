@@ -42,6 +42,9 @@ pub mod correspondence_gates;
 pub mod correspondence_soundness;
 // The EDOAL correspondence lowering (get leg + relation lattice → EDOAL alignment).
 pub mod edoal;
+// The EmotionML lowering (affect category + dimension vocabularies → EmotionML XML, a
+// many-to-one lossy emitter — needs no external RDF namespace).
+pub mod emotionml;
 // The FnO correspondence lowering (get-leg transform functions → FnO catalog).
 pub mod fno;
 // The shared get leg both EDOAL and SPARQL lower from (spec-drift gone by construction).
@@ -684,6 +687,27 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                  by ShEx, plus the ShEx-only drops above (a strictly larger residue set)",
             ],
         ),
+        // EmotionML: a many-to-one W3C EmotionML XML projection of the affect surface. The
+        // category vocabulary is built from gmeow:EmotionType individuals and the dimension
+        // vocabulary from gmeow:AppraisalDimension / gmeow:CoreAffectDimension; Emotion,
+        // AffectiveExperience, Appraisal, and AffectClassifierOutput ALL collapse into one
+        // <emotion> envelope, so the projection is lossy by construction and MUST name the
+        // collapsed source families (the affect design's hard-fail rule 9).
+        "emotionml" => (
+            PreservationKind::SoundUnder,
+            "XML vocabulary + <emotion> envelope (no entailment)",
+            vec![
+                "gmeow:Emotion, gmeow:AffectiveExperience, gmeow:Appraisal, and \
+                 gmeow:AffectClassifierOutput all project into a single EmotionML <emotion> \
+                 envelope: the mode / experience / expression / classifier-output distinction is \
+                 collapsed and survives only in the canonical logic:/gmeow: layer",
+                "the evidence/claim boundary, self-report authority, appraiser vantage/standpoint, \
+                 and scale-profile framing of a dimensional reading have no EmotionML form and are \
+                 dropped",
+                "category and dimension names are emitted as a closed EmotionML vocabulary set; the \
+                 open, contested axis basis (Principle 9) is flattened to a fixed enumeration",
+            ],
+        ),
         other => panic!("unknown projection target: {other}"),
     }
 }
@@ -693,7 +717,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 18] = [
+const LEDGER_TARGETS: [&str; 19] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -712,6 +736,9 @@ const LEDGER_TARGETS: [&str; 18] = [
     "fno",
     "edoal",
     "sparql-construct",
+    // The EmotionML XML lowering: a many-to-one, lossy-by-construction emitter of the
+    // affect category + dimension vocabularies (its residue names the collapsed families).
+    "emotionml",
     // The closed-world validation-shape surfaces (SHACL Core + ShEx), each carrying its own
     // per-target preservation judgment in the same loss ledger.
     "shacl-core",

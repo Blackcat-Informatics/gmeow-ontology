@@ -3,6 +3,7 @@
 # mapping_date: 2026-06-03
 # curie_map:
 #   bfo: http://purl.obolibrary.org/obo/
+#   emo: https://www.w3.org/TR/emotion-voc/#
 #   gmeow: https://blackcatinformatics.ca/gmeow/
 #   gmeow-goemotions: https://blackcatinformatics.ca/gmeow-registry/goemotions/
 #   gmeow-hf: https://blackcatinformatics.ca/gmeow-registry/hf/
@@ -32,8 +33,11 @@ gmeow-hf:sst2Negative	skos:relatedMatch	gmeow:dimensionValence	semapv:ManualMapp
 gmeow-hf:sst2Positive	skos:relatedMatch	gmeow:dimensionValence	semapv:ManualMappingCuration	0.75	SST-2 POSITIVE is a valence appraisal of the target text (above midpoint), never an emotion — relatedMatch to the valence axis
 gmeow:AffectClassifierOutput	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.85	
 gmeow:AffectiveExpression	skos:relatedMatch	oa:Annotation	semapv:ManualMappingCuration	0.7	an affective expression observed over a span is annotation-shaped; relatedMatch — an expression is evidence, not a bare annotation
+gmeow:AppraisalDimension	skos:relatedMatch	emo:scherer-appraisals	semapv:ManualMappingCuration	0.6	the gmeow cognitive appraisal axes (novelty, goal-relevance, coping, norm-compatibility, …) relate to EmotionML's Scherer appraisal set — set-level, the appraisal-family analogue
+gmeow:CoreAffectDimension	skos:relatedMatch	emo:pad-dimensions	semapv:ManualMappingCuration	0.7	the gmeow core-affect axes (valence / arousal / dominance / unpredictability) relate to EmotionML's PAD dimension set — set-level, closest of the EmotionML dimension vocabularies
 gmeow:Emotion	skos:closeMatch	bfo:MFOEM_000001	semapv:ManualMappingCuration	0.85	MFOEM_000001 'emotion process'; closeMatch — GMEOW's Emotion is the endurant mode, MFOEM's is the occurrent process, so not exact
 gmeow:Emotion	skos:closeMatch	wd:Q9415	semapv:ManualMappingCuration	0.85	wd:Q9415 'emotion'
+gmeow:EmotionType	skos:relatedMatch	emo:everyday-categories	semapv:ManualMappingCuration	0.6	the gmeow emotion-category vocabulary relates to EmotionML's 'everyday' category set — a set-level association, not a per-term equivalence
 gmeow:ModelInferenceRun	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9	a model run is a prov:Activity; closeMatch, since GMEOW pins richer model provenance than PROV requires
 gmeow:classifiedTarget	skos:relatedMatch	oa:hasTarget	semapv:ManualMappingCuration	0.7	
 gmeow:emotionAnger	skos:closeMatch	bfo:MFOEM_000009	semapv:ManualMappingCuration	0.9	

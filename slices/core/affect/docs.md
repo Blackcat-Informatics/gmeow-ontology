@@ -124,11 +124,21 @@ after review (the overclaim gate reds an unearned equivalence). Authored in
 - **MFOEM** (Emotion Ontology, BFO lineage, linkage-only) — `Emotion` and the
   Plutchik emotion types `closeMatch` their MFOEM terms.
 - **Wikidata** — curl-verified authority links for `Emotion`, anger, disgust.
+- **W3C EmotionML** — the affect vocabulary is *emitted* as a lossy EmotionML XML
+  projection (category + dimension `<vocabulary>` blocks, `emotionml` in the projection
+  loss ledger — many-to-one: `Emotion`/`AffectiveExperience`/`Appraisal`/
+  `AffectClassifierOutput` collapse into one `<emotion>` envelope), and *bridged* at the
+  vocabulary-set level (`EmotionType`/`CoreAffectDimension`/`AppraisalDimension`
+  `relatedMatch` the EmotionML everyday-category / PAD-dimension / Scherer-appraisal sets).
+  Set-level only, because EmotionML category items are XML `name` attributes with no
+  per-term IRI.
 
-EmotionML, WordNet-Affect, the Emotion Frame Ontology, and Ithkuil remain
-**declared** bridge targets in `design/AFFECT-DESIGN.md` (their RDF namespaces are
-not yet settled/verifiable; a bridge is authored only against a verified IRI). The
-W3C EmotionML projection, when authored, is many-to-one and must declare its loss.
+WordNet-Affect, the Emotion Frame Ontology, and Ithkuil carry **no resolvable per-term
+RDF surface** (the Princeton WordNet-Affect RDF export is defunct, the Emotion Frame
+Ontology's term IRIs do not dereference, and Ithkuil is a reference inventory, not a
+namespace authority). Authoring a correspondence against them would fabricate a link to
+a dead IRI, so they are not bridged — their axis/category content is already carried,
+modeled up, in-slice, and a bridge is authored only if a verifiable namespace appears.
 
 ## Terms
 
