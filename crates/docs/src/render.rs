@@ -403,7 +403,7 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         "search-index.json".to_string(),
         search_index_json(model).into_bytes(),
     );
-    // Standard llmstxt.org surfaces (#1027): a links-only index and a complete
+    // Standard llmstxt.org surfaces: a links-only index and a complete
     // inlined form, both at the site root, superseding the ad-hoc `llms-docs.txt`.
     files.insert("llms.txt".to_string(), llms_txt(model).into_bytes());
     files.insert(
@@ -411,7 +411,7 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         llms_full_txt(model).into_bytes(),
     );
 
-    // Prompt-ready per-term cards (#1027): a compact, link-free Markdown card per
+    // Prompt-ready per-term cards: a compact, link-free Markdown card per
     // term at `terms/{slug}/card.md`, for context-window injection. The alignment
     // facets are precomputed once so emitting every card stays O(N), not O(N²).
     {
@@ -607,6 +607,13 @@ fn append_slice_executable_sections(
                  N-Quads / TriG / RDF-XML / JSON-LD."
             ),
         );
+        // OKF is a structural per-concept Markdown bundle with no per-slice document;
+        // point at its root index (the entry point to every term's OKF projection).
+        line(
+            out,
+            "Each of this slice's terms also ships an OKF Markdown projection under the \
+             `gmeow-okf/` bundle (see `gmeow-okf/index.md`).",
+        );
     }
 
     // Try it: the reasoner's inferences over each worked example.
@@ -640,8 +647,31 @@ fn append_slice_executable_sections(
     }
 }
 
+/// The `gmeow-okf/` bundle-relative path of a term's OKF (Ontology Knowledge
+/// Format) Markdown document, or `None` for a category the OKF bundle does not
+/// emit a per-concept document for (datatypes / other). The `{category-dir}/
+/// {local-name}.md` scheme MUST match the OKF projection in the pipeline
+/// (`crates/pipeline/src/stages/okf.rs` — `category_dir` + `slug`); a mismatch
+/// would produce a dangling reference, so only the three covered categories emit
+/// one and the datatype/other arms deliberately return `None`.
+pub fn okf_doc_reference(term: &DocTerm) -> Option<String> {
+    let dir = match term.category {
+        DocTermCategory::Class => "classes",
+        DocTermCategory::Property => "properties",
+        DocTermCategory::Individual => "individuals",
+        DocTermCategory::Datatype | DocTermCategory::Other => return None,
+    };
+    let local = term
+        .curie
+        .split_once(':')
+        .map(|(_, l)| l)
+        .unwrap_or(&term.curie);
+    Some(format!("gmeow-okf/{dir}/{local}.md"))
+}
+
 /// Append the per-term export affordance (a `DESCRIBE` in the playground + the
-/// prompt-ready card) to a term page's Markdown. No-op without a playground.
+/// prompt-ready card + the OKF projection reference) to a term page's Markdown.
+/// No-op without a playground.
 fn append_term_export_section(
     out: &mut String,
     model: &DocsModel,
@@ -668,6 +698,15 @@ fn append_term_export_section(
              [prompt-ready card]({root}terms/{slug}/card.md)"
         ),
     );
+    // OKF is a structural multi-file Markdown bundle (not a serialize codec the
+    // playground can transcode), so its per-concept document is referenced by its
+    // path in the sibling `gmeow-okf/` bundle rather than transcoded inline.
+    if let Some(okf) = okf_doc_reference(term) {
+        line(
+            out,
+            &format!("The OKF Markdown projection of this term ships at `{okf}`."),
+        );
+    }
 }
 
 /// The offline SPARQL playground page.
@@ -1104,27 +1143,99 @@ fn md_about(model: &DocsModel) -> String {
     out
 }
 
+/// A total-order sort key for a version string: the parsed `(major, minor,
+/// patch)` numeric triple when the string is dotted-numeric, else a sentinel that
+/// sorts unparsable versions last; the original string is the final tiebreak so
+/// the order is total and deterministic (never a branchy comparator).
+fn version_sort_key(version: &str) -> ((u64, u64, u64, u8), String) {
+    let mut parts = version.split('.');
+    let mut next = || parts.next().and_then(|p| p.parse::<u64>().ok());
+    match (next(), next(), next()) {
+        (Some(major), Some(minor), Some(patch)) if parts.next().is_none() => {
+            ((major, minor, patch, 0), version.to_string())
+        }
+        // Unparsable / non-triple versions sort after every semver triple (the
+        // trailing sentinel byte = 1), ordered among themselves by their string.
+        _ => ((u64::MAX, u64::MAX, u64::MAX, 1), version.to_string()),
+    }
+}
+
+/// The changelog surface, derived from the per-term content-address provenance:
+/// every term's `added_in_version` seeds an "Added" row under that release, and
+/// every reified changelog entry (a content-digest divergence) a "Changed" row.
+/// Releases are listed newest-first; within a release, terms are CURIE-sorted.
 fn md_changelog(model: &DocsModel) -> String {
+    let from = Page::Changelog.dir();
+    // release version → (added terms, changed (term, note) rows). BTreeMap keeps
+    // the collection deterministic; the explicit version_sort_key drives display.
+    let mut added: BTreeMap<String, Vec<&DocTerm>> = BTreeMap::new();
+    let mut changed: BTreeMap<String, Vec<(&DocTerm, Option<String>)>> = BTreeMap::new();
+    for term in &model.terms {
+        if let Some(version) = &term.added_in_version {
+            added.entry(version.clone()).or_default().push(term);
+        }
+        for entry in &term.changelog {
+            changed
+                .entry(entry.version.clone())
+                .or_default()
+                .push((term, entry.note.clone()));
+        }
+    }
+
+    // Every release that carries either an addition or a change, newest-first.
+    let mut versions: Vec<String> = added.keys().chain(changed.keys()).cloned().collect();
+    versions.sort_by_key(|v| std::cmp::Reverse(version_sort_key(v)));
+    versions.dedup();
+
     let mut out = String::new();
     heading(&mut out, 1, model.ui("body_changelog"));
     line(
         &mut out,
-        "This documentation surface is regenerated from the slice catalog on every build, so it \
-         always reflects the current state of the ontology.",
+        "Each release below is derived from the per-term content-address manifest: a term is \
+         listed under the release it was first seen in, and again whenever its canonical \
+         definition digest changed.",
     );
-    heading(
-        &mut out,
-        2,
-        &format!("Documentation model v{}", md_escape(&model.version)),
-    );
-    push_line(
-        &mut out,
-        &format!(
-            "- {} terms and {} slices documented.",
-            model.terms.len(),
-            model.slices.len()
-        ),
-    );
+
+    let term_link = |from: &str, term: &DocTerm| {
+        format!(
+            "[`{}`]({}index.md){}",
+            code_escape(&term.curie),
+            rel(from, &Page::Term(term_slug(term)).dir()),
+            label_suffix(term)
+        )
+    };
+
+    for version in &versions {
+        heading(&mut out, 2, &md_escape(version));
+        if let Some(terms) = added.get(version) {
+            let mut terms = terms.clone();
+            terms.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+            heading(&mut out, 3, model.ui("body_changelog_added"));
+            for term in terms {
+                push_line(&mut out, &format!("- {}", term_link(&from, term)));
+            }
+            blank(&mut out);
+        }
+        if let Some(rows) = changed.get(version) {
+            let mut rows = rows.clone();
+            rows.sort_by(|a, b| {
+                a.0.curie
+                    .cmp(&b.0.curie)
+                    .then_with(|| a.0.iri.cmp(&b.0.iri))
+            });
+            heading(&mut out, 3, model.ui("body_changelog_changed"));
+            for (term, note) in rows {
+                match note {
+                    Some(note) => push_line(
+                        &mut out,
+                        &format!("- {} — {}", term_link(&from, term), md_escape(&note)),
+                    ),
+                    None => push_line(&mut out, &format!("- {}", term_link(&from, term))),
+                }
+            }
+            blank(&mut out);
+        }
+    }
     blank(&mut out);
     out
 }
@@ -1351,17 +1462,33 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
                 None => push_line(&mut out, &format!("- `{tag}` → {target}")),
             }
         }
+        let ledger_href = rel(&from, &Page::LogicLossLedger.dir());
         // One section-level disclosure when any crosswalk is an approximate
         // (lossy) SKOS match, cross-linking the preservation loss ledger that
         // records the per-target structural drops. The prose halves resolve through
         // the UI-chrome catalog; the link target is the language-independent path.
         if any_lossy {
-            let ledger_href = rel(&from, &Page::LogicLossLedger.dir());
             push_line(
                 &mut out,
                 &format!(
                     "- *{}({ledger_href}index.md) {}*",
                     model.ui("body_caveat_disclosure_pre"),
+                    model.ui("body_caveat_disclosure_post"),
+                ),
+            );
+        }
+        // Even an EXACT SKOS/OWL match is a lossy projection once it is LOWERED to
+        // the EDOAL / FnO alignment formats — those targets under-approximate the
+        // canonical correspondence (they drop the SOL caveats + preservation
+        // judgment). Disclose that per-term whenever the term has any crosswalk and
+        // the loss ledger declares those lowerings lossy (sourced from the ledger,
+        // never hardcoded — an exact EDOAL/FnO row would suppress this note).
+        if edoal_fno_lowering_is_lossy() {
+            push_line(
+                &mut out,
+                &format!(
+                    "- *{}({ledger_href}index.md) {}*",
+                    model.ui("body_caveat_edoal_fno_pre"),
                     model.ui("body_caveat_disclosure_post"),
                 ),
             );
@@ -1531,7 +1658,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
-    // ── Stability (#1026 — always present; tier-derived default or explicit) ─────
+    // ── Stability (always present; tier-derived default or explicit) ──────────────
     heading(&mut out, 2, model.ui("body_stability"));
     push_line(
         &mut out,
@@ -1596,7 +1723,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
-    // ── Profiles (#1026 — named profiles whose membership includes this term) ────
+    // ── Profiles (named profiles whose membership includes this term) ─────────────
     if !term.profiles.is_empty() {
         heading(&mut out, 2, model.ui("body_profiles"));
         let chips = term
@@ -1609,7 +1736,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
-    // ── Changelog (#1026 — added-in version + reified per-release entries) ───────
+    // ── Changelog (added-in version + reified per-release entries) ──────────────
     if term.added_in_version.is_some() || !term.changelog.is_empty() {
         heading(&mut out, 2, model.ui("body_changelog"));
         if let Some(version) = &term.added_in_version {
@@ -1634,15 +1761,28 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
-    // ── Citation (#1026 — content-addressed permalink + cite-this affordance) ────
-    // The term IRI is the dereferenceable, content-addressed permalink; the
-    // concept DOI (read from metadata/gmeow-self.ttl) cites the whole ontology;
-    // the owner slice's identifier cites the slice when one is registered.
+    // ── Citation (permalink + genuine content address + cite-this affordance) ───
+    // The term IRI is the dereferenceable permalink. The content address is the
+    // RDFC-1.0 canonical digest of the term's defining triples (gmeow:definitionDigest),
+    // so `<iri>@<digest>` pins the exact definition this page describes. The concept
+    // DOI (read from metadata/gmeow-self.ttl) cites the whole ontology; the owner
+    // slice's identifier cites the slice when one is registered.
     heading(&mut out, 2, model.ui("body_citation"));
     push_line(
         &mut out,
         &format!("- **{}:** <{}>", model.ui("body_label_permalink"), term.iri),
     );
+    if !term.content_digest.is_empty() {
+        push_line(
+            &mut out,
+            &format!(
+                "- **{}:** `{}@{}`",
+                model.ui("body_label_content_address"),
+                term.iri,
+                code_escape(&term.content_digest)
+            ),
+        );
+    }
     if let Some(doi) = &model.concept_doi {
         push_line(
             &mut out,
@@ -2654,7 +2794,7 @@ fn finding_category_display(iri: &str) -> String {
     }
 }
 
-// ── Guides: recipes / learning paths / four boxes (#853 T3b) ──────────────────
+// ── Guides: recipes / learning paths / four boxes ──────────────────────────────
 
 fn md_recipe_index(model: &DocsModel) -> String {
     let from = Page::RecipeIndex.dir();
@@ -3295,6 +3435,18 @@ fn approximate_match_note(model: &DocsModel, predicate: &str) -> Option<String> 
         _ => return None,
     };
     Some(model.ui(key).to_string())
+}
+
+/// Whether the EDOAL / FnO correspondence lowerings are declared lossy in the
+/// canonical projection loss ledger. The alignment section discloses that any
+/// crosswalk — even an exact SKOS/OWL match — is a lossy projection once lowered
+/// to those alignment formats; sourcing the verdict from the ledger (rather than
+/// hardcoding it) means an EDOAL/FnO row that ever became exact would suppress the
+/// note automatically.
+fn edoal_fno_lowering_is_lossy() -> bool {
+    gmeow_logic_compile::projections::projection_ledger_rows()
+        .iter()
+        .any(|row| (row.target == "edoal" || row.target == "fno") && !row.lossy_drops.is_empty())
 }
 
 fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
@@ -4044,7 +4196,7 @@ fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
 /// Build the neutral [`crate::card::Card`] from a docs-site [`DocTerm`], resolving
 /// every IRI-bearing field to its display (local-name) form. The shared
 /// [`crate::card::render_card_body`] then renders it — the SAME renderer the
-/// folded-snapshot MCP card uses, so the two never diverge (#1027, §19 one-path).
+/// folded-snapshot MCP card uses, so the two never diverge (§19 one-path).
 fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::card::Card {
     let label = match &term.label {
         Some(l) if l != &term.curie => Some(l.clone()),
@@ -4089,7 +4241,7 @@ fn term_full_block(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String
     )
 }
 
-/// A prompt-ready, standalone Markdown card for one term (#1027): a `# {curie}{signature}`
+/// A prompt-ready, standalone Markdown card for one term: a `# {curie}{signature}`
 /// title followed by the shared [`term_body`] (metadata + definition + every
 /// advisory field). Compact, link-free, and self-contained for context-window
 /// injection. Emitted at `terms/{slug}/card.md` and served live over MCP.
@@ -4460,6 +4612,35 @@ mod tests {
     }
 
     #[test]
+    fn okf_doc_reference_matches_the_bundle_scheme() {
+        // Class / property / individual terms reference their `gmeow-okf/` document
+        // by the SAME {category-dir}/{local-name}.md scheme the OKF projection emits;
+        // datatypes / other categories have no per-concept OKF document.
+        let mut class = DocTerm {
+            iri: format!("{GMEOW_NS}Foo"),
+            curie: "gmeow:Foo".to_string(),
+            category: DocTermCategory::Class,
+            ..Default::default()
+        };
+        assert_eq!(
+            okf_doc_reference(&class).as_deref(),
+            Some("gmeow-okf/classes/Foo.md")
+        );
+        class.category = DocTermCategory::Property;
+        assert_eq!(
+            okf_doc_reference(&class).as_deref(),
+            Some("gmeow-okf/properties/Foo.md")
+        );
+        class.category = DocTermCategory::Individual;
+        assert_eq!(
+            okf_doc_reference(&class).as_deref(),
+            Some("gmeow-okf/individuals/Foo.md")
+        );
+        class.category = DocTermCategory::Datatype;
+        assert_eq!(okf_doc_reference(&class), None);
+    }
+
+    #[test]
     fn term_page_renders_usage_advice_and_alignments() {
         let mut model = tiny_model();
         // Enrich Foo with every advisory field + one consumer profile, and add a
@@ -4527,6 +4708,15 @@ mod tests {
             md.contains("preservation loss ledger"),
             "loss-ledger cross-link present for an approximate alignment"
         );
+        // Any crosswalk also discloses that its EDOAL/FnO lowering is lossy.
+        assert!(
+            edoal_fno_lowering_is_lossy(),
+            "the EDOAL/FnO lowerings are declared lossy in the projection ledger"
+        );
+        assert!(
+            md.contains("lowered to EDOAL"),
+            "per-term EDOAL/FnO lowering caveat present on an aligned term"
+        );
 
         // Bar carries no advice/alignments → neither section appears on its page.
         let bar_md = to_markdown(&model, &Page::Term("bar".to_string()));
@@ -4544,7 +4734,7 @@ mod tests {
     /// variant. The `deprecated` arm is otherwise never exercised by the term
     /// goldens (no production term is `owl:deprecated` — this project deletes
     /// rather than deprecates), so this is the only coverage of that render
-    /// path (#1026). The derivation logic itself is unit-tested separately in
+    /// path. The derivation logic itself is unit-tested separately in
     /// `model::tests::stability_resolves_by_precedence`.
     #[test]
     fn stability_badge_renders_every_state() {

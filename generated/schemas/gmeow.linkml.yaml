@@ -6303,6 +6303,10 @@ slots:
     range: Defeater
     domain: JustificationSubject
     multivalued: true
+  definitionDigest:
+    slot_uri: https://blackcatinformatics.ca/gmeow/definitionDigest
+    title: definition digest
+    range: string
   degreeCount:
     slot_uri: https://blackcatinformatics.ca/gmeow/degreeCount
     title: degree count
@@ -18817,6 +18821,9 @@ enums:
       stage-statements:
         meaning: https://blackcatinformatics.ca/gmeow/stage-statements
         title: statements
+      stage-term-manifest:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-term-manifest
+        title: term content manifest
       stage-validate:
         meaning: https://blackcatinformatics.ca/gmeow/stage-validate
         title: validate
