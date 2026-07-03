@@ -607,6 +607,13 @@ fn append_slice_executable_sections(
                  N-Quads / TriG / RDF-XML / JSON-LD."
             ),
         );
+        // OKF is a structural per-concept Markdown bundle with no per-slice document;
+        // point at its root index (the entry point to every term's OKF projection).
+        line(
+            out,
+            "Each of this slice's terms also ships an OKF Markdown projection under the \
+             `gmeow-okf/` bundle (see `gmeow-okf/index.md`).",
+        );
     }
 
     // Try it: the reasoner's inferences over each worked example.
@@ -640,8 +647,31 @@ fn append_slice_executable_sections(
     }
 }
 
+/// The `gmeow-okf/` bundle-relative path of a term's OKF (Ontology Knowledge
+/// Format) Markdown document, or `None` for a category the OKF bundle does not
+/// emit a per-concept document for (datatypes / other). The `{category-dir}/
+/// {local-name}.md` scheme MUST match the OKF projection in the pipeline
+/// (`crates/pipeline/src/stages/okf.rs` — `category_dir` + `slug`); a mismatch
+/// would produce a dangling reference, so only the three covered categories emit
+/// one and the datatype/other arms deliberately return `None`.
+fn okf_doc_reference(term: &DocTerm) -> Option<String> {
+    let dir = match term.category {
+        DocTermCategory::Class => "classes",
+        DocTermCategory::Property => "properties",
+        DocTermCategory::Individual => "individuals",
+        DocTermCategory::Datatype | DocTermCategory::Other => return None,
+    };
+    let local = term
+        .curie
+        .split_once(':')
+        .map(|(_, l)| l)
+        .unwrap_or(&term.curie);
+    Some(format!("gmeow-okf/{dir}/{local}.md"))
+}
+
 /// Append the per-term export affordance (a `DESCRIBE` in the playground + the
-/// prompt-ready card) to a term page's Markdown. No-op without a playground.
+/// prompt-ready card + the OKF projection reference) to a term page's Markdown.
+/// No-op without a playground.
 fn append_term_export_section(
     out: &mut String,
     model: &DocsModel,
@@ -668,6 +698,15 @@ fn append_term_export_section(
              [prompt-ready card]({root}terms/{slug}/card.md)"
         ),
     );
+    // OKF is a structural multi-file Markdown bundle (not a serialize codec the
+    // playground can transcode), so its per-concept document is referenced by its
+    // path in the sibling `gmeow-okf/` bundle rather than transcoded inline.
+    if let Some(okf) = okf_doc_reference(term) {
+        line(
+            out,
+            &format!("The OKF Markdown projection of this term ships at `{okf}`."),
+        );
+    }
 }
 
 /// The offline SPARQL playground page.
@@ -4570,6 +4609,35 @@ mod tests {
                 && !fr.files.contains_key(PLAYGROUND_TRIG_PATH),
             "the executable surfaces live only in the English carrier tree"
         );
+    }
+
+    #[test]
+    fn okf_doc_reference_matches_the_bundle_scheme() {
+        // Class / property / individual terms reference their `gmeow-okf/` document
+        // by the SAME {category-dir}/{local-name}.md scheme the OKF projection emits;
+        // datatypes / other categories have no per-concept OKF document.
+        let mut class = DocTerm {
+            iri: format!("{GMEOW_NS}Foo"),
+            curie: "gmeow:Foo".to_string(),
+            category: DocTermCategory::Class,
+            ..Default::default()
+        };
+        assert_eq!(
+            okf_doc_reference(&class).as_deref(),
+            Some("gmeow-okf/classes/Foo.md")
+        );
+        class.category = DocTermCategory::Property;
+        assert_eq!(
+            okf_doc_reference(&class).as_deref(),
+            Some("gmeow-okf/properties/Foo.md")
+        );
+        class.category = DocTermCategory::Individual;
+        assert_eq!(
+            okf_doc_reference(&class).as_deref(),
+            Some("gmeow-okf/individuals/Foo.md")
+        );
+        class.category = DocTermCategory::Datatype;
+        assert_eq!(okf_doc_reference(&class), None);
     }
 
     #[test]
