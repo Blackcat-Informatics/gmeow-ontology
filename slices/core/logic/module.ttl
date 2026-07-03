@@ -7654,3 +7654,127 @@ logic:candidateTenureClaimSurfacing
     logic:candidateSemanticRisk logic:RiskCoreContaminating ;
     logic:candidateFormalizes gmeow:StandpointTenure ;
     logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Deliberate-non-assertion guardrails — the intentional boundaries, executable ──
+# The maximal-formalization harvest must never quietly over-constrain: every deliberate
+# non-assertion the design commits to is recorded here as a reviewed
+# logic:FormalizationCandidate, so an over-eager axiom that would cross one of these
+# boundaries is surfaced (logic:ObligationViolated, or a discipline logic:violation) and
+# returned to review rather than silently asserted into the reasoned core. Two guardrails
+# forbid an entailment via a standing logic:NonEntailmentObligation (Arm A syntactic
+# reachability over rule heads + Arm B finite closure over derived edges); two are
+# integrity constraints whose violation is a finding, wrapping the existing foundation
+# disciplines that already fire it. The deliberately-preserved gmeow:SocialObject ∩
+# gmeow:InformationObject overlap (logic:candidateSocialInformationOverlap,
+# logic:CategoryDeliberateOverlap, authored above) is the fifth boundary. Each carries a
+# harvest back-link so the whole boundary set is queryable in the deliberate-non-assertion
+# report. This machinery IS the foundation's guard against over-typing (Principle 9's
+# refusal to over-assert): the review of an over-typing collision is the obligation /
+# discipline check itself, not a separate advisory flag (design/LOGIC-FOUNDATION.md,
+# §Typed formalization governance).
+
+# 1. Intent is attributed, never entailed (deception) — a forbidden entailment.
+logic:candidateIntentNotEntailed
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deceptive intent is attributed, never entailed"@x-gmeow-english ;
+    skos:definition "The deliberate-non-assertion formalization candidate carrying the standing commitment that deceptive intent must never be entailed: gmeow:deceptiveIntentClaim is an attributed, defeasible standpoint claim, so a held≠projected structural gap is EVIDENCE, never ENTAILMENT, of intent, and the foundation must never derive the predicate. Realized as the logic:NonEntailmentObligation logic:IntentNotFromDeceptionObligation and enforced by Arm A syntactic reachability over the rule heads plus Arm B finite closure over the materialized derivation graph. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation). The semantic risk is core-contaminating: a mis-formalization that closed this inference would corrupt the reasoned core with an entailed intent, so the guardrail protects the core, not merely a projection. Its harvest back-link (logic:candidateFormalizes gmeow:deceptiveIntentClaim, logic:candidateSourceField logic:ProseFieldAvoidWhen) ties it to the exact prose that forbids the entailment, and logic:candidateSourceHash is the sha256 of that gmeow:avoidWhen text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:4750f37f26e7b1dd379cade0cb9a93d1d7aa6f64c205db27583d832344108245"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:deceptiveIntentClaim's gmeow:avoidWhen, which states never let the reasoner entail deceptiveness (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "gmeow:deceptiveIntentClaim over deception events: intent stays an attributed, defeasible claim, never a reasoned entailment"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNonEntailmentObligation ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidateNonEntailment logic:IntentNotFromDeceptionObligation ;
+    logic:candidateProjectionBehavior logic:ValidationOnly ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:deceptiveIntentClaim ;
+    logic:candidateSourceField logic:ProseFieldAvoidWhen .
+
+# 2. Counterpart is symmetric-only, never transitive (coreference) — a forbidden entailment.
+logic:candidateCounterpartNonTransitive
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterpart stays symmetric-only, never transitive"@x-gmeow-english ;
+    skos:definition "The deliberate-non-assertion formalization candidate carrying the standing commitment that cross-realm counterpart identity (gmeow:counterpartOf) stays non-transitive: it is symmetric by design but must never chain, so contested, standpoint-indexed, or context-dependent claims are never transitively collapsed into owl:sameAs identity. Realized as the logic:NonEntailmentObligation logic:CounterpartNonTransitivityObligation and enforced by Arm A syntactic reachability over the counterpart rule heads (no rule head produces the predicate). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation). The semantic risk is core-contaminating: a careless transitivity rule would corrupt the reasoned core by merging entities the design keeps distinct. Its harvest back-link (logic:candidateFormalizes gmeow:counterpartOf, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose that commits to non-transitivity, and logic:candidateSourceHash is the sha256 of that skos:definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b2318705c42e37e940f1c2809e1c6a081517082ce26a6e15bbcca4e2f49deff5"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:counterpartOf's skos:definition, which states it is symmetric but deliberately not transitive (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "gmeow:counterpartOf across realms, frames and datasets: symmetric-only, never transitively chained"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNonEntailmentObligation ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidateNonEntailment logic:CounterpartNonTransitivityObligation ;
+    logic:candidateProjectionBehavior logic:ValidationOnly ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:counterpartOf ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# 3. Frame-relativity: no frame-free value (Principle 11) — an integrity constraint.
+logic:cqFrameRelativityHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a framed value stays well-formed"@x-gmeow-english ;
+    skos:definition "The positive competency case the frame-relativity constraint must satisfy: a logic:measuredValue expressed together with its logic:referenceFrame is well-formed — it carries no logic:MeasurementFrameMissing violation — because the value is meaningful only paired with the frame it is expressed in (Principle 11)."@x-gmeow-english .
+
+logic:cqFrameRelativityFramelessRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a frame-free value is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the frame-relativity constraint must respect: a logic:measuredValue asserted with no logic:referenceFrame is the logic:MeasurementFrameMissing violation — a frame-free value collapse the foundation catches as a finding, never admits as a well-formed model. The boundary Principle 11 enforces: a value asserted without its frame is ill-formed, and two frame-relative values are never equated frame-free."@x-gmeow-english .
+
+logic:candidateFrameRelativity
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "measured values are frame-relative — no frame-free collapse"@x-gmeow-english ;
+    skos:definition "The integrity-constraint formalization candidate that harvests Principle 11 frame-relativity from logic:referenceFrame's skos:definition into the enforced logic:MeasurementFrameMissing constraint: a logic:measuredValue is meaningful only together with the logic:referenceFrame it is expressed in, so a frame-free value is ill-formed and two frame-relative values are never equated frame-free. Violation is a finding, not a derivation, materialized by the existing foundation quality discipline. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqFrameRelativityHolds — a framed value stays well-formed) and a negative countermodel (logic:cqFrameRelativityFramelessRejected — a frame-free value is the logic:MeasurementFrameMissing violation). Its harvest back-link (logic:candidateFormalizes logic:referenceFrame, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:2e7a0baa563e6237f44afac81e9cc35ca4fa4c2dff5f55deb9fdc99a8777deeb"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from logic:referenceFrame's skos:definition, which states a logic:measuredValue with no logic:referenceFrame is the logic:MeasurementFrameMissing violation (Principle 11; design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "the true-quantity/measured-value seam: a logic:measuredValue is frame-relative and ill-formed without its logic:referenceFrame; no frame-free equality collapse"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFrameRelativityHolds ;
+    logic:candidateNegativeCase logic:cqFrameRelativityFramelessRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:referenceFrame ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# 4. No over-typing: at most one ultimate Kind (Principle 9, MixIden) — an integrity constraint.
+logic:cqNoOverTypingHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a single-Kind instance is well-formed"@x-gmeow-english ;
+    skos:definition "The positive competency case the no-over-typing constraint must satisfy: an object whose sortal traces its principle of identity to exactly one ultimate logic:Kind is well-formed — it carries no logic:MixIden violation — because a Kind supplies a single principle of identity (Principle 9's refusal to over-type)."@x-gmeow-english .
+
+logic:cqNoOverTypingTwoKindsRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a two-Kind instance is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the no-over-typing constraint must respect: a sortal tracing its identity to two-or-more disjoint logic:Kinds is the logic:MixIden violation — over-typing the foundation catches as a finding, never admits as a well-formed model. The boundary Principle 9 enforces: co-equal facets are not fused into two disjoint identity-supplying Kinds on one instance."@x-gmeow-english .
+
+logic:candidateNoOverTyping
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an instance carries at most one ultimate Kind — no over-typing"@x-gmeow-english ;
+    skos:definition "The integrity-constraint formalization candidate that harvests Principle 9's no-over-typing boundary from logic:MixIden's skos:definition into the enforced identity-overlap discipline: a sortal inherits its principle of identity from exactly one Kind, so an instance tracing to two-or-more disjoint Kinds is the logic:MixIden violation. Violation is a finding, not a derivation, materialized by the existing foundation identity discipline (it wraps logic:MixIden, it does not duplicate it). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqNoOverTypingHolds — a single-Kind instance is well-formed) and a negative countermodel (logic:cqNoOverTypingTwoKindsRejected — a two-Kind instance is the logic:MixIden violation). Its harvest back-link (logic:candidateFormalizes logic:MixIden, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:c806598361dd99032b2934b0f76cb2aa9a773b51a280f9240b76b57f17315266"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from logic:MixIden's skos:definition, which states a sortal inherits its principle of identity from exactly one Kind and tracing to two-or-more Kinds violates it (Principle 9; design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "logic:Kind identity supply: an instance's sortal traces to exactly one ultimate Kind; two disjoint Kinds on one instance is over-typing"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqNoOverTypingHolds ;
+    logic:candidateNegativeCase logic:cqNoOverTypingTwoKindsRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:MixIden ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
