@@ -129,7 +129,7 @@ math:SetExtentShape
         sh:severity sh:Violation ;
         sh:message "A math:Set must be extensional or intensional, not both: a node carrying both math:hasElement and math:memberCondition without a declared equality has an ambiguous extent." ;
         sh:select """
-            SELECT $this WHERE {
+            SELECT DISTINCT $this WHERE {
                 $this <https://blackcatinformatics.ca/math/hasElement> ?element .
                 $this <https://blackcatinformatics.ca/math/memberCondition> ?condition .
             }
