@@ -48,11 +48,6 @@ impl GtsSinkStage {
                 // product (read, not re-loaded from disk).
                 "stage-source-load".to_string(),
                 "stage-export-json-schema".to_string(),
-                // THIS run's freshly-projected result-shapes.ttl, folded into REP_SHAPES by
-                // `build_archive_blobs` (via `serialize_carrier_snapshot`). Without this edge
-                // the sink would re-read the previous-run committed file from disk and lag a
-                // regenerate behind a competency ResultShape edit (§3.2 transform-once).
-                "stage-export-result-shapes".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),
@@ -69,6 +64,15 @@ impl GtsSinkStage {
                 "stage-export-metadata".to_string(),
                 "stage-export-references".to_string(),
                 "stage-export-research-objects".to_string(),
+                // The generated shape surfaces (P11 frame shapes + the ResultShape
+                // SHACL projection): `serialize_carrier_snapshot` folds REP_SHAPES'
+                // generated members from THESE runs' in-memory products, never a
+                // stale disk read (the same freshness rule as validation-shapes.ttl).
+                // Without these edges a new competency ResultShape could never reach
+                // the bundle — the fanout would rewrite the stale committed
+                // generated/shapes bytes forever.
+                "stage-export-frame-shapes".to_string(),
+                "stage-export-result-shapes".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
         }
@@ -97,7 +101,10 @@ impl Stage for GtsSinkStage {
         // `build_fanout_opaque_blob` reads them off those products instead of re-rendering
         // from disk, and statements / dsl-stats / context ride off the already-consumed
         // stage-statements / stage-mappings products (§3.2 transform-once, §4 pure terminal).
-        "gts_sink.v4-fanout-presenter"
+        // v5: REP_SHAPES' generated members (result-shapes.ttl + frame-shapes.ttl)
+        // are folded from the consumed export-leaf products instead of a stale
+        // disk read, matching the validation-shapes.ttl freshness rule.
+        "gts_sink.v5-fresh-generated-shape-surfaces"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
@@ -207,6 +214,12 @@ mod tests {
             crate::stages::compile_logic::PROJECTION_REPORT_PATH.to_string(),
             b"@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://example.org/projection-report> a owl:Ontology .\n".to_vec(),
         );
+        // REP_MAPPINGS folds the SSSOM surface from this product (fail-closed: an
+        // empty match is a hard error, so the minimal set carries one file).
+        mapping_artifacts.insert(
+            "generated/mappings/gmeow-test.sssom.tsv".to_string(),
+            b"# minimal sssom\n".to_vec(),
+        );
         // The fanout presenter reads dsl-stats + the JSON-LD context + the EmotionML XML
         // projection off this product.
         mapping_artifacts.insert(
@@ -268,6 +281,23 @@ mod tests {
         );
         let validate = StageProduct::from_artifacts("stage-validate", validate_artifacts);
 
+        // The generated shape surfaces are required products (fail-closed):
+        // REP_SHAPES folds them from the in-memory products, never a disk read.
+        let mut result_shapes_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        result_shapes_artifacts.insert(
+            crate::stages::result_shapes::RESULT_SHAPES_PATH.to_string(),
+            b"# result shapes".to_vec(),
+        );
+        let result_shapes =
+            StageProduct::from_artifacts("stage-export-result-shapes", result_shapes_artifacts);
+        let mut frame_shapes_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        frame_shapes_artifacts.insert(
+            crate::stages::frame_shapes::FRAME_SHAPES_PATH.to_string(),
+            b"# frame shapes".to_vec(),
+        );
+        let frame_shapes =
+            StageProduct::from_artifacts("stage-export-frame-shapes", frame_shapes_artifacts);
+
         // The opaque-fanout export leaves: the presenter reads their rendered members off
         // these products (empty here — this unit test pins the sink's fail-closed wiring,
         // not a real fanout; the superset gate is exercised end-to-end in fanout_parity).
@@ -293,6 +323,8 @@ mod tests {
         upstream.insert("stage-source-load".to_string(), source_load);
         upstream.insert("stage-statements".to_string(), statements);
         upstream.insert("stage-validate".to_string(), validate);
+        upstream.insert("stage-export-result-shapes".to_string(), result_shapes);
+        upstream.insert("stage-export-frame-shapes".to_string(), frame_shapes);
         for product in export_leaves {
             upstream.insert(product.stage_id.clone(), product);
         }

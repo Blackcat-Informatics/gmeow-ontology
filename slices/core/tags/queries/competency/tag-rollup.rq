@@ -1,0 +1,13 @@
+# Competency question: which broader topics does a tag roll up to? The optional
+# folksonomy hierarchy (gmeow:broaderTag, transitive) is traversed with a SPARQL
+# property path — the asserted lane walks the ladder without needing the
+# reasoner's transitive closure. Asserted lane; the gmeow:cqDataFile overlay
+# supplies the folksonomy scene (machine-learning -> artificial-intelligence).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/>
+
+SELECT ?broader WHERE {
+    ex:tagML gmeow:broaderTag+ ?broader .
+}
+ORDER BY ?broader
