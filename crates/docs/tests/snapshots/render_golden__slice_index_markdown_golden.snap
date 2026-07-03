@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 190
 expression: head
 ---
 # Slices

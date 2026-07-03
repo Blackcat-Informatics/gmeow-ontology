@@ -1,0 +1,322 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the inhabitation slice -- the
+# slice-resident MUST / MUST-NOT invariants of the ratified design set
+# (slices/core/inhabitation/design/*.md). Each assertion runs as a SPARQL ASK
+# over the inhabitation module graph (gmeow:scopeModule) under the native Rust
+# slicetest harness (crates/slicetest).
+#
+# The design's corrected stereotypes are pinned here: DigitalSubject /
+# Inhabitant / InhabitedSystem / EmbodimentCarrierRole are logic:RoleMixin (not
+# Role, not Kind, not Category); the tenures and configurations are
+# logic:Situation subclasses of gmeow:TimeScopedRelation (not relators); the
+# assessments are logic:SubKind subclasses of gmeow:Observation; the neutrality
+# of a contested inhabitation depends on gmeow:describedSubject / describedHost
+# being RANGE-OPEN; and there is no gmeow:primaryInhabitant (Principle 9).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/tests/> .
+
+# --- 1. DigitalSubject is a logic:RoleMixin subclass of Agent (MUST) ----------
+ex:saDigitalSubjectIsRoleMixinAgent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:DigitalSubject a owl:Class , logic:RoleMixin ;
+        rdfs:subClassOf gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:DigitalSubject MUST be a logic:RoleMixin (anti-rigid non-sortal spanning Person and SoftwareAgent) subclass of gmeow:Agent -- never a logic:Role (single-Kind sortal) or a rigid logic:Kind / logic:Category. The de-conflation charter (INHABITED-IDENTITY.md)." .
+
+# --- 2. DigitalSubject is NOT a logic:Role or logic:Kind or logic:Category ----
+ex:saDigitalSubjectNotRoleKindCategory a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    VALUES ?bad { logic:Role logic:Kind logic:Category logic:SubKind }
+    gmeow:DigitalSubject a ?bad .
+}""" ;
+    gmeow:saRationale "gmeow:DigitalSubject MUST NOT be typed logic:Role / logic:Kind / logic:Category / logic:SubKind -- the whole correction is that durable-subjecthood is an anti-rigid non-sortal (RoleMixin). Any rigid or single-Kind typing reintroduces the conflation." .
+
+# --- 3. Inhabitant is a logic:RoleMixin subclass of Agent (MUST) --------------
+ex:saInhabitantIsRoleMixinAgent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Inhabitant a owl:Class , logic:RoleMixin ;
+        rdfs:subClassOf gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:Inhabitant MUST be a logic:RoleMixin subclass of gmeow:Agent -- an agent is an inhabitant only while it occupies an inhabitation, spanning Person and SoftwareAgent (INHABITED-TOPOLOGY.md)." .
+
+# --- 4. InhabitedSystem is a logic:RoleMixin subclass of Entity (MUST) --------
+ex:saInhabitedSystemIsRoleMixinEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InhabitedSystem a owl:Class , logic:RoleMixin ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:InhabitedSystem MUST be a logic:RoleMixin subclass of gmeow:Entity -- a system is inhabited only while it stands in an inhabitation, spanning PhysicalObject and SoftwareAgent (INHABITED-TOPOLOGY.md)." .
+
+# --- 5. EmbodimentCarrierRole is a logic:RoleMixin (MUST) ---------------------
+ex:saEmbodimentCarrierRoleIsRoleMixin a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EmbodimentCarrierRole a owl:Class , logic:RoleMixin ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:EmbodimentCarrierRole MUST be a logic:RoleMixin subclass of gmeow:Entity -- a device/account/avatar is a carrier only while it surfaces a subject (anti-rigid), grounded in a real Entity (INHABITED-TOPOLOGY.md)." .
+
+# --- 6. Tenures / configurations / stages are Situations of TimeScopedRelation
+ex:saInhabitationTenureIsSituation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InhabitationTenure a owl:Class , logic:Situation ; rdfs:subClassOf gmeow:TimeScopedRelation .
+    gmeow:DigitalSubjectTenure a owl:Class , logic:Situation ; rdfs:subClassOf gmeow:TimeScopedRelation .
+    gmeow:InhabitationConfiguration a owl:Class , logic:Situation ; rdfs:subClassOf gmeow:TimeScopedRelation .
+    gmeow:EmbodimentAssignment a owl:Class , logic:Situation ; rdfs:subClassOf gmeow:TimeScopedRelation .
+    gmeow:SubjectStage a owl:Class , logic:Situation ; rdfs:subClassOf gmeow:TimeScopedRelation .
+}""" ;
+    gmeow:saRationale "The inhabitation/subject tenures, the configuration, the embodiment assignment, and the subject stage MUST each be a logic:Situation subclass of gmeow:TimeScopedRelation -- a Situation is disjoint from a logic:Relator, so the earlier relator typing was unsatisfiable (INHABITED-TOPOLOGY.md)." .
+
+# --- 7. No inhabitation Situation is typed logic:Relator (MUST-NOT) -----------
+ex:saNoInhabitationSituationIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    VALUES ?s { gmeow:InhabitationTenure gmeow:DigitalSubjectTenure gmeow:InhabitationConfiguration gmeow:EmbodimentAssignment gmeow:SubjectStage }
+    ?s a logic:Relator .
+}""" ;
+    gmeow:saRationale "None of the inhabitation Situations may ALSO be a logic:Relator -- Situation and Relator are disjoint in the foundational projection; double-typing is unsatisfiable (INHABITED-TOPOLOGY.md)." .
+
+# --- 8. Assessments are logic:SubKind subclasses of Observation (MUST) --------
+ex:saAssessmentsAreSubKindObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:IdentityContinuityAssessment a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:Observation .
+    gmeow:ControlAssessment a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:Observation .
+}""" ;
+    gmeow:saRationale "gmeow:IdentityContinuityAssessment and gmeow:ControlAssessment MUST be logic:SubKind subclasses of gmeow:Observation (a logic:Kind, not a situation) -- both are attributed, dated, standpoint-indexed observations (INHABITED-IDENTITY.md, INHABITED-TOPOLOGY.md)." .
+
+# --- 9. ContinuityDetermination is a SubKind of IdentityContinuityAssessment --
+ex:saContinuityDeterminationHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ContinuityDetermination a owl:Class , logic:SubKind ;
+        rdfs:subClassOf gmeow:IdentityContinuityAssessment .
+}""" ;
+    gmeow:saRationale "gmeow:ContinuityDetermination MUST be a logic:SubKind subclass of gmeow:IdentityContinuityAssessment -- the decisional layer specialises the descriptive assessment (INHABITED-IDENTITY.md)." .
+
+# --- 10. InhabitationClaim is a SubKind of StandpointClaim (MUST) -------------
+ex:saInhabitationClaimIsSubKindStandpointClaim a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InhabitationClaim a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:StandpointClaim .
+    gmeow:InhabitationDescription a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:Proposition .
+}""" ;
+    gmeow:saRationale "gmeow:InhabitationClaim MUST be a logic:SubKind of gmeow:StandpointClaim and gmeow:InhabitationDescription a logic:SubKind of gmeow:Proposition -- the contested-inhabitation neutrality form (INHABITED-TRADITIONS.md)." .
+
+# --- 11. Lineage / TransferManifest are Kinds of InformationObject (MUST) -----
+ex:saInformationObjectKinds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SubjectLineage a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+    gmeow:TransferManifest a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:SubjectLineage and gmeow:TransferManifest MUST be logic:Kind subclasses of gmeow:InformationObject -- durable identity record and transition-content record respectively (INHABITED-IDENTITY.md, INHABITED-RUNTIME-STACK.md)." .
+
+# --- 12. Value vocabularies are AbstractIndividualType of QualityValue (MUST) -
+ex:saValueVocabsAreQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InhabitationLocusKind a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:ControlLevel a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:DeterminationForce a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+    gmeow:ContinuityVerdict a owl:Class , logic:AbstractIndividualType ; rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "The four value vocabularies MUST be logic:AbstractIndividualType subclasses of logic:QualityValue -- closed value lattices disjoint from gmeow:Entity, keeping the DL profile clean (the standpoint-axis precedent)." .
+
+# --- 13. Role-filler properties on the tenure are functional (MUST) -----------
+ex:saTenureFillersFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:inhabitationSubject a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:Agent .
+    gmeow:inhabitedHost a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:Entity .
+    gmeow:inhabitationLocusKind a owl:FunctionalProperty , owl:ObjectProperty ; rdfs:domain gmeow:InhabitationTenure ; rdfs:range gmeow:InhabitationLocusKind .
+}""" ;
+    gmeow:saRationale "The per-branch role-filler edges MUST be functional object properties with the tenure domain and the given ranges -- one subject, one host, one locus per tenure (INHABITED-TOPOLOGY.md role-filler table)." .
+
+# --- 14. NEUTRALITY: describedSubject / describedHost carry NO range (MUST-NOT)
+ex:saDescribedPropertiesRangeOpen a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:describedSubject gmeow:describedHost gmeow:describedLocusKind }
+    ?p rdfs:range ?r .
+}""" ;
+    gmeow:saRationale "gmeow:describedSubject / describedHost / describedLocusKind MUST NOT carry any rdfs:range -- the frame-neutrality of a contested InhabitationClaim depends on describing a spirit as a subject inferring NOTHING about its type (INHABITED-TRADITIONS.md). A range here would fire a global entailment and defeat neutrality (Principle 9)." .
+
+# --- 15. configurationFacet is range-OPEN (MUST-NOT) --------------------------
+ex:saConfigurationFacetRangeOpen a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:configurationFacet rdfs:range ?r . }""" ;
+    gmeow:saRationale "gmeow:configurationFacet MUST NOT carry an rdfs:range -- the open range is the composition point that lets the agent-runtime profile mint nothing; an extension-ranged facet is written as instance data through this open property (INHABITED-CONSUMER.md)." .
+
+# --- 16. configurationEmbodiment is the one typed core facet (MUST) -----------
+ex:saConfigurationEmbodimentTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:configurationEmbodiment a owl:ObjectProperty ;
+        rdfs:subPropertyOf gmeow:configurationFacet ;
+        rdfs:range gmeow:EmbodimentAssignment .
+}""" ;
+    gmeow:saRationale "gmeow:configurationEmbodiment MUST be a sub-property of gmeow:configurationFacet with range gmeow:EmbodimentAssignment -- the one typed facet whose range is core (Embodiment is universal), the rest ride the open parent (INHABITED-TOPOLOGY.md)." .
+
+# --- 17. tenureVantage is DL-clean: NOT subPropertyOf vantage/accordingTo -----
+ex:saTenureVantageDlClean a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?super { gmeow:vantage gmeow:accordingTo }
+    gmeow:tenureVantage rdfs:subPropertyOf ?super .
+}""" ;
+    gmeow:saRationale "gmeow:tenureVantage MUST NOT be rdfs:subPropertyOf gmeow:vantage (whose domain gmeow:Observation would wrongly infer the DigitalSubjectTenure Situation is an Observation) nor gmeow:accordingTo (an owl:AnnotationProperty -- an ObjectProperty cannot be its sub-property in DL). The subsumption is a documented skos:scopeNote, not an axiom (the vantage-accordingTo precedent)." .
+
+# --- 18. determiningAuthority ⊑ vantage; determinationGrounds ⊑ groundedIn ----
+ex:saDeterminationSubProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:determiningAuthority a owl:ObjectProperty ; rdfs:subPropertyOf gmeow:vantage ; rdfs:range gmeow:Agent .
+    gmeow:determinationGrounds a owl:ObjectProperty ; rdfs:subPropertyOf gmeow:groundedIn .
+}""" ;
+    gmeow:saRationale "A gmeow:ContinuityDetermination is a subclass of Observation, so gmeow:determiningAuthority MAY be ⊑ gmeow:vantage (its vantage IS the authority) and gmeow:determinationGrounds ⊑ gmeow:groundedIn -- reusing the observation spine (INHABITED-IDENTITY.md decisional layer)." .
+
+# --- 19. eventTypeInhabitationTransition is a value, not an Event subclass -----
+ex:saInhabitationTransitionIsEventTypeValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeInhabitationTransition a gmeow:EventType . }""" ;
+    gmeow:saRationale "Migration MUST be carried by the open gmeow:eventType value pattern -- gmeow:eventTypeInhabitationTransition is a gmeow:EventType individual, NOT a new gmeow:Event subclass, matching the lifecycle birth/death/migration convention (INHABITED-TOPOLOGY.md)." .
+
+# --- 20. inhabitation-transition value is NOT declared an owl:Class (MUST-NOT)-
+ex:saInhabitationTransitionNotAClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:eventTypeInhabitationTransition a owl:Class }
+    UNION
+    { gmeow:eventTypeInhabitationTransition rdfs:subClassOf gmeow:Event }
+}""" ;
+    gmeow:saRationale "The transition value MUST NOT be an owl:Class or a subclass of gmeow:Event -- the design explicitly rejects a new Event subclass for a migration in favour of the value form (INHABITED-TOPOLOGY.md)." .
+
+# --- 21. tenureEndedBy links a TimeScopedRelation to an Event (MUST) ----------
+ex:saTenureEndedByShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:tenureEndedBy a owl:ObjectProperty ;
+        rdfs:domain gmeow:TimeScopedRelation ;
+        rdfs:range gmeow:Event .
+}""" ;
+    gmeow:saRationale "gmeow:tenureEndedBy MUST link a gmeow:TimeScopedRelation to a gmeow:Event -- the causal record of what ended a tenure, since a Situation cannot be closed by the endurant-domain gmeow:hasDestructionEvent (INHABITED-TOPOLOGY.md)." .
+
+# --- 22. No gmeow:primaryInhabitant term is declared (MUST-NOT) ---------------
+ex:saNoPrimaryInhabitant a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { { gmeow:primaryInhabitant ?p ?o } UNION { ?s gmeow:primaryInhabitant ?o } UNION { ?s ?p gmeow:primaryInhabitant } }""" ;
+    gmeow:saRationale "There MUST be no gmeow:primaryInhabitant -- precedence among co-tenants is resolved over recorded gmeow:ControlAssessments, never asserted as a privileged inhabitant (Principles 9, 12; INHABITED-TOPOLOGY.md)." .
+
+# --- 23. The module asserts no gufo:inheresIn (MUST-NOT) ----------------------
+ex:saNoGufoInheresIn a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gufo: <http://purl.org/nemo/gufo#>
+ASK { { ?s gufo:inheresIn ?o } UNION { ?x a gufo:inheresIn } }""" ;
+    gmeow:saRationale "The module MUST NOT use gufo:inheresIn -- role-fillers ride per-branch object properties (the awareness/teleology precedent), never a gufo inherence edge (INHABITED-TOPOLOGY.md)." .
+
+# --- 24. The module asserts no owl:sameAs (MUST-NOT) --------------------------
+ex:saNoOwlSameAs a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { ?s owl:sameAs ?o . }""" ;
+    gmeow:saRationale "The module MUST NOT assert owl:sameAs -- subject-continuity is a contestable gmeow:IdentityContinuityAssessment over distinct SubjectStages, never a numerical-identity collapse (INHABITED-IDENTITY.md, Principle 9)." .

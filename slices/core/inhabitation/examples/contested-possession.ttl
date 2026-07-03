@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The neutrality discipline (INHABITED-TRADITIONS.md): a CONTESTED inhabitation
+# is an UNASSERTED gmeow:InhabitationClaim, never a base-graph tenure. Directly
+# asserting gmeow:inhabitationSubject would put the relationship in the base
+# graph and (range gmeow:Agent) globally infer the lwa is an agent. Instead the
+# relationship is DESCRIBED through a gmeow:InhabitationDescription whose
+# gmeow:describedSubject / describedHost are RANGE-OPEN, so nothing is inferred
+# about the lwa's type. A secular frame's refutation is a coexisting claim with
+# gmeow:claimModality gmeow:refuted — both stances stand, none privileged (P9).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/> .
+
+ex:vodouStandpoint a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:secularStandpoint a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# --- The Vodou frame holds (unequivocally) that the lwa mounts the horse.
+#     The relationship is the OBSERVED FEATURE of a claim, not a base triple.
+ex:possession-claim a gmeow:InhabitationClaim ;
+    gmeow:vantage ex:vodouStandpoint ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;   # a StandpointClaim records its method
+    gmeow:claimModality gmeow:unequivocal ;
+    gmeow:observedFeature [ a gmeow:InhabitationDescription ;
+        gmeow:describedSubject ex:lwa-L ;        # range-open: NOT inferred to be a gmeow:Agent
+        gmeow:describedHost ex:horse-H ;
+        gmeow:describedLocusKind gmeow:locusVessel ] .
+
+# --- A secular frame REFUTES the same description — an explicit denial, not silence.
+ex:secular-refutation a gmeow:InhabitationClaim ;
+    gmeow:vantage ex:secularStandpoint ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:refuted ;
+    gmeow:observedFeature [ a gmeow:InhabitationDescription ;
+        gmeow:describedSubject ex:lwa-L ;
+        gmeow:describedHost ex:horse-H ;
+        gmeow:describedLocusKind gmeow:locusVessel ] .
+
+# Nothing in the base graph asserts ex:lwa-L a gmeow:Agent, nor an
+# gmeow:InhabitationTenure between the lwa and the horse. The metaphysics stays
+# unasserted; the claim layer carries the contest.
