@@ -58,3 +58,64 @@ ASK {
         rdfs:range gmeow:Emotion .
 }""" ;
     gmeow:saRationale "gmeow:elicits is the trigger-to-emotion inverse of gmeow:affectiveElicitor (the emotion-to-trigger cause property); asserting the elicitor from the emotion side lets the trigger-rooted reading follow by inversion, mirroring the gmeow:partOf / gmeow:hasPart convention." .
+
+# ── The occurrent (feeling) branch ────────────────────────────────────────────
+# These are module-scoped (affect-local) facts; the cross-module transitive
+# mode/experience cut (Experience ⊑ MentalProcess lives in mentation) is verified
+# over the merged graph by the ex:cqModeExperienceCut competency ASK.
+
+ex:saAffectiveExperienceIsOccurrent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AffectiveExperience a owl:Class , logic:Event ;
+        rdfs:subClassOf gmeow:Experience .
+}""" ;
+    gmeow:saRationale "gmeow:AffectiveExperience MUST be an OCCURRENT (logic:Event owl:Class) grafted under mentation's gmeow:Experience — the perdurant felt episode, the opposite stereotype from the endurant gmeow:Emotion mode it realizes." .
+
+ex:saAffectiveExperiencePinsProcessType a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AffectiveExperience rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty gmeow:mentalProcessType ;
+        owl:hasValue gmeow:processAffectiveExperience ] .
+}""" ;
+    gmeow:saRationale "The kind is pinned as a VALUE, not a subclass (the gmeow:DreamReport idiom, Principle 9): every gmeow:AffectiveExperience carries gmeow:mentalProcessType gmeow:processAffectiveExperience via an owl:hasValue restriction — a restriction-pinned handle, not over-typing." .
+
+ex:saProcessAffectiveExperienceIsMentalProcessType a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:processAffectiveExperience a gmeow:MentalProcessType . }""" ;
+    gmeow:saRationale "gmeow:processAffectiveExperience MUST be a gmeow:MentalProcessType individual — a value extending mentation's process-type vocabulary from the affect slice (the gmeow:EventType idiom), never a subclass of gmeow:MentalProcess." .
+
+ex:saFeltAffectRefinesRealizes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:feltAffect a owl:ObjectProperty ;
+        rdfs:subPropertyOf gmeow:realizesMentalMoment ;
+        rdfs:domain gmeow:AffectiveExperience ;
+        rdfs:range gmeow:AffectiveMoment .
+}""" ;
+    gmeow:saRationale "gmeow:feltAffect MUST be the affect-scoped refinement of mentation's gmeow:realizesMentalMoment (domain narrowed to gmeow:AffectiveExperience, range to the endurant gmeow:AffectiveMoment mode) — the discoverable feeling bridge, mirroring gmeow:appraisalOf ⊑ gmeow:observedFeature." .
+
+ex:saFeltAffectNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:feltAffect a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:feltAffect MUST NOT be functional — one felt episode may manifest several coexisting affective modes (a blended feeling), inheriting the non-functional character of gmeow:realizesMentalMoment." .
