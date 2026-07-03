@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use crate::registry::StageRegistry;
 
+pub mod agreement;
 pub mod apache;
 pub mod bench;
 pub mod catalog;
