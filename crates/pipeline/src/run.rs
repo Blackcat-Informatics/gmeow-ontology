@@ -254,11 +254,18 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-apache",
             "stage-export-bench",
             "stage-export-evals",
+            // The generated shape surfaces (P11 frame shapes + the ResultShape SHACL
+            // projection): REP_SHAPES folds THESE runs' fresh bytes, never a stale
+            // disk read (the same freshness rule as validation-shapes.ttl) — without
+            // these edges a competency/frame-shape edit could never reach the bundle,
+            // and the fanout would rewrite the stale committed bytes forever.
+            "stage-export-frame-shapes",
             "stage-export-json-schema",
             "stage-export-matrix",
             "stage-export-metadata",
             "stage-export-references",
             "stage-export-research-objects",
+            "stage-export-result-shapes",
             "stage-mappings",
             "stage-reason",
             "stage-snapshot",
