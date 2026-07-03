@@ -1,0 +1,20 @@
+# Competency question: is a tagging act fully auditable — who tagged what with
+# which tag, under which scheme, with what confidence, over which period?
+# Verifies the whole relator promise over the overlay: the reified gmeow:Tagging
+# binds tagged x tag x tagger, names its scheme, and carries confidence and a
+# first-class time interval. Asserted lane; the gmeow:cqDataFile overlay supplies
+# the contested-tagging scene.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+ASK {
+    ?act a gmeow:Tagging ;
+        gmeow:taggingTagged  ?resource ;
+        gmeow:taggingTag     ?tag ;
+        gmeow:taggingTagger  ?tagger ;
+        gmeow:taggingScheme  ?scheme ;
+        gmeow:confidence     ?confidence ;
+        gmeow:taggingInterval ?interval .
+    ?interval a gmeow:TimeInterval ;
+        gmeow:startedAtTime ?start .
+}

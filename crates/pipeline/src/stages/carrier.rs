@@ -110,22 +110,29 @@ pub(crate) fn serialize_carrier_snapshot(
         .get("stage-mappings")
         .ok_or_else(|| stage_err("missing stage-mappings product"))?
         .artifacts();
-    // THIS run's result-shapes surface (folded into REP_SHAPES), from the
-    // stage-export-result-shapes product so the archive never lags a competency
-    // ResultShape edit: the committed generated/shapes/result-shapes.ttl is not flushed
-    // until phase 1 returns, so a disk read in build_archive_blobs would tar the stale
-    // committed file. Sourced from the product exactly as schemas / axioms / mappings are.
-    let result_shapes_artifacts = upstream
+    // THIS run's generated shape surfaces (REP_SHAPES members), from the producing
+    // export leaves' products so the archive never lags a competency/frame edit:
+    // the committed generated/shapes/*.ttl are projected back from the bundle by the
+    // fanout, so a stale disk read here would freeze them forever (the exact trap the
+    // validation-shapes.ttl override documents). Hard-fail if absent (no-optionality).
+    let result_shapes_ttl = upstream
         .get("stage-export-result-shapes")
-        .ok_or_else(|| stage_err("missing stage-export-result-shapes product"))?
-        .artifacts();
+        .and_then(|p| p.artifact(crate::stages::result_shapes::RESULT_SHAPES_PATH))
+        .ok_or_else(|| stage_err("missing stage-export-result-shapes result-shapes.ttl artifact"))?
+        .to_vec();
+    let frame_shapes_ttl = upstream
+        .get("stage-export-frame-shapes")
+        .and_then(|p| p.artifact(crate::stages::frame_shapes::FRAME_SHAPES_PATH))
+        .ok_or_else(|| stage_err("missing stage-export-frame-shapes frame-shapes.ttl artifact"))?
+        .to_vec();
     let mut blobs = build_archive_blobs(
         root,
         &schema_json,
         &openapi_json,
         &compile_artifacts,
         &mappings_artifacts,
-        &result_shapes_artifacts,
+        &result_shapes_ttl,
+        &frame_shapes_ttl,
     )?;
     blobs.extend(build_guide_blobs(root)?);
     // The rendered docs site embeds the per-term reasoning badge, so it carries the
@@ -823,7 +830,8 @@ fn build_archive_blobs(
     openapi_json: &[u8],
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
-    result_shapes_artifacts: &BTreeMap<String, Vec<u8>>,
+    result_shapes_ttl: &[u8],
+    frame_shapes_ttl: &[u8],
 ) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
@@ -908,28 +916,28 @@ fn build_archive_blobs(
     } else {
         shapes.push((rel, fresh.clone()));
     }
-    // result-shapes.ttl is a `stage-export-result-shapes` PRODUCT (the SHACL projection of
-    // the competency ResultShape declarations), so override its stale on-disk read with the
-    // fresh product bytes for the SAME reason validation-shapes.ttl does above: otherwise the
-    // archive/fanout carry the last-committed file, and a competency ResultShape edit could
-    // never reach the bundle without a manual disk write (the committed generated/shapes/
-    // result-shapes.ttl is not flushed until phase 1 returns, so a disk read here tars the
-    // stale set). The fresh product MUST exist (the export leaf always emits it) — falling
-    // back to the stale on-disk read is exactly the failure this override prevents, so
-    // hard-fail rather than silently carry last-committed bytes (no-optionality, fail-closed).
-    let rs_rel = crate::stages::result_shapes::RESULT_SHAPES_PATH.to_string();
-    let rs_fresh = result_shapes_artifacts
-        .get(crate::stages::result_shapes::RESULT_SHAPES_PATH)
-        .ok_or_else(|| {
-            stage_err(
-                "carrier: stage-export-result-shapes produced no result-shapes.ttl product; \
-                 refusing to carry a stale on-disk read",
-            )
-        })?;
-    if let Some(entry) = shapes.iter_mut().find(|(k, _)| *k == rs_rel) {
-        entry.1 = rs_fresh.clone();
-    } else {
-        shapes.push((rs_rel, rs_fresh.clone()));
+    // The generated ResultShape SHACL projection and the P11 frame shapes are the
+    // OTHER two generated/shapes/*.ttl members, and they need the identical override:
+    // both are products of source-reading export leaves whose committed files are
+    // projected back from the bundle by the fanout, so carrying the disk read would
+    // freeze the committed bytes forever (a new competency ResultShape could never
+    // land). Fresh product bytes are passed in from the snapshot's consumed products;
+    // absence hard-fails at the call site (no-optionality, fail-closed).
+    for (rel, fresh_bytes) in [
+        (
+            crate::stages::result_shapes::RESULT_SHAPES_PATH,
+            result_shapes_ttl,
+        ),
+        (
+            crate::stages::frame_shapes::FRAME_SHAPES_PATH,
+            frame_shapes_ttl,
+        ),
+    ] {
+        if let Some(entry) = shapes.iter_mut().find(|(k, _)| k == rel) {
+            entry.1 = fresh_bytes.to_vec();
+        } else {
+            shapes.push((rel.to_string(), fresh_bytes.to_vec()));
+        }
     }
     shapes.sort_by(|a, b| a.0.cmp(&b.0));
     // axioms: the compiled logic/DL projection surface, member = repo-relative path.
@@ -2070,7 +2078,12 @@ impl Stage for SnapshotStage {
         // off those products instead of re-rendering from disk (§3.2 transform-once).
         // v18 additionally consumes stage-constraint-catalog and folds its generated
         // `.nq` as the graph/fanout/catalog/constraint-catalog.nq named graph.
-        "snapshot.v18-constraint-catalog-fanout-presenter"
+        // v19 sources REP_SHAPES' generated members (result-shapes.ttl +
+        // frame-shapes.ttl) from the consumed export-leaf products instead of the
+        // stale disk read, matching the validation-shapes.ttl freshness rule — a
+        // new competency ResultShape now reaches the bundle (and the fanout) in one
+        // regenerate.
+        "snapshot.v19-fresh-generated-shape-surfaces"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -3267,16 +3280,19 @@ mod ustar_tests {
         out
     }
 
-    // Mirror the production stage-export-result-shapes product from the committed file, so
-    // build_archive_blobs's fail-closed override finds the required result-shapes.ttl bytes.
-    fn result_shapes_artifacts_from_disk(root: &Path) -> BTreeMap<String, Vec<u8>> {
+    /// The committed ResultShape SHACL projection — the stand-in for the
+    /// stage-export-result-shapes product in blob-archive unit tests (production
+    /// sources these from the in-memory product).
+    fn fresh_result_shapes_from_disk(root: &Path) -> Vec<u8> {
         let rel = crate::stages::result_shapes::RESULT_SHAPES_PATH;
-        let mut out = BTreeMap::new();
-        out.insert(
-            rel.to_string(),
-            std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
-        );
-        out
+        std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}"))
+    }
+
+    /// The committed P11 frame shapes — the stand-in for the
+    /// stage-export-frame-shapes product in blob-archive unit tests.
+    fn fresh_frame_shapes_from_disk(root: &Path) -> Vec<u8> {
+        let rel = crate::stages::frame_shapes::FRAME_SHAPES_PATH;
+        std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}"))
     }
 
     #[test]
@@ -3361,16 +3377,14 @@ mod ustar_tests {
             vs_rel.to_string(),
             std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
         );
-        // The result-shapes.ttl product is required (fail-closed): mirror the committed file,
-        // as the production stage-export-result-shapes always emits it.
-        let result_shapes_artifacts = result_shapes_artifacts_from_disk(&root);
         let blobs = build_archive_blobs(
             &root,
             b"",
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &result_shapes_artifacts,
+            &fresh_result_shapes_from_disk(&root),
+            &fresh_frame_shapes_from_disk(&root),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3461,14 +3475,14 @@ mod ustar_tests {
             vs_rel.to_string(),
             std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
         );
-        let result_shapes_artifacts = result_shapes_artifacts_from_disk(&root);
         let blobs = build_archive_blobs(
             &root,
             b"",
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &result_shapes_artifacts,
+            &fresh_result_shapes_from_disk(&root),
+            &fresh_frame_shapes_from_disk(&root),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3500,7 +3514,8 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &result_shapes_artifacts,
+            &fresh_result_shapes_from_disk(&root),
+            &fresh_frame_shapes_from_disk(&root),
         )
         .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();

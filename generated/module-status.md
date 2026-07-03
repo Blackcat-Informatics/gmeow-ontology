@@ -79,7 +79,7 @@ Tier-2 uplift backlog.
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 3/3 | full |
 | standpoint | core | core | 3 | 11 | 22 | 0 | 1 | 23/33 | full |
-| tags | core | core | 2 | 3 | 11 | 0 | 1 | 14/14 | full |
+| tags | core | core | 2 | 3 | 11 | 0 | 2 | 14/14 | full |
 | teleology | core | core | 3 | 7 | 10 | 0 | 1 | 17/17 | full |
 | temporal | core | core | 2 | 11 | 41 | 0 | 1 | 48/52 | full |
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
