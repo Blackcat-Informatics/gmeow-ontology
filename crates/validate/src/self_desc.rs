@@ -91,7 +91,7 @@ pub struct Contributor {
 impl Contributor {
     /// The given name(s) of a person — everything but the final token.
     pub fn given_name(&self) -> String {
-        match self.name.rsplit_once(' ') {
+        match self.name.trim().rsplit_once(' ') {
             Some((head, _)) => head.to_string(),
             None => String::new(),
         }
@@ -99,9 +99,10 @@ impl Contributor {
 
     /// The surname of a person — the final whitespace-delimited token.
     pub fn surname(&self) -> String {
-        match self.name.rsplit_once(' ') {
+        let trimmed = self.name.trim();
+        match trimmed.rsplit_once(' ') {
             Some((_, tail)) => tail.to_string(),
-            None => self.name.clone(),
+            None => trimmed.to_string(),
         }
     }
 }
