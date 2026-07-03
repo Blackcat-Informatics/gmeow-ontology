@@ -85,7 +85,7 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
     // Shapes discovered by running the test with --nocapture:
     //   disjointness: shacl.SPARQLConstraintComponent + IdentityAxisDisjointnessConstraintShape
     //     (the P17 projection of gmeow:identityAxisDisjointness in constraint-shapes.ttl,
-    //      #742 — the former hand-authored IdentityAxisOrthogonalityShape was migrated to logic:)
+    //      the former hand-authored IdentityAxisOrthogonalityShape was migrated to logic:)
     //   commitment:   shacl.MinCountConstraintComponent + CommitmentShape
     //   frame:        shacl.MinCountConstraintComponent + EventFrameRequirementShape (Warning)
     const IDENTITY_SHAPE: &str = "IdentityAxisDisjointnessConstraintShape";
