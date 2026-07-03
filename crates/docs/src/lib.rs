@@ -46,7 +46,8 @@ pub use model::{
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{
-    render_site, render_site_lang, render_site_lang_exec, to_html, to_markdown, Page, Site,
+    okf_doc_reference, render_site, render_site_lang, render_site_lang_exec, to_html, to_markdown,
+    Page, Site,
 };
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.docs` submodule (#630).
