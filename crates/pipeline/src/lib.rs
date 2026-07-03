@@ -31,6 +31,7 @@
 pub mod bundle;
 pub mod bundle_blobs;
 pub mod cache;
+pub mod cli_ops;
 pub mod error;
 pub mod fanout;
 pub(crate) mod gmeow_ns;
