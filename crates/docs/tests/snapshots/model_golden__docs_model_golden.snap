@@ -5,9 +5,9 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "7",
-  "slice_count": 75,
+  "slice_count": 76,
   "term_count": 2335,
-  "dependency_edge_count": 849,
+  "dependency_edge_count": 853,
   "term_count_by_category": {
     "Class": 705,
     "Datatype": 1,
@@ -61,6 +61,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/lexicon",
     "https://blackcatinformatics.ca/gmeow/slices/lifecycle",
     "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/math",
     "https://blackcatinformatics.ca/gmeow/slices/mentation",
     "https://blackcatinformatics.ca/gmeow/slices/metacognition",
     "https://blackcatinformatics.ca/gmeow/slices/music",
@@ -293,11 +294,11 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 71,
-  "linkage_count": 1810,
-  "example_count": 115,
+  "mapping_set_count": 72,
+  "linkage_count": 1821,
+  "example_count": 116,
   "concern_count": 7,
-  "external_term_count": 1554,
+  "external_term_count": 1565,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -416,7 +417,7 @@ expression: summary
     ]
   },
   "shape_count": 299,
-  "competency_count": 63,
+  "competency_count": 68,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
