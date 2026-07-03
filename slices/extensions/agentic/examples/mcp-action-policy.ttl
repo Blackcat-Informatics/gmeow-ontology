@@ -5,7 +5,7 @@
 # canonical-process action theory.
 #
 # These are the three tools the production memory MCP server actually exposes
-# (src/gmeow_tools/mcp_server.py): `store_claim` (writes a reified claim to memory),
+# (crates/pipeline/src/mcp.rs): `store_claim` (writes a reified claim to memory),
 # `revise_belief` (SUPPRESSES a claim — P10 suppression-not-erasure, the recovery /
 # rollback action), and `recall` (the read path, which records nothing). This file
 # models each tool as a logic:ActionSchema and brings the two WRITE tools under the
