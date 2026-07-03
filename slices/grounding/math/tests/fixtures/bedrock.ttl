@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Shared ABox fixture for the mathematics bedrock competency questions. Unioned onto
+# the merged ontology by gmeow:cqDataFile; each query projects its own slice.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix wd:    <http://www.wikidata.org/entity/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+# Q1 — numbers situated in systems, with exactness.
+ex:half a math:RationalNumber ;
+    math:inNumberSystem math:rationalNumbers ;
+    math:isExact true .
+ex:negFive a math:Integer ;
+    math:inNumberSystem math:integers ;
+    math:isExact true .
+
+# Q2 — an intensional set whose condition denotes a logic: formula.
+ex:evenNumbers a math:SetBuilderExpression ;
+    math:memberCondition ex:evenFormula .
+ex:evenFormula a logic:Formula ;
+    rdfs:label "x mod 2 = 0"@x-gmeow-english .
+
+# Q3 — a function with domain, codomain, image, and inj/surj/bij flags.
+ex:successor a math:Function ;
+    math:domain ex:naturalsSet ;
+    math:codomain ex:naturalsSet ;
+    math:image ex:positivesSet ;
+    math:isInjective true ;
+    math:isSurjective false ;
+    math:isBijective false .
+ex:naturalsSet a math:Set .
+ex:positivesSet a math:Set .
+
+# Q4 — sets with cardinalities (finite and countably infinite).
+ex:primesUnderTen a math:FiniteSet ;
+    math:hasCardinality math:cardinalityFinite .
+ex:allNaturals a math:Set ;
+    math:hasCardinality math:alephNull .
+
+# Q5 — a named constant carrying a queryable Wikidata anchor.
+ex:eqPiAnchor a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:pi ;
+    gmeow:alignObject wd:Q167 .

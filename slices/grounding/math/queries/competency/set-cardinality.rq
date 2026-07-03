@@ -1,0 +1,9 @@
+# Competency question: "What is the cardinality of each set?"  This exercises the
+# cardinality vocabulary — finite counts, ℵ₀, and the continuum. Over the fixture the
+# answer is {primesUnderTen → finite, allNaturals → ℵ₀}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?set ?cardinality WHERE {
+    ?set math:hasCardinality ?cardinality .
+}
+ORDER BY ?set
