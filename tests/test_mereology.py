@@ -4,9 +4,9 @@ The OWL 2 RL propagation tests that used to live here — specialized-part relat
 entailing generic parthood, ``memberOf`` propagating through ``subOrganizationOf``,
 event location propagating through spatial containment — were migrated to the
 native Rust reasoning harness (``crates/logic/tests/ontology_entailments.rs``)
-under issue #896. What remains are the **structural** checks: they run over the
-ASSERTED merged graph (no reasoning closure), pinning the shape of the partOf /
-hasPart spine and its sub-properties. See ``dsl/tests/MIGRATION-LEDGER.md``.
+under issue #896. What remains are the **structural** checks for per-slice
+part-like relations and no-winner/cardinality terms; the universal spine
+invariants now live in `slices/core/kernel/tests/structural.ttl`.
 """
 
 from __future__ import annotations
@@ -22,17 +22,9 @@ def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
 
 
-def test_universal_part_properties_are_broad_transitive_inverses() -> None:
-    g = _graph()
-    for prop in (GM.partOf, GM.hasPart):
-        assert (prop, RDF.type, OWL.ObjectProperty) in g
-        assert (prop, RDF.type, OWL.TransitiveProperty) in g
-        assert (prop, RDF.type, OWL.FunctionalProperty) not in g
-        assert not list(g.objects(prop, RDFS.domain))
-        assert not list(g.objects(prop, RDFS.range))
-
-    assert (GM.partOf, OWL.inverseOf, GM.hasPart) in g
-    assert (GM.hasPart, OWL.inverseOf, GM.partOf) in g
+# --------------------------------------------------------------------------- #
+# Per-slice part-like relations (Task 8)
+# --------------------------------------------------------------------------- #
 
 
 def test_existing_part_like_relations_specialize_the_spine() -> None:

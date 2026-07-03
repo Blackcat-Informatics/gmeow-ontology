@@ -260,3 +260,62 @@ ASK {
     )
 }""" ;
     gmeow:saRationale "No gmeow: term in the rights module MUST start with 'primary' or 'preferred' — Principle 9 forbids preferred/primary selector terms anywhere in the vocabulary (open-world, individuals-first doctrine). Mirrors test_no_preferred_or_primary_rights_term." .
+
+# =============================================================================
+# 18. Privacy-role cross-slice items (migrated from tests/test_privacy.py)
+#    These terms are declared in the rights slice, so the cells live here.
+# =============================================================================
+
+# --- 18.1 Privacy roles hasDataSubject / hasDataController are declared (MUST)
+ex:saPrivacyRolesDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasDataSubject a owl:ObjectProperty ;
+        rdfs:domain gmeow:RightsStatement ;
+        rdfs:range gmeow:Agent .
+    gmeow:hasDataController a owl:ObjectProperty ;
+        rdfs:domain gmeow:RightsStatement ;
+        rdfs:range gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:hasDataSubject and gmeow:hasDataController MUST each be an owl:ObjectProperty with rdfs:domain gmeow:RightsStatement and rdfs:range gmeow:Agent — the privacy-role pair names the data subject and controller for a consent/processing rights statement. Mirrors test_privacy_roles_declared in test_privacy.py." .
+
+# --- 18.2 PrivacyNotice is a subclass of InformationObject (MUST) ------------
+ex:saPrivacyNoticeIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:PrivacyNotice a owl:Class ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:PrivacyNotice MUST be an owl:Class that is a subclass of gmeow:InformationObject — a privacy notice is an information-object counterpart of a policy. Mirrors test_privacy_notice_is_information_object." .
+
+# --- 18.3 hasPrivacyNotice is domain-free with range PrivacyNotice (MUST) ----
+ex:saHasPrivacyNoticeIsDomainFree a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasPrivacyNotice a owl:ObjectProperty ;
+        rdfs:range gmeow:PrivacyNotice .
+    FILTER NOT EXISTS { gmeow:hasPrivacyNotice rdfs:domain ?d }
+}""" ;
+    gmeow:saRationale "gmeow:hasPrivacyNotice MUST be an owl:ObjectProperty with rdfs:range gmeow:PrivacyNotice and MUST be domain-free so it can attach a notice to a governed entity, a gmeow:License, or a gmeow:RightsStatement. Mirrors test_has_privacy_notice_is_domain_free." .
+
+# --- 18.4 actionProcessPersonalData is a RightsAction (MUST) -----------------
+ex:saActionProcessPersonalDataIsRightsAction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:actionProcessPersonalData a gmeow:RightsAction .
+}""" ;
+    gmeow:saRationale "gmeow:actionProcessPersonalData MUST be a gmeow:RightsAction individual — the regulated action for personal-data processing rules. Mirrors test_action_process_personal_data_is_rights_action." .

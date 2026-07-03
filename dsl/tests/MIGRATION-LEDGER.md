@@ -1209,6 +1209,55 @@ never by guessing.
 green; the harness auto-discovers each new `competency.ttl` (no harness wiring
 change beyond the Task-1 `cqDataFile` addition).
 
+## `slices/core/kernel`
+
+Kernel-axis invariants migrated under issue #1120 (Task 2). The kernel module owns
+Determinacy, SensitivityLevel, GranularityLevel, ProjectionContext, DisclosurePolicy,
+and the universal part/whole spine (`partOf` / `hasPart`).
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_determinacy_class_structure` | `tests/test_determinacy.py` | `ex:saDeterminacyClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_determinacy_property_structure` | `tests/test_determinacy.py` | `ex:saHasDeterminacyProperty` + `ex:saHasDeterminacyNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_determinacy_model_preserved` | `tests/test_determinacy.py` | `ex:saDeterminacyModelProperty` | StructuralAssertion | converted | `gmeow:determinacyModel` is declared in `slices/core/places`, so its structural cell lives there, not in kernel. | `make slicetest` |
+| `test_value_vocab_spans_five_seeds` | `tests/test_determinacy.py` | `ex:saDeterminacySeedsTyped` + `ex:saDeterminacyNoSixthMember` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_determinacy_confidence_orthogonal` | `tests/test_determinacy.py` | `ex:saDeterminacyConfidenceOrthogonal` | StructuralAssertion | converted | `gmeow:confidence` is declared in `slices/core/epistemics`; the module-scoped mustNot cell catches any forbidden edge in the kernel module. The merged-graph guarantee stays in pytest. | `make slicetest` + pytest |
+| `test_has_determinacy_determinacy_model_distinct` | `tests/test_determinacy.py` | `ex:saHasDeterminacyDeterminacyModelDistinct` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_projection_context_class_structure` | `tests/test_disclosure.py` | `ex:saProjectionContextClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_disclosure_policy_class_structure` | `tests/test_disclosure.py` | `ex:saDisclosurePolicyClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_eligible_for_consumer_property_structure` | `tests/test_disclosure.py` | `ex:saEligibleForConsumerProperty` + `ex:saEligibleForConsumerNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_disclosure_policy_property_structure` | `tests/test_disclosure.py` | `ex:saHasDisclosurePolicyProperty` + `ex:saHasDisclosurePolicyNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_projection_context_seeds_declared` | `tests/test_disclosure.py` | `ex:saProjectionContextSeedsDeclared` + `ex:saProjectionContextNoTenthMember` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_disclosure_policy_seeds_declared` | `tests/test_disclosure.py` | `ex:saDisclosurePolicySeedsDeclared` + `ex:saDisclosurePolicyNoSeventhMember` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_disclosure_orthogonal_to_other_axes` | `tests/test_disclosure.py` | `ex:saDisclosureOrthogonalToOtherAxes` | StructuralAssertion | converted | `gmeow:confidence` is cross-slice; the merged-graph guarantee stays in pytest. | `make slicetest` + pytest |
+| `test_disclosure_orthogonal_to_granularity` | `tests/test_disclosure.py` | `ex:saDisclosureOrthogonalToGranularity` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_sensitivity_level_class_structure` | `tests/test_privacy.py` | `ex:saSensitivityLevelClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_sensitivity_property_structure` | `tests/test_privacy.py` | `ex:saHasSensitivityProperty` + `ex:saHasSensitivityNotFunctionalOrDomained` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_value_vocab_spans_five_seeds` | `tests/test_privacy.py` | `ex:saSensitivitySeedsTyped` + `ex:saSensitivityNoSixthMember` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_sensitivity_orthogonal_to_other_axes` | `tests/test_privacy.py` | `ex:saSensitivityOrthogonalToOtherAxes` | StructuralAssertion | converted | `gmeow:confidence` is cross-slice; the merged-graph guarantee stays in pytest. | `make slicetest` + pytest |
+| `test_sensitivity_orthogonal_to_granularity` | `tests/test_privacy.py` | `ex:saSensitivityOrthogonalToGranularity` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | `ex:saUniversalPartPropertiesAreBroadTransitiveInverses` + `ex:saUniversalPartPropertiesNotFunctionalOrTyped` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_preferred_or_primary_term_is_declared` | `tests/test_determinacy.py` | — | — | **retained** | scans the merged graph for any `gmeow:` term starting with `primary`/`preferred`; module-scoped ASK cannot express a cross-module vocabulary-wide absence. | pytest |
+
+**Kernel tally:** 20 converted (25 cells across 20 pytest functions), 1 retained-with-reason (cross-module no-preferred/primary sweep). Source files trimmed, not deleted: `tests/test_determinacy.py`, `tests/test_disclosure.py`, `tests/test_privacy.py`, `tests/test_mereology.py`.
+
+## `slices/core/rights`
+
+Privacy-role cross-slice items migrated under issue #1120 (Task 2). Although the
+original assertions lived in `tests/test_privacy.py`, the terms they assert on
+(`PrivacyNotice`, `hasPrivacyNotice`, `hasDataSubject`, `hasDataController`,
+`actionProcessPersonalData`) are declared in the rights slice, so the cells live
+in `slices/core/rights/tests/structural.ttl`.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_privacy_roles_declared` | `tests/test_privacy.py` | `ex:saPrivacyRolesDeclared` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_privacy_notice_is_information_object` | `tests/test_privacy.py` | `ex:saPrivacyNoticeIsInformationObject` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_privacy_notice_is_domain_free` | `tests/test_privacy.py` | `ex:saHasPrivacyNoticeIsDomainFree` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_action_process_personal_data_is_rights_action` | `tests/test_privacy.py` | `ex:saActionProcessPersonalDataIsRightsAction` | StructuralAssertion | converted | — | `make slicetest` |
+
+**Rights tally (privacy-role part):** 4 converted (4 cells across 4 pytest functions).
+
 ## Notes / known limitations
 
 - **Competency reasoning cost.** The competency lane defaults to the *asserted*
