@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The shared [llmstxt.org](https://llmstxt.org) skeleton emitter (#1027).
+//! The shared [llmstxt.org](https://llmstxt.org) skeleton emitter.
 //!
 //! Three surfaces emit an `llms.txt`-family document — the docs site index
 //! ([`crate::render::llms_txt`]), the live MCP consumer index, and the flat
-//! `dist/llms.txt` export. Before #1027 these were three independently-written
+//! `dist/llms.txt` export. These were previously three independently-written
 //! renderers that had silently diverged (`⊑` vs `subClassOf`, `→` vs `->`, a
 //! three-line header vs a blockquote). This module is the ONE source of truth for
 //! the format so they cannot diverge again: each surface builds a neutral list of
@@ -16,7 +16,7 @@
 
 /// The canonical one-paragraph vocabulary summary — the `llms.txt` blockquote
 /// body WITHOUT the leading `> `. The single source of truth shared by every
-/// `llms.txt`-family surface (was duplicated in three renderers before #1027).
+/// `llms.txt`-family surface (was previously duplicated in three renderers).
 pub const GMEOW_SUMMARY: &str = "A reasoning-centric, OWL 2 DL, gUFO-grounded super-vocabulary that unifies a person's or organization's digital existence (entities, contacts, email, trust/keys, time) and aligns it to schema.org, FOAF, PROV, the WOT schema, Wikidata, and more.";
 
 /// The maximum number of characters of a bullet note in the link-INDEX form

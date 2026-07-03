@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The concrete production stages (#861).
+//! The concrete production stages.
 //!
 //! Each stage implements [`crate::node::Stage`] and registers into the
 //! `STAGE_REGISTRY` (see [`crate::registry`]). Stages are re-cut for in-memory

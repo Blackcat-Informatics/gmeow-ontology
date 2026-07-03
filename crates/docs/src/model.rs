@@ -74,7 +74,7 @@ const GMEOW_AVOID_FOR_CONSUMER: &str = "https://blackcatinformatics.ca/gmeow/avo
 
 const GMEOW_DOCS_CONCERN: &str = "https://blackcatinformatics.ca/gmeow/docsConcern";
 
-// ── Guides-slice predicates / classes (recipes + learning paths, #853 T3b) ─────
+// ── Guides-slice predicates / classes (recipes + learning paths) ───────────────
 
 const GMEOW_RECIPE: &str = "https://blackcatinformatics.ca/gmeow/Recipe";
 const GMEOW_LEARNING_PATH: &str = "https://blackcatinformatics.ca/gmeow/LearningPath";
@@ -88,7 +88,7 @@ const GMEOW_INCLUDES_RECIPE: &str = "https://blackcatinformatics.ca/gmeow/includ
 const GMEOW_ADOPTION_TARGET: &str = "https://blackcatinformatics.ca/gmeow/adoptionTarget";
 const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/followsGuidePath";
 
-// ── Logic stereotypes + relational surfaces (#1020) ─────────────────────────────
+// ── Logic stereotypes + relational surfaces ─────────────────────────────────────
 
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it are surfaced as the term's logic stereotypes.
@@ -115,7 +115,7 @@ const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 const GMEOW_PAIRS_WITH: &str = "https://blackcatinformatics.ca/gmeow/pairsWith";
 const GMEOW_GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
 
-// ── Per-term lifecycle surface (#1026) ──────────────────────────────────────────
+// ── Per-term lifecycle surface ───────────────────────────────────────────────────
 const OWL_DEPRECATED: &str = "http://www.w3.org/2002/07/owl#deprecated";
 const GMEOW_TERM_STABILITY: &str = "https://blackcatinformatics.ca/gmeow/termStability";
 const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/addedInVersion";
@@ -127,19 +127,19 @@ const STABILITY_STABLE_CURIE: &str = "gmeow:stabilityStable";
 const STABILITY_EXPERIMENTAL_CURIE: &str = "gmeow:stabilityExperimental";
 const STABILITY_DEPRECATED_CURIE: &str = "gmeow:stabilityDeprecated";
 /// The name of the everything-aggregation profile (root + every extension);
-/// every documented term belongs to it (#330 `full.ttl`).
+/// every documented term belongs to it (`full.ttl`).
 const FULL_PROFILE_NAME: &str = "full";
 const GMEOW_WORK: &str = "https://blackcatinformatics.ca/gmeow/Work";
 const DCTERMS_IDENTIFIER: &str = "http://purl.org/dc/terms/identifier";
 
-// ── SHACL constraint surface (#1020) ────────────────────────────────────────────
+// ── SHACL constraint surface ─────────────────────────────────────────────────────
 
 const SH_TARGET_CLASS: &str = "http://www.w3.org/ns/shacl#targetClass";
 const SH_TARGET_SUBJECTS_OF: &str = "http://www.w3.org/ns/shacl#targetSubjectsOf";
 const SH_TARGET_OBJECTS_OF: &str = "http://www.w3.org/ns/shacl#targetObjectsOf";
 const SH_MESSAGE: &str = "http://www.w3.org/ns/shacl#message";
 
-// ── Competency-question surface (#1020) ─────────────────────────────────────────
+// ── Competency-question surface ──────────────────────────────────────────────────
 
 const GMEOW_COMPETENCY_QUESTION: &str = "https://blackcatinformatics.ca/gmeow/CompetencyQuestion";
 const GMEOW_CQ_RATIONALE: &str = "https://blackcatinformatics.ca/gmeow/cqRationale";
@@ -256,11 +256,11 @@ pub struct DocSlice {
     /// `gmeow:sliceConsumer` values.
     pub consumers: Vec<String>,
     /// `gmeow:sliceProfile` values — named profiles this slice declares
-    /// membership in (sorted). Drives per-term profile chips (#1026).
+    /// membership in (sorted). Drives per-term profile chips.
     pub profiles: Vec<String>,
     /// `gmeow:sliceDependsOn` slice IRIs (sorted). The relation whose closure
-    /// over a profile's declared members yields the profile's full membership
-    /// (#330); reused to compute per-term profile membership (#1026).
+    /// over a profile's declared members yields the profile's full membership;
+    /// reused to compute per-term profile membership.
     pub depends_on: Vec<String>,
     /// All artifacts in the slice (sorted by logical path).
     pub artifacts: Vec<DocArtifact>,
@@ -312,7 +312,7 @@ impl DocSlice {
     }
 }
 
-/// The maturity status of a vocabulary term (#1026). Serializes as a lowercase
+/// The maturity status of a vocabulary term. Serializes as a lowercase
 /// string (`stable` / `experimental` / `deprecated`). Resolved from an explicit
 /// `gmeow:termStability` annotation, else `owl:deprecated`, else the owner
 /// slice's tier (core → stable, extension → experimental).
@@ -339,7 +339,7 @@ impl DocTermStability {
     }
 }
 
-/// One reified per-release changelog entry for a term (#1026). Ordered by
+/// One reified per-release changelog entry for a term. Ordered by
 /// `(version, note)` for deterministic rendering.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub struct DocChangelogEntry {
@@ -404,17 +404,17 @@ pub struct DocTerm {
     pub box_role: Option<String>,
     /// `gmeow:graphBoxRole` — ALL asserted four-boxes role CURIEs (sorted/deduped).
     /// The full set, mirroring the folded snapshot's `Term::box_roles`, so the
-    /// shared term card (#1027) carries every box role, not just the first.
+    /// shared term card carries every box role, not just the first.
     pub box_roles: Vec<String>,
     /// Reverse `logic:formalizes` back-references: the IRIs of logic axioms /
     /// subjects that declare `logic:formalizes <this term>` (sorted/deduped).
     /// Empty until the central logic slice carries such back-refs.
     pub formalized_by: Vec<String>,
-    /// The term's maturity badge (#1026), always resolved: explicit
+    /// The term's maturity badge, always resolved: explicit
     /// `gmeow:termStability` > `owl:deprecated` > owner-slice tier default.
     pub stability: DocTermStability,
     /// `gmeow:addedInVersion` — the release a term first appeared in (the
-    /// lowest-sorted literal when multiply asserted); `None` until seeded (#1026).
+    /// lowest-sorted literal when multiply asserted); `None` until seeded.
     pub added_in_version: Option<String>,
     /// `gmeow:hasChangelogEntry` — reified per-release change records, sorted by
     /// `(version, note)`. Unions the authored changelog with the computed changelog
@@ -427,7 +427,7 @@ pub struct DocTerm {
     /// applied.
     pub content_digest: String,
     /// The named profiles whose membership closure includes this term's owner
-    /// slice, plus the always-present `full` aggregate (sorted/deduped, #1026).
+    /// slice, plus the always-present `full` aggregate (sorted/deduped).
     /// Computed in `from_catalog` from the slices' `sliceProfile` /
     /// `sliceDependsOn` declarations.
     pub profiles: Vec<String>,
@@ -667,7 +667,7 @@ pub struct DocsModel {
     pub four_boxes: Option<String>,
     /// The ontology's concept DOI (`dcterms:identifier` on the `gmeow:Work`
     /// subject of `<root>/metadata/gmeow-self.ttl`), read in `discover()`. Drives
-    /// the per-term citation block's "cite the ontology" line (#1026). `None`
+    /// the per-term citation block's "cite the ontology" line. `None`
     /// when the metadata file is absent.
     pub concept_doi: Option<String>,
     /// Available documentation languages: the English carrier (`"english"`)
@@ -860,11 +860,11 @@ impl DocsModel {
             }
         }
 
-        // ── Per-term profile membership (#1026) ─────────────────────────────
+        // ── Per-term profile membership ──────────────────────────────────────
         // A term belongs to a named profile P iff P's declared-member-plus-
         // sliceDependsOn closure contains the term's owner slice; every term
         // also belongs to `full` (root + every extension). This MIRRORS the
-        // pipeline `profiles` stage's closure (#330) from the same manifest
+        // pipeline `profiles` stage's closure from the same manifest
         // data, without touching that byte-identical stage.
         {
             // slice IRI → its sliceDependsOn list (for the closure walk).
@@ -1308,7 +1308,7 @@ fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError
 }
 
 /// Read the ontology's concept DOI from `<root>/metadata/gmeow-self.ttl`: the
-/// `dcterms:identifier` literal on the `gmeow:Work` subject (#1026). Returns
+/// `dcterms:identifier` literal on the `gmeow:Work` subject. Returns
 /// `None` if the file is absent, unparsable, or carries no Work DOI — the
 /// citation block degrades to the term-IRI permalink alone.
 fn read_concept_doi(root: &Path) -> Option<String> {
@@ -1361,7 +1361,7 @@ fn read_central_mapping_sets(root: &Path) -> Result<Vec<DocMappingSet>, DocsErro
 /// Parse Turtle bytes into the native [`Store`] query wrapper via the native
 /// codecs (the gmeow-gts codecs are lenient on GMEOW's `@x-gmeow-*` language
 /// tags). The store is kept for the term-extraction pattern queries; no oxigraph
-/// round-trip (EPIC #906).
+/// round-trip.
 pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
     Store::parse_turtle(bytes)
 }
@@ -1454,7 +1454,7 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
         box_roles.dedup();
         let box_role = box_roles.first().cloned();
 
-        // Per-term lifecycle (#1026): maturity badge (fully resolved with the
+        // Per-term lifecycle: maturity badge (fully resolved with the
         // owner-slice tier in hand), added-in version, and reified changelog.
         let stability = resolve_stability(store, &iri, tier);
         let added_in_version = first_literal(store, &iri, GMEOW_ADDED_IN_VERSION);
@@ -1498,7 +1498,7 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
     terms
 }
 
-/// Resolve a term's stability badge (#1026): an explicit `gmeow:termStability`
+/// Resolve a term's stability badge: an explicit `gmeow:termStability`
 /// annotation wins (the lowest-sorted CURIE when multiply asserted, a
 /// deterministic and conservative tiebreak); else `owl:deprecated true` →
 /// Deprecated; else the owner-slice tier default (extension → Experimental,
@@ -1529,7 +1529,7 @@ fn resolve_stability(store: &Store, iri: &str, tier: Option<&SliceTier>) -> DocT
     }
 }
 
-/// Extract a term's reified changelog entries (#1026): each
+/// Extract a term's reified changelog entries: each
 /// `?term gmeow:hasChangelogEntry ?entry` whose `?entry` carries a
 /// `gmeow:entryVersion` (required) and optional `gmeow:entryNote`. Sorted by
 /// `(version, note)`; oxigraph blank-node iteration order is not stable.
@@ -2291,7 +2291,7 @@ gmeow:hasOwner a owl:ObjectProperty ;
         assert!(extract_terms(&store, "s", None).is_empty());
     }
 
-    /// Stability derivation precedence (#1026): explicit `gmeow:termStability`
+    /// Stability derivation precedence: explicit `gmeow:termStability`
     /// wins; else `owl:deprecated`; else the owner-slice tier default.
     #[test]
     fn stability_resolves_by_precedence() {
@@ -2327,7 +2327,7 @@ gmeow:Explicit    a owl:Class ;
     }
 
     /// Reified changelog entries are parsed from blank nodes and sorted by
-    /// `(version, note)` (#1026); `addedInVersion` is the lowest literal.
+    /// `(version, note)`; `addedInVersion` is the lowest literal.
     #[test]
     fn changelog_entries_parse_and_sort() {
         let ttl = r#"

@@ -403,7 +403,7 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         "search-index.json".to_string(),
         search_index_json(model).into_bytes(),
     );
-    // Standard llmstxt.org surfaces (#1027): a links-only index and a complete
+    // Standard llmstxt.org surfaces: a links-only index and a complete
     // inlined form, both at the site root, superseding the ad-hoc `llms-docs.txt`.
     files.insert("llms.txt".to_string(), llms_txt(model).into_bytes());
     files.insert(
@@ -411,7 +411,7 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         llms_full_txt(model).into_bytes(),
     );
 
-    // Prompt-ready per-term cards (#1027): a compact, link-free Markdown card per
+    // Prompt-ready per-term cards: a compact, link-free Markdown card per
     // term at `terms/{slug}/card.md`, for context-window injection. The alignment
     // facets are precomputed once so emitting every card stays O(N), not O(N²).
     {
@@ -1658,7 +1658,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
-    // ── Stability (#1026 — always present; tier-derived default or explicit) ─────
+    // ── Stability (always present; tier-derived default or explicit) ──────────────
     heading(&mut out, 2, model.ui("body_stability"));
     push_line(
         &mut out,
@@ -1723,7 +1723,7 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
-    // ── Profiles (#1026 — named profiles whose membership includes this term) ────
+    // ── Profiles (named profiles whose membership includes this term) ─────────────
     if !term.profiles.is_empty() {
         heading(&mut out, 2, model.ui("body_profiles"));
         let chips = term
@@ -2794,7 +2794,7 @@ fn finding_category_display(iri: &str) -> String {
     }
 }
 
-// ── Guides: recipes / learning paths / four boxes (#853 T3b) ──────────────────
+// ── Guides: recipes / learning paths / four boxes ──────────────────────────────
 
 fn md_recipe_index(model: &DocsModel) -> String {
     let from = Page::RecipeIndex.dir();
@@ -4196,7 +4196,7 @@ fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
 /// Build the neutral [`crate::card::Card`] from a docs-site [`DocTerm`], resolving
 /// every IRI-bearing field to its display (local-name) form. The shared
 /// [`crate::card::render_card_body`] then renders it — the SAME renderer the
-/// folded-snapshot MCP card uses, so the two never diverge (#1027, §19 one-path).
+/// folded-snapshot MCP card uses, so the two never diverge (§19 one-path).
 fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::card::Card {
     let label = match &term.label {
         Some(l) if l != &term.curie => Some(l.clone()),
@@ -4241,7 +4241,7 @@ fn term_full_block(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String
     )
 }
 
-/// A prompt-ready, standalone Markdown card for one term (#1027): a `# {curie}{signature}`
+/// A prompt-ready, standalone Markdown card for one term: a `# {curie}{signature}`
 /// title followed by the shared [`term_body`] (metadata + definition + every
 /// advisory field). Compact, link-free, and self-contained for context-window
 /// injection. Emitted at `terms/{slug}/card.md` and served live over MCP.
@@ -4734,7 +4734,7 @@ mod tests {
     /// variant. The `deprecated` arm is otherwise never exercised by the term
     /// goldens (no production term is `owl:deprecated` — this project deletes
     /// rather than deprecates), so this is the only coverage of that render
-    /// path (#1026). The derivation logic itself is unit-tested separately in
+    /// path. The derivation logic itself is unit-tested separately in
     /// `model::tests::stability_resolves_by_precedence`.
     #[test]
     fn stability_badge_renders_every_state() {
