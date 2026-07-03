@@ -83,6 +83,30 @@ pub(crate) fn serialize_carrier_snapshot(
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
 ) -> Result<Vec<u8>, PipelineError> {
+    // Discover the whole-repo docs model (with the native-reasoner verdict attached) and pass
+    // it to the injectable core. Threading the model as a parameter lets a unit test inject a
+    // fixture-scoped model (e.g. an empty `DocsModel`) to exercise the serialization/blob wiring
+    // without the whole-ontology docs corpus — the OKF-coverage gate is then scoped to the
+    // fixture's terms. Production is byte-unchanged: it always discovers the full model.
+    let reasoning_verdict = crate::stages::docs_render::reasoning_verdict_from_reason(upstream)?;
+    let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
+        .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
+    docs_model.attach_reasoning(reasoning_verdict);
+    serialize_carrier_snapshot_with_docs_model(root, upstream, carrier, &docs_model)
+}
+
+/// The docs-model-injectable core of [`serialize_carrier_snapshot`]: assembles the terminal
+/// gts blobs from THIS run's products + carrier, using the provided (already
+/// reasoning-attached) `docs_model` for the OKF-coverage gate, the executable-docs "try it"
+/// surfaces, and the rendered ontology-docs site. Production callers go through the wrapper
+/// (whole-repo model); the sink unit test injects a fixture-scoped model so the OKF-coverage
+/// assertion is scoped to the fixture rather than the full 2000+-term corpus.
+pub(crate) fn serialize_carrier_snapshot_with_docs_model(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &purrdf::RdfDataset,
+    docs_model: &gmeow_docs::model::DocsModel,
+) -> Result<Vec<u8>, PipelineError> {
     // THIS run's freshly-emitted JSON Schema + OpenAPI bytes (from the in-memory
     // product, not the on-disk files which are not written until phase 1 returns).
     let schema_json = upstream
@@ -150,21 +174,14 @@ pub(crate) fn serialize_carrier_snapshot(
         },
     )?;
     blobs.extend(build_guide_blobs(root)?);
-    // The rendered docs site embeds the per-term reasoning badge, so it carries the
-    // SAME native-reasoner verdict the docs-graph stage projects — derived once from
-    // stage-reason's closure (hard-fails if absent, never a silent default).
-    let reasoning_verdict = crate::stages::docs_render::reasoning_verdict_from_reason(upstream)?;
-    // The docs model (with the reasoning verdict attached) + its build-time
-    // executable-docs data (the reasoned "try it" diffs and the offline SPARQL
-    // playground asset). This is a DOCS-ONLY side computation: its outputs ride ONLY as
-    // site blobs in the ontology-docs archive and never fold into `graph/reasoning` or
-    // any graph `verify`/`reason` consume.
-    let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
-        .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
-    docs_model.attach_reasoning(reasoning_verdict);
-    assert_okf_docs_cover_documented_terms(carrier, &docs_model)?;
-    let docs_exec = build_executable_docs_data(upstream, carrier, &docs_model)?;
-    blobs.push(build_docs_archive(root, &docs_model, &docs_exec)?);
+    // The provided docs model (reasoning verdict already attached by the caller) drives the
+    // OKF-coverage gate, the build-time executable-docs data (the reasoned "try it" diffs and
+    // the offline SPARQL playground asset), and the rendered ontology-docs site. This is a
+    // DOCS-ONLY side computation: its outputs ride ONLY as site blobs in the ontology-docs
+    // archive and never fold into `graph/reasoning` or any graph `verify`/`reason` consume.
+    assert_okf_docs_cover_documented_terms(carrier, docs_model)?;
+    let docs_exec = build_executable_docs_data(upstream, carrier, docs_model)?;
+    blobs.push(build_docs_archive(root, docs_model, &docs_exec)?);
     blobs.push(build_reasoning_blob(upstream)?);
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
     // from THIS run's carrier (superset law — RDF rides as named graphs, not here).

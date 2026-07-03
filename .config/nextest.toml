@@ -33,9 +33,6 @@
 #     82.351 s in CI shard 1; it runs the real production spine through
 #     `stage-snapshot`, which is full-DAG / ontology-size work. Focused per-stage
 #     and carrier tests keep the failure modes covered on-gate.
-#   - gmeow-pipeline gts_sink blob-input serialization test:
-#     25.8 s in CI shard 3; it exercises the terminal carrier serialization and
-#     import round-trip, which is codec/I-O-bound and has no remaining headroom.
 #   - gmeow-foundation-corpus imported_graph_conforms_to_shapes:
 #     26.065 s in CI shard 2; it validates the importer output unioned with the
 #     WHOLE merged ontology (every slices/*/*/module.ttl) against the ENTIRE SHACL
@@ -78,7 +75,6 @@ default-filter = '''
     | test(/w3c_rdfc10_heavy_offgate/)
     | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
-    | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
     | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis)))
   )
@@ -180,11 +176,11 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # Full-carrier round-trip tests decode the committed `gmeow.gts` and re-emit /
-# extract it back through the native gmeow-gts codecs (#909). The exact
-# blob-input `gts_sink` terminal serialization test is off-gated via
-# `default-filter`; the remaining carrier tests are on-gate. Keep a longer
-# runaway cliff because they are codec / I-O-bound and not protected by the
-# `engine` memory group.
+# extract it back through the native gmeow-gts codecs (#909). All are on-gate
+# (the blob-input `gts_sink` serialization test rejoined the gate at ~0.3 s once
+# its docs-model seam removed the whole-ontology discovery). Keep a longer runaway
+# cliff because they are codec / I-O-bound and not protected by the `engine`
+# memory group.
 filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site|stages::carrier::native_assembly_tests::authored_default_assembles_natively/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
