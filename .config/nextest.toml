@@ -136,7 +136,13 @@ test-group = 'engine'
 # serialized with engine work so full-DAG reasoning does not contend with
 # concurrent chases. The over-budget full-fold / end-to-end binaries are
 # off-gated via `default-filter`, but this override still applies in maint-heavy.
-filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood/)'
+# fanout_parity stays ON-gate (~8 s standalone, not irreducible) but joins the
+# serialized group: unserialized it piled onto concurrent Nemo chases in the
+# shared shard and rode the 25 s cliff over on CI jitter (measured 27.9 s while a
+# 20 s entailment chase ran alongside). Serializing it against engine work removes
+# the contention without off-gating the fanout write-idempotence coverage — the
+# bias is fix-not-off-gate for a test this cheap standalone.
+filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood|fanout_parity/)'
 test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
