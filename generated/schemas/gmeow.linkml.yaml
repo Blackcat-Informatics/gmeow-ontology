@@ -70,6 +70,12 @@ classes:
   AestheticQuality:
     class_uri: https://blackcatinformatics.ca/gmeow/AestheticQuality
     title: Aesthetic Quality
+  AffectiveExperience:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectiveExperience
+    title: Affective Experience
+    is_a: Experience
+    slots:
+    - feltAffect
   AffectiveMoment:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectiveMoment
     title: Affective Moment
@@ -7145,6 +7151,12 @@ slots:
     range: FeedPostingKind
     domain: FeedPosting
     multivalued: false
+  feltAffect:
+    slot_uri: https://blackcatinformatics.ca/gmeow/feltAffect
+    title: felt affect
+    range: AffectiveMoment
+    domain: AffectiveExperience
+    multivalued: true
   filename:
     slot_uri: https://blackcatinformatics.ca/gmeow/filename
     title: filename
@@ -17452,6 +17464,9 @@ enums:
   MentalProcessTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/MentalProcessType
     permissible_values:
+      processAffectiveExperience:
+        meaning: https://blackcatinformatics.ca/gmeow/processAffectiveExperience
+        title: affective experience
       processAttention:
         meaning: https://blackcatinformatics.ca/gmeow/processAttention
         title: attention

@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "6",
   "slice_count": 75,
-  "term_count": 2282,
-  "dependency_edge_count": 837,
+  "term_count": 2284,
+  "dependency_edge_count": 840,
   "term_count_by_category": {
-    "Class": 687,
+    "Class": 688,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1591
+    "Property": 1592
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -292,7 +292,7 @@ expression: summary
   ],
   "mapping_set_count": 71,
   "linkage_count": 1770,
-  "example_count": 110,
+  "example_count": 111,
   "concern_count": 7,
   "external_term_count": 1539,
   "sample_mapping_set": {
@@ -412,8 +412,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 291,
-  "competency_count": 55,
+  "shape_count": 292,
+  "competency_count": 57,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
@@ -423,15 +423,10 @@ expression: summary
     "owner_slice": "root"
   },
   "sample_competency": {
-    "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqMentalLife",
-    "rationale": "GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings (gmeow:CognitiveState), beliefs (gmeow:DoxasticState), and intentions (gmeow:IntentionalMode) — the agent-memory flagship capability. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant.",
-    "query_file": "slices/core/affect/queries/competency/mental-life.rq",
-    "exercises": [
-      "https://blackcatinformatics.ca/gmeow/CognitiveState",
-      "https://blackcatinformatics.ca/gmeow/DoxasticState",
-      "https://blackcatinformatics.ca/gmeow/Emotion",
-      "https://blackcatinformatics.ca/gmeow/IntentionalMode"
-    ],
+    "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqFeltEpisodes",
+    "rationale": "Stage 2 acceptance: an agent's felt mental life is queryable — a felt gmeow:AffectiveExperience (occurrent) is joined to the enduring gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment), the episode's experiencer being the mode's bearer (one agent, two aspects). The overlay felt-anger scene makes the whole bridge present.",
+    "query_file": "slices/core/affect/queries/competency/felt-episodes.rq",
+    "exercises": [],
     "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/affect"
   }
 }

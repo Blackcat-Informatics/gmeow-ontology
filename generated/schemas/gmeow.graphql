@@ -1511,6 +1511,7 @@ enum MemoryKindEnum {
 }
 
 enum MentalProcessTypeEnum {
+  processAffectiveExperience
   processAttention
   processDeliberation
   processDreaming
@@ -3259,6 +3260,12 @@ type AdoptiveParentChild {
 type AestheticQuality {
   id: String
   iri: String
+}
+
+type AffectiveExperience {
+  id: String
+  iri: String
+  feltAffect: [AffectiveMoment!]
 }
 
 type AffectiveMoment {
