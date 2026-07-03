@@ -526,6 +526,100 @@ pub fn filter_literals(
     Vec::new()
 }
 
+// ── graph-level public selection ─────────────────────────────────────────────────
+
+/// Select the canonical public-facing literal for `subject`/`predicate`.
+///
+/// The projection-boundary companion to [`select_literal`]: rather than honouring
+/// a user language request, it picks the single canonical public value for a term
+/// regardless of request. This mirrors the Python `public_literal`, so the
+/// rdflib path and the fold view agree by construction. Preference order:
+///
+/// 1. An internal-tagged literal (`x-gmeow-*`) that has a BCP-47 mapping in
+///    `tag_map`, taken in [`rank_language`] order (the `x-gmeow-english` carrier
+///    wins) with ties broken by `(language, lexical)`, retagged to its public
+///    BCP-47 tag.
+/// 2. Otherwise the deterministic first literal by `(language, lexical)`, returned
+///    with its original tag (external or untagged) unchanged.
+/// 3. No literal object on the pair → `None`.
+///
+/// Only literal objects on `(subject, predicate)` in the default graph are
+/// considered; IRI and blank-node objects are ignored. `subject` and `predicate`
+/// are IRI strings.
+pub fn public_literal(
+    dataset: &purrdf::RdfDataset,
+    subject: &str,
+    predicate: &str,
+    tag_map: &HashMap<String, String>,
+) -> Option<LitDesc> {
+    // Collect every literal object on (subject, predicate) in the default graph.
+    let mut candidates: Vec<LitDesc> = Vec::new();
+    for qr in dataset.quad_refs() {
+        let (TermRef::Iri(s), TermRef::Iri(p)) = (qr.s, qr.p) else {
+            continue;
+        };
+        if s != subject || p != predicate {
+            continue;
+        }
+        if let TermRef::Literal {
+            lexical, language, ..
+        } = qr.o
+        {
+            candidates.push(LitDesc {
+                lexical: lexical.to_owned(),
+                language: language.map(str::to_owned),
+            });
+        }
+    }
+    if candidates.is_empty() {
+        return None;
+    }
+
+    // Deterministic base order: (language, lexical). rdflib iteration order is
+    // process-unstable, so we impose a total order before any ranked selection.
+    candidates.sort_by(|a, b| {
+        (a.language.clone().unwrap_or_default(), &a.lexical)
+            .cmp(&(b.language.clone().unwrap_or_default(), &b.lexical))
+    });
+
+    // Prefer an internal-tagged, mapped literal in rank_language order (carrier
+    // first). The stable sort preserves the (language, lexical) order within a
+    // rank, so ties resolve identically to the fold path.
+    let mut ranked: Vec<&LitDesc> = candidates.iter().collect();
+    ranked.sort_by(|a, b| {
+        rank_language(a.language.as_deref().unwrap_or_default())
+            .cmp(&rank_language(b.language.as_deref().unwrap_or_default()))
+    });
+    for lit in ranked {
+        if let Some(lang) = &lit.language {
+            if is_internal_tag(lang) {
+                if let Some(bcp) = internal_tag_mapping(lang, tag_map) {
+                    return Some(LitDesc {
+                        lexical: lit.lexical.clone(),
+                        language: Some(bcp.clone()),
+                    });
+                }
+            }
+        }
+    }
+
+    // Fallback: the deterministic first candidate, tag preserved.
+    candidates.into_iter().next()
+}
+
+/// Return the string value of the public-facing literal for `subject`/`predicate`,
+/// or the empty string when there is none. Thin wrapper over [`public_literal`].
+pub fn public_text(
+    dataset: &purrdf::RdfDataset,
+    subject: &str,
+    predicate: &str,
+    tag_map: &HashMap<String, String>,
+) -> String {
+    public_literal(dataset, subject, predicate, tag_map)
+        .map(|lit| lit.lexical)
+        .unwrap_or_default()
+}
+
 // ── graph passes ────────────────────────────────────────────────────────────────
 //
 // The graph passes operate on base triples (the default graph of an N-Triples
@@ -1631,5 +1725,76 @@ gmeow:French a gmeow:Language ;
             reifier_updated,
             "reifier statement must be updated to @en: {text}"
         );
+    }
+
+    // ── public_literal / public_text ────────────────────────────────────────
+
+    /// Parse N-Triples bytes into a dataset for the graph-level selection tests.
+    fn parse_nt(nt: &[u8]) -> std::sync::Arc<purrdf::RdfDataset> {
+        parse_dataset(nt, "application/n-triples", None).expect("parse")
+    }
+
+    #[test]
+    fn public_literal_retags_internal_carrier() {
+        // An internal x-gmeow-english literal WITH a map entry wins and is retagged
+        // to its public BCP-47 form.
+        let tm = sample_tag_map();
+        let nt = nt_lang("https://e/s", "https://e/label", "Hello", "x-gmeow-english");
+        let ds = parse_nt(&nt);
+        let lit =
+            public_literal(&ds, "https://e/s", "https://e/label", &tm).expect("literal present");
+        assert_eq!(lit.lexical, "Hello");
+        assert_eq!(lit.language, Some("en".to_owned()));
+        assert_eq!(
+            public_text(&ds, "https://e/s", "https://e/label", &tm),
+            "Hello"
+        );
+    }
+
+    #[test]
+    fn public_literal_prefers_carrier_over_other_internal() {
+        // Two mapped internal literals: the x-gmeow-english carrier (rank 0) wins
+        // over x-gmeow-french (rank 1) and is retagged to en.
+        let tm = sample_tag_map();
+        let mut nt = nt_lang(
+            "https://e/s",
+            "https://e/label",
+            "Bonjour",
+            "x-gmeow-french",
+        );
+        nt.extend(nt_lang(
+            "https://e/s",
+            "https://e/label",
+            "Hello",
+            "x-gmeow-english",
+        ));
+        let ds = parse_nt(&nt);
+        let lit = public_literal(&ds, "https://e/s", "https://e/label", &tm).expect("literal");
+        assert_eq!(lit.lexical, "Hello");
+        assert_eq!(lit.language, Some("en".to_owned()));
+    }
+
+    #[test]
+    fn public_literal_falls_back_to_external_tag_unchanged() {
+        // No internal-mapped literal: the deterministic first (language, lexical)
+        // candidate is returned with its original external tag preserved.
+        let tm = sample_tag_map();
+        let mut nt = nt_lang("https://e/s", "https://e/label", "Servus", "de");
+        nt.extend(nt_lang("https://e/s", "https://e/label", "Hola", "es"));
+        let ds = parse_nt(&nt);
+        let lit = public_literal(&ds, "https://e/s", "https://e/label", &tm).expect("literal");
+        // (language, lexical) order: ("de","Servus") < ("es","Hola").
+        assert_eq!(lit.lexical, "Servus");
+        assert_eq!(lit.language, Some("de".to_owned()));
+    }
+
+    #[test]
+    fn public_literal_none_when_no_literal_object() {
+        let tm = sample_tag_map();
+        let nt = nt_lang("https://e/s", "https://e/label", "Hi", "x-gmeow-english");
+        let ds = parse_nt(&nt);
+        // Different predicate → no candidate.
+        assert!(public_literal(&ds, "https://e/s", "https://e/other", &tm).is_none());
+        assert_eq!(public_text(&ds, "https://e/s", "https://e/other", &tm), "");
     }
 }
