@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:SetExtentShape: a math:Set carrying BOTH math:hasElement
+# and math:memberCondition without a declared equality, so validation MUST emit
+# shacl.SPARQLConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecSetBothExtents).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:ambiguousSet a math:FiniteSet ;
+    math:hasElement ex:zero ;
+    math:memberCondition ex:evenCondition .
+
+ex:evenCondition a logic:Formula .

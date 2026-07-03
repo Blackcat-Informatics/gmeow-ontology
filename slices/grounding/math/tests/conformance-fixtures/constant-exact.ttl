@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a named math:MathematicalConstant as an exact individual, carrying no
+# raw decimal literal. Conforms to math:MathematicalConstantShape. Bound by
+# ex:ecConstantExact.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:tau a math:MathematicalConstant ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .

@@ -22060,6 +22060,181 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:ApproximateValue"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ApproximateValue"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ApproximateValue"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:Complement"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:Complement"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:Complement"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:Function"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:Function"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:Function"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:MathematicalConstant"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:MathematicalConstant"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:MathematicalConstant"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:Number"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:Number"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:Number"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:Set"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:Set"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:Set"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:SetBuilderExpression"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:SetBuilderExpression"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:SetBuilderExpression"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "gmeow:test_all_datatypes.en.v1-at0000"
                   },
                   {
@@ -34170,6 +34345,341 @@
       "required": [
         "logic:planGoal",
         "logic:planSuccessMode"
+      ],
+      "type": "object"
+    },
+    "math:ApproximateValue": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:approximates": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/Number",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "math:approximationError": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:approximates",
+        "math:approximationError"
+      ],
+      "type": "object"
+    },
+    "math:Complement": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:complementWithin": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/Set",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:complementWithin"
+      ],
+      "type": "object"
+    },
+    "math:Function": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:codomain": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/Set",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "math:domain": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/Set",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:codomain",
+        "math:domain"
+      ],
+      "type": "object"
+    },
+    "math:MathematicalConstant": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:isExact": {
+          "anyOf": [
+            {
+              "const": {
+                "@type": "xsd:boolean",
+                "@value": "true"
+              }
+            },
+            {
+              "items": {
+                "const": {
+                  "@type": "xsd:boolean",
+                  "@value": "true"
+                }
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:quantityValue": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "maxItems": 0,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:isExact"
+      ],
+      "type": "object"
+    },
+    "math:Number": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:inNumberSystem": {
+          "anyOf": [
+            {
+              "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:inNumberSystem"
+      ],
+      "type": "object"
+    },
+    "math:Set": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "math:SetBuilderExpression": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:memberCondition": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "math:memberCondition"
       ],
       "type": "object"
     },

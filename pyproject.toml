@@ -204,11 +204,13 @@ skip = "uv.lock,Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/cov
 # ser (Rust serde/ciborium module path `ciborium::ser`),
 # Beng (ISO 15924 script code for Bengali), fo (ISO 639-1 Faroese),
 # te (ISO 639-1 Telugu), intensional (the IDB term in logic/databases, opp. of
-# extensional), intension (the concept-theory term — a concept's defining
-# properties, opp. of extension), Hendler / Pease (author surnames in the logic
-# references), vor (Crossref AccessIndicators applies_to value = "version of record"),
-# notin (the VS Code `notIn` language-configuration key in editors/vscode),
-# fof (the TPTP `fof(...)` first-order-formula keyword in the SZS fixtures),
-# lits (the `lits` parameter name = "literals" in the language-tag bindings),
-# ot (the object-term local in the CLIF writer triple codec, parallel to st/pt).
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot"
+# extensional), intensionally (its adverb form, e.g. a set given intensionally
+# by a defining condition, opp. of extensionally), intension (the
+# concept-theory term — a concept's defining properties, opp. of extension),
+# Hendler / Pease (author surnames in the logic references), vor (Crossref
+# AccessIndicators applies_to value = "version of record"), notin (the VS Code
+# `notIn` language-configuration key in editors/vscode), fof (the TPTP
+# `fof(...)` first-order-formula keyword in the SZS fixtures), lits (the
+# `lits` parameter name = "literals" in the language-tag bindings), ot (the
+# object-term local in the CLIF writer triple codec, parallel to st/pt).
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot"

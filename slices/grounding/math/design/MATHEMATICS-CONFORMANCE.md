@@ -59,6 +59,18 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A theorem/lemma/… role is asserted under a theory context (not as unconditional truth) | SHACL-SPARQL | `math:UnscopedStatementRole` |
 | A `FormalVerificationResult` is grounded as an observation with a vantage | SHACL Core | `math:UngroundedVerificationResult` |
 
+### Numbers-and-sets rules
+
+| Rule | Primary gate | Failure class |
+|---|---|---|
+| A `math:Number` declares the number system it belongs to | SHACL Core | `math:UnsituatedNumber` |
+| A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
+| A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
+| An intensional set's member condition denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyMemberCondition` |
+| A complement names its ambient set | SHACL Core | `math:UnqualifiedComplement` |
+| A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
+| A `math:Function` declares its domain and codomain | SHACL Core | `math:UnframedFunction` |
+
 ### Probability rules
 
 | Rule | Primary gate | Failure class |
