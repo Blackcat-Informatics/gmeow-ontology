@@ -3262,6 +3262,11 @@ type AestheticQuality {
   iri: String
 }
 
+type AffectiveMoment {
+  id: String
+  iri: String
+}
+
 type Agent {
   id: String
   iri: String
@@ -4521,6 +4526,8 @@ type Embedding {
 type Emotion {
   id: String
   iri: String
+  affectiveElicitor: [String!]
+  affectiveTarget: [String!]
   emotionBearer: Agent
   emotionType: [EmotionType!]
 }
