@@ -4,7 +4,7 @@
 //! openEHR OPT constraint IR and its **pure** lift to the canonical [`ValidationShapeIr`].
 //!
 //! This is the XML-free half of the ADL2/OPT constraints axis. The `roxmltree` reader
-//! (`crates/shacl`) parses an Operational Template into [`OptConstraintIr`] values; this
+//! ([`crate::openehr_opt`]) parses an Operational Template into [`OptConstraintIr`] values; this
 //! module lifts each to a `logic:` validation shape, from which the SHACL Core and ShEx
 //! surfaces are projected ([`crate::projections::shapes`]). Keeping the lift here — with no
 //! XML dependency — is what lets `crates/logic-compile` stay wasm-clean (the reusable-crate
@@ -84,6 +84,11 @@ pub enum OptConstraintKind {
         units_path: String,
         /// The unit string (e.g. `mm[Hg]`).
         units: String,
+        /// The optional `DV_QUANTITY.precision` decimal-place-count interval, paired with the
+        /// predicate reaching it. `None` when the OPT omits `<precision>`. Precision counts are
+        /// integers carried as `f64` (e.g. `1.0..1.0`); it is a non-discriminating satellite of the
+        /// Quantity family (recovered by [`recover_precision`], never a second magnitude range).
+        precision: Option<(String, OptInterval)>,
     },
     /// `occurrences` / `existence` / cardinality: a closed-world count bound on `path`.
     Cardinality {
@@ -129,6 +134,20 @@ pub enum OptConstraintKind {
         /// The bound codes.
         codes: Vec<String>,
     },
+    /// `C_DV_ORDINAL`: an ordinal value set of (ordinal integer, coded-symbol IRI) pairs on `path`.
+    Ordinal {
+        /// The predicate the ordinal set applies to.
+        path: String,
+        /// The (ordinal integer, coded-symbol IRI) pairs.
+        ordinals: Vec<(i64, String)>,
+    },
+    /// `C_DATE_TIME` validity pattern: a required datetime precision/format pattern on `path`.
+    DateTimePattern {
+        /// The predicate the datetime pattern applies to.
+        path: String,
+        /// The openEHR validity pattern (e.g. `yyyy-mm-ddTHH:MM:SS`).
+        pattern: String,
+    },
 }
 
 /// Lift an [`OptConstraintIr`] to the canonical [`ValidationShapeIr`] (the `d`/down leg).
@@ -144,6 +163,7 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
             interval,
             units_path,
             units,
+            precision,
         } => {
             let magnitude = PropertyConstraintIr::new(
                 magnitude_path,
@@ -171,7 +191,24 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
                     lang: None,
                 }])],
             )?;
-            vec![magnitude, unit]
+            let mut properties = vec![magnitude, unit];
+            // The optional precision satellite: a single PrecisionRange property, kept distinct
+            // from the magnitude NumericRange so recovery never treats it as a second discriminator.
+            if let Some((precision_path, precision_interval)) = precision {
+                properties.push(PropertyConstraintIr::new(
+                    precision_path,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::PrecisionRange {
+                        min: precision_interval.lower,
+                        max: precision_interval.upper,
+                        min_inclusive: precision_interval.lower_included,
+                        max_inclusive: precision_interval.upper_included,
+                    }],
+                )?);
+            }
+            properties
         }
         OptConstraintKind::Cardinality { path, min, max } => vec![PropertyConstraintIr::new(
             path,
@@ -225,6 +262,22 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
                 codes: codes.clone(),
             }],
         )?],
+        OptConstraintKind::Ordinal { path, ordinals } => vec![PropertyConstraintIr::new(
+            path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::OrdinalSet {
+                pairs: ordinals.clone(),
+            }],
+        )?],
+        OptConstraintKind::DateTimePattern { path, pattern } => vec![PropertyConstraintIr::new(
+            path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::DateTimePattern(pattern.clone())],
+        )?],
     };
     ValidationShapeIr::new(&c.shape_iri, target, properties, None, None, false)
 }
@@ -269,6 +322,9 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                         },
                         units_path,
                         units,
+                        // A satellite, not a discriminator: recovered by scanning for the
+                        // PrecisionRange property (absent ⇒ None), so u∘d=id in both directions.
+                        precision: recover_precision(shape),
                     });
                 }
                 ConstraintComponent::DateTimeRange {
@@ -304,6 +360,18 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                         codes: codes.clone(),
                     });
                 }
+                ConstraintComponent::OrdinalSet { pairs } => {
+                    recovered.push(OptConstraintKind::Ordinal {
+                        path: p.path.clone(),
+                        ordinals: pairs.clone(),
+                    });
+                }
+                ConstraintComponent::DateTimePattern(pattern) => {
+                    recovered.push(OptConstraintKind::DateTimePattern {
+                        path: p.path.clone(),
+                        pattern: pattern.clone(),
+                    });
+                }
                 ConstraintComponent::In(vs)
                     if vs.iter().all(|v| matches!(v, ShapeValue::Iri(_))) =>
                 {
@@ -319,6 +387,10 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
                         codes,
                     });
                 }
+                // A precision satellite is NOT a discriminator (recovered by `recover_precision`
+                // inside the Quantity arm); ignore it here so it never inflates the family count
+                // and trips the ambiguity guard.
+                ConstraintComponent::PrecisionRange { .. } => {}
                 _ => {}
             }
         }
@@ -372,6 +444,34 @@ fn recover_units(shape: &ValidationShapeIr) -> Result<(String, String), String> 
     Err("recover_opt_from_shape: quantity shape has no units (singleton sh:in literal)".into())
 }
 
+/// Recover a quantity shape's optional precision satellite — the property carrying the single
+/// [`ConstraintComponent::PrecisionRange`] component — as `(path, interval)`. Returns `None` when
+/// no property carries a precision range (a quantity without a precision constraint).
+fn recover_precision(shape: &ValidationShapeIr) -> Option<(String, OptInterval)> {
+    for p in &shape.properties {
+        for comp in &p.components {
+            if let ConstraintComponent::PrecisionRange {
+                min,
+                max,
+                min_inclusive,
+                max_inclusive,
+            } = comp
+            {
+                return Some((
+                    p.path.clone(),
+                    OptInterval {
+                        lower: *min,
+                        upper: *max,
+                        lower_included: *min_inclusive,
+                        upper_included: *max_inclusive,
+                    },
+                ));
+            }
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -392,6 +492,7 @@ mod tests {
                 },
                 units_path: "https://gmeow.example/openehr/bp/units".into(),
                 units: "mm[Hg]".into(),
+                precision: None,
             },
         }
     }
@@ -411,6 +512,39 @@ mod tests {
         assert!(ttl.contains("sh:minInclusive 0"), "{ttl}");
         assert!(ttl.contains("sh:maxExclusive 1000"), "{ttl}");
         assert!(ttl.contains("mm[Hg]"), "{ttl}");
+    }
+
+    #[test]
+    fn quantity_with_precision_round_trips_and_projects() {
+        // A Quantity carrying an optional precision satellite [1, 1] decimal places: the satellite
+        // must round-trip (u∘d=id) WITHOUT tripping the recovery ambiguity guard (it is not a
+        // second discriminator), and it must project to SHACL as an ordinary numeric facet.
+        let mut c = systolic();
+        match &mut c.kind {
+            OptConstraintKind::Quantity { precision, .. } => {
+                *precision = Some((
+                    "https://gmeow.example/openehr/bp/precision".into(),
+                    OptInterval {
+                        lower: Some(1.0),
+                        upper: Some(1.0),
+                        lower_included: true,
+                        upper_included: true,
+                    },
+                ));
+            }
+            _ => unreachable!(),
+        }
+        assert_u_after_d_is_identity(&c);
+        let shape = lift_opt_to_validation_shape(&c).unwrap();
+        let ttl = project_validation_shape_shacl(&shape);
+        assert!(ttl.contains("sh:minInclusive 1"), "{ttl}");
+        assert!(ttl.contains("sh:maxInclusive 1"), "{ttl}");
+        // The precision satellite is faithfully projected — no loss-ledger residue.
+        assert!(
+            shacl_residue(&shape).is_empty(),
+            "{:?}",
+            shacl_residue(&shape)
+        );
     }
 
     #[test]
@@ -526,6 +660,74 @@ mod tests {
             shacl_residue(&shape).len(),
             1,
             "terminology must be ledgered"
+        );
+    }
+
+    #[test]
+    fn ordinal_round_trips() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::Ordinal {
+                path: "https://ex/value".into(),
+                ordinals: vec![
+                    (1, "https://ex/terminology/local/at0014".into()),
+                    (2, "https://ex/terminology/local/at0015".into()),
+                ],
+            },
+        };
+        assert_u_after_d_is_identity(&c);
+    }
+
+    #[test]
+    fn datetime_pattern_round_trips() {
+        let c = OptConstraintIr {
+            shape_iri: "https://ex/S".into(),
+            target_class: "https://ex/C".into(),
+            kind: OptConstraintKind::DateTimePattern {
+                path: "https://ex/value".into(),
+                pattern: "yyyy-mm-ddTHH:MM:SS".into(),
+            },
+        };
+        assert_u_after_d_is_identity(&c);
+    }
+
+    #[test]
+    fn ordinal_and_value_set_do_not_alias() {
+        // The discriminator-distinctness guarantee: an Ordinal must recover to Ordinal (NOT
+        // ValueSet), and a DateTimePattern must recover to DateTimePattern (NOT StringPattern) —
+        // the OPT lift must not collapse these into the plain `In`/`Pattern` components that
+        // would recover to the wrong family.
+        let ordinal = OptConstraintIr {
+            shape_iri: "https://ex/S1".into(),
+            target_class: "https://ex/C1".into(),
+            kind: OptConstraintKind::Ordinal {
+                path: "https://ex/value".into(),
+                ordinals: vec![(1, "https://ex/terminology/local/at0014".into())],
+            },
+        };
+        let shape = lift_opt_to_validation_shape(&ordinal).unwrap();
+        let recovered = recover_opt_from_shape(&shape).unwrap();
+        assert!(
+            matches!(recovered.kind, OptConstraintKind::Ordinal { .. }),
+            "expected Ordinal, got {:?}",
+            recovered.kind
+        );
+
+        let datetime_pattern = OptConstraintIr {
+            shape_iri: "https://ex/S2".into(),
+            target_class: "https://ex/C2".into(),
+            kind: OptConstraintKind::DateTimePattern {
+                path: "https://ex/value".into(),
+                pattern: "yyyy-mm-ddTHH:MM:SS".into(),
+            },
+        };
+        let shape = lift_opt_to_validation_shape(&datetime_pattern).unwrap();
+        let recovered = recover_opt_from_shape(&shape).unwrap();
+        assert!(
+            matches!(recovered.kind, OptConstraintKind::DateTimePattern { .. }),
+            "expected DateTimePattern, got {:?}",
+            recovered.kind
         );
     }
 

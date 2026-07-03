@@ -28579,6 +28579,253 @@
             }
           ],
           "message": {
+            "text": "projection shacl-core drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ee53744414010a98"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ee53744414010a98"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "ee53744414010a98"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: ordinal set on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value projects only its coded symbols (sh:in); the ordinal integer values (1, 2, 3) and their ordering have no SHACL/ShEx form and are carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b7bc7ea7fe95432e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "53c711820fc5cb3f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "53c711820fc5cb3f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "37df121b468d7fc5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "63fb03f6761dd85a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0c852b8ed92d52e9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): assignerC"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9288b120281ed9ee"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): issuerA"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4fa380ef1ff0382f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): typeB"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6b8b33a65465fa4f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-core drops: actual: terminology binding on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding to SNOMED-CT (4 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "37295ce4ca92ea25"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-core drops: an intentionally-open existential range (owl:someValuesFrom owl:Thing / rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / sh:Literal): the existential's at-least-one force and the vacuous universal-top class membership are dropped, and the open range is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -28659,6 +28906,82 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "c24857f95056b75d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fb33ab94656e885f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fb33ab94656e885f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "fb33ab94656e885f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: ordinal set on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value projects only its coded symbols (sh:in); the ordinal integer values (1, 2, 3) and their ordering have no SHACL/ShEx form and are carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "43308558115fe9e3"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -32839,6 +33162,177 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "4ecc0ecfc705c606"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f801f43e1505e1ca"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f801f43e1505e1ca"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dd83388b1096e56a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e722a1a80abb20a3"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d205f9edb96a949a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): assignerC"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "204014baee11f679"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): issuerA"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "86165069266a8178"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): typeB"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "69ad0bddb1e5efc0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: terminology binding on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding to SNOMED-CT (4 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "be0377a991d5dbee"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
