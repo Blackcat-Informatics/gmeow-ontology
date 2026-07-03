@@ -414,6 +414,10 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
 	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
+	$(MAKE) maint-dev-cli-heavy
+
+maint-dev-cli-heavy: rust-build ## Run the off-gate gmeow-dev CLI heavy parity lane (whole-pipeline/gate commands: feedback, validate, logic compile --check, up-projection-audit).
+	GMEOW_DEV_CLI_HEAVY=1 cargo nextest run -p gmeow-dev-cli --run-ignored ignored-only $(NEXTEST_PARTITION_ARG)
 
 slicetest: ## Run the slice-resident test-DSL harness in isolation.
 	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
