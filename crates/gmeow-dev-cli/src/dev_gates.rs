@@ -299,11 +299,14 @@ pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
                 return 0;
             }
         };
-        let bad: Vec<(&String, &str)> = statuses
+        let mut bad: Vec<(&String, &str)> = statuses
             .iter()
             .filter(|(_, v)| v.as_str() != "ok")
             .map(|(k, v)| (k, v.as_str()))
             .collect();
+        // `statuses` is a HashMap; sort by id so the reported failures are in a
+        // stable, reproducible order (Principle 18) regardless of hash iteration.
+        bad.sort_by(|a, b| a.0.cmp(b.0));
         for (id, status) in &bad {
             eprintln!("{id}: {status}");
         }
