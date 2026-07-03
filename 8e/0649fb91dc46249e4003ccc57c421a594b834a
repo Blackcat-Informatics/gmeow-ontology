@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: 8e0649fb91dc46249e4003ccc57c421a594b834a
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1274
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1274
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 515de3652050cc2ad4a10a0649d29045ae01fc97
+GhpRsq-Head-Ref: lang-upgrade
+GhpRsq-Head-OID: 8e0649fb91dc46249e4003ccc57c421a594b834a
+GhpRsq-Result-Tree: 44b2278a756c17ab08958d953e86a9b15e46ae82
+GhpRsq-Result-Commit: d07e57bfd9789f3367141189f0e95f07962cfe22
+GhpRsq-Parent-Hashes: 8e0649fb91dc46249e4003ccc57c421a594b834a
+GhpRsq-Squash-Notes-SHA256: 83cacf9936d71f2a93b40d3d7b777fdaea2a672d38bc3582fca189371dfdd653
