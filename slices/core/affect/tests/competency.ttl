@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions authored as slice-resident test-DSL data,
+# executed by the native Rust slice-test harness (crates/slicetest) over the
+# full merged ontology, asserted lane (gmeow:reasoningNone).
+#
+# "What mental moments does an agent have?" — queries/competency/mental-life.rq
+# projects the rdfs:subClassOf* descendants of gmeow:MentalMoment. The reparent
+# that put gmeow:Emotion under gmeow:AffectiveMoment under gmeow:MentalMoment
+# means this single query returns emotions ALONGSIDE knowings, beliefs, and
+# intentions — the agent-mental-life family is answerable as one query, not one
+# per discipline. The merged graph has more MentalMoment descendants than the
+# four witnesses pinned here, so this uses logic:RowsContains (superset/witness
+# mode), not RowsExact.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/tests/> .
+
+ex:cqMentalLife a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/mental-life.rq" ;
+    gmeow:cqRationale "GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings (gmeow:CognitiveState), beliefs (gmeow:DoxasticState), and intentions (gmeow:IntentionalMode) — the agent-memory flagship capability. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant." ;
+    gmeow:cqResultShape ex:cqMentalLifeShape ;
+    gmeow:cqExpectRow
+        ex:cqMLRowEmotion ,
+        ex:cqMLRowCognitive ,
+        ex:cqMLRowDoxastic ,
+        ex:cqMLRowIntentional .
+
+ex:cqMentalLifeShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "moment" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqMLRowEmotion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:Emotion ] .
+
+ex:cqMLRowCognitive a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:CognitiveState ] .
+
+ex:cqMLRowDoxastic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:DoxasticState ] .
+
+ex:cqMLRowIntentional a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:IntentionalMode ] .
