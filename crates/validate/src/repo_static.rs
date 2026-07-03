@@ -445,12 +445,17 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
             let TermRef::Literal { lexical, .. } = ds.resolve(q.o) else {
                 continue;
             };
-            let sel = lexical;
+            // The sh:select lexical with ALL whitespace removed. The seal is a lexical
+            // heuristic; stripping whitespace means a hand-authored re-encoding cannot slip
+            // it by padding the `<prop> $this` self-loop (or the `<prop1> … <prop2>` pair)
+            // with tabs, newlines, or extra spaces. IRIs and `$this` carry no interior
+            // whitespace, so removal preserves every token while collapsing the evasion
+            // surface (it also defeats a stray space before a `+` property-path modifier).
+            let sel: String = lexical.split_whitespace().collect();
             let mut matched: Option<String> = None;
             for p in MIGRATED_SELF_PREDS {
                 let base = format!("{GMEOW_NS_STATIC}{p}>");
-                if sel.contains(&format!("{base} $this")) || sel.contains(&format!("{base}+ $this"))
-                {
+                if sel.contains(&format!("{base}$this")) || sel.contains(&format!("{base}+$this")) {
                     matched = Some(format!("irreflexivity/acyclicity on gmeow:{p}"));
                 }
             }
@@ -1294,6 +1299,20 @@ mod tests {
             ),
         );
 
+        // The SAME irreflexivity axiom, unbacked, but padded with a newline + tab + extra
+        // spaces between the predicate and `$this` — a whitespace re-encoding a single-space
+        // `contains` check would miss. Must still be flagged.
+        write(
+            &root.join("shapes/bad-irreflexive-ws.ttl"),
+            &format!(
+                "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                 @prefix ex: <https://example.org/> .\n\
+                 ex:S a sh:NodeShape ;\n    \
+                     sh:sparql [ a sh:SPARQLConstraint ; \
+                     sh:select \"\"\"SELECT $this WHERE {{ $this <{g}counterGoal>\n\t  $this . }}\"\"\" ] .\n"
+            ),
+        );
+
         let mut report = RepoStaticReport::default();
         check_projection_shape_purity(root, &mut report);
         assert!(
@@ -1302,6 +1321,14 @@ mod tests {
                 .iter()
                 .any(|e| e.contains("bad-irreflexive.ttl")),
             "an unbacked irreflexivity self-reference axiom must be flagged; got {:?}",
+            report.errors
+        );
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("bad-irreflexive-ws.ttl")),
+            "a whitespace-padded re-encoding of a migrated axiom must still be flagged; got {:?}",
             report.errors
         );
         assert!(
