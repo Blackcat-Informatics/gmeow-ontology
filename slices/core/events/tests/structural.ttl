@@ -10,23 +10,30 @@
 # Events IS migrated: class stereotypes are logic: (logic:Event, logic:Kind,
 # logic:Relator, logic:AbstractIndividualType, logic:QualityValue), NOT gufo:.
 #
-# RETAINED in pytest (not migratable here):
-#   test_event_is_grounded_in_gufo_event -- asserts gmeow:Activity rdfs:subClassOf
-#     gmeow:Event; gmeow:Activity is defined in the provenance slice, making this
-#     a cross-slice assertion that scopeModule cannot cover.
-#   test_former_event_types_are_individuals_not_classes -- uses
-#     g.subjects(RDFS.subClassOf, GM.LifeEvent) to sweep the whole merged graph
-#     for any GMEOW-prefixed subclass of LifeEvent; a module-scoped cell would
-#     silently narrow this regression guard to the events graph only.
-#   test_participation_mediation_axiom_present -- walks blank-node restriction
-#     lists via g.objects() + g.items() to verify someValuesFrom axioms on
-#     Participation; bnode graph structure is not expressible as a simple ASK.
+# MIGRATED to declarative slicetest cells (#1120):
+#   test_event_is_grounded_in_gufo_event -- the gmeow:Activity rdfs:subClassOf
+#     gmeow:Event assertion moves to slices/core/provenance/tests/structural.ttl
+#     because gmeow:Activity is defined there.
+#   test_observational_activity_is_subclass_of_activity_and_event -- the
+#     gmeow:ObservationalActivity rdfs:subClassOf gmeow:Activity assertion moves
+#     to slices/core/events/tests/structural.ttl; Activity ⊑ Event stays in the
+#     provenance slice.
+#
+# RETAINED here (not migratable to scopeModule cells):
+#   test_former_event_types_are_individuals_not_classes -- dynamic sweep:
+#     uses g.subjects(RDFS.subClassOf, GM.LifeEvent) over the whole merged graph
+#     to catch any GMEOW-prefixed subclass resurrection; narrowing to the events
+#     module would silently weaken the regression guard.
+#   test_participation_mediation_axiom_present -- bnode walk: inspects
+#     owl:Restriction blank nodes via g.objects() + g.items() to verify
+#     someValuesFrom axioms; bnode list structure is not expressible as a
+#     simple module-scoped ASK.
 #   test_wellformed_participation_conforms -- run_shacl() call; ExampleConformance,
 #     not a structural TBox assertion.
 #   test_malformed_participation_is_flagged -- run_shacl() call with error-text
 #     assertions; ExampleConformance, not a structural TBox assertion.
-#   test_contested_event_claims_coexist_and_validate -- loads a coverage fixture,
-#     calls run_shacl(), and sweeps ABox objects dynamically; multi-file ABox check.
+#   test_contested_event_claims_coexist_and_validate -- multi-file ABox fixture
+#     loaded dynamically + run_shacl() + object sweep.
 #   test_schema_role_projection_keys_by_role -- calls project_graph() on a
 #     coverage fixture; generated-artifact projection check, not a TBox assertion.
 #   test_schema_role_projection_suppresses_withdrawn_participation -- same as
@@ -38,13 +45,9 @@
 #   test_ical_summary_is_the_event_type_label -- projection label check.
 #   test_owl_time_projection_emits_pure_interval_relations -- calls project_graph()
 #     and sweeps the output graph dynamically; projection check.
-#   test_observational_activity_is_subclass_of_activity_and_event -- asserts
-#     gmeow:Activity rdfs:subClassOf gmeow:Event; Activity is cross-slice (provenance
-#     module), so scopeModule would silently miss that triple.
-#   test_observational_activity_chain_on_was_associated_with -- walks
-#     owl:propertyChainAxiom blank-node lists via g.objects() + g.items() to
-#     verify the exact member order; bnode list structure is not expressible as a
-#     simple module-scoped ASK.
+#   test_observational_activity_chain_on_was_associated_with -- bnode list walk:
+#     inspects owl:propertyChainAxiom blank-node lists via g.objects() + g.items()
+#     to verify the exact member order of generatedObservation + vantage.
 #
 # CROSS-SLICE migrated INTO this file (from tests/test_calendar.py):
 #   test_organizer_and_attendee_roles_exist — gmeow:roleOrganizer and
@@ -783,3 +786,32 @@ ASK {
     gmeow:roleAttendee  a gmeow:ParticipantRole .
 }""" ;
     gmeow:saRationale "gmeow:roleOrganizer and gmeow:roleAttendee MUST exist as gmeow:ParticipantRole individuals — the calendar slice reuses these event-defined role values (iCal ATTENDEE / ORGANIZER). Mirrors test_organizer_and_attendee_roles_exist." .
+
+# --- 57. Creation event type individuals exist (MUST) -------------------------
+# Migrated from tests/test_creative_works.py (cross-slice: subjects defined here).
+ex:saCreationEventTypesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:eventTypeWorkConception a gmeow:EventType .
+    gmeow:eventTypeExpressionCreation a gmeow:EventType .
+    gmeow:eventTypeManifestationProduction a gmeow:EventType .
+}""" ;
+    gmeow:saRationale "gmeow:eventTypeWorkConception, gmeow:eventTypeExpressionCreation, and gmeow:eventTypeManifestationProduction MUST each be an individual of gmeow:EventType. These WEMI creation-event type values are defined in the events slice. Mirrors test_creation_event_types_exist." .
+
+# --- 58. ObservationalActivity is a subclass of Activity (MUST) ---------------
+# Migrated from tests/test_events.py (cross-slice: subject defined here; Activity
+# is defined in the provenance slice).
+ex:saObservationalActivityIsSubclassOfActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ObservationalActivity a owl:Class , logic:Event ;
+        rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:ObservationalActivity MUST be an owl:Class typed logic:Event and a direct subclass of gmeow:Activity. The subject is defined in the events slice; gmeow:Activity itself is in the provenance slice, so this is a cross-slice structural assertion authored in the subject's owning slice. Mirrors test_observational_activity_is_subclass_of_activity_and_event." .
