@@ -202,6 +202,11 @@ struct PriorTerm {
 /// first-seen version, is a hard fault (a regenerated tree always carries a
 /// well-formed manifest).
 fn read_prior_manifest(root: &Path) -> Result<Option<BTreeMap<String, PriorTerm>>, PipelineError> {
+    // GENERATED-READ-OK: this reads the PRIOR committed manifest as deliberate prior-state
+    // input to compute the monotonic changelog (first-seen versions + changed entries). It is
+    // not a stale-disk-fold: the term-manifest stage is the sole producer of this file and needs
+    // its previous value to preserve history — there is no upstream product carrying prior state.
+    // On a clean tree the read equals the stage's own last output, so regenerate is a fixed point.
     let path = root.join(TERM_MANIFEST_RDF_PATH);
     if !path.is_file() {
         return Ok(None);
@@ -468,6 +473,9 @@ impl Stage for TermManifestStage {
         // bootstrap build that first mints it; declare it only when present.
         let mut files = vec![root.join("ontology").join("gmeow.ttl")];
         files.extend(module_files(root)?);
+        // GENERATED-READ-OK: cache declaration for the deliberate prior-state read in
+        // read_prior_manifest (see its justification) — the prior manifest is a genuine input
+        // to the monotonic changelog, not a stale projection folded as fresh.
         let prior = root.join(TERM_MANIFEST_RDF_PATH);
         if prior.is_file() {
             files.push(prior);

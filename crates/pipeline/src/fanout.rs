@@ -53,6 +53,10 @@ pub struct FanoutReport {
 /// rayon pool of that many threads (clamped to `>= 1`), honouring the budget without
 /// touching the global pool (mirroring [`crate::scheduler`]).
 pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, PipelineError> {
+    // GENERATED-READ-OK: fanout is the post-pipeline projection phase (PIPELINE_SPINE §6); it reads
+    // the freshly-emitted terminal bundle gmeow.gts (the source of truth, never a fanout projection)
+    // to write the rest of generated/ outward — the read result never folds into gmeow.gts, so it
+    // cannot trigger the stale-disk-fold bug class.
     let gts_path = root.join(GTS_PATH);
     let gts = std::fs::read(&gts_path).map_err(|e| PipelineError::Stage {
         stage: "fanout".to_string(),

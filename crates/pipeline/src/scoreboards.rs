@@ -1030,11 +1030,12 @@ fn shapes_turtle(root: &Path) -> Result<String, String> {
             }
         }
     }
-    let generated = glob_ttl(&root.join("generated").join("shapes"))?;
+    let generated_shapes = root.join("generated").join("shapes"); // GENERATED-READ-OK: dev-CLI scoreboard audit of committed shapes; never folds into gmeow.gts
+    let generated = glob_ttl(&generated_shapes)?;
     if generated.is_empty() {
         return Err(format!(
             "no generated shapes under {}",
-            root.join("generated").join("shapes").display()
+            generated_shapes.display()
         ));
     }
     files.extend(generated);
@@ -1171,6 +1172,7 @@ fn ontology_nt(root: &Path) -> Result<String, String> {
 }
 
 fn sssom_texts(root: &Path) -> Result<Vec<String>, String> {
+    // GENERATED-READ-OK: dev-CLI scoreboard audit of committed mappings; result never folds into gmeow.gts.
     let dir = root.join("generated").join("mappings");
     let paths = glob_suffix(&dir, ".sssom.tsv")?;
     if paths.is_empty() {
@@ -1189,6 +1191,7 @@ fn projection_ttls(root: &Path) -> Result<Vec<String>, String> {
 }
 
 fn projection_queries(root: &Path) -> Result<Vec<(String, String)>, String> {
+    // GENERATED-READ-OK: dev-CLI scoreboard audit of committed queries; result never folds into gmeow.gts.
     let dir = root.join("generated").join("queries");
     ACCEPTANCE_PROFILES
         .iter()
