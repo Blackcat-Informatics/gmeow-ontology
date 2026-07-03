@@ -293,7 +293,14 @@ production spine through `stage-snapshot`, so focused per-stage and carrier
 tests keep the failure modes covered on-gate); and
 `gmeow-pipeline::stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs`
 (25.8 s in CI shard 3; it exercises terminal carrier serialization and import
-round-trip work with no remaining CI headroom); and
+round-trip work with no remaining CI headroom);
+`gmeow-foundation-corpus::acceptance::imported_graph_conforms_to_shapes` (26.065 s
+in CI shard 2; whole-ontology SHACL conformance — validates the importer output
+unioned with every `slices/*/*/module.ttl` against the entire shape corpus, which
+now includes the H8-migrated `sh:sparql` constraint shapes; the importer's
+graph-shape parity stays on-gate via the four sibling SPARQL acceptance tests and
+whole-ontology SHACL conformance stays on-gate via the domain `conformance_*`
+validate tests); and
 `gmeow-logic::whole_bundle_coherence_gate_catches_injected_clash` (~95 s locally;
 it imports the WHOLE committed `gmeow.gts` bundle and drives the native Nemo
 chase over it twice, proving the shipped ontology is coherent and that an

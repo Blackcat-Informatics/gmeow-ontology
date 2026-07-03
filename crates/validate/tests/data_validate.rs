@@ -83,10 +83,12 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
 
     // Assert stable rule identity via (code, source-shape IRI) — not prose.
     // Shapes discovered by running the test with --nocapture:
-    //   disjointness: shacl.SPARQLConstraintComponent + IdentityAxisOrthogonalityShape
+    //   disjointness: shacl.SPARQLConstraintComponent + IdentityAxisDisjointnessConstraintShape
+    //     (the P17 projection of gmeow:identityAxisDisjointness in constraint-shapes.ttl,
+    //      the former hand-authored IdentityAxisOrthogonalityShape was migrated to logic:)
     //   commitment:   shacl.MinCountConstraintComponent + CommitmentShape
     //   frame:        shacl.MinCountConstraintComponent + EventFrameRequirementShape (Warning)
-    const IDENTITY_SHAPE: &str = "IdentityAxisOrthogonalityShape";
+    const IDENTITY_SHAPE: &str = "IdentityAxisDisjointnessConstraintShape";
     const COMMITMENT_SHAPE: &str = "CommitmentShape";
     const FRAME_SHAPE: &str = "EventFrameRequirementShape";
 
@@ -97,7 +99,7 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
                     .as_deref()
                     .is_some_and(|d| d.contains(IDENTITY_SHAPE))
         }),
-        "missing P9 disjointness error (IdentityAxisOrthogonalityShape / SPARQLConstraintComponent)"
+        "missing P9 disjointness error (IdentityAxisDisjointnessConstraintShape / SPARQLConstraintComponent)"
     );
     assert!(
         errors.iter().any(|f| {

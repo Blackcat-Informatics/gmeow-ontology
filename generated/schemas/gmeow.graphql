@@ -2097,6 +2097,7 @@ enum PipelineStageEnum {
   stage_export_apache
   stage_export_bench
   stage_export_catalog
+  stage_export_constraint_shapes
   stage_export_evals
   stage_export_export
   stage_export_frame_shapes

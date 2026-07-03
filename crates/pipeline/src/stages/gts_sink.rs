@@ -70,9 +70,12 @@ impl GtsSinkStage {
                 // stale disk read (the same freshness rule as validation-shapes.ttl).
                 // Without these edges a new competency ResultShape could never reach
                 // the bundle — the fanout would rewrite the stale committed
-                // generated/shapes bytes forever.
+                // generated/shapes bytes forever. constraint-shapes.ttl (the logic:
+                // FOL-axiom projection) folds the same way, and on a first run does not
+                // yet exist on disk, so only the fresh product can carry it (H8).
                 "stage-export-frame-shapes".to_string(),
                 "stage-export-result-shapes".to_string(),
+                "stage-export-constraint-shapes".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
         }

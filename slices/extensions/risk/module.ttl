@@ -13,7 +13,7 @@ gmeow:Cascade
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Cascade"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A NAMED chain of causal links — 'Trust Collapse: betrayal dissolves the bond, bond dissolution kills the will to survive.' A social object: the cascade exists as a recognized failure narrative, independent of anything ever occurring. Entered at gmeow:cascadeFirstLink, walked by gmeow:linkNext, graded by gmeow:cascadeSeverity. Acyclic within itself (SHACL); propagation arithmetic is solver work (Principle 12)."@x-gmeow-english ;
+    skos:definition "A NAMED chain of causal links — 'Trust Collapse: betrayal dissolves the bond, bond dissolution kills the will to survive.' A social object: the cascade exists as a recognized failure narrative, independent of anything ever occurring. Entered at gmeow:cascadeFirstLink, walked by gmeow:linkNext, graded by gmeow:cascadeSeverity. Acyclic within itself (the logic:linkNextAcyclicity axiom, projected to SHACL); propagation arithmetic is solver work (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CausalLink
@@ -178,7 +178,7 @@ gmeow:linkAntecedent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link antecedent"@x-gmeow-english ;
     rdfs:range gmeow:EventType ;
-    skos:definition "The causing kind. Functional and mandatory (SHACL); distinct from the consequent (SHACL — nothing type-causes itself)."@x-gmeow-english ;
+    skos:definition "The causing kind. Functional and mandatory (SHACL); distinct from the consequent (the logic:causalLinkDistinctness axiom, projected to SHACL — nothing type-causes itself)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkConsequent
@@ -205,7 +205,7 @@ gmeow:linkNext
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link next"@x-gmeow-english ;
     rdfs:range gmeow:CausalLink ;
-    skos:definition "The next link in a cascade walk. NOT functional (a link may feed branches; a branching failure tree is one cascade entry with diverging walks) and NOT transitive — reachability is solver work. Acyclic (SHACL): no link reaches itself through linkNext."@x-gmeow-english ;
+    skos:definition "The next link in a cascade walk. NOT functional (a link may feed branches; a branching failure tree is one cascade entry with diverging walks) and NOT transitive — reachability is solver work. Acyclic (the logic:linkNextAcyclicity axiom, projected to SHACL): no link reaches itself through linkNext."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkStrength

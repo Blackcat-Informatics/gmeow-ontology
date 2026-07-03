@@ -3666,76 +3666,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:causalModality": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:linkAntecedent": {
-          "$comment": "gmeow:EventType has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:linkConsequent": {
-          "$comment": "gmeow:EventType has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:linkMechanism": {
-          "anyOf": [
-            {},
-            {
-              "items": {},
-              "type": "array"
-            }
-          ]
-        },
-        "gmeow:linkStrength": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
         }
       },
-      "required": [
-        "gmeow:causalModality",
-        "gmeow:linkAntecedent",
-        "gmeow:linkConsequent"
-      ],
       "type": "object"
     },
     "Certification": {
@@ -4330,25 +4262,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:commitmentBeneficiary": {
-          "anyOf": [
-            {},
-            {
-              "items": {},
-              "minItems": 1,
-              "type": "array"
-            }
-          ]
-        },
-        "gmeow:committedAgent": {},
-        "gmeow:intentionGoal": {}
+        }
       },
-      "required": [
-        "gmeow:commitmentBeneficiary",
-        "gmeow:committedAgent",
-        "gmeow:intentionGoal"
-      ],
       "type": "object"
     },
     "CommunitySummary": {
@@ -5927,36 +5842,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:penaltyPole": {
-          "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:rewardPole": {
-          "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
         }
       },
-      "required": [
-        "gmeow:penaltyPole",
-        "gmeow:rewardPole"
-      ],
       "type": "object"
     },
     "CryptoWallet": {
@@ -28198,61 +28085,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:precedenceHigher": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Norm"
-            },
-            {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            }
-          ]
-        },
-        "gmeow:precedenceLower": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Norm"
-            },
-            {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            }
-          ]
-        },
-        "gmeow:precedenceScope": {
-          "$comment": "gmeow:NormativeSystem has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
         }
       },
-      "required": [
-        "gmeow:precedenceHigher",
-        "gmeow:precedenceLower",
-        "gmeow:precedenceScope"
-      ],
       "type": "object"
     },
     "PremiseUse": {

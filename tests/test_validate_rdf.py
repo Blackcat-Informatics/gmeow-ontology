@@ -49,7 +49,7 @@ def test_validate_rdf_reports_two_errors_one_warning_with_locations(
     # Assert stable rule identity via (code, source-shape IRI) — not prose.
     # Shapes discovered from the Rust engine (data_validate.rs Step 1):
     #   disjointness: shacl.SPARQLConstraintComponent
-    #                 + IdentityAxisOrthogonalityShape (error)
+    #                 + IdentityAxisDisjointnessConstraintShape (error)
     #   commitment:   shacl.MinCountConstraintComponent + CommitmentShape (error)
     #   frame:        shacl.MinCountConstraintComponent
     #                 + EventFrameRequirementShape (warning)
@@ -57,9 +57,9 @@ def test_validate_rdf_reports_two_errors_one_warning_with_locations(
     assert any(
         sev == "error"
         and code == "shacl.SPARQLConstraintComponent"
-        and "IdentityAxisOrthogonalityShape" in detail
+        and "IdentityAxisDisjointnessConstraintShape" in detail
         for sev, code, detail in identity
-    ), f"missing P9 disjointness error (IdentityAxisOrthogonalityShape): {identity}"
+    ), f"missing P9 disjointness error (identity-axis projection): {identity}"
     assert any(
         sev == "error"
         and code == "shacl.MinCountConstraintComponent"

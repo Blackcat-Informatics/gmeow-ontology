@@ -19498,6 +19498,9 @@ enums:
       stage-export-catalog:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-catalog
         title: 'export: catalog'
+      stage-export-constraint-shapes:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-constraint-shapes
+        title: 'export: constraint shapes'
       stage-export-evals:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-evals
         title: 'export: evals'
