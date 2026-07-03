@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CQ8 (INHABITED-COMPETENCY.md, INHABITED-TOPOLOGY.md): under co-tenancy, WHO was
+# driving the shared host at T is answered from the recorded
+# gmeow:ControlAssessments — each co-tenant's attributed gmeow:controlLevel is
+# addressable and a solver ranks them over these facts, never over a privileged
+# gmeow:primaryInhabitant (Principles 9, 12; there is no such term, pinned by
+# tests/structural.ttl). Control is causal driving, distinct from the deception
+# slice's held-vs-projected standpoint divergence (belief-vs-presentation), which
+# does NOT answer control and is deliberately absent from this projection.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?agent ?level WHERE {
+    ?ca a gmeow:ControlAssessment ;
+        gmeow:controlAgent ?agent ;
+        gmeow:controlLevel ?level .
+}
+ORDER BY ?agent

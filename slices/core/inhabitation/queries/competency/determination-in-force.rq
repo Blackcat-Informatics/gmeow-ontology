@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CQ13 (INHABITED-COMPETENCY.md): which continuity DETERMINATION is in force, by
+# which authority — the one no later gmeow:ContinuityDetermination supersedes.
+# The appeal gmeow:supersedes the original board ruling; Principle 10 keeps the
+# superseded original on the record (addressable underneath), but it is no longer
+# in force, so the FILTER NOT EXISTS leaves exactly the appeal. The decisional
+# layer is thus distinct from — and does not erase — the descriptive
+# IdentityContinuityAssessment plurality (CQ1/CQ9) beneath it.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?determination ?authority WHERE {
+    ?determination a gmeow:ContinuityDetermination ;
+                   gmeow:determiningAuthority ?authority .
+    FILTER NOT EXISTS { ?later gmeow:supersedes ?determination }
+}

@@ -66,5 +66,21 @@ ex:untilNextRevalidation a gmeow:TimeInterval ;
     gmeow:startedAtTime "2026-07-01T00:00:00Z"^^xsd:dateTime ;
     gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
 
-# A later appeal supersedes it — ex:appealRuling gmeow:supersedes ex:boardRuling —
-# and the original stays on the record (Principle 10), grounds intact.
+# --- A later appeal, by a higher authority, REVERSES and supersedes the board
+#     ruling. The original stays on the record (Principle 10) — gmeow:supersedes
+#     retires it from force without erasing it — so the in-force determination is
+#     the appeal, while the descriptive same/different plurality is untouched.
+ex:appealRuling a gmeow:ContinuityDetermination ;
+    gmeow:assessmentFromStage ex:stageOpus48 ;
+    gmeow:assessmentToStage ex:stageOpus50 ;
+    gmeow:continuityVerdict gmeow:continuityDifferent ;
+    gmeow:observedFeature ex:lillithLineage ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:vantage ex:appealsBoard ;
+    gmeow:determiningAuthority ex:appealsBoard ;
+    gmeow:determinationGrounds ex:appealFinding-2026Q4 ;
+    gmeow:determinationForce gmeow:forceBinding ;
+    gmeow:determinationValidity ex:untilNextRevalidation ;
+    gmeow:supersedes ex:boardRuling .
+
+ex:appealsBoard a gmeow:Organization .
