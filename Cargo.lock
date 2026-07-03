@@ -1698,6 +1698,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-lang-form"
+version = "0.1.0"
+dependencies = [
+ "insta",
+ "proptest",
+ "sha2",
+]
+
+[[package]]
 name = "gmeow-license"
 version = "0.1.0"
 
