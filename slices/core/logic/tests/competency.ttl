@@ -199,21 +199,23 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 #   - logic:candidateBullshitTruthIndifference (formalizing gmeow:bullshit,       skos:definition)
 # The foundational-partition candidates for Event/Situation and the two class
 # coverings (Entity, Object) carry NO harvest back-link and therefore do not appear
-# here. This candidate demonstrates both prose-field kinds: nine sourced from a
+# here. This set demonstrates both prose-field kinds: thirteen sourced from a
 # logic:ProseFieldDefinition (skos:definition) and one from a logic:ProseFieldAvoidWhen
 # (gmeow:avoidWhen).
 
 ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/logic/queries/competency/harvest-coverage.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly ten accepted candidates carry the full harvest back-link — nine sourced from a term's skos:definition and one from a term's gmeow:avoidWhen." ;
+    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly fourteen accepted candidates carry the full harvest back-link — thirteen sourced from a term's skos:definition and one from a term's gmeow:avoidWhen." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqHarvestCoverageShape ;
     gmeow:cqExpectRow ex:rowHarvestProperPart, ex:rowHarvestFunctionalComplex,
         ex:rowHarvestEndurantPerdurant, ex:rowHarvestSocialInformation,
         ex:rowHarvestRelatorMediation, ex:rowHarvestTopSortal,
         ex:rowHarvestDeception, ex:rowHarvestFalsehood,
-        ex:rowHarvestLicensedFalsehood, ex:rowHarvestBullshit .
+        ex:rowHarvestLicensedFalsehood, ex:rowHarvestBullshit,
+        ex:rowHarvestIndirectContribution, ex:rowHarvestWemiInstantiation,
+        ex:rowHarvestOrgMembership, ex:rowHarvestTenureClaim .
 
 ex:cqHarvestCoverageShape a logic:ResultShape ;
     logic:declaresColumn
@@ -290,5 +292,33 @@ ex:rowHarvestBullshit a gmeow:ExpectedRow ;
     gmeow:rowCell
         [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateBullshitTruthIndifference ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:bullshit ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestIndirectContribution a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateIndirectContributor ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:indirectContributor ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestWemiInstantiation a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateInstantiatesWork ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:instantiatesWork ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestOrgMembership a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateOrgMembershipPropagation ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:memberOf ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestTenureClaim a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateTenureClaimSurfacing ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:StandpointTenure ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .

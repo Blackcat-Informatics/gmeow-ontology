@@ -1237,6 +1237,7 @@ classes:
     - hasVersion
     - hasVoice
     - hasWebPage
+    - indirectContributor
     - instanceOfConcept
     - isAbout
     - isAccessibleForFree
@@ -1885,6 +1886,7 @@ classes:
     slots:
     - exemplifies
     - hasCarrier
+    - instantiatesWork
   JournalEntry:
     class_uri: https://blackcatinformatics.ca/gmeow/JournalEntry
     title: Journal Entry
@@ -8868,6 +8870,12 @@ slots:
     range: Corpus
     domain: VectorIndex
     multivalued: true
+  indirectContributor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/indirectContributor
+    title: indirect contributor
+    range: Agent
+    domain: Entity
+    multivalued: true
   industryClassification:
     slot_uri: https://blackcatinformatics.ca/gmeow/industryClassification
     title: industry classification
@@ -8946,6 +8954,12 @@ slots:
     range: datetime
     domain: Instant
     multivalued: false
+  instantiatesWork:
+    slot_uri: https://blackcatinformatics.ca/gmeow/instantiatesWork
+    title: instantiates work
+    range: Work
+    domain: Item
+    multivalued: true
   intentBearer:
     slot_uri: https://blackcatinformatics.ca/gmeow/intentBearer
     title: intent bearer
