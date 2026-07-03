@@ -29,21 +29,47 @@ via `gmeow:feltAffect` (⊑ `gmeow:realizesMentalMoment`). A felt episode is nev
 `gmeow:MentalMoment`: modes are endurants (`logic:Mode`), experiences are
 occurrents (`logic:Event`).
 
+## The high-dimensional landscape
+
+The canonical *description* of an affective state is **vectorial and relational**,
+not a token from a list. The affect itself stays an intrinsic `gmeow:Emotion` mode
+or an occurrent `gmeow:AffectiveExperience`; what is vectorial is the frame-relative
+description over an **open two-family axis basis**:
+
+- **Core-affect axes** (`gmeow:CoreAffectDimension ⊑ gmeow:AppraisalDimension`) —
+  the felt quality itself: valence, arousal, dominance, unpredictability.
+- **Appraisal axes** — what the mind computed about the eliciting situation:
+  novelty, goal-relevance, goal-congruence, agency, certainty, coping,
+  norm-compatibility, temporal-orientation, object-focus. These generate and
+  differentiate emotions that share core affect (fear vs anger differ on agency,
+  certainty, coping). The goal/norm axes read *into* teleology
+  (`gmeow:Goal`/`gmeow:Desire`/`gmeow:counterGoal`) — connected, never identified.
+
+Both families are also tagged with `gmeow:dimensionFamily`
+(`gmeow:familyCoreAffect` / `gmeow:familyAppraisal`); the distinct type and the tag
+are complementary, and the axis vocabulary stays open and contested (P9) — PAD,
+OCC, Scherer, and Plutchik are different bases of one landscape.
+
+Each axis magnitude is read against a declared **`gmeow:AffectScaleProfile`**
+(range, midpoint, polarity, transform). Cross-scale conversion and the intensity
+norm are solver work, never asserted in triples (P12).
+
+## The `appraisalValue` reshape (greenfield, no shim)
+
+`gmeow:appraisalValue` **removed** its bare-decimal floor: a dimensional reading now
+MUST carry a `gmeow:appraisalScaleProfile` naming the `gmeow:AffectScaleProfile` it
+is read against (SHACL hard-fail). An unframed magnitude is ill-formed, not a
+permitted default — this is Principle 6 (reshape, don't shim) enforcing Principle 11
+(a value asserted without its frame is ill-formed).
+
 ## Scope of the current module
 
-The module models emotions and appraisals and the occurrent felt-episode branch
-(`gmeow:AffectiveExperience`); it does not yet carry a distinct mood/tenure class,
-a dimensional landscape, or an evidence spine — see `design/AFFECT-DESIGN.md` for
-the comprehensive design of those:
+Still absent (see `design/AFFECT-DESIGN.md`), landing in later work:
 
 - **Mood/tenure** has no named surface; a diffuse, long-lived `gmeow:Mood` and its
-  tenure are described in `design/AFFECT-DESIGN.md`. The felt-episode surface
-  (`gmeow:AffectiveExperience`) is present — the occurrent branch.
-- **`appraisalValue`** is a plain decimal; it does not yet reference an
-  `AffectScaleProfile` for the open two-family axis basis, scale profiles,
-  vector observations, and composition that the fuller model specifies.
-- **Evidence** (expression, classifier outputs, telemetry as attributed
-  evidence) is not yet modelled as a distinct spine.
+  tenure are described in `design/AFFECT-DESIGN.md`.
+- **Evidence** (expression, classifier outputs, telemetry as attributed evidence)
+  is modelled as its own spine below the dimensional landscape.
 
 Permanent stances (true regardless of how the model grows): **no emotion or
 aesthetic hierarchies** — open value vocabularies, contested by design (P9);
@@ -81,13 +107,29 @@ the appraiser — dimensional or qualitative (at least one of the two forms). Tw
 critics disagreeing are two coexisting cells. `appraisalOf` (⊑ `observedFeature`)
 is functional: one appraisal, one subject.
 
-### gmeow:AppraisalDimension · gmeow:appraisalDimension · gmeow:appraisalValue
+### gmeow:AppraisalDimension · gmeow:CoreAffectDimension · gmeow:dimensionFamily
 
-The dimensional form: an OPEN axis vocabulary seeded with the PAD triad —
-valence, arousal, dominance. `appraisalDimension` reads at most one axis per
-appraisal (a PAD triple is three Appraisals sharing a vantage); `appraisalValue`
-carries the reading on whatever scale the tradition declares (a rubric's
-ScoreScale when loaded, plain decimals otherwise — soft reference).
+The dimensional form: an OPEN axis vocabulary. `gmeow:CoreAffectDimension`
+(⊑ `AppraisalDimension`) distinguishes the four felt-quality axes; the nine
+cognitive appraisal axes stay plain `AppraisalDimension`; `gmeow:dimensionFamily`
+tags each with `familyCoreAffect` / `familyAppraisal`. The basis is seeded, never
+closed (P9).
+
+### gmeow:appraisalDimension · gmeow:appraisalValue · gmeow:appraisalScaleProfile
+
+`appraisalDimension` reads at most one axis per appraisal (a PAD triple is three
+Appraisals sharing a vantage). `appraisalValue` carries the magnitude — and now
+MUST be framed: `appraisalScaleProfile` (functional) names the
+`gmeow:AffectScaleProfile` the number is read against. The old plain-decimal floor
+is gone (the reshape); an unframed reading is a SHACL hard-fail.
+
+### gmeow:AffectScaleProfile · gmeow:profileRangeMin/Max · gmeow:profileMidpoint · gmeow:profilePolarity · gmeow:profileTransform
+
+The declared scale/frame for numeric affect readings — range (min/max, mandatory),
+midpoint, polarity (`gmeow:ScalePolarity`: bipolar/unipolar, open vocab), and a
+declared normalization transform (a string spec). The affect analogue of the
+rubrics facility's `gmeow:ScoreScale`, minted in core because affect cannot depend
+on the norms extension. Scale arithmetic is solver work (P12).
 
 ### gmeow:AestheticQuality · gmeow:appraisalQuality
 

@@ -66,6 +66,47 @@ gmeow:AppraisalDimension
     skos:definition "A dimensional axis of affective appraisal — an OPEN vocabulary seeded with the PAD triad: valence (pleasant ↔ unpleasant), arousal (activated ↔ calm), dominance (in control ↔ controlled)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+gmeow:AffectScaleProfile
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Scale Profile"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The declared reference frame a numeric affect reading is expressed against: its range (gmeow:profileRangeMin/gmeow:profileRangeMax), midpoint (gmeow:profileMidpoint), polarity (gmeow:profilePolarity — bipolar/unipolar), and normalization transform (gmeow:profileTransform). A magnitude on an affect axis is meaningless without one (Principle 11: a value asserted without its frame is ill-formed). Scale arithmetic — normalization, cross-scale conversion, and the metric under which magnitudes combine into an intensity — is solver work outside the logic (Principle 12); the profile DECLARES the frame, it does not compute in triples. The affect-domain analogue of the rubrics facility's gmeow:ScoreScale, minted here because affect is core and cannot depend on the norms extension."@x-gmeow-english ;
+    skos:example "ex:padUnitScale a gmeow:AffectScaleProfile ; gmeow:profileRangeMin -1.0 ; gmeow:profileRangeMax 1.0 ; gmeow:profileMidpoint 0.0 ; gmeow:profilePolarity gmeow:polarityBipolar ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding normalization or cross-scale conversion arithmetic in triples (that is solver work — Principle 12), and avoid a bare numeric reading with no profile — an unframed magnitude is ill-formed, not a default."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the profile with gmeow:profileRangeMin / gmeow:profileRangeMax (and gmeow:profileMidpoint / gmeow:profilePolarity / gmeow:profileTransform as the tradition declares), then bind every gmeow:appraisalValue to it via gmeow:appraisalScaleProfile and name a vector reading's basis via gmeow:vectorProfile."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the scale/frame a numeric affect magnitude is read against — range, midpoint, polarity, and normalization transform — so a reading carries its own interpretation."@x-gmeow-english .
+
+gmeow:CoreAffectDimension
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Core-Affect Dimension"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:AppraisalDimension ;
+    skos:definition "The experiential (felt-quality) axes of affect — the low-dimensional, continuous core-affect basis present even in objectless mood: valence, arousal, dominance, and unpredictability. A distinguished subset of the open gmeow:AppraisalDimension vocabulary (⊑, so every core-affect axis is an appraisal dimension), typed distinctly from the cognitive-relational appraisal axes (novelty, goal-relevance, agency, …) that GENERATE and DIFFERENTIATE emotions sharing the same core affect. Both families are also tagged by gmeow:dimensionFamily; the type and the tag are complementary, and the axis vocabulary as a whole stays open and contested (Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "The felt-quality family; conflating it with the cognitive appraisal axes is the usual modeling error and separating them is the point. Core-affect axes are the direction of the felt state; appraisal axes are what the mind computed about the eliciting situation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:DimensionFamily
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Dimension Family"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "An OPEN value vocabulary grouping affect axes into families — seeded with core-affect (the felt-quality axes) and appraisal (the cognitive-relational axes). A tag on gmeow:AppraisalDimension via gmeow:dimensionFamily that groups the seed basis WITHOUT closing the axis set (Principle 9): PAD, OCC, Scherer's component-process axes, and Plutchik's wheel are different bases of one landscape, and their disagreement is data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ScalePolarity
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Scale Polarity"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "An OPEN value vocabulary for the polarity of an affect scale — seeded with bipolar (a signed axis with a neutral midpoint, e.g. valence −1…1) and unipolar (a one-sided magnitude, e.g. arousal 0…1). Kept open, never an sh:in enum: a closed set anywhere in canonical affect is a projection artifact only."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:Emotion
     a logic:Kind ,
         owl:Class ;
@@ -150,34 +191,218 @@ gmeow:appraisalQuality
     skos:definition "The aesthetic quality a qualitative appraisal reads. NOT functional: one cell may attribute several coexisting qualities. Open vocabulary (sh:nodeKind sh:IRI)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:appraisalScaleProfile
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Appraisal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "appraisal scale profile"@x-gmeow-english ;
+    rdfs:range gmeow:AffectScaleProfile ;
+    skos:definition "The gmeow:AffectScaleProfile a dimensional gmeow:appraisalValue is read against — the declared range, midpoint, polarity, and transform that give the bare magnitude its meaning. MANDATORY on any dimensional appraisal (a cell carrying gmeow:appraisalValue): the greenfield reshape removed the bare-decimal floor, so an unframed reading is ill-formed, not a permitted default (Principle 6, Principle 11). Functional: one reading, one frame."@x-gmeow-english ;
+    skos:example "ex:arousalReading gmeow:appraisalValue 0.9 ; gmeow:appraisalScaleProfile ex:padUnitScale ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it on a dimensional appraisal (a value without its frame is ill-formed) and avoid pointing it at anything but a gmeow:AffectScaleProfile."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "On every gmeow:Appraisal that carries a gmeow:appraisalValue, assert exactly one gmeow:appraisalScaleProfile naming the gmeow:AffectScaleProfile the magnitude is expressed against."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a dimensional appraisal reading to the declared scale/frame that makes its number interpretable."@x-gmeow-english .
+
 gmeow:appraisalValue
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal value"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The dimensional reading, on whatever scale the appraising tradition declares (a rubric's ScoreScale when the rubrics facility is loaded; plain decimals otherwise — soft reference, never a dependency). At most one per appraisal, with its dimension (SHACL). Constitutive of this one cell — divergent readings are divergent Appraisals, not extra values."@x-gmeow-english ;
+    skos:definition "The magnitude of a dimensional reading, ALWAYS expressed against the gmeow:AffectScaleProfile named by gmeow:appraisalScaleProfile — a bare number carries no meaning without its declared frame (Principle 11), and the greenfield reshape removed the old plain-decimal floor (Principle 6). At most one per appraisal, and only alongside its dimension AND its scale profile (SHACL). Constitutive of this one cell — divergent readings are divergent Appraisals, not extra values."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:dimensionArousal
+gmeow:dimensionFamily
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "dimension family"@x-gmeow-english ;
+    rdfs:range gmeow:DimensionFamily ;
+    skos:definition "Tags a gmeow:AppraisalDimension with its family — core-affect (felt-quality axes) or appraisal (cognitive-relational axes) — grouping the seed basis without closing the axis set (Principle 9). Complements the distinct gmeow:CoreAffectDimension type; open vocabulary (sh:nodeKind sh:IRI)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:profileMidpoint
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectScaleProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "profile midpoint"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The neutral/reference point of an affect scale (0.0 for a bipolar valence axis −1…1). Optional; absent means the tradition declares no distinguished midpoint. Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:profilePolarity
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:AffectScaleProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "profile polarity"@x-gmeow-english ;
+    rdfs:range gmeow:ScalePolarity ;
+    skos:definition "Whether an affect scale is bipolar (signed, with a neutral midpoint) or unipolar (a one-sided magnitude). Open vocabulary (gmeow:ScalePolarity, sh:nodeKind sh:IRI — never sh:in). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:profileRangeMax
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectScaleProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "profile range max"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The maximum of an affect scale's range (must exceed gmeow:profileRangeMin). Mandatory (SHACL). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:profileRangeMin
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectScaleProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "profile range min"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The minimum of an affect scale's range (below gmeow:profileRangeMax). Mandatory (SHACL). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:profileTransform
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectScaleProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "profile transform"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The declared normalization/transform a scale applies, named as a string spec (e.g. 'linear', 'z-score', 'min-max to [-1,1]'). The transform is DECLARED here, never computed in triples — applying it, and converting between scales, is solver work (Principle 12). Functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:dimensionAgency
     a gmeow:AppraisalDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "agency"@x-gmeow-english ;
+    skos:definition "The agency/attribution appraisal axis — self ↔ other-agent ↔ impersonal cause. Reads against the acting agent; separates pride (self-agency) from joy and guilt from shame. A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionArousal
+    a gmeow:CoreAffectDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "arousal"@x-gmeow-english ;
-    skos:definition "The arousal dimension — activated versus calm."@x-gmeow-english ;
+    skos:definition "The arousal core-affect dimension — activated versus calm (activation / energy)."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyCoreAffect ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionCertainty
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "certainty"@x-gmeow-english ;
+    skos:definition "The certainty appraisal axis — how sure the mind is about the eliciting situation. Separates fear (uncertain) from anger at equal valence/arousal. A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionCoping
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "coping potential"@x-gmeow-english ;
+    skos:definition "The coping-potential appraisal axis — the appraised capacity to manage or influence the situation. Separates fear from anger and challenge from threat. A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:dimensionDominance
-    a gmeow:AppraisalDimension ;
+    a gmeow:CoreAffectDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "dominance"@x-gmeow-english ;
-    skos:definition "The dominance dimension — in control versus controlled."@x-gmeow-english ;
+    skos:definition "The dominance/potency core-affect dimension — in control versus controlled."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyCoreAffect ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionGoalCongruence
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "goal congruence"@x-gmeow-english ;
+    skos:definition "The goal-congruence appraisal axis — conducive ↔ obstructive to the appraiser's goals. Reads against teleology's gmeow:Goal / gmeow:Desire / gmeow:counterGoal (affect and teleology stay connected, never identified). A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionGoalRelevance
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "goal relevance"@x-gmeow-english ;
+    skos:definition "The goal-relevance/salience appraisal axis — how much the situation matters to the appraiser's goals. Reads against teleology's gmeow:Goal / gmeow:Desire; the affective analogue of a reified goal evaluation. A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionNormCompatibility
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "norm compatibility"@x-gmeow-english ;
+    skos:definition "The norm/self-compatibility appraisal axis — upholds ↔ violates a standard. Reads against the deontic-force-over-goals layer; underlies shame, guilt, pride, and indignation. A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionNovelty
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "novelty"@x-gmeow-english ;
+    skos:definition "The novelty/expectedness appraisal axis — how unexpected the eliciting situation is. Underlies surprise and startle. A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionObjectFocus
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "object focus"@x-gmeow-english ;
+    skos:definition "The object-focus appraisal axis — sharply directed ↔ diffuse. The emotion/mood continuum: a sharply object-directed emotion versus a diffuse, backgrounded mood. A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionTemporalOrientation
+    a gmeow:AppraisalDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "temporal orientation"@x-gmeow-english ;
+    skos:definition "The temporal-orientation appraisal axis — past ↔ present ↔ prospective. Separates regret (past) from dread (prospective). A cognitive-relational appraisal axis."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyAppraisal ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionUnpredictability
+    a gmeow:CoreAffectDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "unpredictability"@x-gmeow-english ;
+    skos:definition "The unpredictability core-affect dimension — a fourth felt-quality axis several traditions need to separate fear from anger at equal valence and arousal."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyCoreAffect ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:dimensionValence
-    a gmeow:AppraisalDimension ;
+    a gmeow:CoreAffectDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "valence"@x-gmeow-english ;
-    skos:definition "The valence dimension — pleasant versus unpleasant."@x-gmeow-english ;
+    skos:definition "The valence core-affect dimension — pleasant versus unpleasant (hedonic tone)."@x-gmeow-english ;
+    gmeow:dimensionFamily gmeow:familyCoreAffect ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:familyAppraisal
+    a gmeow:DimensionFamily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "appraisal"@x-gmeow-english ;
+    skos:definition "The cognitive-relational family of affect axes — what the mind computed about the eliciting situation (novelty, goal-relevance, goal-congruence, agency, certainty, coping, norm-compatibility, temporal-orientation, object-focus). These generate and differentiate emotions that share core affect."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:familyCoreAffect
+    a gmeow:DimensionFamily ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "core-affect"@x-gmeow-english ;
+    skos:definition "The experiential family of affect axes — the felt quality itself (valence, arousal, dominance, unpredictability), low-dimensional and present even in objectless mood."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:polarityBipolar
+    a gmeow:ScalePolarity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "bipolar"@x-gmeow-english ;
+    skos:definition "A signed affect scale with a neutral midpoint (e.g. valence −1…1)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:polarityUnipolar
+    a gmeow:ScalePolarity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "unipolar"@x-gmeow-english ;
+    skos:definition "A one-sided affect magnitude scale (e.g. arousal 0…1)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:emotionAnger
