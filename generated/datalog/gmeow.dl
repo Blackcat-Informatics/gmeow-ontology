@@ -190,7 +190,7 @@ candidateSourceHash("https://blackcatinformatics.ca/logic/candidateObjectIndivid
 reviewedBy("https://blackcatinformatics.ca/logic/candidateObjectIndividuationCovering", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "https://blackcatinformatics.ca/logic/CategoryDerivationRule", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "https://blackcatinformatics.ca/logic/PositiveHornProfile", "default").
-candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "hand-harvested from gmeow:memberOf's skos:definition, which states membership propagates up the organizational part/whole hierarchy through gmeow:subOrganizationOf (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "hand-harvested from gmeow:memberOf's skos:definition, which states membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
 candidateFormalizes("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "https://blackcatinformatics.ca/gmeow/memberOf", "default").
 candidateLifecycle("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
 candidateNegativeCase("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "https://blackcatinformatics.ca/logic/cqOrgMembershipPropagationDownwardRejected", "default").
@@ -199,7 +199,7 @@ candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateOrgMe
 candidateScope("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", 'derivation: gmeow:memberOf ∘ gmeow:subOrganizationOf ⇒ gmeow:memberOf, recursive up the sub-organization hierarchy', "default").
 candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "https://blackcatinformatics.ca/logic/RiskCoreContaminating", "default").
 candidateSourceField("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
-candidateSourceHash("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", 'sha256:5b391ca1b4bd12c69da58106cae0e62086db0bbc0fad863734f42d5a2ca67556', "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", 'sha256:e69c9076321932cd8ca8fb9784382dd625429a454cbdc52ce2ab165e0f40567d', "default").
 reviewedBy("https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateProperPartOfAsymmetric", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
