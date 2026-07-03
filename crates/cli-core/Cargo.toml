@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-cli-core"
+description = "Shared CLI foundation (console modes, reporters, tracing, exit codes) reused by the gmeow and gmeow-dev binaries."
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["cli", "clap", "diagnostics", "reporter", "gmeow"]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+gmeow-diagnostics = { path = "../diagnostics" }
+clap = { version = "4", features = ["derive"] }
+anstyle = "1"
+anstream = "0.6"
+indicatif = "0.17"
+comfy-table = "7"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
