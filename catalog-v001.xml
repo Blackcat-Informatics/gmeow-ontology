@@ -58,7 +58,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/lexicon" uri="slices/extensions/lexicon/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/lifecycle" uri="slices/core/lifecycle/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/logic" uri="slices/core/logic/module.ttl"/>
-    <uri name="https://blackcatinformatics.ca/gmeow/slices/mathematics" uri="slices/core/mathematics/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/math" uri="slices/grounding/math/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/mentation" uri="slices/core/mentation/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/metacognition" uri="slices/core/metacognition/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/music" uri="slices/extensions/music/module.ttl"/>

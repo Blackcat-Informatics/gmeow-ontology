@@ -10,7 +10,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/mathematics/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/> .
 
 # An exact rational number, and a distinct approximate value that stands in for it.
 ex:oneThird a math:RationalNumber ;

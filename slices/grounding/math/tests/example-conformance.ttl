@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative example-conformance fixtures for the mathematics slice — the test-DSL
-# twin of the SHACL shapes in slices/core/mathematics/shapes.ttl ("this instance
+# twin of the SHACL shapes in slices/grounding/math/shapes.ttl ("this instance
 # must validate, that counter-example must be rejected"). The harness
 # (crates/slicetest run_conformance_cell) validates mathematics/module.ttl + the one
 # bound gmeow:exampleFile against mathematics/shapes.ttl and compares finding codes.
@@ -13,7 +13,7 @@
 # `make validate` gate never loads the intentional violations as data.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
 
 # === Rule 1: a number declares its number system ============================ #
 
