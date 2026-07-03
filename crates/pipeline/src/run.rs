@@ -143,6 +143,14 @@ pub fn full_spec() -> PipelineSpec {
         ),
         st("stage-validate", "validate", &["stage-source-load"]),
         st("stage-conformance", "conformance", &[]),
+        // The agreement-matrix dashboard PROJECTS the single external-corpus grade:
+        // it reads stage-conformance's attached per-corpus tallies (never re-grading
+        // the corpus, PIPELINE_SPINE §3.2/§8) and folds an opaque Markdown member.
+        st(
+            "stage-export-agreement",
+            "agreement",
+            &["stage-conformance"],
+        ),
         st(
             "stage-docs-render",
             "docs_render",
@@ -242,6 +250,7 @@ pub fn full_spec() -> PipelineSpec {
             // The opaque fanout members ride in from their producing export leaves (each
             // rendered once, in the leaf); `build_fanout_opaque_blob` reads them off these
             // products instead of re-rendering from disk (PIPELINE_SPINE §3.2/§4).
+            "stage-export-agreement",
             "stage-export-apache",
             "stage-export-bench",
             "stage-export-evals",
