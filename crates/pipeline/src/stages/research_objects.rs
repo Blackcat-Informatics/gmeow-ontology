@@ -1514,7 +1514,10 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), PipelineError> {
 
 /// Render every committed research-object artifact under `root`, keyed by its
 /// logical (repo-relative) path.
-pub fn render_research_objects(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
+pub fn render_research_objects(
+    root: &Path,
+    dcat_rq: &str,
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let store = load_instance_graph(root)?;
     let ds = dataset_meta(&store)?;
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -1548,7 +1551,7 @@ pub fn render_research_objects(root: &Path) -> Result<BTreeMap<String, Vec<u8>>,
     );
 
     // DCAT: CONSTRUCT over the whole composed ontology + the worked-example A-Box.
-    let dcat = render_dcat(root)?;
+    let dcat = render_dcat(root, dcat_rq)?;
     out.insert(p("lillith.dcat.ttl"), dcat.into_bytes());
 
     // DataCite XML.
@@ -1566,7 +1569,9 @@ pub fn render_research_objects(root: &Path) -> Result<BTreeMap<String, Vec<u8>>,
 }
 
 /// Build the DCAT store (whole ontology + example A-Box), run `dcat.rq`, serialize.
-fn render_dcat(root: &Path) -> Result<String, PipelineError> {
+/// `dcat_rq` is the CONSTRUCT query text, threaded in from the consumed stage-mappings
+/// product (`generated/queries/dcat.rq`) — never re-read off disk (the stale-disk-fold class).
+fn render_dcat(root: &Path, dcat_rq: &str) -> Result<String, PipelineError> {
     let mut parsed: Vec<Arc<RdfDataset>> = Vec::new();
     // The whole authored ontology: ontology/gmeow.ttl + every slice module.ttl.
     let onto = root.join("ontology").join("gmeow.ttl");
@@ -1584,8 +1589,7 @@ fn render_dcat(root: &Path) -> Result<String, PipelineError> {
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
     let dataset = Arc::new(RdfDataset::union(&refs));
 
-    let query_text = std::fs::read_to_string(root.join("generated/queries/dcat.rq"))?;
-    let graph = match native_query::query(&dataset, &query_text)? {
+    let graph = match native_query::query(&dataset, dcat_rq)? {
         SparqlResult::Graph(graph) => graph,
         _ => {
             return Err(PipelineError::Parse(
@@ -1617,37 +1621,82 @@ fn render_dcat(root: &Path) -> Result<String, PipelineError> {
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
+/// The committed path of the DCAT CONSTRUCT query — a `stage-mappings` product artifact
+/// (a generated projection), consumed from that product, never re-read off disk.
+const DCAT_QUERY_PATH: &str = "generated/queries/dcat.rq";
+
 /// The `research-objects` export-leaf stage.
-pub struct ResearchObjectsStage;
+pub struct ResearchObjectsStage {
+    consumes: Vec<String>,
+}
+
+impl ResearchObjectsStage {
+    /// Construct the stage. It consumes `stage-mappings` to obtain the generated DCAT
+    /// CONSTRUCT query (`generated/queries/dcat.rq`) from that stage's in-memory product,
+    /// rather than re-reading the stale committed file off disk (the stale-disk-fold
+    /// class): a `dcat.rq` edit then reaches `lillith.dcat.ttl` in a single regenerate.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec!["stage-mappings".to_string()],
+        }
+    }
+}
+
+impl Default for ResearchObjectsStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for ResearchObjectsStage {
     fn id(&self) -> &str {
         "stage-export-research-objects"
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "research_objects.v1"
+        // v2: the DCAT CONSTRUCT query rides in from the consumed stage-mappings product
+        // (`generated/queries/dcat.rq`) instead of a stale disk read.
+        "research_objects.v2"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
-        // Pure source read: the worked-example A-Box inputs, the language-tag map
-        // (root ontology + slice modules), and the DCAT CONSTRUCT query are all raw
-        // sources (some, like the example .ttl + generated/queries/dcat.rq, are NOT
-        // in the composed fold). Declare them ALL so any edit busts the cache.
-        // `consumes() == []`.
+        // Pure authored-source reads: the worked-example A-Box inputs and the
+        // language-tag map (root ontology + slice modules). NONE are in the composed
+        // fold, so declare them so any edit busts the cache. The DCAT CONSTRUCT query is
+        // NOT declared here: it is a generated projection consumed from the stage-mappings
+        // product (whose digest covers a dcat.rq edit), never read off disk.
         let mut files: Vec<std::path::PathBuf> = Vec::new();
         for (rel, _) in EXAMPLE_INPUTS {
             files.push(root.join(rel));
         }
         files.push(root.join("ontology").join("gmeow.ttl"));
         files.extend(module_files(root)?);
-        files.push(root.join("generated/queries/dcat.rq"));
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+        // The generated DCAT CONSTRUCT query, sourced from THIS run's stage-mappings
+        // product (fail-closed: a missing artifact is a hard error, never a disk fallback).
+        let dcat_rq = input
+            .upstream
+            .get("stage-mappings")
+            .and_then(|p| p.artifact(DCAT_QUERY_PATH))
+            .ok_or_else(|| PipelineError::Stage {
+                stage: self.id().to_owned(),
+                message: format!(
+                    "missing {DCAT_QUERY_PATH} in the stage-mappings product; refusing to \
+                         re-read the stale committed query off disk (fail-closed)"
+                ),
+            })?;
+        let dcat_rq = std::str::from_utf8(dcat_rq).map_err(|e| PipelineError::Stage {
+            stage: self.id().to_owned(),
+            message: format!("{DCAT_QUERY_PATH} is not utf-8: {e}"),
+        })?;
         Ok(StageOutput {
-            product: StageProduct::from_artifacts(self.id(), render_research_objects(input.root)?),
+            product: StageProduct::from_artifacts(
+                self.id(),
+                render_research_objects(input.root, dcat_rq)?,
+            ),
         })
     }
 }
@@ -1667,7 +1716,13 @@ mod tests {
     #[test]
     fn research_objects_are_byte_identical_to_committed() {
         let root = repo_root();
-        let arts = render_research_objects(&root).expect("render");
+        // The DCAT query is a stage-mappings product artifact; in production the stage
+        // reads it off that product. This byte-parity test drives the pure renderer
+        // directly, so it supplies the committed query text (the same bytes the mappings
+        // stage would emit) — asserting the rendered bundle is byte-identical to committed.
+        let dcat_rq = std::fs::read_to_string(root.join(DCAT_QUERY_PATH))
+            .expect("committed generated/queries/dcat.rq");
+        let arts = render_research_objects(&root, &dcat_rq).expect("render");
         let mut failures: Vec<String> = Vec::new();
         let mut checked = 0;
         for (path, bytes) in &arts {
