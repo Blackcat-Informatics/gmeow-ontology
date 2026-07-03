@@ -98,6 +98,71 @@ verdict or a silent `incomplete`. Such problems live in `tptp-mini-divergence/`
 (source-only, `lane: "divergence"`) and are pinned by `tests/tptp_divergence_gate.rs`,
 which asserts the native path *refuses to decide* them.
 
+## OntoUML (foundation-discipline) corpus
+
+`ontouml-mini/` is a self-authored, license-clean corpus in the **OntoUML metamodel
+vocabulary** (`https://w3id.org/ontouml#`, the serialization the FAIR OntoUML/UFO model
+catalog uses). Unlike the TPTP corpus (a consistency verdict), an OntoUML case is a
+**foundation-lowering** case: it is decided by the five native OntoUML disciplines, not
+the DL consistency path.
+
+1. `crates/conformance/src/external/ontouml/model.rs` parses the model's
+   `ontouml:Class`/`stereotype`, `ontouml:Generalization`, and mediation `ontouml:Relation`.
+2. `.../ontouml/lower.rs` lowers it to a world-scoped, all-IRI `logic:` stereotype ABox
+   (`logic:subClassOf` edges, `logic:mediates` roles, `owl:FunctionalProperty` markers).
+3. `gmeow_logic::foundation::evaluate` runs the disciplines; the fired `logic:Discipline`
+   set is compared to the case's **documented anti-pattern** (`profile.json`'s
+   `documented_antipattern`, preserved verbatim and projected to the pass/gap comparison
+   only at the gate).
+
+The documented anti-pattern is externally decided — the OntoUML community's anti-pattern
+catalogue (`https://ontouml.readthedocs.io/en/latest/anti-patterns/`). Each Lane-A case
+reproduces one documented shape; **clean-control** cases (no `documented_antipattern`) must
+fire NOTHING — a fired discipline there is a soundness false positive the vendor gate rejects.
+
+| ontouml-mini case | documented anti-pattern | native disciplines fired |
+|-------------------|-------------------------|--------------------------|
+| `free-role`             | FreeRole              | FreeRole, MixIden |
+| `mix-rig`               | MixRig                | FreeRole, MixIden, MixRig |
+| `mix-iden`              | MixIden               | MixIden |
+| `rel-comp`              | RelComp               | RelComp |
+| `stereotype-cardinality`| StereotypeCardinality | FreeRole, StereotypeCardinality |
+| `clean-kind-role`       | — (clean)             | *(none)* |
+| `clean-relator`         | — (clean)             | *(none)* |
+
+A native discipline set that CONTAINS the documented anti-pattern is agreement (extra
+disciplines beyond the documented one are a disclosed superset). Regenerate the derived
+anatomy (`input.nq`, `input.logic.ttl`, `profile.json`, `expected/materialized.nq`,
+`expected/verdicts.json`) from the authored `source/model.ttl` files with:
+
+```sh
+cargo run -p gmeow-conformance --bin ingest-external -- --vendor-ontouml \
+  conformance/logic/cases/external/ontouml-mini
+```
+
+A documented anti-pattern the native disciplines cannot reproduce is an **honest gap**,
+never a wrong verdict. Such cases live in `ontouml-mini-divergence/` (source-only,
+`lane: "divergence"`), pinned by `tests/ontouml_divergence_gate.rs`:
+
+- `heterogeneous-collective` (HetColl) — a `collective` stereotype outside the endurant-
+  sortal + relator fragment → an out-of-fragment **capability gap**.
+- `repeatable-relator` (RepRel) — a well-formed relator whose repeatability the structural
+  disciplines do not check → the model lowers cleanly and fires nothing → a **coverage gap**.
+
+### Lane-B: the full FAIR OntoUML/UFO catalog
+
+The real catalog (`github.com/OntoUML/ontouml-models`) is **CC BY-SA 4.0** — `ReferenceOnly`
+under the native license policy — so it is **never committed**. The Lane-B grader lowers a
+live-fetched subset gap-tolerantly, audits each model's own license from its `metadata.ttl`,
+and records every divergence (a fired discipline on a presumed-clean model, or a capability
+gap) as a `gmeow:Finding` graph:
+
+```sh
+make maint-ontouml-corpus                                     # populate .tmp/ontouml first, or:
+make maint-ontouml-corpus ONTOUML_SUBSET_URL=<catalog-subset-tarball>
+# → generated/conformance/divergence-ontouml.nq
+```
+
 ### Lane-B: the full TPTP distribution
 
 The real TPTP distribution has **per-problem licenses** and is never vendored. The

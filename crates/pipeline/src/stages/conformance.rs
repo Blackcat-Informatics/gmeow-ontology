@@ -113,6 +113,21 @@ fn grade_external_cases(external: &Path) -> Result<Vec<GradedCase>, PipelineErro
         let corpus = dir_name(&corpus_dir)?;
         for case_dir in sorted_dirs(&corpus_dir)? {
             let case = dir_name(&case_dir)?;
+
+            // OntoUML foundation-discipline cases (source/model.ttl) grade the fired
+            // discipline set against the documented anti-pattern, not a consistency
+            // verdict. An agreeing Lane-A case yields native == published (no row); a
+            // real divergence folds as a gmeow:Finding.
+            if case_dir.join("source").join("model.ttl").is_file() {
+                if let Some(comparison) = ontouml_graded(&case_dir, &case)? {
+                    graded.push(GradedCase {
+                        corpus: corpus.clone(),
+                        comparison,
+                    });
+                }
+                continue;
+            }
+
             let Some(published) = published_outcome(&case_dir)? else {
                 // No published external verdict to grade against (README/fixture dir,
                 // or a source-only divergence case) — nothing to compare, not a defect.
@@ -136,6 +151,84 @@ fn grade_external_cases(external: &Path) -> Result<Vec<GradedCase>, PipelineErro
         }
     }
     Ok(graded)
+}
+
+/// Grade one OntoUML foundation-discipline case (`source/model.ttl`) into an
+/// [`ExternalComparison`]. The published verdict is the model's documented
+/// anti-pattern (or `"clean"` for a clean control); the native verdict is the fired
+/// `logic:Discipline` set projected to the canonical comparison string — so an
+/// agreeing Lane-A case has `native == published` (dropped as `Agree`), and a real
+/// divergence folds as a `gmeow:Finding`.
+///
+/// Returns `None` for a source-only case with no frozen `expected/materialized.nq`
+/// (nothing to grade — not a defect).
+fn ontouml_graded(
+    case_dir: &Path,
+    case: &str,
+) -> Result<Option<ExternalComparison>, PipelineError> {
+    let materialized = case_dir.join("expected").join("materialized.nq");
+    if !materialized.is_file() {
+        return Ok(None);
+    }
+    // The documented anti-pattern is the verbatim provenance in profile.json; absent
+    // for a clean control (the null hypothesis "clean").
+    let documented = documented_antipattern(case_dir)?;
+    let fired = fired_disciplines_in_golden(&materialized)?;
+    let native =
+        gmeow_conformance::external::ontouml::native_verdict_string(documented.as_deref(), &fired);
+    let published = documented.unwrap_or_else(|| "clean".to_string());
+    // The world scope: the single world in the frozen verdicts.json.
+    let (world, _status) = native_verdict(case_dir, case)?;
+    Ok(Some(ExternalComparison {
+        case: case.to_string(),
+        world,
+        native,
+        published,
+    }))
+}
+
+/// The verbatim `documented_antipattern` provenance in a case's `profile.json`, or
+/// `None` when the key is absent (a clean control). A malformed profile HARD-fails.
+fn documented_antipattern(case_dir: &Path) -> Result<Option<String>, PipelineError> {
+    let path = case_dir.join("profile.json");
+    let text = std::fs::read_to_string(&path)
+        .map_err(|e| stage_err(&format!("read {}: {e}", path.display())))?;
+    let value: serde_json::Value = serde_json::from_str(&text)
+        .map_err(|e| stage_err(&format!("parse {}: {e}", path.display())))?;
+    match value.get("documented_antipattern") {
+        None => Ok(None),
+        Some(serde_json::Value::String(s)) => Ok(Some(s.clone())),
+        Some(_) => Err(stage_err(&format!(
+            "{}: documented_antipattern must be a string",
+            path.display()
+        ))),
+    }
+}
+
+/// The fired `logic:Discipline` local names in a committed `expected/materialized.nq`
+/// (`<s> <logic:violation> <logic:{Discipline}> <g> .`).
+fn fired_disciplines_in_golden(
+    materialized: &Path,
+) -> Result<std::collections::BTreeSet<String>, PipelineError> {
+    const VIOLATION: &str = "<https://blackcatinformatics.ca/logic/violation>";
+    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    let text = std::fs::read_to_string(materialized)
+        .map_err(|e| stage_err(&format!("read {}: {e}", materialized.display())))?;
+    let mut fired = std::collections::BTreeSet::new();
+    for line in text.lines() {
+        let mut toks = line.split_whitespace();
+        let (_s, p, o) = (toks.next(), toks.next(), toks.next());
+        if p != Some(VIOLATION) {
+            continue;
+        }
+        if let Some(obj) = o {
+            let iri = obj.trim_start_matches('<').trim_end_matches('>');
+            if let Some(local) = iri.strip_prefix(LOGIC_NS) {
+                fired.insert(local.to_owned());
+            }
+        }
+    }
+    Ok(fired)
 }
 
 /// The published external verdict for a case, from whichever committed source it
@@ -273,22 +366,38 @@ impl Stage for ConformanceStage {
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The committed external corpus is a raw source read: every case's
-        // `source/manifest.ttl` and `expected/verdicts.json` busts this stage's
-        // cache (a corpus edit re-grades + re-folds the bundle).
+        // published source (W3C `source/manifest.ttl`, TPTP `source/problem.p`, or
+        // OntoUML `source/model.ttl`) plus its frozen native verdict busts this
+        // stage's cache (a corpus edit re-grades + re-folds the bundle).
         let external = root.join(EXTERNAL_ROOT);
         let mut files: Vec<PathBuf> = Vec::new();
         if external.is_dir() {
             for corpus_dir in sorted_dirs(&external)? {
                 for case_dir in sorted_dirs(&corpus_dir)? {
-                    // Whichever published source the case carries (W3C manifest or TPTP
-                    // SZS problem) plus its frozen native verdict busts the cache.
                     let manifest = case_dir.join("source").join("manifest.ttl");
                     let szs = case_dir.join("source").join("problem.p");
+                    let model = case_dir.join("source").join("model.ttl");
                     let verdicts = case_dir.join("expected").join("verdicts.json");
                     if manifest.is_file() {
                         files.push(manifest);
                     } else if szs.is_file() {
                         files.push(szs);
+                    } else if model.is_file() {
+                        // An OntoUML foundation-discipline case grades `source/model.ttl`
+                        // against its documented anti-pattern. The model, its frozen
+                        // `expected/materialized.nq` golden (absent for a source-only
+                        // divergence case), and the `profile.json` provenance all bust
+                        // the cache — without them a case edit would leave a stale fold.
+                        files.push(model);
+                        let materialized = case_dir.join("expected").join("materialized.nq");
+                        if materialized.is_file() {
+                            files.push(materialized);
+                        }
+                        let profile = case_dir.join("profile.json");
+                        if profile.is_file() {
+                            files.push(profile);
+                        }
+                        continue;
                     } else {
                         continue;
                     }
@@ -414,6 +523,112 @@ mod tests {
                     gmeow_conformance::divergence::CONFORMANCE_GRAPH
                 )),
                 "divergence quad not in the conformance graph: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn ontouml_model_divergence_folds_into_a_conformance_finding() {
+        // Proves the `source/model.ttl` (OntoUML foundation-discipline) grading path
+        // AND the divergence fold end-to-end: a case whose documented anti-pattern the
+        // frozen native disciplines did NOT reproduce surfaces as a `gmeow:Finding` in
+        // the conformance graph — never silently agreed away. The committed
+        // `ontouml-mini` cases agree by construction, so this synthetic case is the only
+        // always-on exercise of the model.ttl dispatch's divergence branch.
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let ext = tmp.path().join("external");
+        let case = ext.join("ontouml-fold-probe").join("case1");
+        std::fs::create_dir_all(case.join("source")).unwrap();
+        std::fs::create_dir_all(case.join("expected")).unwrap();
+        // Marks the case as an OntoUML case (content is not re-parsed by the fold).
+        std::fs::write(case.join("source").join("model.ttl"), "# probe\n").unwrap();
+        // Documented anti-pattern the disciplines were expected to reproduce.
+        std::fs::write(
+            case.join("profile.json"),
+            "{ \"documented_antipattern\": \"RelComp\" }",
+        )
+        .unwrap();
+        // Frozen native materialization fires a DIFFERENT discipline (FreeRole), so the
+        // documented RelComp was not reproduced — a genuine divergence.
+        let world = "https://gmeow.example/ontouml-fold-probe/case1/w";
+        std::fs::write(
+            case.join("expected").join("materialized.nq"),
+            format!(
+                "<{world}#C> <https://blackcatinformatics.ca/logic/violation> \
+                 <https://blackcatinformatics.ca/logic/FreeRole> <{world}> .\n"
+            ),
+        )
+        .unwrap();
+        std::fs::write(
+            case.join("expected").join("verdicts.json"),
+            format!("{{ \"{world}\": {{ \"status\": \"consistent\" }} }}"),
+        )
+        .unwrap();
+
+        let graded = grade_external_cases(&ext).expect("grade");
+        let [g] = graded.as_slice() else {
+            panic!(
+                "expected exactly one graded OntoUML case, got {}",
+                graded.len()
+            );
+        };
+        assert_eq!(
+            g.comparison.published, "RelComp",
+            "the documented anti-pattern is the published verdict"
+        );
+        assert_eq!(
+            g.comparison.native, "FreeRole",
+            "the fired discipline set (not containing RelComp) is the native verdict"
+        );
+
+        let nq = emit_divergence_nq(&g.corpus, std::slice::from_ref(&g.comparison));
+        assert!(
+            !nq.trim().is_empty(),
+            "a documented↔fired divergence must emit at least one quad"
+        );
+        assert!(
+            nq.contains("gmeow"),
+            "the fold must emit a gmeow:Finding, got: {nq}"
+        );
+        for line in nq.lines() {
+            assert!(
+                line.ends_with(&format!(
+                    "<{}> .",
+                    gmeow_conformance::divergence::CONFORMANCE_GRAPH
+                )),
+                "divergence quad not in the conformance graph: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn input_files_busts_cache_on_ontouml_case_files() {
+        // An OntoUML case carries neither `source/manifest.ttl` nor `source/problem.p`,
+        // so it must be caught by the `source/model.ttl` branch — otherwise the case is
+        // dropped from the cache key and a `model.ttl` / `materialized.nq` / `profile.json`
+        // edit would leave a stale `gmeow.gts` fold that the semantic drift gate cannot
+        // see (both sides agree on the stale value). Regression guard for that omission.
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let root = tmp.path();
+        let case = root
+            .join(EXTERNAL_ROOT)
+            .join("ontouml-mini")
+            .join("some-case");
+        std::fs::create_dir_all(case.join("source")).unwrap();
+        std::fs::create_dir_all(case.join("expected")).unwrap();
+        let model = case.join("source").join("model.ttl");
+        let materialized = case.join("expected").join("materialized.nq");
+        let profile = case.join("profile.json");
+        std::fs::write(&model, "# model\n").unwrap();
+        std::fs::write(&materialized, "# golden\n").unwrap();
+        std::fs::write(&profile, "{}\n").unwrap();
+
+        let files = ConformanceStage.input_files(root).expect("input_files");
+        for want in [&model, &materialized, &profile] {
+            assert!(
+                files.contains(want),
+                "cache key must include {} (else an OntoUML case edit leaves a stale fold), got {files:?}",
+                want.display()
             );
         }
     }

@@ -1,0 +1,9 @@
+<https://gmeow.example/ontouml-mini/free-role/Customer> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> <https://gmeow.example/ontouml-mini/free-role/w> .
+<https://gmeow.example/ontouml-mini/free-role/Customer> <https://blackcatinformatics.ca/logic/antiRigidSortalClass> <https://gmeow.example/ontouml-mini/free-role/Customer> <https://gmeow.example/ontouml-mini/free-role/w> .
+<https://gmeow.example/ontouml-mini/free-role/Customer> <https://blackcatinformatics.ca/logic/hasMetaClass> <https://blackcatinformatics.ca/logic/Role> <https://gmeow.example/ontouml-mini/free-role/w> .
+<https://gmeow.example/ontouml-mini/free-role/Customer> <https://blackcatinformatics.ca/logic/hasSomeStereotype> <https://gmeow.example/ontouml-mini/free-role/Customer> <https://gmeow.example/ontouml-mini/free-role/w> .
+<https://gmeow.example/ontouml-mini/free-role/Customer> <https://blackcatinformatics.ca/logic/hasSortalStereotype> <https://gmeow.example/ontouml-mini/free-role/Customer> <https://gmeow.example/ontouml-mini/free-role/w> .
+<https://gmeow.example/ontouml-mini/free-role/Customer> <https://blackcatinformatics.ca/logic/isClass> <https://gmeow.example/ontouml-mini/free-role/Customer> <https://gmeow.example/ontouml-mini/free-role/w> .
+<https://gmeow.example/ontouml-mini/free-role/Customer> <https://blackcatinformatics.ca/logic/isNonKindSortal> <https://gmeow.example/ontouml-mini/free-role/Customer> <https://gmeow.example/ontouml-mini/free-role/w> .
+<https://gmeow.example/ontouml-mini/free-role/Customer> <https://blackcatinformatics.ca/logic/violation> <https://blackcatinformatics.ca/logic/FreeRole> <https://gmeow.example/ontouml-mini/free-role/w> .
+<https://gmeow.example/ontouml-mini/free-role/Customer> <https://blackcatinformatics.ca/logic/violation> <https://blackcatinformatics.ca/logic/MixIden> <https://gmeow.example/ontouml-mini/free-role/w> .
