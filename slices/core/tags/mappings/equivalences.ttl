@@ -9,6 +9,7 @@
 @prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix moat: <http://moat-project.org/ns#> .
 @prefix tags: <http://www.holygoat.co.uk/owl/redwood/0.1/tags/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 
 # Term equivalences for the tags domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-tags.sssom.tsv by `gmeow compile-mappings`.
@@ -167,6 +168,35 @@ gmeow:eqTags016 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
     gmeow:comment "MOAT distinguishes tag string from meaning URI; GMEOW's Tag IRI IS the meaning, with labels for synonyms" ;
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+
+# --- Wikidata (authority links — alignments, never identity) ---------------- #
+
+gmeow:eqTags017 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Tag ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q658349 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'tag' (metadata used for classification) — Wikidata's item leans toward the tag-as-string reading; GMEOW's Tag is an information-object individual whose IRI is the meaning and whose strings are labels, so closeMatch, not exactMatch; curl-validated 2026-07-03" ;
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+
+gmeow:eqTags018 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Tagging ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q11836775 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "Wikidata 'tagging' (the act of labelling data/content with a short string) — the same act, but GMEOW reifies it as a relator with tagger, scheme, confidence, interval, and suppression; closeMatch on the act, with the relator structure as GMEOW's surplus; curl-validated 2026-07-03" ;
+    gmeow:sssomFile "gmeow-tags.sssom.tsv" .
+
+gmeow:eqTags019 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:TagScheme ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q494291 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "Wikidata 'folksonomy' (classification based on users' tags) — a folksonomy is the emergent practice; a TagScheme is the namespace bucket the practice populates. Related, not equivalent: relatedMatch with the vagueness of the relationship stated rather than laundered into a low-confidence closeMatch; curl-validated 2026-07-03" ;
     gmeow:sssomFile "gmeow-tags.sssom.tsv" .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
