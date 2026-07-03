@@ -223,6 +223,12 @@ mod tests {
             "generated/mappings/gmeow-test.sssom.tsv".to_string(),
             b"# minimal sssom\n".to_vec(),
         );
+        // REP_QUERIES folds the generated SPARQL surface from this product (fail-closed,
+        // same rule as SSSOM: a `.rq` edit must reach the bundle in one regenerate).
+        mapping_artifacts.insert(
+            "generated/queries/gmeow-test.rq".to_string(),
+            b"# minimal query\n".to_vec(),
+        );
         // The fanout presenter reads dsl-stats + the JSON-LD context + the EmotionML XML
         // projection off this product.
         mapping_artifacts.insert(
@@ -300,11 +306,21 @@ mod tests {
         );
         let frame_shapes =
             StageProduct::from_artifacts("stage-export-frame-shapes", frame_shapes_artifacts);
+        let mut constraint_shapes_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        constraint_shapes_artifacts.insert(
+            crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH.to_string(),
+            b"# constraint shapes".to_vec(),
+        );
+        let constraint_shapes = StageProduct::from_artifacts(
+            "stage-export-constraint-shapes",
+            constraint_shapes_artifacts,
+        );
 
         // The opaque-fanout export leaves: the presenter reads their rendered members off
         // these products (empty here — this unit test pins the sink's fail-closed wiring,
         // not a real fanout; the superset gate is exercised end-to-end in fanout_parity).
         let export_leaves: Vec<StageProduct> = [
+            "stage-export-agreement",
             "stage-export-references",
             "stage-export-bench",
             "stage-export-apache",
@@ -328,19 +344,31 @@ mod tests {
         upstream.insert("stage-validate".to_string(), validate);
         upstream.insert("stage-export-result-shapes".to_string(), result_shapes);
         upstream.insert("stage-export-frame-shapes".to_string(), frame_shapes);
+        upstream.insert(
+            "stage-export-constraint-shapes".to_string(),
+            constraint_shapes,
+        );
         for product in export_leaves {
             upstream.insert(product.stage_id.clone(), product);
         }
-        let out = GtsSinkStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("sink runs");
-        let emitted = out
-            .product
-            .artifact(GTS_PATH)
-            .expect("sink emits gmeow.gts");
+        // Drive the docs-model-injectable serializer directly with an EMPTY DocsModel so the
+        // OKF-coverage gate is scoped to the fixture (no documented terms → no dangling links),
+        // exercising the sink's fail-closed blob/serialization wiring without paying for the
+        // whole-ontology docs-corpus discovery. This test's subject is the serialization wiring,
+        // NOT OKF coverage — that gate stays non-vacuously exercised by
+        // `okf_link_targets_missing_from` (populated links) and the end-to-end pipeline test over
+        // the real full carrier. The thin `run()` wrapper (carrier off the snapshot product then
+        // `serialize_carrier_snapshot`) is exercised by that end-to-end test.
+        let carrier =
+            crate::stages::carrier::snapshot_dataset(&upstream).expect("snapshot carrier");
+        let empty_docs = gmeow_docs::model::DocsModel::default();
+        let emitted = crate::stages::carrier::serialize_carrier_snapshot_with_docs_model(
+            &root,
+            &upstream,
+            carrier.as_ref(),
+            &empty_docs,
+        )
+        .expect("sink serializes the carrier");
         assert!(
             emitted.len() > 1024,
             "GTS bundle implausibly small: {} bytes",
@@ -348,6 +376,6 @@ mod tests {
         );
 
         // Round-trips through the kernel GTS importer (the bundle is well-formed).
-        let _ = purrdf::import_gts_events(emitted).expect("import_gts_events");
+        let _ = purrdf::import_gts_events(&emitted).expect("import_gts_events");
     }
 }

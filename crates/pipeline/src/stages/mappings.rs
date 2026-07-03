@@ -587,9 +587,22 @@ impl Stage for MappingsStage {
             "application/n-quads",
             crate::stages::carrier::GRAPH_PROJECTION_LEDGER,
         )?;
+        // graph/alignments — the SSSOM alignment axioms (one triple per data row, CURIEs
+        // expanded), built from THIS run's freshly-compiled `generated/mappings/*.sssom.tsv`
+        // product artifacts and carried as a named graph so the presenter and the reasoning
+        // EDB read it via `producer_graph` (PIPELINE_SPINE §4) instead of source-load
+        // re-reading the stale committed SSSOM off disk (the stale-disk-fold class).
+        // `gts_compose` folds only the default graph, so this named graph never pollutes
+        // the composed EDB (identical to the projection-ledger graph's treatment).
+        let alignments_graph = crate::stages::carrier::parse_into_graph(
+            &crate::stages::carrier::alignment_nquads_from_artifacts(&artifacts)?,
+            "application/n-quads",
+            crate::stages::carrier::GRAPH_ALIGNMENTS,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
+            alignments_graph.as_ref(),
         ]));
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
