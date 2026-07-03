@@ -1296,6 +1296,82 @@ in `slices/core/rights/tests/structural.ttl`.
 
 **Rights tally (privacy-role part):** 4 converted (4 cells across 4 pytest functions).
 
+## `slices/extensions/email` (Task 4)
+
+Email extension structural guards migrated under issue #1120. Assertions moved
+to `slices/extensions/email/tests/structural.ttl`; the EmailAddress stable
+properties (`addressValue`, `localPart`, `domainPart`) are owned by the contacts
+slice and live in `slices/core/contacts/tests/structural.ttl` as
+`ex:saEmailAddressStablePropertiesFunctional`.
+
+| Cell IRI | Cell type | Rationale (excerpt) |
+|---|---|---|
+| `ex:saEmailAddressStablePropertiesFunctional` | StructuralAssertion | gmeow:addressValue/localPart/domainPart MUST be functional DatatypeProperties on EmailAddress. |
+| `ex:saMailingListClassExists` | StructuralAssertion | The five MessageKind seeds (DSN, bounce, feedback report, read receipt, auto-generated) MU... |
+| `ex:saHasMessageKindProperty` | StructuralAssertion | gmeow:hasMessageKind MUST be an ObjectProperty linking Message to MessageKind and MUST NOT... |
+| `ex:saPriorityDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:priority MUST be a DatatypeProperty with domain EmailMessage and range Literal. Mirr... |
+| `ex:saImportanceDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:importance MUST be a DatatypeProperty with domain EmailMessage and range Literal. Mi... |
+| `ex:saUserAgentDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:userAgent MUST be a DatatypeProperty with domain EmailMessage and range Literal. Mir... |
+| `ex:saAutoSubmittedDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:autoSubmitted MUST be a DatatypeProperty with domain EmailMessage and range Literal.... |
+| `ex:saPrecedenceDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:precedence MUST be a DatatypeProperty with domain EmailMessage and range Literal. Mi... |
+| `ex:saReadReceiptRequestedBooleanNotFunctional` | StructuralAssertion | gmeow:readReceiptRequested MUST be a DatatypeProperty on EmailMessage ranging over xsd:boo... |
+| `ex:saDispositionNotificationToObjectProperty` | StructuralAssertion | gmeow:dispositionNotificationTo MUST be an ObjectProperty from EmailMessage to EmailAddres... |
+| `ex:saSentBySoftwareObjectProperty` | StructuralAssertion | gmeow:sentBySoftware MUST be an ObjectProperty from EmailMessage to SoftwareAgent. Mirrors... |
+| `ex:saDescribesEventObjectProperty` | StructuralAssertion | gmeow:describesEvent MUST be an ObjectProperty from EmailMessage to Event and MUST NOT be ... |
+| `ex:saEventDescribedByInverse` | StructuralAssertion | gmeow:eventDescribedBy MUST be the inverse of gmeow:describesEvent, domain Event, range Em... |
+| `ex:saCalendarAttachmentSubproperty` | StructuralAssertion | gmeow:calendarAttachment MUST be an ObjectProperty, subproperty of gmeow:hasAttachment, fr... |
+| `ex:saCalendarUidDatatypeProperty` | StructuralAssertion | gmeow:calendarUid MUST be a DatatypeProperty on EmailMessage ranging over Literal and MUST... |
+| `ex:saCalendarMethodSeedsExist` | StructuralAssertion | The eight iCalendar METHOD seeds MUST be declared as CalendarMethod individuals. Mirrors t... |
+| `ex:saHasCalendarMethodProperty` | StructuralAssertion | gmeow:hasCalendarMethod MUST be an ObjectProperty from EmailMessage to CalendarMethod and ... |
+| `ex:saMessageKindCalendarInvitationExists` | StructuralAssertion | gmeow:messageKindCalendarInvitation MUST be declared as a MessageKind individual. Mirrors ... |
+| `ex:saBlobIdDatatypePropertyDomainFree` | StructuralAssertion | gmeow:blobId MUST be a domain-free DatatypeProperty ranging over Literal so it can be used... |
+| `ex:saBodyStructureFunctionalDatatypeProperty` | StructuralAssertion | gmeow:bodyStructure MUST be a functional DatatypeProperty on EmailMessage ranging over Lit... |
+| `ex:saBodyValueClassExists` | StructuralAssertion | gmeow:BodyValue MUST be a logic:Kind subclass of InformationObject. Mirrors test_body_valu... |
+| `ex:saNoCompetingBodyStructureClassOrProperty` | StructuralAssertion | The canonical MIME tree is the existing hasBodyPart/hasPart spine; no competing BodyStruct... |
+| `ex:saNoCompetingBodyValueProperty` | StructuralAssertion | Decoded body content is linked by wasDerivedFrom, not a dedicated hasBodyValue property. M... |
+| `ex:saParentMailboxSubpropertyOfPartOf` | StructuralAssertion | gmeow:parentMailbox MUST be an ObjectProperty, subproperty of gmeow:partOf, from Mailbox t... |
+| `ex:saChildMailboxSubpropertyOfHasPart` | StructuralAssertion | gmeow:childMailbox MUST be an ObjectProperty, subproperty of gmeow:hasPart, inverse of gme... |
+| `ex:saMailboxSortOrderIntegerNotFunctional` | StructuralAssertion | gmeow:mailboxSortOrder MUST be a DatatypeProperty on Mailbox ranging over xsd:integer and ... |
+| `ex:saMailboxPathDatatypeProperty` | StructuralAssertion | gmeow:mailboxPath MUST be a DatatypeProperty on Mailbox ranging over Literal. Mirrors test... |
+| `ex:saMailboxTotalMessagesInteger` | StructuralAssertion | gmeow:mailboxTotalMessages MUST be a DatatypeProperty on Mailbox ranging over xsd:integer.... |
+| `ex:saMailboxUnreadMessagesInteger` | StructuralAssertion | gmeow:mailboxUnreadMessages MUST be a DatatypeProperty on Mailbox ranging over xsd:integer... |
+| `ex:saNoSystemMailboxSubclass` | StructuralAssertion | System vs user mailbox status MUST be modeled by role, not by a SystemMailbox subclass. Mi... |
+| `ex:saNoUserMailboxSubclass` | StructuralAssertion | System vs user mailbox status MUST be modeled by role, not by a UserMailbox subclass. Mirr... |
+| `ex:saNoIsSystemMailboxProperty` | StructuralAssertion | System mailbox status MUST be modeled by role/lifecycle, not by an isSystemMailbox boolean... |
+| `ex:saNoIsDestroyedMailboxProperty` | StructuralAssertion | Destroyed mailbox state MUST use the lifecycle event pattern, not an isDestroyedMailbox bo... |
+| `ex:saHasMailingListProperty` | StructuralAssertion | gmeow:hasMailingList MUST be an ObjectProperty from EmailMessage to MailingList and MUST N... |
+| `ex:saMailingListUriHeaderProperties` | StructuralAssertion | gmeow:listSubscribe, listUnsubscribe, listHelp, and listArchive MUST be ObjectProperties f... |
+| `ex:saListPostDatatypeProperty` | StructuralAssertion | gmeow:listPost MUST be a DatatypeProperty on EmailMessage ranging over Literal. Mirrors te... |
+| `ex:saListOwnerObjectPropertyToEmailAddress` | StructuralAssertion | gmeow:listOwner MUST be an ObjectProperty from EmailMessage to EmailAddress and MUST NOT b... |
+| `ex:saListIdDomainUnchanged` | StructuralAssertion | gmeow:listId MUST keep Message as its domain and MUST NOT acquire MailingList as an additi... |
+| `ex:saMailingListAnnotationCompleteness` | StructuralAssertion | Every new mailing-list term MUST carry rdfs:label, skos:definition, and rdfs:isDefinedBy (... |
+| `ex:saMessageParticipantClassExists` | StructuralAssertion | gmeow:MessageParticipant MUST be declared as an owl:Class (a logic:Kind relator). Mirrors ... |
+| `ex:saMessageParticipantRoleClassExists` | StructuralAssertion | gmeow:MessageParticipantRole MUST be declared as an owl:Class (a value vocabulary / Abstra... |
+| `ex:saMessageParticipantRoleSeedsExist` | StructuralAssertion | The fourteen RFC 5322 message participant role seeds MUST be declared. Mirrors test_role_s... |
+| `ex:saParticipantPropertiesDeclared` | StructuralAssertion | participantMessage, participantAddress, participantRole, and participantHeader MUST be fun... |
+| `ex:saHasMessageParticipantInverse` | StructuralAssertion | gmeow:hasMessageParticipant MUST be the inverse of participantMessage, domain EmailMessage... |
+| `ex:saParticipantOrdinalFunctional` | StructuralAssertion | gmeow:participantOrdinal MUST be a functional DatatypeProperty on MessageParticipant rangi... |
+| `ex:saDisplayNameScopedToParticipant` | StructuralAssertion | gmeow:displayName MUST be scoped to MessageParticipant and MUST NOT be declared with domai... |
+| `ex:saRawAddressValueScopedToParticipant` | StructuralAssertion | gmeow:rawAddressValue MUST be scoped to MessageParticipant and MUST NOT be declared with d... |
+| `ex:saParticipantGroupLiteral` | StructuralAssertion | gmeow:participantGroup MUST be a DatatypeProperty on MessageParticipant ranging over Liter... |
+| `ex:saResentDateProperty` | StructuralAssertion | gmeow:resentDate MUST be a DatatypeProperty on EmailMessage ranging over xsd:dateTime and ... |
+| `ex:saResentMessageIdProperty` | StructuralAssertion | gmeow:resentMessageId MUST be a DatatypeProperty on EmailMessage ranging over Literal and ... |
+| `ex:saThreadSubjectDatatypePropertyOnThread` | StructuralAssertion | gmeow:threadSubject MUST be a DatatypeProperty on Thread ranging over Literal. Mirrors tes... |
+| `ex:saSubjectPrefixDatatypePropertyOnEmailMessage` | StructuralAssertion | gmeow:subjectPrefix MUST be a DatatypeProperty on EmailMessage ranging over Literal and MU... |
+| `ex:saNoEmailVariantSubclasses` | StructuralAssertion | Canonical/variant status MUST be modeled via roles, not email-specific subclasses. Mirrors... |
+| `ex:saHasPatchDiffObjectProperty` | StructuralAssertion | gmeow:hasPatchDiff MUST be an ObjectProperty, subproperty of gmeow:hasBodyPart, from Email... |
+| `ex:saMessageIdGeneratedBoolean` | StructuralAssertion | gmeow:messageIdGenerated MUST be a DatatypeProperty on EmailMessage ranging over xsd:boole... |
+| `ex:saMessageIdCollisionBoolean` | StructuralAssertion | gmeow:messageIdCollision MUST be a DatatypeProperty on EmailMessage ranging over xsd:boole... |
+| `ex:saCanonicalFingerprintLiteral` | StructuralAssertion | gmeow:canonicalFingerprint MUST be a DatatypeProperty on EmailMessage ranging over Literal... |
+| `ex:saBodyLineFingerprintLiteral` | StructuralAssertion | gmeow:bodyLineFingerprint MUST be a DatatypeProperty on EmailMessage ranging over Literal.... |
+| `ex:saAnalysisScopeLiteral` | StructuralAssertion | gmeow:analysisScope MUST be a DatatypeProperty on EmailMessage ranging over Literal. Mirrors test_analysis_scope... |
+| `ex:saAnalysisInputBodyLineLiteral` | StructuralAssertion | gmeow:analysisInputBodyLine MUST be a DatatypeProperty on EmailMessage ranging over Litera... |
+
+**Tally:** 59 cells added to the email slice structural spec, 1 cell added
+to the contacts slice structural spec, and 66 pytest functions removed from the
+8 `tests/test_email_*.py` files. `tests/test_email_mailing_list.py` had no
+remaining dynamic tests and was deleted, along with its retention dossier.
+
 ## Notes / known limitations
 
 - **Competency reasoning cost.** The competency lane defaults to the *asserted*
