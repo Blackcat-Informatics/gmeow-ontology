@@ -130,6 +130,18 @@ fn projection_ledger_rows_are_sorted_and_classified() {
         !owl_dl.lossy_drops.is_empty(),
         "owl-dl is a lossy projection and must declare lossy_drops"
     );
+
+    // The EmotionML emitter is a many-to-one lossy projection: it must appear in the static
+    // ledger and its structural drops must name the collapsed affect families (rule 9).
+    let emotionml = find("emotionml");
+    assert!(
+        emotionml
+            .lossy_drops
+            .iter()
+            .any(|d| d.contains("AffectClassifierOutput") && d.contains("envelope")),
+        "emotionml must declare its many-to-one <emotion> envelope collapse: {:?}",
+        emotionml.lossy_drops
+    );
 }
 
 #[test]
