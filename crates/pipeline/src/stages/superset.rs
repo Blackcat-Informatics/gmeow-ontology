@@ -175,10 +175,13 @@ fn graph_rep_for_path(path: &str) -> Option<GraphRep> {
     let iri = rdf_fanout_graph_iri(path)?;
     let form = if path.ends_with(".nt") {
         GraphForm::NTriples
-    } else if path == "generated/catalog/constraint-catalog.nq" {
-        // The catalog `.nq` carries its OWN fanout IRI as the 4th-column label (it is
-        // generated with that label, not the shared diagnostics one), so its
-        // reconstruction restamps back to the per-file fanout container.
+    } else if path == "generated/catalog/constraint-catalog.nq"
+        || path == "generated/catalog/term-content-manifest.nq"
+    {
+        // The catalog / term-manifest `.nq` carry their OWN fanout IRI as the
+        // 4th-column label (they are generated with that label, not the shared
+        // diagnostics one), so their reconstruction restamps back to the per-file
+        // fanout container.
         GraphForm::NQuadsSelf
     } else if path.ends_with(".nq") {
         // The diagnostics `.nq` carry the shared `graph/diagnostics` 4th-column label;
@@ -219,6 +222,10 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         // restamp to the shared `graph/diagnostics` label), so its reconstruction
         // restamps to its OWN fanout IRI (see `graph_rep_for_path`).
         || path == "generated/catalog/constraint-catalog.nq"
+        // The generated term content manifest: like the constraint catalog, its
+        // committed `.nq` carries its OWN fanout graph IRI as the 4th column, so it
+        // reconstructs via `GraphForm::NQuadsSelf` (see `graph_rep_for_path`).
+        || path == "generated/catalog/term-content-manifest.nq"
         // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
         || path == "generated/projections/core-prefixes.ttl"
         || path == "generated/projections/functions.fno.ttl"

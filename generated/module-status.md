@@ -82,6 +82,6 @@ Tier-2 uplift backlog.
 | teleology | core | core | 3 | 7 | 10 | 0 | 1 | 17/17 | full |
 | temporal | core | core | 2 | 11 | 41 | 0 | 1 | 48/52 | full |
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
-| versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
+| versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1221/1864 core class/property terms (#471).
+**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1222/1865 core class/property terms (#471).

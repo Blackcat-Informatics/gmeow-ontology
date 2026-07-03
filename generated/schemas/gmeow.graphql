@@ -2069,6 +2069,7 @@ enum PipelineStageEnum {
   stage_snapshot
   stage_source_load
   stage_statements
+  stage_term_manifest
   stage_validate
   stage_validate_result_shape_composition
 }
