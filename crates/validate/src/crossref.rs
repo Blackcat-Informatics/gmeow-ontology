@@ -142,7 +142,7 @@ pub struct DepositInput {
     pub config: ConfigInput,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct LintInput {
     pub self_description: SelfDescriptionInput,
     pub config: ConfigInput,
