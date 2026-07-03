@@ -90,7 +90,7 @@ pub fn has_builtin(program: &QProgram) -> bool {
 /// resolves to a preset whose facet bundle licenses procedural execution.
 ///
 /// Arithmetic builtins (`logic:builtinArithmetic`) are gated to
-/// `ProceduralPrologProfile` (per `slices/core/logic/module.ttl`), exactly as cut is.
+/// `ProceduralPrologProfile` (per `slices/grounding/logic/module.ttl`), exactly as cut is.
 /// The decision is **facet-derived** (the same [`is_procedural_profile`] predicate
 /// used for cut): an unrecognized profile resolves to no preset and does not license
 /// builtins. There is no fallback or silent stripping.

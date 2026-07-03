@@ -3,7 +3,7 @@
 
 //! The intra-engine dogfood parity gate: the well-founded
 //! materializer's per-world phase sequence authored as a sub-`logic:Plan` in
-//! `slices/core/logic/module.ttl` must walk left-first to EXACTLY the ordered
+//! `slices/grounding/logic/module.ttl` must walk left-first to EXACTLY the ordered
 //! phase descriptor the Rust runtime exposes
 //! (`gmeow_logic::WELL_FOUNDED_PHASES`). This is the dogfood seam of
 //! [`dag_dogfood.rs`](./dag_dogfood.rs) one scale DOWN: that gate proves the
@@ -126,7 +126,7 @@ fn collect_phases(ds: &RdfDataset, node: &str, out: &mut Vec<String>, iterated: 
 #[test]
 fn authored_phase_plan_matches_runtime_phase_order() {
     let root = repo_root();
-    let ttl = std::fs::read_to_string(root.join("slices/core/logic/module.ttl"))
+    let ttl = std::fs::read_to_string(root.join("slices/grounding/logic/module.ttl"))
         .expect("read logic slice");
 
     let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None)

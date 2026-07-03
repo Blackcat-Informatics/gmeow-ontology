@@ -387,7 +387,7 @@ pub struct DocTerm {
     /// Logic stereotypes co-asserted as `rdf:type` values in the `logic:`
     /// namespace (`logic:Kind`, `logic:SubKind`, `logic:Relator`, …), rendered
     /// as `logic:`-prefixed CURIEs, sorted/deduped. The lowered OntoUML/UFO
-    /// discipline of the term (see `slices/core/logic`).
+    /// discipline of the term (see `slices/grounding/logic`).
     pub logic_stereotypes: Vec<String>,
     /// `logic:instantiatesFramework` — the closed `logic:LogicalFramework`
     /// reasoning discipline(s) the term traffics in (`logic:HolonicFramework`,

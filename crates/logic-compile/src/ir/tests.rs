@@ -19,7 +19,7 @@ fn axiom(subj: &str, pred: &str, obj: &str) -> LogicAxiom {
 /// Read the canonical `module.ttl` (relative to the crate manifest).
 fn module_ttl_text() -> String {
     let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/core/logic/module.ttl");
+        .join("../../slices/grounding/logic/module.ttl");
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
 }
 
@@ -90,7 +90,7 @@ fn semantic_profile_ids_match_module_ttl() {
     // and collect every subject whose block names logic:ReasoningPreset as a type
     // (skipping the class declaration itself).
     let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/core/logic/module.ttl");
+        .join("../../slices/grounding/logic/module.ttl");
     let text = std::fs::read_to_string(&module_ttl)
         .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
 
@@ -161,7 +161,7 @@ fn procedural_preset_carries_procedural_execution_facet() {
     // exactly the presets whose module.ttl expandsToFacet bundle includes
     // logic:ProceduralExecution may license cut — so the two can never silently diverge.
     let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/core/logic/module.ttl");
+        .join("../../slices/grounding/logic/module.ttl");
     let text = std::fs::read_to_string(&module_ttl)
         .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
 
@@ -215,7 +215,7 @@ fn compatibility_rule_ids_match_module_ttl() {
     use crate::compat::ALL_RULE_IDS;
 
     let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/core/logic/module.ttl");
+        .join("../../slices/grounding/logic/module.ttl");
     let text = std::fs::read_to_string(&module_ttl)
         .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
 

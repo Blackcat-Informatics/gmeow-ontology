@@ -17,7 +17,7 @@ drift from them without a red build. It is the implementation contract for the E
 > directory and the [runner contract](runner/README.md) are created now, by issue #498, so every
 > subsequent rung populates a category that already has a home and a verification gate.
 
-Normative source: [`../../slices/core/logic/design/LOGIC-CONFORMANCE.md`](../../slices/core/logic/design/LOGIC-CONFORMANCE.md).
+Normative source: [`../../slices/grounding/logic/design/LOGIC-CONFORMANCE.md`](../../slices/grounding/logic/design/LOGIC-CONFORMANCE.md).
 
 ## Layout
 

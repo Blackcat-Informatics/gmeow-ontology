@@ -66,7 +66,7 @@ pub enum QBodyLit {
     Cut,
     /// An arithmetic (`X is Y op Z`) or comparison (`L cmp R`) builtin.
     ///
-    /// Gated to `ProceduralPrologProfile` (per `slices/core/logic/module.ttl`) and
+    /// Gated to `ProceduralPrologProfile` (per `slices/grounding/logic/module.ttl`) and
     /// evaluated SOLELY by the Scryer engine (the declarative oracle rejects it, as
     /// it does cut). Used to compute over `rdf:first`/`rdf:rest` chains.
     Builtin(QBuiltin),

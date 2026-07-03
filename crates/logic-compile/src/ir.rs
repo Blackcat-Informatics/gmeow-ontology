@@ -47,7 +47,7 @@ pub const PROCEDURAL_EXECUTION_FACET: &str = "ProceduralExecution";
 /// individuals (formerly `logic:SemanticProfile`).
 ///
 /// The string form ([`SemanticProfileId::as_str`]) is the local name (no
-/// `logic:` prefix), taken verbatim from `slices/core/logic/module.ttl` — any
+/// `logic:` prefix), taken verbatim from `slices/grounding/logic/module.ttl` — any
 /// change there must be reflected here.  A preset is sugar the front-end expands
 /// to a full [`ReasoningContract`] facet selection.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -122,7 +122,7 @@ impl fmt::Display for SemanticProfileId {
 /// kind governs what may be done with it (a constraint is not a derivation rule, a query
 /// operator is not a program operator, a meta-level quotation does not collapse into the
 /// object-level assertion it quotes).  The string form ([`NodeKind::as_str`]) is the
-/// local name taken verbatim from `slices/core/logic/module.ttl`; any change there must
+/// local name taken verbatim from `slices/grounding/logic/module.ttl`; any change there must
 /// be reflected here (the `node_kind_values_match_module_ttl` test pins it).
 ///
 /// [`NodeKind::Correspondence`] is the **reserved** ninth kind: a law-bearing,
@@ -1106,7 +1106,7 @@ impl PathShapeIr {
 // relation on an ordered lattice, an algebraic class on the ordered law-spine, the
 // separated quantitative axes, claimed laws with discharge verdict, and a standpoint
 // index.  Every facet is a closed value enum whose local names are taken verbatim from
-// `slices/core/logic/module.ttl` (the `*_values_match_module_ttl` tests pin each set).
+// `slices/grounding/logic/module.ttl` (the `*_values_match_module_ttl` tests pin each set).
 // See `design/LOGIC-CORRESPONDENCE.md`.
 
 /// The `logic:CorrespondenceRelation` lattice: `Equiv` ⊐ {`Subsumes`, `SubsumedBy`} ⊐

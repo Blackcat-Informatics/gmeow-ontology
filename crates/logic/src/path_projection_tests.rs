@@ -379,7 +379,7 @@ fn nearby_orgs_wildcard_runs_on_the_native_engine() {
 
 // ── CR7: golden pin anchoring the competency CQ to the projection ────────────
 //
-// The competency CQ (slices/core/logic/tests/competency.ttl +
+// The competency CQ (slices/grounding/logic/tests/competency.ttl +
 // queries/competency/named-parametric-paths.rq) exercises the bounded path
 // logic:nearbyOrgs over a four-node chain.  GMEOW's native projection lowers that
 // shape to the EXTENDED SPARQL property path `<...linkedTo>{1,2}`; standard SPARQL

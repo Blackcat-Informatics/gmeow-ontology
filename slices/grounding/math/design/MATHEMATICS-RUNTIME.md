@@ -23,7 +23,7 @@ semantics*; the `observations` spine holds *results*. Between those three sits a
 three jobs: **lift** external artifacts into the canonical AST, **keep** the reified graph
 tractable, and **hand off** computation that neither the ontology source nor a classifier can
 perform. This charter is that seam's doctrine. It is the mathematical peer of
-`slices/core/logic/design/LOGIC-RUNTIME.md`.
+`slices/grounding/logic/design/LOGIC-RUNTIME.md`.
 
 ## Ingestion is a projection, run backwards
 
@@ -33,7 +33,7 @@ Turtle by hand. This is not a threat to the design; it is the projection doctrin
 ([`MATHEMATICS-PROJECTIONS.md`](MATHEMATICS-PROJECTIONS.md)), R formulas, LaTeX, MathML, and
 OpenMath are **ingest surfaces** lifted *into* it. GMEOW already makes exactly this move for
 queries: RDFQuery is "a front-end that parses **into** `logic:`", not a stack bolted onto SPARQL
-(`slices/core/logic/design/LOGIC-RDFQUERY.md`). The mathematics slice repeats it for formulas and
+(`slices/grounding/logic/design/LOGIC-RDFQUERY.md`). The mathematics slice repeats it for formulas and
 models.
 
 Two authoring paths converge on **one** canonical AST:
@@ -87,7 +87,7 @@ The consequences for the runtime:
   individuals** interned once and shared across every analysis that references them, not re-minted
   per document.
 - Query access to dense ASTs relies on the property-path machinery `logic:` already projects
-  (`slices/core/logic/design/LOGIC-PATHS.md`) — bounded-depth, named parametric paths over the
+  (`slices/grounding/logic/design/LOGIC-PATHS.md`) — bounded-depth, named parametric paths over the
   slot/operand structure — rather than hand-unrolled joins.
 - Blob-scale inputs (a full data matrix, an MCMC sample) are held **by reference**, not inlined: the
   IR carries a blob reference and origin, never the payload bytes, per the project's blob-by-

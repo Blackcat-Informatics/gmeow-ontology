@@ -154,8 +154,8 @@ slice's model *and* how it aligns/projects.
 | [`docs/cli-extensions.md`](./docs/cli-extensions.md) | Specification | The `gmeow` CLI extension roll-up — subcommand discovery from slice manifests, GTS profile gating, and solver-layer transforms |
 | [`docs/validation-thresholds.md`](./docs/validation-thresholds.md) | Reference | The four blocking validation gate floors (#579) — SHACL, vendored-entity coverage, slice-example, transpile recall — their measured values, where each floor lives, and the ratchet rule |
 | [`docs/i18n.md`](./docs/i18n.md) | Process | The compiled PO translation layer: `.po` layout, extract/merge/export/sync commands, translator workflow, and i18n quality gates |
-| [`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration — the design-set entrypoint |
-| [`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`](./slices/core/logic/design/LOGIC-CORRESPONDENCE.md) | Doctrine | The correspondence calculus — cross-ontology alignment as the ninth `logic:` node kind; the law-spine, mnemomorphism, and section/retraction ("perfectly subsume V" as a CI-checkable law); rationale in [`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/) |
+| [`slices/grounding/logic/design/LOGIC.md`](./slices/grounding/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration — the design-set entrypoint |
+| [`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md) | Doctrine | The correspondence calculus — cross-ontology alignment as the ninth `logic:` node kind; the law-spine, mnemomorphism, and section/retraction ("perfectly subsume V" as a CI-checkable law); rationale in [`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/) |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
 | [`docs/four-boxes.md`](./docs/four-boxes.md) | Doctrine | ABox/TBox/RBox/CBox as explicit graph roles for docs, validation diagnostics, GTS/package surfaces, and RDF 1.2 statement context |
 | [`docs/projections.md`](./docs/projections.md) | Doctrine | The generated alignment lowerings (SSSOM / EDOAL / FnO / SPARQL) of `logic:Correspondence`, and how lossy down-projection works |
@@ -333,7 +333,7 @@ dist/                     Ephemeral build products (never committed)
 generated/dist/gmeow.gts  The single canonical terminal — a content-addressed,
                           signable bundle every generated/ artifact is a
                           projection of (docs/PIPELINE_SPINE.md)
-slices/core/logic/design/      Canonical design sets — the logic: layer +
+slices/grounding/logic/design/      Canonical design sets — the logic: layer +
 docs/APPLIED_CATEGORY_THEORY/  the correspondence-calculus rationale; read in
                           full before working in those areas
 ```
@@ -395,7 +395,7 @@ inverse (`put`, up-projection) is *recovery*, not reconstruction — which turns
 subsumes vocabulary V" into a **CI-checkable section/retraction law** (`u ∘ d = id`) rather than a
 slogan. It is *proven*, not asserted: the openEHR blood-pressure archetype round-trips through an
 in-band complement and passes a real (Archie RM) validator. Design + rationale:
-[`LOGIC-CORRESPONDENCE.md`](./slices/core/logic/design/LOGIC-CORRESPONDENCE.md) and
+[`LOGIC-CORRESPONDENCE.md`](./slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md) and
 [`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/); the projection reference:
 [`docs/projections.md`](./docs/projections.md).
 
@@ -479,11 +479,11 @@ GMEOW's logical core is a maximally expressive, RDF-1.2-native `logic:` layer
 ([Principle 17](./CONSTITUTION.md)) — a full-FOL, Turing-complete typed IR, not an OWL syntax with
 a new namespace. **Every prior formalism is a generated, lossy projection of it**, and the
 relations are kept distinct on one lattice
-([`LOGIC-META-SEMANTICS.md`](./slices/core/logic/design/LOGIC-META-SEMANTICS.md)): `logic:` is
+([`LOGIC-META-SEMANTICS.md`](./slices/grounding/logic/design/LOGIC-META-SEMANTICS.md)): `logic:` is
 *built atop* RDF 1.2; it is a *superset of* the definitional formalisms (OWL, RDFS, SKOS, gUFO,
 UFO — lifted in and projected back at exact preservation); it *down-projects lossily to* the
 closed-world validation surfaces (**SHACL Core + ShEx**, derived from a `logic:` validation-shape
-node kind — [`LOGIC-VALIDATION.md`](./slices/core/logic/design/LOGIC-VALIDATION.md)); and it
+node kind — [`LOGIC-VALIDATION.md`](./slices/grounding/logic/design/LOGIC-VALIDATION.md)); and it
 *derives, via the correspondence layer,* the alignment surfaces (SSSOM/EDOAL/FnO). OWL DL/EL,
 Datalog, N3, Prolog, and the Common Logic dialects (CLIF/CGIF/XCL) are further generated surfaces;
 BFO/DOLCE/SUMO/YAMATO are bridge views.
@@ -496,8 +496,8 @@ the native core — demoted to cross-check oracles + not-yet-native fallbacks; E
 only as a non-authoritative cross-check lane. Every lowering carries a preservation judgment (exact
 / under- / over-approximation / validation-only / unsupported), and any reasoning-contract
 combination with no defined semantics surfaces as an explicit `unsupported` — never a silent
-approximation. Design set: [`slices/core/logic/design/`](./slices/core/logic/design/) (entrypoint
-[`LOGIC.md`](./slices/core/logic/design/LOGIC.md)).
+approximation. Design set: [`slices/grounding/logic/design/`](./slices/grounding/logic/design/) (entrypoint
+[`LOGIC.md`](./slices/grounding/logic/design/LOGIC.md)).
 
 ### Names: first-class, multi-culture, inclusive
 

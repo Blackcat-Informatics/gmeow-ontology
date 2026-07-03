@@ -27,7 +27,7 @@
 //!
 //! # Why Datalog/Scryer
 //!
-//! Per `slices/core/logic/design/LOGIC-PATHS.md`, the canonical runtime for path
+//! Per `slices/grounding/logic/design/LOGIC-PATHS.md`, the canonical runtime for path
 //! recursion is the native least-model fixpoint / SLG-tabling engine: transitive
 //! closure (`p+`/`p*`) and the stratified unroll of bounded `{n,m}` are ordinary
 //! Datalog. We reuse the `ScryerForeign` seam exactly — the path's edges are loaded
