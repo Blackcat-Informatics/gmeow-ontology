@@ -23,7 +23,7 @@ math:NumberSituatedShape
     a sh:NodeShape ;
     rdfs:label "Number situatedness shape"@x-gmeow-english ;
     skos:definition "SHACL constraint for math:Number: every number situates itself in exactly one math:NumberSystem through math:inNumberSystem. An unsituated number is ill-formed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:UnsituatedNumber ;
     sh:targetClass math:Number ;
     sh:property [
@@ -41,7 +41,7 @@ math:ApproximateValueShape
     a sh:NodeShape ;
     rdfs:label "Approximate value shape"@x-gmeow-english ;
     skos:definition "SHACL constraints for math:ApproximateValue: it names, through math:approximates, the exact math:Number it stands in for, and declares its math:approximationError. An exact number and an approximation of it are distinct objects."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:ExactApproximateConflation ;
     sh:targetClass math:ApproximateValue ;
     sh:property [
@@ -65,7 +65,7 @@ math:MathematicalConstantShape
     a sh:NodeShape ;
     rdfs:label "Mathematical constant shape"@x-gmeow-english ;
     skos:definition "SHACL constraints for math:MathematicalConstant: it is exact (math:isExact true) and never carries a raw numeric literal directly (math:quantityValue is forbidden on it). A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:ConstantAsDecimalLiteral ;
     sh:targetClass math:MathematicalConstant ;
     sh:property [
@@ -87,7 +87,7 @@ math:IntensionalSetShape
     a sh:NodeShape ;
     rdfs:label "Intensional set condition shape"@x-gmeow-english ;
     skos:definition "SHACL constraint for math:SetBuilderExpression: its math:memberCondition denotes a logic: formula (a resource, the denotation seam), never an opaque literal string."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:StringOnlyMemberCondition ;
     sh:targetClass math:SetBuilderExpression ;
     sh:property [
@@ -103,7 +103,7 @@ math:ComplementShape
     a sh:NodeShape ;
     rdfs:label "Complement ambient-set shape"@x-gmeow-english ;
     skos:definition "SHACL constraint for math:Complement: it names the ambient set it is taken relative to through math:complementWithin. An unqualified complement is ill-formed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:UnqualifiedComplement ;
     sh:targetClass math:Complement ;
     sh:property [
@@ -121,7 +121,7 @@ math:SetExtentShape
     a sh:NodeShape ;
     rdfs:label "Set extent shape"@x-gmeow-english ;
     skos:definition "SHACL-SPARQL constraint over math:Set: a set is given extensionally (math:hasElement) or intensionally (math:memberCondition), not silently both without a declared equality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:AmbiguousSetExtent ;
     sh:targetClass math:Set ;
     sh:sparql [
@@ -140,7 +140,7 @@ math:FunctionFramingShape
     a sh:NodeShape ;
     rdfs:label "Function framing shape"@x-gmeow-english ;
     skos:definition "SHACL constraints for math:Function: it declares both its math:domain and its math:codomain. A function without its frame is ill-formed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:UnframedFunction ;
     sh:targetClass math:Function ;
     sh:property [

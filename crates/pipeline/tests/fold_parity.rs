@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The fold-parity gate (#861 P6): the executor's composed fold must be
+//! The fold-parity gate: the executor's composed fold must be
 //! fold-isomorphic to the committed `generated/dist/gmeow.gts`.
 //!
 //! It runs the executor spine over the real repo, reads the sink's `gmeow.gts`,
 //! folds BOTH the sink output and the committed reference through the kernel GTS
 //! reader (`purrdf::gts::read_graph`), and compares the
 //! per-named-graph quad counts plus the reifier/annotation counts. Per the
-//! semantic gts gate (#595), full CBOR byte-identity is NOT required: the FOLD
+//! semantic gts gate, full CBOR byte-identity is NOT required: the FOLD
 //! (quads + reifiers + annotations per named graph) is the contract.
 
 use std::collections::BTreeMap;
@@ -101,7 +101,7 @@ fn spine() -> PipelineSpec {
                 &["stage-gts-compose", "stage-reason"],
             ),
             spec("stage-validate", "validate", &["stage-source-load"]),
-            // The SHACL→JSON-Schema source leaf the snapshot folds (#700).
+            // The SHACL→JSON-Schema source leaf the snapshot folds.
             spec("stage-export-json-schema", "json_schema", &[]),
             // The external-corpus divergence grader the snapshot folds into
             // graph/conformance; a source-reading Transform that consumes nothing.

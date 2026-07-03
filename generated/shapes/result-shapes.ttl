@@ -798,12 +798,12 @@ gmeow:GenResultRowShape_examples_logic_tests_cqNeighborOriginsShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'neighbor' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
-gmeow:GenResultRowShape_examples_mathematics_tests_cqCardinalityShape
+gmeow:GenResultRowShape_examples_math_tests_cqCardinalityShape
     a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqCardinalityShape> (generated)"@en ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqCardinalityShape> (generated)"@en ;
     sh:target [
         a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqCardinalityShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqCardinalityShape> . ?cq gmeow:cqExpectRow ?this }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
@@ -826,12 +826,12 @@ gmeow:GenResultRowShape_examples_mathematics_tests_cqCardinalityShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'set' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
-gmeow:GenResultRowShape_examples_mathematics_tests_cqConstantsShape
+gmeow:GenResultRowShape_examples_math_tests_cqConstantsShape
     a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqConstantsShape> (generated)"@en ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqConstantsShape> (generated)"@en ;
     sh:target [
         a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqConstantsShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqConstantsShape> . ?cq gmeow:cqExpectRow ?this }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
@@ -854,12 +854,12 @@ gmeow:GenResultRowShape_examples_mathematics_tests_cqConstantsShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'constant' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
-gmeow:GenResultRowShape_examples_mathematics_tests_cqFunctionShape
+gmeow:GenResultRowShape_examples_math_tests_cqFunctionShape
     a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqFunctionShape> (generated)"@en ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqFunctionShape> (generated)"@en ;
     sh:target [
         a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqFunctionShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqFunctionShape> . ?cq gmeow:cqExpectRow ?this }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
@@ -947,12 +947,12 @@ gmeow:GenResultRowShape_examples_mathematics_tests_cqFunctionShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'surjective' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <http://www.w3.org/2001/XMLSchema#string> ) }""" ;
     ] .
 
-gmeow:GenResultRowShape_examples_mathematics_tests_cqNumberSystemShape
+gmeow:GenResultRowShape_examples_math_tests_cqNumberSystemShape
     a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqNumberSystemShape> (generated)"@en ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqNumberSystemShape> (generated)"@en ;
     sh:target [
         a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqNumberSystemShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqNumberSystemShape> . ?cq gmeow:cqExpectRow ?this }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
@@ -990,12 +990,12 @@ gmeow:GenResultRowShape_examples_mathematics_tests_cqNumberSystemShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'system' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
-gmeow:GenResultRowShape_examples_mathematics_tests_cqSetExtentShape
+gmeow:GenResultRowShape_examples_math_tests_cqSetExtentShape
     a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqSetExtentShape> (generated)"@en ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqSetExtentShape> (generated)"@en ;
     sh:target [
         a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/cqSetExtentShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqSetExtentShape> . ?cq gmeow:cqExpectRow ?this }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;

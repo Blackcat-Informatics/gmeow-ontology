@@ -3,7 +3,7 @@
 
 # Mathematics — the `math:` grounding layer
 
-> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/mathematics` · **tier: core**
+> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/math` · **tier: core**
 > The grounding vocabulary of the primitive mathematical objects — numbers, sets, and functions —
 > that every other mathematical charter quantifies, indexes, maps, and measures over. A peer of the
 > `logic:` reasoning layer.

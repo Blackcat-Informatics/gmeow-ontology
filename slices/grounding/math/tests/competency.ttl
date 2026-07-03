@@ -12,13 +12,13 @@
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix wd:    <http://www.wikidata.org/entity/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
 @prefix exf:   <http://example.org/math/> .
 
 # === Q1 — number system and exactness ====================================== #
 
 ex:cqNumberSystemAndExactness a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/mathematics/queries/competency/number-system-and-exactness.rq" ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/number-system-and-exactness.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "Each situated number reports the math:NumberSystem it belongs to and its exactness; over the fixture the answer is exactly {half → ℚ (exact), negFive → ℤ (exact)}." ;
@@ -46,7 +46,7 @@ ex:rowNegFive a gmeow:ExpectedRow ;
 # === Q2 — set extent and condition ========================================= #
 
 ex:cqSetExtentAndCondition a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/mathematics/queries/competency/set-extent-and-condition.rq" ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/set-extent-and-condition.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "An intensional math:SetBuilderExpression reports its math:memberCondition as the logic: formula that denotes it; over the fixture the answer is exactly {evenNumbers → evenFormula}." ;
@@ -67,7 +67,7 @@ ex:rowEvenNumbers a gmeow:ExpectedRow ;
 # === Q3 — function domain, codomain, image, and inj/surj/bij ================ #
 
 ex:cqFunctionFraming a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/mathematics/queries/competency/function-domain-codomain-image.rq" ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/function-domain-codomain-image.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "A function reports its domain, codomain, image, and its declared injective/surjective/bijective flags; over the fixture the answer is exactly the single function successor (ℕ → ℕ, image positives, injective, not surjective, not bijective)." ;
@@ -98,7 +98,7 @@ ex:rowSuccessor a gmeow:ExpectedRow ;
 # === Q4 — set cardinality ================================================== #
 
 ex:cqSetCardinality a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/mathematics/queries/competency/set-cardinality.rq" ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/set-cardinality.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "Each set reports its cardinality; over the fixture the answer is exactly {primesUnderTen → finite, allNaturals → ℵ₀}." ;
@@ -123,7 +123,7 @@ ex:rowAllNaturals a gmeow:ExpectedRow ;
 # === Q5 — named constants and their anchors ================================ #
 
 ex:cqNamedConstantsAndAnchors a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/mathematics/queries/competency/named-constants-and-anchors.rq" ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/named-constants-and-anchors.rq" ;
     gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "A named constant reports the external anchor reached through its gmeow:TermEquivalence alignment; over the fixture the answer is exactly {math:pi → wd:Q167}." ;

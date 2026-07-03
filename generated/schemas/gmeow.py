@@ -1535,6 +1535,7 @@ class MemoryKindEnum(str, Enum):
 
 
 class MentalProcessTypeEnum(str, Enum):
+    processAffectiveExperience = "processAffectiveExperience"
     processAttention = "processAttention"
     processDeliberation = "processDeliberation"
     processDreaming = "processDreaming"
@@ -2094,6 +2095,7 @@ class PipelineStageEnum(str, Enum):
     stage_snapshot = "stage-snapshot"
     stage_source_load = "stage-source-load"
     stage_statements = "stage-statements"
+    stage_term_manifest = "stage-term-manifest"
     stage_validate = "stage-validate"
     stage_validate_result_shape_composition = "stage-validate-result-shape-composition"
 
@@ -3379,6 +3381,28 @@ class AdoptiveParentChild(ParentChildRelationship):
 class AestheticQuality(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AestheticQuality"
     pass
+
+
+class MentalProcess(Event):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/MentalProcess"
+    is_a: ClassVar[str] = "Event"
+    experiencer: Agent | None = Field(default=None)
+    mentalProcessType: list[MentalProcessType] | None = Field(default=None)
+    producesMentalMoment: list[MentalMoment] | None = Field(default=None)
+    realizesMentalMoment: list[MentalMoment] | None = Field(default=None)
+    updatesMentalTenure: list[TimeScopedRelation] | None = Field(default=None)
+
+
+class Experience(MentalProcess):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Experience"
+    is_a: ClassVar[str] = "MentalProcess"
+    dreamElement: list[str] | None = Field(default=None, description="Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9).")
+
+
+class AffectiveExperience(Experience):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectiveExperience"
+    is_a: ClassVar[str] = "Experience"
+    feltAffect: list[AffectiveMoment] | None = Field(default=None)
 
 
 class Entity(ConfiguredBaseModel):
@@ -4789,22 +4813,6 @@ class DoxasticTenure(TimeScopedRelation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DoxasticTenure"
     is_a: ClassVar[str] = "TimeScopedRelation"
     tenureOfDoxasticState: DoxasticState | None = Field(default=None)
-
-
-class MentalProcess(Event):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/MentalProcess"
-    is_a: ClassVar[str] = "Event"
-    experiencer: Agent | None = Field(default=None)
-    mentalProcessType: list[MentalProcessType] | None = Field(default=None)
-    producesMentalMoment: list[MentalMoment] | None = Field(default=None)
-    realizesMentalMoment: list[MentalMoment] | None = Field(default=None)
-    updatesMentalTenure: list[TimeScopedRelation] | None = Field(default=None)
-
-
-class Experience(MentalProcess):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Experience"
-    is_a: ClassVar[str] = "MentalProcess"
-    dreamElement: list[str] | None = Field(default=None, description="Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9).")
 
 
 class DreamReport(Experience):

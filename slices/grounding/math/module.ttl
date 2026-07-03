@@ -11,13 +11,13 @@
 @prefix vann:  <http://purl.org/vocab/vann/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-<https://blackcatinformatics.ca/gmeow/slices/mathematics>
+<https://blackcatinformatics.ca/gmeow/slices/math>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     vann:preferredNamespacePrefix "math" ;
     vann:preferredNamespaceUri "https://blackcatinformatics.ca/math/" ;
     rdfs:comment "Grounding vocabulary for GMEOW Mathematics. The math: namespace <https://blackcatinformatics.ca/math/> is the grounding surface for the primitive mathematical objects — number systems and exactness, arithmetic, sets, and relations and functions — that every other mathematical charter quantifies, indexes, maps, and measures over. It is a peer of logic:; the intensional-set condition denotes a logic: formula and the preservation-polarity vocabulary is reused verbatim from the logic: loss ledger rather than re-minted. The object-layer parents (math:Set, math:Function, math:Operation, math:Relation, math:MathematicalExpression) are minted here as the ground the bedrock builds on."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "GMEOW Mathematics"@x-gmeow-english ;
     skos:definition "The GMEOW Mathematics module — home of the math: grounding vocabulary. Its single discipline is that exactness is explicit: a number declares the system it lives in (the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ), an exact value and an approximation of it are distinct objects, and a named constant is an exact individual anchored to an external authority rather than a decimal literal. A set is given extensionally by its elements or intensionally by a condition that denotes a logic: formula, never both silently; a function declares its domain and codomain. The typed conformance-failure vocabulary (math:MathConformanceFailure and its subclasses) makes every well-formedness violation a queryable object."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
@@ -29,7 +29,7 @@
 
 math:Number
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number"@x-gmeow-english ;
     skos:definition "A mathematical number: an abstract quantity that lives in a declared number system. Every math:Number situates itself in a math:NumberSystem through math:inNumberSystem — an unsituated number is ill-formed — and declares through math:isExact whether it is an exact value or the abstract counterpart that a math:ApproximateValue approximates. The five nested systems ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ are its principal subclasses."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -37,7 +37,7 @@ math:Number
 math:NaturalNumber
     a owl:Class ;
     rdfs:subClassOf math:Integer ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Natural Number"@x-gmeow-english ;
     skos:definition "A natural number (ℕ): a non-negative counting number. The innermost system of the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ — every natural number is an integer, so this is a subclass of math:Integer. Situated in the math:naturalNumbers system."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -45,7 +45,7 @@ math:NaturalNumber
 math:Integer
     a owl:Class ;
     rdfs:subClassOf math:RationalNumber ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Integer"@x-gmeow-english ;
     skos:definition "An integer (ℤ): a whole number, positive, negative, or zero. Every integer is a rational number (n = n/1), so this is a subclass of math:RationalNumber. Situated in the math:integers system."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -53,7 +53,7 @@ math:Integer
 math:RationalNumber
     a owl:Class ;
     rdfs:subClassOf math:RealNumber ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Rational Number"@x-gmeow-english ;
     skos:definition "A rational number (ℚ): a ratio p/q of integers with q ≠ 0. Every rational number is a real number, so this is a subclass of math:RealNumber. Situated in the math:rationalNumbers system. A rational number is exact; its finite or repeating decimal is an approximation carried by a distinct math:ApproximateValue."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -61,7 +61,7 @@ math:RationalNumber
 math:RealNumber
     a owl:Class ;
     rdfs:subClassOf math:ComplexNumber ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Real Number"@x-gmeow-english ;
     skos:definition "A real number (ℝ): a point on the continuous number line, rational or irrational. Every real number is a complex number with zero imaginary part, so this is a subclass of math:ComplexNumber. Situated in the math:realNumbers system."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -69,7 +69,7 @@ math:RealNumber
 math:ComplexNumber
     a owl:Class ;
     rdfs:subClassOf math:Number ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Complex Number"@x-gmeow-english ;
     skos:definition "A complex number (ℂ): a value a + bi with real part a and imaginary part b. The outermost system of the containment tower; a subclass of math:Number. Situated in the math:complexNumbers system."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -77,7 +77,7 @@ math:ComplexNumber
 math:AlgebraicNumber
     a owl:Class ;
     rdfs:subClassOf math:ComplexNumber ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Algebraic Number"@x-gmeow-english ;
     skos:definition "An algebraic number: a complex number that is a root of a non-zero polynomial with rational coefficients (for example √2 or the golden ratio). A subclass of math:ComplexNumber, cross-cutting the ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ tower — the algebraic numbers are closed under the field operations but are not one of the nested systems. Its complement within ℂ is the transcendental numbers."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -85,7 +85,7 @@ math:AlgebraicNumber
 math:TranscendentalNumber
     a owl:Class ;
     rdfs:subClassOf math:ComplexNumber ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Transcendental Number"@x-gmeow-english ;
     skos:definition "A transcendental number: a complex number that is not algebraic — not a root of any non-zero polynomial with rational coefficients (for example π and e). A subclass of math:ComplexNumber. Named transcendental constants such as π and e are exact math:MathematicalConstant individuals, never decimal literals."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -93,21 +93,21 @@ math:TranscendentalNumber
 math:MathematicalConstant
     a owl:Class ;
     rdfs:subClassOf math:Number ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Constant"@x-gmeow-english ;
     skos:definition "A named mathematical constant: an exact number with a canonical identity, such as π, e, or the Euler–Mascheroni constant γ. A subclass of math:Number whose instances are exact individuals (math:isExact true) anchored to an external authority — a Wikidata QID and, where applicable, an OEIS or DLMF locator, recorded as a math: alignment. A constant is never given as a decimal literal; its decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ApproximateValue
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Approximate Value"@x-gmeow-english ;
     skos:definition "A finite approximation of an exact number: a value that names, through math:approximates, the exact math:Number it stands in for and, through math:approximationError, how far it may deviate. It carries the concrete numeric literal (math:quantityValue) in a declared floating-point datatype (math:numericDatatype, subsuming xsd:double / xsd:float). An approximate value and the exact number it approximates are distinct objects and are never conflated — this is the object that holds the decimal so the exact number need not."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:NumberSystem
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number System"@x-gmeow-english ;
     skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ. A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -116,35 +116,35 @@ math:NumberSystem
 
 math:naturalNumbers
     a owl:NamedIndividual , math:NumberSystem ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "natural numbers (ℕ)"@x-gmeow-english ;
     skos:definition "The system of natural numbers ℕ — the non-negative counting numbers. The innermost system; math:subsystemOf math:integers."@x-gmeow-english ;
     math:subsystemOf math:integers .
 
 math:integers
     a owl:NamedIndividual , math:NumberSystem ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "integers (ℤ)"@x-gmeow-english ;
     skos:definition "The system of integers ℤ — the whole numbers. math:subsystemOf math:rationalNumbers."@x-gmeow-english ;
     math:subsystemOf math:rationalNumbers .
 
 math:rationalNumbers
     a owl:NamedIndividual , math:NumberSystem ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "rational numbers (ℚ)"@x-gmeow-english ;
     skos:definition "The system of rational numbers ℚ — ratios of integers. math:subsystemOf math:realNumbers."@x-gmeow-english ;
     math:subsystemOf math:realNumbers .
 
 math:realNumbers
     a owl:NamedIndividual , math:NumberSystem ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "real numbers (ℝ)"@x-gmeow-english ;
     skos:definition "The system of real numbers ℝ — the continuous number line. math:subsystemOf math:complexNumbers."@x-gmeow-english ;
     math:subsystemOf math:complexNumbers .
 
 math:complexNumbers
     a owl:NamedIndividual , math:NumberSystem ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "complex numbers (ℂ)"@x-gmeow-english ;
     skos:definition "The system of complex numbers ℂ — the outermost system of the containment tower. The top of the math:subsystemOf order."@x-gmeow-english .
 
@@ -152,7 +152,7 @@ math:complexNumbers
 
 math:pi
     a owl:NamedIndividual , math:MathematicalConstant , math:TranscendentalNumber ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "π"@x-gmeow-english ;
     skos:definition "The constant π: the exact ratio of a circle's circumference to its diameter, a transcendental real number. An exact individual (math:isExact true) situated in the real numbers; its external anchors (Wikidata, OEIS) are recorded as math: alignments. Its decimal expansion 3.14159… is a distinct math:ApproximateValue, never asserted on this individual."@x-gmeow-english ;
     math:inNumberSystem math:realNumbers ;
@@ -160,7 +160,7 @@ math:pi
 
 math:eulerNumber
     a owl:NamedIndividual , math:MathematicalConstant , math:TranscendentalNumber ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "e"@x-gmeow-english ;
     skos:definition "The constant e: the exact base of the natural logarithm, a transcendental real number. An exact individual (math:isExact true) situated in the real numbers; its external anchors (Wikidata, OEIS) are recorded as math: alignments. Its decimal expansion 2.71828… is a distinct math:ApproximateValue."@x-gmeow-english ;
     math:inNumberSystem math:realNumbers ;
@@ -168,7 +168,7 @@ math:eulerNumber
 
 math:eulerMascheroni
     a owl:NamedIndividual , math:MathematicalConstant ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "γ"@x-gmeow-english ;
     skos:definition "The Euler–Mascheroni constant γ: the exact limiting difference between the harmonic series and the natural logarithm, a real number whose rationality is unknown. An exact individual (math:isExact true) situated in the real numbers; its external anchors (Wikidata, OEIS) are recorded as math: alignments. Its decimal expansion 0.57721… is a distinct math:ApproximateValue."@x-gmeow-english ;
     math:inNumberSystem math:realNumbers ;
@@ -180,7 +180,7 @@ math:eulerMascheroni
 
 math:Operation
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Operation"@x-gmeow-english ;
     skos:definition "A mathematical operation: a map from operands to a result, applied within an expression. The object-layer parent that math:ArithmeticOperation specializes; richer structure (arity, operand structure preservation) belongs to the mathematical-core surface that this bedrock builds on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -188,14 +188,14 @@ math:Operation
 math:ArithmeticOperation
     a owl:Class ;
     rdfs:subClassOf math:Operation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Arithmetic Operation"@x-gmeow-english ;
     skos:definition "An arithmetic operation over numbers: addition, multiplication, exponentiation, and their inverses. A subclass of math:Operation; the concrete operators are named individuals (math:Addition, math:Multiplication, math:Exponentiation, math:Subtraction, math:Division, math:Root, math:Logarithm). Anchored externally to the OpenMath arith1 and nums1 content dictionaries. An arithmetic expression applies one such operator inside a math:ApplicationExpression."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MathematicalExpression
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Expression"@x-gmeow-english ;
     skos:definition "The abstract root of the mathematical expression tree: a computable form is an abstract syntax tree, not a display string. The object-layer parent the bedrock references; the full expression grammar (literals, variables, indexed argument slots, binding and scope) belongs to the mathematical-core surface this bedrock builds on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -203,14 +203,14 @@ math:MathematicalExpression
 math:ApplicationExpression
     a owl:Class ;
     rdfs:subClassOf math:MathematicalExpression ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Application Expression"@x-gmeow-english ;
     skos:definition "The application of an operator to operands: the expression node an arithmetic operation lowers to. Its single operator is named through math:operator; the indexed argument-slot machinery that fixes operand order belongs to the mathematical-core surface this bedrock builds on, and is deliberately not minted here."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:operator
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "operator"@x-gmeow-english ;
     skos:definition "The single operator a math:ApplicationExpression applies: relates an application to the math:Operation (for example a math:ArithmeticOperation individual) it invokes. Domain math:ApplicationExpression, range math:Operation (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -219,43 +219,43 @@ math:operator
 
 math:Addition
     a owl:NamedIndividual , math:ArithmeticOperation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "addition"@x-gmeow-english ;
     skos:definition "The binary addition operator (+). Its inverse is math:Subtraction. OpenMath arith1 plus."@x-gmeow-english .
 
 math:Subtraction
     a owl:NamedIndividual , math:ArithmeticOperation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "subtraction"@x-gmeow-english ;
     skos:definition "The binary subtraction operator (−), the inverse of math:Addition. OpenMath arith1 minus."@x-gmeow-english .
 
 math:Multiplication
     a owl:NamedIndividual , math:ArithmeticOperation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "multiplication"@x-gmeow-english ;
     skos:definition "The binary multiplication operator (×). Its inverse is math:Division. OpenMath arith1 times."@x-gmeow-english .
 
 math:Division
     a owl:NamedIndividual , math:ArithmeticOperation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "division"@x-gmeow-english ;
     skos:definition "The binary division operator (÷), the inverse of math:Multiplication. OpenMath arith1 divide."@x-gmeow-english .
 
 math:Exponentiation
     a owl:NamedIndividual , math:ArithmeticOperation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "exponentiation"@x-gmeow-english ;
     skos:definition "The exponentiation operator (a^b). Its inverses are math:Root (recovering the base) and math:Logarithm (recovering the exponent). OpenMath arith1 power."@x-gmeow-english .
 
 math:Root
     a owl:NamedIndividual , math:ArithmeticOperation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "root"@x-gmeow-english ;
     skos:definition "The root operator (the b-th root of a), an inverse of math:Exponentiation that recovers the base. OpenMath arith1 root."@x-gmeow-english .
 
 math:Logarithm
     a owl:NamedIndividual , math:ArithmeticOperation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "logarithm"@x-gmeow-english ;
     skos:definition "The logarithm operator (log_b of a), an inverse of math:Exponentiation that recovers the exponent. OpenMath transc1 log."@x-gmeow-english .
 
@@ -265,7 +265,7 @@ math:Logarithm
 
 math:Set
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Set"@x-gmeow-english ;
     skos:definition "A mathematical set: a collection of distinct elements, given either extensionally (its members enumerated through math:hasElement — see math:FiniteSet) or intensionally (a defining condition through math:memberCondition — see math:SetBuilderExpression). A set is extensional or intensional, not silently both without a declared equality. Anchored externally to the OpenMath set1 content dictionary. The object-layer parent the bedrock builds on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -273,7 +273,7 @@ math:Set
 math:FiniteSet
     a owl:Class ;
     rdfs:subClassOf math:Set ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Finite Set"@x-gmeow-english ;
     skos:definition "A set given extensionally by enumerating its finitely many elements through math:hasElement. Its cardinality (math:hasCardinality) is a finite math:Cardinality. The extensional counterpart of the intensional math:SetBuilderExpression."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -281,21 +281,21 @@ math:FiniteSet
 math:SetBuilderExpression
     a owl:Class ;
     rdfs:subClassOf math:Set ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Set-Builder Expression"@x-gmeow-english ;
     skos:definition "A set given intensionally by a defining condition — the { x | φ(x) } form. Its condition is named through math:memberCondition and denotes a logic: formula, the denotation seam, never an opaque string. The intensional counterpart of the extensional math:FiniteSet."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Membership
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Membership"@x-gmeow-english ;
     skos:definition "A reified membership fact: that a particular element belongs to a particular set (x ∈ S). Reifying membership lets a claim of membership carry its own provenance or justification, distinct from the bare math:hasElement edge on an extensional set."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:SetOperation
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Set Operation"@x-gmeow-english ;
     skos:definition "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient set through math:complementWithin; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -303,7 +303,7 @@ math:SetOperation
 math:Complement
     a owl:Class ;
     rdfs:subClassOf math:SetOperation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Complement"@x-gmeow-english ;
     skos:definition "The complement construction Sᶜ = U ∖ S: the set of elements of an ambient set U that are not in S. A subclass of math:SetOperation that always names its ambient set through math:complementWithin — a complement is relative to an ambient set, so an unqualified complement is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -311,7 +311,7 @@ math:Complement
 math:PowerSet
     a owl:Class ;
     rdfs:subClassOf math:Set ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Power Set"@x-gmeow-english ;
     skos:definition "The power set 𝒫(S): the set of all subsets of a base set, named through math:setOperationOn. Itself a set, so a subclass of math:Set. For a finite base of cardinality n its cardinality is 2ⁿ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -319,33 +319,33 @@ math:PowerSet
 math:CartesianProduct
     a owl:Class ;
     rdfs:subClassOf math:Set ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Cartesian Product"@x-gmeow-english ;
     skos:definition "The Cartesian product A × B: the set of ordered pairs drawn from operand sets named through math:setOperationOn. Itself a set, so a subclass of math:Set. A math:Relation is a subset of a Cartesian product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Cardinality
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Cardinality"@x-gmeow-english ;
     skos:definition "The size of a set: a finite count, ℵ₀ (countably infinite), 𝔠 (the cardinality of the continuum), or a larger cardinal. A set names its size through math:hasCardinality. The distinguished infinite cardinals are the individuals math:cardinalityFinite, math:alephNull, and math:continuum."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:cardinalityFinite
     a owl:NamedIndividual , math:Cardinality ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "finite"@x-gmeow-english ;
     skos:definition "The cardinality class of any finite set — a set in bijection with some natural number n. The exact count may additionally be carried as a math:quantityValue."@x-gmeow-english .
 
 math:alephNull
     a owl:NamedIndividual , math:Cardinality ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "ℵ₀"@x-gmeow-english ;
     skos:definition "The cardinality ℵ₀ of a countably infinite set — a set in bijection with ℕ, such as ℤ or ℚ."@x-gmeow-english .
 
 math:continuum
     a owl:NamedIndividual , math:Cardinality ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "𝔠"@x-gmeow-english ;
     skos:definition "The cardinality 𝔠 of the continuum — the cardinality of ℝ, equal to 2^ℵ₀."@x-gmeow-english .
 
@@ -355,7 +355,7 @@ math:continuum
 
 math:Relation
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Relation"@x-gmeow-english ;
     skos:definition "A mathematical relation: a subset of a Cartesian product of a domain and a codomain. The object-layer parent of math:Function — a function is a relation with the functional property declared. Anchored externally to the OpenMath relation1 content dictionary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -363,7 +363,7 @@ math:Relation
 math:Function
     a owl:Class ;
     rdfs:subClassOf math:Relation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Function"@x-gmeow-english ;
     skos:definition "A function: a relation that assigns to each element of its domain exactly one element of its codomain. Every function declares its math:domain and math:codomain — a function without them is ill-formed — and may declare its math:image. Injectivity, surjectivity, and bijectivity are declared, checkable booleans (math:isInjective, math:isSurjective, math:isBijective), not assumed. Anchored externally to the OpenMath fns1 content dictionary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -371,7 +371,7 @@ math:Function
 math:FunctionSpace
     a owl:Class ;
     rdfs:subClassOf math:Set ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Function Space"@x-gmeow-english ;
     skos:definition "The set of all functions from a fixed domain to a fixed codomain — the exponential object Bᴬ. Itself a set, so a subclass of math:Set."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -379,7 +379,7 @@ math:FunctionSpace
 math:InjectiveFunction
     a owl:Class ;
     rdfs:subClassOf math:Function ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Injective Function"@x-gmeow-english ;
     skos:definition "A convenience projection of the class of functions with math:isInjective true — an injection, mapping distinct domain elements to distinct codomain elements. The canonical checkable bearer is the boolean math:isInjective; this subclass is a projection over it, not an independent carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -387,7 +387,7 @@ math:InjectiveFunction
 math:SurjectiveFunction
     a owl:Class ;
     rdfs:subClassOf math:Function ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Surjective Function"@x-gmeow-english ;
     skos:definition "A convenience projection of the class of functions with math:isSurjective true — a surjection, whose image is the whole codomain. The canonical checkable bearer is the boolean math:isSurjective; this subclass is a projection over it, not an independent carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -395,7 +395,7 @@ math:SurjectiveFunction
 math:BijectiveFunction
     a owl:Class ;
     rdfs:subClassOf math:Function ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Bijective Function"@x-gmeow-english ;
     skos:definition "A convenience projection of the class of functions with math:isBijective true — a bijection, both injective and surjective, hence invertible through math:inverseFunction. The canonical checkable bearer is the boolean math:isBijective; this subclass is a projection over it, not an independent carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -403,7 +403,7 @@ math:BijectiveFunction
 math:PartialFunction
     a owl:Class ;
     rdfs:subClassOf math:Relation ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Partial Function"@x-gmeow-english ;
     skos:definition "A partial function: a relation that assigns at most one codomain element to each domain element, defined only on a subset of its declared domain. A subclass of math:Relation rather than math:Function, because it is not total on its domain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -414,7 +414,7 @@ math:PartialFunction
 
 math:MathConformanceFailure
     a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Math Conformance Failure"@x-gmeow-english ;
     skos:definition "The parent of the math: well-formedness failure vocabulary: a violation is itself a typed, queryable object rather than a log line. Each subclass names one bedrock hard rule, and the SHACL shape enforcing that rule points at its failure class through math:enforcesFailureClass. Conformance enforces well-formedness and preservation, never mathematical or empirical truth."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -422,7 +422,7 @@ math:MathConformanceFailure
 math:UnsituatedNumber
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unsituated Number"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Number does not declare the math:NumberSystem it belongs to. Every number situates itself in ℕ, ℤ, ℚ, ℝ, or ℂ; an unsituated number is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -430,7 +430,7 @@ math:UnsituatedNumber
 math:ExactApproximateConflation
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Exact–Approximate Conflation"@x-gmeow-english ;
     skos:definition "The failure raised when a math:ApproximateValue fails to keep an approximation distinct from the exact value — it does not name, through math:approximates, the exact number it stands in for, or does not declare its math:approximationError. An exact number and an approximation of it are distinct objects."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -438,7 +438,7 @@ math:ExactApproximateConflation
 math:ConstantAsDecimalLiteral
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Constant as Decimal Literal"@x-gmeow-english ;
     skos:definition "The failure raised when a math:MathematicalConstant is given as a decimal literal — it carries a raw math:quantityValue directly instead of being an exact individual. A constant's decimal expansion belongs to a distinct math:ApproximateValue that math:approximates it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -446,7 +446,7 @@ math:ConstantAsDecimalLiteral
 math:StringOnlyMemberCondition
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "String-Only Member Condition"@x-gmeow-english ;
     skos:definition "The failure raised when a math:SetBuilderExpression names its math:memberCondition as an opaque literal instead of denoting a logic: formula. The intensional condition is the denotation seam; it must denote a formula, never a string."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -454,7 +454,7 @@ math:StringOnlyMemberCondition
 math:UnqualifiedComplement
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unqualified Complement"@x-gmeow-english ;
     skos:definition "The failure raised when a complement math:SetOperation does not name its ambient set through math:complementWithin. A complement is relative to an ambient set; an unqualified complement is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -462,7 +462,7 @@ math:UnqualifiedComplement
 math:AmbiguousSetExtent
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Ambiguous Set Extent"@x-gmeow-english ;
     skos:definition "The failure raised when a set is given both extensionally (math:hasElement) and intensionally (math:memberCondition) without a declared equality. A set is extensional or intensional, not silently both."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -470,7 +470,7 @@ math:AmbiguousSetExtent
 math:UnframedFunction
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unframed Function"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Function does not declare both its math:domain and its math:codomain. A function without its frame is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -483,49 +483,49 @@ math:UnframedFunction
 
 math:inNumberSystem
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "in number system"@x-gmeow-english ;
     skos:definition "Situates a number in the system it belongs to. Domain math:Number, range math:NumberSystem (stated in prose). Every math:Number declares exactly one — an unsituated number is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:subsystemOf
     a owl:ObjectProperty , owl:TransitiveProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "subsystem of"@x-gmeow-english ;
     skos:definition "Orders the number systems by containment: math:naturalNumbers ⊑ math:integers ⊑ math:rationalNumbers ⊑ math:realNumbers ⊑ math:complexNumbers. Domain and range math:NumberSystem (stated in prose). Transitive, so the whole ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ tower is entailed from the adjacent links."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:isExact
     a owl:DatatypeProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is exact"@x-gmeow-english ;
     skos:definition "Declares whether a number is an exact value (true) or the abstract value a math:ApproximateValue approximates. Domain math:Number, range xsd:boolean (stated in prose). A math:MathematicalConstant is always exact."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:approximates
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "approximates"@x-gmeow-english ;
     skos:definition "Names the exact number that an approximation stands in for. Domain math:ApproximateValue, range math:Number (stated in prose). The approximation and the exact number are distinct objects and are never conflated."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:approximationError
     a owl:DatatypeProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "approximation error"@x-gmeow-english ;
     skos:definition "The magnitude by which an approximation may deviate from the exact value it approximates — an absolute error bound. Domain math:ApproximateValue, range a numeric literal (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:numericDatatype
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "numeric datatype"@x-gmeow-english ;
     skos:definition "Names the canonical RDF datatype in which an approximate value's literal is carried — subsuming the IEEE-754 datatypes xsd:double and xsd:float directly rather than re-minting them. Domain math:ApproximateValue, range an rdfs:Datatype (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:quantityValue
     a owl:DatatypeProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "quantity value"@x-gmeow-english ;
     skos:definition "The concrete numeric literal a value carries — the floating-point or decimal expansion of a math:ApproximateValue, or the finite count of a cardinality. Domain math:ApproximateValue or math:Cardinality, range a numeric literal (stated in prose). A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -534,42 +534,42 @@ math:quantityValue
 
 math:hasElement
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has element"@x-gmeow-english ;
     skos:definition "The canonical extensional membership carrier: relates a set to one of its enumerated members (x ∈ S). Domain math:Set, range any math:MathematicalObject (stated in prose). A math:FiniteSet is given extensionally by its math:hasElement edges."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:memberCondition
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "member condition"@x-gmeow-english ;
     skos:definition "Names the defining condition of an intensional set — the φ in { x | φ(x) }. Domain math:Set (in practice a math:SetBuilderExpression), range a logic: formula (stated in prose). The value denotes a logic: formula, the denotation seam, and is never an opaque literal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:subsetOf
     a owl:ObjectProperty , owl:TransitiveProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "subset of"@x-gmeow-english ;
     skos:definition "Relates a set to a set that contains all of its elements (A ⊆ B). Domain and range math:Set (stated in prose). Transitive: A ⊆ B and B ⊆ C entail A ⊆ C. Reflexivity and antisymmetry hold mathematically but are documented in prose, not asserted as OWL characteristics, to keep the term profile-clean."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:setOperationOn
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "set operation on"@x-gmeow-english ;
     skos:definition "Relates a set-construction (a math:SetOperation, math:PowerSet, or math:CartesianProduct) to an operand set it is built from. Domain math:SetOperation or its siblings, range math:Set (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:complementWithin
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "complement within"@x-gmeow-english ;
     skos:definition "Names the ambient set a complement is taken relative to (the U in Sᶜ = U ∖ S). Domain a complement math:SetOperation, range math:Set (stated in prose). A complement without an ambient set is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasCardinality
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has cardinality"@x-gmeow-english ;
     skos:definition "Names the size of a set. Domain math:Set, range math:Cardinality (stated in prose). A finite set names math:cardinalityFinite and may additionally carry its exact count as a math:quantityValue."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -578,56 +578,56 @@ math:hasCardinality
 
 math:domain
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "domain"@x-gmeow-english ;
     skos:definition "The source set of a function or relation — the set its inputs are drawn from. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a domain is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:codomain
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "codomain"@x-gmeow-english ;
     skos:definition "The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:image
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "image"@x-gmeow-english ;
     skos:definition "The set of values a function actually attains — the subset of the codomain that is the range of the map. Domain math:Function, range math:Set (stated in prose). A function is surjective exactly when its image equals its codomain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:isInjective
     a owl:DatatypeProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is injective"@x-gmeow-english ;
     skos:definition "Declares whether a function is injective — distinct inputs map to distinct outputs. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of injectivity, of which math:InjectiveFunction is a convenience projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:isSurjective
     a owl:DatatypeProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is surjective"@x-gmeow-english ;
     skos:definition "Declares whether a function is surjective — its image is the whole codomain. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of surjectivity, of which math:SurjectiveFunction is a convenience projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:isBijective
     a owl:DatatypeProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is bijective"@x-gmeow-english ;
     skos:definition "Declares whether a function is bijective — both injective and surjective, hence invertible. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of bijectivity, of which math:BijectiveFunction is a convenience projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:functionComposition
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "function composition"@x-gmeow-english ;
     skos:definition "Relates a composite function g ∘ f to a function it is built from. Domain and range math:Function (stated in prose). Composition is well-formed when the codomain of the inner function is the domain of the outer."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:inverseFunction
     a owl:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "inverse function"@x-gmeow-english ;
     skos:definition "Relates a function to its inverse f⁻¹, defined exactly when the function is bijective. Domain and range math:Function (stated in prose). The relation is symmetric mathematically (the inverse of f⁻¹ is f), documented in prose rather than asserted as an OWL characteristic to keep the term profile-clean."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -636,12 +636,12 @@ math:inverseFunction
 
 math:formalizes
     a owl:AnnotationProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "formalizes"@x-gmeow-english ;
     skos:definition "A bridge annotation from a math: grounding term to the gmeow: domain concept it formalizes, so the domain term's documentation can surface the formalization without the domain slice ever asserting a math: triple. Subject a math: term, object a gmeow: term, both stated in prose; an annotation property, never a reasoned axiom, so it carries no DL or EL profile weight."@x-gmeow-english .
 
 math:enforcesFailureClass
     a owl:AnnotationProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mathematics> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "enforces failure class"@x-gmeow-english ;
     skos:definition "Links a SHACL shape to the math:MathConformanceFailure subclass it enforces, so the machine-checked gate and the typed failure vocabulary are cross-referenced: a query can move from a shape to the named failure it raises and back. An annotation property, carried on the shape, never a reasoned axiom."@x-gmeow-english .

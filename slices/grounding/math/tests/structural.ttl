@@ -7,7 +7,7 @@
 # native Rust slicetest harness (crates/slicetest).
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/mathematics/tests/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
 
 # --- 1. The number-system containment tower ℕ ⊑ ℤ ⊑ ℚ ⊑ ℝ ⊑ ℂ (MUST) ---
 ex:saNumberTower a gmeow:StructuralAssertion ;
