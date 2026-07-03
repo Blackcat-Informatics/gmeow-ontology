@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `gts_sink` stage (#861 P4/P6): the sole serialization exit — the gts
+//! The `gts_sink` stage: the sole serialization exit — the gts
 //! narrow waist.
 //!
 //! Exactly one Sink per pipeline. The STRUCTURED multi-named-graph `dist`
 //! snapshot is ASSEMBLED upstream by [`crate::stages::carrier::SnapshotStage`]
-//! (fold-isomorphic to the committed `generated/dist/gmeow.gts`, #861 P6 parity
+//! (fold-isomorphic to the committed `generated/dist/gmeow.gts`, the parity
 //! gate). This sink consumes that one `stage-snapshot` product and re-emits its
 //! `gmeow.gts` bytes as the sink artifact — the single, well-defined disk-write
 //! the `run_full` orchestration performs. Splitting the assembly (a Transform)
@@ -95,7 +95,7 @@ impl Stage for GtsSinkStage {
         "gts_sink.v4-fanout-presenter"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // The terminal gts ARCHIVE writer (#1132 Stage C): serialize THIS run's carrier
+        // The terminal gts ARCHIVE writer: serialize THIS run's carrier
         // into the single `gmeow.gts` package. GTS is exit-only — produced HERE and
         // nowhere else; every internal export leaf reads the carrier dataset off the
         // snapshot product's bundle, never these bytes. The carrier is taken off the
