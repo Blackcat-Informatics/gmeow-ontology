@@ -49,6 +49,8 @@ pub mod box_roles;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod cache;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod compliance;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod constitution;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod coverage;
@@ -73,11 +75,15 @@ pub mod repo_static;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod rule_catalog;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod self_desc;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod signature;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod slice_ownership;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod statement;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod time_util;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod validate_all;
 #[cfg(not(target_arch = "wasm32"))]

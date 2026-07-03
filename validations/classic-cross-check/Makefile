@@ -14,7 +14,7 @@
 export PYTHONPATH := $(CURDIR)
 
 UV := uv run --project ../..
-GMEOW_DEV := $(UV) gmeow-dev
+GMEOW_DEV := cargo run -q --manifest-path ../../Cargo.toml -p gmeow-dev-cli --
 
 .PHONY: help validate test reasoning-cases statements-check slme oracle-gold \
         classic classic-rl reason-docker verify-docker crosscheck-queries clean
