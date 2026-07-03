@@ -1,0 +1,3 @@
+<https://gmeow.example/ontouml-mini/mix-rig/SpecialCitizen> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/SubKind> <https://gmeow.example/ontouml-mini/mix-rig/w> .
+<https://gmeow.example/ontouml-mini/mix-rig/SpecialCitizen> <https://blackcatinformatics.ca/logic/subClassOf> <https://gmeow.example/ontouml-mini/mix-rig/Voter> <https://gmeow.example/ontouml-mini/mix-rig/w> .
+<https://gmeow.example/ontouml-mini/mix-rig/Voter> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role> <https://gmeow.example/ontouml-mini/mix-rig/w> .

@@ -1,0 +1,9 @@
+{
+  "certify": false,
+  "documented_antipattern": "StereotypeCardinality",
+  "foundation_lowering": true,
+  "mode": "native",
+  "reasoning_contract": {
+    "preset": "StratifiedNAFProfile"
+  }
+}
