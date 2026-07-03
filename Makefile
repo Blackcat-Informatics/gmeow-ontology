@@ -154,6 +154,13 @@ lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage
 	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
 	@echo "gmeow-lsp release binary staged at dist/bin/gmeow-lsp"
 
+cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/.
+	cargo build -p gmeow-cli -p gmeow-dev-cli --release
+	mkdir -p dist/bin
+	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
+	cp $(CARGO_TARGET_DIR)/release/gmeow-dev dist/bin/gmeow-dev
+	@echo "gmeow + gmeow-dev release binaries staged at dist/bin/"
+
 lsp-sarif: lsp-release ## Emit SARIF from all .ttl files in the workspace root (report-only).
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
 	@echo "SARIF written to $(CARGO_TARGET_DIR)/lsp-sarif/gmeow-feedback.sarif"
