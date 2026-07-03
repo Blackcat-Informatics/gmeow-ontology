@@ -1,6 +1,7 @@
 {
  "cells_by_set": {
   "gmeow-accessibility.sssom.tsv": 14,
+  "gmeow-affect.sssom.tsv": 37,
   "gmeow-agentic.sssom.tsv": 2,
   "gmeow-aggregation.sssom.tsv": 5,
   "gmeow-ai.sssom.tsv": 17,
@@ -70,7 +71,7 @@
   "gmeow-versions.sssom.tsv": 4,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1773,
+ "equivalences": 1810,
  "functions": 59,
  "mapping_sets": 70,
  "projections": 527

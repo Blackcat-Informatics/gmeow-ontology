@@ -1,0 +1,238 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The EmotionML correspondence lowering: the affect category + dimension vocabularies
+//! → a W3C EmotionML 1.0 XML document (`gmeow-affect.emotionml.xml`).
+//!
+//! EmotionML is an XML annotation vocabulary, not an RDF surface, so this is a
+//! downward *emitter* of GMEOW's own affect categories (`gmeow:EmotionType`) and axes
+//! (`gmeow:AppraisalDimension` / `gmeow:CoreAffectDimension`) into
+//! `<vocabulary type="category">` / `<vocabulary type="dimension">` blocks, plus a
+//! worked `<emotion>` envelope template. It reads nothing external — the enumeration is
+//! over the merged-ontology [`DslView`] the correspondence lane already builds — so it
+//! needs no settled external RDF namespace.
+//!
+//! The projection is **many-to-one and lossy by construction**: `gmeow:Emotion`,
+//! `gmeow:AffectiveExperience`, `gmeow:Appraisal`, and `gmeow:AffectClassifierOutput` all
+//! collapse into a single EmotionML `<emotion>` envelope. That collapse MUST be recorded
+//! in the loss ledger — a projection that emits the envelope *without* the loss annotation
+//! is a hard fail (the affect design's rule 9). Enforcement is by construction: the
+//! emitter attaches the collapse record and asserts [`assert_records_collapse`] before
+//! returning, and the guard's negative unit test proves an unrecorded collapse reds.
+
+use crate::ingest::DslView;
+use crate::projections::{target_meta, OverclaimError, ProjectionResult};
+
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const GM_EMOTION_TYPE: &str = "https://blackcatinformatics.ca/gmeow/EmotionType";
+const GM_APPRAISAL_DIMENSION: &str = "https://blackcatinformatics.ca/gmeow/AppraisalDimension";
+const GM_CORE_AFFECT_DIMENSION: &str = "https://blackcatinformatics.ca/gmeow/CoreAffectDimension";
+
+const EMOTIONML_NS: &str = "http://www.w3.org/2009/10/emotionml";
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+const CATEGORY_SET_ID: &str = "gmeow-emotion-categories";
+const DIMENSION_SET_ID: &str = "gmeow-appraisal-dimensions";
+
+/// The artifact + loss-ledger row of the EmotionML lowering.
+pub struct EmotionMlLowering {
+    /// The `gmeow-affect.emotionml.xml` document (category + dimension vocabularies and a
+    /// worked `<emotion>` envelope template).
+    pub document: String,
+    /// The single loss-ledger row: `SoundUnder`, carrying the many-to-one collapse record.
+    pub ledger: Vec<ProjectionResult>,
+}
+
+/// The IRI local segment (after the last `/` or `#`) — the fallback name when an
+/// individual carries no `rdfs:label`.
+fn local_name(iri: &str) -> &str {
+    iri.rsplit(['/', '#']).next().unwrap_or(iri)
+}
+
+/// Escape the five XML metacharacters relevant to attribute values and element text.
+fn xml_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;")
+}
+
+/// The `(name, iri)` pairs for every individual of `type_iri`; `name` is the individual's
+/// `rdfs:label` (falling back to the IRI local segment). Order comes from the caller's
+/// sort, so the output is deterministic.
+fn labeled_individuals(view: &DslView, type_iri: &str) -> Vec<(String, String)> {
+    view.subjects_of_type(type_iri)
+        .into_iter()
+        .map(|iri| {
+            let name = view
+                .object_literal(&iri, RDFS_LABEL)
+                .unwrap_or_else(|| local_name(&iri).to_owned());
+            (name, iri)
+        })
+        .collect()
+}
+
+/// Lower the affect vocabulary to an EmotionML document. `view` is the merged-ontology
+/// view the correspondence lane builds (it contains the affect slice's individuals).
+pub fn lower_emotionml(view: &DslView) -> EmotionMlLowering {
+    let mut categories = labeled_individuals(view, GM_EMOTION_TYPE);
+    categories.sort();
+    categories.dedup();
+
+    // A dimension is typed EITHER gmeow:AppraisalDimension OR its gmeow:CoreAffectDimension
+    // subtype (the view materializes no subclass closure), so enumerate both and merge.
+    let mut dimensions = labeled_individuals(view, GM_APPRAISAL_DIMENSION);
+    dimensions.extend(labeled_individuals(view, GM_CORE_AFFECT_DIMENSION));
+    dimensions.sort();
+    dimensions.dedup();
+
+    let document = render_document(&categories, &dimensions);
+    let row = ledger_row();
+    // Enforcement by construction: the row records the many-to-one collapse. A broken
+    // emitter that dropped the record would fail here (and its negative unit test).
+    assert_records_collapse(&row)
+        .expect("emotionml projection must record its many-to-one collapse (affect rule 9)");
+
+    EmotionMlLowering {
+        document,
+        ledger: vec![row],
+    }
+}
+
+fn render_document(categories: &[(String, String)], dimensions: &[(String, String)]) -> String {
+    let mut out = String::new();
+    out.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    out.push_str(
+        "<!-- EmotionML 1.0 projection of the GMEOW affect vocabulary. Lossy by construction:\n",
+    );
+    out.push_str(
+        "     mode / experience / appraisal / classifier-output all collapse into one <emotion>\n",
+    );
+    out.push_str(
+        "     envelope (the many-to-one loss is recorded in generated/logic/projection-report.ttl).\n",
+    );
+    out.push_str("     Generated projection — do not edit; author in slices/core/affect. -->\n");
+    out.push_str(&format!(
+        "<emotionml xmlns=\"{EMOTIONML_NS}\" xmlns:gmeow=\"{GMEOW_NS}\" \
+         category-set=\"#{CATEGORY_SET_ID}\" dimension-set=\"#{DIMENSION_SET_ID}\">\n"
+    ));
+
+    render_vocabulary(&mut out, "category", CATEGORY_SET_ID, categories);
+    render_vocabulary(&mut out, "dimension", DIMENSION_SET_ID, dimensions);
+
+    out.push_str("  <!-- A worked <emotion> envelope: gmeow:Emotion, gmeow:AffectiveExperience,\n");
+    out.push_str(
+        "       gmeow:Appraisal, and gmeow:AffectClassifierOutput ALL project into one such\n",
+    );
+    out.push_str("       envelope — the projection is many-to-one and lossy by design. -->\n");
+    out.push_str(&format!(
+        "  <emotion category-set=\"#{CATEGORY_SET_ID}\" dimension-set=\"#{DIMENSION_SET_ID}\">\n"
+    ));
+    if let Some((name, _)) = categories.first() {
+        out.push_str(&format!("    <category name=\"{}\"/>\n", xml_escape(name)));
+    }
+    if let Some((name, _)) = dimensions
+        .iter()
+        .find(|(n, _)| n == "valence")
+        .or_else(|| dimensions.first())
+    {
+        out.push_str(&format!(
+            "    <dimension name=\"{}\" value=\"0.5\"/>\n",
+            xml_escape(name)
+        ));
+    }
+    out.push_str("  </emotion>\n");
+    out.push_str("</emotionml>\n");
+    out
+}
+
+fn render_vocabulary(out: &mut String, vtype: &str, id: &str, items: &[(String, String)]) {
+    out.push_str(&format!("  <vocabulary type=\"{vtype}\" id=\"{id}\">\n"));
+    for (name, iri) in items {
+        out.push_str(&format!(
+            "    <item name=\"{}\"><info><gmeow:term>{}</gmeow:term></info></item>\n",
+            xml_escape(name),
+            xml_escape(iri)
+        ));
+    }
+    out.push_str("  </vocabulary>\n");
+}
+
+fn ledger_row() -> ProjectionResult {
+    let (kind, complexity, structural) = target_meta("emotionml");
+    ProjectionResult {
+        target: "emotionml".to_owned(),
+        // The XML artifact is written by the mappings stage; the row is a preservation /
+        // residue record, so its content is empty (as for the other correspondence rows).
+        content: String::new(),
+        is_rdf: false,
+        preservation: kind,
+        complexity: complexity.to_owned(),
+        // The many-to-one collapse is a STRUCTURAL property of the target (it always
+        // happens), so it rides `lossy_drops` from `target_meta` — not `actual_drops`
+        // (which is for per-run concrete drops). The rule-9 guard reads both.
+        lossy_drops: structural.into_iter().map(str::to_owned).collect(),
+        actual_drops: vec![],
+    }
+}
+
+/// Affect hard-fail rule 9: an EmotionML projection collapses four affect families into one
+/// `<emotion>` envelope, so its loss-ledger row MUST name that collapse. A row that records
+/// the envelope without the loss annotation is a hard fail.
+pub fn assert_records_collapse(row: &ProjectionResult) -> Result<(), OverclaimError> {
+    let records = row
+        .lossy_drops
+        .iter()
+        .chain(row.actual_drops.iter())
+        .any(|d| {
+            d.contains("Emotion")
+                && d.contains("AffectiveExperience")
+                && d.contains("Appraisal")
+                && d.contains("AffectClassifierOutput")
+                && d.contains("envelope")
+        });
+    if records {
+        Ok(())
+    } else {
+        Err(OverclaimError(
+            "emotionml projection collapses gmeow:Emotion / AffectiveExperience / Appraisal / \
+             AffectClassifierOutput into one EmotionML <emotion> envelope, but its loss ledger \
+             does not record the many-to-one collapse (affect hard-fail rule 9)"
+                .to_owned(),
+        ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ledger_row_records_the_collapse() {
+        assert_records_collapse(&ledger_row()).expect("the real row records the collapse");
+    }
+
+    #[test]
+    fn a_row_missing_the_collapse_record_is_rule9_red() {
+        let mut row = ledger_row();
+        row.lossy_drops.clear();
+        row.actual_drops.clear();
+        assert!(
+            assert_records_collapse(&row).is_err(),
+            "rule 9 must red when the many-to-one collapse is unrecorded"
+        );
+    }
+
+    #[test]
+    fn render_emits_both_vocabularies_and_an_envelope() {
+        let categories = vec![("anger".to_owned(), format!("{GMEOW_NS}emotionAnger"))];
+        let dimensions = vec![("valence".to_owned(), format!("{GMEOW_NS}dimensionValence"))];
+        let doc = render_document(&categories, &dimensions);
+        assert!(doc.contains("<vocabulary type=\"category\" id=\"gmeow-emotion-categories\">"));
+        assert!(doc.contains("<vocabulary type=\"dimension\" id=\"gmeow-appraisal-dimensions\">"));
+        assert!(doc.contains("<item name=\"anger\">"));
+        assert!(doc.contains("<dimension name=\"valence\" value=\"0.5\"/>"));
+        assert!(doc.trim_end().ends_with("</emotionml>"));
+    }
+}
