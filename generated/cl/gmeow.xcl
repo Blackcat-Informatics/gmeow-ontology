@@ -114,6 +114,7 @@
 &lt;https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference&gt; &lt;https://blackcatinformatics.ca/logic/reviewedBy&gt; &lt;https://blackcatinformatics.ca/logic/reviewerLogicFoundation&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive&gt; &lt;https://blackcatinformatics.ca/logic/candidateCategory&gt; &lt;https://blackcatinformatics.ca/logic/CategoryNonEntailmentObligation&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive&gt; &lt;https://blackcatinformatics.ca/logic/candidateContract&gt; &lt;https://blackcatinformatics.ca/logic/StratifiedNAFProfile&gt; .
+&lt;https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive&gt; &lt;https://blackcatinformatics.ca/logic/candidateDeliberateNonAssertion&gt; "true" .
 &lt;https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive&gt; &lt;https://blackcatinformatics.ca/logic/candidateExtractionProvenance&gt; "hand-harvested from gmeow:counterpartOf's skos:definition, which states it is symmetric but deliberately not transitive (design/LOGIC-FOUNDATION.md, §Typed formalization governance)" .
 &lt;https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive&gt; &lt;https://blackcatinformatics.ca/logic/candidateFormalizes&gt; &lt;https://blackcatinformatics.ca/gmeow/counterpartOf&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive&gt; &lt;https://blackcatinformatics.ca/logic/candidateLifecycle&gt; &lt;https://blackcatinformatics.ca/logic/CandidateAccepted&gt; .
@@ -187,6 +188,7 @@
 &lt;https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim&gt; &lt;https://blackcatinformatics.ca/logic/reviewedBy&gt; &lt;https://blackcatinformatics.ca/logic/reviewerLogicFoundation&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateFrameRelativity&gt; &lt;https://blackcatinformatics.ca/logic/candidateCategory&gt; &lt;https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateFrameRelativity&gt; &lt;https://blackcatinformatics.ca/logic/candidateContract&gt; &lt;https://blackcatinformatics.ca/logic/StratifiedNAFProfile&gt; .
+&lt;https://blackcatinformatics.ca/logic/candidateFrameRelativity&gt; &lt;https://blackcatinformatics.ca/logic/candidateDeliberateNonAssertion&gt; "true" .
 &lt;https://blackcatinformatics.ca/logic/candidateFrameRelativity&gt; &lt;https://blackcatinformatics.ca/logic/candidateExtractionProvenance&gt; "hand-harvested from logic:referenceFrame's skos:definition, which states a logic:measuredValue with no logic:referenceFrame is the logic:MeasurementFrameMissing violation (Principle 11; design/LOGIC-FOUNDATION.md, §Typed formalization governance)" .
 &lt;https://blackcatinformatics.ca/logic/candidateFrameRelativity&gt; &lt;https://blackcatinformatics.ca/logic/candidateFormalizes&gt; &lt;https://blackcatinformatics.ca/logic/referenceFrame&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateFrameRelativity&gt; &lt;https://blackcatinformatics.ca/logic/candidateLifecycle&gt; &lt;https://blackcatinformatics.ca/logic/CandidateAccepted&gt; .
@@ -240,6 +242,7 @@
 &lt;https://blackcatinformatics.ca/logic/candidateInstantiatesWork&gt; &lt;https://blackcatinformatics.ca/logic/reviewedBy&gt; &lt;https://blackcatinformatics.ca/logic/reviewerLogicFoundation&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateIntentNotEntailed&gt; &lt;https://blackcatinformatics.ca/logic/candidateCategory&gt; &lt;https://blackcatinformatics.ca/logic/CategoryNonEntailmentObligation&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateIntentNotEntailed&gt; &lt;https://blackcatinformatics.ca/logic/candidateContract&gt; &lt;https://blackcatinformatics.ca/logic/StratifiedNAFProfile&gt; .
+&lt;https://blackcatinformatics.ca/logic/candidateIntentNotEntailed&gt; &lt;https://blackcatinformatics.ca/logic/candidateDeliberateNonAssertion&gt; "true" .
 &lt;https://blackcatinformatics.ca/logic/candidateIntentNotEntailed&gt; &lt;https://blackcatinformatics.ca/logic/candidateExtractionProvenance&gt; "hand-harvested from gmeow:deceptiveIntentClaim's gmeow:avoidWhen, which states never let the reasoner entail deceptiveness (design/LOGIC-FOUNDATION.md, §Typed formalization governance)" .
 &lt;https://blackcatinformatics.ca/logic/candidateIntentNotEntailed&gt; &lt;https://blackcatinformatics.ca/logic/candidateFormalizes&gt; &lt;https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateIntentNotEntailed&gt; &lt;https://blackcatinformatics.ca/logic/candidateLifecycle&gt; &lt;https://blackcatinformatics.ca/logic/CandidateAccepted&gt; .
@@ -265,6 +268,7 @@
 &lt;https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception&gt; &lt;https://blackcatinformatics.ca/logic/reviewedBy&gt; &lt;https://blackcatinformatics.ca/logic/reviewerLogicFoundation&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateNoOverTyping&gt; &lt;https://blackcatinformatics.ca/logic/candidateCategory&gt; &lt;https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateNoOverTyping&gt; &lt;https://blackcatinformatics.ca/logic/candidateContract&gt; &lt;https://blackcatinformatics.ca/logic/StratifiedNAFProfile&gt; .
+&lt;https://blackcatinformatics.ca/logic/candidateNoOverTyping&gt; &lt;https://blackcatinformatics.ca/logic/candidateDeliberateNonAssertion&gt; "true" .
 &lt;https://blackcatinformatics.ca/logic/candidateNoOverTyping&gt; &lt;https://blackcatinformatics.ca/logic/candidateExtractionProvenance&gt; "hand-harvested from logic:MixIden's skos:definition, which states a sortal inherits its principle of identity from exactly one Kind and tracing to two-or-more Kinds violates it (Principle 9; design/LOGIC-FOUNDATION.md, §Typed formalization governance)" .
 &lt;https://blackcatinformatics.ca/logic/candidateNoOverTyping&gt; &lt;https://blackcatinformatics.ca/logic/candidateFormalizes&gt; &lt;https://blackcatinformatics.ca/logic/MixIden&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateNoOverTyping&gt; &lt;https://blackcatinformatics.ca/logic/candidateLifecycle&gt; &lt;https://blackcatinformatics.ca/logic/CandidateAccepted&gt; .
@@ -328,6 +332,7 @@
 &lt;https://blackcatinformatics.ca/logic/candidateRelatorMediation&gt; &lt;https://blackcatinformatics.ca/logic/reviewedBy&gt; &lt;https://blackcatinformatics.ca/logic/reviewerLogicFoundation&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap&gt; &lt;https://blackcatinformatics.ca/logic/candidateCategory&gt; &lt;https://blackcatinformatics.ca/logic/CategoryDeliberateOverlap&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap&gt; &lt;https://blackcatinformatics.ca/logic/candidateContract&gt; &lt;https://blackcatinformatics.ca/logic/StratifiedNAFProfile&gt; .
+&lt;https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap&gt; &lt;https://blackcatinformatics.ca/logic/candidateDeliberateNonAssertion&gt; "true" .
 &lt;https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap&gt; &lt;https://blackcatinformatics.ca/logic/candidateExtractionProvenance&gt; "hand-harvested from the gmeow:SocialObject skos:definition, which states no disjointness with InformationObject is asserted so that socially-sustained narratives may carry information content without identity clash (design/LOGIC-FOUNDATION.md, §Typed formalization governance)" .
 &lt;https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap&gt; &lt;https://blackcatinformatics.ca/logic/candidateFormalizes&gt; &lt;https://blackcatinformatics.ca/gmeow/SocialObject&gt; .
 &lt;https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap&gt; &lt;https://blackcatinformatics.ca/logic/candidateLifecycle&gt; &lt;https://blackcatinformatics.ca/logic/CandidateAccepted&gt; .

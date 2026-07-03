@@ -65,6 +65,7 @@ candidateSourceHash("https://blackcatinformatics.ca/logic/candidateBullshitTruth
 reviewedBy("https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive", "https://blackcatinformatics.ca/logic/CategoryNonEntailmentObligation", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateDeliberateNonAssertion("https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive", 'true', "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive", "hand-harvested from gmeow:counterpartOf's skos:definition, which states it is symmetric but deliberately not transitive (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
 candidateFormalizes("https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive", "https://blackcatinformatics.ca/gmeow/counterpartOf", "default").
 candidateLifecycle("https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
@@ -138,6 +139,7 @@ candidateSourceHash("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRe
 reviewedBy("https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateFrameRelativity", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateFrameRelativity", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateDeliberateNonAssertion("https://blackcatinformatics.ca/logic/candidateFrameRelativity", 'true', "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateFrameRelativity", "hand-harvested from logic:referenceFrame's skos:definition, which states a logic:measuredValue with no logic:referenceFrame is the logic:MeasurementFrameMissing violation (Principle 11; design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
 candidateFormalizes("https://blackcatinformatics.ca/logic/candidateFrameRelativity", "https://blackcatinformatics.ca/logic/referenceFrame", "default").
 candidateLifecycle("https://blackcatinformatics.ca/logic/candidateFrameRelativity", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
@@ -191,6 +193,7 @@ candidateSourceHash("https://blackcatinformatics.ca/logic/candidateInstantiatesW
 reviewedBy("https://blackcatinformatics.ca/logic/candidateInstantiatesWork", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateIntentNotEntailed", "https://blackcatinformatics.ca/logic/CategoryNonEntailmentObligation", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateIntentNotEntailed", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateDeliberateNonAssertion("https://blackcatinformatics.ca/logic/candidateIntentNotEntailed", 'true', "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateIntentNotEntailed", "hand-harvested from gmeow:deceptiveIntentClaim's gmeow:avoidWhen, which states never let the reasoner entail deceptiveness (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
 candidateFormalizes("https://blackcatinformatics.ca/logic/candidateIntentNotEntailed", "https://blackcatinformatics.ca/gmeow/deceptiveIntentClaim", "default").
 candidateLifecycle("https://blackcatinformatics.ca/logic/candidateIntentNotEntailed", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
@@ -216,6 +219,7 @@ candidateSourceHash("https://blackcatinformatics.ca/logic/candidateLicensedFalse
 reviewedBy("https://blackcatinformatics.ca/logic/candidateLicensedFalsehoodNotDeception", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateNoOverTyping", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateNoOverTyping", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateDeliberateNonAssertion("https://blackcatinformatics.ca/logic/candidateNoOverTyping", 'true', "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateNoOverTyping", "hand-harvested from logic:MixIden's skos:definition, which states a sortal inherits its principle of identity from exactly one Kind and tracing to two-or-more Kinds violates it (Principle 9; design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
 candidateFormalizes("https://blackcatinformatics.ca/logic/candidateNoOverTyping", "https://blackcatinformatics.ca/logic/MixIden", "default").
 candidateLifecycle("https://blackcatinformatics.ca/logic/candidateNoOverTyping", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").
@@ -279,6 +283,7 @@ candidateSourceHash("https://blackcatinformatics.ca/logic/candidateRelatorMediat
 reviewedBy("https://blackcatinformatics.ca/logic/candidateRelatorMediation", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap", "https://blackcatinformatics.ca/logic/CategoryDeliberateOverlap", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
+candidateDeliberateNonAssertion("https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap", 'true', "default").
 candidateExtractionProvenance("https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap", 'hand-harvested from the gmeow:SocialObject skos:definition, which states no disjointness with InformationObject is asserted so that socially-sustained narratives may carry information content without identity clash (design/LOGIC-FOUNDATION.md, §Typed formalization governance)', "default").
 candidateFormalizes("https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap", "https://blackcatinformatics.ca/gmeow/SocialObject", "default").
 candidateLifecycle("https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap", "https://blackcatinformatics.ca/logic/CandidateAccepted", "default").

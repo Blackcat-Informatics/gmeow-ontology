@@ -363,22 +363,34 @@ ex:rowHarvestNoOverTyping a gmeow:ExpectedRow ;
 
 # ── The deliberate-non-assertion report ─────────────────────────────────────────
 # Every intentional boundary the ontology commits to must be enumerable, not merely
-# respected. Over the production ontology (no synthetic data file) exactly three
-# accepted candidates are deliberate non-assertions: two logic:CategoryNonEntailmentObligation
-# (deceptive intent is never entailed; counterpart never becomes transitive) carried by
-# their standing logic:NonEntailmentObligation, and one logic:CategoryDeliberateOverlap
-# (the preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap). Each candidate's
-# skos:definition and logic:candidateScope carry its rationale. The two integrity-constraint
-# guardrails (frame-relativity, no-over-typing) are enforced positive constraints, not
-# non-assertions, so they appear in the harvest-coverage report above rather than here.
+# respected. Over the production ontology (no synthetic data file) exactly five accepted
+# candidates are flagged logic:candidateDeliberateNonAssertion true — the whole boundary set,
+# queryable as one report: two logic:CategoryNonEntailmentObligation (deceptive intent is
+# never entailed; counterpart never becomes transitive) carried by their standing
+# logic:NonEntailmentObligation, two logic:CategoryIntegrityConstraint (a measured value is
+# frame-relative — no frame-free collapse; an instance carries at most one ultimate Kind — no
+# over-typing) whose logic:violation is a finding, and one logic:CategoryDeliberateOverlap (the
+# preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap). Each candidate's
+# skos:definition and logic:candidateScope carry its rationale. The report selects on the flag,
+# not the category, precisely because the two integrity-constraint boundaries share their
+# category with ordinary integrity constraints and could not otherwise be enumerated as the
+# deliberate set.
 
 ex:cqDeliberateNonAssertions a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/logic/queries/competency/deliberate-non-assertions.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The deliberate non-assertions the ontology guarantees must be enumerable as a report, each with its boundary kind: a logic:FormalizationCandidate typed logic:CategoryNonEntailmentObligation (a conclusion the foundation must never draw) or logic:CategoryDeliberateOverlap (a sharing fact deliberately admitted). Over the production ontology exactly three are recorded — deceptive-intent-never-entailed and counterpart-never-transitive (non-entailment obligations) and the preserved SocialObject∩InformationObject overlap (deliberate overlap); each candidate's skos:definition and logic:candidateScope carry the rationale." ;
+    gmeow:cqRationale "The deliberate non-assertions the ontology guarantees must be enumerable as one report, each with its boundary kind: every logic:FormalizationCandidate flagged logic:candidateDeliberateNonAssertion true, regardless of its logic:candidateCategory. Over the production ontology exactly five are recorded — deceptive-intent-never-entailed and counterpart-never-transitive (logic:CategoryNonEntailmentObligation), frame-relativity-no-frame-free-collapse and no-over-typing (logic:CategoryIntegrityConstraint), and the preserved SocialObject∩InformationObject overlap (logic:CategoryDeliberateOverlap); each candidate's skos:definition and logic:candidateScope carry the rationale. Selecting on the flag rather than the category is what makes the whole set queryable — the two integrity-constraint boundaries are indistinguishable from ordinary integrity constraints by category alone." ;
     gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDeliberateNonAssertionsShape ;
     gmeow:cqExpectRow ex:rowDnaIntentNotEntailed, ex:rowDnaCounterpartNonTransitive,
+        ex:rowDnaFrameRelativity, ex:rowDnaNoOverTyping,
         ex:rowDnaSocialInformationOverlap .
+
+ex:cqDeliberateNonAssertionsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "candidate" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "category" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
 
 ex:rowDnaIntentNotEntailed a gmeow:ExpectedRow ;
     gmeow:rowCell
@@ -389,6 +401,16 @@ ex:rowDnaCounterpartNonTransitive a gmeow:ExpectedRow ;
     gmeow:rowCell
         [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateCounterpartNonTransitive ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryNonEntailmentObligation ] .
+
+ex:rowDnaFrameRelativity a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFrameRelativity ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryIntegrityConstraint ] .
+
+ex:rowDnaNoOverTyping a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateNoOverTyping ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryIntegrityConstraint ] .
 
 ex:rowDnaSocialInformationOverlap a gmeow:ExpectedRow ;
     gmeow:rowCell

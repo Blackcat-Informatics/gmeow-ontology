@@ -745,6 +745,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-metadata ,
         gmeow:stage-export-references ,
         gmeow:stage-export-research-objects ,
+        gmeow:stage-export-result-shapes ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
