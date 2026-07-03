@@ -18,13 +18,13 @@
 
 ## Purpose
 
-A bridge is a front-end that **parses an external artifact into the canon**, splitting it across the
-two grounding layers: mathematical/structural content lifts into `math:`, computation and control
+A bridge is a front-end that **parses an external artifact into the canon**, splitting it across
+the `logic:` and `math:` grounding layers: mathematical/structural content lifts into `math:`, computation and control
 lower into `logic:`. Every bridge obeys the runtime charter's hard rules — no silent fallback to a
 string, `parseSource` retained, loss recorded, no optional backends — and every bridge **hard-fails
 with a typed diagnostic** on anything it cannot lift, because "for *any* input" is a universality bar,
 not a best-effort aspiration. The bridges are the layer's most visible demonstration that `math:` and
-`logic:` are complementary: one lifter, two grounding layers.
+`logic:` are complementary: one lifter, two grounding layers engaged.
 
 ## The R → `math:` bridge — the R flagship
 

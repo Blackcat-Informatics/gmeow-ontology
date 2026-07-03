@@ -536,6 +536,62 @@ compose over it, reusable with no ontology loaded.
 
 ---
 
+## 19. Three co-foundational grounding layers — reasoning, structure, and meaning
+
+> **GMEOW grounds itself in three co-foundational layers, each a maximal canonical substrate in
+> its own namespace: `logic:` grounds reasoning (truth, inference, proof, modality), `math:`
+> grounds quantity and structure (number, space, operation, measure, dimension), and `lang:`
+> grounds meaning and expression (sign, form, denotation, interpretation, translation). None
+> reduces to the others; the layers interlock only through declared one-way bridges; and no
+> domain slice re-derives what a grounding layer owns.**
+
+Principle 17 established the pattern for one layer: author the maximal canon, project lossily,
+record the loss. This principle generalises it to the complete grounding architecture. The same
+doctrine that makes OWL a projection of `logic:` makes MathML, OpenMath, RDF Data Cube, and QUDT
+projections of `math:`, and OntoLex-Lemon, Universal Dependencies, TEI, and BCP-47 projections of
+`lang:` — every projection carrying a preservation judgment in the same loss ledger (Principles 4
+and 7). Almost every real artifact composes all three layers: a claim is a linguistic act
+(`lang:`) carrying logical content (`logic:`) that is often about quantities (`math:`) — "*the
+p-value was 0.03*" is a sentence realizing a form that denotes a formula that references a framed
+measure.
+
+**Denotation is the interlock, and it is one-way.** A `math:` expression denotes into a `logic:`
+term; a `lang:` form denotes into a `logic:` formula through a reified, kind-typed denotation
+record. `logic:` never depends back on either; and `lang:` does not depend on `math:` —
+formal-language-theoretic facts about grammars (generated languages as sets, automaton
+equivalence) are `math:` objects referencing `lang:` individuals, exactly as `logic:` keeps its
+quantitative facets abstract for `math:` objects to satisfy. The grounding order in the slice
+DAG — `logic:`, then `lang:`, then `math:` — is therefore acyclic by construction, and a new
+inter-layer dependency is a constitutional change, never a convenience edit.
+
+**Each layer carries a signature never-conflate rule** — the Principle 1 never-overclaim
+discipline made structural per layer: in `logic:`, a triple term *groups* a statement and does
+not assert it (Principle 17); in `math:`, a probability is not a confidence; in `lang:`, form is
+not sense and sense is not reference. And each layer is held to maximal dogfooding: `logic:`
+grounds GMEOW's own axioms and foundation, `math:` its own quantities, counts, and probabilities,
+`lang:` its own prose, labels, documentation trees, and serialization grammars.
+
+Domain slices stand **on** the layers, never beside them: `observations`, `notation`, `language`,
+`names`, and their peers graft onto the grounding substrate, and where a grounding-layer term
+strictly supersedes a domain term the inferior term is removed (Principle 6) — compatibility for
+consumers lives in the generated projections (Principle 4), never in the canon.
+
+**Extends Principle 17.**
+
+*Embodied in:* the three grounding design sets —
+[`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md),
+[`slices/grounding/math/design/MATHEMATICS.md`](./slices/grounding/math/design/MATHEMATICS.md),
+and [`slices/grounding/lang/design/LANG.md`](./slices/grounding/lang/design/LANG.md), with their
+sibling charters — the `slices/grounding/` group is the layers' home (the group segment is human
+organization the build never reads; `logic`'s relocation from `slices/core/logic` is queued
+mechanical work). *Tested by:* for the `logic:` layer, the Principle 17 gates
+(`meta:gate-logic-conformance`, `meta:gate-logic-round-trip`); the `math:` and `lang:` layers are
+design-stage — enforced by design-set review practice (`meta:practice-grounding-design`) until
+their slices land with the conformance charters their design sets already specify, at which point
+this principle's enforcement is amended to the real gates.
+
+---
+
 ## Amending this Constitution
 
 These principles are amended only by the project owners (see
