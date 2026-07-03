@@ -23,7 +23,7 @@ projections*. GMEOW is the richer local source of truth; every external vocabula
 lossy view of it. This charter names each consumer, states what the GMEOW canonical source is for
 that consumer, states what the projection loses, and binds the whole to the same loss-ledger
 discipline `logic:` applies to OWL, Datalog, SHACL, and the correspondence lowerings
-(`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`).
+(`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`).
 
 ## The canonical/consumer table
 
@@ -126,7 +126,7 @@ projection declares its unsupported constructs and a `logic:preservationKind`:
 
 A mathematics projection is therefore a `logic:Correspondence` lowering carrying a
 `logic:preservationKind` and, where lossy, its unsupported constructs, exactly as the correspondence
-calculus specifies (`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`). The full rule→gate→failure
+calculus specifies (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`). The full rule→gate→failure
 mapping is in [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md).
 
 ## Inbound contracts — lifting external artifacts

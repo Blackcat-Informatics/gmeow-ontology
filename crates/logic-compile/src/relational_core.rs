@@ -15,7 +15,7 @@
 //! # Why the legalization / residue mechanism exists even when the residue is empty
 //!
 //! A lowering is a **total function** into `⟨ legal output ⊕ flagged residue ⟩`
-//! (`slices/core/logic/design/LOGIC-IR.md` § IR commitments — "Lowering is legalization").
+//! (`slices/grounding/logic/design/LOGIC-IR.md` § IR commitments — "Lowering is legalization").
 //! Any rule or axiom outside the binary-Horn fragment is **carried as flagged unsupported
 //! residue** ([`RcResidue`]), never silently dropped, and the preservation claim drops to
 //! `{sound-under}` naming what was carried. For the current Horn corpus the residue is
@@ -1064,7 +1064,7 @@ pub fn project_relational_core(program: &RelationalCoreProgram) -> String {
     ));
     if let Some(src) = &program.source_iri {
         // The source provenance is carried as a plain literal: it may be a relative
-        // document path (`slices/core/logic/module.ttl`), not an absolute IRI.
+        // document path (`slices/grounding/logic/module.ttl`), not an absolute IRI.
         lines.push(triple_str(&prog, &p_source_iri(), src));
     }
     for residue in &program.residue {

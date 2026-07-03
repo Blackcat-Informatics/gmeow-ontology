@@ -41,7 +41,7 @@ use crate::rule_ir::{
 
 /// The ordered intra-engine phases [`materialize`] runs per world — the runtime
 /// twin of the authored `logic:wellFoundedMaterializerPlan`
-/// (`slices/core/logic/module.ttl`).
+/// (`slices/grounding/logic/module.ttl`).
 ///
 /// Principle 12 BOUNDARY: the authored plan is checked against THIS const by the
 /// dogfood parity gate `crates/pipeline/tests/wellfounded_plan_parity.rs`; the

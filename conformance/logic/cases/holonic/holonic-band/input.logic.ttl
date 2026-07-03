@@ -47,7 +47,7 @@
 # proves the engine-verified core of ME9 #2 (path-relativity grounded by
 # logic:multiplyPositioned over two distinct logic:positionPaths); the materialized band
 # itself is dogfooded as validated ABox data in
-# slices/core/logic/examples/holonic-band.ttl. The band endpoints are operator-asserted,
+# slices/grounding/logic/examples/holonic-band.ttl. The band endpoints are operator-asserted,
 # never engine-derived (the all-IRI chase cannot compare/aggregate integers).
 #
 # Only ex:Sensor is declared under the logic:MereologyProfile, so the level/coherence
@@ -80,7 +80,7 @@ ex:Sensor   logic:underMereologyProfile ex:MP .
 # (entity, holarchy, context, interval, path). The two differ by logic:positionPath, so
 # logic:multiplyPositioned fires (the engine-verified path-relativity signal). The
 # logic:holonicLevel literals and the min/max band are materialized OUTSIDE this all-IRI
-# chase — see slices/core/logic/examples/holonic-band.ttl.
+# chase — see slices/grounding/logic/examples/holonic-band.ttl.
 ex:posSensorDirect logic:positionEntity   ex:Sensor .
 ex:posSensorDirect logic:positionHolarchy ex:H .
 ex:posSensorDirect logic:positionContext  ex:OperationalContext .

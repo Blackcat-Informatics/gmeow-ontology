@@ -23,7 +23,7 @@ The probability layer models probability-domain **objects**. It does **not** red
 reasoning semantics. `logic:` owns `logic:ProbabilityModel`, `logic:probabilityModel`,
 `logic:FullIndependence`, `logic:DependencyModel`, `logic:JointOutcome`, `logic:jointProbability`,
 and the hard distinction between probability, confidence, solver weight, and evidential support
-(`slices/core/logic/design/LOGIC-SEMANTICS.md`). The mathematics slice names the probability spaces,
+(`slices/grounding/logic/design/LOGIC-SEMANTICS.md`). The mathematics slice names the probability spaces,
 σ-algebras, events, measures, random variables, distributions, parameterizations, and dependency
 models those reasoning semantics operate over, and it declares the lowering between the two (§ The
 `logic:` seam).

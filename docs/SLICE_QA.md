@@ -5,7 +5,7 @@
 
 This is the operational guide for where a slice's quality assurance lives and how
 to move QA *into* the slice structure rather than into bespoke Python. It uses the
-**`logic` slice** (`slices/core/logic/`) as the baseline, because logic is the
+**`logic` slice** (`slices/grounding/logic/`) as the baseline, because logic is the
 canonical, most-developed slice (its `design/` set is normative per the project
 baseline) and it exercises every QA layer.
 
@@ -33,7 +33,7 @@ SHACL and for engine output. Pytest is the residue, not a layer to grow.
 ## Slice anatomy (logic baseline)
 
 ```text
-slices/core/logic/
+slices/grounding/logic/
   manifest.ttl              # sole source of slice identity + tier (gmeow:Slice, sliceTier, sliceConsumer)
   module.ttl                # the slice's vocabulary/axioms
   shapes.ttl                # slice-local SHACL shapes

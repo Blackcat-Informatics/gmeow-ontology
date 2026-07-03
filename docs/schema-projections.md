@@ -76,7 +76,7 @@ records each drop as a `LossRecord` and annotates the affected schema with a `$c
 
 Because it validates structure but is **not an entailment relation**, the projection is ledgered
 `logic:ValidationOnly` — see
-[`slices/core/logic/examples/projection-loss-ledger.ttl`](../slices/core/logic/examples/projection-loss-ledger.ttl),
+[`slices/grounding/logic/examples/projection-loss-ledger.ttl`](../slices/grounding/logic/examples/projection-loss-ledger.ttl),
 entry `ex:shaclJsonSchemaReport`.
 
 ---

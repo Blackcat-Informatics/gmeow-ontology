@@ -194,7 +194,7 @@ a shim.
 ## Slice placement, tier, and manifest
 
 The slice is placed at `slices/grounding/lang/` — the `slices/grounding/` group is the grounding
-layers' home, peer to `slices/grounding/math/`, with `logic`'s relocation from `slices/core/logic`
+layers' home, peer to `slices/grounding/math/`, with `logic`'s relocation from `slices/grounding/logic`
 queued as its own mechanical change — and declares `gmeow:tierCore` — the manifest, not the
 directory, is the source of tier. Core tier is the deliberate commitment: forms, denotations,
 interpretations, renderings, and translations are part of the default mental model every textual

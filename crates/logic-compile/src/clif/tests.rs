@@ -556,9 +556,9 @@ fn production_module_round_trip_is_isomorphic() {
     use crate::projections::rdf;
     let ttl = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../../slices/core/logic/module.ttl"
+        "/../../slices/grounding/logic/module.ttl"
     ));
-    let src = Some("urn:gmeow:slices/core/logic".to_owned());
+    let src = Some("urn:gmeow:slices/grounding/logic".to_owned());
     let (raw, _raw_diags) = parse_logic_str(ttl, src.clone()).expect("parse module.ttl");
     let canon = rdf::project_canonical_rdf12(&raw).expect("canonical-rdf12 of module");
     let (fixpoint, _) = parse_logic_str(&canon.content, src.clone()).expect("parse fixpoint");

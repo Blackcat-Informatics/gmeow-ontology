@@ -3,7 +3,7 @@
 """Registered generator: logic: source → IR → 9 committed generated artifacts.
 
 ``gmeow logic compile`` (or ``gmeow regenerate logic``) renders, from the
-canonical ``logic:`` vocabulary source at ``slices/core/logic/module.ttl``:
+canonical ``logic:`` vocabulary source at ``slices/grounding/logic/module.ttl``:
 
 * ``generated/owl/gmeow-dl.ttl``            — OWL 2 DL projection
 * ``generated/owl/gmeow-el.ttl``            — OWL 2 EL projection
