@@ -525,6 +525,26 @@ edges), realized through the typed candidate lifecycle rather than as a separate
 category `CategoryNonEntailmentObligation` records the intent, the linked obligation names the
 forbidden predicate, and the two arms enforce it.
 
+The deliberate-non-assertion boundaries the foundation commits to are each recorded as a reviewed
+candidate, so the whole set is enumerable rather than tacit — queryable as a report over the
+accepted candidates, and each carrying a caught-violation fixture that proves the boundary holds
+against a live chase:
+
+- **deceptive intent is attributed, never entailed**, and **cross-realm counterpart identity never
+  becomes transitive** — two `CategoryNonEntailmentObligation` candidates, each carrying its
+  standing `NonEntailmentObligation` (the forbidden predicate is `gmeow:deceptiveIntentClaim` /
+  `gmeow:counterpartOf`), discharged by the two arms above;
+- **a measured value is frame-relative and ill-formed without its reference frame** (Principle 11),
+  and **an instance carries at most one ultimate Kind** (Principle 9) — two `CategoryIntegrityConstraint`
+  candidates that wrap the measurement-frame and identity-overlap (`MixIden`) disciplines whose
+  `logic:violation` materialises the finding;
+- the **`SocialObject` ∩ `InformationObject` overlap is deliberately preserved** — a
+  `CategoryDeliberateOverlap` candidate that records the reviewed decision *not* to assert disjointness.
+
+The proposed notion of a standalone over-typing-review flag is subsumed by this lifecycle: the review
+of an over-typing collision is the obligation or discipline check itself, surfaced through the typed
+candidate, never a separate advisory property.
+
 The lifecycle is a **closed four-state machine** (`logic:CandidateLifecycleState`):
 `proposed` → `under-review` → `accepted` or `rejected`. An extraction — an LLM's most of all —
 *always* enters at `proposed`; `accepted` (the canonical, axiom-bearing state) is reachable only
