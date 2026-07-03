@@ -144,8 +144,11 @@ pub fn find_gts_binary(sibling_base: Option<&Path>) -> Result<PathBuf, PipelineE
 /// The `$PATH` search for an executable file named `name` (the native `shutil.which`).
 fn which_on_path(name: &str) -> Option<PathBuf> {
     let path = std::env::var_os("PATH")?;
+    // Append the platform executable suffix (empty on Unix, `.exe` on Windows)
+    // so the lookup resolves `gts.exe` where the OS requires it.
+    let filename = format!("{name}{}", std::env::consts::EXE_SUFFIX);
     for dir in std::env::split_paths(&path) {
-        let candidate = dir.join(name);
+        let candidate = dir.join(&filename);
         if candidate.is_file() {
             return Some(candidate);
         }

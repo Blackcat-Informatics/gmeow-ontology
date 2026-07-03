@@ -9,9 +9,9 @@
 //! so the split (product → stdout, diagnostics → stderr) and the `0`/`1`/`2` exit
 //! convention are exercised end to end.
 //!
-//! (`tests/test_logic_cli.py` invokes `gmeow-dev logic … / reason …` exclusively —
-//! it belongs to the repo-maintenance `gmeow-dev` bin, wired in a later task, so
-//! it is intentionally not mirrored here.)
+//! (The `gmeow-dev logic … / reason …` surface belongs to the repo-maintenance
+//! `gmeow-dev` bin and is covered by that crate's parity tests, so it is not
+//! mirrored here.)
 
 use std::path::{Path, PathBuf};
 use std::process::Command as StdCommand;

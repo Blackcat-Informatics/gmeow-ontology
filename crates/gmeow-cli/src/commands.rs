@@ -506,8 +506,11 @@ pub fn project(
         return fail(format!("unknown --format: {format}"));
     }
 
-    let is_gts =
-        source.is_some_and(|s| s.extension().is_some_and(|e| e.eq_ignore_ascii_case("gts")));
+    let is_gts = source.is_some_and(|s| {
+        s.extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|e| e.eq_ignore_ascii_case("gts"))
+    });
     let is_data_file = source.is_some() && !is_gts;
 
     // The language selector is resolved against the target graph (the bundle for

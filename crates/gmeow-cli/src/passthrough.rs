@@ -32,8 +32,11 @@ pub(crate) fn resolve_gts_binary() -> Option<PathBuf> {
 /// Locate `name` on `PATH` (the executable-search fallback; no external crate).
 fn which(name: &str) -> Option<PathBuf> {
     let path_var = std::env::var_os("PATH")?;
+    // Append the platform executable suffix (empty on Unix, `.exe` on Windows)
+    // so the lookup resolves `gts.exe` where the OS requires it.
+    let filename = format!("{name}{}", std::env::consts::EXE_SUFFIX);
     for dir in std::env::split_paths(&path_var) {
-        let candidate = dir.join(name);
+        let candidate = dir.join(&filename);
         if candidate.is_file() {
             return Some(candidate);
         }
