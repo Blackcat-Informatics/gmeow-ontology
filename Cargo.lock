@@ -1806,6 +1806,7 @@ dependencies = [
  "predicates",
  "purrdf",
  "serde_json",
+ "tempfile",
  "trycmd",
 ]
 
