@@ -3440,6 +3440,12 @@ class Entity(ConfiguredBaseModel):
     wasGeneratedBy: list[Activity] | None = Field(default=None)
 
 
+class AffectiveMoment(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectiveMoment"
+    is_a: ClassVar[str] = "Entity"
+    pass
+
+
 class Agent(Entity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Agent"
     is_a: ClassVar[str] = "Entity"
@@ -4933,9 +4939,11 @@ class Embedding(InformationObject):
     vectorRef: list[str] | None = Field(default=None)
 
 
-class Emotion(Entity):
+class Emotion(AffectiveMoment):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Emotion"
-    is_a: ClassVar[str] = "Entity"
+    is_a: ClassVar[str] = "AffectiveMoment"
+    affectiveElicitor: list[str] | None = Field(default=None)
+    affectiveTarget: list[str] | None = Field(default=None)
     emotionBearer: Agent | None = Field(default=None)
     emotionType: list[EmotionType] | None = Field(default=None)
 

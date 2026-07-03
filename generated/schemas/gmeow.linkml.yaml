@@ -70,6 +70,10 @@ classes:
   AestheticQuality:
     class_uri: https://blackcatinformatics.ca/gmeow/AestheticQuality
     title: Aesthetic Quality
+  AffectiveMoment:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectiveMoment
+    title: Affective Moment
+    is_a: Entity
   Agent:
     class_uri: https://blackcatinformatics.ca/gmeow/Agent
     title: Agent
@@ -1174,8 +1178,10 @@ classes:
   Emotion:
     class_uri: https://blackcatinformatics.ca/gmeow/Emotion
     title: Emotion
-    is_a: Entity
+    is_a: AffectiveMoment
     slots:
+    - affectiveElicitor
+    - affectiveTarget
     - emotionBearer
     - emotionType
   EmotionType:
@@ -4495,6 +4501,18 @@ slots:
     range: Language
     domain: LanguageChangeEvent
     multivalued: true
+  affectiveElicitor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/affectiveElicitor
+    title: affective elicitor
+    range: uriorcurie
+    domain: Emotion
+    multivalued: true
+  affectiveTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/affectiveTarget
+    title: affective target
+    range: uriorcurie
+    domain: Emotion
+    multivalued: true
   after:
     slot_uri: https://blackcatinformatics.ca/gmeow/after
     title: after
@@ -6642,6 +6660,11 @@ slots:
     title: elevation
     range: decimal
     domain: GeoCoordinates
+    multivalued: true
+  elicits:
+    slot_uri: https://blackcatinformatics.ca/gmeow/elicits
+    title: elicits
+    range: Emotion
     multivalued: true
   eligibleForConsumer:
     slot_uri: https://blackcatinformatics.ca/gmeow/eligibleForConsumer

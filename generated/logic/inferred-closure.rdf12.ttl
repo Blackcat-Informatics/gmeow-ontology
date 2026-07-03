@@ -1288,6 +1288,18 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/AffectiveMoment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/AffectiveMoment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/AffectiveMoment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Mode> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/AffectiveMoment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Mode> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/Agent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Type> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/Agent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Type> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Arange> ;
@@ -3274,8 +3286,26 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MentalMoment> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MentalMoment> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Endurant> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Mode> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Mode> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;

@@ -3235,6 +3235,9 @@ export interface AdoptiveParentChild extends ParentChildRelationship {
 export interface AestheticQuality {
 }
 
+export interface AffectiveMoment extends Entity {
+}
+
 export interface Agent extends Entity {
     accepts?: string[],
     asks?: string[],
@@ -4147,7 +4150,9 @@ export interface Embedding extends InformationObject {
     vectorRef?: string[],
 }
 
-export interface Emotion extends Entity {
+export interface Emotion extends AffectiveMoment {
+    affectiveElicitor?: string[],
+    affectiveTarget?: string[],
     emotionBearer?: Agent,
     emotionType?: EmotionType[],
 }
