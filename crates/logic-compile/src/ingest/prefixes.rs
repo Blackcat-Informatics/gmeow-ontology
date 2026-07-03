@@ -78,7 +78,6 @@ pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("obi", "http://purl.obolibrary.org/obo/OBI_"),
     ("iao", "http://purl.obolibrary.org/obo/IAO_"),
     ("pato", "http://purl.obolibrary.org/obo/PATO_"),
-    ("mfoem", "http://purl.obolibrary.org/obo/MFOEM_"),
     ("crmarc", "http://www.cidoc-crm.org/crmarchaeo/"),
     ("iptc", "http://iptc.org/std/NewsML-G2/"),
     ("bbc", "http://www.bbc.co.uk/ontologies/news/"),

@@ -180,8 +180,6 @@ const ALIGNMENT_TARGETS: &[&str] = &[
     "rel",
     "doap",
     "prov",
-    "oa",
-    "mfoem",
     "dqv",
     "org",
     "time",
