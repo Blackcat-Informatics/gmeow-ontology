@@ -20,9 +20,25 @@
 pub const GMEOW_SUMMARY: &str = "A reasoning-centric, OWL 2 DL, gUFO-grounded super-vocabulary that unifies a person's or organization's digital existence (entities, contacts, email, trust/keys, time) and aligns it to schema.org, FOAF, PROV, the WOT schema, Wikidata, and more.";
 
 /// The maximum number of characters of a bullet note in the link-INDEX form
-/// (`llms.txt`). The COMPLETE form (`llms-full.txt`) inlines content and does not
-/// truncate. A fixed cap (no configurable knob — project no-optionality doctrine).
+/// (`llms.txt`). The COMPLETE form (`llms-full.txt`) inlines content and is bounded
+/// by the token budget below, not this per-note cap. A fixed cap (no configurable
+/// knob — project no-optionality doctrine).
 pub const LLMS_NOTE_CAP: usize = 200;
+
+/// The token budget for the complete inlined index (`llms-full.txt`): a fixed cap
+/// (no configurable knob — project no-optionality doctrine) sized to fit a
+/// large-context model. Callers emit whole term blocks in a deterministic total
+/// order until the running [`estimate_tokens`] would exceed this budget, then
+/// DISCLOSE the elided remainder (never silently drop it).
+pub const LLMS_FULL_TOKEN_BUDGET: usize = 200_000;
+
+/// A deterministic, model-agnostic token estimate for `text`: one token per ~4
+/// characters (the standard rough byte-pair ratio), rounded up. Dependency-free
+/// and reproducible from source — no tokenizer model — so the budget elision
+/// boundary is byte-stable across builds. Empty in → `0`.
+pub fn estimate_tokens(text: &str) -> usize {
+    text.chars().count().div_ceil(4)
+}
 
 /// One bullet in an `llms.txt` section.
 pub struct LlmsBullet {
