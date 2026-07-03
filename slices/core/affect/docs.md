@@ -107,10 +107,28 @@ new machinery.
 
 ## Alignments
 
-MFOEM rows (linkage-only — BFO lineage), EmotionML vocabulary IRIs,
-WordNet-Affect closeMatch rows; the W3C EmotionML projection with declared
-loss (vantage collapses to EmotionML's single-annotator model — flagged
-loudly). Target list fixed in the alignment ledger.
+Every external link is a `logic:Correspondence` lowering in the shared
+`projection-report.ttl` loss ledger — `closeMatch` by default, `exactMatch` only
+after review (the overclaim gate reds an unearned equivalence). Authored in
+`mappings/equivalences.ttl`:
+
+- **Classifier registries → canonical** (the first bridge layer): GoEmotions and
+  Ekman-7 emotion labels `closeMatch` their `gmeow:EmotionType`; `desire`
+  bridges to teleology's `gmeow:Desire`; SST-2 / CardiffNLP sentiment labels
+  `relatedMatch` the valence axis (positive sentiment is not joy); `neutral` has
+  no canonical mapping.
+- **PROV-O** — `ModelInferenceRun`→`prov:Activity`, output→`prov:Entity`,
+  `producedBy`→`prov:wasGeneratedBy`, `usedInput`→`prov:used`.
+- **Web Annotation** — evidence spans (`classifiedTarget`→`oa:hasTarget`,
+  `AffectiveExpression`→`oa:Annotation`, `relatedMatch`).
+- **MFOEM** (Emotion Ontology, BFO lineage, linkage-only) — `Emotion` and the
+  Plutchik emotion types `closeMatch` their MFOEM terms.
+- **Wikidata** — curl-verified authority links for `Emotion`, anger, disgust.
+
+EmotionML, WordNet-Affect, the Emotion Frame Ontology, and Ithkuil remain
+**declared** bridge targets in `design/AFFECT-DESIGN.md` (their RDF namespaces are
+not yet settled/verifiable; a bridge is authored only against a verified IRI). The
+W3C EmotionML projection, when authored, is many-to-one and must declare its loss.
 
 ## Terms
 

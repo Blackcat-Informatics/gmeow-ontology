@@ -158,4 +158,33 @@ mod tests {
         assert!(err.0.contains("Overlaps"), "{}", err.0);
         assert!(err.0.contains("equivalence"), "{}", err.0);
     }
+
+    #[test]
+    fn affect_closematch_bridge_emitting_exact_match_is_red() {
+        // The affect epic's Stage-5 witness: a classifier-registry bridge is a
+        // CAVEATED closeMatch (a GoEmotions label is not guaranteed to denote the
+        // same ontological thing as a canonical GMEOW emotion). If such a bridge
+        // ever emitted an equivalence predicate, the overclaim gate MUST red it —
+        // closeMatch-by-default, exactMatch only after review (never loosen the
+        // recall floor).
+        let err = assert_relation_no_overclaim(
+            "sssom",
+            CorrespondenceRelation::Overlaps,
+            MorphismClass::LossyLens,
+            MorphismKind::InstitutionMorphism,
+            "skos:exactMatch",
+        )
+        .unwrap_err();
+        assert!(err.0.contains("Overlaps"), "{}", err.0);
+        assert!(err.0.contains("equivalence"), "{}", err.0);
+        // The honest closeMatch a GoEmotions bridge actually emits is never flagged.
+        assert!(assert_relation_no_overclaim(
+            "sssom",
+            CorrespondenceRelation::Overlaps,
+            MorphismClass::LossyLens,
+            MorphismKind::InstitutionMorphism,
+            "skos:closeMatch",
+        )
+        .is_ok());
+    }
 }

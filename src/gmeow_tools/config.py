@@ -382,6 +382,7 @@ PREFIXES: dict[str, str] = {
     "obi": "http://purl.obolibrary.org/obo/OBI_",
     "iao": "http://purl.obolibrary.org/obo/IAO_",
     "pato": "http://purl.obolibrary.org/obo/PATO_",
+    "mfoem": "http://purl.obolibrary.org/obo/MFOEM_",
     "crmarc": "http://www.cidoc-crm.org/crmarchaeo/",
     "iptc": "http://iptc.org/std/NewsML-G2/",
     "bbc": "http://www.bbc.co.uk/ontologies/news/",
@@ -629,6 +630,10 @@ ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     ),
     "doap": AlignmentTarget("DOAP", PREFIXES["doap"], "Public-Domain", "schema"),
     "prov": AlignmentTarget("PROV-O", PREFIXES["prov"], "W3C-Document", "schema"),
+    "oa": AlignmentTarget("Web Annotation", PREFIXES["oa"], "W3C-Document", "schema"),
+    "mfoem": AlignmentTarget(
+        "MFOEM (Emotion Ontology)", PREFIXES["mfoem"], "CC-BY-3.0", "schema"
+    ),
     "dqv": AlignmentTarget("W3C DQV", PREFIXES["dqv"], "W3C-Document", "schema"),
     "org": AlignmentTarget("ORG", PREFIXES["org"], "PDDL-1.0", "schema"),
     "time": AlignmentTarget("OWL-Time", PREFIXES["time"], "CC-BY-4.0", "schema"),
