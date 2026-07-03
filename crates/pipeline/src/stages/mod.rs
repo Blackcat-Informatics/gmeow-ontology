@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use crate::registry::StageRegistry;
 
+pub mod agreement;
 pub mod apache;
 pub mod bench;
 pub mod catalog;
@@ -110,4 +111,8 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("export", Arc::new(export::ExportStage::new()));
     registry.register("yaml_ld", Arc::new(yaml_ld::YamlLdStage::new()));
     registry.register("bench", Arc::new(bench::BenchLeaderboardStage));
+    registry.register(
+        "agreement",
+        Arc::new(agreement::AgreementMatrixStage::new()),
+    );
 }

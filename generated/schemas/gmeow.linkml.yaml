@@ -18739,6 +18739,9 @@ enums:
       stage-docs-render:
         meaning: https://blackcatinformatics.ca/gmeow/stage-docs-render
         title: docs render
+      stage-export-agreement:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-agreement
+        title: 'export: agreement matrix'
       stage-export-apache:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-apache
         title: 'export: apache headers'

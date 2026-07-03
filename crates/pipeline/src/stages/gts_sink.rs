@@ -56,6 +56,7 @@ impl GtsSinkStage {
                 // The opaque fanout members ride in from their producing export leaves
                 // (each rendered once, in the leaf); `build_fanout_opaque_blob` reads them
                 // off these products instead of re-rendering from disk (§3.2/§4).
+                "stage-export-agreement".to_string(),
                 "stage-export-apache".to_string(),
                 "stage-export-bench".to_string(),
                 "stage-export-evals".to_string(),
