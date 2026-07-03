@@ -4200,6 +4200,7 @@ export interface Entity {
     hasVersion?: Entity[],
     hasVoice?: Voice[],
     hasWebPage?: WebPage[],
+    indirectContributor?: Agent[],
     instanceOfConcept?: Concept[],
     isAbout?: Entity[],
     isAccessibleForFree?: boolean[],
@@ -4736,6 +4737,7 @@ export interface Issue extends InformationObject {
 export interface Item extends CreativeWork {
     exemplifies?: Manifestation[],
     hasCarrier?: PhysicalObject[],
+    instantiatesWork?: Work[],
 }
 
 export interface JournalEntry extends Event {

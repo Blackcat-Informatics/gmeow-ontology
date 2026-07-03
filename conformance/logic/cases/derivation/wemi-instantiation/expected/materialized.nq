@@ -1,0 +1,4 @@
+<https://example.org/derivation/wemi-instantiation/edition> <https://blackcatinformatics.ca/gmeow/embodies> <https://example.org/derivation/wemi-instantiation/translation> <https://example.org/derivation/wemi-instantiation/world> .
+<https://example.org/derivation/wemi-instantiation/myCopy> <https://blackcatinformatics.ca/gmeow/exemplifies> <https://example.org/derivation/wemi-instantiation/edition> <https://example.org/derivation/wemi-instantiation/world> .
+<https://example.org/derivation/wemi-instantiation/myCopy> <https://blackcatinformatics.ca/gmeow/instantiatesWork> <https://example.org/derivation/wemi-instantiation/hamlet> <https://example.org/derivation/wemi-instantiation/world> .
+<https://example.org/derivation/wemi-instantiation/translation> <https://blackcatinformatics.ca/gmeow/realizes> <https://example.org/derivation/wemi-instantiation/hamlet> <https://example.org/derivation/wemi-instantiation/world> .

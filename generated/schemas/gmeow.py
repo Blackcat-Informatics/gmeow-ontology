@@ -3414,6 +3414,7 @@ class Entity(ConfiguredBaseModel):
     hasVersion: list[Entity] | None = Field(default=None)
     hasVoice: list[Voice] | None = Field(default=None)
     hasWebPage: list[WebPage] | None = Field(default=None)
+    indirectContributor: list[Agent] | None = Field(default=None)
     instanceOfConcept: list[Concept] | None = Field(default=None)
     isAbout: list[Entity] | None = Field(default=None)
     isAccessibleForFree: list[bool] | None = Field(default=None)
@@ -5598,6 +5599,7 @@ class Item(CreativeWork):
     is_a: ClassVar[str] = "CreativeWork"
     exemplifies: list[Manifestation] | None = Field(default=None)
     hasCarrier: list[PhysicalObject] | None = Field(default=None)
+    instantiatesWork: list[Work] | None = Field(default=None)
 
 
 class JournalEntry(Event):

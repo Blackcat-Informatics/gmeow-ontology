@@ -4580,6 +4580,7 @@ type Entity {
   hasVersion: [Entity!]
   hasVoice: [Voice!]
   hasWebPage: [WebPage!]
+  indirectContributor: [Agent!]
   instanceOfConcept: [Concept!]
   isAbout: [Entity!]
   isAccessibleForFree: [Boolean!]
@@ -5320,6 +5321,7 @@ type Item {
   iri: String
   exemplifies: [Manifestation!]
   hasCarrier: [PhysicalObject!]
+  instantiatesWork: [Work!]
 }
 
 type JournalEntry {
