@@ -463,7 +463,13 @@ pub fn refresh_target_axioms(target: &str) -> i32 {
 
 /// Fetch, structurally filter, and write one target's axiom snapshot.
 fn refresh_one(source: &TargetSource, out_dir: &Path) -> Result<std::path::PathBuf, String> {
+    // A network vendor step must fail fast rather than hang: cap the whole
+    // request/response with a global timeout so an unreachable or stalled remote
+    // surfaces as an error instead of blocking the CLI indefinitely.
     let body = ureq::get(source.url)
+        .config()
+        .timeout_global(Some(std::time::Duration::from_secs(30)))
+        .build()
         .call()
         .map_err(|e| format!("HTTP {e}"))?
         .into_body()
@@ -477,43 +483,30 @@ fn refresh_one(source: &TargetSource, out_dir: &Path) -> Result<std::path::PathB
     let dataset =
         purrdf::parse_dataset(body.as_bytes(), media, None).map_err(|e| format!("parse: {e}"))?;
 
-    // Project to N-Triples, then keep only the structural-axiom lines (domain /
-    // range / subPropertyOf / inverseOf, plus property-type declarations) — a
-    // minimal, deterministic vendored snapshot. Filtering on the canonical
-    // N-Triples surface avoids re-interning terms by hand.
-    let nt = purrdf::serialize_dataset(
-        &dataset,
-        "application/n-triples",
-        purrdf::SerializeGraph::DefaultGraph,
-    )
-    .map_err(|e| format!("serialize: {e}"))?;
-    let nt_text = String::from_utf8_lossy(&nt);
-    let mut kept = String::new();
-    for line in nt_text.lines() {
-        if line_is_structural(line) {
-            kept.push_str(line);
-            kept.push('\n');
+    // Keep only the structural-axiom quads (domain / range / subPropertyOf /
+    // inverseOf, plus property-type declarations) — a minimal, deterministic
+    // vendored snapshot. Filtering the parsed quads in memory (rather than a
+    // serialize → line-match → re-parse round trip) is exact: it matches on the
+    // predicate term itself, so a literal that happens to embed a predicate URI
+    // can never masquerade as a structural axiom.
+    let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let mut filtered_quads = Vec::new();
+    for quad in dataset.owned_quads() {
+        let pred = quad.predicate.as_str();
+        let keep = STRUCTURAL_PREDICATES.contains(&pred)
+            || (pred == rdf_type
+                && matches!(&quad.object, purrdf::RdfTerm::Iri(iri) if iri.ends_with("Property")));
+        if keep {
+            filtered_quads.push(quad);
         }
     }
-    let filtered = purrdf::parse_dataset(kept.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("re-parse filtered: {e}"))?;
+    let filtered = purrdf::flat_dataset_from_quads(&filtered_quads)
+        .map_err(|e| format!("flatten filtered: {e}"))?;
     let prefixes = vec![(source.prefix.to_owned(), namespace_for(source.prefix))];
     let ttl = purrdf::turtle_normalize::render(&filtered, &prefixes);
     let path = out_dir.join(format!("{}.ttl", source.prefix));
     std::fs::write(&path, ttl).map_err(|e| format!("write {}: {e}", path.display()))?;
     Ok(path)
-}
-
-/// Whether one N-Triples line asserts a structural axiom worth vendoring: a
-/// structural predicate, or an `rdf:type …Property` declaration.
-fn line_is_structural(line: &str) -> bool {
-    for pred in STRUCTURAL_PREDICATES {
-        if line.contains(&format!("<{pred}>")) {
-            return true;
-        }
-    }
-    let rdf_type = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
-    line.contains(rdf_type) && line.contains("Property>")
 }
 
 /// A best-effort namespace binding for a target prefix (cosmetic in the snapshot).
