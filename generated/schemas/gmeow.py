@@ -512,6 +512,12 @@ class ContentTransferEncodingEnum(str, Enum):
     transferEncodingQuotedPrintable = "transferEncodingQuotedPrintable"
 
 
+class ContinuityVerdictEnum(str, Enum):
+    continuityDifferent = "continuityDifferent"
+    continuityIndeterminate = "continuityIndeterminate"
+    continuitySame = "continuitySame"
+
+
 class ContradictionKindEnum(str, Enum):
     contradictionKindFactual = "contradictionKindFactual"
     contradictionKindFraming = "contradictionKindFraming"
@@ -582,6 +588,12 @@ class ControlFlowEnum(str, Enum):
     flowIngestion3 = "flowIngestion3"
     flowIngestion4 = "flowIngestion4"
     flowIngestion5 = "flowIngestion5"
+
+
+class ControlLevelEnum(str, Enum):
+    controlContested = "controlContested"
+    controlFull = "controlFull"
+    controlPartial = "controlPartial"
 
 
 class CopyrightStatusEnum(str, Enum):
@@ -729,6 +741,12 @@ class DeterminacyEnum(str, Enum):
     determinacyFuzzy = "determinacyFuzzy"
     determinacyProbabilistic = "determinacyProbabilistic"
     determinacyVague = "determinacyVague"
+
+
+class DeterminationForceEnum(str, Enum):
+    forceAdvisory = "forceAdvisory"
+    forceBinding = "forceBinding"
+    forceProvisional = "forceProvisional"
 
 
 class DeterminationStatusEnum(str, Enum):
@@ -880,6 +898,7 @@ class EventTypeEnum(str, Enum):
     eventTypeImageScanning = "eventTypeImageScanning"
     eventTypeImmigration = "eventTypeImmigration"
     eventTypeImpersonation = "eventTypeImpersonation"
+    eventTypeInhabitationTransition = "eventTypeInhabitationTransition"
     eventTypeJamSession = "eventTypeJamSession"
     eventTypeLie = "eventTypeLie"
     eventTypeManifestationProduction = "eventTypeManifestationProduction"
@@ -1246,6 +1265,11 @@ class InferenceModeEnum(str, Enum):
     modeAnalogical = "modeAnalogical"
     modeDeduction = "modeDeduction"
     modeInduction = "modeInduction"
+
+
+class InhabitationLocusKindEnum(str, Enum):
+    locusSelf = "locusSelf"
+    locusVessel = "locusVessel"
 
 
 class InstrumentConfigurationEnum(str, Enum):
@@ -3289,6 +3313,7 @@ class Event(ConfiguredBaseModel):
     hasDuration: list[Duration] | None = Field(default=None)
     hasParticipant: list[Agent] | None = Field(default=None)
     hasSubEvent: list[Event] | None = Field(default=None)
+    hasTransferManifest: list[TransferManifest] | None = Field(default=None)
     heldStandpoint: list[DoxasticStandpointClaim] | None = Field(default=None)
     implicates: list[Entity] | None = Field(default=None)
     latestEnd: list[str] | None = Field(default=None)
@@ -3299,6 +3324,8 @@ class Event(ConfiguredBaseModel):
     overlappedBy: list[Event] | None = Field(default=None)
     overlaps: list[Event] | None = Field(default=None)
     performanceOf: list[CreativeWork] | None = Field(default=None)
+    portalFrom: list[InhabitationTenure] | None = Field(default=None)
+    portalTo: list[InhabitationTenure] | None = Field(default=None)
     predecessorOrganization: list[Organization] | None = Field(default=None)
     producesClaim: list[ClaimToken] | None = Field(default=None)
     projectedStandpoint: list[DoxasticStandpointClaim] | None = Field(default=None)
@@ -3320,6 +3347,7 @@ class Activity(Event):
 class TimeScopedRelation(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TimeScopedRelation"
     duringInterval: list[TimeInterval] | None = Field(default=None)
+    tenureEndedBy: list[Event] | None = Field(default=None)
 
 
 class AddressTenure(TimeScopedRelation):
@@ -3454,6 +3482,7 @@ class Agent(Entity):
     asks: list[str] | None = Field(default=None)
     attendsTo: list[Entity] | None = Field(default=None)
     awareOfNotKnowing: list[str] | None = Field(default=None)
+    bearsDigitalSubject: list[DigitalSubjectTenure] | None = Field(default=None)
     believes: list[str] | None = Field(default=None)
     claimsToKnowThat: list[str] | None = Field(default=None)
     curiousAbout: list[Entity] | None = Field(default=None)
@@ -4425,6 +4454,28 @@ class ContentTransferEncoding(ConfiguredBaseModel):
     pass
 
 
+class IdentityContinuityAssessment(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/IdentityContinuityAssessment"
+    is_a: ClassVar[str] = "Observation"
+    assessmentFromStage: list[SubjectStage] | None = Field(default=None)
+    assessmentToStage: list[SubjectStage] | None = Field(default=None)
+    continuityVerdict: list[ContinuityVerdict] | None = Field(default=None)
+
+
+class ContinuityDetermination(IdentityContinuityAssessment):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ContinuityDetermination"
+    is_a: ClassVar[str] = "IdentityContinuityAssessment"
+    determinationForce: list[DeterminationForce] | None = Field(default=None)
+    determinationGrounds: list[str] | None = Field(default=None)
+    determinationValidity: list[TimeInterval] | None = Field(default=None)
+    determiningAuthority: list[Agent] | None = Field(default=None)
+
+
+class ContinuityVerdict(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ContinuityVerdict"
+    pass
+
+
 class Contract(Agreement):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Contract"
     is_a: ClassVar[str] = "Agreement"
@@ -4461,12 +4512,26 @@ class ContributionRole(ConfiguredBaseModel):
     pass
 
 
+class ControlAssessment(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ControlAssessment"
+    is_a: ClassVar[str] = "Observation"
+    controlAgent: list[Agent] | None = Field(default=None)
+    controlInterval: list[TimeInterval] | None = Field(default=None)
+    controlLevel: list[ControlLevel] | None = Field(default=None)
+    controlOver: list[str] | None = Field(default=None)
+
+
 class ControlFlow(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ControlFlow"
     flowGuard: list[BranchConditionType] | None = Field(default=None)
     flowOrder: list[int] | None = Field(default=None)
     flowSource: list[ProcedureStep] | None = Field(default=None)
     flowTarget: list[ProcedureStep] | None = Field(default=None)
+
+
+class ControlLevel(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ControlLevel"
+    pass
 
 
 class CoordinateMatrix(Entity):
@@ -4726,6 +4791,11 @@ class Determinacy(ConfiguredBaseModel):
     pass
 
 
+class DeterminationForce(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DeterminationForce"
+    pass
+
+
 class DeterminationStatus(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DeterminationStatus"
     pass
@@ -4741,6 +4811,20 @@ class Diff(InformationObject):
     is_a: ClassVar[str] = "InformationObject"
     diffFrom: Commit | None = Field(default=None)
     diffTo: Commit | None = Field(default=None)
+
+
+class DigitalSubject(Agent):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DigitalSubject"
+    is_a: ClassVar[str] = "Agent"
+    pass
+
+
+class DigitalSubjectTenure(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DigitalSubjectTenure"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    tenureSubjectAgent: list[Agent] | None = Field(default=None)
+    tenureSupportedBy: list[Observation] | None = Field(default=None)
+    tenureVantage: list[Agent] | None = Field(default=None)
 
 
 class DisclosurePolicy(ConfiguredBaseModel):
@@ -4938,6 +5022,20 @@ class Embedding(InformationObject):
     embeddingModel: SoftwareAgent | None = Field(default=None)
     embeddingOf: InformationObject | None = Field(default=None)
     vectorRef: list[str] | None = Field(default=None)
+
+
+class EmbodimentAssignment(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/EmbodimentAssignment"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    assignmentCapability: list[str] | None = Field(default=None)
+    assignmentCarrier: list[EmbodimentCarrierRole] | None = Field(default=None)
+    assignmentSubject: list[Agent] | None = Field(default=None)
+
+
+class EmbodimentCarrierRole(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/EmbodimentCarrierRole"
+    is_a: ClassVar[str] = "Entity"
+    pass
 
 
 class Emotion(AffectiveMoment):
@@ -5491,6 +5589,59 @@ class InferenceTenure(TimeScopedRelation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InferenceTenure"
     is_a: ClassVar[str] = "TimeScopedRelation"
     tenureOf: InferenceCommitment | None = Field(default=None)
+
+
+class Inhabitant(Agent):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Inhabitant"
+    is_a: ClassVar[str] = "Agent"
+    pass
+
+
+class InhabitationClaim(StandpointClaim):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationClaim"
+    is_a: ClassVar[str] = "StandpointClaim"
+    pass
+
+
+class InhabitationConfiguration(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationConfiguration"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    configurationEmbodiment: list[EmbodimentAssignment] | None = Field(default=None)
+    configurationFacet: list[str] | None = Field(default=None)
+    configurationOfTenure: list[InhabitationTenure] | None = Field(default=None)
+
+
+class Proposition(SocialObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Proposition"
+    is_a: ClassVar[str] = "SocialObject"
+    pass
+
+
+class InhabitationDescription(Proposition):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationDescription"
+    is_a: ClassVar[str] = "Proposition"
+    describedHost: list[str] | None = Field(default=None)
+    describedLocusKind: list[str] | None = Field(default=None)
+    describedSubject: list[str] | None = Field(default=None)
+
+
+class InhabitationLocusKind(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationLocusKind"
+    pass
+
+
+class InhabitationTenure(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationTenure"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    inhabitationLocusKind: InhabitationLocusKind | None = Field(default=None)
+    inhabitationSubject: Agent | None = Field(default=None)
+    inhabitedHost: Entity | None = Field(default=None)
+
+
+class InhabitedSystem(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitedSystem"
+    is_a: ClassVar[str] = "Entity"
+    pass
 
 
 class InlinePart(BodyPart):
@@ -7004,12 +7155,6 @@ class PronounSet(InformationObject):
     pronounSubject: str | None = Field(default=None)
 
 
-class Proposition(SocialObject):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Proposition"
-    is_a: ClassVar[str] = "SocialObject"
-    pass
-
-
 class ProximityMeasurement(Measurement):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ProximityMeasurement"
     is_a: ClassVar[str] = "Measurement"
@@ -7699,6 +7844,19 @@ class StyleGuide(InformationObject):
     voiceExemplifiedBy: list[Document] | None = Field(default=None)
 
 
+class SubjectLineage(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SubjectLineage"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
+class SubjectStage(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SubjectStage"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    stageBearer: list[Agent] | None = Field(default=None)
+    stageOfLineage: list[SubjectLineage] | None = Field(default=None)
+
+
 class Support(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Support"
     supportSource: list[SupportSource] | None = Field(default=None)
@@ -7955,6 +8113,12 @@ class TransactionStatus(ConfiguredBaseModel):
 class TransactionType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TransactionType"
     pass
+
+
+class TransferManifest(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TransferManifest"
+    is_a: ClassVar[str] = "InformationObject"
+    transferredView: list[str] | None = Field(default=None)
 
 
 class TransformCodec(ConfiguredBaseModel):

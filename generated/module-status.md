@@ -46,6 +46,7 @@ Tier-2 uplift backlog.
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
 | imagination | core | core | 1 | 1 | 4 | 0 | 2 | 5/5 | full |
 | inference | core | core | 6 | 16 | 35 | 0 | 6 | 0/51 | full |
+| inhabitation | core | core | 11 | 20 | 34 | 0 | 4 | 20/54 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 17 | 27 | 0 | 1 | 28/44 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 10/10 | full |
@@ -84,4 +85,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 12 | 0 | 1 | 18/18 | full |
 
-**75 slices** · documentation: 75 full guides, 0 stubs remaining (#325); advisory coverage: 1227/1881 core class/property terms (#471).
+**76 slices** · documentation: 76 full guides, 0 stubs remaining (#325); advisory coverage: 1247/1935 core class/property terms (#471).
