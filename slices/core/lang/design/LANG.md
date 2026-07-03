@@ -83,9 +83,10 @@ influence is Ithkuil, a natural language, and the projection doctrine ("maximal 
 surfaces") is a semiotic thesis about which expressions can carry which meanings at what loss. The
 language slice grounds what its siblings presuppose.
 
-> **Honesty note.** `MATHEMATICS.md` currently says "GMEOW has two co-foundational grounding
-> layers." That sentence is revised by this manifesto; the wording update to the mathematics design
-> set is a queued edit that lands with the `lang:` slice, not a silent contradiction.
+> **Honesty note.** `MATHEMATICS.md` previously said "GMEOW has two co-foundational grounding
+> layers." That sentence is revised by this design set: the mathematics manifesto's wording and the
+> constitutional statement of the triad (CONSTITUTION.md Principle 19) are updated in the same
+> change as this manifesto, not left in silent contradiction.
 
 ### The bridge and the acyclic dependency order
 
