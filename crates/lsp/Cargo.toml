@@ -32,8 +32,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # Native (oxigraph-free) Turtle parse for the .ttl linter (EPIC #906): the `gts`
 # feature pulls the native text codecs; `gmeow-rdf-core` carries the RdfDiagnostic
 # location type the analyzer reports positions from.
-gmeow-rdf = { path = "../rdf", features = ["gts"] }
-gmeow-rdf-core = { path = "../rdf-core" }
+purrdf = "0.2"
 
 [dev-dependencies]
 insta = { version = "1.48", features = ["json"] }

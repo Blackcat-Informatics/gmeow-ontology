@@ -24,10 +24,10 @@ use std::sync::Arc;
 
 use arrow_array::{ArrayRef, BinaryArray, Int64Array, RecordBatch, StringArray};
 use arrow_schema::{DataType, Field, Schema};
-use gmeow_rdf::RdfDataset;
 use parquet::arrow::ArrowWriter;
 use parquet::basic::Compression;
 use parquet::file::properties::WriterProperties;
+use purrdf::RdfDataset;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};

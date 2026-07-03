@@ -1,0 +1,146 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix cito: <http://purl.org/spar/cito/> .
+@prefix crminf: <http://www.ics.forth.gr/isl/CRMinf/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix fibo-fnd-acc-cur: <https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/> .
+@prefix mls: <http://www.w3.org/ns/mls#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix schema: <https://schema.org/> .
+
+# SSSOM MappingSet publication headers (set-level metadata; linkage cells live in slices).
+
+gmeow:mapsetAgentic a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-agentic.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/agentic" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Agentic tool-call alignments (consumer: Project Lillith's agentic mode).
+        ToolCall is prov:Activity by inheritance (provenance set); only the agentic seams are added here.
+        Wikidata has no entity for LLM tool calling as of 2026-06-12 — the nearest stable entity names the MECHANISM (remote procedure call), so the cell is relatedMatch, not equivalence.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — no stable RDF namespace): OpenAI function-calling, Anthropic tool_use, and MCP tool schemas describe calls as JSON specs, not RDF vocabularies; bridging is a projection concern (the Workflow Run Crate — the OpenLineage precedent from the graphrag set), not a term alignment.\n# REFUSED (Principle 5 — the genuine gap): toolArguments/toolResult verbatim-payload properties have no external RDF counterpart — PROV-O stops at prov:used/prov:generated entity links and has no byte-faithful payload convention. Recorded rather than papered over." .
+
+gmeow:mapsetAi a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-ai.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/ai" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """AI claim-layer alignments.
+        THE CLAIM PATTERN: the generated claim is the EXISTING gmeow:StandpointClaim (unified observation stance, P9) — its external bridges (schema:Claim, CRMinf I2 Belief, nanopublication assertion) are cellled here because the AI layer is why they matter, with the subject term owned by the standpoint slice.
+        PROV-O: ModelInvocation/RetrievalEvent are prov:Activity by inheritance through gmeow:Activity (already aligned in the provenance set) — only the AI-specific seams are added here.
+        ML-Schema: mls:Run is the W3C member-submission counterpart of a model invocation; mls:Model the trained-model artifact a ModelCard describes.
+        Web Annotation: a groundedIn evidence span is near-isomorphic to an oa:Annotation (body = claim node, target = chunk with position selector); the generated projection carries it (P4).
+        CiTO: supportPolarity's supports/refutes mirror cito:supports/cito:disputes at the citation-act level — relatedMatch (different carrier: span-to-claim stance vs work-to-work intent).""" ;
+    gmeow:setTrailer "# REFUSED (Principles 5/9 — verdict semantics): schema:ClaimReview. Its single reviewRating adjudicates a winner; GMEOW contradictions coexist standpoint-indexed, surfaced by gmeow:Contradiction and never resolved by rank.\n# REFUSED (Principle 5 — scope mismatch): C2PA Content Credentials sign MEDIA provenance at the container level, not statement-level claims; the attestation slice owns that seam.\n# REFUSED (Principle 5 — no RDF vocabulary): Model Cards (the Mitchell et al. practice) and FAIR4ML have no stable RDF namespace to cell against; mls:Model is the nearest stable term and is cellled. Revisit when a W3C/community namespace stabilizes.\n# REFUSED (Principle 15 — instance data, not TBox): RAGAS/ARES/AIS/RAGTruth metric vocabularies land as Criterion individuals in the published rubric, not as term alignments." .
+
+gmeow:mapsetClaims a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-claims.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/claims" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Canonical claim-token layer alignments.
+        CRMinf: a gmeow:ClaimEvaluation — a context-indexed claim that assesses another claim and expresses its verdict — is the heritage-argumentation cousin of crminf:I5_Inference_Making (the activity that concludes a new belief about existing ones). closeMatch, not equivalence: ClaimEvaluation is broader (any standpoint-indexed assessment, not only formal inference) and keeps its verdict on the proposition it gmeow:expresses.
+        CiTO: gmeow:supportsClaim / gmeow:attacksClaim are the bipolar-argumentation edges over claim tokens; cito:supports / cito:disputes carry the same support/attack epistemics at the work-to-work citation level — relatedMatch (different carrier), parallel to the span-to-claim polarity cells in the AI set.
+        ClaimToken itself is prov:Activity by inheritance (the classes set) — an assertion act is a perdurant with provenance — so no separate prov cell is minted here.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — PROV type disjointness): gmeow:producesClaim → prov:generated / prov:wasGeneratedBy. A gmeow:ClaimToken is a prov:Activity (a perdurant assertion act), but prov:generated/prov:wasGeneratedBy require a prov:Entity, which PROV holds disjoint from prov:Activity. The event→token production is carried by the activity-communication shape, not a generation edge; recorded rather than asserted with the wrong type.\n# REFUSED (Principle 5 — no stable single-proposition class): gmeow:Proposition. crminf:I4_Proposition_Set denotes a SET of propositions held together, not the single truth-apt content; Wikidata 'statement' (Q2684591) is already cellled on gmeow:StandpointClaim in the AI set. No faithful external class for the bare propositional content; its logical form is a logic:FormulaFragment by reference.\n# REFUSED (Principle 5 — no external counterpart): gmeow:expresses / gmeow:evaluates. The content axis (token→proposition) and the subject axis (evaluation→token) have no faithful single-property external term; forcing prov:used or a CRMinf property would misstate the carrier." .
+
+gmeow:mapsetClasses a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/classes" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Canonical GMEOW class alignments to the surface vocabularies in the slice (the superset layer). schema.org is reference-only (linked, never imported)." .
+
+gmeow:mapsetDeterminacy a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/determinacy" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Universal determinacy alignments.
+        FORMAL GROUNDING: gmeow:Determinacy is an owl:Class (a gUFO AbstractIndividualType / QualityValue type), and its instances (crisp, vague, fuzzy, probabilistic, disputed) are first-class, referenceable, and co-equal value individuals. There is no 'preferred' determinacy (Principle 9).
+        ONTOLOGICAL STATUS: gmeow:hasDeterminacy is an ObjectProperty (not an AnnotationProperty), because determinacy is a facet of the VALUE, not metadata ABOUT the claim. It is orthogonal to gmeow:confidence (epistemic) and to gmeow:standpointModality (belief force).
+        SCOPE: Applies universally — a gender may be fuzzy, a date vague, a boundary probabilistic, a SLAM cell probabilistic, a contested fact disputed.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — no faithful external term): gmeow:determinacyCrisp has no clean Wikidata / ontology alignment. 'Crisp set' is the mathematical opposite of fuzzy set, but no stable QID names the concept directly; 'exactness' (Q89694598) and 'accuracy and precision' (Q272035) are about measurement error, not set-membership boundary. GMEOW retains the term without alignment rather than force a weak match.\n# REFUSED (Principle 5): gmeow:hasDeterminacy has no faithful external property alignment. Schema.org, GeoSPARQL, PROV-O, CIDOC-CRM, and DOLCE+DnS carry no direct 'determinacy of a value' property; the concept is novel.\n# REFUSED (Principle 5): gmeow:determinacyModel has no faithful external property alignment. It is the frame-level default for a ReferenceFrame, a GMEOW-specific construct." .
+
+gmeow:mapsetDublinCore a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/dublin-core" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Dublin Core maximal alignment. DCMI Terms properties and DCMI Type classes mapped to GMEOW canonical terms. dc: element alignments are derived via the dumb-down principle (dcterms:X rdfs:subPropertyOf dc:X), not hand-authored here." .
+
+gmeow:mapsetFibo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-fibo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/fibo" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "FIBO CurrencyAmount alignments for currency reference frames. Contextual: gmeow:ReferenceFrame aligns to fibo-fnd-acc-cur:Currency only when the frame's realm is gmeow:frameRealmCurrency. FIBO is heavyweight but authoritative; the alignment layer stays lightweight via skos:closeMatch." .
+
+gmeow:mapsetGraphrag a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-graphrag.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/graphrag" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """GraphRAG pipeline alignments (consumer: Project Lillith).
+        The pipeline activities are prov:Activity by inheritance (provenance set); cells here cover the artifacts.
+        schema.org: the corpus is the working dataset surface (the Croissant profile builds on this cell).
+        Wikidata: hub identifiers for the technique family — several cells are relatedMatch because Wikidata names the TECHNIQUE (community detection, summarization) where GMEOW names the derived ARTIFACT.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — the genuine gap): gmeow:Embedding / gmeow:VectorIndex have no external RDF vocabulary to cell against — model, dimensionality, metric, and index parameters have no agreed semantic representation anywhere. Recorded rather than papered over; revisit when a standard emerges.\n# REFUSED (Principle 5 — no stable RDF namespace): OpenLineage and MLflow describe runs/lineage as JSON specs, not RDF vocabularies; bridging is a projection concern (the Workflow Run Crate), not a term alignment.\n# REFUSED (Principle 5 — instance-level): Leiden/Louvain algorithm identities belong on the clustering Activity as instance data, not as TBox alignments.\n# REFUSED (Principles 5/9 — the description/entity boundary): ExtractedEntity aligns to NOTHING entity-shaped (schema:Thing included): a description is not the thing it describes, and a mapping-layer bridge would invite consumers to skip the curation act that promotes one." .
+
+gmeow:mapsetIso4217 a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-iso4217.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/iso4217" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "ISO 4217 currency code alignments. GMEOW currency ReferenceFrame individuals align to FIBO ISO4217-CurrencyCodes currency individuals." .
+
+gmeow:mapsetPrivacy a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-privacy.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/privacy" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Privacy / consent / redaction alignments (PRIV-GEN).
+        DPV: the primary external vocabulary for privacy concepts. GMEOW's sensitivity level, data-subject / data-controller roles, privacy notice, and process-personal-data action are aligned to DPV by reference (Principle 5). DPV is a W3C Community Group deliverable, not a W3C Recommendation; alignments use skos:closeMatch rather than owl:equivalentClass.
+        ODRL: consent is modelled as a Permission / Prohibition / Duty over actionProcessPersonalData with purpose/recipient constraints — the existing deontic trio, not a parallel consent relator.
+        Schema.org: PrivacyNotice projects to schema:PrivacyPolicy; hasPrivacyNotice projects to schema:publishingPrinciples.
+        REDACTION = GENERALISATION: the actual redaction mechanism is the existing coarsenTo / displayable projection-time directive. Sensitivity metadata drives the trigger; the solver evaluates consent + sensitivity at emit time (P12).""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — no faithful external term): gmeow:hasSensitivity has no exact DPV counterpart. DPV's hasSensitivityLevel is scoped to processes/entities within DPV's data-handling model; GMEOW's hasSensitivity is a universal domain-free facet (like hasGranularity, hasDeterminacy). A closeMatch is warranted but not exact.\n# REFUSED (Principle 5): the sensitivity-to-coarsen trigger (a value with hasSensitivity sensitivePersonal SHOULD also carry coarsenTo or displayable false) is a GMEOW-specific projection-layer contract, not an external vocabulary concept.\n# REFUSED (Principle 5): no faithful external term for hasPrivacyNotice as a domain-free property. DPV has hasNotice (on Process), schema.org has publishingPrinciples (on Organization/CreativeWork); neither covers the full domain-free usage." .
+
+gmeow:mapsetProperties a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/properties" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Canonical GMEOW property alignments. equivalentProperty for same-typed synonyms; skos:closeMatch for cross-type/fuzzy links." .
+
+gmeow:mapsetQudt a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-qudt.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/qudt" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "QUDT alignments for measurement reference frames and quantity values. Contextual: gmeow:ReferenceFrame aligns to qudt:Unit only when the frame's realm is gmeow:frameRealmMeasurement. gmeow:Quantity aligns to qudt:QuantityValue as the value+unit bundle. QUDT uses OWL punning (not strict DL); GMEOW keeps the alignment in the mapping layer only, never importing QUDT into the OWL 2 DL core." .
+
+gmeow:mapsetSchemaOrgFinance a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-schema-org-finance.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/schema-org-finance" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "schema.org financial extension alignments for the GMEOW finance slice. schema.org BankAccount/DepositAccount/MonetaryAmount/Invoice/Order/Payment/LoanOrCredit are the clean projection targets." .
+
+gmeow:mapsetWikidata a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/wikidata" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "GMEOW term to Wikidata Q-item alignments (concept-scheme layer; QIDs validated)." .
+
+gmeow:mapsetFoundational a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-foundational.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/foundational" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "gUFO↔BFO foundational-spine alignments (by reference; closeMatch — UFO and BFO build their categories on different bases). BFO IRIs verified against the vendored snapshot." .
+
+gmeow:mapsetCommonLogic a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/common-logic" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """logic:↔Common Logic bridge (by reference). The canonical logic: IR is a first-order superset that operationalizes ISO/IEC 24707 Common Logic as ingested and emitted CLIF, CGIF, and XCL dialects; this set links the logic: terms that have a stable external counterpart to the Common Logic Wikidata anchor (Q5153563 — 'framework for a family of logic languages'). closeMatch/relatedMatch, never equivalence: logic: is broader than CL, and the projection target is a rendering request over the IR, not the framework itself. The ISO/IEC 24707 document has no RDF namespace and is cited in the citation ledger (metadata/references.ttl) rather than aligned as a term.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — no stable RDF namespace): ISO/IEC 24707 Common Logic publishes no RDF/OWL vocabulary for its abstract-syntax categories (text, phrase, sentence, term, name-sequence, module), so those cannot be aligned as terms; the standard is cited in metadata/references.ttl and operationalized by the CLIF/CGIF/XCL codecs.\n# REFUSED (Principle 5 — no stable external entity): the individual CLIF / CGIF / XCL dialects, the Common Logic importation directive (cl-imports), and the sequence-marker construct (logic:SequenceMarker, the CL '…x' form) have no stable Wikidata/RDF entity to align to; recorded rather than aligned to a fabricated IRI. CGIF's conceptual-graph heritage (wd:Q1420493) and CLIF's KIF ancestry (wd:Q354163) are relations between the standards, not gmeow term counterparts, so they are noted here rather than minted as cells." .
+
+gmeow:mapsetOntoUml a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/ontouml" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """logic:↔OntoUML metamodel-vocabulary bridge (by reference). The logic: stereotype meta-classes (Kind, SubKind, Role, Phase, Category, Mixin, RoleMixin, PhaseMixin, Relator) ARE the OntoUML/UFO leaf stereotypes the native foundation disciplines range over, so each is a genuine, invertible 1:1 pun with its counterpart in the OntoUML metamodel vocabulary (https://w3id.org/ontouml#, the serialization the FAIR OntoUML/UFO model catalog uses) — hence skos:exactMatch. The metamodel vocabulary is CC BY-SA 4.0 (ReferenceOnly under the native license policy), so the alignment is BY REFERENCE only: no OntoUML axioms are vendored and no imports/targets snapshot is committed; each object IRI is a real ontouml: stereotype individual verified against the live vocabulary. This is the ontological-use/dogfooding counterpart of the external correctness corpus (conformance/logic/cases/external/ontouml-mini), which grades the SAME disciplines against the community's documented anti-pattern verdicts.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — out-of-fragment stereotypes): the OntoUML stereotypes outside the endurant-sortal + relator fragment the five disciplines cover — «collective», «quantity», «mode», «quality», «type», «historicalRole», «event», «situation», «datatype», «enumeration», «abstract» — have no logic: counterpart to bear an exactMatch pun and are deliberately NOT aligned; they are the vocabulary residue an out-of-fragment catalog model surfaces as a capability gap (conformance/logic/cases/external/ontouml-mini-divergence).\n# NOTE (anti-pattern taxonomy → logic:Discipline): the OntoUML anti-pattern catalogue (https://ontouml.readthedocs.io/en/latest/anti-patterns/) is prose documentation with no per-anti-pattern RDF IRI, so it is NOT aligned as SSSOM cells (Principle 5 — no fabricated IRIs, and Principle 17 — a detected smell is not owl:equivalentClass to a detector rule). The five native logic:Discipline individuals (FreeRole, MixIden, MixRig, RelComp, StereotypeCardinality) already carry that anti-pattern as their skos:definition; the catalogue anti-patterns with NO native discipline (RepRel, HetColl, RelSpec, ImpAbs, and the rest) are the honest formalization backlog, pinned by conformance/logic/cases/external/ontouml-mini-divergence rather than papered over with a bridge cell." .

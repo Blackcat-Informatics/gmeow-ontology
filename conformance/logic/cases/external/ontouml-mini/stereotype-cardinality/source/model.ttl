@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# OntoUML metamodel model — the StereotypeCardinality anti-pattern (documented in
+# the OntoUML anti-pattern catalogue at
+# https://ontouml.readthedocs.io/en/latest/anti-patterns/).
+#
+# Every OntoUML class carries exactly one stereotype. ex:Thing carries TWO
+# (kind and role), so it violates the discipline. The documented verdict is
+# StereotypeCardinality.
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini/stereotype-cardinality/> .
+
+ex:Thing a ontouml:Class ;
+    ontouml:stereotype ontouml:kind ,
+                       ontouml:role .

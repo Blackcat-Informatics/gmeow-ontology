@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use gmeow_diagnostics::{Finding, Report, Severity};
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 use regex::Regex;
 use serde_yaml::Value as Yaml;
 
@@ -32,32 +32,28 @@ const GTS_SUBCOMMANDS: &[&str] = &[
     "gts_to_sqlite",
     "gts_to_duckdb",
 ];
-const RDFLIB_KEEPERS: &[&str] = &["oracles/engine_crosscheck.py", "oracles/rl_agreement.py"];
+// engine_crosscheck.py is the sole remaining rdflib runtime keeper (the
+// rdflib query cross-check). rl_agreement.py + the rest of the classic oracle
+// lane were relocated out of src/ to validations/classic-cross-check/.
+const RDFLIB_KEEPERS: &[&str] = &["oracles/engine_crosscheck.py"];
 
+// The maint-* targets allowed to reach Docker/Java. The classic-cross-check
+// oracle lane (maint-classic-cross-check / maint-reasoning-cases /
+// maint-statements-docker-check) was relocated to validations/ and is
+// no longer a mainline target.
 const LANE_MAKE_TARGETS: &[&str] = &[
     "full-release",
-    "maint-classic-cross-check",
     "maint-reason-hermit",
     "maint-explain",
     "maint-verify-docker",
-    "maint-reasoning-cases",
-    "maint-statements-docker-check",
     "maint-pull-images",
 ];
 const LANE_TARGETS_THAT_MUST_HIT: &[&str] = &[
-    "maint-classic-cross-check",
     "maint-reason-hermit",
     "maint-verify-docker",
-    "maint-reasoning-cases",
-    "maint-statements-docker-check",
     "maint-pull-images",
 ];
-const LANE_SCRIPTS: &[&str] = &[
-    "reasoning_cases.py",
-    "statements_docker_check.py",
-    "slme_cross_check.py",
-    "pull-images.sh",
-];
+const LANE_SCRIPTS: &[&str] = &["pull-images.sh"];
 const DOCKER_PATTERNS: &[&str] = &[
     r"\bdocker\s+(?:run|pull|build|image|compose)\b",
     r"--mode\s+docker",
@@ -200,7 +196,7 @@ fn check_no_rdflib_in_runtime(root: &Path, report: &mut RepoStaticReport) {
         .collect::<Vec<_>>();
     if !offenders.is_empty() {
         report.error(format!(
-            "first-party modules must use gmeow_rdf.compat.rdflib, not upstream rdflib: {}",
+            "first-party modules must use purrdf.compat.rdflib, not upstream rdflib: {}",
             offenders.join(", ")
         ));
     }
@@ -298,7 +294,7 @@ fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
             continue;
         }
         let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
-        let ds = match gmeow_rdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
             Ok(ds) => ds,
             Err(err) => {
                 report.error(format!("{rel}: does not parse as Turtle: {err}"));
@@ -402,7 +398,9 @@ fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<Pa
 
 fn check_lane_purity(root: &Path, report: &mut RepoStaticReport) {
     check_required_ci_jobs(root, report);
-    check_classic_cross_check_workflow(root, report);
+    // The classic-cross-check oracle workflow was retired: the lane moved to the
+    // standalone validations/classic-cross-check/ suite, so there is no
+    // .github/workflows/classic-cross-check.yml to structurally police anymore.
     check_makefile_lane_purity(root, report);
 }
 
@@ -472,60 +470,6 @@ fn check_required_ci_jobs(root: &Path, report: &mut RepoStaticReport) {
         report.error(format!(
             "{rel}: classic-cross-check must not appear in quality.needs"
         ));
-    }
-}
-
-fn check_classic_cross_check_workflow(root: &Path, report: &mut RepoStaticReport) {
-    let rel = ".github/workflows/classic-cross-check.yml";
-    let Some(text) = read_required(root, rel, report) else {
-        return;
-    };
-    let Some(workflow) = parse_yaml(rel, &text, report) else {
-        return;
-    };
-    let Some(triggers) = yaml_get(&workflow, "on").and_then(Yaml::as_mapping) else {
-        report.error(format!("{rel}: unexpected `on:` shape"));
-        return;
-    };
-    let trigger_keys = triggers
-        .keys()
-        .filter_map(Yaml::as_str)
-        .collect::<BTreeSet<_>>();
-    if trigger_keys.contains("push") {
-        report.error("classic-cross-check oracle lane must not run on push");
-    }
-    let allowed = BTreeSet::from(["schedule", "workflow_dispatch", "pull_request"]);
-    let unexpected = trigger_keys
-        .difference(&allowed)
-        .copied()
-        .collect::<Vec<_>>();
-    if !unexpected.is_empty() {
-        report.error(format!(
-            "classic-cross-check has unexpected trigger(s): {}",
-            unexpected.join(", ")
-        ));
-    }
-
-    if trigger_keys.contains("pull_request") {
-        let Some(jobs) = yaml_get(&workflow, "jobs").and_then(Yaml::as_mapping) else {
-            report.error(format!("{rel}: missing jobs mapping"));
-            return;
-        };
-        for (name, job) in jobs {
-            let job_name = name.as_str().unwrap_or("<non-string>");
-            let gated = yaml_get(job, "if")
-                .map(recursive_yaml_text)
-                .is_some_and(|text| text.contains("label"));
-            if !gated {
-                report.error(format!(
-                    "classic-cross-check pull_request job {job_name:?} must gate on a label"
-                ));
-            }
-        }
-    }
-
-    if forbidden_hits(&text).is_empty() && !text.contains("make maint-classic-cross-check") {
-        report.error("classic-cross-check workflow no longer invokes the Docker/Java lane");
     }
 }
 
@@ -875,27 +819,19 @@ mod tests {
             "import rdflib\n",
         );
         write(
-            &root.join("src/gmeow_tools/oracles/rl_agreement.py"),
-            "from rdflib import Graph\n",
-        );
-        write(
             &root.join(".github/workflows/ci.yml"),
             "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
         write(
-            &root.join(".github/workflows/classic-cross-check.yml"),
-            "on:\n  schedule:\n    - cron: '0 0 * * *'\n  workflow_dispatch:\n  pull_request:\njobs:\n  oracle:\n    if: contains(github.event.pull_request.labels.*.name, 'classic-cross-check')\n    steps:\n      - run: make maint-classic-cross-check\n",
-        );
-        write(
             &root.join("Makefile"),
-            "check:\n\t$(MAKE) lint\nlint:\n\ttrue\nmaint-classic-cross-check:\n\tdocker run obolibrary/robot\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-reasoning-cases:\n\tdocker run obolibrary/robot\nmaint-statements-docker-check:\n\tdocker run stain/jena\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+            "check:\n\t$(MAKE) lint\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
         );
     }
 
     #[test]
     fn python_scanner_ignores_comments_and_strings() {
         let code = strip_python_non_code(
-            "import os\n# import rdflib\nTEXT = \"import gmeow_rdf\"\n'''load_merged_graph'''\n",
+            "import os\n# import rdflib\nTEXT = \"import purrdf\"\n'''load_merged_graph'''\n",
         );
         let imports = python_imported_top_modules(&code);
         assert!(imports.contains("os"));
@@ -1144,33 +1080,18 @@ mod tests {
     }
 
     #[test]
-    fn classic_cross_check_pull_request_gate_must_use_job_if() {
-        let temp = tempfile::tempdir().unwrap();
-        write_minimal_repo(temp.path());
-        write(
-            &temp.path().join(".github/workflows/classic-cross-check.yml"),
-            "on:\n  pull_request:\njobs:\n  oracle:\n    steps:\n      - name: Print labels\n        run: make maint-classic-cross-check\n",
-        );
-        let report = check_repo_static(temp.path());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("pull_request job") && e.contains("label")));
-    }
-
-    #[test]
     fn make_check_oracle_target_fails() {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
         write(
             &temp.path().join("Makefile"),
-            "check:\n\t$(MAKE) maint-classic-cross-check\nmaint-classic-cross-check:\n\tdocker run obolibrary/robot\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-reasoning-cases:\n\tdocker run obolibrary/robot\nmaint-statements-docker-check:\n\tdocker run stain/jena\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+            "check:\n\t$(MAKE) maint-verify-docker\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
         );
         let report = check_repo_static(temp.path());
         assert!(report
             .errors
             .iter()
-            .any(|e| e.contains("target \"check\"") && e.contains("maint-classic-cross-check")));
+            .any(|e| e.contains("target \"check\"") && e.contains("maint-verify-docker")));
     }
 
     #[test]
@@ -1179,7 +1100,7 @@ mod tests {
         write_minimal_repo(temp.path());
         write(
             &temp.path().join("Makefile"),
-            "check:\n\t$(MAKE) lint\nci:\n\t$(MAKE) maint-verify-docker\nlint:\n\ttrue\nmaint-classic-cross-check:\n\tdocker run obolibrary/robot\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-reasoning-cases:\n\tdocker run obolibrary/robot\nmaint-statements-docker-check:\n\tdocker run stain/jena\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+            "check:\n\t$(MAKE) lint\nci:\n\t$(MAKE) maint-verify-docker\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
         );
         let report = check_repo_static(temp.path());
         assert!(report
@@ -1194,7 +1115,7 @@ mod tests {
         write_minimal_repo(temp.path());
         write(
             &temp.path().join("Makefile"),
-            "check:\n\t$(MAKE) lint\nci:\n\t${MAKE} maint-verify-docker\nlint:\n\ttrue\nmaint-classic-cross-check:\n\tdocker run obolibrary/robot\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-reasoning-cases:\n\tdocker run obolibrary/robot\nmaint-statements-docker-check:\n\tdocker run stain/jena\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
+            "check:\n\t$(MAKE) lint\nci:\n\t${MAKE} maint-verify-docker\nlint:\n\ttrue\nmaint-reason-hermit:\n\tdocker run obolibrary/robot\nmaint-explain:\n\ttrue\nmaint-verify-docker:\n\tdocker run obolibrary/robot\nmaint-pull-images:\n\tdocker pull obolibrary/robot\n",
         );
         let report = check_repo_static(temp.path());
         assert!(report

@@ -41,6 +41,8 @@ gmeow:DegreeOfFreedom
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Degree of Freedom"@x-gmeow-english ;
+    logic:mediates gmeow:dofParameter ,
+        gmeow:dofStatus ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -141,6 +143,8 @@ gmeow:InstrumentConfiguration
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Instrument Configuration"@x-gmeow-english ;
+    logic:mediates gmeow:configurationModification ,
+        gmeow:configurationTuningFrame ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -179,6 +183,8 @@ gmeow:MeterAssignment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Meter Assignment"@x-gmeow-english ;
+    logic:mediates gmeow:meterCarrier ,
+        gmeow:assignedMeter ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -213,6 +219,8 @@ gmeow:MetricModulation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Metric Modulation"@x-gmeow-english ;
+    logic:mediates gmeow:modulationFromFrame ,
+        gmeow:modulationToFrame ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -363,6 +371,8 @@ gmeow:PerformanceDecision
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Performance Decision"@x-gmeow-english ;
+    logic:mediates gmeow:decisionPerformance ,
+        gmeow:decisionConstraint ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -440,6 +450,8 @@ gmeow:PitchCollectionMembership
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Collection Membership"@x-gmeow-english ;
+    logic:mediates gmeow:membershipCollection ,
+        gmeow:membershipPitch ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -487,6 +499,8 @@ gmeow:PitchSpelling
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Pitch Spelling"@x-gmeow-english ;
+    logic:mediates gmeow:spellingPitch ,
+        gmeow:spellingSystem ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -598,6 +612,8 @@ gmeow:SegmentTransformation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Segment Transformation"@x-gmeow-english ;
+    logic:mediates gmeow:transformationSource ,
+        gmeow:transformationTarget ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

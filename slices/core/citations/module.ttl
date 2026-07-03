@@ -11,6 +11,9 @@ gmeow:CitationAct
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Citation Act"@x-gmeow-english ;
+    logic:mediates gmeow:citingEntity ,
+        gmeow:citedEntity ,
+        gmeow:citationIntent ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

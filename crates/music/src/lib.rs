@@ -14,9 +14,9 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
-use gmeow_gts::model::{Term, TermKind};
-use gmeow_rdf::gts_compose::{emit_gts, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
-use gmeow_rdf::{parse_dataset, NativeRdfFormat};
+use purrdf::gts::model::{Term, TermKind};
+use purrdf::gts_compose::{emit_gts, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
+use purrdf::{parse_dataset, NativeRdfFormat};
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -831,7 +831,7 @@ fn object_value(term: &Term) -> Option<Object> {
 }
 
 fn triples_from_gts(bytes: &[u8]) -> Vec<Triple> {
-    let graph = gmeow_gts::reader::read(bytes, false, None);
+    let graph = purrdf::gts::reader::read(bytes, false, None);
     graph
         .quad_terms()
         .filter(|quad| quad.graph_name.is_none())

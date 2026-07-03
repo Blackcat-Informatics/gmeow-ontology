@@ -3,10 +3,10 @@
 
 //! Native MCP surfaces over the bundled GMEOW snapshot.
 //!
-//! `McpView` loads the bundled `gmeow.gts` snapshot ONCE (the narrow waist #267,
+//! `McpView` loads the bundled `gmeow.gts` snapshot ONCE (the narrow waist,
 //! bundle-only — never the repo) and serves the `export`-backed surfaces —
 //! `lookup_term`, `llms_txt`, `llms_full`, `doc_card`, `okf_index` — over a
-//! per-language [`FoldView`]. The standard `llms.txt`/`doc_card` surfaces (#1027)
+//! per-language [`FoldView`]. The standard `llms.txt`/`doc_card` surfaces
 //! make the docs themselves agent-consumable: the index links into the published
 //! site (URLs recovered from the `gmeow:graph/documentation` graph) and the card
 //! is the per-term, context-window-ready twin of the site's `card.md`. `McpServer`
@@ -24,12 +24,12 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use serde_json::{json, Value};
 
-use gmeow_gts::examples::agent_memory::{
+use gmeow_logic::transaction::execute::{execute_transaction, CommitMode, TxReceipt};
+use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
-use gmeow_gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
-use gmeow_gts::writer::Writer as GtsWriter;
-use gmeow_logic::transaction::execute::{execute_transaction, CommitMode, TxReceipt};
+use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
+use purrdf::gts::writer::Writer as GtsWriter;
 
 use crate::stages::export::{self, FoldView, Term};
 use crate::stages::fold_arena;
@@ -43,11 +43,11 @@ const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
 #[pyclass(name = "McpView", skip_from_py_object)]
 pub struct McpView {
-    /// THIS server's view of the bundled snapshot as the native carrier dataset
-    /// (#1132): the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
+    /// THIS server's view of the bundled snapshot as the native carrier dataset:
+    /// the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
     /// the carrier representation ONCE and serves every surface off the shared export
     /// `FoldView`, exactly as the in-pipeline export leaf does.
-    dataset: Arc<gmeow_rdf::RdfDataset>,
+    dataset: Arc<purrdf::RdfDataset>,
     /// Ontology title / version — language-independent (`fold_meta` reads the
     /// header via a token-minimal `value`, not a language selector), so they are
     /// resolved once at construction.
@@ -67,12 +67,12 @@ pub struct McpView {
 
 impl McpView {
     fn from_snapshot(snapshot: &[u8]) -> Result<Self, String> {
-        let bundle = gmeow_rdf::import_gts_events(snapshot)
+        let bundle = purrdf::import_gts_events(snapshot)
             .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
         Self::from_dataset(bundle.dataset)
     }
 
-    fn from_dataset(dataset: Arc<gmeow_rdf::RdfDataset>) -> Result<Self, String> {
+    fn from_dataset(dataset: Arc<purrdf::RdfDataset>) -> Result<Self, String> {
         let (title, version) = {
             let view = FoldView::new(dataset.as_ref());
             export::fold_meta(&view).map_err(|e| e.to_string())?
@@ -121,6 +121,84 @@ impl McpView {
     fn okf_index_json(&self, requested: Vec<String>) -> String {
         self.with_terms(requested, export::okf_index_envelope)
     }
+
+    /// Run a SELECT / ASK SPARQL query over the `gmeow:graph/documentation` named
+    /// graph (re-rooted to the default graph so a plain query with no `GRAPH`
+    /// clause reaches it), returning a standard SPARQL-1.1 JSON-results envelope
+    /// under `"ok"`. CONSTRUCT / DESCRIBE are rejected — the tool serves one result
+    /// shape (bindings or a boolean), never a graph.
+    fn query_docs_json(&self, sparql: &str) -> String {
+        match self.run_docs_query(sparql) {
+            Ok(value) => value.to_string(),
+            Err(err) => json!({"ok": false, "error": err}).to_string(),
+        }
+    }
+
+    fn run_docs_query(&self, sparql: &str) -> Result<Value, String> {
+        let docs = std::sync::Arc::new(
+            self.dataset
+                .project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION),
+        );
+        match crate::stages::native_query::query(&docs, sparql).map_err(|e| e.to_string())? {
+            purrdf::SparqlResult::Boolean(value) => Ok(json!({"ok": true, "boolean": value})),
+            purrdf::SparqlResult::Solutions {
+                variables, rows, ..
+            } => {
+                let bindings: Vec<Value> = rows
+                    .iter()
+                    .map(|row| {
+                        let mut obj = serde_json::Map::new();
+                        for (i, cell) in row.iter().enumerate() {
+                            if let (Some(name), Some(term)) = (variables.get(i), cell.as_ref()) {
+                                if let Some(value) = sparql_term_to_json(term) {
+                                    obj.insert(name.clone(), value);
+                                }
+                            }
+                        }
+                        Value::Object(obj)
+                    })
+                    .collect();
+                Ok(json!({
+                    "ok": true,
+                    "head": {"vars": variables},
+                    "results": {"bindings": bindings},
+                }))
+            }
+            purrdf::SparqlResult::Graph(_) => Err(
+                "query_docs accepts only SELECT and ASK queries; CONSTRUCT/DESCRIBE are not \
+                 supported (the tool serves bindings or a boolean, never a graph)"
+                    .to_string(),
+            ),
+        }
+    }
+}
+
+/// One SPARQL binding rendered as a SPARQL-1.1 JSON-results term object. A quoted
+/// triple term (rare in the documentation graph) has no standard binding shape and
+/// is omitted.
+fn sparql_term_to_json(term: &purrdf::TermValue) -> Option<Value> {
+    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+    match term {
+        purrdf::TermValue::Iri(iri) => Some(json!({"type": "uri", "value": iri})),
+        purrdf::TermValue::Blank { label, .. } => Some(json!({"type": "bnode", "value": label})),
+        purrdf::TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            ..
+        } => {
+            let mut obj = serde_json::Map::new();
+            obj.insert("type".to_string(), json!("literal"));
+            obj.insert("value".to_string(), json!(lexical_form));
+            if let Some(lang) = language {
+                obj.insert("xml:lang".to_string(), json!(lang));
+            } else if datatype != XSD_STRING {
+                obj.insert("datatype".to_string(), json!(datatype));
+            }
+            Some(Value::Object(obj))
+        }
+        purrdf::TermValue::Triple { .. } => None,
+    }
 }
 
 #[pymethods]
@@ -139,18 +217,18 @@ impl McpView {
     }
 
     /// The standard llmstxt.org vocabulary index (`llms.txt`) for `requested`,
-    /// with bullets linking into the published docs site (#1027).
+    /// with bullets linking into the published docs site.
     fn llms_txt(&self, requested: Vec<String>) -> String {
         self.llms_txt_text(requested)
     }
 
-    /// The complete inlined index (`llms-full.txt`) for `requested` (#1027) — the
+    /// The complete inlined index (`llms-full.txt`) for `requested` — the
     /// single-file, link-free surface an agent can ingest whole.
     fn llms_full(&self, requested: Vec<String>) -> String {
         self.llms_full_text(requested)
     }
 
-    /// A prompt-ready Markdown card for one term (#1027) for `requested` — the
+    /// A prompt-ready Markdown card for one term for `requested` — the
     /// live twin of the docs-site `terms/{slug}/card.md`.
     fn doc_card(&self, term: &str, requested: Vec<String>) -> String {
         self.doc_card_text(term, requested)
@@ -266,7 +344,7 @@ impl McpServer {
         root: Option<PathBuf>,
         mode: McpMode,
     ) -> Result<Self, String> {
-        let bundle = gmeow_rdf::import_gts_events(snapshot)
+        let bundle = purrdf::import_gts_events(snapshot)
             .map_err(|e| format!("read snapshot gmeow.gts: {e}"))?;
         let dataset = bundle.dataset;
         let tag_map = language_tag_map(dataset.as_ref());
@@ -318,6 +396,12 @@ impl McpServer {
                 "okf_index",
                 "Return the OKF manifest JSON envelope.",
                 &[("lang", "string")],
+            ),
+            tool(
+                "query_docs",
+                "Run a SELECT or ASK SPARQL query over the bundled documentation graph \
+                 (gmeow:graph/documentation) and return SPARQL-1.1 JSON results.",
+                &[("query", "string")],
             ),
             tool(
                 "store_claim",
@@ -421,6 +505,7 @@ impl McpServer {
             "llms_full" => self.tool_llms_full(args),
             "doc_card" => self.tool_doc_card(args),
             "okf_index" => self.tool_okf_index(args),
+            "query_docs" => self.tool_query_docs(args),
             "store_claim" => self.tool_store_claim(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
@@ -538,6 +623,11 @@ impl McpServer {
     fn tool_okf_index(&self, args: &Value) -> Result<String, String> {
         let requested = self.requested_from_args(args)?;
         Ok(self.view.okf_index_json(requested))
+    }
+
+    fn tool_query_docs(&self, args: &Value) -> Result<String, String> {
+        let query = required_str(args, "query")?;
+        Ok(self.view.query_docs_json(query))
     }
 
     fn tool_store_claim(&self, args: &Value) -> Result<String, String> {
@@ -818,7 +908,7 @@ impl McpServer {
 }
 
 impl McpView {
-    fn graph_dataset(&self) -> Result<Arc<gmeow_rdf::RdfDataset>, String> {
+    fn graph_dataset(&self) -> Result<Arc<purrdf::RdfDataset>, String> {
         // The carrier IS the dataset — no gts round-trip (GTS is exit-only).
         Ok(Arc::clone(&self.dataset))
     }
@@ -838,7 +928,7 @@ pub fn run_dev_mcp(snapshot: &[u8], root: String) -> PyResult<()> {
     server.run_stdio().map_err(PyValueError::new_err)
 }
 
-fn language_tag_map(dataset: &gmeow_rdf::RdfDataset) -> BTreeMap<String, String> {
+fn language_tag_map(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
     let graph = fold_arena::Graph::from_dataset(dataset);
     let graph = &graph;
     let iri_index: HashMap<&str, usize> = graph
@@ -1134,17 +1224,16 @@ const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 fn action_policy_nquads() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
     CACHE.get_or_init(|| {
-        let dataset =
-            gmeow_rdf::parse_dataset(MCP_ACTION_POLICY_TTL.as_bytes(), "text/turtle", None)
-                .expect("canonical mcp-action-policy.ttl must parse (single authority)");
-        let mut lines: Vec<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&dataset)
+        let dataset = purrdf::parse_dataset(MCP_ACTION_POLICY_TTL.as_bytes(), "text/turtle", None)
+            .expect("canonical mcp-action-policy.ttl must parse (single authority)");
+        let mut lines: Vec<String> = purrdf::flat_rdf_quads_from_dataset(&dataset)
             .into_iter()
             // The engine reads only the structural action theory (precondition / effect / ins /
             // del / compensation), all IRI→IRI — keep those and drop the annotation literals
             // (labels, comments) the executional-entailment run never consults.
             .filter(|quad| {
-                matches!(quad.subject, gmeow_rdf::RdfTerm::Iri(_))
-                    && matches!(quad.object, gmeow_rdf::RdfTerm::Iri(_))
+                matches!(quad.subject, purrdf::RdfTerm::Iri(_))
+                    && matches!(quad.object, purrdf::RdfTerm::Iri(_))
             })
             .map(|quad| {
                 format!(
@@ -1324,7 +1413,7 @@ fn tool_arguments(args: &Value, keys: &[&str]) -> String {
     Value::Object(out).to_string()
 }
 
-fn claim_json(claim: &gmeow_gts::examples::agent_memory::Claim) -> Value {
+fn claim_json(claim: &purrdf::gts::examples::agent_memory::Claim) -> Value {
     json!({
         "id": claim.id,
         "text": claim.text,
@@ -1406,6 +1495,7 @@ mod tests {
         assert!(consumer_tools.contains("\"llms_txt\""));
         assert!(consumer_tools.contains("\"llms_full\""));
         assert!(consumer_tools.contains("\"okf_index\""));
+        assert!(consumer_tools.contains("\"query_docs\""));
         assert!(consumer_tools.contains("\"store_claim\""));
         assert!(!consumer_tools.contains("\"validate\""));
         assert!(!consumer
@@ -1421,6 +1511,45 @@ mod tests {
         assert!(dev_tools.contains("\"regenerate\""));
         assert!(dev_tools.contains("\"constitution\""));
         assert!(dev.resources_result().to_string().contains("constitution"));
+    }
+
+    #[test]
+    fn query_docs_selects_over_the_documentation_graph() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        env::remove_var("GMEOW_LANG");
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // A SELECT over the bundled documentation graph returns SPARQL-1.1 JSON
+        // bindings (the doc graph carries a gmeow:DocumentedTerm per documented term).
+        let select = text_payload(server.call_tool_result(
+            "query_docs",
+            &json!({"query": "SELECT ?s WHERE { ?s a <https://blackcatinformatics.ca/gmeow/DocumentedTerm> } LIMIT 3"}),
+        ));
+        assert_eq!(
+            select["ok"], true,
+            "query_docs SELECT must succeed: {select}"
+        );
+        assert_eq!(select["head"]["vars"][0], "s");
+        assert!(
+            select["results"]["bindings"]
+                .as_array()
+                .map(|b| !b.is_empty())
+                .unwrap_or(false),
+            "expected at least one DocumentedTerm binding: {select}"
+        );
+
+        // CONSTRUCT is rejected — the tool serves only bindings or a boolean.
+        let construct = text_payload(server.call_tool_result(
+            "query_docs",
+            &json!({"query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
+        ));
+        assert_eq!(construct["ok"], false);
+        assert!(construct["error"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("SELECT and ASK"));
     }
 
     #[test]
@@ -1610,8 +1739,8 @@ mod tests {
         // The committed turn is cold-auditable: the persisted memory.gts carries exactly the
         // predicates emit_trajectory_audits requires on the recorded ToolCall and its anchor.
         let raw = fs::read(&memory_path).unwrap();
-        let bundle = gmeow_rdf::import_gts_events(&raw).expect("import memory.gts");
-        let predicates: BTreeSet<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&bundle.dataset)
+        let bundle = purrdf::import_gts_events(&raw).expect("import memory.gts");
+        let predicates: BTreeSet<String> = purrdf::flat_rdf_quads_from_dataset(&bundle.dataset)
             .iter()
             .map(|quad| quad.predicate.clone())
             .collect();
@@ -1629,7 +1758,7 @@ mod tests {
             );
         }
         // The single canonical temporal frame is recorded (P11 — one frame per trajectory).
-        let frames: Vec<String> = gmeow_rdf::flat_rdf_quads_from_dataset(&bundle.dataset)
+        let frames: Vec<String> = purrdf::flat_rdf_quads_from_dataset(&bundle.dataset)
             .iter()
             .filter(|quad| quad.predicate == GMEOW_EVENT_TEMPORAL_FRAME)
             .map(|quad| quad.object.to_string())

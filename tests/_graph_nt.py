@@ -24,7 +24,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 import gmeow_validate
-from gmeow_rdf.compat.rdflib import Graph
+from purrdf.compat.rdflib import Graph
 
 from gmeow_tools.config import NAMESPACE, SHAPES_FILE
 from gmeow_tools.validate import (

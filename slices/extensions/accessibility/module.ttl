@@ -11,6 +11,8 @@ gmeow:AccessibilityAssertion
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "Accessibility Assertion"@x-gmeow-english ;
+    logic:mediates gmeow:assertionSubject ,
+        gmeow:assertionFacet ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

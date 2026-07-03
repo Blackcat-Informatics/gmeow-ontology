@@ -11,8 +11,21 @@
 //! superset gate uses to byte-compare — so fanout WRITES exactly what the gate proves
 //! is reconstructible. An output that cannot be produced by projection alone is a §5
 //! violation upstream, not a need for computation here.
+//!
+//! §6 mandates that fanout be "embarrassingly parallel". It is: each `(path, bytes)`
+//! entry is written independently. Safety under concurrency comes from the projection's
+//! keys being UNIQUE repo-relative paths (`project_bundle` builds a `BTreeMap` and
+//! hard-fails on any key collision), and [`write_artifact`] deriving its temp-file name
+//! from the target's own parent directory + basename before an atomic rename — so
+//! distinct final paths yield distinct temp paths (it is NOT the wall-clock nonce that
+//! prevents collisions; that can repeat on a coarse clock). `create_dir_all` swallows
+//! `EEXIST` on Linux, so concurrent creation of a shared parent directory is safe here.
+//! The write set is a pure function of the bundle, so the produced tree and the
+//! `FanoutReport` counters are identical regardless of `jobs`.
 
 use std::path::Path;
+
+use rayon::prelude::*;
 
 use crate::error::PipelineError;
 use crate::run::{write_artifact, GTS_PATH};
@@ -35,7 +48,11 @@ pub struct FanoutReport {
 /// shipped bundle (read from disk), so this reproduces `generated/` from `gmeow.gts`
 /// alone. The bundle itself (`GTS_PATH`) is never rewritten — it is the source, not a
 /// projection of itself. A missing bundle HARD-fails (no degraded pass).
-pub fn fanout(root: &Path) -> Result<FanoutReport, PipelineError> {
+///
+/// `jobs` is the parallelism budget: the independent per-file writes run on a local
+/// rayon pool of that many threads (clamped to `>= 1`), honouring the budget without
+/// touching the global pool (mirroring [`crate::scheduler`]).
+pub fn fanout(root: &Path, jobs: usize) -> Result<FanoutReport, PipelineError> {
     let gts_path = root.join(GTS_PATH);
     let gts = std::fs::read(&gts_path).map_err(|e| PipelineError::Stage {
         stage: "fanout".to_string(),
@@ -43,18 +60,32 @@ pub fn fanout(root: &Path) -> Result<FanoutReport, PipelineError> {
     })?;
     let projection = project_bundle(&gts)?;
 
-    let mut written = 0usize;
-    let mut skipped = 0usize;
-    for (path, bytes) in &projection.files {
-        if write_artifact(root, path, bytes)? {
-            written += 1;
-        } else {
-            skipped += 1;
-        }
-    }
+    // Collect to a Vec of borrows so the parallel iterator is over a slice (no reliance
+    // on `BTreeMap`'s parallel-iterator support). Order is irrelevant: writes are
+    // independent and the counters are order-insensitive.
+    let items: Vec<(&String, &Vec<u8>)> = projection.files.iter().collect();
+
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(jobs.max(1))
+        .build()
+        .map_err(|e| PipelineError::Stage {
+            stage: "fanout".to_string(),
+            message: format!("failed to build rayon pool: {e}"),
+        })?;
+
+    // Each entry -> `true` when the write reconciler rewrote changed bytes, `false` when
+    // the on-disk file was already byte-identical. A write error aborts the whole fanout.
+    let rewritten: Vec<bool> = pool.install(|| {
+        items
+            .par_iter()
+            .map(|(path, bytes)| write_artifact(root, path, bytes))
+            .collect::<Result<Vec<bool>, _>>()
+    })?;
+
+    let written = rewritten.iter().filter(|&&b| b).count();
     Ok(FanoutReport {
         produced: projection.files.len(),
         written,
-        skipped,
+        skipped: projection.files.len() - written,
     })
 }

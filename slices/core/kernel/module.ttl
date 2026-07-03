@@ -37,6 +37,8 @@ gmeow:Agent
     rdfs:label "Agent"@x-gmeow-english ;
     rdfs:subClassOf logic:FunctionalComplex ,
         gmeow:Entity ;
+    owl:disjointWith gmeow:InformationObject ,
+        gmeow:SocialObject ;
     skos:definition "An entity that can act, bear responsibility, and enter into agreements: a person, an organization, or a software agent."@x-gmeow-english ;
     skos:example "ex:lillith a gmeow:Agent ; gmeow:hasName ex:lillithName ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for things that are merely acted upon or that carry information without acting (use PhysicalObject or InformationObject); avoid asserting bare gmeow:Agent when Person or Organization is meant."@x-gmeow-english ;
@@ -159,7 +161,8 @@ gmeow:PhysicalObject
     rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     owl:disjointWith gmeow:Agent ,
-        gmeow:InformationObject ;
+        gmeow:InformationObject ,
+        gmeow:SocialObject ;
     skos:definition "An entity that is a material thing occupying space and time — a device, instrument, vehicle, building, or natural body. Distinct from Agent (which acts and bears responsibility) and InformationObject (which carries information content). The sortal for pose-bearing, sensor-hosting, and spatially-located things that are not agents."@x-gmeow-english ;
     skos:example "ex:rover a gmeow:PhysicalObject ; gmeow:hasPose ex:roverPose ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for acting participants (Agent), for content carriers whose materiality is incidental (InformationObject), and for convention-sustained things (SocialObject); the three are disjoint with PhysicalObject by design."@x-gmeow-english ;
@@ -446,7 +449,7 @@ gmeow:consumerAdviceCatalog
     a gmeow:ProjectionContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "advice catalog"@x-gmeow-english ;
-    skos:definition "The consumer is the developer-facing advice catalog aggregated from each term's advisory annotations — use-when, avoid-when, how-to-use, and scope — and surfaced on the generated term pages, the search index, and the llms-docs export."@x-gmeow-english ;
+    skos:definition "The consumer is the developer-facing advice catalog aggregated from each term's advisory annotations — use-when, avoid-when, how-to-use, and scope — and surfaced on the generated term pages, the search index, and the llms.txt / llms-full.txt exports."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:consumerAgentMemory

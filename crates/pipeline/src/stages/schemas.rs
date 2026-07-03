@@ -18,7 +18,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_rdf::RdfDataset;
+use purrdf::RdfDataset;
 use serde::Serialize;
 
 use crate::error::PipelineError;
@@ -855,7 +855,7 @@ mod tests {
         let root = repo_root();
         let gts =
             std::fs::read(root.join("generated/dist/gmeow.gts")).expect("read committed gmeow.gts");
-        gmeow_rdf::import_gts_events(&gts)
+        purrdf::import_gts_events(&gts)
             .expect("import committed gmeow.gts")
             .dataset
     }

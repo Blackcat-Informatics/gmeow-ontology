@@ -8,7 +8,7 @@
 //!
 //! * the data graph is a frozen [`Arc<RdfDataset>`](RdfDataset), built by parsing
 //!   each Turtle source through the canonical native codec
-//!   (`gmeow_rdf::parse_dataset`) and `RdfDataset::union`-ing them into one — the
+//!   (`purrdf::parse_dataset`) and `RdfDataset::union`-ing them into one — the
 //!   same merge `gmeow_validate::store::build_store` did, but in the IR, never an
 //!   oxigraph `Store`;
 //! * queries run through [`NativeSparqlEngine`] (`crates/sparql-eval`), the single
@@ -24,10 +24,10 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use gmeow_rdf::parse_dataset;
-use gmeow_rdf_core::ir::RdfDatasetBuilder;
-use gmeow_rdf_core::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
-use gmeow_sparql_eval::NativeSparqlEngine;
+use purrdf::ir::RdfDatasetBuilder;
+use purrdf::parse_dataset;
+use purrdf::sparql::NativeSparqlEngine;
+use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
 
 /// One SELECT result: the projected variable names and the rows of optional terms,
 /// the dataset-independent egress shape the native engine materializes.

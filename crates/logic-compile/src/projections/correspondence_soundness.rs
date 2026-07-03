@@ -33,7 +33,7 @@
 //!
 //! The historical lints queried an `oxigraph::store::Store` with `quads_for_pattern`.
 //! Every read here goes through the wasm-clean [`DslView`] over an already-parsed
-//! [`gmeow_rdf::RdfDataset`] instead (the file-reading + Turtle-parsing edge lives in the
+//! [`purrdf::RdfDataset`] instead (the file-reading + Turtle-parsing edge lives in the
 //! caller — the pipeline `correspondence_soundness` stage module — exactly as the four
 //! dialect lowerings are driven). The pure pass receives:
 //!

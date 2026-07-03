@@ -21,7 +21,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use gmeow_logic::materialize::materialize_core;
 use gmeow_logic::reason::{el_closure, reason_all};
-use gmeow_rdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 use std::sync::Arc;
 
 const W: &str = "http://gmeow.example/w";

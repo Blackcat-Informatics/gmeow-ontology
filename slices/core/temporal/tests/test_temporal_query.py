@@ -12,10 +12,10 @@ from __future__ import annotations
 from functools import lru_cache
 
 import pytest
-from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace
-from gmeow_rdf.compat.rdflib.namespace import XSD
-from gmeow_rdf.compat.rdflib.query import ResultRow
-from gmeow_rdf.compat.rdflib.term import Identifier
+from purrdf.compat.rdflib import Graph, Literal, Namespace
+from purrdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib.query import ResultRow
+from purrdf.compat.rdflib.term import Identifier
 
 from gmeow_tools.config import FIXTURES_DIR
 from gmeow_tools.graph import load_merged_graph

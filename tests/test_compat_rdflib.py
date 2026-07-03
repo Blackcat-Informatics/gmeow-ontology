@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tests for the purrdf rdflib compat shim (``gmeow_rdf.compat.rdflib``).
+"""Tests for the purrdf rdflib compat shim (``purrdf.compat.rdflib``).
 
 Where real ``rdflib`` is installed, the facade is differential-tested against it
 so the term/equality/serialization behaviour matches. These run in the default
@@ -9,8 +9,9 @@ lane (no ``classic_cross_check`` marker) — the facade IS default-path code.
 
 from __future__ import annotations
 
-import gmeow_rdf
-from gmeow_rdf.compat.rdflib import (
+import purrdf
+from purrdf.compat.rdflib import (
+    DATASET_DEFAULT_GRAPH_ID,
     RDF,
     RDFS,
     BNode,
@@ -20,10 +21,10 @@ from gmeow_rdf.compat.rdflib import (
     Namespace,
     URIRef,
 )
-from gmeow_rdf.compat.rdflib.collection import Collection
-from gmeow_rdf.compat.rdflib.compare import graph_diff, isomorphic, to_canonical_graph
-from gmeow_rdf.compat.rdflib.namespace import XSD
-from gmeow_rdf.compat.rdflib.util import guess_format
+from purrdf.compat.rdflib.collection import Collection
+from purrdf.compat.rdflib.compare import graph_diff, isomorphic, to_canonical_graph
+from purrdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib.util import guess_format
 
 EX = Namespace("http://example.org/")
 
@@ -31,11 +32,11 @@ EX = Namespace("http://example.org/")
 def test_submodule_import_after_shim_swap() -> None:
     """The native names AND the pure-Python subpackage both resolve in-process.
 
-    Proves the ``gmeow_rdf/__init__.py`` ``__path__`` fix: the ``sys.modules``
-    swap to the native cdylib must not break ``import gmeow_rdf.compat.rdflib``.
+    Proves the ``purrdf/__init__.py`` ``__path__`` fix: the ``sys.modules``
+    swap to the native cdylib must not break ``import purrdf.compat.rdflib``.
     """
-    assert gmeow_rdf.NamedNode("http://x").value == "http://x"
-    import gmeow_rdf.compat.rdflib as shim
+    assert purrdf.NamedNode("http://x").value == "http://x"
+    import purrdf.compat.rdflib as shim
 
     assert shim.Graph is Graph
 
@@ -217,7 +218,9 @@ def test_dataset_named_graph_quads_filtering() -> None:
     ds.graph(EX.g).add((EX.named, EX.p, EX.o))
 
     assert set(ds.quads((None, None, None, None))) == {
-        (EX.default, EX.p, EX.o, None),
+        # rdflib names the default graph's context `urn:x-rdflib:default`
+        # (DATASET_DEFAULT_GRAPH_ID), not None.
+        (EX.default, EX.p, EX.o, DATASET_DEFAULT_GRAPH_ID),
         (EX.named, EX.p, EX.o, EX.g),
     }
     assert list(ds.quads((None, None, None, EX.g))) == [(EX.named, EX.p, EX.o, EX.g)]

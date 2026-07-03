@@ -18,14 +18,11 @@ path = "src/lib.rs"
 # canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen `RdfDataset`
 # (`gmeow-rdf-core`), then run the competency/structural/RDFS-closure SPARQL through
 # the native `NativeSparqlEngine` (`gmeow-sparql-eval`) — no oxigraph Store anywhere.
-gmeow-rdf = { path = "../rdf" }
-gmeow-rdf-core = { path = "../rdf-core" }
-gmeow-sparql-eval = { path = "../sparql-eval" }
+purrdf = "0.2"
 # The SHACL Finding bridge (finding_from_shacl -> shacl.<LocalName>) for the
 # example-conformance executor.
 gmeow-validate = { path = "../validate" }
 # SHACL engine: parse_shapes + validate_dataset (IR-native) for the ExampleConformance executor.
-gmeow-shacl = { path = "../shacl" }
 # The canonical logic:ResultShape type contract (validate_bindings / is_satisfiable_by)
 # for the cqResultShape / cqInputShape contract check. It lives in the Nemo-FREE
 # gmeow-logic-compile crate (re-exported by gmeow-logic), so the harness gets the

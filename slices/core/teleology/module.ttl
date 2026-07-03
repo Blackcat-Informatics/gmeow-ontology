@@ -12,6 +12,9 @@ gmeow:Commitment
     rdfs:label "Commitment"@x-gmeow-english ;
     rdfs:subClassOf logic:Relator ,
         gmeow:IntentionalMoment ;
+    logic:mediates gmeow:committedAgent ,
+        gmeow:commitmentBeneficiary ,
+        gmeow:intentionGoal ;
     skos:definition "A social commitment — an agent committed toward at least one other agent to bring about a goal (UFO-C: social moment). A relator, not a mode: it mediates the committed agent (gmeow:committedAgent) and the beneficiaries (gmeow:commitmentBeneficiary), who must be distinct (SHACL). A covenant, a contract promise, and a service-level agreement are Commitments; the agreements and contracts modules carry the document and the legal wrapper, this class carries the teleological bond itself."@x-gmeow-english ;
     skos:example "ex:slaPromise a gmeow:Commitment ; gmeow:committedAgent ex:vendor ; gmeow:commitmentBeneficiary ex:client ; gmeow:intentionGoal ex:ninetyNinePercentUptime ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for intrinsic modes that hold no one accountable (use gmeow:Desire or gmeow:Intention) and for the document or legal wrapper (those live in the agreements and contracts modules); the beneficiary must be distinct from the committed agent."@x-gmeow-english ;
@@ -137,9 +140,9 @@ gmeow:counterGoal
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "counter-goal"@x-gmeow-english ;
     rdfs:range gmeow:Goal ;
-    skos:definition "Constitutive opposition between goals — the named shadow that partly defines what the goal means (an oath and its betrayal; a bond and its dissolution). Symmetric: each pole constitutes the other. Strictly stronger than a lexical antonym: assert it only when the opposition is part of the goal's identity, not merely its dictionary opposite. Irreflexive by SHACL (a goal is never its own shadow)."@x-gmeow-english ;
+    skos:definition "Constitutive opposition between goals — the named shadow that partly defines what the goal means (an oath and its betrayal; a bond and its dissolution). Symmetric: each pole constitutes the other. Strictly stronger than a lexical antonym: assert it only when the opposition is part of the goal's identity, not merely its dictionary opposite. Irreflexive: a goal is never its own shadow — kept a DL-clean simple property, with irreflexivity carried on the logic: characteristic layer rather than as an OWL axiom."@x-gmeow-english ;
     skos:example "ex:keepTheOath gmeow:counterGoal ex:betrayTheOath ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a merely lexical antonym or a loosely related rival goal; model plain term opposition with an antonym edge in the lexical layer, and never point a goal at itself (irreflexive by SHACL)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a merely lexical antonym or a loosely related rival goal; model plain term opposition with an antonym edge in the lexical layer, and never point a goal at itself (irreflexive: a goal is never its own shadow)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert it in one direction between two Goal individuals and read it both ways (symmetric); reserve it for the cases where the shadow partly defines the goal, leaving ordinary opposition to lexical relations."@x-gmeow-english ;
     gmeow:useWhen "Use when the opposition between two goals is constitutive — part of what each goal means — so the named shadow belongs in the goal's own identity (an oath and its betrayal, a bond and its dissolution)."@x-gmeow-english .

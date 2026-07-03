@@ -28,7 +28,7 @@ use std::collections::HashSet;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
-use gmeow_rdf::{parse_dataset, RdfDataset};
+use purrdf::{parse_dataset, RdfDataset};
 
 use super::frontend::{Diagnostic, LogicParseError, Severity};
 use super::graphutil::{

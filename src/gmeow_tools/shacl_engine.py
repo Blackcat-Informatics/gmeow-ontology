@@ -116,7 +116,7 @@ def validate_nt(data_nt: str, shapes_ttl: str) -> ShaclReport:
             This MUST surface — a parse error silently mapped to ``conforms``
             would be a false-negative, the worst possible SHACL outcome (P11/§11).
     """
-    import gmeow_shacl
+    from purrdf.purrdf_native import shacl as gmeow_shacl
 
     return cast(
         ShaclReport,

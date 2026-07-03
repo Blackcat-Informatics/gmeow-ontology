@@ -90,9 +90,10 @@ the position paper *"An LLM Output Is a Claim, Not a Truth: A Substrate for Grou
 Memory."*
 
 **Principles.** Every design decision and pull request is measured against
-[`CONSTITUTION.md`](./CONSTITUTION.md) — seventeen normative principles (claim-not-truth,
+[`CONSTITUTION.md`](./CONSTITUTION.md) — nineteen normative principles (claim-not-truth,
 the-product-is-a-tool, RDF-1.2-first, one-canonical-source, maximal bridging, greenfield,
-verified-by-construction, frame-relativity, suppression-never-erasure, …).
+verified-by-construction, frame-relativity, suppression-never-erasure, logic-is-canonical,
+the-grounding-layer-triad, …).
 Cite them by number in issues and PRs.
 
 - **Canonical IRI:** <https://blackcatinformatics.ca/gmeow> (slash namespace, term IRIs
@@ -143,7 +144,7 @@ slice's model *and* how it aligns/projects.
 
 | Guide | Kind | What it covers |
 |---|---|---|
-| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The seventeen normative principles every design decision and PR is measured against |
+| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The nineteen normative principles every design decision and PR is measured against |
 | [`docs/REALIGNMENT-v0.2.0.md`](./docs/REALIGNMENT-v0.2.0.md) | Governance | The v0.2.0 realignment: one engine, three products — positioning, recast inventory, deliverables D1–D7 |
 | [`docs/RATIONALE.md`](./docs/RATIONALE.md) | Doctrine | Why GMEOW exists — the nine challenges of digital existence and the architectural answers |
 | [`docs/mcp-server.md`](./docs/mcp-server.md) | Product | The MCP server: the grounded-memory triad (`store_claim`/`recall`/`revise_belief`) + the ontology toolchain tools; one-line install |
@@ -153,10 +154,11 @@ slice's model *and* how it aligns/projects.
 | [`docs/cli-extensions.md`](./docs/cli-extensions.md) | Specification | The `gmeow` CLI extension roll-up — subcommand discovery from slice manifests, GTS profile gating, and solver-layer transforms |
 | [`docs/validation-thresholds.md`](./docs/validation-thresholds.md) | Reference | The four blocking validation gate floors (#579) — SHACL, vendored-entity coverage, slice-example, transpile recall — their measured values, where each floor lives, and the ratchet rule |
 | [`docs/i18n.md`](./docs/i18n.md) | Process | The compiled PO translation layer: `.po` layout, extract/merge/export/sync commands, translator workflow, and i18n quality gates |
-| [`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration |
+| [`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration — the design-set entrypoint |
+| [`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`](./slices/core/logic/design/LOGIC-CORRESPONDENCE.md) | Doctrine | The correspondence calculus — cross-ontology alignment as the ninth `logic:` node kind; the law-spine, mnemomorphism, and section/retraction ("perfectly subsume V" as a CI-checkable law); rationale in [`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/) |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
 | [`docs/four-boxes.md`](./docs/four-boxes.md) | Doctrine | ABox/TBox/RBox/CBox as explicit graph roles for docs, validation diagnostics, GTS/package surfaces, and RDF 1.2 statement context |
-| [`docs/projections.md`](./docs/projections.md) | Doctrine | The four-artifact alignment stack (SSSOM / EDOAL / FnO / SPARQL) and how lossy down-projection works |
+| [`docs/projections.md`](./docs/projections.md) | Doctrine | The generated alignment lowerings (SSSOM / EDOAL / FnO / SPARQL) of `logic:Correspondence`, and how lossy down-projection works |
 | [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) | Specification | The build dataflow — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout; every `generated/` file is a projection of the bundle |
 | [`docs/transpile.md`](./docs/transpile.md) | Doctrine | The full transpile — consumer RDF → pure-GMEOW draft → MAXIMAL multi-vocab; `gmeow transpile`, stdin streaming, and the draft as a first-class artifact |
 | [`docs/okf.md`](./docs/okf.md) | Doctrine | The Open Knowledge Format agent surface — bidirectional Markdown-per-concept export (`gmeow okf`) + lift (`gmeow transpile <okf-dir>`); a lossy projection consuming the Rust `gts from-okf` codec |
@@ -313,7 +315,12 @@ shapes/                   Authored SHACL (incl. the slice-manifest shapes)
 queries/                  Authored SPARQL: competency/, verify/, qc/, codecs/
 imports/                  Vendored gUFO + validation-only axiom snapshots
 catalog-v001.xml          Offline IRI→file resolution for ROBOT/Protégé
-src/gmeow_tools/          The toolchain (CLI: `gmeow …`)
+crates/                   The Rust core: logic/ + logic-compile/ (the native logic:
+                          engine + typed IR), rdf/ + rdf-core/ (RDF 1.2 kernel),
+                          pipeline/ (the in-memory carrier spine → one gmeow.gts
+                          terminal), shacl/, validate/, docs/, conformance/, …
+src/gmeow_tools/          A thin, shrinking Python surface (progressively ported to
+                          Rust — core work is Rust, Principle: Rust-first)
 
 generated/                EVERY committed generated artifact — one root, every
                           path owned by a registered generator (drift-, orphan-,
@@ -323,17 +330,26 @@ generated/                EVERY committed generated artifact — one root, every
                           (RDF 1.2 lead + OWL downcast) · schemas/ · lpg/ ·
                           metadata/ (VoID+DCAT) · apache/ · module-status.md
 dist/                     Ephemeral build products (never committed)
+generated/dist/gmeow.gts  The single canonical terminal — a content-addressed,
+                          signable bundle every generated/ artifact is a
+                          projection of (docs/PIPELINE_SPINE.md)
+slices/core/logic/design/      Canonical design sets — the logic: layer +
+docs/APPLIED_CATEGORY_THEORY/  the correspondence-calculus rationale; read in
+                          full before working in those areas
 ```
 
 The per-slice audit state — tier, dependencies, term counts, documentation
 status — is the generated [`generated/module-status.md`](./generated/module-status.md).
 
-### Reasoning: merge first
+### Reasoning: native authority, merge for cross-check
 
-The pipeline always **merges the import closure into one ontology, then reasons/validates
-that product**. ROBOT's `validate-profile` reports spurious "undeclared entity" violations
-when terms are declared in a sibling imported module; collapsing to a single ontology
-resolves it. ELK gates every push (fast); HermiT gates releases (sound + complete OWL 2 DL).
+The **native `logic:` engine is the reasoning authority** (`make reason`, Docker-free) — forward
+materialization + backward goal-resolution over the RDF-1.2 canonical form, with per-triple
+derivation provenance. For the OWL cross-check lane, the pipeline **merges the import closure into
+one ontology, then reasons/validates that product** (collapsing to a single ontology avoids
+ROBOT's spurious "undeclared entity" violations for sibling-module terms); ELK (fast) and HermiT
+(sound + complete OWL 2 DL) run there as *secondary* validators of the exported OWL projection,
+never as the authority over `logic:` semantics.
 
 ### Upper-ontology spine
 
@@ -351,38 +367,47 @@ resolves it. ELK gates every push (fast); HermiT gates releases (sound + complet
 
 ### Linking & the license policy
 
-Alignments are authored once in the **mapping DSL** (`dsl/mappings/`) and compiled
-(`gmeow-dev regenerate mappings`) to SSSOM + EDOAL + FnO + SPARQL — see [§ The mapping
-compiler](#the-mapping-compiler). Asserting a link (`owl:equivalentClass`,
+Alignments are canonical `logic:Correspondence` objects (authored via the mapping-DSL frontend
+in `dsl/mappings/`), from which SSSOM + EDOAL + FnO + SPARQL are generated lowerings — see
+[§ The correspondence calculus](#the-correspondence-calculus--alignment-as-a-first-class-logical-construct). Asserting a link (`owl:equivalentClass`,
 `skos:exactMatch`, …) to any external term is always permitted — it copies nothing.
 **Copying** axioms in (via `owl:imports` / ROBOT `extract`) is license-gated: a
 reference-only source (NC/ND/share-alike/copyleft/proprietary) is **refused**
 (`gmeow-dev extract --target …`). The policy is classified by license family in
 `config.py`, so new targets are classified correctly by default.
 
-### The mapping compiler
+### The correspondence calculus — alignment as a first-class logical construct
 
-GMEOW's doctrine — *one canonical source, everything else a generated lossy
-projection* ([Principle 4](./CONSTITUTION.md)) — applies to the alignment layer
-itself. Every mapping is authored
-**once** as a `gmeow:`-grounded Turtle cell in `dsl/mappings/`, and
-`gmeow-dev regenerate mappings` renders the four standard artifacts (SSSOM term links, EDOAL
-complex cells, FnO transform functions, SPARQL CONSTRUCT executors). Drift is
-impossible by construction; `gmeow-dev check-generated mappings` is the CI no-drift
-gate. The compiler uses each target language to its full extent (EDOAL
-`compose`/`inverse` relation paths, FnO `fnom` implementation linkage, SSSOM
-provenance + labels, the full SPARQL path/expression algebra) — all expressed as
-GMEOW vocabulary, never raw SPARQL. Full reference + authoring guide:
+Cross-ontology alignment is not a set of hand-maintained files; it is the **ninth node kind of
+the canonical `logic:` IR** ([Principle 17](./CONSTITUTION.md)). A `logic:Correspondence` wraps a
+`logic:Lens` (its executable `get`/`put` core) and carries a *morphism class* on a seven-rung
+ordered law-spine (isomorphism → **section/retraction** → well-behaved lens → lossy lens → prism
+→ affine → bridge view), the four separated quantitative axes (confidence, evidence, weight,
+probability), a determinacy axis, standpoint indexing, and FOL/SOL caveats. From that one
+canonical object, **SSSOM (term links), EDOAL (complex cells), FnO (transform functions), and
+SPARQL CONSTRUCT (executors) are generated *lowerings*** — each carrying an honest preservation
+judgment in the loss ledger, under an *overclaim gate* that fails the build if a bridge view emits
+equivalence or a caveated overlap emits `exactMatch`. The mapping DSL (`dsl/mappings/`) is the
+ergonomic authoring frontend (moving toward deriving correspondences directly from slice linkage).
+
+The keystone is the **mnemomorphism** — a `get` that carries a witness of its source, so the
+inverse (`put`, up-projection) is *recovery*, not reconstruction — which turns "GMEOW perfectly
+subsumes vocabulary V" into a **CI-checkable section/retraction law** (`u ∘ d = id`) rather than a
+slogan. It is *proven*, not asserted: the openEHR blood-pressure archetype round-trips through an
+in-band complement and passes a real (Archie RM) validator. Design + rationale:
+[`LOGIC-CORRESPONDENCE.md`](./slices/core/logic/design/LOGIC-CORRESPONDENCE.md) and
+[`docs/APPLIED_CATEGORY_THEORY/`](./docs/APPLIED_CATEGORY_THEORY/); the projection reference:
 [`docs/projections.md`](./docs/projections.md).
 
 ### Projection targets
 
 GMEOW **projects down** to the vocabularies people actually consume — a deliberately lossy,
 directional export that downgrades the rich canonical model into a target consumer's terms
-without corrupting it ([Principle 4](./CONSTITUTION.md)). Each target below is authored in
-`dsl/mappings/projections/`, compiled to an EDOAL spec (`generated/projections/*.edoal.ttl`) +
-a SPARQL CONSTRUCT executor (`generated/queries/*.rq`), and run by `gmeow project` /
-`make project`. The full set with worked examples lives in
+without corrupting it ([Principle 4](./CONSTITUTION.md)). Each target below is a
+`logic:Correspondence` (authored via the frontend in `dsl/mappings/projections/`), lowered to an
+EDOAL spec (`generated/projections/*.edoal.ttl`) + a SPARQL CONSTRUCT executor
+(`generated/queries/*.rq`), and run by `gmeow project` / `make project`. The full set with worked
+examples lives in
 [`docs/projections.md`](./docs/projections.md).
 
 | Target | Spec | GMEOW exports… |
@@ -437,8 +462,9 @@ OWL form is the **downgrade for legacy tooling** — the same lossy-compatibilit
 principle GMEOW applies to schema.org / vCard / FOAF ([Principle 4](./CONSTITUTION.md)), not a
 competing source of truth — and it recedes as RDF-1.2-native reasoners and stores arrive. Both
 downcasts are guarded by `make check-generated`
-([Principle 7](./CONSTITUTION.md)). The scope is exact: the **logical TBox stays OWL 2 DL** —
-triple-terms are not OWL 2 DL, and GMEOW never claims otherwise.
+([Principle 7](./CONSTITUTION.md)). The **canonical logical core is the RDF-1.2-native `logic:`
+layer** (see *Native logic*, below); the OWL 2 DL form is one generated projection of it — a
+decidable downcast for today's reasoners, never a ceiling on what the canonical model may say.
 
 GMEOW makes the surrounding graph roles explicit with
 `gmeow:graphBoxRole`: ABox for asserted data and examples, TBox for schema and
@@ -447,18 +473,31 @@ assertion metadata such as RDF 1.2 reifiers. The four-box terminology is a
 documentation and validation aid over the same canonical sources; it is not a
 new source-of-truth layer. See [`docs/four-boxes.md`](./docs/four-boxes.md).
 
-### Native logic: OWL is a projection, not the ceiling
+### Native logic: `logic:` is canonical; OWL / SHACL / … are projections
 
-GMEOW's logical core is a canonical RDF 1.2 `logic:` layer
-([Principle 17](./CONSTITUTION.md)). The authored logic source
-normalizes into a typed IR, then projects into the forms each engine can consume:
-OWL DL/EL for today’s reasoners, Datalog/Nemo for monotonic materialization, N3 and Prolog
-for rule/backward-goal surfaces, plus preservation/loss ledgers that make every downgrade
-auditable. The Rust `crates/logic` engine stores world-indexed graphs in oxigraph, uses
-Nemo for forward materialization, carries proof traces, and exposes PyO3/wasm seams. Logic
-profiles certify what is decidable, complete, lossy, probabilistic, counterfactual, or
-budget-bounded before anything is allowed to call itself preserved. Design entrypoint:
-[`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md).
+GMEOW's logical core is a maximally expressive, RDF-1.2-native `logic:` layer
+([Principle 17](./CONSTITUTION.md)) — a full-FOL, Turing-complete typed IR, not an OWL syntax with
+a new namespace. **Every prior formalism is a generated, lossy projection of it**, and the
+relations are kept distinct on one lattice
+([`LOGIC-META-SEMANTICS.md`](./slices/core/logic/design/LOGIC-META-SEMANTICS.md)): `logic:` is
+*built atop* RDF 1.2; it is a *superset of* the definitional formalisms (OWL, RDFS, SKOS, gUFO,
+UFO — lifted in and projected back at exact preservation); it *down-projects lossily to* the
+closed-world validation surfaces (**SHACL Core + ShEx**, derived from a `logic:` validation-shape
+node kind — [`LOGIC-VALIDATION.md`](./slices/core/logic/design/LOGIC-VALIDATION.md)); and it
+*derives, via the correspondence layer,* the alignment surfaces (SSSOM/EDOAL/FnO). OWL DL/EL,
+Datalog, N3, Prolog, and the Common Logic dialects (CLIF/CGIF/XCL) are further generated surfaces;
+BFO/DOLCE/SUMO/YAMATO are bridge views.
+
+A **native, Docker-free execution engine** (`crates/logic` + `crates/logic-compile`) is the
+reasoning authority: forward materialization and backward goal-resolution over a relational-core
+dialect (semi-naive + magic-sets), per-triple derivation provenance, and a typed five-field
+`ReasoningResult`. Scryer (Prolog) and Nemo (Datalog) are bootstrap substrates being subsumed into
+the native core — demoted to cross-check oracles + not-yet-native fallbacks; ELK/HermiT survive
+only as a non-authoritative cross-check lane. Every lowering carries a preservation judgment (exact
+/ under- / over-approximation / validation-only / unsupported), and any reasoning-contract
+combination with no defined semantics surfaces as an explicit `unsupported` — never a silent
+approximation. Design set: [`slices/core/logic/design/`](./slices/core/logic/design/) (entrypoint
+[`LOGIC.md`](./slices/core/logic/design/LOGIC.md)).
 
 ### Names: first-class, multi-culture, inclusive
 
@@ -713,10 +752,13 @@ The issue backlog is represented here as current capability:
   scores, consumer-clean language tags, single-vocabulary GTS views, and context-aware
   up-projection over graph position, structural inverses, SKOS identity, QID concept bridges,
   and polymorphic literal guards.
-- **Logic.** The native `logic:` layer supplies typed IR, OWL/gUFO adapters, OWL/Datalog/N3/
-  Prolog projections, Nemo materialization into world-indexed oxigraph named graphs, proof
-  traces, profile certification, counterfactual revision, backward goals, and probabilistic
-  weights with explicit preservation/loss ledgers.
+- **Logic.** The native `logic:` layer is the canonical reasoning core: a full-FOL typed IR from
+  which OWL DL/EL, Datalog, **SHACL Core + ShEx**, N3, Prolog, and the Common Logic dialects
+  (CLIF/CGIF/XCL) are generated projections with per-lowering preservation ledgers; a Docker-free
+  native execution engine (relational-core + magic-sets, forward + backward, proof traces); the
+  **correspondence calculus** — cross-ontology alignment as the ninth node kind, with SSSOM/EDOAL/
+  FnO as lowerings, the mnemomorphism keystone, and section/retraction *proven* against openEHR —
+  plus reasoning contracts, profile certification, counterfactual revision, and probabilistic weights.
 - **Cognition and epistemics.** Objectual cognition (`isAwareOf` → `knowsAbout` →
   `understands` → `hasMastered`), mental moments, cognitive states, attention/interest/memory,
   propositional epistemics, doxastic state/tenure, credence, justification, defeaters, Gettier

@@ -28,7 +28,7 @@
 //! with `p` in the namespace) before the depth closure runs.  That step is declared
 //! in the ledger and in the emitted Datalog header, never hidden.
 
-use gmeow_sparql_algebra::{NamedNode as SparqlNamedNode, PropertyPathExpression};
+use purrdf::sparql::{NamedNode as SparqlNamedNode, PropertyPathExpression};
 
 use super::super::ir::{LegPath, LogicProgram, PathBase, PathShapeIr};
 use super::{target_meta, LedgerEntry};

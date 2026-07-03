@@ -7,7 +7,7 @@
 //! translations in per-slice gettext catalogs `slices/<g>/<slice>/i18n/<lang>.po`.
 //! The slice catalog classifies those files as
 //! [`ArtifactRole::TranslationCatalog`], so their bytes are already available
-//! on each [`gmeow_slice::SliceRecord`]. This module
+//! on each [`purrdf::slice::SliceRecord`]. This module
 //! parses them into a [`Translations`] index and resolves per-language label /
 //! definition values at render time, falling back to the English carrier.
 //!
@@ -34,7 +34,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use gmeow_slice::{ArtifactRole, SliceCatalog};
+use purrdf::slice::{ArtifactRole, SliceCatalog};
 
 /// The English authoring carrier key (the model's own values).
 pub const ENGLISH: &str = "english";
@@ -511,6 +511,12 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
          equivalent. See the [preservation loss ledger]",
     ),
     (
+        "body_caveat_edoal_fno_pre",
+        "These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation \
+         correspondences, FnO) — sound but lossy under-approximations of the canonical \
+         correspondence. See the [preservation loss ledger]",
+    ),
+    (
         "body_caveat_narrow",
         "narrower match — the external term is more specific",
     ),
@@ -519,6 +525,8 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "related match — associative, not an equivalence",
     ),
     ("body_changelog", "Changelog"),
+    ("body_changelog_added", "Added"),
+    ("body_changelog_changed", "Changed"),
     ("body_citation", "Citation"),
     ("body_compiler_diagnostics", "Compiler diagnostics"),
     ("body_compiler_products", "Compiler products"),
@@ -557,6 +565,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_label_alignment_density", "Alignment density"),
     ("body_label_cite_ontology", "Cite the ontology"),
     ("body_label_cite_slice", "Cite the slice"),
+    ("body_label_content_address", "Content address"),
     ("body_label_help_link", "Help link"),
     ("body_label_orphan_terms", "Orphan terms"),
     ("body_label_permalink", "Permalink"),
@@ -923,9 +932,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 103 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 107 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 163);
+        assert_eq!(UI_TEMPLATES.len(), 167);
     }
 
     #[test]

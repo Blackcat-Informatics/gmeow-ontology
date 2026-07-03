@@ -2,43 +2,46 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Tagging
+# Doxastic State
 
-`gmeow:Tagging` · Class
+`gmeow:DoxasticState` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:Tagging` |
-| IRI | `https://blackcatinformatics.ca/gmeow/Tagging` |
+| CURIE | `gmeow:DoxasticState` |
+| IRI | `https://blackcatinformatics.ca/gmeow/DoxasticState` |
 | Category | Class |
-| Slice | [GMEOW Tags Module](../../slices/tags/index.md) |
+| Slice | [GMEOW Epistemics Module](../../slices/epistemics/index.md) |
 
-![completeness: Docs 5/6](../../badges/completeness/5.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 6/6](../../badges/completeness/6.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval\. Bears provenance \(gmeow:wasAttributedTo\), confidence \(gmeow:confidence\), and suppression \(gmeow:displayable false for retraction without deletion — Principle 10\)\. Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time\-scoping, confidence\-weighting, and retract\-without\-delete for free\. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag\.
+An agent's intrinsic believing mode toward a proposition — the reified, first\-class mental moment that grounds the flat doxastic spine \(gmeow:believes, gmeow:knowsThat\)\. A sibling of cognition:CognitiveState \(knowing\) and teleology:IntentionalMode \(desiring/intending\) under kernel:MentalMoment, so an agent's whole endurant mental life is queryable as one family \(Principle 15\)\. Inheres in exactly one agent via epistemicAgent and is directed at exactly one Proposition via doxasticContent; its qualitative belief value is carried by a linked StandpointClaim \(doxasticClaim → claimModality\), and its graded strength by credence \[0,1\]\. Never instantiated directly when the flat spine suffices \(Principle 4\)\.
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/tagging.svg)
+![Term neighborhood](../../diagrams/terms/doxasticstate.svg)
 
 ## Super\-classes
 
-- [https://blackcatinformatics\.ca/logic/Relator](https://blackcatinformatics\.ca/logic/Relator)
+- [`gmeow:JustificationGround`](../justificationground/index.md)
+- [`gmeow:JustificationSubject`](../justificationsubject/index.md)
+- [`gmeow:MentalMoment`](../mentalmoment/index.md)
 
 ## Usage Advice
 
-- **Example:** ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:report ; gmeow:taggingTag ex:tagUrgent ; gmeow:taggingTagger ex:lillith \.
-- **Use when:** Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it \(gmeow:displayable false\)\.
-- **Avoid when:** Avoid for the ordinary 80% case where a bare label suffices \(use the flat gmeow:hasTag, optionally with RDF\-star annotations\); reify only when provenance, period, or suppression must be first\-class\.
-- **How to use:** Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target\.
+- **Scope:** A DoxasticState grounds the canonical claim tokens that report it via gmeow:groundsClaim \(the attitude→token link, inverse of gmeow:heldByAttitude\), distinct from gmeow:doxasticClaim which links to the standpoint\-slice gmeow:StandpointClaim VIEW\. An attitude may ground several tokens or none \(a belief never put forward\) — the held/projected gap \(Principle 9\)\.
+- **Example:** ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence "0\.92"^^xsd:decimal \.
+- **Use when:** Use when an agent's belief toward a proposition must be first\-class — when credence, temporal scope \(via DoxasticTenure\), standpoint modality, or the mental moment itself needs to be queried or revised \(Principle 15\)\.
+- **Avoid when:** Avoid for the 80% case where an agent simply believes a proposition — use the flat gmeow:believes / gmeow:knowsThat spine and carry modality on the statement layer; avoid double\-typing a belief as both a flat relation and a DoxasticState for the same holding \(Principle 12\)\.
+- **How to use:** Mint one DoxasticState per \(agent, proposition, claim\-modality\) tuple; link it via gmeow:doxasticClaim to a StandpointClaim whose vantage is the agent, observedFeature is the proposition, and claimModality carries the qualitative value; attach credence for graded strength and a DoxasticTenure when belief revision history matters\.
 
 ## Alignments
 
-- `closeMatch` → [http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging](http://www\.holygoat\.co\.uk/owl/redwood/0\.1/tags/Tagging) — *approximate match (close) — not an exact equivalence.*
-- `closeMatch` → [http://www\.w3\.org/ns/oa\#Annotation](http://www\.w3\.org/ns/oa\#Annotation) — *approximate match (close) — not an exact equivalence.*
+- `closeMatch` → [http://www\.ics\.forth\.gr/isl/CRMinf/I2\_Belief](http://www\.ics\.forth\.gr/isl/CRMinf/I2\_Belief) — *approximate match (close) — not an exact equivalence.*
 - *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
+- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Logic stereotypes
 
@@ -50,19 +53,35 @@ A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a t
 
 ## Constraints
 
-- A Tagging must have exactly one tagger \(gmeow:taggingTagger\)\.
-- A Tagging must tag exactly one entity \(gmeow:taggingTagged\)\.
-- A Tagging must use exactly one tag \(gmeow:taggingTag\)\.
-- A retracted or superseded tagging \(one whose interval has ended\) should set gmeow:displayable false — suppressed from display, never deleted\.
+- A DoxasticState must be linked to exactly one StandpointClaim \(gmeow:doxasticClaim\) carrying its qualitative claimModality\.
+- A DoxasticState must have exactly one doxastic content \(gmeow:doxasticContent, range gmeow:Proposition\)\.
+- A DoxasticState must have exactly one epistemic agent \(gmeow:epistemicAgent, range gmeow:Agent\)\.
+- If present, gmeow:adequateUnder on a DoxasticState must be a gmeow:AdequacyAssessment\.
+- If present, gmeow:basesBeliefOn must point to a gmeow:JustificationGround \(EvidenceSpan, Attestation, or DoxasticState\)\.
+- If present, gmeow:credence must be an xsd:decimal in the closed interval \[0,1\]\.
+- If present, gmeow:defeatedBy on a DoxasticState must be a gmeow:Defeater \(Argument, StandpointClaim, or EvidenceSpan\)\.
+- If present, gmeow:hasAvailableEvidence must point to a gmeow:JustificationGround \(EvidenceSpan, Attestation, or DoxasticState\)\.
+- If present, gmeow:hasDefeatStatus on a DoxasticState must be an IRI typed as gmeow:JustificationStatus\.
+- If present, gmeow:supportsUnder on a DoxasticState must be a gmeow:SupportAssessment\.
+- gmeow:basesBeliefOn should point to an EvidenceSpan, Attestation, or DoxasticState \(advisory warning\)\.
+- gmeow:hasAvailableEvidence should point to an EvidenceSpan, Attestation, or DoxasticState \(advisory warning\)\.
 
 ## Related terms
 
-- [`gmeow:hasTag`](../hastag/index.md)
+- [`gmeow:DoxasticTenure`](../doxastictenure/index.md)
+- [`gmeow:believes`](../believes/index.md)
+
+## Tested by
+
+- GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings \(gmeow:CognitiveState\), beliefs \(gmeow:DoxasticState\), and intentions \(gmeow:IntentionalMode\) — the agent\-memory flagship capability\. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant\. (`slices/core/affect/queries/competency/mental-life.rq`)
 
 ## Examples using this term
 
-- [Research topic keywords](../../slices/profiles/index.md) — `examples/named-profile-membership.ttl`
-- [Research topic keywords](../../slices/tags/index.md) — `examples/folksonomy.ttl`
+- [spokesperson's held belief: internal engineer caused the outage](../../slices/deception/index.md) — `examples/blame-deflection.ttl`
+- [Office operator](../../slices/epistemics/index.md) — `examples/belief-revision.ttl`
+- [Alice's standpoint](../../slices/epistemics/index.md) — `examples/claim-token-split.ttl`
+- [calendar evidence span for the meeting date](../../slices/epistemics/index.md) — `examples/flagship-epistemic-ledger.ttl`
+- [Ada](../../slices/epistemics/index.md) — `examples/justification-and-defeat.ttl`
 
 ## Stability
 
@@ -70,14 +89,19 @@ A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a t
 
 ## Documentation coverage
 
-- **5 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment
+- **6 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✓ Scope note · ✓ Alignment
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Profiles
 
-- `claims` · `dreaming` · `full` · `memory` · `music` · `narrative`
+- `claims` · `full` · `memory`
+
+## Changelog
+
+- **Added in:** 0\.1\.0
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/Tagging>
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/DoxasticState>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:361cc1c1e108d0f6c1d8cf3f30a54859258def1d8af1a3cae800c4ccbef65053`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

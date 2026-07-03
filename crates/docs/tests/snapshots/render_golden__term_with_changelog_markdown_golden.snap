@@ -2,65 +2,76 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Changelog Entry
+# Affect Composite
 
-`gmeow:ChangelogEntry` · Class
+`gmeow:AffectComposite` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:ChangelogEntry` |
-| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
+| CURIE | `gmeow:AffectComposite` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AffectComposite` |
 | Category | Class |
-| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
+| Slice | [GMEOW Affect Module](../../slices/affect/index.md) |
 
-![completeness: Docs 4/6](../../badges/completeness/4.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 5/6](../../badges/completeness/5.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: SubKind](../../badges/stereotype/subkind.svg)
 
 ## Definition
 
-A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
+A named emotion whose meaning is given by a DECLARED composition — a core\-affect vector bound by relations to its elicitor, target, agency attribution, norm, and, where relevant, other emotions — rather than left as an unanalyzed primitive\. GMEOW models up: schadenfreude and saudade are structure over the foundational axes and relations, not new primitive EmotionTypes\. A composite MUST carry its decomposition via gmeow:affectiveConstituent \(SHACL\); if a quality cannot be decomposed into the current axes, that is evidence the axis basis is incomplete \(add an axis\), never a licence for an opaque primitive\.
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/changelogentry.svg)
+![Term neighborhood](../../diagrams/terms/affectcomposite.svg)
 
 ## Super\-classes
 
-- [`gmeow:InformationObject`](../informationobject/index.md)
+- [`gmeow:Emotion`](../emotion/index.md)
 
 ## Usage Advice
 
-- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
-- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
-- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
-- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
+- **Scope:** A named region/composite in the affect landscape \(⊑ gmeow:Emotion, so it inherits the mode/bearer/target/elicitor surface\)\. The composite layer stays analysable; the expressive power stays total\.
+- **Example:** ex:schadenfreude a gmeow:AffectComposite ; gmeow:emotionBearer ex:agent ; gmeow:affectiveConstituent ex:positiveCoreVector , ex:otherMisfortuneElicited \.
+- **Use when:** Use for a culturally salient named affect \(schadenfreude, saudade\) minted for developer utility and mapping ONLY when it carries its declared decomposition links\.
+- **Avoid when:** Avoid it for an unanalyzed primitive feeling \(mint no opaque emotionX — either decompose it here or add the missing axis\) and for the felt EPISODE \(that is gmeow:AffectiveExperience\)\.
+- **How to use:** Type the named compound gmeow:AffectComposite, bind its bearer, and declare its decomposition with gmeow:affectiveConstituent — a gmeow:AffectVectorObservation for the core\-affect signature plus the elicitor/target/agency/norm relations that differentiate it\.
 
 ## Logic stereotypes
 
-`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:SubKind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
 [TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
 
+## Constraints
+
+- An AffectComposite must declare at least one gmeow:affectiveConstituent — a named compound with no decomposition is a forbidden unanalyzed primitive \(model up from axes, or add the missing axis\)\.
+
+## Examples using this term
+
+- [PAD unit scale](../../slices/affect/index.md) — `examples/saudade.ttl`
+- [PAD unit scale](../../slices/affect/index.md) — `examples/schadenfreude.ttl`
+
 ## Stability
 
-- **Status:** experimental
+- **Status:** stable
 
 ## Documentation coverage
 
-- **4 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✗ Alignment
+- **5 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✓ Scope note · ✗ Alignment
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Profiles
 
-- `full` · `music`
+- `full` · `narrative`
 
 ## Changelog
 
-- **Added in:** 1\.0\.2
-- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
+- **Added in:** 0\.1\.0
+- **0\.1\.0** — Definition changed
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/AffectComposite>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AffectComposite@blake3:5f5ed61dcf7e41e5000b466787c4e4b459192300df61ac6bfdeb8965eae72285`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, URIRef
+from purrdf.compat.rdflib import OWL, RDF, RDFS, SKOS, URIRef
 
 from gmeow_tools.bundle import bundled_okf
 

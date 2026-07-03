@@ -16,7 +16,7 @@
 
 use std::path::{Path, PathBuf};
 
-use gmeow_rdf::{DatasetView, GraphMatch, TermRef};
+use purrdf::{DatasetView, GraphMatch, TermRef};
 
 use crate::mapping_eval;
 use crate::store;

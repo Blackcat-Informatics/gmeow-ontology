@@ -12,10 +12,10 @@
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock};
 
-use gmeow_rdf::parse_dataset;
-use gmeow_rdf_core::RdfDataset;
-use gmeow_shacl::engine::validate_dataset_graphs;
-use gmeow_shacl::report::{Severity, ValidationReport};
+use purrdf::parse_dataset;
+use purrdf::shapes::engine::validate_dataset_graphs;
+use purrdf::shapes::report::{Severity, ValidationReport};
+use purrdf::RdfDataset;
 
 // ── Repo-root resolution ──────────────────────────────────────────────────────
 
@@ -36,6 +36,10 @@ pub const DSL_SHAPE_FILENAMES: &[&str] = &[
     "statement-dsl-shapes.ttl",
     "test-dsl-shapes.ttl",
     "slice-manifest-shapes.ttl",
+    // The derived validation-shape surface is a DECLARED ValidationOnly projection carried in
+    // gmeow.gts but NOT enforced (an open-world someValuesFrom reading over-flags valid data);
+    // excluded exactly as `purrdf::shapes::shape_union::EXCLUDED` excludes it.
+    "validation-shapes.ttl",
 ];
 
 /// Collect `shapes/*.ttl` paths, sorted, excluding DSL-specific files.
@@ -66,7 +70,12 @@ pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
             )
         })
         .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.extension().and_then(|s| s.to_str()) == Some("ttl"))
+        .filter(|p| {
+            p.extension().and_then(|s| s.to_str()) == Some("ttl")
+                && !DSL_SHAPE_FILENAMES
+                    .iter()
+                    .any(|x| p.file_name().and_then(|n| n.to_str()) == Some(x))
+        })
         .collect();
     assert!(
         !paths.is_empty(),

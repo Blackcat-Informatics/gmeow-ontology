@@ -17,7 +17,7 @@ expressed as module-scoped SPARQL ASK cells:
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Namespace
+from purrdf.compat.rdflib import OWL, RDF, Graph, Namespace
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph

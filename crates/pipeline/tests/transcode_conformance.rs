@@ -14,7 +14,7 @@
 //! ```
 //!
 //! Comparison modes:
-//! - `rdf`  — RDFC-1.0 canonical quad comparison via oxigraph + gmeow_rdf.
+//! - `rdf`  — RDFC-1.0 canonical quad comparison via oxigraph + purrdf.
 //! - `text` — exact UTF-8 trimmed equality.
 //! - `star` — round-trip via `parse_jsonld_star` / `yaml_ld_star_to_json` +
 //!   RDFC-1.0 comparison; used for JSON-LD-star and YAML-LD-star targets that
@@ -26,7 +26,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::stages::yaml_ld::{parse_jsonld_star, yaml_ld_star_to_json};
 use gmeow_pipeline::transcode::{realized_loss_json, transcode, Codec};
-use gmeow_rdf::NativeRdfFormat;
+use purrdf::NativeRdfFormat;
 
 // ── Minimum corpus size guard ──────────────────────────────────────────────────
 
@@ -49,9 +49,9 @@ fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, St
     // Native text ingress (#909) + native full RDFC-1.0 (#910): parse into the IR and
     // canonicalize via the flattened path (`canonical_flat_nquads`), byte-identical to
     // the prior oxigraph parse + `canonicalize_quads`.
-    let dataset = gmeow_rdf::parse_dataset(bytes, fmt.media_type(), None)
+    let dataset = purrdf::parse_dataset(bytes, fmt.media_type(), None)
         .map_err(|e| format!("RDF parse error: {e}"))?;
-    let canonical = gmeow_rdf::canonical_flat_nquads(&dataset)
+    let canonical = purrdf::canonical_flat_nquads(&dataset)
         .map_err(|e| format!("RDF canonicalization error: {e}"))?;
     let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
     strings.sort();
@@ -65,7 +65,7 @@ fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, St
 /// RDF text format enum has no JSON-LD variant, so we decode through
 /// `parse_jsonld_star` (which
 /// understands the `@annotation` idiom emitted by the GMEOW serializer) and
-/// then canonicalize via gmeow_rdf.
+/// then canonicalize via purrdf.
 fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> Result<Vec<String>, String> {
     let json_bytes = match to_codec {
         "jsonld" | "json-ld" => bytes.to_vec(),
@@ -82,7 +82,7 @@ fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> Result<Vec<String>, Str
     // / annotation rows before RDFC-1.0 canonicalizing — byte-identical to the prior
     // oxigraph-quad canonicalize path.
     let dataset = parse_jsonld_star(&json_bytes).map_err(|e| format!("parse jsonld-star: {e}"))?;
-    let canonical = gmeow_rdf::canonical_flat_nquads(&dataset)
+    let canonical = purrdf::canonical_flat_nquads(&dataset)
         .map_err(|e| format!("RDF canonicalization error: {e}"))?;
     let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
     strings.sort();

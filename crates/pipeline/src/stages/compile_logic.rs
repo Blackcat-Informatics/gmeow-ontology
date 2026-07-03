@@ -12,8 +12,8 @@
 //! projection back-end once, and emits — as committed artifacts the single-pass
 //! regenerate/drift gate owns —
 //!
-//! * the ten projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
-//!   Datalog, N3, gUFO, Nemo, CLIF and CGIF projections, and the projection-report loss
+//! * the projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
+//!   Datalog, N3, gUFO, Nemo, CLIF, CGIF and XCL projections, and the projection-report loss
 //!   ledger), and
 //! * the compile diagnostics rendered to the four canonical projections (JSON, SARIF,
 //!   HTML, and `gmeow:Finding` N-Quads) — each below-`Exact` projection's structural
@@ -36,6 +36,8 @@ use std::sync::Arc;
 use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::LogicProgram;
+use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;
+use gmeow_logic_compile::opt_lift::lift_opt_to_validation_shape;
 use gmeow_logic_compile::projections::correspondence::{
     affine_triangle_worked_example, project_correspondence, CorrespondenceProgram,
 };
@@ -47,8 +49,8 @@ use gmeow_logic_compile::projections::{compile_program, ProjectionResult};
 use gmeow_logic_compile::relational_core::{
     lower_program, project_relational_core, RelationalCoreProgram,
 };
-use gmeow_rdf::provenance::DatasetProvenance;
-use gmeow_rdf::{parse_dataset, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm};
+use purrdf::provenance::DatasetProvenance;
+use purrdf::{parse_dataset, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm};
 use serde::{Deserialize, Serialize};
 
 use crate::bundle::{bundle_from_artifacts_over, PipelineHandle};
@@ -109,11 +111,26 @@ pub const CLIF_PATH: &str = "generated/cl/gmeow.clif";
 /// Committed CGIF (Conceptual Graph Interchange Format) projection: the bidirectional,
 /// `PreservationKind::Exact` conceptual-graph FOL dialect (sibling of CLIF, same `generated/cl/`).
 pub const CGIF_PATH: &str = "generated/cl/gmeow.cgif";
+/// Committed XCL (eXtended Common Logic Markup Language) projection: the bidirectional,
+/// `PreservationKind::Exact` XML FOL dialect (sibling of CLIF/CGIF, same `generated/cl/`).
+pub const XCL_PATH: &str = "generated/cl/gmeow.xcl";
 /// Committed SHACL-AF rule (computation) projection: the canon's derivation rules
 /// projected to a `sh:SPARQLRule` surface. Lives under its own `generated/shacl-af/`
 /// directory (NOT `generated/shapes/`) so the SHACL constraint validator never ingests
 /// these inference rules as no-op constraint shapes.
 pub const SHACL_AF_PATH: &str = "generated/shacl-af/gmeow.shacl-af.ttl";
+
+/// The closed-world validation-shape SHACL Core surface: the openEHR OPT/ADL constraint axis
+/// lifted to logic:ValidationShape and projected. Lives under generated/shapes/.
+pub const VALIDATION_SHAPES_TTL_PATH: &str = "generated/shapes/validation-shapes.ttl";
+/// The ShEx projection of the same validation shapes (a strictly narrower surface).
+pub const VALIDATION_SHAPES_SHEX_PATH: &str = "generated/shapes/validation-shapes.shex";
+/// The vendored openEHR OPT the constraint axis lifts (GECCO blood pressure).
+pub const OPT_SOURCE_PATH: &str = "validations/openehr-bloodpressure/Blutdruck.opt";
+/// A second vendored openEHR OPT — the CaboLabs "Test all datatypes" template, the one real OPT
+/// that carries `C_DV_ORDINAL` and `C_DATE_TIME` constraints. Lifting it is what makes the
+/// ordinal / datetime constraint families flow slices → gmeow.gts (not just prove in unit tests).
+pub const OPT_TEST_DATATYPES_PATH: &str = "validations/openehr-test-datatypes/TestAllDatatypes.opt";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
@@ -197,6 +214,28 @@ impl Default for CompileLogicStage {
     }
 }
 
+/// Lift EVERY constraint the vendored openEHR OPT walker recognizes — not just the curated
+/// blood-pressure quantity pair — to `logic:ValidationShape`s under `base_iri`. `naming` pins
+/// named at-codes (e.g. the production systolic at0004 / diastolic at0005 pair) to their
+/// established shape/target identity; every other recognized constraint is named from its own
+/// enclosing at-code (see [`gmeow_logic_compile::openehr_opt::read_all_opt_constraints`]).
+/// Hard-fails on any read/lift error (no optional path).
+fn lift_opt_constraints(
+    opt_xml: &str,
+    base_iri: &str,
+    naming: &BTreeMap<String, String>,
+) -> Result<Vec<gmeow_logic_compile::ir::ValidationShapeIr>, PipelineError> {
+    let constraints = read_all_opt_constraints(opt_xml, base_iri, naming)
+        .map_err(|e| stage_err(format!("OPT walk: {e}")))?;
+    constraints
+        .iter()
+        .map(|constraint| {
+            lift_opt_to_validation_shape(constraint)
+                .map_err(|e| stage_err(format!("OPT lift {}: {e}", constraint.shape_iri)))
+        })
+        .collect()
+}
+
 impl Stage for CompileLogicStage {
     fn id(&self) -> &str {
         "stage-compile-logic"
@@ -205,18 +244,62 @@ impl Stage for CompileLogicStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "compile-logic.v1"
+        "compile-logic.v4"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
-        // The compiler parses one canonical Turtle document; its content is the only
-        // source input, so a change to it busts this stage's cache.
-        Ok(vec![root.join(SOURCE_PATH)])
+        // The compiler parses the logic: source and the vendored OPT, and derives validation
+        // shapes from the whole authored ontology's OWL restrictions — so a change to ANY authored file
+        // must bust this stage's cache.
+        let mut files = vec![
+            root.join(SOURCE_PATH),
+            root.join(OPT_SOURCE_PATH),
+            root.join(OPT_TEST_DATATYPES_PATH),
+        ];
+        files.extend(crate::stages::source_load::authored_files(root)?);
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {SOURCE_PATH}: {e}")))?;
         let (program, diagnostics) = parse_logic_str(&source, Some(SOURCE_PATH.to_string()))
             .map_err(|e| stage_err(format!("parse {SOURCE_PATH}: {}", e.0)))?;
+        // Constraints axis: lift the vendored openEHR OPTs' constraints to logic:ValidationShapes
+        // and attach them, so the SHACL Core + ShEx shape surfaces flow into gmeow.gts as
+        // generated projections (DATA FLOWS TO gmeow.gts; maximal dogfooding). A hard fail if
+        // either committed OPT is unreadable (no optional path).
+        //
+        // Two OPTs under distinct base IRIs (no cross-collision): the GECCO blood-pressure
+        // template pins its production systolic/diastolic pair by at-code; the CaboLabs
+        // "Test all datatypes" template is the one real OPT carrying C_DV_ORDINAL and C_DATE_TIME,
+        // so lifting it is what carries the ordinal / datetime families into gmeow.gts.
+        const BP_BASE: &str = "https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/";
+        let bp_naming = BTreeMap::from([
+            ("at0004".to_string(), "Systolic".to_string()),
+            ("at0005".to_string(), "Diastolic".to_string()),
+        ]);
+        let opt_xml = std::fs::read_to_string(input.root.join(OPT_SOURCE_PATH))
+            .map_err(|e| stage_err(format!("read {OPT_SOURCE_PATH}: {e}")))?;
+        let mut validation_shapes = lift_opt_constraints(&opt_xml, BP_BASE, &bp_naming)?;
+
+        const TEST_DATATYPES_BASE: &str =
+            "https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/";
+        let td_xml = std::fs::read_to_string(input.root.join(OPT_TEST_DATATYPES_PATH))
+            .map_err(|e| stage_err(format!("read {OPT_TEST_DATATYPES_PATH}: {e}")))?;
+        validation_shapes.extend(lift_opt_constraints(
+            &td_xml,
+            TEST_DATATYPES_BASE,
+            &BTreeMap::new(),
+        )?);
+        // Derive closed-world validation shapes from the merged authored ontology's OWL
+        // restrictions (someValuesFrom → sh:class), where the DOMAIN restrictions live (the
+        // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
+        // derived ontology shapes ride into gmeow.gts through the shape surfaces.
+        let ontology = crate::stages::source_load::load_authored_dataset(input.root)?;
+        validation_shapes.extend(
+            gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
+                .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
+        );
+        let program = program.with_validation_shapes(validation_shapes);
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
         let mut arts = compile_program(&program).map_err(|e| stage_err(format!("compile: {e}")))?;
@@ -250,7 +333,7 @@ impl Stage for CompileLogicStage {
         // (shared prefix authority, no banner) so the superset gate reconstructs it.
         artifacts.insert(
             GUFO_PATH.to_string(),
-            gmeow_rdf::turtle_normalize::canonical_turtle(
+            purrdf::turtle_normalize::canonical_turtle(
                 arts.gufo.as_bytes(),
                 &crate::stages::superset::rdf_prefixes(),
             )
@@ -270,10 +353,34 @@ impl Stage for CompileLogicStage {
         artifacts.insert(RULES_PATH.to_string(), arts.nemo.into_bytes());
         artifacts.insert(CLIF_PATH.to_string(), arts.clif.into_bytes());
         artifacts.insert(CGIF_PATH.to_string(), arts.cgif.into_bytes());
+        artifacts.insert(XCL_PATH.to_string(), arts.xcl.into_bytes());
         // The SHACL-AF rule (computation) surface: the canon's derivation rules projected to
         // sh:SPARQLRule. A byte-decorated text artifact (carries a GENERATED banner), so it
         // rides the generated-fanout archive (REP_GENERATED) as a committed byte projection.
         artifacts.insert(SHACL_AF_PATH.to_string(), arts.shacl_af.into_bytes());
+        // The validation-shape surfaces (SHACL Core + ShEx): the OPT/ADL constraint axis
+        // projected. Extracted from the ledgered logic_projections so the file bytes and the
+        // loss-ledger rows share one source (single-renderer razor).
+        let vs_content = |target: &str| {
+            arts.logic_projections
+                .iter()
+                .find(|p| p.target == target)
+                .map(|p| p.content.clone())
+                .ok_or_else(|| {
+                    stage_err(format!(
+                        "compile: no '{target}' validation-shape projection produced — the target \
+                         string drifted from gmeow-logic-compile's registered projection targets"
+                    ))
+                })
+        };
+        artifacts.insert(
+            VALIDATION_SHAPES_TTL_PATH.to_string(),
+            vs_content("shacl-core")?.into_bytes(),
+        );
+        artifacts.insert(
+            VALIDATION_SHAPES_SHEX_PATH.to_string(),
+            vs_content("shex")?.into_bytes(),
+        );
 
         // The COMMITTED projection report is no longer emitted here: the loss ledger
         // must carry BOTH the logic projection rows AND the correspondence-calculus
@@ -423,7 +530,7 @@ fn build_logic_bundle(
         "application/n-quads",
         crate::stages::carrier::GRAPH_DIAGNOSTICS,
     )?;
-    let dataset = Arc::new(gmeow_rdf::RdfDataset::union(&[
+    let dataset = Arc::new(purrdf::RdfDataset::union(&[
         logic_dataset.as_ref(),
         rc_dataset.as_ref(),
         corr_dataset.as_ref(),
@@ -566,6 +673,7 @@ mod tests {
             RULES_PATH,
             CLIF_PATH,
             CGIF_PATH,
+            XCL_PATH,
             SHACL_AF_PATH,
             // The in-memory channel that hands the logic projection rows + header
             // counts to stage-mappings (which assembles the committed report).
@@ -608,9 +716,44 @@ mod tests {
         );
     }
 
+    /// The CaboLabs "Test all datatypes" OPT is wired as a second constraint source, so its
+    /// `C_DV_ORDINAL` and `C_DATE_TIME` families reach the generated shape surface (the axis is
+    /// delivered into gmeow.gts, not merely proven in a unit test). The datetime validity pattern
+    /// must NOT leak into the shapes as an inverted regex — it is ledger-only.
+    #[test]
+    fn test_datatypes_opt_ordinal_and_datetime_flow_into_shape_surface() {
+        let root = repo_root();
+        let upstream = BTreeMap::new();
+        let out = CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("compile-logic stage");
+        let arts = out.product.artifacts();
+        let ttl = std::str::from_utf8(&arts[VALIDATION_SHAPES_TTL_PATH]).expect("shapes ttl utf8");
+        // The second OPT's shapes reached the surface (its distinct base IRI).
+        assert!(
+            ttl.contains("openehr/testdatatypes/"),
+            "the test-datatypes OPT shapes must flow into the validation-shape surface"
+        );
+        // The ordinal value set projects its coded symbols as sh:in (C_DV_ORDINAL only exists in
+        // the test-datatypes OPT, so this proves the ordinal family flowed in).
+        assert!(
+            ttl.contains("openehr/testdatatypes/") && ttl.contains("sh:in ("),
+            "the ordinal family must project an sh:in value set into the shapes"
+        );
+        // The datetime validity pattern is a format template, not an XPath regex; it must never be
+        // emitted as an sh:pattern (which would reject every valid datetime). It is ledger-only.
+        assert!(
+            !ttl.contains("sh:pattern \"yyyy") && !ttl.contains("yyyy-mm-dd"),
+            "an openEHR datetime validity pattern must not leak into the SHACL shapes as a regex"
+        );
+    }
+
     use gmeow_logic_compile::frontend::{parse_logic_dataset, parse_logic_str};
     use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom};
-    use gmeow_rdf::ContentDigest;
+    use purrdf::ContentDigest;
 
     /// A small clean program whose canonical RDF-1.2 projection is an EXACT round-trip
     /// (the documented ExactPreservation case): only graph-derivable constructs —
@@ -758,7 +901,7 @@ mod tests {
         assert!(
             matches!(
                 err,
-                gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
+                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
             ),
             "the Logic handle pin must fail closed on a digest mismatch, got {err:?}"
         );
@@ -838,7 +981,7 @@ mod tests {
         assert!(
             matches!(
                 err,
-                gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
+                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
             ),
             "the RelationalCore handle pin must fail closed on a digest mismatch, got {err:?}"
         );
@@ -1059,7 +1202,7 @@ mod tests {
         assert!(
             matches!(
                 err,
-                gmeow_rdf::PipelineBundleError::HandleDigestMismatch { .. }
+                purrdf::PipelineBundleError::HandleDigestMismatch { .. }
             ),
             "the Correspondence handle pin must fail closed on a digest mismatch, got {err:?}"
         );

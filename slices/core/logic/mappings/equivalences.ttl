@@ -1,0 +1,136 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix ontouml: <https://w3id.org/ontouml#> .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+#
+# Common Logic bridge: the logic: terms that face ISO/IEC 24707 Common Logic are
+# linked to the stable Common Logic Wikidata anchor (Q5153563). ISO/IEC 24707
+# publishes no RDF namespace, so the standard document is cited in the citation
+# ledger (metadata/references.ttl) and its dialects are operationalized by the
+# CLIF/CGIF/XCL codecs; only terms with a genuine, stable external counterpart are
+# aligned here (Principle 5 — by reference, no fabricated IRIs). The set-level
+# refusals (dialects, cl-imports, sequence markers) are recorded on
+# gmeow:mapsetCommonLogic in dsl/mappings/mapping-sets.ttl.
+
+gmeow:eqCommonLogic001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:CommonLogicProjection ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q5153563 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "logic:CommonLogicProjection is the projection target that renders an answer onto the ISO/IEC 24707 Common Logic surface; wd:Q5153563 (Common Logic) is the framework it targets. closeMatch, not equivalence: the projection target is a standing rendering request over the canonical logic: IR, not the CL framework itself." ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" .
+
+gmeow:eqCommonLogic002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:Module ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q5153563 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.5 ;
+    gmeow:comment "logic:Module is the Common Logic theory/module construct onto which the ingested and emitted CLIF, CGIF, and XCL (module …) and (cl-imports …) forms map; relatedMatch to wd:Q5153563 (Common Logic) — a component construct of the framework, not the framework as a whole. No stable external entity names a CL module/text on its own." ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" .
+
+# OntoUML stereotype puns: the logic: stereotype meta-classes ARE the OntoUML/UFO
+# leaf stereotypes the foundation disciplines range over. Each is aligned to its
+# counterpart in the OntoUML metamodel vocabulary (https://w3id.org/ontouml#, the
+# serialization the FAIR OntoUML/UFO model catalog uses) — a genuine, invertible 1:1
+# pun (a class typed logic:Kind ⟺ stereotyped ontouml:kind), so skos:exactMatch. The
+# metamodel vocabulary is CC BY-SA 4.0 (ReferenceOnly under the native license policy),
+# so this alignment is BY REFERENCE only — no OntoUML axioms are vendored (Principle 5:
+# no fabricated IRIs; each object IRI is a real ontouml: stereotype individual). The
+# residue (out-of-fragment stereotypes) and the anti-pattern→logic:Discipline
+# correspondence are recorded on gmeow:mapsetOntoUml in dsl/mappings/mapping-sets.ttl.
+
+gmeow:eqOntoUml001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:Kind ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:kind ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "kind" ;
+    gmeow:comment "The OntoUML «kind» stereotype: a rigid, identity-providing sortal — the counterpart of logic:Kind." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+gmeow:eqOntoUml002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:SubKind ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:subkind ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "subkind" ;
+    gmeow:comment "The OntoUML «subkind» stereotype: a rigid sortal specializing a kind — the counterpart of logic:SubKind." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+gmeow:eqOntoUml003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:Role ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:role ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "role" ;
+    gmeow:comment "The OntoUML «role» stereotype: an anti-rigid, relationally-dependent sortal — the counterpart of logic:Role." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+gmeow:eqOntoUml004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:Phase ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:phase ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "phase" ;
+    gmeow:comment "The OntoUML «phase» stereotype: an anti-rigid, intrinsically-founded sortal — the counterpart of logic:Phase." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+gmeow:eqOntoUml005 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:Category ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:category ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "category" ;
+    gmeow:comment "The OntoUML «category» stereotype: a rigid non-sortal aggregating essential properties across kinds — the counterpart of logic:Category." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+gmeow:eqOntoUml006 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:Mixin ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:mixin ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "mixin" ;
+    gmeow:comment "The OntoUML «mixin» stereotype: a semi-rigid non-sortal — the counterpart of logic:Mixin." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+gmeow:eqOntoUml007 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:RoleMixin ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:roleMixin ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "roleMixin" ;
+    gmeow:comment "The OntoUML «roleMixin» stereotype: an anti-rigid non-sortal role dispersed across kinds — the counterpart of logic:RoleMixin." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+gmeow:eqOntoUml008 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:PhaseMixin ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:phaseMixin ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "phaseMixin" ;
+    gmeow:comment "The OntoUML «phaseMixin» stereotype: an anti-rigid non-sortal phase dispersed across kinds — the counterpart of logic:PhaseMixin." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+gmeow:eqOntoUml009 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:Relator ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject ontouml:relator ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "relator" ;
+    gmeow:comment "The OntoUML «relator» stereotype: a mediating truth-maker of a material relation — the counterpart of logic:Relator." ;
+    gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .

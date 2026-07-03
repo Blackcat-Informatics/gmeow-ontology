@@ -17,7 +17,7 @@ members = [
     # Native IRI/URI value space (RFC-3987 IRI + RFC-3986 URI parse/validate,
     # reference resolution, syntax normalization, CURIE/prefix expansion): the
     # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).
-    "crates/iri",
+
     # Dependency-free license-token policy classifier (RUST-FIRST single source of
     # truth) shared by the conformance vendoring gate and the Python LinkPolicy shim.
     "crates/license",
@@ -37,35 +37,35 @@ members = [
     # DAG-driven single-pass build executor (#861): typed stages over an
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
     "crates/pipeline",
-    "crates/rdf",
+
     # The purrdf semantic C-ABI (purrdf P8 / #842): builds libpurrdf (cdylib +
     # staticlib) via cargo-c — a SemVer-disciplined extern "C" surface over the
     # gmeow-rdf semantic layer. Statically reuses gmeow-gts so a language shim
     # links a single .so. The rich companion to the permissive libgts C-ABI.
-    "crates/rdf-capi",
-    "crates/rdf-core",
+
+
     # The permissive (MIT OR Apache-2.0) RDF 1.2 ingestion protocol (purrdf P6):
     # the zero-dep event seam both the container and the engine depend ON.
-    "crates/rdf-events",
+
     # The wasm32, in-memory RDF/JS engine (purrdf P10, #846): compiles the
     # oxigraph-free gmeow-rdf kernel to wasm + an idiomatic DataFactory/Dataset/
     # Stream surface, packaged for npm/ESM as `purrdf`.
-    "crates/rdf-wasm",
-    "crates/shacl",
-    "crates/slice",
+
+
+
     "crates/slicetest",
     # Native SPARQL 1.1/1.2 parser → RDF 1.2-native query algebra AST: the
     # wasm-clean leaf that replaces the oxigraph-family `spargebra` (purrdf S5,
     # EPIC #906). Builds only on `crates/iri` + `crates/xsd`.
-    "crates/sparql-algebra",
+
     # Native, RDF-1.2-first multiset SPARQL evaluator over the rdf-core DatasetView
     # in TermId space: consumes `crates/sparql-algebra` and replaces the
     # oxigraph-family `spareval` on the query path (purrdf S6, EPIC #906).
-    "crates/sparql-eval",
+
     # Native W3C SPARQL 1.1 conformance harness: runs mf: manifests
     # against gmeow-sparql-eval and diffs SPARQL Results / canonical N-Quads;
     # federated SERVICE resolves through an in-memory source (no network).
-    "crates/sparql-conformance",
+
     # Post-run JUnit per-test duration budget gate (#1045): hard-fails the suite if
     # any default/ci-profile test exceeds the 25 s always-on budget. Std-only leaf,
     # no gmeow deps.
@@ -74,12 +74,15 @@ members = [
     # JSON/XML/CSV/TSV + a provenance-carrying gmeow extension: the canonical
     # results-serialization authority replacing oxigraph-family `sparesults`
     # (purrdf S9, EPIC #906). Depends only on `crates/rdf-core`.
-    "crates/sparql-results",
+
     "crates/validate",
+    # wasm32 bindings for the repo-free Tier-1 validator: client-side conformance in
+    # editors / browsers / LLM clients, over the wasm-clean gmeow-validate core.
+    "crates/validate-wasm",
     # Native XSD value space (parse / value-space equality+ordering / canonical
     # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
     # oxigraph-family `oxsdatatypes` (purrdf S1, EPIC #906).
-    "crates/xsd",
+
 ]
 resolver = "2"
 
@@ -179,16 +182,7 @@ codegen-units = 1
 [profile.release.package.gmeow-logic-compile]
 codegen-units = 1
 
-[profile.release.package.gmeow-shacl]
-codegen-units = 1
-
 [profile.release.package.gmeow-validate]
-codegen-units = 1
-
-[profile.release.package.gmeow-rdf]
-codegen-units = 1
-
-[profile.release.package.gmeow-rdf-capi]
 codegen-units = 1
 
 [profile.release.package.gmeow-diagnostics]
@@ -203,35 +197,17 @@ codegen-units = 1
 [profile.release.package.gmeow-pipeline]
 codegen-units = 1
 
-[profile.release.package.gmeow-slice]
-codegen-units = 1
-
 [profile.release.package.gmeow-slicetest]
 codegen-units = 1
 
 [profile.release.package.gmeow-conformance]
 codegen-units = 1
 
-[profile.release.package.gmeow-xsd]
-codegen-units = 1
-
-[profile.release.package.gmeow-iri]
-codegen-units = 1
-
-[profile.release.package.gmeow-sparql-algebra]
-codegen-units = 1
-
-[profile.release.package.gmeow-sparql-eval]
-codegen-units = 1
-
-[profile.release.package.gmeow-sparql-results]
-codegen-units = 1
-
 # The wasm cdylib (purrdf P10, #846). codegen-units = 1 for a single optimization
 # unit; binary-size reduction (opt-level "z" + wasm-opt) is applied by the
 # wasm-pack build in the crate's own package metadata, not the workspace release
 # profile (which native wheels share).
-[profile.release.package.gmeow-rdf-wasm]
+[profile.release.package.gmeow-validate-wasm]
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which

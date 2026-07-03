@@ -14,7 +14,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use gmeow_rdf::RdfDataset;
+use purrdf::RdfDataset;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -107,7 +107,7 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<RdfDataset, 
 /// named sidecar graph it carries (the reason product's `graph/reasoning` handle
 /// backing — #1132 C7).
 fn default_graph_only(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, PipelineError> {
-    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    let mut builder = purrdf::RdfDatasetBuilder::new();
     for quad in dataset.owned_quads() {
         if quad.graph_name.is_none() {
             builder.push_owned_quad(&quad);
@@ -222,8 +222,7 @@ mod tests {
         let base_count = base_dataset.quad_count();
         let base_nq = dataset_to_sorted_nquads(&base_dataset).unwrap();
         let (_, rdf12) = crate::stages::statements::compile_statements(root).unwrap();
-        let rdf12_dataset =
-            gmeow_rdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None).unwrap();
+        let rdf12_dataset = purrdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None).unwrap();
 
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         let mut sl: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -270,7 +269,7 @@ mod tests {
     /// non-empty and idempotent under re-canonicalization.
     #[test]
     fn compose_union_is_canonically_stable_superset_of_base() {
-        use gmeow_rdf::canonicalize;
+        use purrdf::canonicalize;
 
         let root = repo_root();
         let (upstream, base_count, _base_nq, _rdf12) = base_and_statements_upstream(&root);

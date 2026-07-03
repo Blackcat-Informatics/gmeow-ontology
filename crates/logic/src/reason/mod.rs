@@ -35,7 +35,7 @@ use crate::encode::{
 use crate::nemo_engine::{run_chase, ChaseRow};
 use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
-use gmeow_rdf::{RdfDataset, RdfDatasetBuilder};
+use purrdf::{RdfDataset, RdfDatasetBuilder};
 
 /// The content-addressed identity of the native EL/DL/RL reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
@@ -173,7 +173,7 @@ pub fn reason_program(
 /// the same shared typed [`ReasoningResult`] as [`reason_all`].
 ///
 /// The merge is the cross-dataset re-intern
-/// ([`RdfDatasetBuilder::push_dataset`](gmeow_rdf::RdfDatasetBuilder::push_dataset)),
+/// ([`RdfDatasetBuilder::push_dataset`](purrdf::RdfDatasetBuilder::push_dataset)),
 /// so it carries the FULL RDF 1.2 statement layer of both inputs — the user's
 /// reifier bindings and annotations are not dropped. The chase then runs over the
 /// single merged dataset, so an inconsistency entailed only by the user's data
@@ -317,7 +317,7 @@ pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<Inferre
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+    use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -333,7 +333,7 @@ mod tests {
         RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
     }
 
-    fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+    fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset> {
         let mut builder = RdfDatasetBuilder::new();
         for quad in quads {
             builder.push_owned_quad(&quad);

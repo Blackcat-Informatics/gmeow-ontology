@@ -29,7 +29,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_diagnostics::{Finding, Severity};
-use gmeow_rdf::{
+use purrdf::{
     parse_dataset, serialize_dataset, RdfDatasetBuilder, RdfQuad, RdfTerm, RdfTriple,
     SerializeGraph,
 };
@@ -726,7 +726,7 @@ fn subject_sort_key(s: &RdfTerm) -> String {
 /// term model surfaced: `rdf:langString` for a lang-tagged literal, `xsd:string` for
 /// a plain literal, else the stated datatype. Preserves the prior sort-key bytes
 /// exactly (a plain literal keys on `xsd:string`).
-fn literal_datatype(l: &gmeow_rdf::RdfLiteral) -> &str {
+fn literal_datatype(l: &purrdf::RdfLiteral) -> &str {
     const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
     const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
     if l.language.is_some() {
@@ -756,11 +756,11 @@ fn term_sort_key(t: &RdfTerm) -> String {
     }
 }
 
-/// Convert a native [`RdfTerm`] into the [`gmeow_rdf::TermValue`] value-space term so
+/// Convert a native [`RdfTerm`] into the [`purrdf::TermValue`] value-space term so
 /// it can be rendered by [`crate::provenance::term_display`] (the byte-stable Turtle
 /// term surface). Only used for the defensive RDF-star sort-key branch.
-fn rdf_term_to_value(t: &RdfTerm) -> gmeow_rdf::TermValue {
-    use gmeow_rdf::TermValue;
+fn rdf_term_to_value(t: &RdfTerm) -> purrdf::TermValue {
+    use purrdf::TermValue;
     match t {
         RdfTerm::Iri(iri) => TermValue::iri(iri.clone()),
         RdfTerm::BlankNode(label) => TermValue::blank(label.clone()),

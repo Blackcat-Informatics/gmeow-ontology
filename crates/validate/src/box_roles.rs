@@ -18,7 +18,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDatasetBuilder, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDatasetBuilder, TermRef, TermValue};
 
 use crate::model::{owl, rdf, rdfs};
 use crate::store;
@@ -213,9 +213,9 @@ pub fn audit_box_roles(
 
 /// Collect the IRI objects of `(term, gmeow:graphBoxRole, ?)` in the merged graph.
 fn collect_roles(
-    merged: &gmeow_rdf::RdfDataset,
+    merged: &purrdf::RdfDataset,
     term: &str,
-    role_pred_id: Option<gmeow_rdf::TermId>,
+    role_pred_id: Option<purrdf::TermId>,
 ) -> Vec<String> {
     let (Some(pred_id), Some(term_id)) =
         (role_pred_id, merged.term_id_by_value(&TermValue::iri(term)))
@@ -233,10 +233,10 @@ fn collect_roles(
 
 /// Whether `(role, rdf:type, gmeow:GraphBoxRole)` is in the merged graph.
 fn role_typed_as_graph_box_role(
-    merged: &gmeow_rdf::RdfDataset,
+    merged: &purrdf::RdfDataset,
     role: &str,
-    type_id: Option<gmeow_rdf::TermId>,
-    role_class_id: Option<gmeow_rdf::TermId>,
+    type_id: Option<purrdf::TermId>,
+    role_class_id: Option<purrdf::TermId>,
 ) -> bool {
     let (Some(type_id), Some(role_class_id), Some(role_id)) = (
         type_id,

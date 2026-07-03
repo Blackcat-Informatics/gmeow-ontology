@@ -9,7 +9,6 @@ gmeow:full
     rdfs:label "GMEOW — full profile"@en ;
     owl:imports <https://blackcatinformatics.ca/gmeow> ,
         <https://blackcatinformatics.ca/gmeow/slices/accessibility> ,
-        <https://blackcatinformatics.ca/gmeow/slices/affect> ,
         <https://blackcatinformatics.ca/gmeow/slices/agentic> ,
         <https://blackcatinformatics.ca/gmeow/slices/aggregation> ,
         <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ,

@@ -8,7 +8,7 @@
 //! (compile → certify → materialize+explain / foundation → answers). There is no
 //! PyO3, no Python, and no second engine in this path — the harness is a second
 //! *caller* of the engine cores, so its artifacts are identical by construction
-//! (the retired Python `logic_runner.run` this replaced was removed in #727).
+//! (the retired Python `logic_runner.run` this replaced has since been removed).
 //!
 //! Witnesses (`witnesses.json`) are intentionally NOT produced: the diff phase
 //! never compared them — they are a bless-only side file — so omitting them
@@ -109,6 +109,10 @@ pub struct CaseOutputs {
     /// compositions. `Some` iff the program authors `logic:Correspondence` individuals;
     /// `None` (no golden gated) for every correspondence-free case.
     pub correspondence_gates: Option<serde_json::Value>,
+    /// The Common Logic round-trip verdict: `{ "<dialect>": {"round_trip":"pass"},
+    /// "cross_dialect": "pass" }`. `Some` only for a `cl-roundtrip` case (gating the
+    /// `expected/cl-dialects.json` golden); `None` for every other verdict mode.
+    pub cl_dialects: Option<serde_json::Value>,
 }
 
 /// The four RDF projection targets compared by graph-isomorphism.
@@ -137,7 +141,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         .map_err(|e| prefix(format!("cannot parse profile.json: {e}")))?;
     let profile = profile::parse_profile(&case_id, &profile_value)?;
 
-    // ── Consistency mode (#753) ───────────────────────────────────────────────
+    // ── Consistency mode ──────────────────────────────────────────────────────
     // External entailment/SZS cases reason over their RDF EDB through the native
     // DL consistency path, NOT the logic-compile/materialize chase. Branch BEFORE
     // reading/compiling `input.logic.ttl` (which a consistency case does not use).
@@ -145,45 +149,31 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         return run_consistency_case(&case_id, case_dir);
     }
 
+    // ── Common Logic round-trip mode ──────────────────────────────────────────
+    // A `cl-roundtrip` case gates the CLIF/CGIF/XCL Exact projections (IR round-trip
+    // isomorphism + cross-dialect equivalence) and pins their canonical rendering. It
+    // does NOT materialize — branch before the compile/certify/chase, like consistency.
+    if profile.verdict_mode == VerdictMode::CommonLogic {
+        return run_cl_roundtrip_case(&case_id, case_dir);
+    }
+
     // ── Compile (frontend → IR → projections + nemo rules + ledger) ──────────
-    let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
-        .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
-    // `parse_logic_str` returns `Err` only on a hard Turtle PARSE failure; a
-    // semantic `Severity::Error` diagnostic (e.g. an UNSUPPORTED_CONTRACT forbidden
-    // facet combination) is carried INSIDE the diagnostics vec with `Ok((..))`. The
-    // harness must respect those errors rather than silently proceed to evaluate —
-    // otherwise the "unsupported is a hard stop" guarantee is unpinned (#767 Gap 2).
-    let (program, diagnostics) = parse_logic_str(&source, None)
-        .map_err(|e| prefix(format!("compile parse failed: {}", e.0)))?;
+    // The unsupported-contract firewall lives in `compile_case_program`,
+    // shared with the CL round-trip path so neither can evaluate an unsound program.
+    let program = match compile_case_program(&case_id, case_dir, profile.expect_unsupported)? {
+        // An `expect_unsupported` case: the program must not proceed — return empty
+        // outputs so the diff phase sees no goldens to compare (no `expected/` tree).
+        CompileOutcome::Unsupported => return Ok(empty_outputs(case_id)),
+        CompileOutcome::Program(program, _diagnostics) => *program,
+    };
 
-    // ── Unsupported-contract firewall (#767 Gap 2) ────────────────────────────
-    // An `expect_unsupported` case asserts the contract authors a forbidden facet
-    // combination: require the compile to have flagged it (UNSUPPORTED_CONTRACT
-    // Severity::Error) and short-circuit WITHOUT evaluating/certifying/materializing.
-    if profile.expect_unsupported {
-        if !has_unsupported_contract_error(&diagnostics) {
-            return Err(prefix(format!(
-                "profile.json declares \"expect_unsupported\": true but the compile produced \
-                 no UNSUPPORTED_CONTRACT Severity::Error — the engine accepted the contract. \
-                 Diagnostics: {diagnostics:?}"
-            )));
-        }
-        // The program must not proceed: return empty outputs so the diff phase sees
-        // no goldens to compare (an expect_unsupported case carries no expected/ tree).
-        return Ok(empty_outputs(case_id));
-    }
-
-    // A non-`expect_unsupported` case that nonetheless emits ANY Severity::Error
-    // diagnostic is a silent-run hole: hard-fail so it can never evaluate as if the
-    // contract were sound. (All committed supported presets compile clean.)
-    if let Some(first) = first_error(&diagnostics) {
-        return Err(prefix(format!(
-            "compile emitted a Severity::Error diagnostic but the case does not declare \
-             \"expect_unsupported\": true — refusing to evaluate an unsound program. \
-             First error [{}]: {}",
-            first.code, first.message
-        )));
-    }
+    // ── Universal CL round-trip invariant ─────────────────────────────────────
+    // Every materialized case's IR must round-trip through all three ISO 24707 dialects
+    // (CLIF/CGIF/XCL) with IR isomorphism AND be cross-dialect equivalent. This dogfoods
+    // the Exact projection claim over the whole corpus; a failure is a dialect bug, never
+    // a case bug — hard-fail (the overclaim gate forbids an Exact target dropping data).
+    gmeow_logic_compile::cl_roundtrip::assert_all_dialects_isomorphic(&program)
+        .map_err(|e| prefix(format!("CL dialect round-trip invariant failed: {e}")))?;
 
     let arts = compile_program(&program).map_err(|e| prefix(format!("compile failed: {e}")))?;
     // The program's Horn rules, plus the relational-core lowering of its full-FOL formulas
@@ -239,8 +229,8 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     let materialized_nquads = serialize::materialized_to_nquads(&quads);
     // Materialization-mode status: every materializing world is `consistent`,
     // EXCEPT when the budget governor exhausted the chase — then the run is
-    // `incomplete` (the external `Unknown`/budget-tripped branch, #753). A clean
-    // (non-exhausted) run reproduces the pre-#753 `consistent` golden byte-for-byte.
+    // `incomplete` (the external `Unknown`/budget-tripped branch). A clean
+    // (non-exhausted) run reproduces the `consistent` golden byte-for-byte.
     let mat_status = if incomplete {
         VerdictStatus::Incomplete
     } else {
@@ -249,7 +239,7 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     let world_counts = serialize::count_worlds(&quads);
     let verdicts = serialize::build_verdicts(&world_counts, |_| mat_status);
 
-    // ── Backward goals (#504) ────────────────────────────────────────────────
+    // ── Backward goals ────────────────────────────────────────────────────────
     let answers = resolve_answers(
         &case_id,
         case_dir,
@@ -319,6 +309,10 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         answers,
         preservation: serialize::preservation_to_json(&mat_preservation),
         correspondence_gates,
+        // A materialization case does not gate CL dialect round-trip goldens (the
+        // universal invariant above already proved round-trip; only a `cl-roundtrip`
+        // case pins the dialect texts + verdict).
+        cl_dialects: None,
     })
 }
 
@@ -335,6 +329,134 @@ fn has_unsupported_contract_error(diags: &[Diagnostic]) -> bool {
     diags
         .iter()
         .any(|d| d.severity == Severity::Error && d.code == "UNSUPPORTED_CONTRACT")
+}
+
+/// The outcome of compiling a case's `input.logic.ttl` through the unsupported-contract
+/// firewall.
+enum CompileOutcome {
+    /// The case declared `expect_unsupported` and the compile confirmed it
+    /// (`UNSUPPORTED_CONTRACT` `Severity::Error`). The caller must short-circuit WITHOUT
+    /// evaluating — the program is unsound by design and must not proceed.
+    Unsupported,
+    /// A clean program plus its (non-error) diagnostics. The `LogicProgram` is boxed to
+    /// keep the enum small (it dwarfs the unit `Unsupported` variant otherwise).
+    Program(Box<gmeow_logic_compile::ir::LogicProgram>, Vec<Diagnostic>),
+}
+
+/// Parse a case's `input.logic.ttl` and apply the unsupported-contract firewall,
+/// shared by the materialization path and the CL round-trip path so neither can
+/// evaluate an unsound program.
+///
+/// `parse_logic_str` returns `Err` only on a hard Turtle PARSE failure; a semantic
+/// `Severity::Error` (e.g. an `UNSUPPORTED_CONTRACT` forbidden facet combination) rides
+/// INSIDE the diagnostics vec with `Ok((..))`, so the firewall inspects them explicitly:
+/// an `expect_unsupported` case REQUIRES the flag (else the engine wrongly accepted the
+/// contract), and any other `Severity::Error` on a non-`expect_unsupported` case is a
+/// hard failure (never evaluate as if the contract were sound).
+fn compile_case_program(
+    case_id: &str,
+    case_dir: &Path,
+    expect_unsupported: bool,
+) -> Result<CompileOutcome, String> {
+    let prefix = |msg: String| format!("case {case_id}: {msg}");
+    let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
+        .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
+    let (program, diagnostics) = parse_logic_str(&source, None)
+        .map_err(|e| prefix(format!("compile parse failed: {}", e.0)))?;
+
+    if expect_unsupported {
+        if !has_unsupported_contract_error(&diagnostics) {
+            return Err(prefix(format!(
+                "profile.json declares \"expect_unsupported\": true but the compile produced \
+                 no UNSUPPORTED_CONTRACT Severity::Error — the engine accepted the contract. \
+                 Diagnostics: {diagnostics:?}"
+            )));
+        }
+        return Ok(CompileOutcome::Unsupported);
+    }
+
+    if let Some(first) = first_error(&diagnostics) {
+        return Err(prefix(format!(
+            "compile emitted a Severity::Error diagnostic but the case does not declare \
+             \"expect_unsupported\": true — refusing to evaluate an unsound program. \
+             First error [{}]: {}",
+            first.code, first.message
+        )));
+    }
+
+    Ok(CompileOutcome::Program(Box::new(program), diagnostics))
+}
+
+/// Run one `verdict_mode = cl-roundtrip` case.
+///
+/// Gates the three ISO 24707 dialects (CLIF/CGIF/XCL) as `PreservationKind::Exact`
+/// bidirectional projections: the case's IR must round-trip through each dialect with IR
+/// isomorphism AND the three reconstructions must be cross-dialect equivalent (proved by
+/// [`gmeow_logic_compile::cl_roundtrip::assert_all_dialects_isomorphic`]). It then pins
+/// the canonical-fixpoint dialect renderings as byte-exact goldens
+/// (`expected/projections/gmeow.{clif,cgif,xcl}`) and emits the `cl-dialects.json`
+/// verdict. A CL round-trip case does NOT materialize (like consistency mode); it carries
+/// only its dialect-text goldens + the verdict.
+fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, String> {
+    let prefix = |msg: String| format!("case {case_id}: {msg}");
+
+    // A cl-roundtrip case never declares `expect_unsupported` (an unsound program cannot
+    // round-trip); `compile_case_program(.., false)` therefore never yields `Unsupported`.
+    let program = match compile_case_program(case_id, case_dir, false)? {
+        CompileOutcome::Program(program, _diagnostics) => *program,
+        CompileOutcome::Unsupported => {
+            unreachable!("expect_unsupported=false never yields CompileOutcome::Unsupported")
+        }
+    };
+
+    // The round-trip teeth: IR → {clif,cgif,xcl} → IR round-trip + all-three-edge cross-dialect.
+    gmeow_logic_compile::cl_roundtrip::assert_all_dialects_isomorphic(&program)
+        .map_err(|e| prefix(format!("CL dialect round-trip failed: {e}")))?;
+
+    // Pin the canonical-fixpoint dialect renderings the round-trip validated.
+    let dialect_texts = gmeow_logic_compile::cl_roundtrip::dialect_fixpoint_projections(&program)
+        .map_err(|e| prefix(format!("CL dialect projection failed: {e}")))?;
+
+    let mut text = BTreeMap::new();
+    let mut cl_dialects = serde_json::Map::new();
+    for (dialect, content) in dialect_texts {
+        text.insert(dialect.to_string(), content);
+        cl_dialects.insert(
+            dialect.to_string(),
+            serde_json::json!({ "round_trip": "pass" }),
+        );
+    }
+    cl_dialects.insert("cross_dialect".to_string(), serde_json::json!("pass"));
+
+    // A cl-roundtrip case gates NO RDF projection goldens (only the dialect texts), and
+    // its `expected/projections/` dir DOES exist (it holds gmeow.{clif,cgif,xcl}), so the
+    // RDF compare loop runs. Leave the RDF map EMPTY (not RDF_TARGETS→"") so each target's
+    // `produced` is `None` and the loop skips it — an empty-string entry would instead be
+    // read as "produced but golden missing" and hard-fail. (empty_outputs can safely use
+    // RDF_TARGETS→"" only because an expect_unsupported case has no projections/ dir.)
+    let rdf = BTreeMap::new();
+
+    Ok(CaseOutputs {
+        case_id: case_id.to_string(),
+        materialized_nquads: String::new(),
+        projections: ProjectionOutputs {
+            rdf,
+            report_turtle: String::new(),
+            ledger: serde_json::json!({}),
+            text,
+            path_projections: Vec::new(),
+        },
+        explanations: Vec::new(),
+        verdicts: serde_json::json!({}),
+        certification: serde_json::json!({}),
+        budget_status: "ok".to_string(),
+        incomplete: false,
+        answers: BTreeMap::new(),
+        // A lossless round-trip is Exact by construction (the gate above proved it).
+        preservation: serialize::preservation_to_json(&PreservationClaim::exact()),
+        correspondence_gates: None,
+        cl_dialects: Some(serde_json::Value::Object(cl_dialects)),
+    })
 }
 
 /// The empty [`CaseOutputs`] an `expect_unsupported` case returns: the program is
@@ -372,15 +494,17 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         preservation: serialize::preservation_to_json(&PreservationClaim::unsupported()),
         // No program was compiled, so no correspondence gates ran.
         correspondence_gates: None,
+        // Not a CL round-trip case.
+        cl_dialects: None,
     }
 }
 
-/// Run one `verdict_mode = consistency` case (#753).
+/// Run one `verdict_mode = consistency` case.
 ///
 /// External entailment/SZS corpora are lowered into a world-scoped RDF EDB
 /// (`input.nq`) and decided by the native DL consistency path
 /// ([`gmeow_logic::reason::dl_consistency`]) — the verdict-only entry point that folds
-/// from the SAME shared closure as [`gmeow_logic::reason::reason_all`] (#768), so the
+/// from the SAME shared closure as [`gmeow_logic::reason::reason_all`], so the
 /// two can never disagree. The per-world verdict is `inconsistent` for any world bearing a
 /// populated `owl:Nothing` clash (an [`InconsistencyWitness`]), else `consistent`.
 /// No compile / certify / materialize / projection / answer artifacts are produced
@@ -398,13 +522,13 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
     }
     let bytes =
         std::fs::read(&input_nq_path).map_err(|e| prefix(format!("cannot read input.nq: {e}")))?;
-    let dataset = gmeow_rdf::dataset_from_bytes(&bytes, gmeow_rdf::NativeRdfFormat::NQuads)
+    let dataset = purrdf::dataset_from_bytes(&bytes, purrdf::NativeRdfFormat::NQuads)
         .map_err(|e| prefix(format!("input.nq parse failed: {e}")))?;
 
     let verdict = gmeow_logic::reason::dl_consistency(dataset.as_ref())
         .map_err(|e| prefix(format!("native DL consistency run failed: {e}")))?;
 
-    // Zero-defer (#753): a consistency case MUST be genuinely decided by the native
+    // Zero-defer: a consistency case MUST be genuinely decided by the native
     // path. A non-empty `gaps` means a construct is present that the native DL path
     // cannot honestly decide — refuse rather than emit a dishonest verdict.
     if !verdict.gaps.is_empty() {
@@ -434,7 +558,7 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
         .map(|w| w.world.clone())
         .collect();
 
-    // Hard-fail (no-optionality, #753): the emitted verdict iterates `world_counts`
+    // Hard-fail (no-optionality): the emitted verdict iterates `world_counts`
     // (worlds present in the EDB), so every inconsistent world MUST appear there — else
     // `build_verdicts` would silently omit its `inconsistent` status. The seed fixtures'
     // clash worlds all carry EDB quads, so this is a latent-invariant guard: an
@@ -730,7 +854,7 @@ fn resolve_query(
     let program = parse_query_program(query_text).map_err(err)?;
     let max_answers_usize = max_answers.map(|n| n as usize);
 
-    // Probabilistic profile (#506): weighted model counting; each binding carries a
+    // Probabilistic profile: weighted model counting; each binding carries a
     // `probability`. This is the only path that emits that key.
     if gmeow_logic::profile_gate::is_probabilistic_profile(profile_str) {
         let answer =
@@ -833,7 +957,7 @@ fn is_asserted(quad: &RunnerQuad) -> bool {
 // case in parallel (~3s). A separate serial smoke test here would only duplicate
 // that coverage at ~11s of gate time, so it is intentionally omitted (gate-perf).
 //
-// The diagnostic-gating firewall (#767 Gap 2) IS unit-tested below because its
+// The diagnostic-gating firewall IS unit-tested below because its
 // negative branches (a supported contract under `expect_unsupported`, an
 // un-declared compile error) are not exercisable through the committed corpus —
 // every committed `expected/`-bearing case is a supported preset, so a smoke test
@@ -918,7 +1042,7 @@ mod gating_tests {
     #[test]
     fn undeclared_compile_error_hard_fails() {
         // A forbidden combo WITHOUT expect_unsupported must surface as a hard
-        // failure (the silent-run hole #767 Gap 2 closes), never a silent evaluate.
+        // failure (the silent-run hole this firewall closes), never a silent evaluate.
         let case = TmpCase::new("silent");
         case.write("input.logic.ttl", UNSUPPORTED_TTL);
         case.write(
@@ -930,7 +1054,7 @@ mod gating_tests {
         assert!(err.contains("UNSUPPORTED_CONTRACT"), "{err}");
     }
 
-    // ── verdict_mode = consistency (#753) ─────────────────────────────────────
+    // ── verdict_mode = consistency ────────────────────────────────────────────
 
     const CONSISTENCY_PROFILE: &str = r#"{"verdict_mode":"consistency","mode":"native"}"#;
     const W: &str = "https://gmeow.example/dl/world";

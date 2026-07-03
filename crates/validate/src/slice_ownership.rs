@@ -22,7 +22,7 @@
 //! structure (non-gating, per `OwnershipReport::has_ownership_defect`).
 
 use gmeow_diagnostics::{Finding, Location, Severity};
-use gmeow_slice::{OwnershipDiagnostic, OwnershipReport, OwnershipStatus};
+use purrdf::slice::{OwnershipDiagnostic, OwnershipReport, OwnershipStatus};
 
 /// The tool / SARIF-rule namespace for every slice-ownership finding.
 const TOOL: &str = "slice-ownership";
@@ -36,7 +36,7 @@ pub fn ownership_findings(report: &OwnershipReport) -> Vec<Finding> {
     // Unowned terms are surfaced via the per-term ownership table status (exactly
     // as the retired `ownership_errors()` did); the analyzer ALSO emits an
     // `OwnershipDiagnostic::Unowned`, which is skipped below to avoid double count.
-    let mut unowned: Vec<&gmeow_slice::TermOwnership> = report
+    let mut unowned: Vec<&purrdf::slice::TermOwnership> = report
         .ownership
         .values()
         .filter(|o| matches!(o.status, OwnershipStatus::Unowned))
@@ -149,8 +149,8 @@ fn finding(severity: Severity, code: &str, message: String, logical: Option<Stri
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_slice::EdgeKind;
-    use gmeow_slice::NamedNode;
+    use purrdf::slice::EdgeKind;
+    use purrdf::slice::NamedNode;
     use std::collections::HashMap;
 
     fn nn(iri: &str) -> NamedNode {
@@ -206,11 +206,11 @@ mod tests {
         let mut ownership = HashMap::new();
         ownership.insert(
             term.clone(),
-            gmeow_slice::TermOwnership {
+            purrdf::slice::TermOwnership {
                 term,
                 declared_owner: "s/declarer".into(),
                 physical_origin: None,
-                status: gmeow_slice::OwnershipStatus::Unowned,
+                status: purrdf::slice::OwnershipStatus::Unowned,
             },
         );
         let report = OwnershipReport {

@@ -11,8 +11,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_rdf::model::{RdfLiteral, RdfTerm};
-use gmeow_rdf::RdfDataset;
+use purrdf::model::{RdfLiteral, RdfTerm};
+use purrdf::RdfDataset;
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
@@ -837,7 +837,7 @@ mod tests {
     fn lpg_is_byte_identical_to_committed() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
+        let bundle = purrdf::import_gts_events(&gts).unwrap();
         let (nodes, edges) = build_lpg(bundle.dataset.as_ref()).unwrap();
         let arts = render_all(&nodes, &edges);
         let mut checked = 0;

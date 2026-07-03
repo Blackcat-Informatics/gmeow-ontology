@@ -694,7 +694,7 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
 
     #[test]
     fn lower_sssom_extracts_over_dslview() {
-        use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral};
+        use purrdf::{RdfDatasetBuilder, RdfLiteral};
 
         let mut b = RdfDatasetBuilder::new();
         // Intern every term to a local first to avoid nested `&mut b` borrows, then
@@ -705,10 +705,10 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
                       p: &str,
                       o_iri: Option<&str>,
                       o_lit: Option<&str>| {
-            let s = b.intern_iri(iri(s));
-            let p = b.intern_iri(iri(p));
+            let s = b.intern_iri(&iri(s));
+            let p = b.intern_iri(&iri(p));
             let o = match (o_iri, o_lit) {
-                (Some(o), _) => b.intern_iri(iri(o)),
+                (Some(o), _) => b.intern_iri(&iri(o)),
                 (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
                 _ => unreachable!(),
             };
@@ -756,7 +756,7 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
 
         // Build the materialized correspondence lookup from the same view, exactly as the
         // pipeline stage does, so the ledger gate consumes the materialized typed relation.
-        let empty = gmeow_rdf::parse_dataset(b"", "application/n-triples", None).expect("empty");
+        let empty = purrdf::parse_dataset(b"", "application/n-triples", None).expect("empty");
         let (_program, lookup) =
             crate::projections::correspondence_frontend::transpile_correspondences_indexed(
                 &view,

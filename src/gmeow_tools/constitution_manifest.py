@@ -14,8 +14,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
-from gmeow_rdf.compat.rdflib.term import Literal
+from purrdf.compat.rdflib import RDF, RDFS, Graph, URIRef
+from purrdf.compat.rdflib.term import Literal
 
 from gmeow_tools.config import PROJECT_ROOT
 

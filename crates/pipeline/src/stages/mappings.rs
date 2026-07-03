@@ -12,12 +12,12 @@
 //!     order (content-equal to the historical hash order). Outputs:
 //!     `generated/mappings/*.sssom.tsv`, `generated/projections/functions.fno.ttl`,
 //!     `generated/projections/*.edoal.ttl`, `generated/queries/*.rq`.
-//!   * **Standpoint projections** → `gmeow_slice::emit_standpoint_sets(root)` — the
+//!   * **Standpoint projections** → `purrdf::slice::emit_standpoint_sets(root, &vocab)` — the
 //!     seven hand-authored `standpoint-*.rq` (six peer-model re-expressions:
 //!     Standpoint-OWL 2, CRMinf, PROV-O, Web Annotation, schema.org Claim, BBC
 //!     News; plus the legacy-modality projection), fixed template-coded SPARQL
 //!     with no DSL input → `generated/queries/standpoint-*.rq`.
-//!   * **DSL stats** → `gmeow_slice::emit_dsl_stats(root)` — the committed,
+//!   * **DSL stats** → `purrdf::slice::emit_dsl_stats(root, &vocab)` — the committed,
 //!     drift-gated counts summary (equivalences / functions / mapping_sets /
 //!     projections / cells_by_set) → `generated/mappings/dsl-stats.json`.
 //!
@@ -26,15 +26,16 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
+use crate::mapping_purity::lint_dsl_mapping_purity;
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_logic_compile::projections::report::{build_projection_report_from, ReportHeader};
 use gmeow_logic_compile::projections::ProjectionResult;
-use gmeow_rdf::RdfSeverity;
-use gmeow_slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
-use gmeow_slice::{
+use purrdf::slice::prefix_emit::{emit_core_prefixes, emit_jsonld_context};
+use purrdf::slice::{
     emit_claim_view, emit_dsl_stats, emit_list_functions, emit_standpoint_sets,
     lint_prefix_consistency, CLAIM_VIEW_FILE,
 };
+use purrdf::RdfSeverity;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -47,6 +48,8 @@ use crate::stages::correspondence_lower;
 pub const SSSOM_DIR: &str = "generated/mappings";
 /// Committed logical path of the FnO transform catalog.
 pub const FNO_PATH: &str = "generated/projections/functions.fno.ttl";
+/// Committed logical path of the EmotionML XML projection of the affect vocabulary.
+pub const EMOTIONML_PATH: &str = "generated/projections/gmeow-affect.emotionml.xml";
 /// Directory (logical-path prefix) of the EDOAL alignment Turtle files.
 pub const EDOAL_DIR: &str = "generated/projections";
 /// Directory (logical-path prefix) of the SPARQL CONSTRUCT projection queries
@@ -75,6 +78,7 @@ pub struct CompiledMappings {
 /// projections) plus the DSL surface-count summary from `root`, returning
 /// `{logical_path → bytes}`. The mappings stage is now complete.
 pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> {
+    let vocab = crate::gmeow_ns::gmeow_slice_vocab();
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     // Prefix-consistency gate (#1009 §2): no authored source may shadow a registry
@@ -82,16 +86,38 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // the registry-driven shortener. Hard-fail before emitting any artifact
     // (no-optionality); this makes `regenerate` / `check-generated` / `make check`
     // all reject a shadow.
-    let prefix_problems = lint_prefix_consistency(root).map_err(|e| PipelineError::Stage {
-        stage: "stage-mappings".to_string(),
-        message: format!("prefix-consistency lint failed: {e}"),
-    })?;
+    let prefix_problems =
+        lint_prefix_consistency(root, &vocab).map_err(|e| PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!("prefix-consistency lint failed: {e}"),
+        })?;
     if let Some(first) = prefix_problems.first() {
         return Err(PipelineError::Stage {
             stage: "stage-mappings".to_string(),
             message: format!(
                 "prefix-consistency: {} registry-prefix shadow(s); first: {}",
                 prefix_problems.len(),
+                first.message
+            ),
+        });
+    }
+
+    // DSL mapping-purity gate: alignment linkage flows from slices. A
+    // `gmeow:TermEquivalence` cell authored under `dsl/mappings/` is a linkage
+    // restatement in the wrong place — it must live in the slice that defines its
+    // alignSubject. Hard-fail before emitting any artifact (no-optionality); this
+    // makes `regenerate` / `check-generated` / `make check` reject a stray cell.
+    let purity_problems = lint_dsl_mapping_purity(root).map_err(|e| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message: format!("dsl mapping-purity gate failed: {e}"),
+    })?;
+    if let Some(first) = purity_problems.first() {
+        return Err(PipelineError::Stage {
+            stage: "stage-mappings".to_string(),
+            message: format!(
+                "dsl-linkage-purity: {} dsl/mappings file(s) author alignment linkage that must \
+                 live in slices; first: {}",
+                purity_problems.len(),
                 first.message
             ),
         });
@@ -116,11 +142,15 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     for (filename, rq) in aligned.sparql {
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
+    // The EmotionML XML projection of the affect category + dimension vocabularies. Its
+    // many-to-one collapse row already rides in `aligned.ledger` (folded into the union
+    // projection-report below), so writing the document is all that remains here.
+    artifacts.insert(EMOTIONML_PATH.to_string(), aligned.emotionml.into_bytes());
     let ledger = aligned.ledger;
 
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
     // to the Python template-coded emitters; no DSL input).
-    let standpoint = emit_standpoint_sets(root).map_err(|e| PipelineError::Stage {
+    let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| PipelineError::Stage {
         stage: "stage-mappings".to_string(),
         message: format!("standpoint emission failed: {e}"),
     })?;
@@ -133,11 +163,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // surface from the canonical ClaimToken layer (no DSL input).
     artifacts.insert(
         format!("{QUERIES_DIR}/{CLAIM_VIEW_FILE}"),
-        emit_claim_view().into_bytes(),
+        emit_claim_view(&vocab).into_bytes(),
     );
 
     // DSL surface-count summary — the committed, drift-gated counts JSON.
-    let dsl_stats = emit_dsl_stats(root).map_err(|e| PipelineError::Stage {
+    let dsl_stats = emit_dsl_stats(root, &vocab).map_err(|e| PipelineError::Stage {
         stage: "stage-mappings".to_string(),
         message: format!("dsl-stats emission failed: {e}"),
     })?;
@@ -150,11 +180,11 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // like the FnO catalog, with no new pipeline stage.
     artifacts.insert(
         CORE_PREFIXES_PATH.to_string(),
-        canon_fanout_ttl(&emit_core_prefixes())?,
+        canon_fanout_ttl(&emit_core_prefixes(&vocab))?,
     );
     artifacts.insert(
         JSONLD_CONTEXT_PATH.to_string(),
-        emit_jsonld_context().into_bytes(),
+        emit_jsonld_context(&vocab).into_bytes(),
     );
 
     // First-class RDF list functions (#1009 §5) — six FnO primitives backed by the
@@ -162,7 +192,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, PipelineError> 
     // folds into gmeow.gts like the FnO catalog.
     artifacts.insert(
         LIST_FUNCTIONS_PATH.to_string(),
-        canon_fanout_ttl(&emit_list_functions())?,
+        canon_fanout_ttl(&emit_list_functions(&vocab))?,
     );
 
     Ok(CompiledMappings { artifacts, ledger })
@@ -176,7 +206,7 @@ fn canon_fanout_ttl(body: &str) -> Result<Vec<u8>, PipelineError> {
 }
 
 fn canon_fanout_ttl_bytes(body: &[u8]) -> Result<Vec<u8>, PipelineError> {
-    gmeow_rdf::turtle_normalize::canonical_turtle(body, &crate::stages::superset::rdf_prefixes())
+    purrdf::turtle_normalize::canonical_turtle(body, &crate::stages::superset::rdf_prefixes())
         .map(String::into_bytes)
         .map_err(|e| PipelineError::Stage {
             stage: "stage-mappings".to_string(),
@@ -263,7 +293,7 @@ fn fold_up_projection_audit(
             .join(format!("{name}.ttl"));
         let ttl =
             std::fs::read_to_string(&path).map_err(|e| stage_err(format!("read {path:?}: {e}")))?;
-        let nt = crate::up_projection::ttl_to_nt(&ttl)
+        let nt = crate::up_projection_corpus::ttl_to_nt(&ttl)
             .map_err(|e| stage_err(format!("corpus {name} ttl→nt: {e}")))?;
         corpus_nts.push((name.to_string(), nt));
     }
@@ -361,7 +391,7 @@ fn fold_sssom_findings(report: &mut Report, path: &str, bytes: &[u8]) {
         }
     };
 
-    let set = match gmeow_rdf::sssom::parse_tsv(text) {
+    let set = match purrdf::sssom::parse_tsv(text) {
         Ok(set) => set,
         Err(diag) => {
             report.add_finding(sssom_finding(path, None, diag.message, "parse", diag.code));
@@ -371,7 +401,7 @@ fn fold_sssom_findings(report: &mut Report, path: &str, bytes: &[u8]) {
 
     // Structural SSSOM parse failures returned above are already folded into the
     // report; semantic validation diagnostics use the closed RDF severity enum.
-    for diag in gmeow_rdf::sssom::validate(&set) {
+    for diag in purrdf::sssom::validate(&set) {
         if diag.severity == RdfSeverity::Error {
             report.add_finding(sssom_finding(
                 path,
@@ -457,11 +487,10 @@ impl Stage for MappingsStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v9: input_files now declares the slice Mapping cells (slices/**/mappings/*.ttl),
-        // which compile_mappings reads but module_files did not declare — a slice
-        // equivalence edit was silently cache-ignored. Bump busts the stage cache so
-        // existing cached reports are invalidated.
-        "mappings.v9-slice-mapping-cells-in-cache-key"
+        // v10: added the dsl mapping-purity gate (alignment linkage must be authored
+        // in slices, not dsl/mappings/). Bump busts the stage cache so the new gate
+        // runs against existing cached inputs.
+        "mappings.v10-dsl-linkage-purity-gate"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -558,7 +587,7 @@ impl Stage for MappingsStage {
             "application/n-quads",
             crate::stages::carrier::GRAPH_PROJECTION_LEDGER,
         )?;
-        let dataset = std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&[
+        let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
         ]));
@@ -575,8 +604,8 @@ impl Stage for MappingsStage {
 /// standardizes blank scopes apart per input and canonicalizes on freeze.
 fn mappings_rdf_dataset(
     artifacts: &BTreeMap<String, Vec<u8>>,
-) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, PipelineError> {
-    let mut parsed: Vec<std::sync::Arc<gmeow_rdf::RdfDataset>> = Vec::new();
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, PipelineError> {
+    let mut parsed: Vec<std::sync::Arc<purrdf::RdfDataset>> = Vec::new();
     for (path, bytes) in artifacts {
         let media_type = if path.ends_with(".nq") {
             "application/n-quads"
@@ -587,12 +616,12 @@ fn mappings_rdf_dataset(
         } else {
             continue;
         };
-        let ds = gmeow_rdf::parse_dataset(bytes, media_type, None)
+        let ds = purrdf::parse_dataset(bytes, media_type, None)
             .map_err(|e| PipelineError::Parse(format!("mappings RDF parse of {path}: {e}")))?;
         parsed.push(ds);
     }
-    let refs: Vec<&gmeow_rdf::RdfDataset> = parsed.iter().map(|a| a.as_ref()).collect();
-    Ok(std::sync::Arc::new(gmeow_rdf::RdfDataset::union(&refs)))
+    let refs: Vec<&purrdf::RdfDataset> = parsed.iter().map(|a| a.as_ref()).collect();
+    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
 }
 
 #[cfg(test)]
@@ -610,13 +639,13 @@ mod tests {
 
     fn triple_set(bytes: &[u8], media_type: &str) -> std::collections::BTreeSet<String> {
         let dataset = rdf_bytes_to_dataset(bytes, media_type, "triple_set").unwrap();
-        gmeow_rdf::flat_rdf_quads_from_dataset(&dataset)
+        purrdf::flat_rdf_quads_from_dataset(&dataset)
             .iter()
             .map(|q| {
                 // The predicate is a bare IRI string; wrap it as an IRI term so its
                 // Display renders `<iri>` — matching the old oxigraph `NamedNode` form
                 // the substring assertions key on.
-                let predicate = gmeow_rdf::RdfTerm::iri(q.predicate.clone());
+                let predicate = purrdf::RdfTerm::iri(q.predicate.clone());
                 format!("{} {} {} .", q.subject, predicate, q.object)
             })
             .collect()
@@ -943,7 +972,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     fn list_functions_are_emitted_and_parse() {
         // Wiring check (#1009 §5): the mappings stage emits the six list functions
         // as well-formed FnO Turtle (routed through the shared
-        // `gmeow_rdf::fno::to_quads` serializer, §19 one-path), each typed via
+        // `purrdf::fno::to_quads` serializer, §19 one-path), each typed via
         // fno:Output and fno:Function.
         let root = repo_root();
         let artifacts = compile_mappings(&root).expect("compile").artifacts;

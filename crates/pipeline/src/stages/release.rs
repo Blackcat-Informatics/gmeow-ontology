@@ -33,12 +33,12 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_gts::model::Graph;
-use gmeow_gts::reader::read;
-use gmeow_gts::writer::digest_string;
-use gmeow_rdf::gts::dataset_from_gts_graph;
-use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
-use gmeow_rdf::{pair_loss_ledger, parse_dataset, NativeRdfFormat, PROJECTION_CODECS};
+use purrdf::gts::dataset_from_gts_graph;
+use purrdf::gts::model::Graph;
+use purrdf::gts::reader::read;
+use purrdf::gts::writer::digest_string;
+use purrdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder, DEFAULT_RSYNCABLE_THRESHOLD};
+use purrdf::{pair_loss_ledger, parse_dataset, NativeRdfFormat, PROJECTION_CODECS};
 
 /// The named graph the release-manifest + per-artifact attestations ride in.
 pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
@@ -178,7 +178,7 @@ pub fn build_coherence_evidence(
 ) -> Result<EvidenceInput, String> {
     use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
 
-    let bundle = gmeow_rdf::import_gts_events(snapshot_bytes)
+    let bundle = purrdf::import_gts_events(snapshot_bytes)
         .map_err(|e| format!("coherence certificate: GTS read error: {e}"))?;
     let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
         .map_err(|e| format!("coherence certificate: native reasoning failed: {e}"))?;
@@ -272,8 +272,8 @@ pub fn verify_release_bundle(
     bundle_bytes: &[u8],
     expected_public_armor: Option<&str>,
 ) -> Result<ReleaseVerifyReport, String> {
-    use gmeow_gts::verify::{verify_file_with_options, VerifyOptions};
-    use gmeow_rdf::RdfTerm;
+    use purrdf::gts::verify::{verify_file_with_options, VerifyOptions};
+    use purrdf::RdfTerm;
 
     // --- 1. Cryptographic signature + trust policy (native, subsumes gts verify).
     let mut opts = VerifyOptions::default().require_signatures(true);
@@ -360,7 +360,7 @@ pub fn verify_release_bundle(
 ///
 /// The committed snapshot is multi-named-graph and may carry an RDF 1.2 statement
 /// layer. We fold the GTS graph straight into a native
-/// [`RdfDataset`](gmeow_rdf::RdfDataset) via the oxigraph-free container→dataset
+/// [`RdfDataset`](purrdf::RdfDataset) via the oxigraph-free container→dataset
 /// bridge ([`dataset_from_gts_graph`]) — no codec text in the middle. The bridge
 /// re-binds the `rdf:reifies` statement layer into the dataset's reifier/annotation
 /// side-tables AND preserves named graphs on the base quads, so a single
@@ -662,10 +662,10 @@ mod tests {
     /// match what the snapshot committed.
     fn graph_nquads(graph: &Graph) -> String {
         let dataset = dataset_from_gts_graph(graph).expect("fold the GTS graph into a dataset");
-        let bytes = gmeow_rdf::serialize_dataset(
+        let bytes = purrdf::serialize_dataset(
             &dataset,
             NativeRdfFormat::NQuads.media_type(),
-            gmeow_rdf::SerializeGraph::Dataset,
+            purrdf::SerializeGraph::Dataset,
         )
         .expect("serialize the dataset to N-Quads");
         String::from_utf8(bytes).expect("native N-Quads is valid UTF-8")
@@ -846,10 +846,10 @@ mod tests {
     /// would be correctness no gate validates.
     #[test]
     fn minted_attestations_satisfy_the_assertional_contract() {
-        use gmeow_rdf::parse_dataset;
         use gmeow_validate::lint::{
             default_annotation_predicates, structural_lint_dataset, LintConfig,
         };
+        use purrdf::parse_dataset;
 
         let mut sorted: Vec<(String, EvidenceInput)> = evidence_inputs()
             .into_iter()
@@ -1053,7 +1053,7 @@ mod tests {
     struct BlobFrameCounter {
         counts: std::collections::HashMap<String, usize>,
     }
-    impl gmeow_gts::reader::StreamingSink for BlobFrameCounter {
+    impl purrdf::gts::reader::StreamingSink for BlobFrameCounter {
         fn blob(&mut self, _seg: usize, digest: &str, _meta: Option<&ciborium::value::Value>) {
             *self.counts.entry(digest.to_string()).or_insert(0) += 1;
         }
@@ -1098,7 +1098,7 @@ mod tests {
         // Exactly one blob frame per digest — the colliding evidence did NOT add
         // a second frame for `shared`.
         let mut counter = BlobFrameCounter::default();
-        gmeow_gts::reader::read_to_sink(&bundle, true, None, &mut counter);
+        purrdf::gts::reader::read_to_sink(&bundle, true, None, &mut counter);
         assert_eq!(
             counter.counts.get(&shared_digest).copied(),
             Some(1),

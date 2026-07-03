@@ -5,8 +5,8 @@ Principles 4, 9, 10, 11, 12, 15, 16.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib.namespace import XSD
 from tests._graph_nt import run_shacl
 
 from gmeow_tools.graph import load_merged_graph
@@ -176,6 +176,29 @@ def test_musical_time_span_valid_passes_shacl() -> None:
     g.add((span, GMEOW.timeStartDenominator, Literal(1, datatype=XSD.integer)))
     g.add((span, GMEOW.timeDurationNumerator, Literal(5, datatype=XSD.integer)))
     g.add((span, GMEOW.timeDurationDenominator, Literal(8, datatype=XSD.integer)))
+    # Standalone fixture (no ontology import): restate the referenced canonical
+    # MusicalTimeFrame individual in-graph — the generated sh:class range shape
+    # requires it typed, and MusicalTimeFrameShape then requires its frame
+    # descriptors (values copied verbatim from slices/extensions/music/module.ttl,
+    # gmeow:musicalTimeFrameCommon). Honest ABox completion (P11), no fabrication.
+    g.add((GMEOW.musicalTimeFrameCommon, RDF.type, GMEOW.MusicalTimeFrame))
+    g.add((GMEOW.musicalTimeFrameCommon, GMEOW.frameRealm, GMEOW.frameRealmMusicalTime))
+    g.add((GMEOW.musicalTimeFrameCommon, GMEOW.frameKind, GMEOW.frameKindScalar))
+    g.add(
+        (
+            GMEOW.musicalTimeFrameCommon,
+            GMEOW.dimensionCount,
+            Literal(1, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((GMEOW.musicalTimeFrameCommon, GMEOW.hasAxis, GMEOW.axisTime))
+    g.add(
+        (
+            GMEOW.musicalTimeFrameCommon,
+            GMEOW.requiresHost,
+            Literal(False, datatype=XSD.boolean),
+        )
+    )
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 

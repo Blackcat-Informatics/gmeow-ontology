@@ -1,4 +1,0 @@
-PREFIX : <http://example/>
-
-:s1 :p "abc" .
-<<:s1 :p "abc">> .

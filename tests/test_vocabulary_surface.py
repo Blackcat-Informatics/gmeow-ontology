@@ -14,7 +14,7 @@ from pathlib import Path
 
 import gmeow_docs
 import pytest
-from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import (
     CATALOG_FILE,

@@ -14,9 +14,9 @@
 //! All queries are scoped to the **default graph** — the DSL/ontology sources are
 //! loaded flat, exactly as the historical store reads did.
 
-use gmeow_rdf::dataset_view::{DatasetView, GraphMatch};
-use gmeow_rdf::ir::BlankScope;
-use gmeow_rdf::{RdfDataset, TermId, TermRef, TermValue};
+use purrdf::dataset_view::{DatasetView, GraphMatch};
+use purrdf::ir::BlankScope;
+use purrdf::{RdfDataset, TermId, TermRef, TermValue};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
@@ -326,7 +326,7 @@ impl<'a> DslView<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::RdfDatasetBuilder;
+    use purrdf::RdfDatasetBuilder;
 
     const EX: &str = "http://example.org/";
 
@@ -336,11 +336,11 @@ mod tests {
         let mut b = RdfDatasetBuilder::new();
         let intern = |b: &mut RdfDatasetBuilder, t: &str| -> TermId {
             if let Some(rest) = t.strip_prefix("i:") {
-                b.intern_iri(rest.to_owned())
+                b.intern_iri(rest)
             } else if let Some(rest) = t.strip_prefix("b:") {
-                b.intern_blank(rest.to_owned(), BlankScope::DEFAULT)
+                b.intern_blank(rest, BlankScope::DEFAULT)
             } else if let Some(rest) = t.strip_prefix("l:") {
-                b.intern_literal(gmeow_rdf::RdfLiteral::simple(rest.to_owned()))
+                b.intern_literal(purrdf::RdfLiteral::simple(rest.to_owned()))
             } else {
                 panic!("bad test term {t}")
             }
@@ -348,7 +348,7 @@ mod tests {
         for (s, p, o) in triples {
             let s = intern(&mut b, s);
             let pid = match p.strip_prefix("i:") {
-                Some(rest) => b.intern_iri(rest.to_owned()),
+                Some(rest) => b.intern_iri(rest),
                 None => panic!("predicate must be i:<iri>"),
             };
             let o = intern(&mut b, o);

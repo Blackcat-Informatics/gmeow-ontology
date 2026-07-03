@@ -18,7 +18,7 @@
 
 use std::time::Instant;
 
-use gmeow_rdf::{parse_dataset, TermValue};
+use purrdf::{parse_dataset, TermValue};
 
 use crate::encode::{
     decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,

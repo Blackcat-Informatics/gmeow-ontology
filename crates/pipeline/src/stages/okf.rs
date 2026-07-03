@@ -56,7 +56,7 @@ fn slug(term_curie: &str) -> String {
 }
 
 /// The bundle-relative POSIX path of a term's document (`classes/Foo.md`).
-fn doc_relpath(term: &Term) -> String {
+pub(crate) fn doc_relpath(term: &Term) -> String {
     format!("{}/{}.md", category_dir(term.category), slug(&term.curie))
 }
 

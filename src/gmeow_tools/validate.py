@@ -83,23 +83,26 @@ def _shapes_turtle(shapes_path: Path) -> str:
     shape file in ``shapes/`` except the DSL-specific lints, so new domain
     shape files (e.g. ``expertise-shapes.ttl``) are picked up automatically.
     """
-    dsl_shapes = {
-        "mapping-dsl-shapes.ttl",
-        "statement-dsl-shapes.ttl",
-        "test-dsl-shapes.ttl",
-        "slice-manifest-shapes.ttl",  # targets manifests, not the data graph
-        shapes_path.name,
-    }
+    # The DSL / manifest lints and the declared ValidationOnly derived-shape
+    # surface are excluded from the data-graph union. Single source of truth: the
+    # native gmeow_shacl::shape_union::EXCLUDED list (exposed here), so the pySHACL
+    # corpus selection and the native validator can never drift.
+    dsl_shapes = set(gmeow_validate.excluded_shape_files())
+    dsl_shapes.add(shapes_path.name)
     files: list[Path] = [shapes_path]
     files += [
         extra
         for extra in sorted(SHAPES_DIR.glob("*.ttl"))
         if extra.name not in dsl_shapes
     ]
-    # Generated shapes (#283): frame-relativity derived from gmeow:requiresFrame.
+    # Generated shapes: frame-relativity derived from gmeow:requiresFrame.
     # FAIL CLOSED: the hand-written frame constraints were deleted in favor of
     # these, so their absence would silently stop enforcing P11.
-    generated_shapes = sorted(GENERATED_SHAPES_DIR.glob("*.ttl"))
+    generated_shapes = [
+        g
+        for g in sorted(GENERATED_SHAPES_DIR.glob("*.ttl"))
+        if g.name not in dsl_shapes
+    ]
     if not generated_shapes:
         msg = (
             f"no generated shapes under {GENERATED_SHAPES_DIR} — "

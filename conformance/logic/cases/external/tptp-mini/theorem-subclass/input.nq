@@ -1,0 +1,5 @@
+<https://blackcatinformatics.ca/gmeow/tptp#a-WITNESS> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/tptp#a> <https://gmeow.example/tptp-mini/theorem-subclass/w> .
+<https://blackcatinformatics.ca/gmeow/tptp#a-WITNESS> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/tptp#c-COMPLEMENT> <https://gmeow.example/tptp-mini/theorem-subclass/w> .
+<https://blackcatinformatics.ca/gmeow/tptp#a> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/tptp#b> <https://gmeow.example/tptp-mini/theorem-subclass/w> .
+<https://blackcatinformatics.ca/gmeow/tptp#b> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/tptp#c> <https://gmeow.example/tptp-mini/theorem-subclass/w> .
+<https://blackcatinformatics.ca/gmeow/tptp#c> <http://www.w3.org/2002/07/owl#disjointWith> <https://blackcatinformatics.ca/gmeow/tptp#c-COMPLEMENT> <https://gmeow.example/tptp-mini/theorem-subclass/w> .

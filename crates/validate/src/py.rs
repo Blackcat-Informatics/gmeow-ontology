@@ -285,12 +285,12 @@ impl PyValidateOptions {
 ///
 /// Python hands the source paths once; the frozen `Arc<RdfDataset>` can then be
 /// validated against parsed SHACL shapes across multiple phases without re-parsing
-/// the sources (#634). The dataset is handed to `gmeow_shacl` by reference through
+/// the sources (#634). The dataset is handed to `purrdf::shapes` by reference through
 /// the `_store_capsule` (EPIC #906: the capsule carries a native `Arc<RdfDataset>`,
 /// not an oxigraph `Store`).
 #[pyclass(name = "ValidationStore")]
 struct PyValidationStore {
-    dataset: std::sync::Arc<gmeow_rdf::RdfDataset>,
+    dataset: std::sync::Arc<purrdf::RdfDataset>,
     #[allow(dead_code)]
     source_paths: Vec<String>,
 }
@@ -327,7 +327,7 @@ impl PyValidationStore {
     /// Internal protocol: a capsule exposing a frozen `Arc<RdfDataset>` snapshot of
     /// this store by address.
     ///
-    /// The capsule is consumed by `gmeow_shacl.Shapes.validate_store` so the SHACL
+    /// The capsule is consumed by `purrdf::shapes.Shapes.validate_store` so the SHACL
     /// engine can validate the dataset directly without an N-Triples round-trip. Do
     /// not call this directly from Python.
     ///
@@ -338,8 +338,8 @@ impl PyValidationStore {
     fn _store_capsule<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyCapsule>> {
         let py = slf.py();
         let arc = std::sync::Arc::clone(&slf.borrow().dataset);
-        let boxed: Box<std::sync::Arc<gmeow_rdf::RdfDataset>> = Box::new(arc);
-        let addr = (&*boxed as *const std::sync::Arc<gmeow_rdf::RdfDataset>) as usize;
+        let boxed: Box<std::sync::Arc<purrdf::RdfDataset>> = Box::new(arc);
+        let addr = (&*boxed as *const std::sync::Arc<purrdf::RdfDataset>) as usize;
         let keepalive = boxed;
         // SAFETY: `addr` is the address of the boxed `Arc<RdfDataset>` owned by
         // `keepalive`, moved into the destructor; it stays live and at a stable
@@ -356,7 +356,7 @@ impl PyValidationStore {
     /// Validate this dataset against a parsed SHACL shapes model.
     ///
     /// Convenience wrapper that delegates to
-    /// `gmeow_shacl.Shapes.validate_store(self)` so the two classes can live in
+    /// `purrdf::shapes.Shapes.validate_store(self)` so the two classes can live in
     /// their respective extension modules while still sharing the underlying
     /// native dataset directly.
     fn validate(slf: &Bound<'_, Self>, shapes: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
@@ -368,9 +368,7 @@ impl PyValidationStore {
 /// Build the merged native dataset from `source_paths`, mapping a parse failure to a
 /// Python `ValueError` (a hard failure that must surface — the validation path has no
 /// rdflib fallback, #579).
-fn build_dataset_or_err(
-    source_paths: &[String],
-) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDataset>> {
+fn build_dataset_or_err(source_paths: &[String]) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {
     let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
     store::dataset_from_paths(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
 }
@@ -379,8 +377,20 @@ fn build_dataset_or_err(
 /// #579), mapping a parse failure to a Python `ValueError`. The reasoning checks
 /// accept graphs as N-Triples now (test shims build a synthetic graph and serialize
 /// it), so this is their ingestion primitive.
-fn build_dataset_from_nt_or_err(data_nt: &str) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDataset>> {
+fn build_dataset_from_nt_or_err(data_nt: &str) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {
     store::dataset_from_nt(data_nt).map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
+/// The shape files excluded from the data-graph validation union (the DSL / manifest lints and
+/// the declared ValidationOnly derived-shape surface). Single source of truth:
+/// `purrdf::shapes::shape_union::EXCLUDED`, so the pySHACL corpus selection and the native
+/// validator can never drift.
+#[pyfunction]
+fn excluded_shape_files() -> Vec<String> {
+    purrdf::shapes::shape_union::EXCLUDED
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect()
 }
 
 /// Structural lint over the merged sources (mirrors `validate.structural_lint`).
@@ -527,7 +537,7 @@ fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<Py<PyAny>> {
 }
 
 /// A gUFO anti-pattern check: `(dataset, cfg) -> structured findings`.
-type GufoCheck = fn(&gmeow_rdf::RdfDataset, &GufoConfig) -> Vec<gmeow_diagnostics::model::Finding>;
+type GufoCheck = fn(&purrdf::RdfDataset, &GufoConfig) -> Vec<gmeow_diagnostics::model::Finding>;
 
 /// Run one gUFO check over the merged sources (the production `validate_all`
 /// path passes file paths directly — no rdflib graph, #579).
@@ -1043,7 +1053,7 @@ fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
 /// Returns `(data_nt, [(named_subject_iri, source_file_path), ...])` where the
 /// pairs record the FIRST `.ttl` file each named subject appears in, in
 /// first-seen order. `validate_dsl_shacl` validates the merged data via
-/// `gmeow_shacl` and enriches each violation with `source=` from the map. A
+/// `purrdf::shapes` and enriches each violation with `source=` from the map. A
 /// parse failure maps to a Python `ValueError`.
 #[pyfunction]
 fn dsl_merge_with_provenance(
@@ -1132,8 +1142,8 @@ fn validate_all_native(
 
 /// Parse a Turtle string into a frozen native dataset (lenient parsing, matching the
 /// rest of the validation path), mapping a parse failure to a Python `ValueError`.
-fn dataset_from_turtle(ttl: &str) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDataset>> {
-    gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+fn dataset_from_turtle(ttl: &str) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {
+    purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}")))
 }
 
@@ -1143,13 +1153,14 @@ fn dataset_from_turtle(ttl: &str) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDatas
 fn dataset_from_turtle_and_nt(
     ttl: &str,
     data_nt: &str,
-) -> PyResult<std::sync::Arc<gmeow_rdf::RdfDataset>> {
-    let turtle = gmeow_rdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {
+    let turtle = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}")))?;
-    let nt = gmeow_rdf::parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(
-        |e| pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}")),
-    )?;
-    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    let nt =
+        purrdf::parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}"))
+        })?;
+    let mut builder = purrdf::RdfDatasetBuilder::new();
     builder.push_dataset(&turtle);
     builder.push_dataset(&nt);
     builder
@@ -1186,7 +1197,7 @@ fn check_statement_invariants(
 ///
 /// `authored_owl_ttl` is the OWL downcast emitted from the statement DSL;
 /// `normalized_owl_ttl` is the RDF 1.2 lead artifact normalized back to the OWL
-/// normal form (via `gmeow_rdf.normalize_rdf12_to_owl`). Returns a `Report` whose
+/// normal form (via `purrdf.normalize_rdf12_to_owl`). Returns a `Report` whose
 /// findings are the diverging triples (empty == lossless); the divergence is
 /// computed natively over oxigraph quad sets, not rdflib `graph_diff`.
 #[pyfunction]
@@ -1254,9 +1265,12 @@ fn constitution_full_report(
 /// (the validate gate); dependency observations are warnings (previously dropped).
 #[pyfunction]
 fn slice_ownership_report(py: Python<'_>, slices_root: &str) -> PyResult<Py<PyAny>> {
-    let catalog = gmeow_slice::SliceCatalog::discover(std::path::Path::new(slices_root))
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    let analysis = gmeow_slice::OwnershipAnalyzer::new(&catalog)
+    let catalog = purrdf::slice::SliceCatalog::discover(
+        std::path::Path::new(slices_root),
+        purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
+    )
+    .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let analysis = purrdf::slice::OwnershipAnalyzer::new(&catalog)
         .analyze()
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
 
@@ -1581,6 +1595,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyValidateOptions>()?;
     m.add_class::<PyValidationStore>()?;
     m.add_function(wrap_pyfunction!(annotation_predicates, m)?)?;
+    m.add_function(wrap_pyfunction!(excluded_shape_files, m)?)?;
     m.add_function(wrap_pyfunction!(is_internal_tag, m)?)?;
     m.add_function(wrap_pyfunction!(rank_language, m)?)?;
     m.add_function(wrap_pyfunction!(marked, m)?)?;

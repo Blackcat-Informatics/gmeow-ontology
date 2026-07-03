@@ -67,7 +67,7 @@ pub fn render_diagnostics_artifacts(
     // canonical N-Quads (keeping the `graph/diagnostics` 4th-column label) so the
     // superset gate reconstructs it byte-for-byte.
     let nq = gmeow_diagnostics::render::to_gmeow_rdf(report);
-    let nq_ds = gmeow_rdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+    let nq_ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err("RDF", format!("parse N-Quads: {e}")))?;
     artifacts.insert(
         paths.rdf.to_owned(),

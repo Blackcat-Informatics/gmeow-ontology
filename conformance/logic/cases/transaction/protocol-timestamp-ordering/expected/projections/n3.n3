@@ -10,6 +10,5 @@
 
 # === Axioms ===
 <https://example.org/transaction/protocol-timestamp-ordering/GoalExpression> a <https://blackcatinformatics.ca/logic/GoalExpression> .
-<https://example.org/transaction/protocol-timestamp-ordering/TransactionContract> a <https://blackcatinformatics.ca/logic/ReasoningContract> .
 
 # === Rules ===

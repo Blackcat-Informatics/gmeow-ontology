@@ -123,10 +123,12 @@ def test_native_binding_catalog_and_analyzer(tmp_path: Path) -> None:
     by two slices is a Conflict — strictly stronger than the per-module
     path-derived ``slice_ownership_lint`` it supersedes for fix-deps.
     """
-    import gmeow_slice
+    from purrdf.purrdf_native import slice as gmeow_slice
 
     _build_two_slices(tmp_path)
-    catalog = gmeow_slice.SliceCatalog.discover(str(tmp_path))
+    catalog = gmeow_slice.SliceCatalog.discover(
+        str(tmp_path), "https://blackcatinformatics.ca/gmeow/"
+    )
     records = catalog.records()
     assert {r.manifest.slice_iri for r in records} == {
         f"{_NS}slices/sliceA",
@@ -168,10 +170,12 @@ def _native_discovers(root: Path) -> bool:
     `@x-gmeow-*` language tags, unlike rdflib), and discovery parses each
     manifest.ttl. A malformed terminator would make discovery raise.
     """
-    import gmeow_slice
+    from purrdf.purrdf_native import slice as gmeow_slice
 
     try:
-        catalog = gmeow_slice.SliceCatalog.discover(str(root))
+        catalog = gmeow_slice.SliceCatalog.discover(
+            str(root), "https://blackcatinformatics.ca/gmeow/"
+        )
     except Exception:
         return False
     return len(catalog.records()) > 0
@@ -242,14 +246,16 @@ def test_native_binding_detects_cross_slice_conflict(tmp_path: Path) -> None:
     This is the strictly-stronger check the path-derived per-module lint cannot
     see (each module's isDefinedBy correctly matches its own directory).
     """
-    import gmeow_slice
+    from purrdf.purrdf_native import slice as gmeow_slice
 
     _write(tmp_path, "core/sliceA/manifest.ttl", _manifest("sliceA"))
     _write(tmp_path, "core/sliceA/module.ttl", _module("sliceA", defines="shared"))
     _write(tmp_path, "core/sliceB/manifest.ttl", _manifest("sliceB"))
     _write(tmp_path, "core/sliceB/module.ttl", _module("sliceB", defines="shared"))
 
-    catalog = gmeow_slice.SliceCatalog.discover(str(tmp_path))
+    catalog = gmeow_slice.SliceCatalog.discover(
+        str(tmp_path), "https://blackcatinformatics.ca/gmeow/"
+    )
     report = gmeow_slice.OwnershipAnalyzer(catalog).analyze()
     assert report.has_ownership_defect()
     errors = report.ownership_errors()

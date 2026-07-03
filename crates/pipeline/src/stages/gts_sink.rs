@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `gts_sink` stage (#861 P4/P6): the sole serialization exit — the gts
+//! The `gts_sink` stage: the sole serialization exit — the gts
 //! narrow waist.
 //!
 //! Exactly one Sink per pipeline. The STRUCTURED multi-named-graph `dist`
 //! snapshot is ASSEMBLED upstream by [`crate::stages::carrier::SnapshotStage`]
-//! (fold-isomorphic to the committed `generated/dist/gmeow.gts`, #861 P6 parity
+//! (fold-isomorphic to the committed `generated/dist/gmeow.gts`, the parity
 //! gate). This sink consumes that one `stage-snapshot` product and re-emits its
 //! `gmeow.gts` bytes as the sink artifact — the single, well-defined disk-write
 //! the `run_full` orchestration performs. Splitting the assembly (a Transform)
@@ -56,6 +56,7 @@ impl GtsSinkStage {
                 // The opaque fanout members ride in from their producing export leaves
                 // (each rendered once, in the leaf); `build_fanout_opaque_blob` reads them
                 // off these products instead of re-rendering from disk (§3.2/§4).
+                "stage-export-agreement".to_string(),
                 "stage-export-apache".to_string(),
                 "stage-export-bench".to_string(),
                 "stage-export-evals".to_string(),
@@ -63,6 +64,15 @@ impl GtsSinkStage {
                 "stage-export-metadata".to_string(),
                 "stage-export-references".to_string(),
                 "stage-export-research-objects".to_string(),
+                // The generated shape surfaces (P11 frame shapes + the ResultShape
+                // SHACL projection): `serialize_carrier_snapshot` folds REP_SHAPES'
+                // generated members from THESE runs' in-memory products, never a
+                // stale disk read (the same freshness rule as validation-shapes.ttl).
+                // Without these edges a new competency ResultShape could never reach
+                // the bundle — the fanout would rewrite the stale committed
+                // generated/shapes bytes forever.
+                "stage-export-frame-shapes".to_string(),
+                "stage-export-result-shapes".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
         }
@@ -91,10 +101,13 @@ impl Stage for GtsSinkStage {
         // `build_fanout_opaque_blob` reads them off those products instead of re-rendering
         // from disk, and statements / dsl-stats / context ride off the already-consumed
         // stage-statements / stage-mappings products (§3.2 transform-once, §4 pure terminal).
-        "gts_sink.v4-fanout-presenter"
+        // v5: REP_SHAPES' generated members (result-shapes.ttl + frame-shapes.ttl)
+        // are folded from the consumed export-leaf products instead of a stale
+        // disk read, matching the validation-shapes.ttl freshness rule.
+        "gts_sink.v5-fresh-generated-shape-surfaces"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // The terminal gts ARCHIVE writer (#1132 Stage C): serialize THIS run's carrier
+        // The terminal gts ARCHIVE writer: serialize THIS run's carrier
         // into the single `gmeow.gts` package. GTS is exit-only — produced HERE and
         // nowhere else; every internal export leaf reads the carrier dataset off the
         // snapshot product's bundle, never these bytes. The carrier is taken off the
@@ -134,7 +147,7 @@ mod tests {
         // the end-to-end pipeline test; this unit test pins the sink's fail-closed
         // artifact wiring without paying for reasoning and snapshot assembly.
         let root = repo_root();
-        let carrier = gmeow_rdf::parse_dataset(
+        let carrier = purrdf::parse_dataset(
             b"<https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
               <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/description> \"test bundle\" .\n\
               <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
@@ -151,7 +164,7 @@ mod tests {
         // pins the sink's fail-closed wiring, not a real reasoned closure).
         let source_load = StageProduct::from_artifacts_over(
             "stage-source-load",
-            gmeow_rdf::parse_dataset(b"", "application/n-quads", None)
+            purrdf::parse_dataset(b"", "application/n-quads", None)
                 .expect("empty source-load dataset"),
             BTreeMap::new(),
         );
@@ -166,9 +179,13 @@ mod tests {
             // The SHACL-AF rule (computation) surface the generated-fanout archive pulls
             // from the compile-logic product (design/LOGIC-SHACL-AF.md).
             crate::stages::compile_logic::SHACL_AF_PATH,
+            // The validation-shape surfaces (SHACL Core + ShEx) — the OPT/ADL constraints axis.
+            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+            crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH,
             crate::stages::compile_logic::N3_PATH,
             crate::stages::compile_logic::CLIF_PATH,
             crate::stages::compile_logic::CGIF_PATH,
+            crate::stages::compile_logic::XCL_PATH,
             crate::stages::compile_logic::GUFO_PATH,
             crate::stages::compile_logic::RELATIONAL_CORE_PATH,
             crate::stages::compile_logic::CORRESPONDENCE_PATH,
@@ -197,7 +214,14 @@ mod tests {
             crate::stages::compile_logic::PROJECTION_REPORT_PATH.to_string(),
             b"@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://example.org/projection-report> a owl:Ontology .\n".to_vec(),
         );
-        // The fanout presenter reads dsl-stats + the JSON-LD context off this product.
+        // REP_MAPPINGS folds the SSSOM surface from this product (fail-closed: an
+        // empty match is a hard error, so the minimal set carries one file).
+        mapping_artifacts.insert(
+            "generated/mappings/gmeow-test.sssom.tsv".to_string(),
+            b"# minimal sssom\n".to_vec(),
+        );
+        // The fanout presenter reads dsl-stats + the JSON-LD context + the EmotionML XML
+        // projection off this product.
         mapping_artifacts.insert(
             crate::stages::mappings::DSL_STATS_PATH.to_string(),
             b"{}".to_vec(),
@@ -205,6 +229,10 @@ mod tests {
         mapping_artifacts.insert(
             crate::stages::mappings::JSONLD_CONTEXT_PATH.to_string(),
             b"{}".to_vec(),
+        );
+        mapping_artifacts.insert(
+            crate::stages::mappings::EMOTIONML_PATH.to_string(),
+            b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<emotionml/>\n".to_vec(),
         );
         let mappings = StageProduct::from_artifacts("stage-mappings", mapping_artifacts);
 
@@ -253,6 +281,23 @@ mod tests {
         );
         let validate = StageProduct::from_artifacts("stage-validate", validate_artifacts);
 
+        // The generated shape surfaces are required products (fail-closed):
+        // REP_SHAPES folds them from the in-memory products, never a disk read.
+        let mut result_shapes_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        result_shapes_artifacts.insert(
+            crate::stages::result_shapes::RESULT_SHAPES_PATH.to_string(),
+            b"# result shapes".to_vec(),
+        );
+        let result_shapes =
+            StageProduct::from_artifacts("stage-export-result-shapes", result_shapes_artifacts);
+        let mut frame_shapes_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        frame_shapes_artifacts.insert(
+            crate::stages::frame_shapes::FRAME_SHAPES_PATH.to_string(),
+            b"# frame shapes".to_vec(),
+        );
+        let frame_shapes =
+            StageProduct::from_artifacts("stage-export-frame-shapes", frame_shapes_artifacts);
+
         // The opaque-fanout export leaves: the presenter reads their rendered members off
         // these products (empty here — this unit test pins the sink's fail-closed wiring,
         // not a real fanout; the superset gate is exercised end-to-end in fanout_parity).
@@ -278,6 +323,8 @@ mod tests {
         upstream.insert("stage-source-load".to_string(), source_load);
         upstream.insert("stage-statements".to_string(), statements);
         upstream.insert("stage-validate".to_string(), validate);
+        upstream.insert("stage-export-result-shapes".to_string(), result_shapes);
+        upstream.insert("stage-export-frame-shapes".to_string(), frame_shapes);
         for product in export_leaves {
             upstream.insert(product.stage_id.clone(), product);
         }
@@ -298,6 +345,6 @@ mod tests {
         );
 
         // Round-trips through the kernel GTS importer (the bundle is well-formed).
-        let _ = gmeow_rdf::import_gts_events(emitted).expect("import_gts_events");
+        let _ = purrdf::import_gts_events(emitted).expect("import_gts_events");
     }
 }

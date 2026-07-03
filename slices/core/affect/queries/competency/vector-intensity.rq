@@ -1,0 +1,18 @@
+# Competency question 10: "What is the overall intensity and dominant axis of an
+# affective state?" Intensity is a DERIVED view (the norm is computed outside the
+# logic, Principle 12, never a stored fact), so the query anchors on the derived
+# intensity observation's declared vector basis and returns the DOMINANT axis (the
+# component with the largest magnitude) — the norm itself the CLI computes under the
+# declared metric. ORDER BY DESC + LIMIT 1 selects the dominant axis.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?dimension WHERE {
+    ?intensity a gmeow:DerivedAffectIntensityObservation ;
+        gmeow:intensityBasis ?basis .
+    ?basis gmeow:vectorComponent ?cell .
+    ?cell gmeow:appraisalDimension ?dimension ;
+        gmeow:appraisalValue ?value .
+}
+ORDER BY DESC(?value)
+LIMIT 1

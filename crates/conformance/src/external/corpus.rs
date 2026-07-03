@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Per-corpus vendoring metadata + license audit (#753).
+//! Per-corpus vendoring metadata + license audit.
 //!
 //! Every vendored external corpus carries a `corpus.json` at
 //! `conformance/logic/cases/external/<corpus>/corpus.json` declaring its SPDX
@@ -9,7 +9,7 @@
 //! license is audited against the native [`gmeow_license`] policy BEFORE a corpus is
 //! vendored: an IMPORT_OK license may be committed under `cases/external/`; a
 //! REFERENCE_ONLY (or unknown) license is a hard error — such corpora may only be
-//! fetched live in the Lane-B (`make maint-classic-cross-check`) lane.
+//! fetched live in the Lane-B (`make -C validations/classic-cross-check validate`) lane.
 //!
 //! Parsing is manual + hard-fail (matching `profile.rs`): a missing required field,
 //! a wrong type, an unknown key, or an unknown lane is an error — never a silent
@@ -25,7 +25,7 @@ pub enum Lane {
     /// The fast, required native gate (`make conformance`): small, sub-second,
     /// deterministic, decided natively, and AGREEING with the external source.
     A,
-    /// The heavy, non-required oracle lane (`make maint-classic-cross-check`):
+    /// The heavy, non-required oracle lane (`make -C validations/classic-cross-check validate`):
     /// full corpora, Docker-allowed, routed through the divergence ledger.
     B,
     /// The named honest-DlGap quarantine: cases the native engine cannot soundly
@@ -46,6 +46,16 @@ impl Lane {
             other => Err(format!(
                 "corpus.json lane must be \"a\", \"b\", or \"divergence\", got {other:?}"
             )),
+        }
+    }
+
+    /// The lowercase wire token for this lane (`"a"`, `"b"`, `"divergence"`) — the
+    /// inverse of [`Lane::parse`], for carrying the lane in a projection.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Lane::A => "a",
+            Lane::B => "b",
+            Lane::Divergence => "divergence",
         }
     }
 }
@@ -128,7 +138,7 @@ pub fn audit_vendorable(meta: &CorpusMeta) -> Result<(), String> {
         LicensePolicy::ReferenceOnly => Err(format!(
             "corpus {:?} declares license {:?}, which is REFERENCE_ONLY — it cannot be vendored \
              under cases/external/. Such corpora may only be fetched live in the Lane-B \
-             (make maint-classic-cross-check) lane and never committed.",
+             (make -C validations/classic-cross-check validate) lane and never committed.",
             meta.name, meta.spdx_license
         )),
     }

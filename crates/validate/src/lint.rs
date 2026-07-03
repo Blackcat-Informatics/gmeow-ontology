@@ -17,7 +17,7 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use regex::Regex;
 
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 
 use crate::model::{owl, rdf, rdfs, skos};
 
@@ -236,7 +236,7 @@ fn camel_tokens(local: &str) -> Vec<String> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The structural / naming lints over a native (`gmeow_rdf::RdfDataset`) graph (#906).
+// The structural / naming lints over a native (`purrdf::RdfDataset`) graph (#906).
 //
 // Every check, error/warning TEXT, severity, and emission ORDER is byte-identical to
 // the legacy oxigraph `Store` implementation it replaced.
@@ -248,9 +248,9 @@ fn camel_tokens(local: &str) -> Vec<String> {
 // read across all graphs, exactly as the flattened store did. For a plain-Turtle
 // input (single default graph) `Any` and `Default` coincide.
 
-/// Resolve an IRI value to its dataset-local [`gmeow_rdf::TermId`], if interned.
-fn ds_iri_id(ds: &RdfDataset, iri: &str) -> Option<gmeow_rdf::TermId> {
-    ds.term_id_by_value(&gmeow_rdf::TermValue::iri(iri))
+/// Resolve an IRI value to its dataset-local [`purrdf::TermId`], if interned.
+fn ds_iri_id(ds: &RdfDataset, iri: &str) -> Option<purrdf::TermId> {
+    ds.term_id_by_value(&purrdf::TermValue::iri(iri))
 }
 
 /// All `rdf:type` object IRIs of `subject_iri`, as a set (native twin of [`rdf_types`]).
@@ -734,7 +734,7 @@ pub fn declared_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> Vec<String> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::parse_dataset;
+    use purrdf::parse_dataset;
     use std::sync::Arc;
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -1110,7 +1110,7 @@ mod tests {
     }
 
     /// Parse a Turtle fixture into a frozen native dataset (no oxigraph round-trip).
-    fn dataset_from(ttl: &str) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+    fn dataset_from(ttl: &str) -> std::sync::Arc<purrdf::RdfDataset> {
         parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap()
     }
 

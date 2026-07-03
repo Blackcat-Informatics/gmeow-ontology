@@ -15,9 +15,9 @@
 //! the gts archive by reference, never in the in-memory transport), so a leaf that
 //! projects a blob table reads an empty set off the carrier.
 
-use gmeow_rdf::{RdfDataset, TermId, TermRef};
+use purrdf::{RdfDataset, TermId, TermRef};
 
-/// The kind of an RDF term (mirror of the former `gmeow_gts::model::TermKind`).
+/// The kind of an RDF term (mirror of the former `purrdf::gts::model::TermKind`).
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub(crate) enum TermKind {
     #[default]
@@ -27,7 +27,7 @@ pub(crate) enum TermKind {
     Triple,
 }
 
-/// One materialized RDF term (mirror of the former `gmeow_gts::model::Term`).
+/// One materialized RDF term (mirror of the former `purrdf::gts::model::Term`).
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub(crate) struct Term {
     pub(crate) kind: TermKind,
@@ -44,7 +44,7 @@ pub(crate) struct Term {
     pub(crate) triple: Option<(usize, usize, usize)>,
 }
 
-/// The folded graph view (mirror of the former `gmeow_gts::model::Graph` read API).
+/// The folded graph view (mirror of the former `purrdf::gts::model::Graph` read API).
 #[derive(Clone, Default, PartialEq, Eq, Debug)]
 pub(crate) struct Graph {
     pub(crate) terms: Vec<Term>,

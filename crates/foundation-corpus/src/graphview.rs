@@ -12,8 +12,8 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_rdf::ir::TermId;
-use gmeow_rdf::prelude::{RdfDataset, TermRef};
+use purrdf::ir::TermId;
+use purrdf::prelude::{RdfDataset, TermRef};
 
 /// An owned RDF object — an IRI or a literal.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]

@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: coreference/counterpart-not-transitive
+#
+# AC: gmeow:counterpartOf is symmetric-only by design and must NEVER be derived —
+# in particular it must not chain transitively. The standing
+# logic:CounterpartNonTransitivityObligation forbids any rule head from producing
+# gmeow:counterpartOf (Arm A syntactic reachability), enforced over the whole reasoned
+# graph by `make verify`; this case is its adversarial complement at the engine level.
+#
+# input.nq models a genuine two-hop counterpart chain as DATA: a gmeow:counterpartOf b
+# and b gmeow:counterpartOf c, across realms. If counterpart were transitive, a chase
+# would derive a gmeow:counterpartOf c — collapsing two distinct cross-realm links into a
+# transitively-identified one. It does not: no rule head produces gmeow:counterpartOf.
+#
+# This program ships a POSITIVE CONTROL — a monotone Horn rule that DOES fire on the
+# counterpart edges (counterpartOf(x,y) ⇒ ex:counterpartWitnessed(x,y)), so the chase is
+# provably live and actively reasons over the counterpart structure. That the live chase
+# still derives NO gmeow:counterpartOf(a,c) is thus a meaningful observation, not the side
+# effect of an empty run: materialized.nq is a strict superset of input.nq carrying the
+# ex:counterpartWitnessed edges and NO transitive counterpart edge.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/coreference/counterpart-not-transitive/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# ── Positive control — a monotone Horn rule anchored to the counterpart edges ──
+# counterpartOf(x,y) ⇒ ex:counterpartWitnessed(x,y)
+# Its head is an ex: predicate nowhere near gmeow:counterpartOf, so the guardrail is
+# untouched; the chase DOES derive it (materialized ⊋ input), proving the engine reasons
+# over the counterpart structure while deriving no transitive counterpart edge.
+ex:ruleCounterpartWitness
+    a logic:Rule ;
+    logic:provenance ex:ruleCounterpartWitness ;
+    logic:head [
+        rdf:subject   "?x" ;
+        rdf:predicate ex:counterpartWitnessed ;
+        rdf:object    "?y"
+    ] ;
+    logic:body [
+        rdf:subject   "?x" ;
+        rdf:predicate gmeow:counterpartOf ;
+        rdf:object    "?y"
+    ] .

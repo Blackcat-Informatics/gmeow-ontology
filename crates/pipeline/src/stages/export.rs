@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `export` export leaf (#861 P4): CSV/CSVW/Markdown/JSONL/llms.txt + the
+//! The `export` export leaf: CSV/CSVW/Markdown/JSONL/llms.txt + the
 //! dataset/semantic-web tiers (N-Quads, TriG, statements JSONL, SKOS, OBO Graphs,
 //! ShEx) under git-ignored `dist/`.
 //!
@@ -14,17 +14,17 @@
 //! generator's format. Everything is sorted (BTreeMap/BTreeSet) for determinism.
 //!
 //! The lossless N-Quads / TriG forms delegate to the gmeow-gts Rust serializers
-//! (`gmeow_gts::nquads::to_nquads` / `gmeow_gts::trig::to_trig`), with internal
+//! (`purrdf::gts::nquads::to_nquads` / `purrdf::gts::trig::to_trig`), with internal
 //! `x-gmeow-*` language tags remapped to public BCP-47 at the projection boundary
-//! (#287) exactly as the Python `write_nquads` / `write_trig` do.
+//! exactly as the Python `write_nquads` / `write_trig` do.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-use gmeow_rdf::{RdfDataset, TermId, TermRef};
 use gmeow_validate::language_tags::{
     self, filter_literals as authority_filter_literals, is_internal_tag,
     marked as authority_marked, select_literal as authority_select_literal, LitDesc,
 };
+use purrdf::{RdfDataset, TermId, TermRef};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -489,7 +489,7 @@ pub(crate) struct Term {
     pub(crate) avoid_for_consumer: Vec<String>,
     /// `logic:*` stereotype CURIEs co-asserted as `rdf:type` (sorted/deduped).
     /// Mirrors `gmeow_docs::model::logic_stereotypes` so the shared term card
-    /// (#1027) carries the lowered OntoUML/UFO discipline.
+    /// carries the lowered OntoUML/UFO discipline.
     pub(crate) logic_stereotypes: Vec<String>,
     /// Related-term CURIEs: the union of `skos:related`, `gmeow:pairsWith`, and
     /// `rdfs:seeAlso` objects (sorted/deduped). Read per-term directly from the
@@ -498,7 +498,7 @@ pub(crate) struct Term {
     /// The owning slice IRI, recovered from the `gmeow:graph/documentation` named
     /// graph (`gmeow:DocumentedTerm` ⨝ `gmeow:docOwnerSlice`, keyed by the term
     /// IRI via `gmeow:documents`). Empty when the doc graph is absent. The shared
-    /// term card (#1027) renders its local name as the `slice:` header, matching
+    /// term card renders its local name as the `slice:` header, matching
     /// the docs-site card's `local_name(owner_slice)` — so the MCP card carries
     /// the same slice provenance the published docs do.
     pub(crate) owner_slice: String,
@@ -837,7 +837,6 @@ fn fold_owner_slice_map(view: &FoldView) -> std::collections::HashMap<String, St
 /// The local name of an IRI: the tail after the last `/` or `#`. Mirrors
 /// `gmeow_docs::render::local_name` so the folded card's `slice:` value matches
 /// the docs-site card byte-for-byte.
-#[cfg(any(feature = "python", test))]
 fn slice_local_name(iri: &str) -> &str {
     let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
     &iri[cut..]
@@ -982,7 +981,7 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
 /// This is the ONE card builder for the folded/MCP side; together with
 /// `gmeow_docs::render::doc_term_card` (the docs-site side) it feeds the SINGLE
 /// `gmeow_docs::card::render_card_body` renderer, so the MCP card and the site
-/// card never diverge again (#1027, §19 one-path).
+/// card never diverge again (§19 one-path).
 ///
 /// Values are resolved to display strings (CURIEs / pre-described domain/range).
 /// The category is human-cased to match the docs side (`Class`/`Property`/…).
@@ -994,7 +993,6 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
 /// carry the SAME slice. When the term has no recovered slice (e.g. a doc graph
 /// is absent), `Card::slice` is `None` and the header line is omitted — never a
 /// blank value.
-#[cfg(any(feature = "python", test))]
 pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
     let category = match t.category {
         "class" => "Class",
@@ -1569,7 +1567,7 @@ fn write_markdown(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
     (lines.join("\n") + "\n").into_bytes()
 }
 
-// ── llms.txt (standard llmstxt.org form, #1027) ───────────────────────────────
+// ── llms.txt (standard llmstxt.org form) ───────────────────────────────
 //
 // All three llms.txt-family surfaces — this dist export, the live MCP consumer
 // index, and the docs SITE index (`gmeow_docs::render::llms_txt`) — share ONE
@@ -1577,7 +1575,7 @@ fn write_markdown(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
 // `## Section` markdown-link bullets. The ONLY thing that varies is whether a
 // bullet carries a site URL (`Some` for the MCP index, recovered from the doc
 // graph's `gmeow:docUrl`; `None` here — the dist tarball is not a site to link
-// into). Before #1027 these had silently diverged (`⊑` vs `subClassOf`, `→` vs
+// into). These had previously silently diverged (`⊑` vs `subClassOf`, `→` vs
 // `->`, a hand-rolled header), each with its own copy of the summary sentence.
 
 /// The llmstxt.org signature suffix for a term: ` (⊑ parents)` for a class,
@@ -1678,6 +1676,60 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
     gmeow_docs::llms::render_index(title, &prose, &sections).into_bytes()
 }
 
+/// The `llms-full.txt` surface: the complete, link-free inlined index — the
+/// standard header (with the canonical summary blockquote) then every term as a
+/// `### {curie}{signature}` block with its full card body, rendered through the
+/// shared `gmeow_docs::card` renderer. Emitted in a deterministic total order and
+/// bounded by [`gmeow_docs::llms::LLMS_FULL_TOKEN_BUDGET`] (the elided remainder is
+/// disclosed, never silently dropped). Shared by the flat `dist/llms-full.txt`
+/// export and the MCP `llms_full` surface — the folded-`Term` twin of the
+/// docs-site `gmeow_docs::render::llms_full_txt`.
+pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> String {
+    let prose = llms_prose(
+        version,
+        "Complete inlined form — every term, its definition, and its usage advice in full, \
+         bounded by a fixed token budget.",
+    );
+    let mut out = gmeow_docs::llms::llms_header(title, &prose);
+    out.push_str("## Terms\n\n");
+    // Emit whole term blocks in a deterministic total order (CURIE then IRI) so the
+    // token-budget elision boundary is byte-stable regardless of the input ordering.
+    let mut ordered: Vec<&Term> = terms.iter().collect();
+    ordered.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+    let budget = gmeow_docs::llms::LLMS_FULL_TOKEN_BUDGET;
+    let mut used = gmeow_docs::llms::estimate_tokens(&out);
+    let mut emitted = 0usize;
+    for t in &ordered {
+        let block = format!(
+            "### {}{}\n\n{}\n",
+            t.curie,
+            llms_signature(t),
+            gmeow_docs::card::render_card_body(&term_to_card(t))
+        );
+        let cost = gmeow_docs::llms::estimate_tokens(&block);
+        // Always emit at least one block; otherwise stop before the budget is
+        // exceeded (a hard cap, never a mid-block truncation).
+        if emitted > 0 && used + cost > budget {
+            break;
+        }
+        out.push_str(&block);
+        used += cost;
+        emitted += 1;
+    }
+    let elided = ordered.len() - emitted;
+    if elided > 0 {
+        // Disclose the cap rather than silently truncating (no silent caps): the
+        // elided terms remain reachable via the MCP lookup tools and the docs site.
+        out.push_str(&format!(
+            "> {elided} of {} terms elided to fit the {budget}-token llms-full budget; \
+             resolve any omitted term via the MCP `lookup_term` / `doc_card` tools or the \
+             full documentation site.\n",
+            ordered.len()
+        ));
+    }
+    out
+}
+
 // ── MCP consumer surfaces ────────────────────────────────────────────────────
 //
 // The native MCP server exposes five `export`-backed surfaces: `lookup_term`,
@@ -1695,8 +1747,7 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
 
 #[cfg(any(feature = "python", test))]
 pub(crate) use consumer::{
-    consumer_llms_full, consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope,
-    okf_index_envelope,
+    consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope, okf_index_envelope,
 };
 
 #[cfg(any(feature = "python", test))]
@@ -1772,7 +1823,7 @@ mod consumer {
         out
     }
 
-    /// `llms_txt`: the standard llmstxt.org vocabulary index (#1027),
+    /// `llms_txt`: the standard llmstxt.org vocabulary index,
     /// rendered through the shared `gmeow_docs::llms` emitter so it matches the
     /// docs-site and dist forms byte-for-byte modulo URLs. `doc_urls` maps a term
     /// IRI to its published site URL (recovered from the doc graph via
@@ -1792,7 +1843,7 @@ mod consumer {
         gmeow_docs::llms::render_index(title, &prose, &sections)
     }
 
-    /// `doc_card`: a prompt-ready Markdown card for one term (#1027) — the
+    /// `doc_card`: a prompt-ready Markdown card for one term — the
     /// live MCP twin of the docs-site `terms/{slug}/card.md`. Resolves the query,
     /// then renders a `# {curie}{signature}` card with the definition and every
     /// advisory field, through the ONE shared `gmeow_docs::card` renderer the
@@ -1804,26 +1855,6 @@ mod consumer {
         };
         let title = format!("{}{}", t.curie, llms_signature(t));
         gmeow_docs::card::render_card(&title, &super::term_to_card(t))
-    }
-
-    /// The `llms-full.txt` MCP resource (#1027): the complete, link-free inlined
-    /// index — the standard header (with the canonical summary blockquote) then
-    /// every term as a `### {curie}{signature}` block with its full card body,
-    /// rendered through the shared `gmeow_docs::card` renderer. The folded-`Term`
-    /// twin of the docs-site `gmeow_docs::render::llms_full_txt`.
-    pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> String {
-        let prose = llms_prose(
-            version,
-            "Complete inlined form — every term, its definition, and its usage advice in full.",
-        );
-        let mut out = gmeow_docs::llms::llms_header(title, &prose);
-        out.push_str("## Terms\n\n");
-        for t in terms {
-            out.push_str(&format!("### {}{}\n\n", t.curie, llms_signature(t)));
-            out.push_str(&gmeow_docs::card::render_card_body(&super::term_to_card(t)));
-            out.push('\n');
-        }
-        out
     }
 
     /// Build a `term-IRI → site URL` map from the `gmeow:graph/documentation`
@@ -1916,13 +1947,13 @@ mod consumer {
 // ── dataset forms: N-Quads / TriG (native serializers over the carrier) ─────────
 
 /// Rebuild the carrier dataset with internal `x-gmeow-*` language tags remapped to
-/// public BCP-47 (the #287 projection boundary). Only literal language tags change.
+/// public BCP-47 (the projection boundary). Only literal language tags change.
 fn dataset_with_public_tags(
     dataset: &RdfDataset,
     tag_map: &BTreeMap<String, String>,
 ) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
-    use gmeow_rdf::model::RdfTerm;
-    use gmeow_rdf::RdfDatasetBuilder;
+    use purrdf::model::RdfTerm;
+    use purrdf::RdfDatasetBuilder;
     let retag = |term: RdfTerm| -> RdfTerm {
         if let RdfTerm::Literal(mut lit) = term {
             if let Some(public) = lit.language.as_ref().and_then(|l| tag_map.get(l)) {
@@ -1955,10 +1986,10 @@ fn write_nquads(
     tag_map: &BTreeMap<String, String>,
 ) -> Result<Vec<u8>, PipelineError> {
     let public = dataset_with_public_tags(dataset, tag_map)?;
-    gmeow_rdf::serialize_dataset(
+    purrdf::serialize_dataset(
         &public,
         "application/n-quads",
-        gmeow_rdf::SerializeGraph::Dataset,
+        purrdf::SerializeGraph::Dataset,
     )
     .map_err(|e| PipelineError::Parse(format!("n-quads serialize: {e}")))
 }
@@ -1968,12 +1999,8 @@ fn write_trig(
     tag_map: &BTreeMap<String, String>,
 ) -> Result<Vec<u8>, PipelineError> {
     let public = dataset_with_public_tags(dataset, tag_map)?;
-    gmeow_rdf::serialize_dataset(
-        &public,
-        "application/trig",
-        gmeow_rdf::SerializeGraph::Dataset,
-    )
-    .map_err(|e| PipelineError::Parse(format!("trig serialize: {e}")))
+    purrdf::serialize_dataset(&public, "application/trig", purrdf::SerializeGraph::Dataset)
+        .map_err(|e| PipelineError::Parse(format!("trig serialize: {e}")))
 }
 
 // ── statements JSONL ─────────────────────────────────────────────────────────────
@@ -2460,6 +2487,10 @@ pub(crate) fn render_all_with_languages(
         write_llms_txt(&terms, &title, &version),
     );
     out.insert(
+        format!("{DIST_DIR}/llms-full.txt"),
+        consumer_llms_full(&terms, &title, &version).into_bytes(),
+    );
+    out.insert(
         format!("{DIST_DIR}/gmeow.nq"),
         write_nquads(dataset, view.tag_map())?,
     );
@@ -2484,7 +2515,7 @@ pub(crate) fn render_all_with_languages(
 }
 
 /// Collect `(title, version, terms)` from a folded gts graph — the shared term
-/// surface consumed by both the flat-export leaf and the OKF leaf (#861 P4).
+/// surface consumed by both the flat-export leaf and the OKF leaf.
 pub(crate) fn collect_term_surface(
     dataset: &RdfDataset,
 ) -> Result<(String, String, Vec<Term>), PipelineError> {
@@ -2502,12 +2533,12 @@ pub(crate) fn read_fold(
     root: &std::path::Path,
 ) -> Result<std::sync::Arc<RdfDataset>, PipelineError> {
     let gts = std::fs::read(root.join("generated/dist/gmeow.gts"))?;
-    let bundle = gmeow_rdf::import_gts_events(&gts)
+    let bundle = purrdf::import_gts_events(&gts)
         .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))?;
     Ok(bundle.dataset)
 }
 
-/// Borrow THIS run's carrier dataset (#1132). The runtime path every fold-reading
+/// Borrow THIS run's carrier dataset. The runtime path every fold-reading
 /// export leaf (export / parquet / okf) uses: the `stage-snapshot` product carries the
 /// terminal carrier `RdfDataset` directly, so the leaves read ONE shared dataset off
 /// the bundle instead of re-parsing the `gmeow.gts` bytes (GTS is exit-only).
@@ -2585,7 +2616,7 @@ mod tests {
         let graph = read_fold(&root).expect("read fold");
         let arts = render_all(&graph).expect("render");
 
-        // All 13 expected logical paths present and non-empty.
+        // All 14 expected logical paths present and non-empty.
         let expected = [
             "gmeow-classes.csv",
             "gmeow-properties.csv",
@@ -2594,6 +2625,7 @@ mod tests {
             "gmeow-terms.jsonl",
             "gmeow-terms.md",
             "llms.txt",
+            "llms-full.txt",
             "gmeow.nq",
             "gmeow.trig",
             "gmeow-statements.jsonl",
@@ -2738,7 +2770,7 @@ mod tests {
         assert_eq!(fr["label"], serde_json::json!("français"));
     }
 
-    /// `llms_txt`: the STANDARD llmstxt.org format (#1027) — H1 + canonical
+    /// `llms_txt`: the STANDARD llmstxt.org format — H1 + canonical
     /// summary blockquote + unified `⊑`/`→` signatures + bullets linking into the
     /// published docs site (URLs recovered from the doc graph). One format across
     /// the dist/MCP/site surfaces; the old consumer-specific format is retired.
@@ -2812,7 +2844,7 @@ mod tests {
         // Canonical card convention (the shared `gmeow_docs::card` renderer):
         // human-cased category, and term→slice provenance recovered from the
         // documentation graph (the docs generator dogfoods `gmeow:docOwnerSlice`
-        // into the bundle; the fold reads it back — #1027).
+        // into the bundle; the fold reads it back).
         assert!(card.contains("- category: Individual"));
         assert!(card.contains("- iri: https://blackcatinformatics.ca/gmeow/langFrench"));
         let slice_line = card
@@ -2829,10 +2861,11 @@ mod tests {
         assert_eq!(miss, "Term not found: gmeow:NoSuchTerm\n");
     }
 
-    /// `llms_full` / `llms-full.txt`: the standard header then a `### ` block
-    /// per term inlined in full (no links).
+    /// `llms_full` / `llms-full.txt`: the standard header then `### ` term blocks
+    /// inlined in full (no links), emitted in CURIE order and bounded by the fixed
+    /// token budget, with the elided remainder disclosed (never silently dropped).
     #[test]
-    fn consumer_llms_full_inlines_terms() {
+    fn consumer_llms_full_inlines_terms_within_the_token_budget() {
         let (terms, title, version) = english_terms();
         let full = consumer_llms_full(&terms, &title, &version);
         assert!(full.starts_with(&format!(
@@ -2840,21 +2873,42 @@ mod tests {
             gmeow_docs::llms::GMEOW_SUMMARY
         )));
         assert!(full.contains("## Terms\n\n"));
-        assert!(full.contains("### gmeow:langFrench"));
         // No markdown links in the complete form (it is self-contained).
         assert!(
             !full.contains("](terms/"),
             "llms-full must be link-free (inlined content)"
         );
+        // Blocks are emitted in a deterministic CURIE order, so the CURIE-first
+        // term is always inlined.
+        let mut ordered: Vec<&Term> = terms.iter().collect();
+        ordered.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
         let headings = full.lines().filter(|l| l.starts_with("### ")).count();
+        assert!(headings >= 1, "expected at least one inlined term block");
         assert!(
-            headings >= terms.len() / 2,
-            "expected roughly one block per term, got {headings} for {} terms",
-            terms.len()
+            full.contains(&format!("### {}", ordered[0].curie)),
+            "the CURIE-first term ({}) must be inlined",
+            ordered[0].curie
+        );
+        // The full vocabulary far exceeds the token budget, so some terms are
+        // elided — and the elision is disclosed, not silent.
+        assert!(
+            headings < terms.len(),
+            "full vocab should exceed the budget"
+        );
+        assert!(
+            full.contains("elided to fit"),
+            "the token-budget elision must be disclosed"
+        );
+        // The emitted document respects the budget (plus at most one overflow block
+        // and the trailing disclosure line).
+        assert!(
+            gmeow_docs::llms::estimate_tokens(&full)
+                <= gmeow_docs::llms::LLMS_FULL_TOKEN_BUDGET * 2,
+            "llms-full must stay within a small multiple of the token budget"
         );
     }
 
-    /// The twin-contract lock (#1027, §19 one-path): the MCP card and the
+    /// The twin-contract lock (§19 one-path): the MCP card and the
     /// docs-site card share ONE renderer (`gmeow_docs::card::render_card_body`)
     /// AND one convention. This test pins the shared renderer's output for a card
     /// whose SHARED fields are set, then proves the folded-`Term` builder
@@ -2946,7 +3000,7 @@ mod tests {
 
     /// `term_to_card` slice handling: a recovered `owner_slice` IRI renders as its
     /// local name; an absent one yields `None` (no blank `slice:` line). Locks
-    /// both arms of the term→slice provenance recovery (#1027).
+    /// both arms of the term→slice provenance recovery.
     #[test]
     fn term_to_card_slice_uses_local_name_or_omits() {
         let with_slice = Term {

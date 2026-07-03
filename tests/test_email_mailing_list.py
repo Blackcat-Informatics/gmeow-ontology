@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, URIRef
+from purrdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 

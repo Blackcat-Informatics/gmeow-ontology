@@ -7,12 +7,13 @@
 //! cases, run [`evaluate`], and assert (a) the materialized quad SET against the
 //! goldens, and (b) the content-addressed provenance on representative quads.  Full
 //! end-to-end explanation-golden parity is validated after the runner is rewired
-//! (issue #636 Task 2); here we pin the quad set + provenance recipe.
+//! (Task 2); here we pin the quad set + provenance recipe.
 
 use super::*;
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE_P: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const OWL_FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 
 /// Build a `WorldStore` from N-Quads text.
 fn store_from(nquads: &str) -> WorldStore {
@@ -186,7 +187,7 @@ fn mixiden_kind_under_kind() {
     );
 }
 
-// ── S6b: chase → derivation graph wiring (#820) ─────────────────────────────────
+// ── S6b: chase → derivation graph wiring ─────────────────────────────────
 
 #[test]
 fn derivation_graph_chase_wiring_and_survival() {
@@ -254,7 +255,7 @@ fn derivation_graph_chase_wiring_and_survival() {
     );
 
     // Determinism: a second run over a freshly-built store yields an identical graph
-    // (content-addressed, runtime-id independent — preserves #824's order-stable fold).
+    // (content-addressed, runtime-id independent — preserves the order-stable fold).
     let store2 = store_from(&nq);
     let graph2 = super::derivation_graph(&store2, AntiRigidityPolicy::WitnessObligation)
         .expect("second derivation_graph must succeed");
@@ -313,22 +314,114 @@ fn mixrig_full_quad_set_matches_golden() {
 fn relcomp_under_mediated() {
     let base = "https://example.org/foundation/relcomp-under-mediated";
     let nq = format!(
+        // Employment mediates two distinct roles → two ends → well-formed.
         "<{base}/Employment> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
-         <{base}/Employment> <{LOGIC}mediates> <{base}/Employee> <{base}/schema> .\n\
-         <{base}/Employment> <{LOGIC}mediates> <{base}/Employer> <{base}/schema> .\n\
+         <{base}/Employment> <{LOGIC}mediates> <{base}/employee> <{base}/schema> .\n\
+         <{base}/Employment> <{LOGIC}mediates> <{base}/employer> <{base}/schema> .\n\
+         \
          <{base}/Marriage> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
-         <{base}/Marriage> <{LOGIC}mediates> <{base}/Spouse1> <{base}/schema> .\n"
+         <{base}/Marriage> <{LOGIC}mediates> <{base}/spouse> <{base}/schema> .\n\
+         <{base}/spouse> <{RDF_TYPE_P}> <{OWL_FUNCTIONAL}> <{base}/schema> .\n\
+         \
+         <{base}/Partnership> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Partnership> <{LOGIC}mediates> <{base}/partner> <{base}/schema> .\n"
     );
     let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
-    // Marriage mediates only one relatum → RelComp.
+    // Marriage mediates a single FUNCTIONAL role → one end → RelComp.
     assert!(
         has_violation(&quads, &format!("{base}/Marriage"), "RelComp"),
-        "Marriage (one relatum) must fire RelComp"
+        "Marriage (one functional role → one end) must fire RelComp"
     );
-    // Employment mediates two distinct relata → no RelComp.
+    // Employment mediates two distinct roles → two ends → no RelComp.
     assert!(
         !has_violation(&quads, &format!("{base}/Employment"), "RelComp"),
-        "Employment (two relata) must NOT fire RelComp"
+        "Employment (two distinct roles) must NOT fire RelComp"
+    );
+    // Partnership mediates a single NON-functional role → two ends → no RelComp.
+    // The entity-count reading: one non-functional role already reaches two entities.
+    assert!(
+        !has_violation(&quads, &format!("{base}/Partnership"), "RelComp"),
+        "Partnership (one non-functional role → two ends) must NOT fire RelComp"
+    );
+}
+
+// ── Discipline: RelComp on production `subClassOf logic:Relator` relators ────────
+
+/// Production relators are typed `a logic:Kind ; rdfs:subClassOf logic:Relator` (a
+/// class-edge to the meta-class), NOT the direct `a logic:Relator` the base
+/// [`relcomp_under_mediated`] case uses.  These assertions pin that the discipline is
+/// live on that production shape (previously it was wholly dormant on it): it fires on
+/// an under-mediated subclass relator, clears on a well-mediated one, and never fires
+/// on the `logic:Relator` meta-class itself.
+#[test]
+fn relcomp_on_subclass_relator() {
+    let base = "https://example.org/foundation/relcomp-subclass-relator";
+    let nq = format!(
+        // Enrollment: a Kind subClassOf logic:Relator mediating two distinct roles.
+        "<{base}/Enrollment> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}subClassOf> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}mediates> <{base}/student> <{base}/schema> .\n\
+         <{base}/Enrollment> <{LOGIC}mediates> <{base}/course> <{base}/schema> .\n\
+         \
+         <{base}/Devotion> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Devotion> <{LOGIC}subClassOf> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Devotion> <{LOGIC}mediates> <{base}/devotee> <{base}/schema> .\n\
+         <{base}/devotee> <{RDF_TYPE_P}> <{OWL_FUNCTIONAL}> <{base}/schema> .\n\
+         \
+         <{base}/Membership> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Membership> <{LOGIC}subClassOf> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Membership> <{LOGIC}mediates> <{base}/memberParty> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    // Under-mediated subclass relator (single functional role) fires RelComp — the
+    // discipline now reaches the production `subClassOf logic:Relator` shape.
+    assert!(
+        has_violation(&quads, &format!("{base}/Devotion"), "RelComp"),
+        "Devotion (subClassOf logic:Relator, one functional role) must fire RelComp"
+    );
+    // Well-mediated subclass relator (two distinct roles) does NOT fire.
+    assert!(
+        !has_violation(&quads, &format!("{base}/Enrollment"), "RelComp"),
+        "Enrollment (subClassOf logic:Relator, two distinct roles) must NOT fire RelComp"
+    );
+    // A subclass relator mediating a single NON-functional role reaches two entities →
+    // no RelComp (the symmetric-relator case, e.g. an agreement bound by its parties).
+    assert!(
+        !has_violation(&quads, &format!("{base}/Membership"), "RelComp"),
+        "Membership (one non-functional role → two ends) must NOT fire RelComp"
+    );
+    // The Relator meta-class itself is never a concreteRelator (its subclasses make
+    // hasLogicSubclass hold, suppressing it), so it never fires RelComp.
+    assert!(
+        !has_violation(&quads, &format!("{LOGIC}Relator"), "RelComp"),
+        "logic:Relator (the meta-class) must never fire RelComp"
+    );
+}
+
+/// A concrete relator that SPECIALISES a mediated relator inherits its ancestor's
+/// mediation roles (mediation propagates down subClassOf), so it does NOT trip
+/// RelComp even though it declares no logic:mediates of its own.  Here the inherited
+/// role is a single NON-functional party role — the symmetric-relator pattern (a
+/// contract bound by its parties) — which reaches two entities on its own.
+#[test]
+fn relcomp_mediation_propagates_to_subclass() {
+    let base = "https://example.org/foundation/relcomp-propagation";
+    let nq = format!(
+        // Agreement: an abstract relator mediating a single non-functional party role.
+        "<{base}/Agreement> <{RDF_TYPE_P}> <{LOGIC}Relator> <{base}/schema> .\n\
+         <{base}/Agreement> <{LOGIC}mediates> <{base}/hasParty> <{base}/schema> .\n\
+         <{base}/Contract> <{LOGIC}subClassOf> <{base}/Agreement> <{base}/schema> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &format!("{base}/Contract"), "RelComp"),
+        "Contract (⊑ Agreement) must inherit its ancestor's non-functional party role \
+         (two ends) and NOT fire RelComp"
+    );
+    // Agreement itself is abstract here (Contract is its subclass) → not concrete → exempt.
+    assert!(
+        !has_violation(&quads, &format!("{base}/Agreement"), "RelComp"),
+        "Agreement (non-leaf) is not a concreteRelator and must not fire RelComp"
     );
 }
 
@@ -634,14 +727,14 @@ const IDENTITY_GOLDEN: &str =
     include_str!("../../../../conformance/logic/cases/foundation/identity-overlap-mixiden/expected/materialized.nq");
 const RELCOMP_GOLDEN: &str =
     include_str!("../../../../conformance/logic/cases/foundation/relcomp-under-mediated/expected/materialized.nq");
-// Holonic emergence (issue #705, C2): the input.nq seed facts and the full
+// Holonic emergence (C2): the input.nq seed facts and the full
 // materialized golden are read straight from the conformance case, so this Rust
 // golden and the conformance harness assert the SAME bytes.
 const HOLONIC_EMERGENCE_INPUT: &str =
     include_str!("../../../../conformance/logic/cases/holonic/emergence/input.nq");
 const HOLONIC_EMERGENCE_GOLDEN: &str =
     include_str!("../../../../conformance/logic/cases/holonic/emergence/expected/materialized.nq");
-// Holonic autonomy/integration duality (issue #707, C4): the input.nq seed facts and the
+// Holonic autonomy/integration duality (C4): the input.nq seed facts and the
 // full materialized golden are read straight from the conformance case, so this Rust golden
 // and the conformance harness assert the SAME bytes.
 const HOLONIC_AGENCY_INPUT: &str =
@@ -649,7 +742,7 @@ const HOLONIC_AGENCY_INPUT: &str =
 const HOLONIC_AGENCY_GOLDEN: &str = include_str!(
     "../../../../conformance/logic/cases/holonic/holon-integrity/expected/materialized.nq"
 );
-// Holonic downward-constraint governance (#708, C3 corpus closure): the governance case and
+// Holonic downward-constraint governance (C3 corpus closure): the governance case and
 // rules already existed; these constants wire the Rust golden to the same conformance case
 // so the golden-parity test covers it.
 const HOLONIC_GOVERNANCE_INPUT: &str =
@@ -657,13 +750,13 @@ const HOLONIC_GOVERNANCE_INPUT: &str =
 const HOLONIC_GOVERNANCE_GOLDEN: &str = include_str!(
     "../../../../conformance/logic/cases/holonic/downward-constraint/expected/materialized.nq"
 );
-// Holonic-level coherence (#708, C5): position-based level coherence rule + HolonicLevelIncoherence.
+// Holonic-level coherence (C5): position-based level coherence rule + HolonicLevelIncoherence.
 const HOLONIC_LEVEL_INPUT: &str =
     include_str!("../../../../conformance/logic/cases/holonic/holonic-level/input.nq");
 const HOLONIC_LEVEL_GOLDEN: &str = include_str!(
     "../../../../conformance/logic/cases/holonic/holonic-level/expected/materialized.nq"
 );
-// Holonic agent-goal-holarchy (#709, C6): the named Principle-15 CONSUMER of the Holons epic —
+// Holonic agent-goal-holarchy (C6): the named Principle-15 CONSUMER of the Holons epic —
 // an AI agent's goal/action trajectory as a holarchy that applies the C1–C4 kernel at once.
 // Read straight from the conformance case's input.nq world facts and run through the foundation
 // lowering directly — the same world-fact bytes the harness materializes over for this
@@ -698,10 +791,11 @@ fn golden_quad_sets_match_for_single_world_cases() {
             "relcomp-under-mediated",
             RELCOMP_GOLDEN,
             "<https://example.org/foundation/relcomp-under-mediated/Employment> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
-             <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Employee> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
-             <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Employer> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
+             <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/employee> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
+             <https://example.org/foundation/relcomp-under-mediated/Employment> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/employer> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
              <https://example.org/foundation/relcomp-under-mediated/Marriage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
-             <https://example.org/foundation/relcomp-under-mediated/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/Spouse1> <https://example.org/foundation/relcomp-under-mediated/schema> .\n",
+             <https://example.org/foundation/relcomp-under-mediated/Marriage> <https://blackcatinformatics.ca/logic/mediates> <https://example.org/foundation/relcomp-under-mediated/spouse> <https://example.org/foundation/relcomp-under-mediated/schema> .\n\
+             <https://example.org/foundation/relcomp-under-mediated/spouse> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://example.org/foundation/relcomp-under-mediated/schema> .\n",
         ),
         (
             "holonic-emergence",
@@ -918,7 +1012,7 @@ fn first_wins_tiebreak_prefers_most_direct_derivation_order_independent() {
     );
 }
 
-// ── Typed/contextual mereology + holon kernel (issue #704, C1) ───────────────────
+// ── Typed/contextual mereology + holon kernel (C1) ───────────────────
 
 /// Whether a binary `(subject, predicate_local, object_iri)` fact is present
 /// (object compared in N3 `<iri>` form).
@@ -1015,7 +1109,7 @@ fn holonic_level_coherence_is_position_based_and_profile_scoped() {
         ),
         "Gearbox (profiled holon, no position, only instanceOf) MUST fire HolonicLevelIncoherence"
     );
-    // Unprofiled holon → never charged (profile-relativity, #775).
+    // Unprofiled holon → never charged (profile-relativity).
     assert!(
         !has_violation(&quads, &format!("{base}/Sprite"), "HolonicLevelIncoherence"),
         "Sprite (unprofiled holon) must NOT fire HolonicLevelIncoherence"
@@ -1024,7 +1118,7 @@ fn holonic_level_coherence_is_position_based_and_profile_scoped() {
 
 #[test]
 fn multiply_positioned_marks_entity_with_two_distinct_positions() {
-    // ME9 (#775): an entity occupying TWO distinct logic:HolonicPositions is the structural
+    // ME9: an entity occupying TWO distinct logic:HolonicPositions is the structural
     // signature of a DAG node on multiple paths → logic:multiplyPositioned fires, grounding
     // that a path-relative depth band exists.  An entity with a single position does NOT fire.
     let base = "https://example.org/foundation/multiply-positioned";
@@ -1266,7 +1360,7 @@ fn holonic_emergence_tri_valued_verdicts_and_non_propagation() {
 
 #[test]
 fn holonic_downward_constraint_tri_valued_verdicts_and_non_transitivity() {
-    // The C3 (issue #706, revised by ME9 / #775) downward-constraint governance, driven from the
+    // The C3 (revised by ME9) downward-constraint governance, driven from the
     // SAME bytes the conformance harness asserts (the downward-constraint case input.nq).  One
     // holarchy (ex:Department ▷ ex:Team ▷ ex:Member) and one governance regime (ex:HouseRegime,
     // whose logic:activationBasis carries ex:OnCallState but NOT ex:IdleState) drive all three
@@ -1315,7 +1409,7 @@ fn holonic_downward_constraint_tri_valued_verdicts_and_non_transitivity() {
         }
     }
 
-    // NON-TRANSITIVITY (the C3 #775 guarantee): governance does NOT cascade down
+    // NON-TRANSITIVITY (the C3 guarantee): governance does NOT cascade down
     // logic:properPartOf.  ex:Member is a proper part of ex:Team (hence TRANSITIVELY a proper
     // part of ex:Department), but no logic:DownwardConstraint names it as its constraintTarget,
     // so it receives NO logic:constraintVerdict of any value — every verdict rule is gated on an
@@ -1335,7 +1429,7 @@ fn holonic_downward_constraint_tri_valued_verdicts_and_non_transitivity() {
 
 #[test]
 fn holonic_agency_four_valued_verdicts() {
-    // The C4 (issue #707) holon autonomy/integration duality, driven from the SAME bytes
+    // The C4 holon autonomy/integration duality, driven from the SAME bytes
     // the conformance harness asserts (the case input.nq).  One declared
     // logic:HolonicAgencyProfile (KoestlerProfile: command ⇒ self-assertion, subordination
     // ⇒ integration) drives all four logic:AgencyVerdict values, and the two Janus markers
@@ -1404,7 +1498,7 @@ fn holonic_agency_four_valued_verdicts() {
         "the integration-deficient assessment self-asserts but does not integrate"
     );
 
-    // Dogfooding C1 (#704): the mid-chain holon ex:Captain co-fires logic:isHolon.
+    // Dogfooding C1: the mid-chain holon ex:Captain co-fires logic:isHolon.
     assert!(
         has_marker(&quads, &format!("{base}/Captain"), "isHolon"),
         "the mid-chain ex:Captain must co-fire the C1 holon projection"
@@ -1452,7 +1546,7 @@ fn holonic_agency_four_valued_verdicts() {
 
 #[test]
 fn holonic_agent_goal_holarchy_non_propagation_and_non_transitivity() {
-    // C6 (issue #709): the named Principle-15 CONSUMER — an AI agent's goal/action trajectory as
+    // C6: the named Principle-15 CONSUMER — an AI agent's goal/action trajectory as
     // a holarchy, applying the C1–C4 kernel at once.  The flagship composite previously had only
     // golden-parity coverage; this test PINS the two structural guarantees golden parity cannot
     // express as positive facts: NON-PROPAGATION (C2 — an emergent plan property never inherits
@@ -1541,4 +1635,199 @@ fn holonic_agent_goal_holarchy_non_propagation_and_non_transitivity() {
             "downward constraint must NOT cascade to the grandchild sub-goal ex:SearchQuery (got {verdict})"
         );
     }
+}
+
+// ── Property characteristics (H4) ────────────────────────────────────────────────
+
+const OWL_TRANSITIVE: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+const OWL_SYMMETRIC: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
+const OWL_IRREFLEXIVE: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+const OWL_ASYMMETRIC: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+
+/// Whether a plain edge `(subject, predicate_iri, object_iri)` is materialized.
+fn has_edge(quads: &[FoundationQuad], subject: &str, predicate: &str, object: &str) -> bool {
+    let obj = format!("<{object}>");
+    quads
+        .iter()
+        .any(|q| q.subject == subject && q.predicate == predicate && q.object == obj)
+}
+
+#[test]
+fn characteristic_transitive_closure_via_owl_marker() {
+    let b = "https://example.org/char/transitive";
+    let p = format!("{b}/before");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_TRANSITIVE}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/C> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &format!("{b}/A"), &p, &format!("{b}/C")),
+        "transitive closure must derive A→C"
+    );
+}
+
+#[test]
+fn characteristic_transitive_closure_via_logic_record() {
+    // The canonical carrier: a central record, not a marker on the property itself.
+    let b = "https://example.org/char/record";
+    let p = format!("{b}/before");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}transitiveProperty> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/C> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &format!("{b}/A"), &p, &format!("{b}/C")),
+        "a logic:characterizes/characteristicSort record must drive closure like an owl: marker"
+    );
+}
+
+#[test]
+fn characteristic_symmetric_mirror() {
+    let b = "https://example.org/char/symmetric";
+    let p = format!("{b}/counter");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_SYMMETRIC}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &format!("{b}/B"), &p, &format!("{b}/A")),
+        "symmetric mirror must derive B→A"
+    );
+}
+
+#[test]
+fn characteristic_irreflexive_self_edge_violates() {
+    let b = "https://example.org/char/irreflexive";
+    let p = format!("{b}/counter");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_IRREFLEXIVE}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/A> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &format!("{b}/A"), "IrreflexivityViolation"),
+        "an irreflexive property holding of a self-pair must fire IrreflexivityViolation"
+    );
+}
+
+#[test]
+fn characteristic_symmetric_irreflexive_cycle_violates() {
+    // counterGoal shape: symmetric + irreflexive. A self-edge is a violation; a plain
+    // A↔B pair (mirror) is NOT (distinct endpoints).
+    let b = "https://example.org/char/countergoal";
+    let p = format!("{b}/counterGoal");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_SYMMETRIC}> <{b}/g> .\n\
+         <{p}> <{RDF_TYPE_P}> <{OWL_IRREFLEXIVE}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/S> <{p}> <{b}/S> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_edge(&quads, &format!("{b}/B"), &p, &format!("{b}/A")),
+        "symmetric mirror still derives B→A"
+    );
+    assert!(
+        has_violation(&quads, &format!("{b}/S"), "IrreflexivityViolation"),
+        "a goal that is its own counter-goal must fire IrreflexivityViolation"
+    );
+    assert!(
+        !has_violation(&quads, &format!("{b}/A"), "IrreflexivityViolation"),
+        "a symmetric pair between DISTINCT goals is not an irreflexivity violation"
+    );
+}
+
+#[test]
+fn characteristic_asymmetric_mutual_pair_violates() {
+    let b = "https://example.org/char/asymmetric";
+    let p = format!("{b}/strictlyBefore");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_ASYMMETRIC}> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/A> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &format!("{b}/A"), "AsymmetryViolation")
+            || has_violation(&quads, &format!("{b}/B"), "AsymmetryViolation"),
+        "an asymmetric property holding both ways must fire AsymmetryViolation"
+    );
+}
+
+#[test]
+fn characteristic_unmarked_property_is_inert() {
+    // The counterpartOf shape: a plain (unmarked) property must NOT be closed — proving
+    // the pass fires ONLY on declared characteristics (non-transitivity is respected).
+    let b = "https://example.org/char/unmarked";
+    let p = format!("{b}/counterpartOf");
+    let nq = format!(
+        "<{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/C> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_edge(&quads, &format!("{b}/A"), &p, &format!("{b}/C")),
+        "an unmarked property must not be transitively closed"
+    );
+}
+
+#[test]
+fn characteristic_carrier_agreement_holds_when_both_present() {
+    // A DL-projectable logic: record WITH its OWL projection: carriers agree, no drift.
+    let b = "https://example.org/char/agree";
+    let p = format!("{b}/before");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{p}> <{RDF_TYPE_P}> <{OWL_TRANSITIVE}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}transitiveProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
+        "a logic: record whose OWL projection is present must not fire a disagreement"
+    );
+}
+
+#[test]
+fn characteristic_carrier_agreement_fires_when_owl_marker_dropped() {
+    // The canonical logic: record is present but its OWL projection is missing — the
+    // carriers have drifted, so the property-characteristic agreement gate must fire.
+    let b = "https://example.org/char/drift";
+    let p = format!("{b}/before");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}transitiveProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
+        "a DL-projectable logic: record without its OWL marker must fire a disagreement"
+    );
+}
+
+#[test]
+fn characteristic_carrier_agreement_ignores_logic_only_sorts() {
+    // Irreflexive/asymmetric are logic:-only by design (DL-clean, EL-safe): a record for
+    // them carries no OWL projection and must NOT be read as a carrier disagreement.
+    let b = "https://example.org/char/logiconly";
+    let p = format!("{b}/counterGoal");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}irreflexiveProperty> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &p, "CharacteristicCarrierDisagreement"),
+        "a logic:-only irreflexive record must not fire a carrier disagreement"
+    );
 }

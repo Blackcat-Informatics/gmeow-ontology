@@ -5,8 +5,8 @@ Principles 4, 8, 9, 11, 12, 16.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib.namespace import XSD
 from tests._graph_nt import run_shacl
 
 from gmeow_tools.graph import load_merged_graph
@@ -336,6 +336,29 @@ def test_pitch_trajectory_valid_passes_shacl() -> None:
                 GMEOW.pitchValueC4Fixture if order == 0 else GMEOW.pitchValueG4Fixture,
             )
         )
+    # Standalone fixture (no ontology import): restate the referenced canonical
+    # PitchValue individuals in-graph — the generated sh:class range shape
+    # requires them typed, and PitchValueShape then requires a tuning frame plus
+    # exactly one encoding (centsFromOrigin here). Values copied verbatim from
+    # slices/extensions/music/module.ttl. Honest ABox completion (P11).
+    g.add((GMEOW.pitchValueC4Fixture, RDF.type, GMEOW.PitchValue))
+    g.add((GMEOW.pitchValueC4Fixture, GMEOW.hasTuningFrame, GMEOW.tuningSystem12EDO))
+    g.add(
+        (
+            GMEOW.pitchValueC4Fixture,
+            GMEOW.centsFromOrigin,
+            Literal("0.0", datatype=XSD.decimal),
+        )
+    )
+    g.add((GMEOW.pitchValueG4Fixture, RDF.type, GMEOW.PitchValue))
+    g.add((GMEOW.pitchValueG4Fixture, GMEOW.hasTuningFrame, GMEOW.tuningSystem12EDO))
+    g.add(
+        (
+            GMEOW.pitchValueG4Fixture,
+            GMEOW.centsFromOrigin,
+            Literal("700.0", datatype=XSD.decimal),
+        )
+    )
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 
@@ -385,6 +408,9 @@ def test_segment_transformation_valid_passes_shacl() -> None:
     g.add((src, GMEOW.segmentKind, GMEOW.segmentKindRiff))
     g.add((tgt, RDF.type, GMEOW.MusicalSegment))
     g.add((tgt, GMEOW.segmentKind, GMEOW.segmentKindRiff))
+    # Standalone fixture: type the referenced transformation-type value in-graph
+    # so the generated sh:class shape resolves (P11).
+    g.add((GMEOW.transformTransposition, RDF.type, GMEOW.TransformationType))
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 

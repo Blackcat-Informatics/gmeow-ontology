@@ -16,7 +16,7 @@
 //! discovers every `tests/*.ttl` spec and executes its cells — fast, in
 //! parallel, and entirely off rdflib. The three cell types map to three modules:
 //!
-//! * [`dsl`] — load a spec file into a native [`RdfDataset`](gmeow_rdf_core::RdfDataset)
+//! * [`dsl`] — load a spec file into a native [`RdfDataset`](purrdf::RdfDataset)
 //!   and SPARQL-introspect its cells into typed Rust structs.
 //! * [`stores`] — the merged ontology graph competency questions run over: the
 //!   asserted graph (default) and its RDFS closure (opt-in via

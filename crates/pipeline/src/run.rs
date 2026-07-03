@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The full-build entry point (#861 P6 integration): [`run_full`] runs the WHOLE
+//! The full-build entry point: [`run_full`] runs the WHOLE
 //! dogfooded DAG single-pass and either WRITES every produced artifact to disk
 //! (regenerate mode) or COMPARES each against the committed bytes and collects
 //! drift [`Finding`]s (check mode).
@@ -143,6 +143,14 @@ pub fn full_spec() -> PipelineSpec {
         ),
         st("stage-validate", "validate", &["stage-source-load"]),
         st("stage-conformance", "conformance", &[]),
+        // The agreement-matrix dashboard PROJECTS the single external-corpus grade:
+        // it reads stage-conformance's attached per-corpus tallies (never re-grading
+        // the corpus, PIPELINE_SPINE §3.2/§8) and folds an opaque Markdown member.
+        st(
+            "stage-export-agreement",
+            "agreement",
+            &["stage-conformance"],
+        ),
         st(
             "stage-docs-render",
             "docs_render",
@@ -155,6 +163,10 @@ pub fn full_spec() -> PipelineSpec {
             "constraint_catalog",
             &["stage-reason"],
         ),
+        // The generated term content manifest: one gmeow:definitionDigest per
+        // documented term (plus first-seen version + computed changelog entries),
+        // folded into the bundle by stage-snapshot.
+        st("stage-term-manifest", "term_manifest", &["stage-reason"]),
         st(
             "stage-snapshot",
             "snapshot",
@@ -169,7 +181,7 @@ pub fn full_spec() -> PipelineSpec {
                 // render ran once, in the leaf): profiles / evals scores / research-object
                 // graphs. The presenter reads them off these products, never re-rendered.
                 "stage-export-evals",
-                // #700: fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
+                // Fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
                 "stage-export-profiles",
                 "stage-export-research-objects",
@@ -182,6 +194,8 @@ pub fn full_spec() -> PipelineSpec {
                 // them off this product instead of re-loading + re-canonicalizing sources.
                 "stage-source-load",
                 "stage-statements",
+                // Fold the generated term content manifest into graph/fanout/catalog.
+                "stage-term-manifest",
                 "stage-validate",
             ],
         ),
@@ -224,7 +238,7 @@ pub fn full_spec() -> PipelineSpec {
         &[],
     ));
 
-    // ── the single Sink: the terminal gts ARCHIVE writer (#1132 Stage C). It
+    // ── the single Sink: the terminal gts ARCHIVE writer. It
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
     //    re-assembly) and folds the by-reference blob archives gathered from the
     //    in-memory JSON-Schema / axiom / reasoning / SHACL-report products. ──
@@ -236,14 +250,24 @@ pub fn full_spec() -> PipelineSpec {
             // The opaque fanout members ride in from their producing export leaves (each
             // rendered once, in the leaf); `build_fanout_opaque_blob` reads them off these
             // products instead of re-rendering from disk (PIPELINE_SPINE §3.2/§4).
+            "stage-export-agreement",
             "stage-export-apache",
             "stage-export-bench",
             "stage-export-evals",
+            // The generated shape surfaces (P11 frame shapes + the ResultShape SHACL
+            // projection): REP_SHAPES folds THESE runs' fresh bytes, never a stale
+            // disk read (the same freshness rule as validation-shapes.ttl) — without
+            // these edges a competency/frame-shape edit could never reach the bundle,
+            // and the fanout would rewrite the stale committed bytes forever.
+            "stage-export-frame-shapes",
             "stage-export-json-schema",
             "stage-export-matrix",
             "stage-export-metadata",
             "stage-export-references",
             "stage-export-research-objects",
+            // THIS run's freshly-projected result-shapes.ttl, folded into REP_SHAPES so a
+            // competency ResultShape edit reaches the bundle without a manual disk write.
+            "stage-export-result-shapes",
             "stage-mappings",
             "stage-reason",
             "stage-snapshot",
@@ -254,7 +278,7 @@ pub fn full_spec() -> PipelineSpec {
     ));
 
     // ── the schemas tail: a fold-reading export leaf over the carrier dataset
-    //    (#1132) — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
+    //    — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
     stages.push(st(SCHEMAS_STAGE, "schemas", &["stage-snapshot"]));
 
     PipelineSpec {
@@ -328,7 +352,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     let total_started = Instant::now();
     let spec = full_spec();
 
-    // Single-pass (#1132 Stage C): the schemas leaf is now a normal carrier-reading
+    // Single-pass: the schemas leaf is now a normal carrier-reading
     // export leaf (it consumes `stage-snapshot`, not the sink bytes), so the WHOLE DAG —
     // the terminal gts sink and the schemas tail included — runs in ONE scheduler pass.
     // No producer/serialization re-derivation, no SINK_STAGE-only sub-run.
@@ -377,6 +401,15 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     }
     let products: BTreeMap<String, StageProduct> = result.products;
 
+    // PIPELINE_SPINE §4/§7: exactly one stage writes the bundle bytes, AND it must be
+    // the stage that DECLARED the sink capability. Assert it on the ACTUAL produced
+    // artifacts — stronger than the loader's capability-declaration-count gate — so a
+    // stage emitting `gmeow.gts` WITHOUT declaring `sinkCapability` (identity mismatch),
+    // a stage emitting it in addition to the declared sink, or a second declared sink,
+    // is a hard failure in BOTH regenerate and check modes.
+    let declared_sink = declared_sink_stage(&spec)?;
+    assert_single_gts_writer(&products, declared_sink)?;
+
     let mut findings: Vec<Finding> = Vec::new();
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
@@ -401,7 +434,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
             // `merge=ours` bundle survives an `integrate-main` + regenerate, the exact
             // trap CLAUDE.md warns about). In Check mode it is compared by the FOLD
             // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
-            // has encoding skew (#595) — so it is only counted here; the fold gate is
+            // has encoding skew — so it is only counted here; the fold gate is
             // `tests/full_parity.rs`.
             if path == GTS_PATH {
                 if mode == RunMode::Regenerate {
@@ -556,7 +589,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     // gate above already proved every committed path is reconstructible.
     if mode == RunMode::Regenerate {
         let fanout_started = Instant::now();
-        let report = crate::fanout::fanout(root)?;
+        let report = crate::fanout::fanout(root, jobs)?;
         timings.push(TimingRecord {
             phase: "fanout".to_string(),
             elapsed_ms: fanout_started.elapsed().as_millis(),
@@ -572,7 +605,7 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     drifted.sort();
     drifted.dedup();
 
-    // The DAG-workflow certification of the build plan (the W3 typed surface): the
+    // The DAG-workflow certification of the build plan (the build-pipeline executor's typed surface): the
     // SAME verdict the RDF `emit_dag_certification` emits, lowered to the typed
     // ReasoningResult a consumer reads. Hard-fails if the plan is not certified.
     let certification = certify_build_plan(&spec)?;
@@ -602,9 +635,86 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
     })
 }
 
+/// The stage_id that DECLARES [`SINK_CAPABILITY`] in `spec` — the identity the runtime
+/// writer must match. `spec.validate()` (already run before this is called) asserts
+/// exactly one such stage exists, but this re-derives it defensively rather than
+/// trusting that invariant survives at a distance.
+fn declared_sink_stage(spec: &PipelineSpec) -> Result<&str, PipelineError> {
+    let sinks: Vec<&str> = spec
+        .stages
+        .iter()
+        .filter(|s| s.capabilities.iter().any(|c| c == SINK_CAPABILITY))
+        .map(|s| s.id.as_str())
+        .collect();
+    match sinks.as_slice() {
+        [id] => Ok(id),
+        [] => Err(PipelineError::Stage {
+            stage: "pipeline".to_string(),
+            message:
+                "no stage declares sinkCapability; PIPELINE_SPINE §4 requires exactly one terminal writer"
+                    .to_string(),
+        }),
+        _ => Err(PipelineError::Stage {
+            stage: "pipeline".to_string(),
+            message: format!(
+                "{} stages declare sinkCapability ({}); exactly one is allowed (PIPELINE_SPINE §4)",
+                sinks.len(),
+                sinks.join(", ")
+            ),
+        }),
+    }
+}
+
 /// Whether `path` is an RDF text artifact compared by graph isomorphism (its
 /// committed bytes were serialized by the retired Python build, so byte parity
 /// is not expected; the unit tests assert isomorphism, never bytes).
+/// PIPELINE_SPINE §4/§7 — exactly ONE stage writes the bundle bytes, AND it must be the
+/// stage that DECLARED `sinkCapability` (`declared_sink`). The loader gate
+/// (`loader::validate`) asserts exactly one stage DECLARES `sinkCapability`; this asserts
+/// the stronger runtime property: exactly one produced product actually carries the
+/// `gmeow.gts` byte artifact, AND its stage_id is the declared sink. A stage emitting the
+/// bundle bytes without declaring the capability (identity mismatch — a rogue writer
+/// impersonating the terminal), the declared sink NOT emitting it, or a second writer, is
+/// a hard failure (no-optionality, fail-closed) — never a silent second terminal, in
+/// either regenerate or check mode.
+fn assert_single_gts_writer(
+    products: &BTreeMap<String, StageProduct>,
+    declared_sink: &str,
+) -> Result<(), PipelineError> {
+    let writers: Vec<&str> = products
+        .iter()
+        .filter(|(_, p)| p.artifact(GTS_PATH).is_some())
+        .map(|(id, _)| id.as_str())
+        .collect();
+    match writers.len() {
+        1 => {
+            let writer = writers[0];
+            if writer != declared_sink {
+                return Err(PipelineError::Stage {
+                    stage: "pipeline".to_string(),
+                    message: format!(
+                        "stage {writer} emits the `{GTS_PATH}` bundle bytes but the declared sink (sinkCapability) is {declared_sink}; PIPELINE_SPINE §4/§7 requires the terminal writer's identity to match the declared sink"
+                    ),
+                });
+            }
+            Ok(())
+        }
+        0 => Err(PipelineError::Stage {
+            stage: "pipeline".to_string(),
+            message: format!(
+                "no stage emits the `{GTS_PATH}` bundle bytes; PIPELINE_SPINE §4 requires exactly one terminal writer"
+            ),
+        }),
+        n => Err(PipelineError::Stage {
+            stage: "pipeline".to_string(),
+            message: format!(
+                "{n} stages emit the `{GTS_PATH}` bundle bytes ({}); exactly one terminal writer is allowed (PIPELINE_SPINE §4)",
+                writers.join(", ")
+            ),
+        }),
+    }
+}
+
 fn is_rdf_artifact(path: &str) -> bool {
     path.ends_with(".ttl") || path.ends_with(".nt") || path.ends_with(".nq")
 }
@@ -624,7 +734,7 @@ fn graphs_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
 /// canonicalized quad set as sorted strings. `None` on a parse error.
 fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
     // Try Turtle first, then N-Quads — the leaves emit one of these.
-    // Native text ingress (#909) + native full RDFC-1.0 (#910): no oxigraph::io
+    // Native text ingress + native full RDFC-1.0: no oxigraph::io
     // parse, no oxrdf `Dataset::canonicalize`. The parsed IR is FLATTENED back to its
     // un-folded plain-quad stream (`flat_rdf_quads_from_dataset`) before re-freezing
     // and canonicalizing, so the RDF 1.2 statement overlay canonicalizes as the same
@@ -632,15 +742,15 @@ fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>
     // — NOT the native folded overlay sentinels. The canonical N-Quads lines are then
     // collected into the order-independent set (each already `.`-terminated).
     for media_type in ["text/turtle", "application/n-quads"] {
-        let Ok(ir) = gmeow_rdf::parse_dataset(bytes, media_type, None) else {
+        let Ok(ir) = purrdf::parse_dataset(bytes, media_type, None) else {
             continue;
         };
         // The full flat quad stream (base ∪ un-folded reifier/annotation rows) — the
         // same emptiness predicate the prior `flat_oxigraph_quads_from_dataset` guarded.
-        let quads = gmeow_rdf::flat_rdf_quads_from_dataset(&ir);
+        let quads = purrdf::flat_rdf_quads_from_dataset(&ir);
         if !quads.is_empty() {
-            let flat = gmeow_rdf::flat_dataset_from_quads(&quads).ok()?;
-            let set: std::collections::BTreeSet<String> = gmeow_rdf::canonicalize(&flat)
+            let flat = purrdf::flat_dataset_from_quads(&quads).ok()?;
+            let set: std::collections::BTreeSet<String> = purrdf::canonicalize(&flat)
                 .nquads
                 .lines()
                 .map(str::to_owned)
@@ -766,7 +876,7 @@ mod dag_profile_tests {
         );
     }
 
-    /// The W3 hand-off: the build run's typed `ReasoningResult` certification
+    /// The build-pipeline executor hand-off: the build run's typed `ReasoningResult` certification
     /// surface. `certify_build_plan` is the EXACT wiring `run_full` folds into the
     /// returned `RunReport.certification` — it certifies the real `full_spec()`
     /// plan via the shared certifier and lowers the verdict to the typed result a
@@ -820,6 +930,87 @@ mod dag_profile_tests {
         assert_eq!(
             std::fs::read(dir.path().join("generated/sample.txt")).expect("read changed"),
             b"v2"
+        );
+    }
+}
+
+/// The runtime one-terminal gate (PIPELINE_SPINE §4): exactly one produced product may
+/// carry the `gmeow.gts` byte artifact.
+#[cfg(test)]
+mod single_writer_gate {
+    use super::{assert_single_gts_writer, GTS_PATH};
+    use crate::node::StageProduct;
+    use std::collections::BTreeMap;
+
+    fn gts_writer(id: &str) -> StageProduct {
+        let mut a: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        a.insert(GTS_PATH.to_string(), b"gts-bytes".to_vec());
+        StageProduct::from_artifacts(id, a)
+    }
+
+    fn plain(id: &str) -> StageProduct {
+        let mut a: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        a.insert("generated/other.ttl".to_string(), b"x".to_vec());
+        StageProduct::from_artifacts(id, a)
+    }
+
+    fn products(items: Vec<StageProduct>) -> BTreeMap<String, StageProduct> {
+        items.into_iter().map(|p| (p.stage_id.clone(), p)).collect()
+    }
+
+    #[test]
+    fn exactly_one_writer_passes() {
+        let p = products(vec![gts_writer("stage-gts-sink"), plain("stage-export")]);
+        assert!(assert_single_gts_writer(&p, "stage-gts-sink").is_ok());
+    }
+
+    #[test]
+    fn a_second_writer_is_rejected() {
+        let p = products(vec![
+            gts_writer("stage-gts-sink"),
+            gts_writer("stage-rogue"),
+        ]);
+        let msg = format!(
+            "{}",
+            assert_single_gts_writer(&p, "stage-gts-sink").unwrap_err()
+        );
+        assert!(
+            msg.contains("2 stages emit") && msg.contains("exactly one"),
+            "a second GTS writer must hard-fail: got {msg}"
+        );
+        assert!(
+            msg.contains("stage-gts-sink") && msg.contains("stage-rogue"),
+            "the error must name both offending stages: got {msg}"
+        );
+    }
+
+    #[test]
+    fn no_writer_is_rejected() {
+        let p = products(vec![plain("stage-export")]);
+        let msg = format!(
+            "{}",
+            assert_single_gts_writer(&p, "stage-gts-sink").unwrap_err()
+        );
+        assert!(
+            msg.contains("no stage emits"),
+            "zero GTS writers must hard-fail: got {msg}"
+        );
+    }
+
+    #[test]
+    fn a_writer_that_is_not_the_declared_sink_is_rejected() {
+        // A single writer exists, so the old count-only gate would have passed this —
+        // but its stage_id does not match the declared sink (sinkCapability), so the
+        // stronger identity gate must reject it as a rogue writer impersonating the
+        // terminal (PIPELINE_SPINE §4/§7).
+        let p = products(vec![gts_writer("stage-impostor"), plain("stage-export")]);
+        let msg = format!(
+            "{}",
+            assert_single_gts_writer(&p, "stage-gts-sink").unwrap_err()
+        );
+        assert!(
+            msg.contains("stage-impostor") && msg.contains("stage-gts-sink"),
+            "the error must name both the actual writer and the declared sink: got {msg}"
         );
     }
 }

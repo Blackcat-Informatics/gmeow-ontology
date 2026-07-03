@@ -2,30 +2,32 @@
 source: crates/docs/tests/render_golden.rs
 expression: "gmeow_docs::render::term_card_md(&model, term)"
 ---
-# gmeow:Tagging (⊑ Relator)
+# gmeow:DoxasticState (⊑ JustificationGround, JustificationSubject, MentalMoment)
 
 - category: Class
-- iri: https://blackcatinformatics.ca/gmeow/Tagging
-- slice: tags
-- label: Tagging
+- iri: https://blackcatinformatics.ca/gmeow/DoxasticState
+- slice: epistemics
+- label: Doxastic State
 - box: gmeow:boxTBox
 
-A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval. Bears provenance (gmeow:wasAttributedTo), confidence (gmeow:confidence), and suppression (gmeow:displayable false for retraction without deletion — Principle 10). Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time-scoping, confidence-weighting, and retract-without-delete for free. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag.
+An agent's intrinsic believing mode toward a proposition — the reified, first-class mental moment that grounds the flat doxastic spine (gmeow:believes, gmeow:knowsThat). A sibling of cognition:CognitiveState (knowing) and teleology:IntentionalMode (desiring/intending) under kernel:MentalMoment, so an agent's whole endurant mental life is queryable as one family (Principle 15). Inheres in exactly one agent via epistemicAgent and is directed at exactly one Proposition via doxasticContent; its qualitative belief value is carried by a linked StandpointClaim (doxasticClaim → claimModality), and its graded strength by credence [0,1]. Never instantiated directly when the flat spine suffices (Principle 4).
 
-**Parents:** Relator
+**Parents:** JustificationGround; JustificationSubject; MentalMoment
 
 **Box roles:** gmeow:boxTBox
 
-**Use when:** Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false).
+**Use when:** Use when an agent's belief toward a proposition must be first-class — when credence, temporal scope (via DoxasticTenure), standpoint modality, or the mental moment itself needs to be queried or revised (Principle 15).
 
-**Avoid when:** Avoid for the ordinary 80% case where a bare label suffices (use the flat gmeow:hasTag, optionally with RDF-star annotations); reify only when provenance, period, or suppression must be first-class.
+**Avoid when:** Avoid for the 80% case where an agent simply believes a proposition — use the flat gmeow:believes / gmeow:knowsThat spine and carry modality on the statement layer; avoid double-typing a belief as both a flat relation and a DoxasticState for the same holding (Principle 12).
 
-**How to use:** Mint the relator and fill its roles — gmeow:taggingTagged, gmeow:taggingTag, gmeow:taggingTagger, optionally gmeow:taggingScheme and gmeow:taggingInterval — then carry provenance, confidence, and displayable on the relator node; gmeow:hasTag pairsWith Tagging as the promotion target.
+**How to use:** Mint one DoxasticState per (agent, proposition, claim-modality) tuple; link it via gmeow:doxasticClaim to a StandpointClaim whose vantage is the agent, observedFeature is the proposition, and claimModality carries the qualitative value; attach credence for graded strength and a DoxasticTenure when belief revision history matters.
 
-**Examples:** ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:report ; gmeow:taggingTag ex:tagUrgent ; gmeow:taggingTagger ex:lillith .
+**Scope notes:** A DoxasticState grounds the canonical claim tokens that report it via gmeow:groundsClaim (the attitude→token link, inverse of gmeow:heldByAttitude), distinct from gmeow:doxasticClaim which links to the standpoint-slice gmeow:StandpointClaim VIEW. An attitude may ground several tokens or none (a belief never put forward) — the held/projected gap (Principle 9).
+
+**Examples:** ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence "0.92"^^xsd:decimal .
 
 **Logic:** logic:Kind
 
-**Related:** hasTag
+**Related:** DoxasticTenure; believes
 
-**Aligns:** closeMatch:Annotation; closeMatch:Tagging
+**Aligns:** closeMatch:I2_Belief

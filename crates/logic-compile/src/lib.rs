@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The GMEOW logic **compiler** (#664/#732): the pure, wasm-able half of the logic
+//! The GMEOW logic **compiler**: the pure, wasm-able half of the logic
 //! stack — the sole authority for compiling `logic:` source into the eight committed
 //! artifacts. The Python duplicate (`logic_ir.py` / `logic_frontend.py` /
-//! `logic_adapter.py` / `logic_projections.py`) was retired in #727; this crate is
+//! `logic_adapter.py` / `logic_projections.py`) has since been retired; this crate is
 //! the source of truth, not a mirror of it.
 //!
 //! It carries **no reasoning-runtime dependencies**: no Nemo, Scryer, tokio, PyO3,
@@ -30,7 +30,7 @@
 //! # Conformance contract
 //!
 //! The compiler's output is pinned by committed conformance goldens (trust-anchor
-//! doctrine, the #622/#636/#641 pattern). Text targets (Datalog, N3, Nemo) are
+//! doctrine). Text targets (Datalog, N3, Nemo) are
 //! **byte-identical** to those goldens; RDF targets (OWL-DL, OWL-EL, gUFO,
 //! canonical-RDF12, the report) are **RDF-isomorphic**. Every ordering and hash the
 //! artifacts depend on bottoms out in [`ir`]'s `sort_key` helpers.
@@ -44,6 +44,10 @@ pub mod cgif;
 // The CLIF (Common Logic Interchange Format) text dialect: a bidirectional,
 // PreservationKind::Exact s-expression FOL surface (writer + reader).
 pub mod clif;
+// The Common Logic round-trip isomorphism authority: proves a program round-trips
+// through every CL dialect (clif/cgif/xcl) with IR isomorphism and that the three
+// reconstructions are cross-dialect equivalent. Reused by the conformance harness.
+pub mod cl_roundtrip;
 pub mod compat;
 pub mod frontend;
 pub mod graphutil;
@@ -51,6 +55,14 @@ pub mod graphutil;
 // the correspondence lowerings consume; file I/O + parsing live in the caller).
 pub mod ingest;
 pub mod ir;
+// Shared N-Triples term codecs (escape only, no bracket/quote wrapping) used by the
+// xcl/clif/cgif dialects' embedded canonical N-Triples RDF channel.
+mod nt;
+pub mod openehr_opt;
+pub mod opt_lift;
 pub mod projections;
 pub mod relational_core;
 pub mod result_shape;
+// The XCL (eXtended Common Logic Markup Language) XML dialect: a bidirectional,
+// PreservationKind::Exact XML FOL surface (writer + reader), sibling of clif/cgif.
+pub mod xcl;

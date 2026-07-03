@@ -39,6 +39,8 @@ gmeow:Membership
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Membership"@x-gmeow-english ;
+    logic:mediates gmeow:membershipMember ,
+        gmeow:membershipOrganization ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "The reified relationship by which an agent is a member of an organization, optionally playing a role over a period of time. A gufo:Relator binding {member} × {organization} × {role} × {post} × {period}, foundedOn the agreement that constitutes it — the same relator idiom as names' NameUsage and contacts' InterpersonalRelationship. The reify-on-demand promotion of the flat gmeow:memberOf shortcut (Principle 4)."@x-gmeow-english ;
     skos:example "ex:emp a gmeow:Membership ; gmeow:membershipMember ex:alice ; gmeow:membershipOrganization ex:acme ; gmeow:hasRole ex:cfoRole ."@x-gmeow-english ;

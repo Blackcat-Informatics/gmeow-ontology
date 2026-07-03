@@ -208,6 +208,13 @@ logic:Collection
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Collection"@x-gmeow-english ;
     skos:definition "A plurality individuated by its members, where the members are themselves the relevant units of the whole — a deck of cards, a committee, a playlist. The counterpart of gufo:Collection; members relate to it via logic:memberOf rather than logic:properPartOf. Contrast logic:Quantity, which is individuated by constitution rather than by member count."@x-gmeow-english ;
+    # The three mereological individuation kinds are pairwise disjoint: a whole is
+    # individuated by member count, by distinct functional roles, or by constitution,
+    # and no individual is more than one at once (harvested from the kinds' prose;
+    # see logic:candidateFunctionalComplexKindDisjoint). The native DL coherence gate
+    # reads owl:disjointWith directly, so this is enforced, not documentary.
+    owl:disjointWith logic:FunctionalComplex ,
+        logic:Quantity ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:CommonLogicProjection
@@ -411,6 +418,7 @@ logic:Endurant
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Endurant"@x-gmeow-english ;
     skos:definition "A continuant: an individual that persists through time and is wholly present at each moment of its existence, enduring through change rather than unfolding through it. The counterpart of gufo:Endurant and the bearer side of the endurant/perdurant divide; contrast logic:Perdurant, which has temporal parts. Substantials and aspects are both endurants."@x-gmeow-english ;
+    owl:disjointWith logic:Perdurant ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:EndurantType
@@ -439,6 +447,7 @@ logic:Event
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Event"@x-gmeow-english ;
     skos:definition "A perdurant occurrence that happens in time and is composed of temporal parts: an action, a process, a happening that unfolds and is complete once it has occurred. Tokens it as an occurrence rather than an endurant; in the type-level world strata (risk, teleology, norms) the no-occurrence gate keeps reasoning over Event *types* without entailing any Event instance. Unitary: a proper temporal part of an event is not itself that event, and a completed (logic:Closed) event cannot vary — it bears no time-varying logic:Fluent (the change-asymmetry, logic:OccurrentChangeAsymmetry). An event is constituted by the process it is made of (logic:occurrentConstituent)."@x-gmeow-english ;
+    owl:disjointWith logic:Situation ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:EvolutionMode
@@ -565,6 +574,11 @@ logic:FunctionalComplex
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Functional Complex"@x-gmeow-english ;
     skos:definition "A whole whose parts play distinct functional roles — a car (engine, wheels, chassis), an organism (organs), an organization (departments): a complex object, not a mere collection of like members. The counterpart of gufo:FunctionalComplex; its parts relate to it via logic:properPartOf (mereological parthood) rather than logic:memberOf, and each part contributes a different function. Stated in prose, not as a subclass edge. Contrast logic:Collection (uniform members) and logic:Quantity (homogeneous stuff)."@x-gmeow-english ;
+    # Pairwise-disjoint from the other two individuation kinds (the third disjointness
+    # edge, Collection↔Quantity, is asserted on logic:Collection). Harvested from this
+    # term's own Definition, which contrasts it against logic:Collection and
+    # logic:Quantity — see logic:candidateFunctionalComplexKindDisjoint.
+    owl:disjointWith logic:Quantity ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:FuzzyMeasure
@@ -1042,6 +1056,35 @@ logic:McpActionSchema
     skos:definition "A logic:ActionSchema that grounds an MCP (Model Context Protocol) tool action — the opt-in marker subtype that brings an action schema under the stricter MCP-action governance profile (logic:McpActionPolicyShape). Beyond the facets every action schema carries it must always declare a logic:compensation (rollback) because an MCP tool that mutates external state must be recoverable: the dogfood case where the canonical process model governs the agent's own tool calls. A plain logic:ActionSchema is NOT required to carry compensation; typing it logic:McpActionSchema is the explicit declaration that the governance profile applies."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:NotificationWaitSchema
+    a owl:Class ;
+    rdfs:subClassOf logic:ActionSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Notification Wait Schema"@x-gmeow-english ;
+    skos:definition "A logic:ActionSchema whose completion the engine learns of ONLY by being externally told: it does not fire until a logic:ExternalSignal it logic:awaitsSignal obtains in the state — a manual-notification or callback-driven completion, the prescriptive-descriptive epistemic boundary where what the engine knows of the real world is limited to what it is informed of. The opt-in marker subtype that brings an action schema under the wait-well-formedness profile (logic:NotificationWaitShape, which requires a logic:awaitsSignal). At the action gate a wait whose signal has not obtained is neither admitted nor denied but logic:GateUndetermined, carrying a logic:awaitingSignal witness — the wait is pending (the engine has not been told), a judgment withheld rather than a failure; in a plan a wait step blocks the path until the signal is received."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ExternalSignal
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "External Signal"@x-gmeow-english ;
+    skos:definition "A situation type the engine can learn of ONLY by external notification — a manual notification, a callback, a sensor reading, an external service response — never by computing it from the state. The thing a logic:NotificationWaitSchema logic:awaitsSignal: until the signal obtains (the engine is told), a wait on it is pending. It marks the descriptive-side input at the prescriptive-descriptive seam, distinct from a logic:precondition the engine evaluates over facts it already holds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:awaitsSignal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "awaits signal"@x-gmeow-english ;
+    skos:definition "Relates a logic:NotificationWaitSchema to the logic:ExternalSignal situation whose arrival its completion waits on. Domain logic:NotificationWaitSchema, range a logic:ExternalSignal situation (stated in prose). The wait fires only once this signal obtains in the state; until then it is pending (logic:awaitingSignal), never silently completed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:awaitingSignal
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "awaiting signal"@x-gmeow-english ;
+    skos:definition "Relates a node still blocked on a logic:ExternalSignal to the exact signal it is waiting on — the witness that a notification-wait is pending (the engine has not been told), never silently completed. It appears in two places, both marking the same withheld judgment. (1) On a logic:GateUndetermined logic:GateProbe over a logic:NotificationWaitSchema: the reason the gate is undetermined rather than admitted. (2) On a logic:TransactionOutcome whose executed transaction path HALTED at an un-signalled wait step: the load-bearing distinction between a PENDING (undetermined) outcome and a definite failure — both read logic:transactionSucceeds false, but only the pending one names, through this witness, the signal it still awaits, so a plan blocked on an external notification is never conflated with a genuine precondition failure. Range the awaited logic:ExternalSignal (stated in prose). In every case: the wait can still complete once the signal arrives."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:MeasurementFrameMissing
     a owl:NamedIndividual ,
         logic:QualityConstraint ;
@@ -1442,7 +1485,7 @@ logic:RelComp
         logic:Discipline ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Relator Completeness"@x-gmeow-english ;
-    skos:definition "The OntoUML RelComp anti-pattern: a concrete Relator must mediate at least two distinct relata. A concrete Relator (one with no logic: subclass to defer its mediations to) that mediates fewer than two distinct entities violates it. The lowering of reasoning_lint.relator_mediation."@x-gmeow-english .
+    skos:definition "The OntoUML RelComp anti-pattern: a concrete Relator must mediate at least two distinct entities. Mediation is read by entity count — a relator reaches two entities either through two distinct mediation roles, or through a single non-functional role (which connects two or more entities on its own). A concrete Relator (one with no logic: subclass to defer its mediations to) that reaches fewer than two entities — a single functional role, or none — violates it. The native foundation lowering enforces it over the whole ontology; the gUFO downcast is a lossy projection of it."@x-gmeow-english .
 
 logic:RelationshipType
     a owl:Class ;
@@ -2078,7 +2121,7 @@ logic:gateVerdict
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "gate verdict"@x-gmeow-english ;
-    skos:definition "Relates a logic:GateProbe to its action-gate verdict, one of logic:GateAdmitted or logic:GateDenied. Domain logic:GateProbe (stated in prose). The materialized verdict of the precondition / capability / invariant / resource gate."@x-gmeow-english ;
+    skos:definition "Relates a logic:GateProbe to its action-gate verdict, one of logic:GateAdmitted, logic:GateDenied, or logic:GateUndetermined. Domain logic:GateProbe (stated in prose). The materialized verdict of the precondition / capability / invariant / resource / freshness gate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:gateDenialReason
@@ -2106,6 +2149,82 @@ logic:GateDenied
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Gate Denied"@x-gmeow-english ;
     skos:definition "The logic:gateVerdict value for an action the gate denies: a precondition, capability, invariant, or resource gate failed. The probe carries a logic:gateDenialReason naming the failing gate and, when declared, the logic:gateCompensation rollback."@x-gmeow-english .
+
+logic:GateUndetermined
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Gate Undetermined"@x-gmeow-english ;
+    skos:definition "The logic:gateVerdict value for an action whose gate is neither admitted nor denied because the judgment is withheld on insufficient information — a single conclusiveness value with two causes. (1) A precondition datum fails its logic:FreshnessGuard on EITHER of two independent valid-time axes: (1a) the AGE HORIZON — the datum was recorded too long before the logic:decisionTime, its age exceeding the guard's logic:freshnessHorizon; or (1b) the EXPLICIT VALID-TIME WINDOW — the logic:decisionTime falls outside the closed [logic:freshnessWindowStart, logic:freshnessWindowEnd] interval the guard declares (an off-episode / out-of-window decision). Either way the datum is treated as undetermined rather than stale-but-usable, carrying a logic:gateUndeterminedReason that names the failing axis. The two axes are orthogonal: a datum may fail one and pass the other. (2) A logic:NotificationWaitSchema is still awaiting its logic:ExternalSignal: the engine has not been told the wait completed, carrying a logic:awaitingSignal witness. Both mirror the logic:GoalEvaluationUndetermined conclusiveness axis of goal evaluation: a judgment the evaluator declines to make on insufficient input rather than guessing — NOT a denial, since the datum may refresh or the signal may arrive."@x-gmeow-english .
+
+logic:gateUndeterminedReason
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "gate undetermined reason"@x-gmeow-english ;
+    skos:definition "A human-readable reason on a logic:GateUndetermined logic:GateProbe naming the specific cause of the withheld judgment: for a logic:FreshnessGuard failure, WHICH valid-time axis failed and its bounds — either the age exceeding the logic:freshnessHorizon, or the logic:decisionTime falling outside the [logic:freshnessWindowStart, logic:freshnessWindowEnd] logic:freshnessWindow interval (the two axes are independent and the reason names whichever failed first). Domain logic:GateProbe, range a string literal (stated in prose). The undetermined verdict is surfaced, never a silent pass or a spurious denial."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:decisionTime
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "decision time"@x-gmeow-english ;
+    skos:definition "The xsd:dateTime a logic:GateProbe is judged at — the \"now\" against which a logic:FreshnessGuard measures the age of a precondition datum. Domain logic:GateProbe, range xsd:dateTime (stated in prose). When a probe gates a schema carrying a freshness guard, a missing logic:decisionTime is a hard error, never a silent pass: the age comparison has no reference point and the evaluator refuses to guess."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:FreshnessGuard
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Freshness Guard"@x-gmeow-english ;
+    skos:definition "A valid-time currency guard on an action-schema precondition. It declares that the datum supporting a logic:precondition (via logic:guardsPrecondition) is relied upon only when it passes TWO INDEPENDENT valid-time axes. (1) AGE HORIZON: the datum's age — the span from its logic:datumRecordedAt to the probe's logic:decisionTime — is within a declared logic:freshnessHorizon (an xsd:duration ceiling on how OLD the value may be). (2) EXPLICIT VALID-TIME WINDOW: when the guard declares a logic:freshnessWindow, the probe's logic:decisionTime must fall inside the closed absolute interval [logic:freshnessWindowStart, logic:freshnessWindowEnd] — the datum is authoritative only WITHIN that named bounding interval (e.g. 'the current episode'), regardless of how recently it was recorded. The two axes are ORTHOGONAL and neither implies the other: a datum can pass the age horizon yet fall outside the window, or vice versa. Each axis is OPTIONAL and imposes no constraint when absent (a guard may carry horizon only, window only, both, or neither). Outside either bound the datum is undetermined, not stale-but-used: the action gate yields logic:GateUndetermined rather than admitting on an out-of-window / out-of-date value or denying on a value that merely aged or is off-episode. This is GMEOW's native, canonical generalization of a decision-rule 'currency' annotation (max age → horizon) AND its 'time_window' annotation (an explicit named bounding interval → window) — the valid-time freshness discipline the typed context algebra applies, executed at the action gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:freshnessGuard
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "freshness guard"@x-gmeow-english ;
+    skos:definition "Relates a logic:ActionSchema to a logic:FreshnessGuard it carries — the valid-time currency guard on one of its preconditions. Domain logic:ActionSchema, range logic:FreshnessGuard (stated in prose). MULTI-valued: a schema may guard several preconditions, each with its own horizon."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:guardsPrecondition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "guards precondition"@x-gmeow-english ;
+    skos:definition "Relates a logic:FreshnessGuard to the logic:precondition situation it guards — the situation whose supporting datum must be current for the gate to admit. Domain logic:FreshnessGuard, range the guarded precondition situation (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:freshnessHorizon
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "freshness horizon"@x-gmeow-english ;
+    skos:definition "The maximum admissible age of a guarded precondition datum, as an xsd:duration measured from the datum's logic:datumRecordedAt to the probe's logic:decisionTime. Domain logic:FreshnessGuard, range xsd:duration (stated in prose). Only fixed-length designators are admissible (weeks / days / hours / minutes / seconds); a nominal-length designator (years / months, which are not fixed spans) is a hard error, because the age comparison would be ill-defined."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:datumRecordedAt
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "datum recorded at"@x-gmeow-english ;
+    skos:definition "The xsd:dateTime at which the datum supporting a guarded precondition situation was recorded — the start of the age span a logic:FreshnessGuard measures against its logic:freshnessHorizon. Domain a precondition situation, range xsd:dateTime (stated in prose). Compared against logic:decisionTime in a single timescale; a missing value under a declared freshness guard is a hard error, never a silent pass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:freshnessWindow
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "freshness window"@x-gmeow-english ;
+    skos:definition "Marks that a logic:FreshnessGuard carries an EXPLICIT absolute valid-time interval — the closed [logic:freshnessWindowStart, logic:freshnessWindowEnd] window within which the guarded datum is authoritative, DISTINCT from and orthogonal to the age ceiling logic:freshnessHorizon. This is GMEOW's native subsumption of an openEHR decision-rule 'time_window' annotation (a named bounding interval such as 'the current episode'), as opposed to 'currency' (a max age → logic:freshnessHorizon). Domain logic:FreshnessGuard, range a string literal naming the window (stated in prose); the interval bounds are carried by logic:freshnessWindowStart / logic:freshnessWindowEnd. The property is OPTIONAL: ABSENT-WINDOW SEMANTICS impose NO constraint on this axis — a guard with no logic:freshnessWindow is gated by its logic:freshnessHorizon alone (or, if it declares neither, by nothing). When PRESENT, a probe whose logic:decisionTime falls OUTSIDE the closed interval yields logic:GateUndetermined (not admitted, not denied) — the datum is undetermined off-window, never stale-but-used — with a logic:gateUndeterminedReason naming the window bounds and the decision time. Independent of the age horizon: a datum can be within its horizon yet outside its window, or vice versa; the first axis to fail is reported."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:freshnessWindowStart
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "freshness window start"@x-gmeow-english ;
+    skos:definition "The inclusive lower bound of a logic:FreshnessGuard's explicit valid-time logic:freshnessWindow, as an xsd:dateTime. Domain logic:FreshnessGuard, range xsd:dateTime (stated in prose). Together with logic:freshnessWindowEnd it defines the closed absolute interval [start, end] within which the guarded datum is authoritative; a probe's logic:decisionTime before this start falls outside the window and yields logic:GateUndetermined. This axis is DISTINCT from the age ceiling logic:freshnessHorizon — it bounds WHEN the decision may be taken, not how OLD the datum may be. Required exactly once when a window is declared (paired with logic:freshnessWindowEnd); a declared window with a missing bound, a malformed xsd:dateTime, or end before start is a hard error. When no window is declared this bound is absent and the window axis imposes no constraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:freshnessWindowEnd
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "freshness window end"@x-gmeow-english ;
+    skos:definition "The inclusive upper bound of a logic:FreshnessGuard's explicit valid-time logic:freshnessWindow, as an xsd:dateTime. Domain logic:FreshnessGuard, range xsd:dateTime (stated in prose). Together with logic:freshnessWindowStart it defines the closed absolute interval [start, end] within which the guarded datum is authoritative; a probe's logic:decisionTime after this end falls outside the window and yields logic:GateUndetermined. This axis is DISTINCT from the age ceiling logic:freshnessHorizon — it bounds WHEN the decision may be taken, not how OLD the datum may be. Required exactly once when a window is declared (paired with logic:freshnessWindowStart); a declared window with a missing bound, a malformed xsd:dateTime, or end before start is a hard error. When no window is declared this bound is absent and the window axis imposes no constraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:TransactionStep
     a owl:Class ;
@@ -2144,6 +2263,13 @@ logic:instantiatesSchema
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "instantiates schema"@x-gmeow-english ;
     skos:definition "Relates a gmeow:Event (an action occurrence — a particular event executed along a particular path) to the logic:ActionSchema it instantiates. Domain gmeow:Event, range logic:ActionSchema (stated in prose). The occurrence is the same perdurant an intentional moment links to through gmeow:motivates; the schema is the reusable type it instantiates. The schema names what an action does; the path records that it was done and what changed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:instantiatesPlan
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "instantiates plan"@x-gmeow-english ;
+    skos:definition "Relates an executed action occurrence — a materialized logic:TransactionStep (a gmeow:Event minted per run position) — to the logic:Plan program it was executed under. Domain the occurrence, range logic:Plan (stated in prose). It is the plan-level companion of logic:instantiatesSchema: where that link records the reusable type an occurrence instantiates (Event to ActionSchema), this records the whole plan the occurrence realizes (Event to Plan). The pair is a load-bearing in-band recovery witness — the executed record carries, in band, a back-reference to both the schema and the plan it instantiates — so a correspondence's put leg can recover the planned skeleton from an execution record (the mnemomorphism's in-band complement at the process layer) rather than synthesizing a plausible plan. Without it the descriptive run and the prescriptive plan are only externally related; with it the planned portion round-trips."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Goal decomposition (gmeow:Goal -> gmeow:Goal, satisfaction dependency) ----
@@ -2809,7 +2935,7 @@ logic:mediates
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "mediates"@x-gmeow-english ;
-    skos:definition "Relates a Relator to one of the entities it connects: the relationship between an objectified relation and each of its relata, on which the Relator existentially depends. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp); the material relation the Relator grounds holds in virtue of these mediation links."@x-gmeow-english .
+    skos:definition "Relates a Relator to a mediation role — the relationship between an objectified relation and each of its relata, on which the Relator existentially depends. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp), reached either through two distinct roles or through a single non-functional role; the material relation the Relator grounds holds in virtue of these mediation links."@x-gmeow-english .
 
 logic:memberOf
     a owl:ObjectProperty ;
@@ -3804,6 +3930,520 @@ logic:CounterpartNonTransitivityObligation
     logic:obligationDischargeCondition logic:DischargeSyntacticReachability ;
     logic:obligationDischargeVerdict logic:ObligationDischarged .
 
+# ── A worked production formalization candidate (the harvest mechanism, live) ─────
+# The prose→axiom harvest mechanism dogfooded end-to-end on a real, already-enforced
+# axiom: the strict-order asymmetry of logic:properPartOf (typed logic:asymmetricProperty
+# above), harvested from that term's own skos:definition. The candidate carries the
+# harvest back-link (logic:candidateFormalizes → the term, logic:candidateSourceField →
+# which field), so harvest coverage is queryable in both directions over the reasoned
+# graph, and logic:candidateSourceHash is the real content hash of that definition prose
+# (drift-detecting). Accepted through review with a positive/negative case pair.
+
+logic:reviewerLogicFoundation
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic foundation maintainer"@x-gmeow-english ;
+    skos:definition "The reviewer-decision provenance node the logic foundation records against an accepted logic:FormalizationCandidate: an auditable IRI (never a free literal) standing for the maintainer authority that adjudicated the prose-to-axiom promotion, so the reviewer gate is machine-checkable."@x-gmeow-english .
+
+logic:cqProperPartAsymmetryHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf asymmetry holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the properPartOf-asymmetry axiom must satisfy: given logic:properPartOf(a,b), the reasoner must not also hold logic:properPartOf(b,a) — the strict-order reading the harvested prose commits to."@x-gmeow-english .
+
+logic:cqProperPartAsymmetrySymmetricPairRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf symmetric pair is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the properPartOf-asymmetry axiom must respect: a purported model asserting both logic:properPartOf(a,b) and logic:properPartOf(b,a) is a violation, not an admissible model — the boundary the formalization must not cross."@x-gmeow-english .
+
+logic:candidateProperPartOfAsymmetric
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "properPartOf is asymmetric"@x-gmeow-english ;
+    skos:definition "The worked production formalization candidate that harvests the asymmetry of logic:properPartOf from that term's skos:definition into an enforced strict-order integrity constraint: the keystone demonstration of the prose→axiom harvest mechanism. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqProperPartAsymmetryHolds) and a negative countermodel (logic:cqProperPartAsymmetrySymmetricPairRejected); its harvest back-link (logic:candidateFormalizes logic:properPartOf, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit to the prose surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:properPartOf skos:definition (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "logic:properPartOf asymmetry over the endurant strict-parthood spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqProperPartAsymmetryHolds ;
+    logic:candidateNegativeCase logic:cqProperPartAsymmetrySymmetricPairRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:properPartOf ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Property-characteristic markers + central assertions ──────────────────────────
+# The five property-characteristic sorts, minted standalone as the canonical logic:
+# carriers. logic:transitiveProperty, logic:asymmetricProperty and
+# logic:irreflexiveProperty are defined above; logic:symmetricProperty and
+# logic:functionalProperty complete the set. A domain gmeow: property keeps its
+# OWL-facing characteristic in its own slice, while a central
+# logic:PropertyCharacteristicAssertion names the characteristic on the canonical
+# reasoning carrier and carries a logic:formalizes back-reference to the property's
+# prose — so the native coherence gate enforces the characteristic and harvest
+# coverage stays queryable, without the domain slice asserting any logic: triple.
+
+logic:symmetricProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "symmetric property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for symmetry: a property P such that P(a,b) entails P(b,a). The logic: analogue of owl:SymmetricProperty, minted standalone so the characteristic can be asserted on the canonical reasoning carrier alongside the others and reasoned over natively — including together with logic:irreflexiveProperty, for a constitutive-opposition relation that holds both ways but never of a thing and itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:functionalProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "functional property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for functionality: a property P such that P(a,b) ∧ P(a,c) entails b = c. The logic: analogue of owl:FunctionalProperty, minted standalone so the characteristic can be asserted on the canonical reasoning carrier alongside the others; functionality is already lifted into the foundation chase for the relator-mediation count, so a functional carrier records the characteristic centrally rather than adding a second enforcement path."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PropertyCharacteristicAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "property characteristic assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:characterizes
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "characterizes"@x-gmeow-english ;
+    skos:definition "Relates a logic:PropertyCharacteristicAssertion to the property it characterises (a gmeow: or logic: property, stated in prose). Read together with logic:characteristicSort, it tells the native coherence gate which property bears which characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:characteristicSort
+    a owl:ObjectProperty ;
+    rdfs:domain logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "characteristic sort"@x-gmeow-english ;
+    skos:definition "Relates a logic:PropertyCharacteristicAssertion to the characteristic-sort marker it asserts — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. Co-present with logic:characterizes: a characteristic assertion carrying one without the other names no enforceable characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:subEventOfTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "subEventOf is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:subEventOf is transitive: a part of a part is a part — the reading its own skos:definition commits to (CIDOC-CRM P9). The native coherence gate reads this to close the sub-event relation."@x-gmeow-english ;
+    logic:characterizes gmeow:subEventOf ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:subEventOf .
+
+logic:coarserThanTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "coarserThan is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:coarserThan is transitive: the partial order on granularity levels its skos:definition names, which makes 'at or above a target level' well-defined. The native coherence gate reads this to close the granularity order."@x-gmeow-english ;
+    logic:characterizes gmeow:coarserThan ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:coarserThan .
+
+logic:sharpensTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "sharpens is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sharpens is transitive: the standpoint refinement order its skos:definition names (Standpoint Logic's coverage relation). The native coherence gate reads this to close the refinement order."@x-gmeow-english ;
+    logic:characterizes gmeow:sharpens ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:sharpens .
+
+logic:partOfTransitivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "partOf is transitive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:partOf is transitive: the universal part-to-whole spine its skos:definition names as transitive and intentionally broad. The native coherence gate reads this to close the parthood spine."@x-gmeow-english ;
+    logic:characterizes gmeow:partOf ;
+    logic:characteristicSort logic:transitiveProperty ;
+    logic:formalizes gmeow:partOf .
+
+logic:counterGoalSymmetry
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterGoal is symmetric"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterGoal is symmetric: each pole of a constitutive opposition constitutes the other, as its skos:definition states. The native coherence gate reads this to mirror the opposition."@x-gmeow-english ;
+    logic:characterizes gmeow:counterGoal ;
+    logic:characteristicSort logic:symmetricProperty ;
+    logic:formalizes gmeow:counterGoal .
+
+logic:counterGoalIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterGoal is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterGoal is irreflexive: a goal is never its own shadow, as its skos:definition states. The native coherence gate reads this to raise a violation for a goal asserted to counter itself."@x-gmeow-english ;
+    logic:characterizes gmeow:counterGoal ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:counterGoal .
+
+logic:counterpartOfSymmetry
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterpartOf is symmetric"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:counterpartOf is symmetric: cross-realm counterparts recognise each other both ways, as its skos:definition states. It is deliberately NOT transitive — that non-characteristic is enforced by logic:CounterpartNonTransitivityObligation, so no transitive carrier is authored. The native coherence gate reads this to mirror the counterpart link only."@x-gmeow-english ;
+    logic:characterizes gmeow:counterpartOf ;
+    logic:characteristicSort logic:symmetricProperty ;
+    logic:formalizes gmeow:counterpartOf .
+
+logic:versionOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "versionOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:versionOf is functional: a version belongs to exactly one lineage, as its skos:definition states. Functionality is enforced by gmeow:versionOf's owl:FunctionalProperty declaration through native DL consistency; this records the characteristic on the canonical carrier."@x-gmeow-english ;
+    logic:characterizes gmeow:versionOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:versionOf .
+
+logic:editionOfFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "editionOf is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:editionOf is functional: an edition editions exactly one work, as its skos:definition states. Functionality is enforced by gmeow:editionOf's owl:FunctionalProperty declaration through native DL consistency; this records the characteristic on the canonical carrier."@x-gmeow-english ;
+    logic:characterizes gmeow:editionOf ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:editionOf .
+
+# ── A NET-NEW harvested integrity constraint (prose → enforced axiom) ─────────────
+# The harvest mechanism run on a constraint that did NOT exist as an axiom before:
+# the three mereological individuation kinds (logic:Collection, logic:FunctionalComplex,
+# logic:Quantity) are pairwise disjoint. Their skos:definitions each contrast the
+# three as distinct individuation modes (member count vs distinct functional roles
+# vs constitution) — logic:FunctionalComplex's Definition literally says "Contrast
+# logic:Collection (uniform members) and logic:Quantity (homogeneous stuff)" — yet
+# none was asserted owl:disjointWith. This candidate harvests that prose into the
+# pairwise owl:disjointWith axioms asserted above, which the native DL coherence
+# gate reads directly: an individual typed into two of the three kinds is forced to
+# owl:Nothing, so the harvested constraint is genuinely ENFORCED. Accepted through
+# review with a positive case and a negative countermodel.
+
+logic:cqFunctionalComplexKindDisjointHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "individuation-kind disjointness holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the individuation-kind disjointness axioms must satisfy: an individual typed logic:FunctionalComplex and NOT also logic:Collection or logic:Quantity stays coherent — it is not forced to owl:Nothing — because a whole is individuated in exactly one of the three modes the prose contrasts."@x-gmeow-english .
+
+logic:cqFunctionalComplexKindDisjointOverlapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "individuation-kind overlap is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the individuation-kind disjointness axioms must respect: an individual typed BOTH logic:FunctionalComplex and logic:Collection is a violation — the native DL coherence gate forces it to owl:Nothing — so a whole individuated at once by distinct functional roles and by member count is not an admissible model. The boundary the harvested constraint enforces."@x-gmeow-english .
+
+logic:candidateFunctionalComplexKindDisjoint
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "individuation kinds are pairwise disjoint"@x-gmeow-english ;
+    skos:definition "The net-new-enforcement formalization candidate that harvests the pairwise disjointness of the three mereological individuation kinds (logic:Collection, logic:FunctionalComplex, logic:Quantity) from their skos:definition prose into enforced owl:disjointWith integrity constraints: the demonstration that the harvest mechanism creates axioms that did NOT exist before, not merely a link to an already-typed one. None of the three was asserted owl:disjointWith on origin/main; the prose contrasts them as distinct individuation modes (logic:FunctionalComplex's Definition names both other kinds explicitly). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqFunctionalComplexKindDisjointHolds) and a negative countermodel (logic:cqFunctionalComplexKindDisjointOverlapRejected); its harvest back-link (logic:candidateFormalizes logic:FunctionalComplex, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit to the prose surfaces as drift. The native DL coherence gate reads the resulting owl:disjointWith directly, forcing a two-kind individual to owl:Nothing."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:ae6ffde78c8d4cd93cdb0d06ee67fd15ab46573e7aa4f1fe5f2ee2dd209cb529"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:FunctionalComplex skos:definition, which contrasts it against logic:Collection and logic:Quantity (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "pairwise owl:disjointWith over the three mereological individuation kinds logic:Collection, logic:FunctionalComplex and logic:Quantity"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFunctionalComplexKindDisjointHolds ;
+    logic:candidateNegativeCase logic:cqFunctionalComplexKindDisjointOverlapRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:FunctionalComplex ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# THE FOUNDATIONAL PARTITION — governance for the top-class + occurrent + covering
+# axioms
+# ───────────────────────────────────────────────────────────────────────────────
+# The foundational-partition axioms asserted above (top-sortal pairwise
+# owl:disjointWith in the kernel; logic:Endurant ⊥ logic:Perdurant and
+# logic:Event ⊥ logic:Situation here; the two class-covering logic:Formula
+# disjunctions over gmeow:Entity and logic:Object) are each governed by a
+# logic:FormalizationCandidate below, following the same harvest pattern as the central axioms
+# (logic:candidateProperPartOfAsymmetric, logic:candidateFunctionalComplexKindDisjoint).
+#
+# Each candidate is accepted through review (logic:reviewedBy
+# logic:reviewerLogicFoundation) and carries a positive/negative case pair. The
+# harvest-linked ones (top-sortal disjointness, endurant/perdurant, and the
+# deliberate social∩information overlap) tie back to the exact prose field they
+# formalize via logic:candidateFormalizes + logic:candidateSourceField, and every
+# logic:candidateSourceHash is the real sha256 of that source literal so a later
+# prose edit surfaces as drift. Two candidates are NECESSARY-CONDITION coverings
+# realized only in the OWL projection (owl:unionOf), disclosed in the loss ledger
+# and NOT natively enforced (the monotone chase does not entail disjunctive
+# covering); one candidate is a deliberate, reviewed NON-assertion of disjointness
+# (logic:CategoryDeliberateOverlap) whose negative case is the countermodel that
+# explains why the overlap must be preserved.
+
+# ── 1. Top-sortal pairwise disjointness (net-new enforcement) ────────────────────
+# The four kernel top sortals (gmeow:Agent, gmeow:InformationObject,
+# gmeow:PhysicalObject, gmeow:SocialObject) are pairwise owl:disjointWith EXCEPT
+# the deliberately-preserved SocialObject∩InformationObject overlap. gmeow:Agent ⊥
+# gmeow:SocialObject is NET-NEW on this branch. The native DL coherence gate reads
+# the owl:disjointWith directly: an individual typed into two disjoint top sortals
+# is forced to owl:Nothing.
+
+logic:cqTopSortalDisjointHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "top-sortal disjointness holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the top-sortal disjointness axioms must satisfy: an individual typed into exactly one of the four kernel top sortals (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) stays coherent — it is not forced to owl:Nothing — because each thing is individuated under a single top sortal (save the deliberately-preserved social∩information overlap)."@x-gmeow-english .
+
+logic:cqTopSortalDisjointClashRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "top-sortal clash is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the top-sortal disjointness axioms must respect: an individual typed BOTH gmeow:Agent and gmeow:SocialObject is a violation — the native DL coherence gate forces it to owl:Nothing, because gmeow:Agent owl:disjointWith gmeow:SocialObject is asserted (net-new on this branch). A thing that both acts and bears responsibility yet exists purely by social convention is not an admissible model. The boundary the disjointness enforces."@x-gmeow-english .
+
+logic:candidateTopSortalDisjoint
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "top sortals are pairwise disjoint"@x-gmeow-english ;
+    skos:definition "The formalization candidate that harvests the pairwise disjointness of the four kernel top sortals from gmeow:PhysicalObject's gmeow:avoidWhen prose (which states the three others are disjoint with PhysicalObject by design) into the enforced owl:disjointWith integrity constraints asserted in the kernel: gmeow:Agent, gmeow:PhysicalObject, gmeow:InformationObject and gmeow:SocialObject are pairwise disjoint EXCEPT the deliberately-preserved SocialObject∩InformationObject overlap. The gmeow:Agent ⊥ gmeow:SocialObject edge is net-new on this branch. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqTopSortalDisjointHolds) and a negative countermodel (logic:cqTopSortalDisjointClashRejected); its harvest back-link (logic:candidateFormalizes gmeow:PhysicalObject, logic:candidateSourceField logic:ProseFieldAvoidWhen) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that gmeow:avoidWhen text so a later edit surfaces as drift. The native DL coherence gate reads the owl:disjointWith directly, forcing a two-sortal individual to owl:Nothing."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:82ff1dac761cc77e2acb02a0a81e079ba64bebc2337f4e190489a9c074b1af35"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the gmeow:PhysicalObject gmeow:avoidWhen annotation, which states the three other sortals are disjoint with PhysicalObject by design (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "pairwise owl:disjointWith among the four top sortals gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject and gmeow:SocialObject, except the preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqTopSortalDisjointHolds ;
+    logic:candidateNegativeCase logic:cqTopSortalDisjointClashRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:PhysicalObject ;
+    logic:candidateSourceField logic:ProseFieldAvoidWhen .
+
+# ── 2. Endurant ⊥ Perdurant (the continuant/occurrent divide) ────────────────────
+# logic:Endurant's skos:definition contrasts logic:Perdurant, which has temporal
+# parts. This candidate harvests that contrast into logic:Endurant owl:disjointWith
+# logic:Perdurant, enforced by the native DL coherence gate.
+
+logic:cqEndurantPerdurantDisjointHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "endurant/perdurant disjointness holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the endurant/perdurant disjointness axiom must satisfy: an individual typed logic:Endurant and NOT logic:Perdurant (a continuant wholly present at each moment) stays coherent — it is not forced to owl:Nothing — because a thing either endures through change or unfolds through it, not both."@x-gmeow-english .
+
+logic:cqEndurantPerdurantClashRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "endurant/perdurant clash is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the endurant/perdurant disjointness axiom must respect: an individual typed BOTH logic:Endurant and logic:Perdurant is a violation — the native DL coherence gate forces it to owl:Nothing, because logic:Endurant owl:disjointWith logic:Perdurant is asserted. A thing that is at once wholly present at every moment and composed of temporal parts is not an admissible model. The boundary the continuant/occurrent divide enforces."@x-gmeow-english .
+
+logic:candidateEndurantPerdurantDisjoint
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "endurant and perdurant are disjoint"@x-gmeow-english ;
+    skos:definition "The formalization candidate that harvests the continuant/occurrent divide from logic:Endurant's skos:definition (which contrasts logic:Perdurant, which has temporal parts) into the enforced logic:Endurant owl:disjointWith logic:Perdurant integrity constraint asserted above. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqEndurantPerdurantDisjointHolds) and a negative countermodel (logic:cqEndurantPerdurantClashRejected); its harvest back-link (logic:candidateFormalizes logic:Endurant, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift. The native DL coherence gate reads the owl:disjointWith directly, forcing a both-endurant-and-perdurant individual to owl:Nothing."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:38eeca57276fd0bd982db498a305d97aa9a19f4549a1b9f5e292136a6cf282ab"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:Endurant skos:definition, which contrasts logic:Perdurant, which has temporal parts (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "logic:Endurant owl:disjointWith logic:Perdurant — the continuant/occurrent divide at the top of the foundation"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqEndurantPerdurantDisjointHolds ;
+    logic:candidateNegativeCase logic:cqEndurantPerdurantClashRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:Endurant ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── 3. Event ⊥ Situation (occurrent vs configuration; NO single-field harvest) ───
+# The Event/Situation contrast is not stated in a single harvestable annotation
+# field; it is a doc-section/foundation harvest over the occurrent structure. This
+# candidate therefore omits BOTH logic:candidateFormalizes and
+# logic:candidateSourceField (never a half-link). Its sourceHash is the sha256 of
+# logic:Event's skos:definition. Enforced by the native DL coherence gate.
+
+logic:cqEventSituationDisjointHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "event/situation disjointness holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the event/situation disjointness axiom must satisfy: an individual typed logic:Event and NOT logic:Situation (a perdurant occurrence composed of temporal parts) stays coherent — it is not forced to owl:Nothing — because an occurrence that unfolds in time is not the static configuration a situation records."@x-gmeow-english .
+
+logic:cqEventSituationClashRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "event/situation clash is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the event/situation disjointness axiom must respect: an individual typed BOTH logic:Event and logic:Situation is a violation — the native DL coherence gate forces it to owl:Nothing, because logic:Event owl:disjointWith logic:Situation is asserted. A thing that is at once an unfolding occurrence and the static configuration a situation records is not an admissible model. The boundary the occurrent/configuration distinction enforces."@x-gmeow-english .
+
+logic:candidateEventSituationDisjoint
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "event and situation are disjoint"@x-gmeow-english ;
+    skos:definition "The formalization candidate governing the logic:Event owl:disjointWith logic:Situation integrity constraint asserted above: an occurrence that unfolds in time is disjoint from the static configuration a situation records. Unlike the other partition axioms this contrast is NOT stated in a single harvestable annotation field, so the candidate carries NO harvest back-link (neither logic:candidateFormalizes nor logic:candidateSourceField — never a half-link); its provenance records a doc-section/foundation harvest over the occurrent structure instead. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqEventSituationDisjointHolds) and a negative countermodel (logic:cqEventSituationClashRejected); logic:candidateSourceHash is the sha256 of logic:Event's skos:definition so an edit to that anchor prose surfaces as drift. The native DL coherence gate reads the owl:disjointWith directly, forcing a both-event-and-situation individual to owl:Nothing."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b9c5746f9d224a4dad32653671549671d5daec63b28758a89151e13fbff3a479"^^xsd:string ;
+    logic:candidateExtractionProvenance "doc-section/foundation harvest over the occurrent structure (design/LOGIC-FOUNDATION.md, the occurrent section), NOT a single annotation-field harvest — the Event/Situation contrast is spread across the occurrent design prose; anchored to logic:Event's skos:definition for drift detection"^^xsd:string ;
+    logic:candidateScope "logic:Event owl:disjointWith logic:Situation — the occurrence/configuration distinction within the occurrent branch"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqEventSituationDisjointHolds ;
+    logic:candidateNegativeCase logic:cqEventSituationClashRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating .
+
+# ── 4. Entity sortal covering (OWL-projection-only, NON-monotone) ────────────────
+# Every gmeow:Entity is one of {Agent, InformationObject, PhysicalObject,
+# SocialObject}. This covering is realized only in the OWL projection as an
+# owl:unionOf and is DISCLOSED in the loss ledger; the native monotone chase does
+# NOT enforce disjunctive covering. NO harvest back-link (the covering is not a
+# single-field annotation). Category: necessary condition; risk: projection-only.
+
+logic:cqEntitySortalCoveringHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "entity sortal covering holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the entity-sortal covering must satisfy: a gmeow:Entity that is one of the four sortals (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) is covered by the owl:unionOf — no gap. Realized in the OWL-DL projection; it is the well-formed case the covering disjunction admits."@x-gmeow-english .
+
+logic:cqEntitySortalCoveringGapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "entity sortal covering gap is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the entity-sortal covering must respect: a gmeow:Entity typed into NONE of the four sortals violates the owl:unionOf covering in the OWL-DL projection — an OWL reasoner rejects the class-covering gap. HONEST SCOPE: the native monotone StratifiedNAF gate does NOT enforce this disjunctive covering (a disjunction in the head is non-Horn), so this rejection is realized only in the OWL projection, not in the native chase, and is disclosed in the loss ledger accordingly."@x-gmeow-english .
+
+logic:candidateEntitySortalCovering
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "every entity is one of the four sortals"@x-gmeow-english ;
+    skos:definition "The necessary-condition formalization candidate governing the class covering that every gmeow:Entity is one of {gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject}. Its source is gmeow:Entity's gmeow:howToUse prose, which enumerates the four sortals. The covering is realized ONLY in the OWL projection as an owl:unionOf (a class-covering disjunction); it is NON-monotone and is disclosed in the loss ledger — the native monotone StratifiedNAF chase does NOT enforce a disjunctive head, so this is projection-only, not natively enforced. It carries NO harvest back-link (the covering is a doc-level enumeration, not a single harvestable axiom field). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqEntitySortalCoveringHolds) and a negative case (logic:cqEntitySortalCoveringGapRejected); logic:candidateSourceHash is the sha256 of that gmeow:howToUse text for drift detection."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:349511ccdf3a10b7ce908e62ee66b4102b0469b4b54b191148d817380a8b96ae"^^xsd:string ;
+    logic:candidateExtractionProvenance "read from gmeow:Entity's gmeow:howToUse annotation, which enumerates the four sortals (Agent, InformationObject, PhysicalObject, SocialObject); the covering is realized in the OWL projection (owl:unionOf), is non-monotone, and is disclosed in the loss ledger — NOT natively enforced (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "covering: every gmeow:Entity is one of {Agent, InformationObject, PhysicalObject, SocialObject}"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNecessaryCondition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqEntitySortalCoveringHolds ;
+    logic:candidateNegativeCase logic:cqEntitySortalCoveringGapRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly .
+
+# ── 5. Object individuation covering (OWL-projection-only, NON-monotone) ─────────
+# Every logic:Object is one of {Collection, Quantity, FunctionalComplex}. This
+# completes the existing individuation-kind pairwise disjointness (governed by
+# logic:candidateFunctionalComplexKindDisjoint) into a partition. Realized in the
+# OWL projection as owl:unionOf, disclosed in the loss ledger; NO harvest
+# back-link. Category: necessary condition; risk: projection-only.
+
+logic:cqObjectIndividuationCoveringHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "object individuation covering holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the object-individuation covering must satisfy: a logic:Object that is one of the three individuation kinds (logic:Collection, logic:Quantity, logic:FunctionalComplex) is covered by the owl:unionOf — no gap. Realized in the OWL-DL projection; the well-formed case the covering disjunction admits, completing the individuation-kind pairwise disjointness into a partition."@x-gmeow-english .
+
+logic:cqObjectIndividuationCoveringGapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "object individuation covering gap is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the object-individuation covering must respect: a logic:Object typed into NONE of the three individuation kinds violates the owl:unionOf covering in the OWL-DL projection — an OWL reasoner rejects the class-covering gap. HONEST SCOPE: the native monotone StratifiedNAF gate does NOT enforce this disjunctive covering, so this rejection is realized only in the OWL projection and is disclosed in the loss ledger."@x-gmeow-english .
+
+logic:candidateObjectIndividuationCovering
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "every object is one of the three individuation kinds"@x-gmeow-english ;
+    skos:definition "The necessary-condition formalization candidate governing the class covering that every logic:Object is one of {logic:Collection, logic:Quantity, logic:FunctionalComplex}. It completes the existing individuation-kind pairwise disjointness (logic:candidateFunctionalComplexKindDisjoint) into a full partition. The covering is realized ONLY in the OWL projection as an owl:unionOf; it is NON-monotone and disclosed in the loss ledger — the native monotone StratifiedNAF chase does NOT enforce a disjunctive head, so this is projection-only, not natively enforced. It carries NO harvest back-link. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqObjectIndividuationCoveringHolds) and a negative case (logic:cqObjectIndividuationCoveringGapRejected); logic:candidateSourceHash is the sha256 of logic:Object's skos:definition for drift detection."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:38a90c195ba1d756389d6ba561031830dbcfdfb0b56297023db5bf719bd2f7d2"^^xsd:string ;
+    logic:candidateExtractionProvenance "anchored to logic:Object's skos:definition; completes the individuation-kind pairwise disjointness (logic:candidateFunctionalComplexKindDisjoint) into a partition, realized in the OWL projection (owl:unionOf), non-monotone, disclosed in the loss ledger — NOT natively enforced (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "covering: every logic:Object is one of {Collection, Quantity, FunctionalComplex}"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNecessaryCondition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqObjectIndividuationCoveringHolds ;
+    logic:candidateNegativeCase logic:cqObjectIndividuationCoveringGapRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly .
+
+# ── 6. Deliberate SocialObject ∩ InformationObject overlap (reviewed non-assertion) ─
+# The one preserved overlap: gmeow:SocialObject and gmeow:InformationObject are
+# deliberately NOT asserted disjoint (a myth is legitimately both social and
+# informational). This candidate governs that explicit, reviewed non-assertion.
+# Category: deliberate overlap; risk: advisory. Its negative case is the
+# countermodel showing why the overlap must be preserved.
+
+logic:cqSocialInformationOverlapHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "social/information overlap holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the deliberate social/information overlap must satisfy: an individual typed BOTH gmeow:SocialObject and gmeow:InformationObject — a founding myth that is at once socially sustained and information-bearing — stays coherent and is NOT forced to owl:Nothing, precisely because no disjointness between the two is asserted. The overlap the top-sortal partition deliberately preserves."@x-gmeow-english .
+
+logic:cqSocialInformationOverlapDisjointRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "social/information disjointness is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel that explains WHY the social/information overlap must be preserved: IF gmeow:SocialObject were wrongly asserted owl:disjointWith gmeow:InformationObject, then a founding myth typed as both would be forced to owl:Nothing by the coherence gate — collapsing a legitimate model. The rejected disjointness is the mistake this deliberate non-assertion guards against; asserting it is the boundary the partition must NOT cross."@x-gmeow-english .
+
+logic:candidateSocialInformationOverlap
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "social and information objects deliberately overlap"@x-gmeow-english ;
+    skos:definition "The deliberate-overlap formalization candidate governing the explicit, reviewed NON-assertion of disjointness between gmeow:SocialObject and gmeow:InformationObject: the one overlap the top-sortal partition preserves so that socially-sustained narratives may carry information content without identity clash (a founding myth is both). Its source is gmeow:SocialObject's skos:definition, which states that no disjointness with InformationObject is asserted for exactly this reason. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqSocialInformationOverlapHolds — a myth typed as both stays coherent) and a negative countermodel (logic:cqSocialInformationOverlapDisjointRejected — asserting the disjointness would force the myth to owl:Nothing, which is why the overlap must be preserved). Its harvest back-link (logic:candidateFormalizes gmeow:SocialObject, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text for drift detection. The risk is advisory: this is a non-assertion, so it contaminates nothing — it records a reviewed decision NOT to constrain."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:d1c66e293aa207e3e28455c2ebeb59705c8656ee088e85cd5b7d858eb09f1b36"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the gmeow:SocialObject skos:definition, which states no disjointness with InformationObject is asserted so that socially-sustained narratives may carry information content without identity clash (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "the deliberately-preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap: an explicit, reviewed non-assertion of disjointness"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDeliberateOverlap ;
+    logic:candidateDeliberateNonAssertion true ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqSocialInformationOverlapHolds ;
+    logic:candidateNegativeCase logic:cqSocialInformationOverlapDisjointRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskAdvisory ;
+    logic:candidateFormalizes gmeow:SocialObject ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+logic:cqRelatorMediationHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "relator mediation holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the relator-mediation discipline (RelComp) must satisfy: a concrete relator that mediates at least two distinct relata stays coherent — it fires no logic:violation logic:RelComp. gmeow:Commitment, which mediates gmeow:committedAgent, gmeow:commitmentBeneficiary and gmeow:intentionGoal, is well-mediated and passes."@x-gmeow-english .
+
+logic:cqRelatorMediationUnderMediatedRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "under-mediated relator rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the relator-mediation discipline must reject: a concrete relator that mediates fewer than two distinct relata is degenerate and fires logic:violation logic:RelComp — an objectified relation that connects only one entity grounds no material relation, so it is not a relator."@x-gmeow-english .
+
+logic:candidateRelatorMediation
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "every concrete relator mediates at least two distinct relata"@x-gmeow-english ;
+    skos:definition "The formalization candidate that generalizes the relator-mediation discipline (RelComp) from the hardcoded OntoUML seed relators to every subclass of the logic:Relator category, harvested from logic:Relator's own skos:definition ('A Relator must mediate at least two distinct entities'). The native foundation reasoner confers relator-hood on every class subClassOf logic:Relator and fires logic:violation logic:RelComp on any concrete (leaf) relator that mediates fewer than two distinct relata. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqRelatorMediationHolds) and a negative countermodel (logic:cqRelatorMediationUnderMediatedRejected); its harvest back-link (logic:candidateFormalizes logic:Relator, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that skos:definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b3799a43d3716eb873c0fff6c0931bf68a9bdf3b6182571a305df0cb08ba40f9"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from the logic:Relator skos:definition, which states a Relator must mediate at least two distinct entities (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "every class subClassOf logic:Relator; a concrete relator (one with no logic: subclass) must reach at least two distinct entities — two distinct logic:mediates roles, or one non-functional role — or fire logic:violation logic:RelComp"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqRelatorMediationHolds ;
+    logic:candidateNegativeCase logic:cqRelatorMediationUnderMediatedRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:Relator ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
 # ── Closed value class: the eleven formalization categories ──────────────────────
 
 logic:FormalizationCategory
@@ -4031,6 +4671,45 @@ logic:RiskAdvisory
     rdfs:label "Advisory"@x-gmeow-english ;
     skos:definition "The semantic-risk class for a candidate with no entailment consequence at all — advisory content, the lightest review. Wire value `advisory`."@x-gmeow-english .
 
+# ── Closed value class: the prose-field harvest source ───────────────────────────
+
+logic:ProseField
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Prose Field"@x-gmeow-english ;
+    skos:definition "The closed three-member value class of the logic:candidateSourceField facet: which annotation field of a term's prose a logic:FormalizationCandidate harvested its axiom from. Its individuals are logic:ProseFieldDefinition, logic:ProseFieldUseWhen and logic:ProseFieldAvoidWhen, each naming the annotation property it stands for via logic:proseFieldProperty (skos:definition, gmeow:useWhen and gmeow:avoidWhen respectively). The set is closed and atomic (Principle 9), so a misspelt field names no declared value and is rejected rather than silently accepted. Read with logic:candidateFormalizes (which term) it makes harvest coverage queryable in both directions — from a harvested axiom to the exact prose field it formalizes, and from a prose field to the axioms that formalize it (design/LOGIC-FOUNDATION.md, §Typed formalization governance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:proseFieldProperty
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "prose field property"@x-gmeow-english ;
+    skos:definition "Names the annotation property a logic:ProseField value stands for — the exact term-level field (skos:definition, gmeow:useWhen or gmeow:avoidWhen) whose prose a harvested candidate formalizes. An annotation property, so the closed logic:ProseField set links to the real field IRI without punning it into the reasoned core."@x-gmeow-english .
+
+logic:ProseFieldDefinition
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Definition"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's skos:definition — the definitional or descriptive prose a candidate formalized. Wire value `definition`."@x-gmeow-english ;
+    logic:proseFieldProperty skos:definition .
+
+logic:ProseFieldUseWhen
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Use When"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's gmeow:useWhen — the applicability guidance a candidate formalized. Wire value `use-when`."@x-gmeow-english ;
+    logic:proseFieldProperty gmeow:useWhen .
+
+logic:ProseFieldAvoidWhen
+    a owl:NamedIndividual ,
+        logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Avoid When"@x-gmeow-english ;
+    skos:definition "The logic:ProseField for a term's gmeow:avoidWhen — the anti-pattern or non-applicability guidance a candidate formalized. Wire value `avoid-when`."@x-gmeow-english ;
+    logic:proseFieldProperty gmeow:avoidWhen .
+
 # ── Candidate carrier properties (RBox) ──────────────────────────────────────────
 
 logic:candidateSourceHash
@@ -4136,6 +4815,32 @@ logic:candidateSemanticRisk
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidate semantic risk"@x-gmeow-english ;
     skos:definition "Relates a logic:FormalizationCandidate to its logic:SemanticRiskClass — how far a wrong formalization would propagate, which sets how strict the reviewer gate must be. Single-valued. Domain logic:FormalizationCandidate, range logic:SemanticRiskClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateFormalizes
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate formalizes"@x-gmeow-english ;
+    skos:definition "The harvest back-link: relates a logic:FormalizationCandidate to the prose-bearing term (a gmeow: or logic: term, stated in prose) whose constraint its axiom formalizes, read together with logic:candidateSourceField (which of that term's annotation fields — skos:definition, gmeow:useWhen or gmeow:avoidWhen). Where logic:candidateSourceHash anchors the candidate to its source text by hash and logic:candidateExtractionProvenance records what produced it, this names the exact ontology term the harvested axiom keeps coherent, so harvest coverage is queryable in both directions. Present exactly when the source IS a term's annotation field (a doc-section source stays recorded in provenance alone, never a fabricated term-link); single-valued. Distinct from logic:formalizes, which bridges a logic: term to a gmeow: concept and is never a reasoned axiom. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateSourceField
+    a owl:ObjectProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range logic:ProseField ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate source field"@x-gmeow-english ;
+    skos:definition "Names which annotation field of the logic:candidateFormalizes term a candidate harvested — a logic:ProseField from the closed set (logic:ProseFieldDefinition, logic:ProseFieldUseWhen, logic:ProseFieldAvoidWhen). Together with logic:candidateFormalizes it pins the harvested axiom to the exact source triple. Co-present with logic:candidateFormalizes: a candidate carrying one of the pair without the other is a hard governance error (verify.harvest-link-paired), never a half-link. Single-valued. Domain logic:FormalizationCandidate, range logic:ProseField."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:candidateDeliberateNonAssertion
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:FormalizationCandidate ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "candidate deliberate non-assertion"@x-gmeow-english ;
+    skos:definition "Marks a logic:FormalizationCandidate as one of the ontology's deliberate-non-assertion boundaries — an intentional refusal to over-assert that the foundation commits to and is held against: a forbidden entailment carried by a logic:NonEntailmentObligation, an integrity constraint whose violation is a finding, or a deliberately preserved class overlap. Its role is enumerability: the marked set IS the deliberate-non-assertion report, and it deliberately cuts across logic:candidateCategory (a boundary may be a logic:CategoryNonEntailmentObligation, a logic:CategoryIntegrityConstraint or a logic:CategoryDeliberateOverlap), so the whole boundary set is queryable as one report rather than inferred from an overloaded category facet (an integrity-constraint boundary is not distinguishable from an ordinary integrity constraint by category alone). Present and true on exactly the guardrail candidates; single-valued, xsd:boolean. Domain logic:FormalizationCandidate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── Obligation carrier properties (RBox) ─────────────────────────────────────────
@@ -5328,6 +6033,8 @@ logic:ControlFlowEdge
     rdfs:subClassOf logic:Relator ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Control-Flow Edge"@x-gmeow-english ;
+    logic:mediates logic:flowFrom ,
+        logic:flowTo ;
     skos:definition "A reified control-flow edge between two process nodes — the canonical FLOW-GRAPH form of control flow, mediating a source node (logic:flowFrom) and a target node (logic:flowTo). Complementary to, NOT a duplicate of, the structured-program combinators (logic:Choice, logic:Iteration, logic:ConcurrentComposition, logic:Fallback): the combinators are the program-TREE form an interpreter walks, while a logic:ControlFlowEdge is the binary-edge form the DAG-workflow acyclicity certifier runs Tarjan SCC over. A graph carrying a logic:Iteration loop edge (or any back-edge) is outside the DAG fragment. Downstream reified control-flow relators such as gmeow:ControlFlow specialize this class. A Relator mediating two distinct relata (its flowFrom and flowTo nodes), satisfying the relator-mediation discipline."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -5336,6 +6043,8 @@ logic:DataFlowEdge
     rdfs:subClassOf logic:Relator ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Data-Flow Edge"@x-gmeow-english ;
+    logic:mediates logic:flowFrom ,
+        logic:flowTo ;
     skos:definition "A reified dataflow edge between two process nodes — the FLOW-GRAPH counterpart of the logic:dataflowConsumes property, mediating a source (producer) node via logic:flowFrom and a target (consumer) node via logic:flowTo. Use the property form (logic:dataflowConsumes) for a bare binary dependency and this reified form when an edge must carry its own attributes (the flowing entity, a guard, an order). Downstream reified dataflow relators such as gmeow:DataFlow specialize this class. A Relator mediating two distinct relata, satisfying the relator-mediation discipline."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -6121,3 +6830,965 @@ vann:preferredNamespacePrefix
 
 vann:preferredNamespaceUri
     a owl:AnnotationProperty .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Foundational class-coverings. Each is a full-FOL logic:Formula disjunction
+# ∀x. Whole(x) → (S₁(x) ∨ … ∨ Sₙ(x)); the canonical RDF 1.2 projection carries it
+# exact, and the OWL projection lowers it to owl:unionOf (an exhaustive cover). The
+# member disjointness is the separate owl:disjointWith axioms, never folded into the
+# formula. Governance for each is the logic:FormalizationCandidate block below.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Covering: every gmeow:Entity is one of the four top sortals (Agent, InformationObject,
+# PhysicalObject, SocialObject). A non-disjoint cover — the SocialObject ∩ InformationObject
+# overlap is preserved, so this projects to owl:unionOf (not owl:disjointUnionOf).
+logic:coverEntitySortals
+    a logic:Formula ;
+    logic:forall logic:coverEntitySortalsBody ;
+    logic:quantifiedVariable logic:coverEntitySortalsVar .
+logic:coverEntitySortalsVar
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsBody
+    a logic:Formula ;
+    logic:antecedent logic:coverEntitySortalsAnte ;
+    logic:consequent logic:coverEntitySortalsCons .
+logic:coverEntitySortalsAnte
+    a logic:Formula ;
+    logic:relation gmeow:Entity ;
+    logic:argument logic:coverEntitySortalsAnteArg .
+logic:coverEntitySortalsAnteArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsCons
+    a logic:Formula ;
+    logic:or logic:coverEntitySortalsAgent ,
+        logic:coverEntitySortalsInfo ,
+        logic:coverEntitySortalsPhysical ,
+        logic:coverEntitySortalsSocial .
+logic:coverEntitySortalsAgent
+    a logic:Formula ;
+    logic:relation gmeow:Agent ;
+    logic:argument logic:coverEntitySortalsAgentArg .
+logic:coverEntitySortalsAgentArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsInfo
+    a logic:Formula ;
+    logic:relation gmeow:InformationObject ;
+    logic:argument logic:coverEntitySortalsInfoArg .
+logic:coverEntitySortalsInfoArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsPhysical
+    a logic:Formula ;
+    logic:relation gmeow:PhysicalObject ;
+    logic:argument logic:coverEntitySortalsPhysicalArg .
+logic:coverEntitySortalsPhysicalArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverEntitySortalsSocial
+    a logic:Formula ;
+    logic:relation gmeow:SocialObject ;
+    logic:argument logic:coverEntitySortalsSocialArg .
+logic:coverEntitySortalsSocialArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+
+# Covering: every logic:Object is individuated as exactly one of the three individuation
+# kinds (Collection, Quantity, FunctionalComplex). The pairwise disjointness of the three
+# is already asserted (their owl:disjointWith axioms); this covering supplies the
+# exhaustiveness, completing the individuation partition of Objects. The stereotype
+# meta-class partition (Kind/SubKind/Role/Phase/Category/Mixin/Relator) is a DISTINCT,
+# meta-level partition owned by the logic:StereotypeCardinality discipline (foundation
+# rules); this covering deliberately does not restate it, to avoid double-encoding.
+logic:coverObjectIndividuation
+    a logic:Formula ;
+    logic:forall logic:coverObjectIndividuationBody ;
+    logic:quantifiedVariable logic:coverObjectIndividuationVar .
+logic:coverObjectIndividuationVar
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverObjectIndividuationBody
+    a logic:Formula ;
+    logic:antecedent logic:coverObjectIndividuationAnte ;
+    logic:consequent logic:coverObjectIndividuationCons .
+logic:coverObjectIndividuationAnte
+    a logic:Formula ;
+    logic:relation logic:Object ;
+    logic:argument logic:coverObjectIndividuationAnteArg .
+logic:coverObjectIndividuationAnteArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverObjectIndividuationCons
+    a logic:Formula ;
+    logic:or logic:coverObjectIndividuationCollection ,
+        logic:coverObjectIndividuationQuantity ,
+        logic:coverObjectIndividuationFunctionalComplex .
+logic:coverObjectIndividuationCollection
+    a logic:Formula ;
+    logic:relation logic:Collection ;
+    logic:argument logic:coverObjectIndividuationCollectionArg .
+logic:coverObjectIndividuationCollectionArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverObjectIndividuationQuantity
+    a logic:Formula ;
+    logic:relation logic:Quantity ;
+    logic:argument logic:coverObjectIndividuationQuantityArg .
+logic:coverObjectIndividuationQuantityArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+logic:coverObjectIndividuationFunctionalComplex
+    a logic:Formula ;
+    logic:relation logic:FunctionalComplex ;
+    logic:argument logic:coverObjectIndividuationFunctionalComplexArg .
+logic:coverObjectIndividuationFunctionalComplexArg
+    logic:termIndex 0 ;
+    logic:termVariable "x" .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Definitional axioms for the deception / standpoint / falsehood family.
+# Four object-level full-FOL logic:Formula definitions, each logic:formalizes-linked
+# to the gmeow: prose it encodes and paired with a reviewed logic:FormalizationCandidate
+# (harvest back-link + drift-checked source hash). Each formula exceeds the monotone
+# Horn+NAF fragment (nested existential, biconditional, strong negation), so it is
+# realized ONLY in the OWL / full-FOL projection and disclosed in the loss ledger — the
+# native StratifiedNAF chase does NOT enforce it (RiskProjectionOnly, mirroring the
+# foundational class coverings). The intent-never-entailed guardrail is unaffected: none of these
+# formulas is a productive rule and none carries gmeow:deceptiveIntentClaim, so
+# logic:IntentNotFromDeceptionObligation's Arm A (no rule head) stays discharged.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Axiom 1: deception ⇒ a divergent held/projected doxastic pair (the gap IS the act) ──
+# ∀e. eventType(e, eventTypeDeception) →
+#     ∃h,p. heldStandpoint(e,h) ∧ projectedStandpoint(e,p)
+#           ∧ DoxasticStandpointClaim(h) ∧ DoxasticStandpointClaim(p)
+#           ∧ ¬∃m. (claimModality(h,m) ∧ claimModality(p,m))
+# A NECESSARY condition, never a biconditional: a licensed-falsehood projection also has a
+# held/projected gap yet is not deception (Axiom 3 carves it out), so the gap is necessary
+# but not sufficient for deception.
+logic:deceptionHeldProjectedDivergence
+    a logic:Formula ;
+    logic:formalizes gmeow:eventTypeDeception ;
+    logic:forall logic:dhpdBody ;
+    logic:quantifiedVariable logic:dhpdVarE .
+logic:dhpdVarE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:dhpdBody
+    a logic:Formula ;
+    logic:antecedent logic:dhpdAnte ;
+    logic:consequent logic:dhpdCons .
+logic:dhpdAnte
+    a logic:Formula ;
+    logic:relation gmeow:eventType ;
+    logic:argument logic:dhpdAnteArgE , logic:dhpdAnteArgKind .
+logic:dhpdAnteArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:dhpdAnteArgKind
+    logic:termIndex 1 ;
+    logic:termIri gmeow:eventTypeDeception .
+logic:dhpdCons
+    a logic:Formula ;
+    logic:exists logic:dhpdConsBody ;
+    logic:quantifiedVariable logic:dhpdVarH , logic:dhpdVarP .
+logic:dhpdVarH
+    logic:termIndex 0 ;
+    logic:termVariable "h" .
+logic:dhpdVarP
+    logic:termIndex 1 ;
+    logic:termVariable "p" .
+logic:dhpdConsBody
+    a logic:Formula ;
+    logic:and logic:dhpdHeld ,
+        logic:dhpdProjected ,
+        logic:dhpdHeldDox ,
+        logic:dhpdProjectedDox ,
+        logic:dhpdDivergent .
+logic:dhpdHeld
+    a logic:Formula ;
+    logic:relation gmeow:heldStandpoint ;
+    logic:argument logic:dhpdHeldArgE , logic:dhpdHeldArgH .
+logic:dhpdHeldArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:dhpdHeldArgH
+    logic:termIndex 1 ;
+    logic:termVariable "h" .
+logic:dhpdProjected
+    a logic:Formula ;
+    logic:relation gmeow:projectedStandpoint ;
+    logic:argument logic:dhpdProjectedArgE , logic:dhpdProjectedArgP .
+logic:dhpdProjectedArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:dhpdProjectedArgP
+    logic:termIndex 1 ;
+    logic:termVariable "p" .
+logic:dhpdHeldDox
+    a logic:Formula ;
+    logic:relation gmeow:DoxasticStandpointClaim ;
+    logic:argument logic:dhpdHeldDoxArg .
+logic:dhpdHeldDoxArg
+    logic:termIndex 0 ;
+    logic:termVariable "h" .
+logic:dhpdProjectedDox
+    a logic:Formula ;
+    logic:relation gmeow:DoxasticStandpointClaim ;
+    logic:argument logic:dhpdProjectedDoxArg .
+logic:dhpdProjectedDoxArg
+    logic:termIndex 0 ;
+    logic:termVariable "p" .
+logic:dhpdDivergent
+    a logic:Formula ;
+    logic:not logic:dhpdShared .
+logic:dhpdShared
+    a logic:Formula ;
+    logic:exists logic:dhpdSharedBody ;
+    logic:quantifiedVariable logic:dhpdVarM .
+logic:dhpdVarM
+    logic:termIndex 0 ;
+    logic:termVariable "m" .
+logic:dhpdSharedBody
+    a logic:Formula ;
+    logic:and logic:dhpdHeldModality , logic:dhpdProjectedModality .
+logic:dhpdHeldModality
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument logic:dhpdHeldModalityArgH , logic:dhpdHeldModalityArgM .
+logic:dhpdHeldModalityArgH
+    logic:termIndex 0 ;
+    logic:termVariable "h" .
+logic:dhpdHeldModalityArgM
+    logic:termIndex 1 ;
+    logic:termVariable "m" .
+logic:dhpdProjectedModality
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument logic:dhpdProjectedModalityArgP , logic:dhpdProjectedModalityArgM .
+logic:dhpdProjectedModalityArgP
+    logic:termIndex 0 ;
+    logic:termVariable "p" .
+logic:dhpdProjectedModalityArgM
+    logic:termIndex 1 ;
+    logic:termVariable "m" .
+
+# ── Axiom 2: falsehood ≡ a necessarily-denying standpoint claim (refuted, no isFalse flag) ──
+# ∀c. claimModality(c, gmeow:refuted) ↔
+#     (StandpointClaim(c) ∧ claimPolarity(c, gmeow:polarityDeny)
+#      ∧ claimModalForce(c, gmeow:modalForceNecessary))
+# An EQUIVALENCE definition: "falsehood = refuted StandpointClaim" made formal as the identity
+# of the refuted modality with its canonical axis signature □¬ (deny + necessary). Frame-relative
+# settled-false, never a global truth verdict — there is no isFalse flag; to be false-in-frame IS
+# to hold a claim of this necessarily-denying modality.
+logic:falsehoodIsRefutedClaim
+    a logic:Formula ;
+    logic:formalizes gmeow:refuted ;
+    logic:forall logic:firBody ;
+    logic:quantifiedVariable logic:firVarC .
+logic:firVarC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firBody
+    a logic:Formula ;
+    logic:iff logic:firRefuted , logic:firSignature .
+logic:firRefuted
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument logic:firRefutedArgC , logic:firRefutedArgV .
+logic:firRefutedArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firRefutedArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:refuted .
+logic:firSignature
+    a logic:Formula ;
+    logic:and logic:firClaim , logic:firPolarity , logic:firForce .
+logic:firClaim
+    a logic:Formula ;
+    logic:relation gmeow:StandpointClaim ;
+    logic:argument logic:firClaimArg .
+logic:firClaimArg
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firPolarity
+    a logic:Formula ;
+    logic:relation gmeow:claimPolarity ;
+    logic:argument logic:firPolarityArgC , logic:firPolarityArgV .
+logic:firPolarityArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firPolarityArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:polarityDeny .
+logic:firForce
+    a logic:Formula ;
+    logic:relation gmeow:claimModalForce ;
+    logic:argument logic:firForceArgC , logic:firForceArgV .
+logic:firForceArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:firForceArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:modalForceNecessary .
+
+# ── Axiom 3: licensed falsehood ⊢ ¬deception (the fiction/satire safety partition) ──
+# ∀e,c. (projectedStandpoint(e,c) ∧ claimVeridicality(c, gmeow:veridicalityLicensedFalsehood))
+#       → ¬ eventType(e, gmeow:eventTypeDeception)
+# The safety property: a socially-licensed non-truth-asserting projection (fiction, satire,
+# sarcasm) is NOT deception, even though it too carries a held/projected gap. Composes with
+# Axiom 1 to partition the gap into deception vs. licensed non-deception.
+logic:licensedFalsehoodNotDeception
+    a logic:Formula ;
+    logic:formalizes gmeow:veridicalityLicensedFalsehood ;
+    logic:forall logic:lfndBody ;
+    logic:quantifiedVariable logic:lfndVarE , logic:lfndVarC .
+logic:lfndVarE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:lfndVarC
+    logic:termIndex 1 ;
+    logic:termVariable "c" .
+logic:lfndBody
+    a logic:Formula ;
+    logic:antecedent logic:lfndAnte ;
+    logic:consequent logic:lfndCons .
+logic:lfndAnte
+    a logic:Formula ;
+    logic:and logic:lfndProjected , logic:lfndVeridicality .
+logic:lfndProjected
+    a logic:Formula ;
+    logic:relation gmeow:projectedStandpoint ;
+    logic:argument logic:lfndProjectedArgE , logic:lfndProjectedArgC .
+logic:lfndProjectedArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:lfndProjectedArgC
+    logic:termIndex 1 ;
+    logic:termVariable "c" .
+logic:lfndVeridicality
+    a logic:Formula ;
+    logic:relation gmeow:claimVeridicality ;
+    logic:argument logic:lfndVeridicalityArgC , logic:lfndVeridicalityArgV .
+logic:lfndVeridicalityArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:lfndVeridicalityArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:veridicalityLicensedFalsehood .
+logic:lfndCons
+    a logic:Formula ;
+    logic:not logic:lfndDeception .
+logic:lfndDeception
+    a logic:Formula ;
+    logic:relation gmeow:eventType ;
+    logic:argument logic:lfndDeceptionArgE , logic:lfndDeceptionArgKind .
+logic:lfndDeceptionArgE
+    logic:termIndex 0 ;
+    logic:termVariable "e" .
+logic:lfndDeceptionArgKind
+    logic:termIndex 1 ;
+    logic:termIri gmeow:eventTypeDeception .
+
+# ── Axiom 4: the bullshit modality ≡ the truth-indifferent configuration (Frankfurt) ──
+# ∀c. claimModality(c, gmeow:bullshit) ↔
+#     (StandpointClaim(c) ∧ claimTruthDirectedness(c, gmeow:truthIndifferent))
+# An EQUIVALENCE definition: bullshit is the stance held with indifference to truth — neither
+# aimed at truth (as a sincere claim) nor at its negation (as a lie). truthIndifferent uniquely
+# picks the bullshit modality among the five, so it is definitional, not merely necessary.
+logic:bullshitTruthIndifference
+    a logic:Formula ;
+    logic:formalizes gmeow:bullshit ;
+    logic:forall logic:btiBody ;
+    logic:quantifiedVariable logic:btiVarC .
+logic:btiVarC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:btiBody
+    a logic:Formula ;
+    logic:iff logic:btiBullshit , logic:btiSignature .
+logic:btiBullshit
+    a logic:Formula ;
+    logic:relation gmeow:claimModality ;
+    logic:argument logic:btiBullshitArgC , logic:btiBullshitArgV .
+logic:btiBullshitArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:btiBullshitArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:bullshit .
+logic:btiSignature
+    a logic:Formula ;
+    logic:and logic:btiClaim , logic:btiTruth .
+logic:btiClaim
+    a logic:Formula ;
+    logic:relation gmeow:StandpointClaim ;
+    logic:argument logic:btiClaimArg .
+logic:btiClaimArg
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:btiTruth
+    a logic:Formula ;
+    logic:relation gmeow:claimTruthDirectedness ;
+    logic:argument logic:btiTruthArgC , logic:btiTruthArgV .
+logic:btiTruthArgC
+    logic:termIndex 0 ;
+    logic:termVariable "c" .
+logic:btiTruthArgV
+    logic:termIndex 1 ;
+    logic:termIri gmeow:truthIndifferent .
+
+# ── Governance: reviewed FormalizationCandidates for the four axioms above ────────────
+# Each harvests its axiom from exactly one prose field (logic:candidateSourceField) of the
+# gmeow: term it formalizes; logic:candidateSourceHash is the sha256 of that field's
+# @x-gmeow-english lexical text, so a later prose edit surfaces as drift under make verify.
+# All four are realized in the OWL / full-FOL projection only (RiskProjectionOnly,
+# SoundUnderApproximation) and disclosed in the loss ledger — the native monotone chase does
+# not enforce a nested-existential, biconditional, or strong-negation head.
+
+logic:cqDeceptionDivergenceHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deception divergence holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the deception-divergence necessary-condition must satisfy: a gmeow:Event of gmeow:eventTypeDeception that carries a gmeow:heldStandpoint and a gmeow:projectedStandpoint — both gmeow:DoxasticStandpointClaims — whose claim modalities differ satisfies the axiom. The held/projected gap is the deceptive act; the well-formed case the formula admits."@x-gmeow-english .
+logic:cqDeceptionDivergenceGapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deception without a divergent gap is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the deception-divergence axiom must respect: a gmeow:Event typed gmeow:eventTypeDeception whose held and projected standpoints coincide (no divergent claim-state) violates the necessary condition in the OWL / full-FOL projection. HONEST SCOPE: the native monotone StratifiedNAF chase does NOT enforce this existential, negation-bearing condition, so the rejection is realized only in the projection and is disclosed in the loss ledger."@x-gmeow-english .
+logic:candidateDeceptionHeldProjectedDivergence
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deception is a divergent held/projected gap"@x-gmeow-english ;
+    skos:definition "The necessary-condition formalization candidate governing logic:deceptionHeldProjectedDivergence: every gmeow:eventTypeDeception event carries a gmeow:heldStandpoint and a gmeow:projectedStandpoint doxastic claim whose modalities diverge — the gap is the act, not a truth verdict. A necessary, not sufficient, condition (a licensed-falsehood projection also has a gap yet is not deception; see logic:candidateLicensedFalsehoodNotDeception). Realized in the OWL / full-FOL projection (nested existential with strong negation), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:eventTypeDeception's skos:definition, so an edit to that prose surfaces as drift. Accepted through review with a positive case (logic:cqDeceptionDivergenceHolds) and a negative countermodel (logic:cqDeceptionDivergenceGapRejected)."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b8643c1fb0583812f11a418b01244c78af2e5f97edc306479a6ae717dfcec391"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:eventTypeDeception's skos:definition, which states that a deception projects a standpoint diverging from the one actually held (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "necessary condition: gmeow:eventTypeDeception ⇒ a divergent held/projected DoxasticStandpointClaim pair"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNecessaryCondition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqDeceptionDivergenceHolds ;
+    logic:candidateNegativeCase logic:cqDeceptionDivergenceGapRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateFormalizes gmeow:eventTypeDeception ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+logic:cqFalsehoodRefutedHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "falsehood as refuted claim holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the falsehood-as-refuted-claim equivalence must satisfy: a gmeow:StandpointClaim whose gmeow:claimModality is gmeow:refuted is exactly one whose gmeow:claimPolarity is gmeow:polarityDeny and gmeow:claimModalForce is gmeow:modalForceNecessary (□¬ — settled-false-in-frame). The well-formed case the biconditional admits; there is no separate isFalse flag."@x-gmeow-english .
+logic:cqFalsehoodRefutedGlobalTruthRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "falsehood as global truth verdict is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the falsehood-as-refuted-claim equivalence must respect: reading gmeow:refuted as a frame-independent isFalse flag on the proposition — rather than as the necessarily-denying stance of one standpoint — is rejected (Principle 11: no global truth verdict). HONEST SCOPE: the equivalence is realized in the OWL / full-FOL projection; the native monotone chase does not enforce a biconditional, so this is disclosed in the loss ledger."@x-gmeow-english .
+logic:candidateFalsehoodIsRefutedClaim
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "falsehood is a refuted standpoint claim"@x-gmeow-english ;
+    skos:definition "The equivalence-definition formalization candidate governing logic:falsehoodIsRefutedClaim: to carry gmeow:claimModality gmeow:refuted is exactly to be a gmeow:StandpointClaim that necessarily denies its proposition (gmeow:polarityDeny ∧ gmeow:modalForceNecessary = □¬). This pins 'falsehood = refuted StandpointClaim' as a frame-relative configuration, never a global truth flag, and ties the legacy five-value modality twin to its canonical axes. Realized in the OWL / full-FOL projection (biconditional), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:refuted's skos:definition. Accepted through review with a positive case (logic:cqFalsehoodRefutedHolds) and a negative countermodel (logic:cqFalsehoodRefutedGlobalTruthRejected)."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:5a0209094cea0065b721afa45f2bda0dacaf1b8c659bf77f5c52c7632f6b0b0e"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:refuted's skos:definition, which states the standpoint DENIES the proposition (□¬, settled-false-in-frame) (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "equivalence: gmeow:claimModality gmeow:refuted ⟺ StandpointClaim with polarityDeny ∧ modalForceNecessary"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryEquivalenceDefinition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFalsehoodRefutedHolds ;
+    logic:candidateNegativeCase logic:cqFalsehoodRefutedGlobalTruthRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateFormalizes gmeow:refuted ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+logic:cqLicensedFalsehoodSafeHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "licensed falsehood is not deception holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the licensed-falsehood safety partition must satisfy: a gmeow:Event whose gmeow:projectedStandpoint carries gmeow:claimVeridicality gmeow:veridicalityLicensedFalsehood (fiction, satire, sarcasm) is NOT a gmeow:eventTypeDeception, even though it carries a held/projected gap. The well-formed case the exclusion admits."@x-gmeow-english .
+logic:cqLicensedFalsehoodDeceptionRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "licensed falsehood classified as deception is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the licensed-falsehood safety partition must respect: classifying a socially-licensed non-truth-asserting projection (a novel, a satire) as deception is rejected — the audience understands the non-asserting frame. HONEST SCOPE: the exclusion is realized in the OWL / full-FOL projection (strong negation in the head); the native monotone chase does not enforce it, disclosed in the loss ledger."@x-gmeow-english .
+logic:candidateLicensedFalsehoodNotDeception
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "licensed falsehood is not deception"@x-gmeow-english ;
+    skos:definition "The necessary-condition formalization candidate governing logic:licensedFalsehoodNotDeception: a gmeow:Event whose projected standpoint is gmeow:veridicalityLicensedFalsehood is excluded from gmeow:eventTypeDeception — the fiction/satire/sarcasm safety property that separates harmless non-truth-asserting frames from deception. Realized in the OWL / full-FOL projection (strong negation), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:veridicalityLicensedFalsehood's skos:definition. Accepted through review with a positive case (logic:cqLicensedFalsehoodSafeHolds) and a negative countermodel (logic:cqLicensedFalsehoodDeceptionRejected)."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:885472a556e60956181fc7f7e512fbee34b63d02349fb8ca1388f2736fdf6589"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:veridicalityLicensedFalsehood's skos:definition, which states the licensed-falsehood safety property separates fiction/satire/sarcasm from deception (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "necessary condition: a licensed-falsehood projected claim ⇒ ¬ gmeow:eventTypeDeception"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNecessaryCondition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqLicensedFalsehoodSafeHolds ;
+    logic:candidateNegativeCase logic:cqLicensedFalsehoodDeceptionRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateFormalizes gmeow:veridicalityLicensedFalsehood ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+logic:cqBullshitIndifferenceHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bullshit as truth-indifference holds"@x-gmeow-english ;
+    skos:definition "The positive competency case the bullshit-modality equivalence must satisfy: a gmeow:StandpointClaim whose gmeow:claimModality is gmeow:bullshit is exactly one whose gmeow:claimTruthDirectedness is gmeow:truthIndifferent (Frankfurt) — held without regard for correspondence, distinct from a lie's truth-aimed denial. The well-formed case the biconditional admits."@x-gmeow-english .
+logic:cqBullshitIndifferenceLieRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bullshit conflated with lying is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the bullshit-modality equivalence must respect: conflating gmeow:bullshit with a truth-aimed lie (gmeow:truthAimed) is rejected — bullshit is indifferent to truth, a lie asserts against a believed truth. HONEST SCOPE: the equivalence is realized in the OWL / full-FOL projection; the native monotone chase does not enforce a biconditional, disclosed in the loss ledger."@x-gmeow-english .
+logic:candidateBullshitTruthIndifference
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "bullshit is the truth-indifferent modality"@x-gmeow-english ;
+    skos:definition "The equivalence-definition formalization candidate governing logic:bullshitTruthIndifference: to carry gmeow:claimModality gmeow:bullshit is exactly to be a gmeow:StandpointClaim held with gmeow:claimTruthDirectedness gmeow:truthIndifferent — Frankfurt's bullshit, neither true nor false under the standpoint. truthIndifferent uniquely selects the bullshit modality among the five, so it is definitional. Realized in the OWL / full-FOL projection (biconditional), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:bullshit's skos:definition. Accepted through review with a positive case (logic:cqBullshitIndifferenceHolds) and a negative countermodel (logic:cqBullshitIndifferenceLieRejected)."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:c0c4ef42d3dded8c978b2667694654d06b5d470dc1c93fb882b801b296ddf50d"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:bullshit's skos:definition, which states the standpoint asserts with indifference to truth-value (Frankfurt) (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "equivalence: gmeow:claimModality gmeow:bullshit ⟺ StandpointClaim with claimTruthDirectedness truthIndifferent"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryEquivalenceDefinition ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqBullshitIndifferenceHolds ;
+    logic:candidateNegativeCase logic:cqBullshitIndifferenceLieRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:candidateFormalizes gmeow:bullshit ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ════════════════════════════════════════════════════════════════════════════
+# Cross-slice derivation rules — the PRODUCTIVE subset of the IR
+#
+# Where the harvested constraints above are integrity/definitional axioms whose
+# violation is a finding, these are logic:Rule derivations whose head is ENTAILED:
+# monotone positive-Horn rules whose every head variable is bound positively in
+# the body (a frontier variable), so the derived fact is materialized natively
+# (it appears in the chase output) and projects to Datalog/Nemo as
+# logic:ExactPreservation. Each spans terms across two or more domain slices,
+# carries a logic:formalizes back-reference, and is governed by a reviewed
+# logic:FormalizationCandidate (logic:CategoryDerivationRule).
+# ════════════════════════════════════════════════════════════════════════════
+
+# ── Provenance: indirect contribution across the generation chain ────────────
+# gmeow:wasGeneratedBy ∘ gmeow:wasAssociatedWith ⇒ gmeow:indirectContributor.
+# An entity's indirect contributors are the agents that ran the activities that
+# produced it. The paired non-entailment obligation forbids the derived edge from
+# ever collapsing into asserted-direct gmeow:wasAttributedTo.
+
+logic:ruleIndirectContributor
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derive indirect contributor across the provenance generation chain"@x-gmeow-english ;
+    skos:definition "Emits gmeow:indirectContributor(entity, agent) whenever the entity gmeow:wasGeneratedBy an activity that gmeow:wasAssociatedWith the agent: the productive composition wasGeneratedBy ∘ wasAssociatedWith that surfaces the agents behind an entity's production. Positive Horn; monotone; materialized natively. It never derives gmeow:wasAttributedTo — indirect contribution is a reasoned consequence, not asserted direct responsibility."@x-gmeow-english ;
+    logic:provenance logic:ruleIndirectContributor ;
+    logic:formalizes gmeow:indirectContributor ;
+    logic:head [
+        rdf:subject   "?entity" ;
+        rdf:predicate gmeow:indirectContributor ;
+        rdf:object    "?agent"
+    ] ;
+    logic:body [
+        rdf:subject   "?entity" ;
+        rdf:predicate gmeow:wasGeneratedBy ;
+        rdf:object    "?activity"
+    ] , [
+        rdf:subject   "?activity" ;
+        rdf:predicate gmeow:wasAssociatedWith ;
+        rdf:object    "?agent"
+    ] .
+
+logic:IndirectContributorNotAttributionObligation
+    a owl:NamedIndividual ,
+        logic:NonEntailmentObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "indirect contribution must not become direct attribution"@x-gmeow-english ;
+    skos:definition "The standing non-entailment obligation that a derived gmeow:indirectContributor edge stays EVIDENCE, never ENTAILMENT, of direct responsibility: the foundation must never derive gmeow:wasAttributedTo (asserted authorship, ownership, or accountability) from the generation chain that surfaces indirect contribution. Enforced by syntactic reachability over the rule strata (no rule head produces the predicate) and finite closure over the materialized derivation graph (the predicate appears in no DERIVED edge). Guards the provenance credit model against collapsing indirect production into direct responsibility."@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/wasAttributedTo"^^xsd:anyURI ;
+    logic:obligationDischargeCondition
+        logic:DischargeSyntacticReachability ,
+        logic:DischargeFiniteClosure ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
+logic:cqIndirectContributorHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "indirect contributor is derived across the generation chain"@x-gmeow-english ;
+    skos:definition "The positive competency case the indirect-contribution rule must satisfy: given an entity gmeow:wasGeneratedBy an activity that gmeow:wasAssociatedWith an agent, the reasoner must derive gmeow:indirectContributor from the entity to that agent — the productive composition the harvested prose commits to."@x-gmeow-english .
+
+logic:cqIndirectContributorDirectAttributionRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "indirect contribution is not derived as direct attribution"@x-gmeow-english ;
+    skos:definition "The negative countermodel the indirect-contribution rule must respect: the derived gmeow:indirectContributor edge must never appear as gmeow:wasAttributedTo — deriving direct, asserted responsibility from the generation chain is a violation, the boundary the non-entailment obligation holds the formalization to."@x-gmeow-english .
+
+logic:candidateIndirectContributor
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "indirect contributor derives across the generation chain"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleIndirectContributor: it harvests the productive composition documented in gmeow:indirectContributor's skos:definition (indirect contributors are the agents reached by composing gmeow:wasGeneratedBy with gmeow:wasAssociatedWith) into an enforced positive-Horn derivation rule, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqIndirectContributorHolds) and a negative countermodel (logic:cqIndirectContributorDirectAttributionRejected), and bound to the non-entailment obligation logic:IndirectContributorNotAttributionObligation that forbids the derived edge from ever becoming asserted gmeow:wasAttributedTo. Its harvest back-link (logic:candidateFormalizes gmeow:indirectContributor, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:805c5d579a5ebe7957f517515002b0eeba07097f86aa2185e6f9a16ef6b577e1"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:indirectContributor's skos:definition, which states an entity's indirect contributors are the agents reached by composing gmeow:wasGeneratedBy with gmeow:wasAssociatedWith (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:wasGeneratedBy ∘ gmeow:wasAssociatedWith ⇒ gmeow:indirectContributor over the provenance generation chain"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqIndirectContributorHolds ;
+    logic:candidateNegativeCase logic:cqIndirectContributorDirectAttributionRejected ;
+    logic:candidateNonEntailment logic:IndirectContributorNotAttributionObligation ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:indirectContributor ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Creative works: the WEMI Item→Work shortcut ──────────────────────────────
+# gmeow:exemplifies ∘ gmeow:embodies ∘ gmeow:realizes ⇒ gmeow:instantiatesWork.
+# The full WEMI spine composed into a direct copy-to-Work edge, materialized only
+# when all three R-relations hold (a broken spine derives nothing).
+
+logic:ruleInstantiatesWork
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derive the WEMI Item→Work shortcut across the full spine"@x-gmeow-english ;
+    skos:definition "Emits gmeow:instantiatesWork(item, work) whenever an Item gmeow:exemplifies a Manifestation that gmeow:embodies an Expression that gmeow:realizes the Work: the productive composition exemplifies ∘ embodies ∘ realizes that links a concrete copy directly to the abstract Work it carries. Positive Horn; monotone; materialized natively. The conjunction of all three R-relations means a broken spine (a missing tier) derives nothing."@x-gmeow-english ;
+    logic:provenance logic:ruleInstantiatesWork ;
+    logic:formalizes gmeow:instantiatesWork ;
+    logic:head [
+        rdf:subject   "?item" ;
+        rdf:predicate gmeow:instantiatesWork ;
+        rdf:object    "?work"
+    ] ;
+    logic:body [
+        rdf:subject   "?item" ;
+        rdf:predicate gmeow:exemplifies ;
+        rdf:object    "?manifestation"
+    ] , [
+        rdf:subject   "?manifestation" ;
+        rdf:predicate gmeow:embodies ;
+        rdf:object    "?expression"
+    ] , [
+        rdf:subject   "?expression" ;
+        rdf:predicate gmeow:realizes ;
+        rdf:object    "?work"
+    ] .
+
+logic:cqInstantiatesWorkHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Item→Work shortcut is derived across the full WEMI spine"@x-gmeow-english ;
+    skos:definition "The positive competency case the WEMI-instantiation rule must satisfy: given an Item that gmeow:exemplifies a Manifestation that gmeow:embodies an Expression that gmeow:realizes a Work, the reasoner must derive gmeow:instantiatesWork from the Item to that Work — the copy-to-Work composition the harvested prose commits to."@x-gmeow-english .
+
+logic:cqInstantiatesWorkBrokenSpineRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "broken WEMI spine derives no Item→Work edge"@x-gmeow-english ;
+    skos:definition "The negative countermodel the WEMI-instantiation rule must respect: an Item whose spine is broken — a Manifestation that embodies no Expression, or an Expression that realizes no Work — derives NO gmeow:instantiatesWork edge, because the derivation is the conjunction of all three R-relations. The boundary that keeps the shortcut from short-circuiting an incomplete spine."@x-gmeow-english .
+
+logic:candidateInstantiatesWork
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "WEMI Item→Work shortcut derives across the full spine"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleInstantiatesWork: it harvests the copy-to-Work composition documented in gmeow:instantiatesWork's skos:definition (an Item instantiates the Work reached by composing gmeow:exemplifies, gmeow:embodies and gmeow:realizes) into an enforced positive-Horn derivation rule, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqInstantiatesWorkHolds) and a negative countermodel (logic:cqInstantiatesWorkBrokenSpineRejected). Its harvest back-link (logic:candidateFormalizes gmeow:instantiatesWork, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:5bbbd0fe5674a1a79bc9329e8829eb411f53fa6bd00a3f77899de0015acebe23"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:instantiatesWork's skos:definition, which states an Item instantiates the Work reached by composing gmeow:exemplifies, gmeow:embodies and gmeow:realizes across the WEMI spine (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:exemplifies ∘ gmeow:embodies ∘ gmeow:realizes ⇒ gmeow:instantiatesWork over the WEMI spine"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqInstantiatesWorkHolds ;
+    logic:candidateNegativeCase logic:cqInstantiatesWorkBrokenSpineRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:instantiatesWork ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Organization: membership propagation up the sub-organization hierarchy ────
+# gmeow:memberOf ∘ gmeow:subOrganizationOf ⇒ gmeow:memberOf (recursive on
+# gmeow:memberOf, so a member of a team is a member of every containing
+# organization). This logic:Rule is the native-chase form of the same membership
+# propagation the gmeow:memberOf owl:propertyChainAxiom expresses for the OWL 2 RL
+# closure: one inference across two reasoning engines, the logic: rule formalizing
+# the propagation that the slice's OWL chain carries (the harvest pattern), not a
+# divergent second reading.
+
+logic:ruleOrgMembershipPropagation
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "propagate membership up the sub-organization hierarchy"@x-gmeow-english ;
+    skos:definition "Emits gmeow:memberOf(agent, parent) whenever the agent gmeow:memberOf an organization that is gmeow:subOrganizationOf the parent: membership climbs the organizational part/whole hierarchy, so a department member is a member of the containing organization. Positive Horn and recursive on gmeow:memberOf — one rule carries membership up an arbitrarily deep nest of sub-organizations without needing gmeow:subOrganizationOf transitivity. Monotone; materialized natively. The native-chase form of the propagation the gmeow:memberOf owl:propertyChainAxiom ( gmeow:memberOf gmeow:subOrganizationOf ) expresses for the OWL 2 RL closure — the same inference in the logic: engine, not a divergent reading."@x-gmeow-english ;
+    logic:provenance logic:ruleOrgMembershipPropagation ;
+    logic:formalizes gmeow:memberOf ;
+    logic:head [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:memberOf ;
+        rdf:object    "?parent"
+    ] ;
+    logic:body [
+        rdf:subject   "?agent" ;
+        rdf:predicate gmeow:memberOf ;
+        rdf:object    "?org"
+    ] , [
+        rdf:subject   "?org" ;
+        rdf:predicate gmeow:subOrganizationOf ;
+        rdf:object    "?parent"
+    ] .
+
+logic:cqOrgMembershipPropagationHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "membership propagates up the sub-organization hierarchy"@x-gmeow-english ;
+    skos:definition "The positive competency case the membership-propagation rule must satisfy: given an agent gmeow:memberOf a department that is gmeow:subOrganizationOf a company, the reasoner must derive gmeow:memberOf from the agent to the company — and, recursively, to every further containing organization — the upward propagation the harvested prose commits to."@x-gmeow-english .
+
+logic:cqOrgMembershipPropagationDownwardRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "membership does not propagate down or sideways"@x-gmeow-english ;
+    skos:definition "The negative countermodel the membership-propagation rule must respect: membership climbs the sub-organization chain UP only — a member of a parent organization is NOT thereby a member of its sub-organizations, and an agent outside the hierarchy gains no derived membership. The direction boundary the frontier-variable rule keeps, deriving parent membership from child membership and never the reverse."@x-gmeow-english .
+
+logic:candidateOrgMembershipPropagation
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "membership propagates up the sub-organization hierarchy"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleOrgMembershipPropagation: it harvests the upward membership propagation documented in gmeow:memberOf's skos:definition (membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf) into an enforced positive-Horn derivation rule, materialized natively as logic:ExactPreservation. The logic: rule is the native-chase form of the same propagation the gmeow:memberOf owl:propertyChainAxiom carries for the OWL 2 RL closure — one inference formalized across two reasoning engines (the harvest pattern), not a divergent second reading. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqOrgMembershipPropagationHolds) and a negative countermodel (logic:cqOrgMembershipPropagationDownwardRejected). Its harvest back-link (logic:candidateFormalizes gmeow:memberOf, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:e69c9076321932cd8ca8fb9784382dd625429a454cbdc52ce2ab165e0f40567d"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:memberOf's skos:definition, which states membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:memberOf ∘ gmeow:subOrganizationOf ⇒ gmeow:memberOf, recursive up the sub-organization hierarchy"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqOrgMembershipPropagationHolds ;
+    logic:candidateNegativeCase logic:cqOrgMembershipPropagationDownwardRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:memberOf ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Standpoint: surface a tenure's frame and position onto its generated claim ─
+# A gmeow:StandpointTenure generates a gmeow:StandpointClaim (a subClassOf
+# gmeow:Observation). Two rules surface the tenure's standpoint and held position
+# onto that claim: gmeow:tenureStandpoint ⇒ the claim's gmeow:vantage, and
+# gmeow:tenurePosition ⇒ the claim's gmeow:observedFeature — the mapping the
+# StandpointTenure prose documents, now derived so generic observation consumers
+# read a tenure's claim on the universal observation spine uniformly.
+
+logic:ruleTenureClaimVantage
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "surface a tenure's standpoint as its claim's vantage"@x-gmeow-english ;
+    skos:definition "Emits gmeow:vantage(claim, standpoint) whenever a gmeow:StandpointTenure gmeow:standpointClaim a claim and gmeow:tenureStandpoint a standpoint: the tenure's frame becomes the vantage of its generated gmeow:StandpointClaim observation, so 'whose frame' reads uniformly across tenures and bare observations. Positive Horn; monotone; materialized natively."@x-gmeow-english ;
+    logic:provenance logic:ruleTenureClaimVantage ;
+    logic:formalizes gmeow:StandpointTenure ;
+    logic:head [
+        rdf:subject   "?claim" ;
+        rdf:predicate gmeow:vantage ;
+        rdf:object    "?standpoint"
+    ] ;
+    logic:body [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:standpointClaim ;
+        rdf:object    "?claim"
+    ] , [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:tenureStandpoint ;
+        rdf:object    "?standpoint"
+    ] .
+
+logic:ruleTenureClaimObservedFeature
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "surface a tenure's position as its claim's observed feature"@x-gmeow-english ;
+    skos:definition "Emits gmeow:observedFeature(claim, position) whenever a gmeow:StandpointTenure gmeow:standpointClaim a claim and gmeow:tenurePosition a position: the tenure's held position becomes the observedFeature of its generated gmeow:StandpointClaim observation, so 'what is claimed' reads uniformly on the observation spine. Positive Horn; monotone; materialized natively."@x-gmeow-english ;
+    logic:provenance logic:ruleTenureClaimObservedFeature ;
+    logic:formalizes gmeow:StandpointTenure ;
+    logic:head [
+        rdf:subject   "?claim" ;
+        rdf:predicate gmeow:observedFeature ;
+        rdf:object    "?position"
+    ] ;
+    logic:body [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:standpointClaim ;
+        rdf:object    "?claim"
+    ] , [
+        rdf:subject   "?tenure" ;
+        rdf:predicate gmeow:tenurePosition ;
+        rdf:object    "?position"
+    ] .
+
+logic:cqTenureClaimSurfacingHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a tenure's frame and position surface onto its generated claim"@x-gmeow-english ;
+    skos:definition "The positive competency case the tenure-claim-surfacing rules must satisfy: given a gmeow:StandpointTenure that gmeow:standpointClaim a claim, gmeow:tenureStandpoint a standpoint, and gmeow:tenurePosition a position, the reasoner must derive gmeow:vantage from the claim to that standpoint AND gmeow:observedFeature from the claim to that position — the tenure→claim mapping the harvested prose commits to."@x-gmeow-english .
+
+logic:cqTenureClaimSurfacingSwapRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "the tenure→claim mapping is never swapped"@x-gmeow-english ;
+    skos:definition "The negative countermodel the tenure-claim-surfacing rules must respect: the mapping is directional and specific — the tenureStandpoint becomes the claim's gmeow:vantage (never its gmeow:observedFeature) and the tenurePosition becomes the claim's gmeow:observedFeature (never its gmeow:vantage), and a tenure with no gmeow:standpointClaim surfaces nothing. The boundary that keeps frame and position from being crossed onto the wrong role."@x-gmeow-english .
+
+logic:candidateTenureClaimSurfacing
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a tenure's frame and position surface onto its generated claim"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleTenureClaimVantage and logic:ruleTenureClaimObservedFeature: it harvests the tenure→claim mapping documented in gmeow:StandpointTenure's skos:definition (the tenureStandpoint maps to the claim's vantage; the tenurePosition maps to the claim's observedFeature) into two enforced positive-Horn derivation rules, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqTenureClaimSurfacingHolds) and a negative countermodel (logic:cqTenureClaimSurfacingSwapRejected). Its harvest back-link (logic:candidateFormalizes gmeow:StandpointTenure, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:4969424252e18b640bea0671288eaebc38084df25d9263ba1651eb621a24cf47"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:StandpointTenure's skos:definition, which states the tenureStandpoint maps to the generated claim's vantage and the tenurePosition maps to its observedFeature (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:standpointClaim with gmeow:tenureStandpoint ⇒ gmeow:vantage, and with gmeow:tenurePosition ⇒ gmeow:observedFeature, onto the generated StandpointClaim"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqTenureClaimSurfacingHolds ;
+    logic:candidateNegativeCase logic:cqTenureClaimSurfacingSwapRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:StandpointTenure ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Deliberate-non-assertion guardrails — the intentional boundaries, executable ──
+# The maximal-formalization harvest must never quietly over-constrain: every deliberate
+# non-assertion the design commits to is recorded here as a reviewed
+# logic:FormalizationCandidate, so an over-eager axiom that would cross one of these
+# boundaries is surfaced (logic:ObligationViolated, or a discipline logic:violation) and
+# returned to review rather than silently asserted into the reasoned core. Two guardrails
+# forbid an entailment via a standing logic:NonEntailmentObligation (Arm A syntactic
+# reachability over rule heads + Arm B finite closure over derived edges); two are
+# integrity constraints whose violation is a finding, wrapping the existing foundation
+# disciplines that already fire it. The deliberately-preserved gmeow:SocialObject ∩
+# gmeow:InformationObject overlap (logic:candidateSocialInformationOverlap,
+# logic:CategoryDeliberateOverlap, authored above) is the fifth boundary. Each carries a
+# harvest back-link so the whole boundary set is queryable in the deliberate-non-assertion
+# report. This machinery IS the foundation's guard against over-typing (Principle 9's
+# refusal to over-assert): the review of an over-typing collision is the obligation /
+# discipline check itself, not a separate advisory flag (design/LOGIC-FOUNDATION.md,
+# §Typed formalization governance).
+
+# 1. Intent is attributed, never entailed (deception) — a forbidden entailment.
+logic:candidateIntentNotEntailed
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deceptive intent is attributed, never entailed"@x-gmeow-english ;
+    skos:definition "The deliberate-non-assertion formalization candidate carrying the standing commitment that deceptive intent must never be entailed: gmeow:deceptiveIntentClaim is an attributed, defeasible standpoint claim, so a held≠projected structural gap is EVIDENCE, never ENTAILMENT, of intent, and the foundation must never derive the predicate. Realized as the logic:NonEntailmentObligation logic:IntentNotFromDeceptionObligation and enforced by Arm A syntactic reachability over the rule heads plus Arm B finite closure over the materialized derivation graph. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation). The semantic risk is core-contaminating: a mis-formalization that closed this inference would corrupt the reasoned core with an entailed intent, so the guardrail protects the core, not merely a projection. Its harvest back-link (logic:candidateFormalizes gmeow:deceptiveIntentClaim, logic:candidateSourceField logic:ProseFieldAvoidWhen) ties it to the exact prose that forbids the entailment, and logic:candidateSourceHash is the sha256 of that gmeow:avoidWhen text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:4750f37f26e7b1dd379cade0cb9a93d1d7aa6f64c205db27583d832344108245"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:deceptiveIntentClaim's gmeow:avoidWhen, which states never let the reasoner entail deceptiveness (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "gmeow:deceptiveIntentClaim over deception events: intent stays an attributed, defeasible claim, never a reasoned entailment"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNonEntailmentObligation ;
+    logic:candidateDeliberateNonAssertion true ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidateNonEntailment logic:IntentNotFromDeceptionObligation ;
+    logic:candidateProjectionBehavior logic:ValidationOnly ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:deceptiveIntentClaim ;
+    logic:candidateSourceField logic:ProseFieldAvoidWhen .
+
+# 2. Counterpart is symmetric-only, never transitive (coreference) — a forbidden entailment.
+logic:candidateCounterpartNonTransitive
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "counterpart stays symmetric-only, never transitive"@x-gmeow-english ;
+    skos:definition "The deliberate-non-assertion formalization candidate carrying the standing commitment that cross-realm counterpart identity (gmeow:counterpartOf) stays non-transitive: it is symmetric by design but must never chain, so contested, standpoint-indexed, or context-dependent claims are never transitively collapsed into owl:sameAs identity. Realized as the logic:NonEntailmentObligation logic:CounterpartNonTransitivityObligation and enforced by Arm A syntactic reachability over the counterpart rule heads (no rule head produces the predicate). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation). The semantic risk is core-contaminating: a careless transitivity rule would corrupt the reasoned core by merging entities the design keeps distinct. Its harvest back-link (logic:candidateFormalizes gmeow:counterpartOf, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose that commits to non-transitivity, and logic:candidateSourceHash is the sha256 of that skos:definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:b2318705c42e37e940f1c2809e1c6a081517082ce26a6e15bbcca4e2f49deff5"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:counterpartOf's skos:definition, which states it is symmetric but deliberately not transitive (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "gmeow:counterpartOf across realms, frames and datasets: symmetric-only, never transitively chained"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryNonEntailmentObligation ;
+    logic:candidateDeliberateNonAssertion true ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidateNonEntailment logic:CounterpartNonTransitivityObligation ;
+    logic:candidateProjectionBehavior logic:ValidationOnly ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:counterpartOf ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# 3. Frame-relativity: no frame-free value (Principle 11) — an integrity constraint.
+logic:cqFrameRelativityHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a framed value stays well-formed"@x-gmeow-english ;
+    skos:definition "The positive competency case the frame-relativity constraint must satisfy: a logic:measuredValue expressed together with its logic:referenceFrame is well-formed — it carries no logic:MeasurementFrameMissing violation — because the value is meaningful only paired with the frame it is expressed in (Principle 11)."@x-gmeow-english .
+
+logic:cqFrameRelativityFramelessRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a frame-free value is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the frame-relativity constraint must respect: a logic:measuredValue asserted with no logic:referenceFrame is the logic:MeasurementFrameMissing violation — a frame-free value collapse the foundation catches as a finding, never admits as a well-formed model. The boundary Principle 11 enforces: a value asserted without its frame is ill-formed, and two frame-relative values are never equated frame-free."@x-gmeow-english .
+
+logic:candidateFrameRelativity
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "measured values are frame-relative — no frame-free collapse"@x-gmeow-english ;
+    skos:definition "The integrity-constraint formalization candidate that harvests Principle 11 frame-relativity from logic:referenceFrame's skos:definition into the enforced logic:MeasurementFrameMissing constraint: a logic:measuredValue is meaningful only together with the logic:referenceFrame it is expressed in, so a frame-free value is ill-formed and two frame-relative values are never equated frame-free. Violation is a finding, not a derivation, materialized by the existing foundation quality discipline. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqFrameRelativityHolds — a framed value stays well-formed) and a negative countermodel (logic:cqFrameRelativityFramelessRejected — a frame-free value is the logic:MeasurementFrameMissing violation). Its harvest back-link (logic:candidateFormalizes logic:referenceFrame, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:2e7a0baa563e6237f44afac81e9cc35ca4fa4c2dff5f55deb9fdc99a8777deeb"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from logic:referenceFrame's skos:definition, which states a logic:measuredValue with no logic:referenceFrame is the logic:MeasurementFrameMissing violation (Principle 11; design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "the true-quantity/measured-value seam: a logic:measuredValue is frame-relative and ill-formed without its logic:referenceFrame; no frame-free equality collapse"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateDeliberateNonAssertion true ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFrameRelativityHolds ;
+    logic:candidateNegativeCase logic:cqFrameRelativityFramelessRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:referenceFrame ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# 4. No over-typing: at most one ultimate Kind (Principle 9, MixIden) — an integrity constraint.
+logic:cqNoOverTypingHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a single-Kind instance is well-formed"@x-gmeow-english ;
+    skos:definition "The positive competency case the no-over-typing constraint must satisfy: an object whose sortal traces its principle of identity to exactly one ultimate logic:Kind is well-formed — it carries no logic:MixIden violation — because a Kind supplies a single principle of identity (Principle 9's refusal to over-type)."@x-gmeow-english .
+
+logic:cqNoOverTypingTwoKindsRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a two-Kind instance is rejected"@x-gmeow-english ;
+    skos:definition "The negative countermodel the no-over-typing constraint must respect: a sortal tracing its identity to two-or-more disjoint logic:Kinds is the logic:MixIden violation — over-typing the foundation catches as a finding, never admits as a well-formed model. The boundary Principle 9 enforces: co-equal facets are not fused into two disjoint identity-supplying Kinds on one instance."@x-gmeow-english .
+
+logic:candidateNoOverTyping
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an instance carries at most one ultimate Kind — no over-typing"@x-gmeow-english ;
+    skos:definition "The integrity-constraint formalization candidate that harvests Principle 9's no-over-typing boundary from logic:MixIden's skos:definition into the enforced identity-overlap discipline: a sortal inherits its principle of identity from exactly one Kind, so an instance tracing to two-or-more disjoint Kinds is the logic:MixIden violation. Violation is a finding, not a derivation, materialized by the existing foundation identity discipline (it wraps logic:MixIden, it does not duplicate it). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqNoOverTypingHolds — a single-Kind instance is well-formed) and a negative countermodel (logic:cqNoOverTypingTwoKindsRejected — a two-Kind instance is the logic:MixIden violation). Its harvest back-link (logic:candidateFormalizes logic:MixIden, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:c806598361dd99032b2934b0f76cb2aa9a773b51a280f9240b76b57f17315266"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from logic:MixIden's skos:definition, which states a sortal inherits its principle of identity from exactly one Kind and tracing to two-or-more Kinds violates it (Principle 9; design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "logic:Kind identity supply: an instance's sortal traces to exactly one ultimate Kind; two disjoint Kinds on one instance is over-typing"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryIntegrityConstraint ;
+    logic:candidateDeliberateNonAssertion true ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqNoOverTypingHolds ;
+    logic:candidateNegativeCase logic:cqNoOverTypingTwoKindsRejected ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes logic:MixIden ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
