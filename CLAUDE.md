@@ -37,7 +37,7 @@ the no-debug-symbol policy, and `nemo` build-memory caps intact.
 ## Canonical sources & forward direction
 
 * The `logic:` core is the canonical reasoning language; OWL, Datalog, SHACL, Prolog, gUFO, SSSOM, EDOAL, and FnO are **generated lossy projections** of it (Principle 17), each carrying a preservation judgment in the loss ledger.
-* The design sets [`slices/core/logic/design/*.md`](./slices/core/logic/design/), [`slices/core/inhabitation/design/*.md`](./slices/core/inhabitation/design/), and [`docs/APPLIED_CATEGORY_THEORY/*.md`](./docs/APPLIED_CATEGORY_THEORY/) are **canonical** — read the relevant ones in full before working in those areas.
+* The design sets [`slices/grounding/logic/design/*.md`](./slices/grounding/logic/design/), [`slices/core/inhabitation/design/*.md`](./slices/core/inhabitation/design/), and [`docs/APPLIED_CATEGORY_THEORY/*.md`](./docs/APPLIED_CATEGORY_THEORY/) are **canonical** — read the relevant ones in full before working in those areas.
 
 ## Build and Validation Commands
 

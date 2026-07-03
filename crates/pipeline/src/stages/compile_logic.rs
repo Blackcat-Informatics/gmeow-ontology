@@ -59,7 +59,7 @@ use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::diag_render::{render_diagnostics_artifacts, DiagnosticsPaths};
 
 /// The single authoritative `logic:` vocabulary source the compiler reads.
-pub const SOURCE_PATH: &str = "slices/core/logic/module.ttl";
+pub const SOURCE_PATH: &str = "slices/grounding/logic/module.ttl";
 
 /// The named-graph IRI carrying the canonical RDF-1.2 projection of the compiled
 /// [`LogicProgram`] (#1132 C6). The compile-logic stage pins its typed
@@ -443,7 +443,7 @@ impl Stage for CompileLogicStage {
             }
         }
         // Anchor every compiler finding to the real repo-relative source file so
-        // SARIF physical locations point to `slices/core/logic/module.ttl` rather
+        // SARIF physical locations point to `slices/grounding/logic/module.ttl` rather
         // than falling back to the synthetic `ontology/gmeow.ttl` placeholder.
         // Findings that already carry a physical path (path.is_some()) are left
         // unchanged; logical-only findings (IRI subject) get a prepended physical

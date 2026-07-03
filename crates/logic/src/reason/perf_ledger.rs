@@ -22,7 +22,7 @@
 //!   the P0 scope. NOT defects, NOT yet built: a declared, bounded later stage.
 //!
 //! The wording mirrors the canonical lever prose in
-//! `slices/core/logic/design/LOGIC-RUNTIME.md`. Process flow (which ticket, which
+//! `slices/grounding/logic/design/LOGIC-RUNTIME.md`. Process flow (which ticket, which
 //! PR) lives only in the issue tracker, never in this code or its emitted Turtle.
 
 use crate::reason::artifacts::{escape_literal, gmeow, GMEOW_NS, RDFS_COMMENT, RDF_TYPE};

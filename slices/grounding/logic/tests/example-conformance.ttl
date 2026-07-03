@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative example-conformance fixtures for the logic slice — the test-DSL
-# twin of the SHACL shapes in slices/core/logic/shapes.ttl ("this instance must
+# twin of the SHACL shapes in slices/grounding/logic/shapes.ttl ("this instance must
 # validate, that counter-example must be rejected"). The harness
 # (crates/slicetest run_conformance_cell) validates logic/module.ttl + the one
 # bound gmeow:exampleFile against logic/shapes.ttl and compares finding codes.

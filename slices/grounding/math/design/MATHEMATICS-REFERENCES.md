@@ -6,10 +6,10 @@
 > The **references appendix** of the GMEOW Mathematics design set: an enumerated, classified survey
 > of the external mathematical, statistical, and metrological standards, ontologies, formalisms,
 > classification schemes, and engines the mathematics grounding layer subsumes, projects to, links,
-> or cites. It is the mathematical peer of `slices/core/logic/design/LOGIC-REFERENCES.md`, and its
+> or cites. It is the mathematical peer of `slices/grounding/logic/design/LOGIC-REFERENCES.md`, and its
 > records are staged for the `metadata/references.ttl` ledger. It is the evidentiary base for the
 > subsumption plan and for every alignment recorded as a `logic:Correspondence`
-> (`slices/core/logic/design/LOGIC-CORRESPONDENCE.md`).
+> (`slices/grounding/logic/design/LOGIC-CORRESPONDENCE.md`).
 >
 > **Reading this appendix.** Each record is `Name — relationship | license | status — note`. Survey
 > data was web-verified July 2026; where a license or maintenance state could not be confirmed it is

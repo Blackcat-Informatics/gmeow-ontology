@@ -939,7 +939,7 @@ fn canonical_program(program: &TransactionProgram) -> String {
 
 // ── Materialization: the executional-entailment outcome surface ──────────────────
 
-// Outcome-surface vocabulary local names (declared in slices/core/logic/module.ttl).
+// Outcome-surface vocabulary local names (declared in slices/grounding/logic/module.ttl).
 const TRANSACTION_OUTCOME: &str = "TransactionOutcome";
 const TRANSACTION_STEP: &str = "TransactionStep";
 const OUTCOME_OF_PROGRAM: &str = "outcomeOfProgram";

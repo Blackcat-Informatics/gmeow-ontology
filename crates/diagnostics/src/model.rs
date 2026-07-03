@@ -97,7 +97,7 @@ impl Ord for Severity {
 /// contradiction permitted by a glut-admitting reasoning contract is coherent, so
 /// it is emitted at a NON-error severity and never fails the gate. The wire values
 /// are the kebab spellings of the `logic:Finding*` individuals in
-/// `slices/core/logic/module.ttl`.
+/// `slices/grounding/logic/module.ttl`.
 ///
 /// This is a PAYLOAD axis, not an ORDERING axis: it is deliberately kept out of
 /// [`Finding::sort_key`] and the SARIF fingerprint so adding a category to a

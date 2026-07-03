@@ -26,7 +26,7 @@
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 ex:cqNamedParametricPaths a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/logic/queries/competency/named-parametric-paths.rq" ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/named-parametric-paths.rq" ;
     gmeow:cqDataFile  "tests/fixtures/path-traversal.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "A named, parametric, depth-bounded path (logic:PathShape) with pathMaxDepth 2 applied to a four-node chain A→B→C→D must return exactly {B, C}; D is 3 hops away and must be excluded (bounded traversal, not unbounded closure)." ;
@@ -106,7 +106,7 @@ ex:rowOrgC2 a gmeow:ExpectedRow ;
 # coverage surface (the supersession of a single global %) is queryable.
 
 ex:cqFormalizationCandidateCategories a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/logic/queries/competency/formalization-candidate-categories.rq" ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/formalization-candidate-categories.rq" ;
     gmeow:cqDataFile  "examples/formalization-governance.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "Every logic:FormalizationCandidate records its logic:candidateCategory; coverage is reported per category, never as one global %. Over the merged ontology plus the governance example data the candidate population spans exactly eight distinct categories — derivation-rule, documentation-only, integrity-constraint, non-entailment-obligation, typicality, necessary-condition (the foundational-partition class coverings and the deception-family necessary conditions), deliberate-overlap (the preserved social∩information overlap) and equivalence-definition (the deception-family defined classes — falsehood-as-refuted-claim and the bullshit modality) — so a SELECT DISTINCT over the candidate categories must return exactly those eight." ;
@@ -212,7 +212,7 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 # (gmeow:avoidWhen).
 
 ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/logic/queries/competency/harvest-coverage.rq" ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/harvest-coverage.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly eighteen accepted candidates carry the full harvest back-link — sixteen sourced from a term's skos:definition and two from a term's gmeow:avoidWhen." ;
     gmeow:cqExactRows true ;
@@ -377,7 +377,7 @@ ex:rowHarvestNoOverTyping a gmeow:ExpectedRow ;
 # deliberate set.
 
 ex:cqDeliberateNonAssertions a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "slices/core/logic/queries/competency/deliberate-non-assertions.rq" ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/deliberate-non-assertions.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
     gmeow:cqRationale "The deliberate non-assertions the ontology guarantees must be enumerable as one report, each with its boundary kind: every logic:FormalizationCandidate flagged logic:candidateDeliberateNonAssertion true, regardless of its logic:candidateCategory. Over the production ontology exactly five are recorded — deceptive-intent-never-entailed and counterpart-never-transitive (logic:CategoryNonEntailmentObligation), frame-relativity-no-frame-free-collapse and no-over-typing (logic:CategoryIntegrityConstraint), and the preserved SocialObject∩InformationObject overlap (logic:CategoryDeliberateOverlap); each candidate's skos:definition and logic:candidateScope carry the rationale. Selecting on the flag rather than the category is what makes the whole set queryable — the two integrity-constraint boundaries are indistinguishable from ordinary integrity constraints by category alone." ;
     gmeow:cqExactRows true ;

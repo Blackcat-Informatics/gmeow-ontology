@@ -786,14 +786,14 @@ construction): the existing `dsl/mappings/` becomes a **frontend syntax** into
 `gmeow:ProjectionMapping` cell into a correspondence; the new pipeline must regenerate the
 committed SSSOM/EDOAL/FnO/CONSTRUCT **byte- or graph-isomorphically** (the existing
 `check-generated mappings` golden set is the oracle); only then are the old DSL, emitters, and
-`projection_lint`/`alignment_lint` deleted. Real files touched: `slices/core/logic/module.ttl`
+`projection_lint`/`alignment_lint` deleted. Real files touched: `slices/grounding/logic/module.ttl`
 (or a new `slices/core/correspondence/` slice — see open question below);
 `crates/logic-compile/src/{ir.rs, projections/mod.rs, report.rs}`;
 `crates/pipeline/src/{put_executor.rs, stages/mappings.rs}`; `crates/slice/src/{edoal_emit,
 fno_emit, sparql_emit, mapping_emit}.rs` (rendering logic *moves* under the new back-ends).
 
 **Open placement question:** a dedicated `slices/core/correspondence/` slice (its own
-vocabulary, conformance, examples) versus a chapter under `slices/core/logic/`. Lean: a
+vocabulary, conformance, examples) versus a chapter under `slices/grounding/logic/`. Lean: a
 dedicated slice, because alignment is important enough to own its surface while still compiling
 into `logic:` IR.
 

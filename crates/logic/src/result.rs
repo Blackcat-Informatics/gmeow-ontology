@@ -5,12 +5,12 @@
 //! every reasoning surface produces and every consumer reads.
 //!
 //! This module is **pure data** — no I/O, no graph parsing. It is the Rust
-//! authority (Principle 17); `slices/core/logic/module.ttl` carries the lossy
+//! authority (Principle 17); `slices/grounding/logic/module.ttl` carries the lossy
 //! ontology projection of these types.
 //!
 //! # Two orthogonal status axes, five compositional fields
 //!
-//! The canonical specification is `slices/core/logic/design/LOGIC-SEMANTICS.md`
+//! The canonical specification is `slices/grounding/logic/design/LOGIC-SEMANTICS.md`
 //! §"The reasoning result" (authoritative over the issue body). A result carries
 //! **five orthogonal fields**, each ranging over its own values; several can hold
 //! at once:

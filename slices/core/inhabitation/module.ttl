@@ -26,7 +26,7 @@
 # the base graph so no range entailment fires (INHABITED-TRADITIONS.md).
 #
 # logic: machinery (the role-classification rules, the QualityValue lattice)
-# stays central in slices/core/logic and is referenced here by prose only — no
+# stays central in slices/grounding/logic and is referenced here by prose only — no
 # asserted logic: triples beyond the stereotype types.
 # ─────────────────────────────────────────────────────────────────────────────
 
