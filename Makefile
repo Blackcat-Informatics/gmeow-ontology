@@ -10,7 +10,7 @@ TARGET ?= foaf
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= "chore: regenerate checked-in artifacts"
-GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
+GMEOW_DEV ?= cargo run -q -p gmeow-dev-cli --
 NPROC ?= $(shell nproc 2>/dev/null || echo 4)
 # check-generated reproduces every committed artifact through the gmeow-pipeline DAG;
 # its stages mix CPU work with artifact IO, so oversubscribing jobs past the core
@@ -101,8 +101,9 @@ help: ## Show the task plan.
 		/^[A-Za-z0-9_.-]+:.*## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' \
 		$(MAKEFILE_LIST)
 
-install: ## Sync the uv environment and configure repo-local Git merge drivers.
+install: ## Sync the uv environment, build the Rust CLIs, and configure repo-local Git merge drivers.
 	uv sync --all-packages
+	$(MAKE) cli-build
 	bash scripts/bootstrap-git-merge-drivers.sh
 
 fmt: ## Rewrite Python formatting with ruff.
@@ -207,7 +208,7 @@ docs: regenerate ## Regenerate gmeow.gts docs and extract ontology-docs/.
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize
 
-build: ## Build serializations and JSON-LD context into dist/.
+build: cli-build ## Build the Rust CLIs plus serializations and JSON-LD context into dist/.
 	$(GMEOW_DEV) build
 
 project: ## Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles.
