@@ -93,9 +93,10 @@ math:IntensionalSetShape
     sh:property [
         sh:path math:memberCondition ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:BlankNodeOrIRI ;
         sh:severity sh:Violation ;
-        sh:message "A math:SetBuilderExpression must name its math:memberCondition as a resource denoting a logic: formula, not an opaque literal string." ;
+        sh:message "A math:SetBuilderExpression must name exactly one math:memberCondition as a resource denoting a logic: formula (a single defining condition, which may itself be a compound formula), not an opaque literal string." ;
     ] .
 
 # Rule 5 — a complement names its ambient set.
