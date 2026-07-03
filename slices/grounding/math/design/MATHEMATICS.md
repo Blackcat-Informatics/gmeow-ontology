@@ -183,7 +183,7 @@ A skeleton manifest — the actual `manifest.ttl` is authored when implementatio
 the identity, tier, and dependency contract now:
 
 ```ttl
-<https://blackcatinformatics.ca/gmeow/slices/mathematics>
+<https://blackcatinformatics.ca/gmeow/slices/math>
     a gmeow:Slice ;
     rdfs:label "mathematics"@x-gmeow-english ;
     dcterms:title "GMEOW Mathematics and Statistics Module"@x-gmeow-english ;

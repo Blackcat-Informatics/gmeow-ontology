@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ComplementShape: a math:Complement with no
+# math:complementWithin naming its ambient set (sh:minCount 1), so validation MUST
+# emit shacl.MinCountConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecComplementUnqualified).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unqualifiedComplement a math:Complement ;
+    math:setOperationOn ex:oddNumbers .
+
+ex:oddNumbers a math:Set .

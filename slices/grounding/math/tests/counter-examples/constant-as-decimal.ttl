@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:MathematicalConstantShape: a math:MathematicalConstant
+# that carries a raw math:quantityValue (sh:maxCount 0). Situated and exact so the
+# ONLY violation is the forbidden decimal literal: validation MUST emit
+# shacl.MaxCountConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecConstantAsDecimal).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:constantAsDecimal a math:MathematicalConstant ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true ;
+    math:quantityValue "3.14159"^^xsd:double .

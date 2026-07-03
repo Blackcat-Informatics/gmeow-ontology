@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Worked example: a second composite so "which named emotions are compounds?"
+# returns more than one. Saudade is mixed valence (bittersweet) + a past/absent
+# TARGET + prospective longing toward something unrecoverable. Bittersweetness is
+# two coexisting valence-split cells sharing one target — superposition, not a new
+# axis — so the core vector carries a positive AND a negative valence cell.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:emigrant a gmeow:Person ; rdfs:label "the emigrant"@en .
+ex:lostHomeland rdfs:label "the absent, unrecoverable homeland"@en .
+
+ex:padUnitScale a gmeow:AffectScaleProfile ;
+    rdfs:label "PAD unit scale"@en ;
+    gmeow:profileRangeMin -1.0 ;
+    gmeow:profileRangeMax 1.0 ;
+    gmeow:profileMidpoint 0.0 ;
+    gmeow:profilePolarity gmeow:polarityBipolar .
+
+ex:saudade a gmeow:AffectComposite ;
+    rdfs:label "the emigrant's saudade"@en ;
+    gmeow:emotionBearer ex:emigrant ;
+    gmeow:emotionType gmeow:emotionSaudade ;
+    gmeow:affectiveTarget ex:lostHomeland ;
+    gmeow:affectiveConstituent
+        ex:sdCoreVector ,
+        ex:sdTemporalCell .
+
+# Bittersweet superposition: a positive and a negative valence cell share the target.
+ex:sdCoreVector a gmeow:AffectVectorObservation ;
+    gmeow:vantage ex:emigrant ;
+    gmeow:observedFeature ex:saudade ;
+    gmeow:vectorProfile ex:padUnitScale ;
+    gmeow:vectorComponent ex:sdValenceWarm , ex:sdValenceAching .
+
+ex:sdValenceWarm a gmeow:Appraisal ;
+    gmeow:vantage ex:emigrant ;
+    gmeow:appraisalOf ex:lostHomeland ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue 0.5 ;
+    gmeow:appraisalScaleProfile ex:padUnitScale .
+
+ex:sdValenceAching a gmeow:Appraisal ;
+    gmeow:vantage ex:emigrant ;
+    gmeow:appraisalOf ex:lostHomeland ;
+    gmeow:appraisalDimension gmeow:dimensionValence ;
+    gmeow:appraisalValue -0.4 ;
+    gmeow:appraisalScaleProfile ex:padUnitScale .
+
+# The prospective/past temporal orientation toward the unrecoverable.
+ex:sdTemporalCell a gmeow:Appraisal ;
+    gmeow:vantage ex:emigrant ;
+    gmeow:appraisalOf ex:lostHomeland ;
+    gmeow:appraisalDimension gmeow:dimensionTemporalOrientation ;
+    gmeow:appraisalValue -0.8 ;
+    gmeow:appraisalScaleProfile ex:padUnitScale .

@@ -22,6 +22,7 @@
 pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("gmeow", "https://blackcatinformatics.ca/gmeow/"),
     ("logic", "https://blackcatinformatics.ca/logic/"),
+    ("math", "https://blackcatinformatics.ca/math/"),
     ("owl", "http://www.w3.org/2002/07/owl#"),
     ("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
     ("rdfs", "http://www.w3.org/2000/01/rdf-schema#"),
@@ -41,6 +42,22 @@ pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("fnom", "https://w3id.org/function/vocabulary/mapping#"),
     ("edoal", "http://ns.inria.org/edoal/1.0/#"),
     ("align", "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#"),
+    // Affect classifier label registries — per-registry external label identities,
+    // held under a distinct authority path so a model label can never be mistaken
+    // for a canonical gmeow: emotion term.
+    (
+        "gmeow-goemotions",
+        "https://blackcatinformatics.ca/gmeow-registry/goemotions/",
+    ),
+    ("gmeow-hf", "https://blackcatinformatics.ca/gmeow-registry/hf/"),
+    (
+        "gmeow-labelset",
+        "https://blackcatinformatics.ca/gmeow-registry/labelset/",
+    ),
+    // W3C EmotionML Vocabularies — the external bridge target of the affect EmotionML
+    // projection (set-level relatedMatch cells; the per-item categories are XML `name`
+    // attributes with no per-term IRI, so only the vocabulary-set anchors are bridged).
+    ("emo", "https://www.w3.org/TR/emotion-voc/#"),
     ("gufo", "http://purl.org/nemo/gufo#"),
     ("ontouml", "https://w3id.org/ontouml#"),
     ("umbel", "http://umbel.org/umbel#"),
@@ -255,10 +272,12 @@ mod tests {
     #[test]
     fn registry_insertion_order_is_preserved() {
         // Order is load-bearing for CURIE tie-breaks: the first three entries are the
-        // GMEOW-local namespaces, ahead of the standard vocabularies.
+        // GMEOW-local namespaces (gmeow, logic, math), ahead of the standard
+        // vocabularies (owl next).
         assert_eq!(PREFIX_REGISTRY[0].0, "gmeow");
         assert_eq!(PREFIX_REGISTRY[1].0, "logic");
-        assert_eq!(PREFIX_REGISTRY[2].0, "owl");
+        assert_eq!(PREFIX_REGISTRY[2].0, "math");
+        assert_eq!(PREFIX_REGISTRY[3].0, "owl");
     }
 
     #[test]
