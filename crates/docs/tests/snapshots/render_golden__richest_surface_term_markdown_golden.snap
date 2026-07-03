@@ -41,6 +41,7 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 
 - `closeMatch` → [http://www\.ics\.forth\.gr/isl/CRMinf/I2\_Belief](http://www\.ics\.forth\.gr/isl/CRMinf/I2\_Belief) — *approximate match (close) — not an exact equivalence.*
 - *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
+- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Logic stereotypes
 
@@ -95,7 +96,12 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 
 - `claims` · `full` · `memory`
 
+## Changelog
+
+- **Added in:** 0\.1\.0
+
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/DoxasticState>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:361cc1c1e108d0f6c1d8cf3f30a54859258def1d8af1a3cae800c4ccbef65053`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

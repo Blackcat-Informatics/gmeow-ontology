@@ -3,11 +3,11 @@
 
 //! PyO3 Python bindings for `gmeow-docs`.
 //!
-//! Task 1 (#853) exposes `model_json`: serialize the typed
+//! `model_json` exposes a serialization of the typed
 //! [`DocsModel`] built from the slice catalog under
 //! `<root>/slices` to a deterministic JSON string.
 //!
-//! Task 3 (#853) adds [`DocSet`]: the rust-first static-site renderer surface
+//! [`DocSet`] is the rust-first static-site renderer surface
 //! the `gts` bundle generator consumes in place of the legacy Python
 //! `ontology_docs.py`. Markdown/HTML/RDF projections and lint are added to this
 //! type in later tasks.
@@ -233,8 +233,8 @@ impl DocSet {
     /// Project the documentation model into the `gmeow:` RDF vocabulary as
     /// deterministic N-Quads in the `gmeow:graph/documentation` named graph.
     ///
-    /// This is the in-bundle, SPARQL-queryable form of the docs surface (#853
-    /// T5): the `gts` snapshot generator folds it beside the ontology it
+    /// This is the in-bundle, SPARQL-queryable form of the docs surface: the
+    /// `gts` snapshot generator folds it beside the ontology it
     /// describes. A pure function of the retained model.
     fn to_gmeow_rdf(&self) -> String {
         rdf::to_gmeow_rdf(&self.model)

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The ONE canonical term-card renderer (#1027, §19 one-path).
+//! The ONE canonical term-card renderer (§19 one-path).
 //!
 //! A GMEOW term card is a compact, link-free, prompt-ready Markdown block: a
 //! metadata header, the definition, and every usage-advisory field. Before this

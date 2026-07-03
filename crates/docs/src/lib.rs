@@ -14,7 +14,7 @@
 //! diagram, bundle) shares one source of truth. The [`render`] module turns the
 //! model into a deterministic static-site tree (Markdown + self-contained HTML),
 //! and [`svg`] hand-emits deterministic SVG diagrams folded into that tree.
-//! Python bindings are kept in [`py`]; lint/i18n arrive in later tasks of #853.
+//! Python bindings are kept in [`py`]; lint/i18n arrive in later tasks.
 
 pub mod badge;
 pub mod card;
@@ -46,9 +46,10 @@ pub use model::{
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{
-    render_site, render_site_lang, render_site_lang_exec, to_html, to_markdown, Page, Site,
+    okf_doc_reference, render_site, render_site_lang, render_site_lang_exec, to_html, to_markdown,
+    Page, Site,
 };
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.docs` submodule (#630).
+// cdylib can populate the `gmeow_native.docs` submodule.
 #[cfg(feature = "python")]
 pub use py::register;
