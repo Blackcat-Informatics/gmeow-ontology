@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the constant-configuration invariant (INHABITED-COMPETENCY.md
+# CQ2): a single gmeow:InhabitationConfiguration that carries TWO
+# gmeow:configurationEmbodiment values over one interval. This is exactly the
+# non-constant configuration the invariant forbids — a changed embodiment must
+# open a NEW configuration, never mutate an existing one — so
+# gmeow:InhabitationConfigurationShape (sh:maxCount 1 on gmeow:configurationEmbodiment)
+# MUST reject it with shacl.MaxCountConstraintComponent.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inhabitation/tests/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:tenureX a gmeow:InhabitationTenure ;
+    gmeow:inhabitationSubject ex:agentX ;
+    gmeow:inhabitedHost ex:hostX ;
+    gmeow:inhabitationLocusKind gmeow:locusVessel ;
+    gmeow:duringInterval ex:tenureXInterval .
+
+ex:agentX a gmeow:SoftwareAgent .
+ex:hostX a gmeow:PhysicalObject .
+
+# --- The offending configuration: two embodiments over one interval.
+ex:configBad a gmeow:InhabitationConfiguration ;
+    gmeow:configurationOfTenure ex:tenureX ;
+    gmeow:configurationEmbodiment ex:embodimentA ;
+    gmeow:configurationEmbodiment ex:embodimentB ;
+    gmeow:duringInterval ex:configBadInterval .
+
+ex:embodimentA a gmeow:EmbodimentAssignment ;
+    gmeow:assignmentSubject ex:agentX ;
+    gmeow:assignmentCarrier ex:carrierA .
+ex:embodimentB a gmeow:EmbodimentAssignment ;
+    gmeow:assignmentSubject ex:agentX ;
+    gmeow:assignmentCarrier ex:carrierB .
+ex:carrierA a gmeow:EmbodimentCarrierRole .
+ex:carrierB a gmeow:EmbodimentCarrierRole .
+
+ex:tenureXInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+ex:configBadInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
