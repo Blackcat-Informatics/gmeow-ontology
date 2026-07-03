@@ -4146,7 +4146,25 @@ gmeow:AppraisalShape
         sh:maxCount 1 ;
         sh:datatype xsd:decimal ;
         sh:severity sh:Violation ;
-        sh:message "An Appraisal carries at most one decimal gmeow:appraisalValue, with its dimension." ;
+        sh:message "An Appraisal carries at most one decimal gmeow:appraisalValue, with its dimension AND its scale profile." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appraisalScaleProfile ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:appraisalScaleProfile names exactly one gmeow:AffectScaleProfile IRI — never a literal or blank node." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A dimensional appraisal reading is unframed: gmeow:appraisalValue requires a gmeow:appraisalScaleProfile (the greenfield reshape removed the bare-decimal floor — an unframed magnitude is ill-formed, Principle 6/11)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ?p . }
+            }
+        """ ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
