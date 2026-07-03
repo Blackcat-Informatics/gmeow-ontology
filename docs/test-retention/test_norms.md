@@ -1,15 +1,22 @@
 # Retention: `tests/test_norms.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Cross-slice file-load guard
 
 ## What it tests
 
-The norms extension + rights graft (#351 / #352, EPIC #348) — RETAINED tests.
+`test_graft_axioms_live_extension_side_only` loads `slices/core/rights/module.ttl`
+as a separate graph and asserts that no norms-extension IRI appears there — the
+rights graft is asserted only in the norms extension slice.
 
 ## Why it cannot move to Rust today
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+It is a file-load / cross-graph absence check, not a module-scoped TBox ASK
+assertion. The declarative test-DSL structural assertions are evaluated per
+slice module, not across separately parsed files.
 
 ## What is needed to move it to Rust
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Either extend the slicetest harness with a cross-file absence primitive, or
+collapse this into a static repo guard (e.g. a `gmeow-dev` command that parses
+the two modules separately). Until then it stays as the single pytest residue
+for the norms cluster.

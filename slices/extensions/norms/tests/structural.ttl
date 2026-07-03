@@ -475,3 +475,98 @@ ASK {
         rdfs:range gmeow:Agent .
 }""" ;
     gmeow:saRationale "gmeow:Persona MUST be a logic:Kind relator with one bearer. Replaces stale gufo:Kind/Relator pytest assertions." .
+# test append
+
+# --- 41. Criterion and CriterionPole are InformationObjects with named poles (MUST)
+ex:saCriterionCarriesNamedPoles a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Criterion rdfs:subClassOf gmeow:InformationObject .
+    gmeow:CriterionPole rdfs:subClassOf gmeow:InformationObject .
+    gmeow:rewardPole a owl:FunctionalProperty ; rdfs:range gmeow:CriterionPole .
+    gmeow:penaltyPole a owl:FunctionalProperty ; rdfs:range gmeow:CriterionPole .
+}""" ;
+    gmeow:saRationale "gmeow:Criterion and gmeow:CriterionPole MUST be subclasses of gmeow:InformationObject, and gmeow:rewardPole / gmeow:penaltyPole MUST be functional object properties ranging over gmeow:CriterionPole. Mirrors test_criterion_carries_named_poles." .
+
+# --- 42. exemplarSubject is an open, optional ObjectProperty (MUST / MUST-NOT)
+ex:saExemplarSubjectIsOpenAndOptional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:exemplarSubject a owl:ObjectProperty .
+    FILTER NOT EXISTS { gmeow:exemplarSubject rdfs:range ?r }
+    FILTER NOT EXISTS { gmeow:exemplarSubject a owl:FunctionalProperty }
+}""" ;
+    gmeow:saRationale "gmeow:exemplarSubject MUST be an owl:ObjectProperty with no rdfs:range and MUST NOT be functional, so entity-pattern exemplars stay open and may coexist with selector-pinned exemplars. Mirrors test_exemplar_subject_is_open_and_optional." .
+
+# --- 43. Assessment is a vantage-indexed observation (MUST / MUST-NOT)
+ex:saAssessmentIsVantageIndexedObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Assessment rdfs:subClassOf gmeow:Observation .
+    gmeow:assessmentTarget rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:assessmentCriterion a owl:FunctionalProperty .
+    gmeow:assessmentRubric a owl:FunctionalProperty .
+    FILTER NOT EXISTS { gmeow:assessmentCriterion rdfs:subPropertyOf gmeow:observationMethod }
+    FILTER NOT EXISTS { gmeow:assessmentRubric rdfs:subPropertyOf gmeow:observationMethod }
+    FILTER NOT EXISTS { gmeow:anchorMeaning a owl:FunctionalProperty }
+    FILTER NOT EXISTS { gmeow:exemplarRationale a owl:FunctionalProperty }
+    gmeow:assessmentScoreValue a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "gmeow:Assessment MUST subclass gmeow:Observation, gmeow:assessmentTarget MUST specialize gmeow:observedFeature, gmeow:assessmentCriterion / gmeow:assessmentRubric MUST be functional without being subproperties of gmeow:observationMethod, gmeow:anchorMeaning / gmeow:exemplarRationale MUST NOT be functional, and gmeow:assessmentScoreValue MUST be a datatype property. Mirrors test_assessment_is_a_vantage_indexed_observation." .
+
+# --- 44. Persona expression machinery is open and plural (MUST / MUST-NOT)
+ex:saExpressionMachineryIsOpenAndPlural a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:personaRegister a owl:ObjectProperty ; rdfs:range gmeow:Register .
+    gmeow:expressesNorm a owl:ObjectProperty ; rdfs:range gmeow:Norm .
+    FILTER NOT EXISTS { gmeow:personaRegister a owl:FunctionalProperty }
+    FILTER NOT EXISTS { gmeow:expressesNorm a owl:FunctionalProperty }
+    FILTER NOT EXISTS { gmeow:activatedIn a owl:FunctionalProperty }
+    FILTER NOT EXISTS { gmeow:activatedIn rdfs:range ?r }
+}""" ;
+    gmeow:saRationale "gmeow:personaRegister and gmeow:expressesNorm MUST be object properties with ranges gmeow:Register and gmeow:Norm respectively, and neither gmeow:personaRegister, gmeow:expressesNorm, nor gmeow:activatedIn MUST be functional; gmeow:activatedIn MUST remain range-open. Mirrors test_expression_machinery_is_open_and_plural." .
+
+# --- 45. StyleGuide voice doctrine (MUST / MUST-NOT)
+ex:saStyleGuideVoiceDoctrine a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:StyleGuide rdfs:subClassOf gmeow:InformationObject .
+    gmeow:voiceExemplifiedBy a owl:ObjectProperty ; rdfs:range gmeow:Document .
+    FILTER NOT EXISTS { gmeow:styleGuideFor rdfs:range ?r }
+    FILTER NOT EXISTS { gmeow:styleGuideFor a owl:FunctionalProperty }
+    FILTER NOT EXISTS { gmeow:voiceExemplifiedBy a owl:FunctionalProperty }
+}""" ;
+    gmeow:saRationale "gmeow:StyleGuide MUST subclass gmeow:InformationObject, gmeow:voiceExemplifiedBy MUST range over gmeow:Document, gmeow:styleGuideFor MUST remain range-open, and neither gmeow:styleGuideFor nor gmeow:voiceExemplifiedBy MUST be functional. Mirrors test_style_guide_voice_doctrine." .
+
+# --- 46. Persona-facing register seeds are typed gmeow:Register (MUST)
+ex:saPersonaRegisterSeedsAreRegisters a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:registerPublic a gmeow:Register .
+    gmeow:registerPrivate a gmeow:Register .
+    gmeow:registerClinical a gmeow:Register .
+}""" ;
+    gmeow:saRationale "The persona-facing register seeds defined in the norms module (public, private, clinical) MUST be individuals of gmeow:Register, reusing the names-core register spine. Mirrors part of test_register_spine_lives_in_names_core." .

@@ -319,3 +319,17 @@ ASK {
     gmeow:actionProcessPersonalData a gmeow:RightsAction .
 }""" ;
     gmeow:saRationale "gmeow:actionProcessPersonalData MUST be a gmeow:RightsAction individual — the regulated action for personal-data processing rules. Mirrors test_action_process_personal_data_is_rights_action." .
+
+# --- 19. Permission / Prohibition / Duty retain OWL classhood under Rule (MUST)
+ex:saPermissionProhibitionDutyClasshood a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Permission a owl:Class ; rdfs:subClassOf gmeow:Rule .
+    gmeow:Prohibition a owl:Class ; rdfs:subClassOf gmeow:Rule .
+    gmeow:Duty a owl:Class ; rdfs:subClassOf gmeow:Rule .
+}""" ;
+    gmeow:saRationale "gmeow:Permission, gmeow:Prohibition, and gmeow:Duty MUST each remain an owl:Class and a subclass of gmeow:Rule so the rights graft preserves the core deontic trio classhood. Mirrors test_graft_preserves_core_trio_classhood." .

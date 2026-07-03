@@ -1,15 +1,26 @@
 # Retention: `tests/test_rubrics.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Dynamic graph sweep + fixture value check
 
 ## What it tests
 
-The rubrics facility (#353, EPIC #348), in the norms slice.
+- `test_no_preferred_assessment_machinery`: scans the merged ontology for any
+  GMEOW term whose local name starts with a banned preferred/primary/canonical
+  assessment prefix (Principle 9 guard).
+- `test_two_judges_disagree_without_contradiction`: loads the rubrics wellformed
+  fixture and checks that two co-equal `gmeow:Assessment` cells with different
+  scores coexist.
 
 ## Why it cannot move to Rust today
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+The first test is a dynamic prefix sweep over all subjects in the merged graph;
+the second reads literal score values from a fixture. Neither is expressible as
+a module-scoped SPARQL ASK/SELECT cell.
 
 ## What is needed to move it to Rust
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+The dynamic sweep could become a SHACL shape over the merged vocabulary once
+GMEOW has a stable closed set of assessment-related term stems; the fixture
+check could move to a slice-local competency fixture with explicit expected
+rows. Both are larger test-infrastructure changes, so they stay in pytest for
+now.

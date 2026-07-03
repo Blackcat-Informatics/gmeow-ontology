@@ -566,3 +566,19 @@ ex:saNameLanguageDomainAppellation a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:nameLanguage rdfs:domain gmeow:Appellation . }""" ;
     gmeow:saRationale "gmeow:nameLanguage MUST have rdfs:domain gmeow:Appellation -- declared on the superclass so all subclasses inherit it. Mirrors test_name_language_is_functional_on_appellation (domain part)." .
+
+# --- 48. Register spine lives in names core (MUST) ---------------------------
+ex:saRegisterSpineLivesInNamesCore a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Register a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:NameRegister rdfs:subClassOf gmeow:Register .
+    gmeow:registerFormal a gmeow:NameRegister .
+}""" ;
+    gmeow:saRationale "gmeow:Register MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue in the names-core slice; gmeow:NameRegister MUST specialize it; and the seed gmeow:registerFormal MUST be a gmeow:NameRegister. Mirrors test_register_spine_lives_in_names_core." .
