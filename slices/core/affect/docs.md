@@ -3,39 +3,46 @@
 
 # affect
 
-> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/affect` · **tier: extension**
+> **Slice:** `https://blackcatinformatics.ca/gmeow/slices/affect` · **tier: core**
 
-Emotions and appraisals (the affect design) — **the thinnest slice in the
-repo, by commitment**.
+Emotions and appraisals — a **core** slice. An agent's felt mental life is part of
+the grounded-agent-memory flagship (Principle 14), so affect joins the kernel
+`gmeow:MentalMoment` family alongside cognition, epistemics, and teleology.
 
-## The thinness budget
+## The model
 
-This slice ships exactly: `Emotion ⊑ gufo:IntrinsicMode` (the
-Desire/Intention pattern), an open Plutchik-seeded `EmotionType` vocabulary,
-and `Appraisal ⊑ Observation` with the PAD dimensions and an open
-`AestheticQuality` vocabulary. **Nothing else.** Principle 15 discipline:
-growth requires a *new consumer*, not modeling pleasure. The bar for
-expansion: a sensory-environment or narrative consumer demanding (e.g.) an
-emotion-tenure class, appraisal provenance structure, or a cognitive
-appraisal-theory layer. Until then, requests to grow this slice should be
-declined with a pointer here.
+Core is comprehensive by design. This slice is the kernel of the affect model;
+the fuller high-dimensional landscape, the affective-experience and evidence
+layers, and the external bridges are specified canonically in
+[`design/AFFECT-DESIGN.md`](./design/AFFECT-DESIGN.md). The current vocabulary
+is a kernel, not a ceiling: `gmeow:Emotion` (an intrinsic affective
+mode inhering in one agent, grafted under `gmeow:AffectiveMoment ⊑ gmeow:MentalMoment`),
+an open Plutchik-seeded `EmotionType`, `Appraisal ⊑ Observation` with the PAD
+dimensions and an open `AestheticQuality` vocabulary, and the emotion's
+`affectiveTarget` (aboutness) separated from its `affectiveElicitor` (cause).
 
-## What deliberately does NOT exist
+## Scope of the current module
 
-- **No emotion tenure class** — episodic scope rides `validFrom`/`validUntil`
-  on the statement; promote to the StandpointTenure idiom only on consumer
-  demand.
-- **No attributed-vs-self-report machinery** — that's the vantage axis
-  (self-report is top authority for the subject's own standpoint, the
-  `facetVantage` precedent).
-- **No emotion or aesthetic hierarchies** — open value vocabularies,
-  contested by design (P9): traditions disagree about the inventory, and
-  the disagreement is data.
-- **No hard rubrics dependency** — `appraisalValue` is read against a
-  rubric `ScoreScale` *when loaded*, plain decimals otherwise (soft
-  reference).
+The kernel models emotions and appraisals; it does not yet carry a distinct
+affective-experience or mood/tenure class, a dimensional landscape, or an
+evidence spine — see `design/AFFECT-DESIGN.md` for the comprehensive design of
+those:
 
-## Deferred to the compiler-arc window
+- **Episodic scope** rides `validFrom`/`validUntil` on the statement; there is
+  no separate felt-episode or mood-tenure surface in the kernel.
+- **`appraisalValue`** is a plain decimal; it does not yet reference an
+  `AffectScaleProfile` for the open two-family axis basis, scale profiles,
+  vector observations, and composition that the fuller model specifies.
+- **Evidence** (expression, classifier outputs, telemetry as attributed
+  evidence) is not yet modelled as a distinct spine.
+
+Permanent stances (true regardless of how the model grows): **no emotion or
+aesthetic hierarchies** — open value vocabularies, contested by design (P9);
+and **attributed-vs-self-report is the vantage axis** (self-report is top
+authority for the subject's own standpoint, the `facetVantage` precedent), not
+new machinery.
+
+## Alignments
 
 MFOEM rows (linkage-only — BFO lineage), EmotionML vocabulary IRIs,
 WordNet-Affect closeMatch rows; the W3C EmotionML projection with declared
