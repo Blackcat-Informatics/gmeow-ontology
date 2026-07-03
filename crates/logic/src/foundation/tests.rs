@@ -1787,6 +1787,45 @@ fn characteristic_acyclic_cycle_violates_without_materializing_closure() {
 }
 
 #[test]
+fn characteristic_acyclic_violation_witness_is_on_the_cycle() {
+    // A's lexicographically-smallest outgoing edge (A->B) is a DEAD END; the cycle
+    // runs A->Z->A. The violation provenance must witness the on-cycle A->Z edge,
+    // never the decoy A->B edge that opens no cycle.
+    let b = "https://example.org/char/acyclic-witness";
+    let p = format!("{b}/linkNext");
+    let rec = format!("{b}/rec");
+    let a = format!("{b}/A");
+    let dead = format!("{b}/B"); // sorts before Z, dead end
+    let cyc = format!("{b}/Z"); // on the cycle
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}acyclicProperty> <{b}/g> .\n\
+         <{a}> <{p}> <{dead}> <{b}/g> .\n\
+         <{a}> <{p}> <{cyc}> <{b}/g> .\n\
+         <{cyc}> <{p}> <{a}> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    let pred = format!("{LOGIC}violation");
+    let obj = format!("<{LOGIC}AcyclicityViolation>");
+    let viol = quads
+        .iter()
+        .find(|q| q.subject == a && q.predicate == pred && q.object == obj)
+        .expect("A reaches itself and must fire an AcyclicityViolation");
+    let on_cycle = triple_reifier(&a, &p, &cyc).unwrap();
+    let decoy = triple_reifier(&a, &p, &dead).unwrap();
+    assert!(
+        viol.source_quad_ids.contains(&on_cycle),
+        "witness must be the on-cycle A->Z edge, got {:?}",
+        viol.source_quad_ids
+    );
+    assert!(
+        !viol.source_quad_ids.contains(&decoy),
+        "witness must NOT be the dead-end A->B edge, got {:?}",
+        viol.source_quad_ids
+    );
+}
+
+#[test]
 fn characteristic_acyclic_chain_is_clean() {
     // A non-cyclic chain A→B→C fires no violation.
     let b = "https://example.org/char/acyclic-clean";

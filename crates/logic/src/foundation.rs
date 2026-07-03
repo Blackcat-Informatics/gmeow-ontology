@@ -3170,25 +3170,33 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
                     adj.entry(s.as_str()).or_default().push(o.as_str());
                 }
                 for (start, succs) in &adj {
-                    let mut seen: HashSet<&str> = HashSet::new();
-                    let mut stack: Vec<&str> = succs.clone();
-                    let mut cyclic = false;
-                    while let Some(n) = stack.pop() {
-                        if n == *start {
-                            cyclic = true;
-                            break;
-                        }
-                        if seen.insert(n) {
-                            if let Some(next) = adj.get(n) {
-                                stack.extend(next.iter().copied());
+                    // Find the first outgoing edge (successors are in sorted `base` order,
+                    // so the choice is deterministic) whose target can reach `start` again.
+                    // That `start -> witness` edge genuinely lies ON the cycle, so it is the
+                    // correct provenance — unlike `start`'s lexicographically-smallest edge,
+                    // which may branch to a dead end that never closes a cycle. A node fires
+                    // iff some successor reaches it, so the violating-node set is unchanged.
+                    let mut witness: Option<&str> = None;
+                    for &succ in succs {
+                        let mut seen: HashSet<&str> = HashSet::new();
+                        let mut stack: Vec<&str> = vec![succ];
+                        while let Some(n) = stack.pop() {
+                            if n == *start {
+                                witness = Some(succ);
+                                break;
+                            }
+                            if seen.insert(n) {
+                                if let Some(next) = adj.get(n) {
+                                    stack.extend(next.iter().copied());
+                                }
                             }
                         }
+                        if witness.is_some() {
+                            break;
+                        }
                     }
-                    if cyclic {
-                        // Provenance: the node's first outgoing edge on the property (the
-                        // step that opens the cycle); deterministic since `base` is sorted.
-                        let first = succs.first().copied().unwrap_or(*start);
-                        let source = triple_reifier(start, prop, first)?;
+                    if let Some(witness) = witness {
+                        let source = triple_reifier(start, prop, witness)?;
                         let derivation_id =
                             mint_derivation_id(CHAR_ACYCLIC_RULE_IRI, &[source.as_str()]);
                         out.push(FoundationQuad {
