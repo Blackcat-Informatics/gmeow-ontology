@@ -144,7 +144,7 @@ fn divergence_nq_from_corpora(by_corpus: &BTreeMap<String, Vec<ExternalCompariso
 /// ([`AGREEMENT_TALLIES_PATH`]) `stage-export-agreement` consumes. Keyed by corpus
 /// (a `BTreeMap`, so sorted), integer counts only — no `f64`, no re-grade. The corpus
 /// lane is read from each `corpus.json` (a metadata read, not a re-grade of the cases).
-fn agreement_tallies_json(
+pub(crate) fn agreement_tallies_json(
     root: &Path,
     by_corpus: &BTreeMap<String, Vec<ExternalComparison>>,
 ) -> Result<Vec<u8>, PipelineError> {
