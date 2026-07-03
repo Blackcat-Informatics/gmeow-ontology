@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Worked example: the mode/experience cut in one scene. A felt anger EPISODE
+# (occurrent, gmeow:AffectiveExperience) realizes the enduring anger EMOTION mode
+# (endurant, gmeow:Emotion) it manifests, sharing one bearer. The first repo
+# example of a mentation Experience realizing an emotion mode. Doubles as the
+# gmeow:cqDataFile overlay for the "which felt episodes realized which mode?"
+# competency question.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:agent a gmeow:Person ; rdfs:label "the agent"@en .
+
+# The ENDURANT mode — an intrinsic affective mode inhering in the agent.
+ex:angerMode a gmeow:Emotion ;
+    rdfs:label "the agent's anger"@en ;
+    gmeow:emotionBearer ex:agent ;
+    gmeow:emotionType gmeow:emotionAnger .
+
+# The OCCURRENT felt episode — a perdurant that REALIZES the mode it manifests,
+# via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment). Its gmeow:experiencer and
+# the mode's gmeow:emotionBearer are the same agent; its kind is the pinned
+# gmeow:processAffectiveExperience (also entailed by the class restriction, but
+# asserted here so the SHACL sh:hasValue guard is satisfied on the ABox).
+ex:feltAnger a gmeow:AffectiveExperience ;
+    rdfs:label "the agent's felt anger episode"@en ;
+    gmeow:experiencer ex:agent ;
+    gmeow:mentalProcessType gmeow:processAffectiveExperience ;
+    gmeow:feltAffect ex:angerMode .

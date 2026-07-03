@@ -16,6 +16,23 @@ gmeow:AestheticQuality
     skos:definition "A qualitative aesthetic reading — an OPEN vocabulary seeded with elegance, sublimity, kitsch. No AestheticQuality hierarchy exists or ever will (Principle 9): aesthetic traditions disagree about the inventory, and that disagreement is data."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+gmeow:AffectiveExperience
+    a logic:Event ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affective Experience"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Experience ,
+        [ a owl:Restriction ;
+            owl:onProperty gmeow:mentalProcessType ;
+            owl:hasValue gmeow:processAffectiveExperience ] ;
+    skos:definition "The phenomenally-conscious felt affective episode — the OCCURRENT (perdurant) of undergoing an affective state, an episode there is something it is like to feel. A subset of mentation's gmeow:Experience whose kind is pinned to gmeow:processAffectiveExperience by an owl:hasValue restriction (the gmeow:DreamReport idiom: a restriction-pinned queryable handle, NOT overtyping — the kind still lives in the gmeow:mentalProcessType value, Principle 9). Distinct from the ENDURANT gmeow:Emotion mode it realizes via gmeow:feltAffect: an agent can bear an emotion mode without currently feeling it, and one felt episode can realize it. Inherits gmeow:experiencer and gmeow:mentalProcessType from gmeow:MentalProcess — the occurrent side of the mode/experience cut."@x-gmeow-english ;
+    skos:example "ex:feltAnger a gmeow:AffectiveExperience ; gmeow:experiencer ex:agent ; gmeow:feltAffect ex:angerMode ."@x-gmeow-english ;
+    skos:scopeNote "The OCCURRENT face of affect (a perdurant gmeow:Experience), never the endurant gmeow:Emotion mode (a gmeow:AffectiveMoment ⊑ gmeow:MentalMoment) it realizes via gmeow:feltAffect. Modes are logic:Mode, experiences are logic:Event — the foundation's logic:Endurant/logic:Perdurant disjointness keeps them apart, so a MentalMoment can never be an occurrent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the ENDURING affective mode itself (that is gmeow:Emotion, a gmeow:AffectiveMoment ⊑ gmeow:MentalMoment — an endurant, never an occurrent) and for sub-personal affective processing carrying no first-person character (type plain gmeow:MentalProcess with the process type)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type the felt episode gmeow:AffectiveExperience (it carries gmeow:mentalProcessType gmeow:processAffectiveExperience by the pinned restriction), bind its bearer with gmeow:experiencer, and link the affective mode it manifests with gmeow:feltAffect (an affect-scoped refinement of mentation's gmeow:realizesMentalMoment)."@x-gmeow-english ;
+    gmeow:useWhen "Use for the occurrent, phenomenal episode of feeling — 'I felt angry for five minutes' — distinct from the enduring gmeow:Emotion mode it realizes, so an agent's felt mental life is a first-class, queryable event on the mental timeline."@x-gmeow-english .
+
 gmeow:AffectiveMoment
     a logic:Category ,
         owl:Class ;
@@ -23,9 +40,9 @@ gmeow:AffectiveMoment
     rdfs:label "Affective Moment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ,
         gmeow:MentalMoment ;
-    skos:definition "The abstract affective member of the kernel gmeow:MentalMoment family (alongside cognition's gmeow:CognitiveState, epistemics' doxastic states, and teleology's gmeow:IntentionalMode) — intrinsic affective modes inhering in one agent, so an agent's whole mental life, including what it feels, is queryable as one family (Principles 14, 15). Never instantiated directly: instances are Emotions (later stages add Moods and affective dispositions)."@x-gmeow-english ;
+    skos:definition "The abstract affective member of the kernel gmeow:MentalMoment family (alongside cognition's gmeow:CognitiveState, epistemics' doxastic states, and teleology's gmeow:IntentionalMode) — intrinsic affective modes inhering in one agent, so an agent's whole mental life, including what it feels, is queryable as one family (Principles 14, 15). Never instantiated directly: instances are Emotions (the fuller model specifies Moods and affective dispositions)."@x-gmeow-english ;
     skos:example "ex:awe a gmeow:Emotion ; gmeow:emotionBearer ex:reader .  # an AffectiveMoment by inheritance"@x-gmeow-english ;
-    skos:scopeNote "The affective branch of gmeow:MentalMoment; groups the affective MODES (endurants). NOT the occurrent felt episode — that is the perdurant gmeow:AffectiveExperience (under mentation's gmeow:Experience), minted in a later stage."@x-gmeow-english ;
+    skos:scopeNote "The affective branch of gmeow:MentalMoment; groups the affective MODES (endurants). NOT the occurrent felt episode — that is the perdurant gmeow:AffectiveExperience (under mentation's gmeow:Experience), which realizes such a mode via gmeow:feltAffect."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid instantiating it directly (type the specific mode — an Emotion, and later a Mood or affective disposition); and avoid it for the occurrent felt EPISODE, which is gmeow:AffectiveExperience (a perdurant), not a MentalMoment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Subclass the concrete affective mode (gmeow:Emotion, later gmeow:Mood) under it, so one agent-memory query over gmeow:MentalMoment returns an agent's feelings alongside its knowings, beliefs, and intentions."@x-gmeow-english ;
@@ -238,6 +255,28 @@ gmeow:emotionType
     skos:definition "The kind(s) of this emotion. NOT functional: blended emotions carry several types, and classifications from different traditions coexist (Principle 9). At least one (SHACL); open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:feltAffect
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:realizesMentalMoment ;
+    rdfs:domain gmeow:AffectiveExperience ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "felt affect"@x-gmeow-english ;
+    rdfs:range gmeow:AffectiveMoment ;
+    skos:definition "Links a felt gmeow:AffectiveExperience (occurrent) to the gmeow:AffectiveMoment (endurant affective mode — an Emotion, later a Mood) it MANIFESTS. The affect-scoped, discoverable refinement of mentation's generic gmeow:realizesMentalMoment (domain narrowed to gmeow:AffectiveExperience, range to gmeow:AffectiveMoment), following the gmeow:appraisalOf ⊑ gmeow:observedFeature idiom. NOT functional — one episode may manifest several coexisting modes; the episode's gmeow:experiencer and the mode's gmeow:emotionBearer are the same agent."@x-gmeow-english ;
+    skos:example "ex:feltAnger gmeow:feltAffect ex:angerMode ."@x-gmeow-english ;
+    skos:scopeNote "The MANIFESTATION bridge (⊑ gmeow:realizesMentalMoment): a felt episode makes an ALREADY-existing affective mode present. NOT gmeow:producesMentalMoment (which brings a NEW mode into being) nor gmeow:updatesMentalTenure (which changes a held time-scoped tenure)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it to CREATE a fresh mode (use mentation's gmeow:producesMentalMoment) or to change a held tenure (gmeow:updatesMentalTenure); and avoid asserting it from the endurant side — it runs from the felt episode to the mode, not the reverse."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:feltAffect from a gmeow:AffectiveExperience to the gmeow:AffectiveMoment mode it manifests; keep the episode's gmeow:experiencer and the mode's gmeow:emotionBearer pointing at the same agent."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which enduring affective mode a felt episode manifests — answering 'which felt episodes realized mode M?' — the affect-specific reading of gmeow:realizesMentalMoment."@x-gmeow-english .
+
+gmeow:processAffectiveExperience
+    a gmeow:MentalProcessType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "affective experience"@x-gmeow-english ;
+    skos:definition "The mental-process kind of a felt affective episode — the occurrent of undergoing an affective state (the felt face of an emotion or mood mode). Minted from the affect slice as a value extending mentation's gmeow:MentalProcessType vocabulary (the gmeow:EventType idiom, Principle 9: a new kind is an individual, never a subclass); pinned onto gmeow:AffectiveExperience by an owl:hasValue restriction so every affective experience carries it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:qualityElegance
     a gmeow:AestheticQuality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
@@ -266,7 +305,8 @@ gmeow:qualitySublimity
 
 DOCTRINE.
   * CORE AND COMPREHENSIVE: affect is core because affective memory is load-bearing for grounded agent memory (P14); GMEOW core is comprehensive by design, not a minimal kernel. This module is the kernel baseline of the affect model — the fuller high-dimensional landscape, the affective-experience and evidence layers, and the external bridges are specified canonically in design/AFFECT-DESIGN.md.
-  * An Emotion is an intrinsic affective mode inhering in one agent, grafted under gmeow:AffectiveMoment ⊑ gmeow:MentalMoment — the kernel agent-mental-life family, sibling to cognition's CognitiveState, epistemics' doxastic states, and teleology's IntentionalMode. Its aboutness (gmeow:affectiveTarget) is separated from its cause (gmeow:affectiveElicitor) and its bearer (gmeow:emotionBearer). Episodic scope rides validFrom/validUntil on the statement; the felt-episode and mood surfaces are part of the fuller model in design/AFFECT-DESIGN.md.
+  * An Emotion is an intrinsic affective mode inhering in one agent, grafted under gmeow:AffectiveMoment ⊑ gmeow:MentalMoment — the kernel agent-mental-life family, sibling to cognition's CognitiveState, epistemics' doxastic states, and teleology's IntentionalMode. Its aboutness (gmeow:affectiveTarget) is separated from its cause (gmeow:affectiveElicitor) and its bearer (gmeow:emotionBearer). Episodic scope rides validFrom/validUntil on the statement; the mood surface is part of the fuller model in design/AFFECT-DESIGN.md.
+  * OCCURRENT vs MODE (the felt-episode cut): gmeow:AffectiveExperience ⊑ mentation's gmeow:Experience is the phenomenal felt episode (a perdurant, logic:Event; gmeow:mentalProcessType gmeow:processAffectiveExperience pinned by restriction — the gmeow:DreamReport idiom), distinct from the endurant gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment). gmeow:MentalMoment excludes occurrents (logic:Mode vs logic:Event; the foundation's logic:Endurant/logic:Perdurant disjointness), so an agent can bear a mode without feeling it and feel one episode that realizes it. gmeow:experiencer/gmeow:realizesMentalMoment are reused from mentation, not re-minted (Principle 4/5).
   * EmotionType is an OPEN vocabulary seeded from the EmotionML standard sets (Plutchik's primary eight); registry-independent, contestable, never a tree (the Genre/Register precedent).
   * APPRAISALS ARE OBSERVATIONS: dimensional readings (PAD: valence, arousal, dominance) and qualitative aesthetic judgements (elegance, sublimity, kitsch — open) are vantage-indexed cells. Two critics disagreeing are two cells (Principle 9). Attributed emotion vs self-report is the vantage axis too: self-report is top authority for the subject's own standpoint (the facetVantage precedent).
   * ALIGNMENTS: MFOEM (linkage-only, BFO lineage), EmotionML vocabularies, WordNet-Affect, and classifier registries are generated logic:Correspondence lowerings carrying declared preservation (the W3C EmotionML projection is many-to-one and declares its loss). Target list fixed in the alignment ledger."""@x-gmeow-english ;
