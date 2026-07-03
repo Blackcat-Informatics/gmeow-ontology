@@ -43,7 +43,7 @@ TOOL = "logic-compile"
 # --------------------------------------------------------------------------- #
 
 #: The single authoritative logic: source for the GMEOW vocabulary.
-LOGIC_SOURCE_FILE = SLICES_DIR / "core" / "logic" / "module.ttl"
+LOGIC_SOURCE_FILE = SLICES_DIR / "grounding" / "logic" / "module.ttl"
 
 #: The 9 committed outputs, in declaration order.
 LOGIC_OWL_DL_FILE = GENERATED_DIR / "owl" / "gmeow-dl.ttl"
