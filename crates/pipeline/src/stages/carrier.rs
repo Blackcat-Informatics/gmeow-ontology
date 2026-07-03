@@ -3435,6 +3435,83 @@ mod ustar_tests {
         );
     }
 
+    /// The four axiom projections + validation-shapes, mirrored off the committed tree — the
+    /// stand-in for the `stage-compile-logic` product in blob-archive unit tests.
+    fn axiom_artifacts_from_disk(root: &Path) -> BTreeMap<String, Vec<u8>> {
+        let mut axiom_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        for rel in AXIOM_FILES {
+            axiom_artifacts.insert(
+                rel.to_string(),
+                std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}")),
+            );
+        }
+        let vs_rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH;
+        axiom_artifacts.insert(
+            vs_rel.to_string(),
+            std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
+        );
+        axiom_artifacts
+    }
+
+    /// FIXED-POINT PROOF (#1278, acceptance criterion 3): a change to the `stage-mappings`
+    /// product's generated SPARQL surface reaches the bundle in ONE fold. REP_QUERIES is
+    /// product-sourced (`members_basename_from_artifacts`), not a disk read, so a query that
+    /// exists ONLY in the in-memory product — never on disk — MUST appear in the archive. Were
+    /// the fold still a `list_files(generated/queries)` disk read (the stale-disk-fold bug),
+    /// the product-only probe could never reach the bundle and `regenerate`/`check-generated`
+    /// would disagree forever. This encodes the "edit a generated query → one-pass fixed point"
+    /// property directly at the fold, complementing the structural repo-static guard.
+    #[test]
+    fn a_query_present_only_in_the_mappings_product_reaches_the_bundle_in_one_fold() {
+        let root = repo_root();
+        let axiom_artifacts = axiom_artifacts_from_disk(&root);
+        let shapes = ShapeSurfaces {
+            result: &fresh_result_shapes_from_disk(&root),
+            frame: &fresh_frame_shapes_from_disk(&root),
+            constraint: &fresh_constraint_shapes_from_disk(&root),
+        };
+
+        // A probe query that exists ONLY in the product — it is NOT committed under
+        // generated/queries/, so a disk read could never surface it.
+        const PROBE_NAME: &str = "zzz-fixed-point-probe.rq";
+        let probe_rel = format!("generated/queries/{PROBE_NAME}");
+        assert!(
+            !root.join(&probe_rel).exists(),
+            "the probe must not exist on disk, or the test proves nothing"
+        );
+        let probe_bytes = b"# fixed-point probe: product-only generated query\n".to_vec();
+
+        let mut mappings = mappings_artifacts_from_disk(&root);
+        mappings.insert(probe_rel.clone(), probe_bytes.clone());
+
+        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &mappings, &shapes)
+            .expect("archive blobs");
+        let queries = blobs
+            .iter()
+            .find(|b| b.rep == REP_QUERIES)
+            .expect("REP_QUERIES blob present");
+        let members = parse(&queries.data);
+        let probe = members
+            .iter()
+            .find(|(n, _)| n == PROBE_NAME)
+            .expect("product-only probe query MUST reach REP_QUERIES (fold is product-sourced)");
+        assert_eq!(
+            probe.1, probe_bytes,
+            "the folded probe bytes must be the product bytes, not a disk read"
+        );
+
+        // Fail-closed: an empty query surface in the product is a hard error, never a silent
+        // fallback to a stale disk read.
+        let mut no_queries = mappings_artifacts_from_disk(&root);
+        no_queries.retain(|k, _| !k.starts_with("generated/queries/"));
+        let err = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &no_queries, &shapes)
+            .expect_err("empty queries product must fail closed");
+        assert!(
+            format!("{err:?}").contains("queries archive would fold empty"),
+            "unexpected error: {err:?}"
+        );
+    }
+
     #[test]
     fn build_archive_blobs_folds_the_shapes_surface() {
         let root = repo_root();
