@@ -53,11 +53,19 @@ pub const CONFORMANCE_NQ_PATH: &str = "pipeline/conformance-divergence.nq";
 pub const AGREEMENT_TALLIES_PATH: &str = "pipeline/agreement-tallies.json";
 
 /// One corpus's agreement counts as they ride in [`AGREEMENT_TALLIES_PATH`]. The
-/// corpus name is the JSON map key, so the record itself carries only the counts —
-/// serialized in a `BTreeMap` (sorted keys) with integer fields, so the attached
-/// bytes are deterministic (the `bench` integer-baseline discipline; no `f64`).
+/// corpus name is the JSON map key, so the record itself carries only the counts and
+/// the corpus lane — serialized in a `BTreeMap` (sorted keys) with integer fields, so
+/// the attached bytes are deterministic (the `bench` integer-baseline discipline;
+/// no `f64`).
+///
+/// `lane` is the `corpus.json` lane (`"a"`/`"b"`/`"divergence"`). The dashboard needs
+/// it to present a `divergence`-lane corpus honestly: its `corpus_only` rows are the
+/// DOCUMENTED, intended native↔published divergences (native EL correctly differs from
+/// the published DL/Full answer), never engine defects — so they are excluded from the
+/// headline agreement rate rather than counted as failures.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) struct TallyRecord {
+    pub(crate) lane: String,
     pub(crate) cases: usize,
     pub(crate) agree: usize,
     pub(crate) corpus_only: usize,
@@ -134,10 +142,13 @@ fn divergence_nq_from_corpora(by_corpus: &BTreeMap<String, Vec<ExternalCompariso
 
 /// Project the graded corpora into the deterministic per-corpus agreement-tally JSON
 /// ([`AGREEMENT_TALLIES_PATH`]) `stage-export-agreement` consumes. Keyed by corpus
-/// (a `BTreeMap`, so sorted), integer counts only — no `f64`, no re-grade.
+/// (a `BTreeMap`, so sorted), integer counts only — no `f64`, no re-grade. The corpus
+/// lane is read from each `corpus.json` (a metadata read, not a re-grade of the cases).
 fn agreement_tallies_json(
+    root: &Path,
     by_corpus: &BTreeMap<String, Vec<ExternalComparison>>,
 ) -> Result<Vec<u8>, PipelineError> {
+    let external = root.join(EXTERNAL_ROOT);
     let mut records: BTreeMap<String, TallyRecord> = BTreeMap::new();
     for (corpus, comparisons) in by_corpus {
         let AgreementTally {
@@ -147,9 +158,14 @@ fn agreement_tallies_json(
             corpus_only,
             dl_gap,
         } = agreement_tally(corpus, comparisons);
+        let meta = gmeow_conformance::external::load_corpus_meta(
+            &external.join(corpus).join("corpus.json"),
+        )
+        .map_err(|e| stage_err(&format!("load corpus.json lane for {corpus}: {e}")))?;
         records.insert(
             corpus.clone(),
             TallyRecord {
+                lane: meta.lane.as_str().to_string(),
                 cases,
                 agree,
                 corpus_only,
@@ -484,7 +500,7 @@ impl Stage for ConformanceStage {
         // (PIPELINE_SPINE §3.2/§8 — no re-walk, no re-grade).
         let by_corpus = grade_external_corpora(input.root)?;
         let nq = divergence_nq_from_corpora(&by_corpus);
-        let tallies = agreement_tallies_json(&by_corpus)?;
+        let tallies = agreement_tallies_json(input.root, &by_corpus)?;
         // Attach the divergence-Finding graph as the carrier's `graph/conformance` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4), never
         // re-parses the byte artifact. An all-agree corpus yields no quads; the presenter
@@ -523,8 +539,8 @@ mod tests {
         // Lane-A corpus must appear with cases == agree + corpus_only + dl_gap.
         let root = repo_root();
         let by_corpus = grade_external_corpora(&root).expect("grade");
-        let a = agreement_tallies_json(&by_corpus).expect("tallies a");
-        let b = agreement_tallies_json(&by_corpus).expect("tallies b");
+        let a = agreement_tallies_json(&root, &by_corpus).expect("tallies a");
+        let b = agreement_tallies_json(&root, &by_corpus).expect("tallies b");
         assert_eq!(a, b, "agreement tallies must be deterministic");
 
         let records: BTreeMap<String, TallyRecord> =
@@ -538,6 +554,11 @@ mod tests {
                 r.cases,
                 r.agree + r.corpus_only + r.dl_gap,
                 "corpus {corpus}: cases must partition into agree/corpus-only/dl-gap"
+            );
+            assert!(
+                matches!(r.lane.as_str(), "a" | "b" | "divergence"),
+                "corpus {corpus}: lane must be a recognized token, got {:?}",
+                r.lane
             );
         }
         // Sorted keys: the serialized order must equal the BTreeMap key order.
