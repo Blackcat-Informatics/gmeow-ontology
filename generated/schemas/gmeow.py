@@ -2068,6 +2068,7 @@ class PipelineStageEnum(str, Enum):
     stage_conformance = "stage-conformance"
     stage_constraint_catalog = "stage-constraint-catalog"
     stage_docs_render = "stage-docs-render"
+    stage_export_agreement = "stage-export-agreement"
     stage_export_apache = "stage-export-apache"
     stage_export_bench = "stage-export-bench"
     stage_export_catalog = "stage-export-catalog"

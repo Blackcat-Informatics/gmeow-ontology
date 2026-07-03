@@ -51,6 +51,56 @@ pub fn emit_divergence_nq(corpus: &str, comparisons: &[ExternalComparison]) -> S
     to_gmeow_rdf_in_graph(&report, CONFORMANCE_GRAPH)
 }
 
+/// One corpus's aggregate native↔published agreement tally: the per-kind counts the
+/// divergence ledger records, plus the case total.
+///
+/// This is the aggregate sibling of [`emit_divergence_nq`]: where that emitter drops
+/// agreements and keeps only the divergent rows as findings, a tally KEEPS the agree
+/// count — an all-agree corpus still produces a full tally (agree == cases). It is
+/// the raw input the benchmark dashboard projects into a per-corpus pass rate.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AgreementTally {
+    /// The corpus name (the `cases/external/<corpus>/` directory).
+    pub corpus: String,
+    /// Total graded native↔published comparisons in the corpus.
+    pub cases: usize,
+    /// Comparisons where the native verdict matched the published expected.
+    pub agree: usize,
+    /// Comparisons the native path DECIDED but disagreed with the published expected.
+    pub corpus_only: usize,
+    /// Comparisons the native path could not decide (an honest coverage gap).
+    pub dl_gap: usize,
+}
+
+/// Classify one corpus's graded comparisons into an [`AgreementTally`].
+///
+/// A pure classification over the already-grouped comparisons (no disk walk): it runs
+/// the same [`compare_external_corpus`] ledger the divergence emitter uses, so the two
+/// projections agree by construction. Frozen external grading yields only Agree /
+/// CorpusOnly / DlGap rows, so `agree + corpus_only + dl_gap == cases`.
+pub fn agreement_tally(corpus: &str, comparisons: &[ExternalComparison]) -> AgreementTally {
+    let rows = compare_external_corpus(corpus, comparisons);
+    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    // `cases` is the true attempted count. `compare_external_corpus` is a total map
+    // (one row per comparison, always exactly one of Agree/CorpusOnly/DlGap) and
+    // `build_ledger` counts every row without dedup or filtering, so the partition
+    // `agree + corpus_only + dl_gap == cases` holds by construction. Enforce it here
+    // rather than trust it: if a future edit ever makes the grading filter or dedup, a
+    // deflated agree rate must surface loudly, never silently.
+    debug_assert_eq!(
+        ledger.agree + ledger.corpus_only + ledger.dl_gap,
+        comparisons.len(),
+        "agreement tally must partition every graded comparison into agree/corpus-only/dl-gap"
+    );
+    AgreementTally {
+        corpus: corpus.to_string(),
+        cases: comparisons.len(),
+        agree: ledger.agree,
+        corpus_only: ledger.corpus_only,
+        dl_gap: ledger.dl_gap,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -74,6 +124,43 @@ mod tests {
             nq.is_empty(),
             "an all-agree run has no divergence graph: {nq:?}"
         );
+    }
+
+    #[test]
+    fn tally_counts_agree_corpus_only_and_dl_gap() {
+        // The aggregate tally keeps ALL three kinds (unlike the findings emitter,
+        // which drops agrees): one Agree, one CorpusOnly (decided-but-wrong), one
+        // DlGap (undecidable). cases == agree + corpus_only + dl_gap.
+        let tally = agreement_tally(
+            "w3c-owl2-el",
+            &[
+                cmp("consistency/open", "w", "consistent", "consistent"), // Agree
+                cmp("inconsistency/clash", "w", "consistent", "inconsistent"), // CorpusOnly
+                cmp("beyond-el/cardinality", "w", "incomplete", "consistent"), // DlGap
+            ],
+        );
+        assert_eq!(tally.corpus, "w3c-owl2-el");
+        assert_eq!(tally.cases, 3);
+        assert_eq!(tally.agree, 1);
+        assert_eq!(tally.corpus_only, 1);
+        assert_eq!(tally.dl_gap, 1);
+    }
+
+    #[test]
+    fn all_agree_corpus_still_yields_a_full_tally() {
+        // An all-agree corpus emits no divergence graph but MUST still tally (agree ==
+        // cases) — else the dashboard would silently drop a 100%-agreeing corpus.
+        let tally = agreement_tally(
+            "tptp-mini",
+            &[
+                cmp("theorem-a", "w", "inconsistent", "inconsistent"),
+                cmp("theorem-b", "w", "consistent", "consistent"),
+            ],
+        );
+        assert_eq!(tally.cases, 2);
+        assert_eq!(tally.agree, 2);
+        assert_eq!(tally.corpus_only, 0);
+        assert_eq!(tally.dl_gap, 0);
     }
 
     #[test]
