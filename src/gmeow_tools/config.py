@@ -355,6 +355,10 @@ PREFIXES: dict[str, str] = {
     "gmeow-goemotions": "https://blackcatinformatics.ca/gmeow-registry/goemotions/",
     "gmeow-hf": "https://blackcatinformatics.ca/gmeow-registry/hf/",
     "gmeow-labelset": "https://blackcatinformatics.ca/gmeow-registry/labelset/",
+    # W3C EmotionML Vocabularies — the external bridge target of the affect EmotionML
+    # projection (set-level relatedMatch cells; the per-item categories are XML `name`
+    # attributes with no per-term IRI, so only the vocabulary-set anchors are bridged).
+    "emo": "https://www.w3.org/TR/emotion-voc/#",
     # Upper-ontology spine
     "gufo": "http://purl.org/nemo/gufo#",
     "ontouml": "https://w3id.org/ontouml#",
