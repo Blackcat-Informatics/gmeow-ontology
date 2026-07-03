@@ -22,16 +22,6 @@ use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
-const GTS_APP: &str = "gts_app";
-const GTS_SUBCOMMANDS: &[&str] = &[
-    "gts_info",
-    "gts_verify",
-    "gts_extract_key",
-    "gts_to_nq",
-    "gts_from_rdf",
-    "gts_to_sqlite",
-    "gts_to_duckdb",
-];
 // engine_crosscheck.py is the sole remaining rdflib runtime keeper (the
 // rdflib query cross-check). rl_agreement.py + the rest of the classic oracle
 // lane were relocated out of src/ to validations/classic-cross-check/.
@@ -88,7 +78,6 @@ impl RepoStaticReport {
 
 pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     let mut report = RepoStaticReport::default();
-    check_narrow_waist(root, &mut report);
     check_lane_purity(root, &mut report);
     check_no_rdflib_in_runtime(root, &mut report);
     check_projection_compute_purity(root, &mut report);
@@ -119,49 +108,6 @@ pub fn to_diagnostics_report(report: &RepoStaticReport) -> Report {
         );
     }
     out
-}
-
-fn check_narrow_waist(root: &Path, report: &mut RepoStaticReport) {
-    let src = root.join("src").join("gmeow_tools");
-    // The flat-export narrow waist is now structurally guaranteed: the exporter
-    // is native Rust (`crates/pipeline/src/stages/export.rs`), which reads only
-    // the GTS bundle and cannot import rdflib. The retired Python exporter guard
-    // is gone with the module.
-    let cli_path = src.join("cli.py");
-    let rel = "src/gmeow_tools/cli.py";
-    let text = match fs::read_to_string(&cli_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{rel}: cannot read: {err}"));
-            return;
-        }
-    };
-    let code = strip_python_non_code(&text);
-    let assigned = python_assigned_names(&code);
-    if assigned.contains(GTS_APP) {
-        report.error(format!(
-            "{rel} still assigns the retired {GTS_APP:?} Typer app"
-        ));
-    }
-
-    let defined = python_defined_functions(&code);
-    let legacy = GTS_SUBCOMMANDS
-        .iter()
-        .filter(|name| defined.contains(**name))
-        .copied()
-        .collect::<Vec<_>>();
-    if !legacy.is_empty() {
-        report.error(format!(
-            "{rel} still defines legacy GTS subcommand function(s): {}",
-            legacy.join(", ")
-        ));
-    }
-
-    if has_gts_app_command_decorator(&code) {
-        report.error(format!(
-            "{rel} still registers a command on the retired {GTS_APP:?} app"
-        ));
-    }
 }
 
 fn check_no_rdflib_in_runtime(root: &Path, report: &mut RepoStaticReport) {
@@ -794,28 +740,6 @@ fn python_imported_top_modules(code: &str) -> BTreeSet<String> {
     out
 }
 
-fn python_assigned_names(code: &str) -> BTreeSet<String> {
-    let re = Regex::new(r"(?m)^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=!+\-*/%^&<>\n]+)?=\s*[^=\n]")
-        .expect("static regex");
-    re.captures_iter(code)
-        .map(|cap| cap[1].to_owned())
-        .collect()
-}
-
-fn python_defined_functions(code: &str) -> BTreeSet<String> {
-    let re = Regex::new(r"(?m)^\s*(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
-        .expect("static regex");
-    re.captures_iter(code)
-        .map(|cap| cap[1].to_owned())
-        .collect()
-}
-
-fn has_gts_app_command_decorator(code: &str) -> bool {
-    Regex::new(r"(?m)^\s*@\s*gts_app\s*\.\s*command\b")
-        .expect("static regex")
-        .is_match(code)
-}
-
 fn is_identifier(value: &str) -> bool {
     let mut chars = value.chars();
     let Some(first) = chars.next() else {
@@ -933,10 +857,6 @@ mod tests {
 
     fn write_minimal_repo(root: &Path) {
         write(
-            &root.join("src/gmeow_tools/cli.py"),
-            "from __future__ import annotations\n\ndef main() -> None:\n    pass\n",
-        );
-        write(
             &root.join("src/gmeow_tools/oracles/engine_crosscheck.py"),
             "import rdflib\n",
         );
@@ -958,21 +878,6 @@ mod tests {
         let imports = python_imported_top_modules(&code);
         assert!(imports.contains("os"));
         assert!(!imports.contains("rdflib"));
-    }
-
-    #[test]
-    fn python_assignment_scanner_ignores_comparisons() {
-        let names = python_assigned_names(
-            "if gts_app == other:\n    pass\nif gts_app != other:\n    pass\nother = 1\n",
-        );
-        assert!(!names.contains(GTS_APP));
-        assert!(names.contains("other"));
-    }
-
-    #[test]
-    fn python_assignment_scanner_keeps_annotated_assignment() {
-        let names = python_assigned_names("gts_app: typer.Typer = typer.Typer()\n");
-        assert!(names.contains(GTS_APP));
     }
 
     #[test]
@@ -1141,19 +1046,6 @@ mod tests {
         write_minimal_repo(temp.path());
         let report = check_repo_static(temp.path());
         assert!(report.ok(), "{:?}", report.errors);
-    }
-
-    #[test]
-    fn public_cli_legacy_gts_surface_fails() {
-        let temp = tempfile::tempdir().unwrap();
-        write_minimal_repo(temp.path());
-        write(
-            &temp.path().join("src/gmeow_tools/cli.py"),
-            "gts_app = object()\n\n@gts_app.command()\ndef gts_info():\n    pass\n",
-        );
-        let report = check_repo_static(temp.path());
-        assert!(report.errors.iter().any(|e| e.contains("gts_app")));
-        assert!(report.errors.iter().any(|e| e.contains("gts_info")));
     }
 
     #[test]

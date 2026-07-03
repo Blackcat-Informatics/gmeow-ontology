@@ -44,8 +44,9 @@ static MAKEFILE_TARGET_RE: OnceLock<Regex> = OnceLock::new();
 static PYTHON_CLASS_RE: OnceLock<Regex> = OnceLock::new();
 static PYTHON_DEF_RE: OnceLock<Regex> = OnceLock::new();
 static PYTHON_ASSIGN_RE: OnceLock<Regex> = OnceLock::new();
-static CLI_DECORATOR_RE: OnceLock<Regex> = OnceLock::new();
-static CLI_NAME_RE: OnceLock<Regex> = OnceLock::new();
+static RUST_ENUM_RE: OnceLock<Regex> = OnceLock::new();
+static RUST_COMMAND_NAME_RE: OnceLock<Regex> = OnceLock::new();
+static RUST_VARIANT_RE: OnceLock<Regex> = OnceLock::new();
 
 /// One principle reconstructed from the manifest graph.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -363,153 +364,124 @@ pub fn python_top_level_names(py_text: &str) -> BTreeSet<String> {
     names
 }
 
-/// Apply a fully-collected `@app.command(...)` decorator, returning `true` when
-/// the decorator has no explicit `name=` argument and the parser should fall
-/// back to the decorated function name.
-fn apply_command_decorator(
-    decorator_text: &str,
-    decorator_re: &Regex,
-    name_re: &Regex,
-    names: &mut BTreeSet<String>,
-) -> bool {
-    let Some(cap) = decorator_re.captures(decorator_text) else {
-        return false;
-    };
-    let inner = cap.get(1).map_or("", |m| m.as_str()).trim();
-    if inner.is_empty() {
-        return true;
-    }
-    if let Some(name_cap) = name_re.captures(inner) {
-        let name = name_cap
-            .get(1)
-            .or_else(|| name_cap.get(2))
-            .or_else(|| name_cap.get(3))
-            .map(|m| m.as_str())
-            .unwrap_or("");
-        if !name.is_empty() {
-            names.insert(name.to_string());
+/// Convert a clap `Subcommand` variant identifier to the subcommand name clap
+/// derives by default (`rename_all = "kebab-case"`, matching `heck`): word
+/// boundaries fall at lower/digit→upper transitions and at the tail of an
+/// acronym run (upper→upper-then-lower), with each word lowercased and joined by
+/// `-`. E.g. `CheckGenerated`→`check-generated`, `Mcp`→`mcp`, `I18n`→`i18n`.
+fn variant_to_kebab(ident: &str) -> String {
+    let chars: Vec<char> = ident.chars().collect();
+    let mut words: Vec<String> = Vec::new();
+    let mut cur = String::new();
+    for i in 0..chars.len() {
+        let c = chars[i];
+        if !cur.is_empty() {
+            let prev = chars[i - 1];
+            let boundary = (c.is_uppercase() && (prev.is_lowercase() || prev.is_ascii_digit()))
+                || (c.is_uppercase()
+                    && prev.is_uppercase()
+                    && i + 1 < chars.len()
+                    && chars[i + 1].is_lowercase());
+            if boundary {
+                words.push(std::mem::take(&mut cur));
+            }
         }
-        false
-    } else {
-        true
+        cur.push(c);
     }
+    if !cur.is_empty() {
+        words.push(cur);
+    }
+    words
+        .into_iter()
+        .map(|w| w.to_lowercase())
+        .collect::<Vec<_>>()
+        .join("-")
 }
 
-/// Every command registered on a Typer app.
-pub fn cli_command_names(cli_text: &str) -> BTreeSet<String> {
-    let decorator_re = CLI_DECORATOR_RE.get_or_init(|| {
-        Regex::new(r"^@app\.command\((.*)\)\s*(?:#.*)?$").expect("valid decorator regex")
+/// Every subcommand declared by the clap `#[derive(Subcommand)]` enums in a Rust
+/// CLI crate's `lib.rs`. Each `enum <X>Commands { … }` block (the top-level
+/// `Commands` enum plus every nested sub-app enum) is scanned; a variant's name
+/// is its explicit `#[command(name = "…")]` override when present, otherwise the
+/// clap-default kebab-case rendering of the variant identifier. Sub-app group
+/// names (e.g. `box-roles`, `logic`, `i18n`) surface automatically as the
+/// top-level `Commands` variants that carry the nested enums.
+pub fn cli_command_names_from_rust(rust_text: &str) -> BTreeSet<String> {
+    let enum_re = RUST_ENUM_RE
+        .get_or_init(|| Regex::new(r"\benum\s+\w*Commands\b").expect("valid enum regex"));
+    let name_re = RUST_COMMAND_NAME_RE.get_or_init(|| {
+        Regex::new(r#"#\[\s*command\([^)]*\bname\s*=\s*"([^"]*)""#).expect("valid name regex")
     });
-    let name_re = CLI_NAME_RE.get_or_init(|| {
-        Regex::new(r#"name\s*=\s*(?:"([^"]*)"|'([^']*)'|([A-Za-z_][A-Za-z0-9_]*))"#)
-            .expect("valid name regex")
-    });
-    let def_re = PYTHON_DEF_RE.get_or_init(|| {
-        Regex::new(r"^(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\b").expect("valid def regex")
-    });
+    let variant_re = RUST_VARIANT_RE
+        .get_or_init(|| Regex::new(r"^([A-Za-z_][A-Za-z0-9_]*)\b").expect("valid variant regex"));
 
     let mut names = BTreeSet::new();
-    let mut pending: bool = false;
-    let mut buffer = String::new();
-    let mut depth: i32 = 0;
-    let mut in_string: Option<char> = None;
-    let mut escape = false;
+    let mut in_enum = false;
+    // Nesting depth of `{`/`(`/`[` *inside* the enum body: 0 means directly at
+    // the enum's top level, where variant identifiers and their `#[command(…)]`
+    // attributes live; anything deeper is variant field/attribute detail.
+    let mut body_depth: i32 = 0;
+    let mut pending_override: Option<String> = None;
 
-    for line in cli_text.lines() {
-        let stripped = line.trim();
-        if depth > 0 {
-            for ch in stripped.chars() {
-                if let Some(quote) = in_string {
-                    if escape {
-                        escape = false;
-                    } else if ch == '\\' {
-                        escape = true;
-                    } else if ch == quote {
-                        in_string = None;
-                    }
-                    buffer.push(ch);
-                    continue;
-                }
-                match ch {
-                    '"' | '\'' => {
-                        in_string = Some(ch);
-                        buffer.push(ch);
-                    }
-                    '(' => {
-                        depth += 1;
-                        buffer.push(ch);
-                    }
-                    ')' => {
-                        depth -= 1;
-                        buffer.push(ch);
-                        if depth == 0 {
-                            break;
-                        }
-                    }
-                    _ => buffer.push(ch),
-                }
-            }
-            if depth == 0 {
-                pending = apply_command_decorator(&buffer, decorator_re, name_re, &mut names);
-                buffer.clear();
+    for raw_line in rust_text.lines() {
+        let line = raw_line.trim();
+
+        if !in_enum {
+            if enum_re.is_match(line) && line.contains('{') {
+                in_enum = true;
+                body_depth = 0;
+                pending_override = None;
             }
             continue;
         }
-        if stripped.starts_with("@app.command(") {
-            buffer.clear();
-            buffer.push_str(stripped);
-            depth = 0;
-            in_string = None;
-            escape = false;
-            for ch in stripped.chars() {
-                if let Some(quote) = in_string {
-                    if escape {
-                        escape = false;
-                    } else if ch == '\\' {
-                        escape = true;
-                    } else if ch == quote {
-                        in_string = None;
-                    }
-                    continue;
+
+        // At the enum's top level, recognise variant declarations and pending
+        // `#[command(name = "…")]` overrides before updating the brace depth.
+        if body_depth == 0 {
+            if line.starts_with('#') {
+                if let Some(cap) = name_re.captures(line) {
+                    pending_override = Some(cap[1].to_string());
                 }
-                match ch {
-                    '"' | '\'' => in_string = Some(ch),
-                    '(' => depth += 1,
-                    ')' => {
-                        depth -= 1;
-                        if depth == 0 {
-                            break;
-                        }
-                    }
-                    _ => {}
+            } else if !line.starts_with("//") && !line.is_empty() && line != "}" {
+                if let Some(cap) = variant_re.captures(line) {
+                    let ident = &cap[1];
+                    let name = pending_override
+                        .take()
+                        .unwrap_or_else(|| variant_to_kebab(ident));
+                    names.insert(name);
                 }
+                pending_override = None;
             }
-            if depth == 0 {
-                pending = apply_command_decorator(&buffer, decorator_re, name_re, &mut names);
-                buffer.clear();
-            }
-            continue;
         }
-        if pending {
-            if stripped.is_empty() || stripped.starts_with('#') || stripped.starts_with('@') {
-                continue;
+
+        for ch in line.chars() {
+            match ch {
+                '{' | '(' | '[' => body_depth += 1,
+                '}' | ')' | ']' => {
+                    body_depth -= 1;
+                    if body_depth < 0 {
+                        in_enum = false;
+                        pending_override = None;
+                        break;
+                    }
+                }
+                _ => {}
             }
-            if let Some(cap) = def_re.captures(stripped) {
-                let fname = cap.get(1).expect("function name").as_str();
-                names.insert(fname.replace('_', "-"));
-            }
-            pending = false;
         }
     }
     names
 }
 
-/// Every command registered on the public or repository-maintenance CLI.
+/// Every command registered on the public (`gmeow`) or repository-maintenance
+/// (`gmeow-dev`) Rust clap CLI, read from the clap `Subcommand` enums in each
+/// crate's `lib.rs`.
 pub fn cli_surface_command_names(root: &Path) -> BTreeSet<String> {
     let mut names = BTreeSet::new();
-    for rel in ["src/gmeow_tools/cli.py", "src/gmeow_tools/cli_dev.py"] {
+    for rel in [
+        "crates/gmeow-cli/src/lib.rs",
+        "crates/gmeow-dev-cli/src/lib.rs",
+    ] {
         let text = fs::read_to_string(root.join(rel)).unwrap_or_default();
-        names.extend(cli_command_names(&text));
+        names.extend(cli_command_names_from_rust(&text));
     }
     names
 }
@@ -1051,80 +1023,104 @@ top_level = 42
     }
 
     #[test]
-    fn cli_command_names_extracts_decorated_commands() {
-        let py = "\n@app.command()\ndef first_command():\n    pass\n\n@app.command(name=\"second-cmd\")\ndef second_command():\n    pass\n\n@app.command(name='third-cmd')\ndef third_command():\n    pass\n";
-        let got = cli_command_names(py);
-        assert!(got.contains("first-command"));
-        assert!(got.contains("second-cmd"));
-        assert!(got.contains("third-cmd"));
-        assert!(!got.contains("second_command"));
+    fn variant_to_kebab_matches_clap_default_rename() {
+        assert_eq!(variant_to_kebab("Version"), "version");
+        assert_eq!(variant_to_kebab("CheckGenerated"), "check-generated");
+        assert_eq!(
+            variant_to_kebab("VerifyReleaseBundle"),
+            "verify-release-bundle"
+        );
+        assert_eq!(variant_to_kebab("Mcp"), "mcp");
+        assert_eq!(variant_to_kebab("BoxRoles"), "box-roles");
+        assert_eq!(variant_to_kebab("I18n"), "i18n");
+        assert_eq!(variant_to_kebab("ExportCsv"), "export-csv");
     }
 
     #[test]
-    fn cli_command_names_skips_blank_comment_decorator_before_def() {
-        let py = "\n\
-            @app.command()\n\
-            \n\
-            # a comment\n\
-            @some_other_decorator\n\
-            def spaced_command():\n\
-                pass\n";
-        let got = cli_command_names(py);
-        assert!(got.contains("spaced-command"));
+    fn cli_command_names_from_rust_reads_variants_and_forms() {
+        let rust = "\
+            #[derive(Debug, Subcommand)]\n\
+            pub enum Commands {\n\
+            \x20   /// bare variant.\n\
+            \x20   Version,\n\
+            \x20   /// tuple variant.\n\
+            \x20   Info(InfoArgs),\n\
+            \x20   /// struct variant with a field carrying its own attr.\n\
+            \x20   Regenerate {\n\
+            \x20       #[arg(long = \"check\")]\n\
+            \x20       check: bool,\n\
+            \x20   },\n\
+            }\n";
+        let got = cli_command_names_from_rust(rust);
+        assert!(got.contains("version"));
+        assert!(got.contains("info"));
+        assert!(got.contains("regenerate"));
+        // A field attribute inside a variant body must not leak as a command.
+        assert!(!got.contains("check"));
     }
 
     #[test]
-    fn cli_command_names_extracts_multiline_decorator_with_name() {
-        let py = "\n\
-            @app.command(\n\
-                name=\"multi-cmd\",\n\
-                help=\"A multi-line decorator\",\n\
-            )\n\
-            def multi_command():\n\
-                pass\n";
-        let got = cli_command_names(py);
-        assert!(got.contains("multi-cmd"));
-        assert!(!got.contains("multi-command"));
+    fn cli_command_names_from_rust_honors_command_name_override() {
+        let rust = "\
+            #[derive(Debug, Subcommand)]\n\
+            pub enum Commands {\n\
+            \x20   /// override wins over the kebab of the identifier.\n\
+            \x20   #[command(name = \"check-generated\")]\n\
+            \x20   CheckGenerated,\n\
+            \x20   /// a non-name command attr must not become an override.\n\
+            \x20   #[command(disable_help_flag = true)]\n\
+            \x20   Gts {\n\
+            \x20       #[arg(trailing_var_arg = true)]\n\
+            \x20       args: Vec<String>,\n\
+            \x20   },\n\
+            }\n";
+        let got = cli_command_names_from_rust(rust);
+        assert!(got.contains("check-generated"));
+        assert!(!got.contains("check_generated"));
+        assert!(got.contains("gts"));
     }
 
     #[test]
-    fn cli_command_names_falls_back_to_function_name_for_multiline_decorator() {
-        let py = "\n\
-            @app.command(\n\
-                help=\"No explicit name here\",\n\
-            )\n\
-            def fallback_command():\n\
-                pass\n";
-        let got = cli_command_names(py);
-        assert!(got.contains("fallback-command"));
+    fn cli_command_names_from_rust_includes_subapp_groups_and_nested() {
+        let rust = "\
+            #[derive(Debug, Subcommand)]\n\
+            pub enum Commands {\n\
+            \x20   /// group carrier variant.\n\
+            \x20   Logic {\n\
+            \x20       #[command(subcommand)]\n\
+            \x20       command: LogicCommands,\n\
+            \x20   },\n\
+            }\n\
+            #[derive(Debug, Subcommand)]\n\
+            pub enum LogicCommands {\n\
+            \x20   /// backward goal resolution.\n\
+            \x20   Query,\n\
+            \x20   /// compile pipeline.\n\
+            \x20   Compile,\n\
+            }\n";
+        let got = cli_command_names_from_rust(rust);
+        // Sub-app group name surfaces from the top-level carrier variant.
+        assert!(got.contains("logic"));
+        // Nested sub-app subcommands surface from the nested enum.
+        assert!(got.contains("query"));
+        assert!(got.contains("compile"));
     }
 
     #[test]
-    fn cli_command_names_handles_multiline_decorator_with_parens_in_string() {
-        let py = "\n\
-            @app.command(\n\
-                name=\"paren-cmd\",\n\
-                help=\"Use (foo) syntax\",\n\
-            )\n\
-            def paren_command():\n\
-                pass\n";
-        let got = cli_command_names(py);
-        assert!(got.contains("paren-cmd"));
-    }
-
-    #[test]
-    fn cli_surface_command_names_includes_public_and_dev_cli() {
+    fn cli_surface_command_names_reads_both_rust_bins() {
         let tmp = tempfile::tempdir().unwrap();
-        let src = tmp.path().join("src/gmeow_tools");
-        fs::create_dir_all(&src).unwrap();
+        let public = tmp.path().join("crates/gmeow-cli/src");
+        let dev = tmp.path().join("crates/gmeow-dev-cli/src");
+        fs::create_dir_all(&public).unwrap();
+        fs::create_dir_all(&dev).unwrap();
         fs::write(
-            src.join("cli.py"),
-            "\n@app.command(name=\"verify-release-bundle\")\ndef public_cmd():\n    pass\n",
+            public.join("lib.rs"),
+            "#[derive(Subcommand)]\npub enum Commands {\n    #[command(name = \"verify-release-bundle\")]\n    VerifyReleaseBundle,\n}\n",
         )
         .unwrap();
         fs::write(
-            src.join("cli_dev.py"),
-            "\n@app.command(name=\"release-bundle\")\ndef dev_cmd():\n    pass\n",
+            dev.join("lib.rs"),
+            "#[derive(Subcommand)]\npub enum Commands {\n    #[command(name = \"release-bundle\")]\n    ReleaseBundle,\n}\n",
         )
         .unwrap();
 
