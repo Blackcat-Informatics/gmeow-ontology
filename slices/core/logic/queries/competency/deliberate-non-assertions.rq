@@ -1,0 +1,25 @@
+# Competency: the deliberate-non-assertion report — every intentional boundary the
+# ontology commits to must be enumerable, not merely respected in passing. A deliberate
+# non-assertion is a logic:FormalizationCandidate flagged logic:candidateDeliberateNonAssertion
+# true: an intentional refusal to over-assert that the foundation is held against. The flag
+# deliberately cuts across logic:candidateCategory — a boundary may be a
+# logic:CategoryNonEntailmentObligation (a conclusion the foundation must never draw, carried
+# by a standing logic:NonEntailmentObligation and enforced by the Arm A / Arm B discharge
+# check), a logic:CategoryIntegrityConstraint (a discipline whose logic:violation is a finding,
+# e.g. frame-relativity or no-over-typing), or a logic:CategoryDeliberateOverlap (a mereological
+# sharing fact deliberately admitted rather than disjointness-forbidden). Selecting on the flag
+# (not the category) is what makes the WHOLE set queryable: the two integrity-constraint
+# boundaries share their category with ordinary integrity constraints and cannot be told apart
+# by category alone. Each row is one boundary with its kind; its rationale is the candidate's
+# own skos:definition and logic:candidateScope, and — for the non-entailment ones — the
+# forbidden predicate named by its linked obligation. Read over the production ontology (no
+# synthetic data file) this answers "which deliberate non-assertions does the ontology
+# guarantee, and of what kind?".
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?candidate ?category WHERE {
+    ?candidate a logic:FormalizationCandidate ;
+               logic:candidateCategory ?category ;
+               logic:candidateDeliberateNonAssertion true .
+}
+ORDER BY ?candidate
