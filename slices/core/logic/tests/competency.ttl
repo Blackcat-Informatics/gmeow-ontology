@@ -185,7 +185,7 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 # back-link (logic:candidateFormalizes + logic:candidateSourceField) ties a
 # harvested axiom to the exact prose it formalized: the term, the prose field
 # kind, and the annotation property that field stands for. Over the production
-# ontology (the merged logic module, no synthetic data file) exactly ten accepted
+# ontology (the merged logic module, no synthetic data file) exactly eighteen accepted
 # candidates carry the full back-link:
 #   - logic:candidateProperPartOfAsymmetric   (formalizing logic:properPartOf,   skos:definition)
 #   - logic:candidateFunctionalComplexKindDisjoint (formalizing logic:FunctionalComplex, skos:definition)
@@ -197,16 +197,24 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 #   - logic:candidateFalsehoodIsRefutedClaim   (formalizing gmeow:refuted,        skos:definition)
 #   - logic:candidateLicensedFalsehoodNotDeception (formalizing gmeow:veridicalityLicensedFalsehood, skos:definition)
 #   - logic:candidateBullshitTruthIndifference (formalizing gmeow:bullshit,       skos:definition)
+#   - logic:candidateIndirectContributor       (formalizing gmeow:indirectContributor, skos:definition)
+#   - logic:candidateInstantiatesWork          (formalizing gmeow:instantiatesWork, skos:definition)
+#   - logic:candidateOrgMembershipPropagation  (formalizing gmeow:memberOf,        skos:definition)
+#   - logic:candidateTenureClaimSurfacing      (formalizing gmeow:StandpointTenure, skos:definition)
+#   - logic:candidateIntentNotEntailed         (formalizing gmeow:deceptiveIntentClaim, gmeow:avoidWhen)
+#   - logic:candidateCounterpartNonTransitive  (formalizing gmeow:counterpartOf,   skos:definition)
+#   - logic:candidateFrameRelativity           (formalizing logic:referenceFrame,  skos:definition)
+#   - logic:candidateNoOverTyping              (formalizing logic:MixIden,         skos:definition)
 # The foundational-partition candidates for Event/Situation and the two class
 # coverings (Entity, Object) carry NO harvest back-link and therefore do not appear
-# here. This set demonstrates both prose-field kinds: thirteen sourced from a
-# logic:ProseFieldDefinition (skos:definition) and one from a logic:ProseFieldAvoidWhen
+# here. This set demonstrates both prose-field kinds: sixteen sourced from a
+# logic:ProseFieldDefinition (skos:definition) and two from a logic:ProseFieldAvoidWhen
 # (gmeow:avoidWhen).
 
 ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/logic/queries/competency/harvest-coverage.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly fourteen accepted candidates carry the full harvest back-link — thirteen sourced from a term's skos:definition and one from a term's gmeow:avoidWhen." ;
+    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly eighteen accepted candidates carry the full harvest back-link — sixteen sourced from a term's skos:definition and two from a term's gmeow:avoidWhen." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqHarvestCoverageShape ;
     gmeow:cqExpectRow ex:rowHarvestProperPart, ex:rowHarvestFunctionalComplex,
@@ -215,7 +223,9 @@ ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
         ex:rowHarvestDeception, ex:rowHarvestFalsehood,
         ex:rowHarvestLicensedFalsehood, ex:rowHarvestBullshit,
         ex:rowHarvestIndirectContribution, ex:rowHarvestWemiInstantiation,
-        ex:rowHarvestOrgMembership, ex:rowHarvestTenureClaim .
+        ex:rowHarvestOrgMembership, ex:rowHarvestTenureClaim,
+        ex:rowHarvestIntentNotEntailed, ex:rowHarvestCounterpartNonTransitive,
+        ex:rowHarvestFrameRelativity, ex:rowHarvestNoOverTyping .
 
 ex:cqHarvestCoverageShape a logic:ResultShape ;
     logic:declaresColumn
@@ -322,3 +332,65 @@ ex:rowHarvestTenureClaim a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:StandpointTenure ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestIntentNotEntailed a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateIntentNotEntailed ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:deceptiveIntentClaim ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldAvoidWhen ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri gmeow:avoidWhen ] .
+
+ex:rowHarvestCounterpartNonTransitive a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateCounterpartNonTransitive ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:counterpartOf ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestFrameRelativity a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFrameRelativity ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:referenceFrame ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestNoOverTyping a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateNoOverTyping ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri logic:MixIden ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+# ── The deliberate-non-assertion report ─────────────────────────────────────────
+# Every intentional boundary the ontology commits to must be enumerable, not merely
+# respected. Over the production ontology (no synthetic data file) exactly three
+# accepted candidates are deliberate non-assertions: two logic:CategoryNonEntailmentObligation
+# (deceptive intent is never entailed; counterpart never becomes transitive) carried by
+# their standing logic:NonEntailmentObligation, and one logic:CategoryDeliberateOverlap
+# (the preserved gmeow:SocialObject ∩ gmeow:InformationObject overlap). Each candidate's
+# skos:definition and logic:candidateScope carry its rationale. The two integrity-constraint
+# guardrails (frame-relativity, no-over-typing) are enforced positive constraints, not
+# non-assertions, so they appear in the harvest-coverage report above rather than here.
+
+ex:cqDeliberateNonAssertions a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/logic/queries/competency/deliberate-non-assertions.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The deliberate non-assertions the ontology guarantees must be enumerable as a report, each with its boundary kind: a logic:FormalizationCandidate typed logic:CategoryNonEntailmentObligation (a conclusion the foundation must never draw) or logic:CategoryDeliberateOverlap (a sharing fact deliberately admitted). Over the production ontology exactly three are recorded — deceptive-intent-never-entailed and counterpart-never-transitive (non-entailment obligations) and the preserved SocialObject∩InformationObject overlap (deliberate overlap); each candidate's skos:definition and logic:candidateScope carry the rationale." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:rowDnaIntentNotEntailed, ex:rowDnaCounterpartNonTransitive,
+        ex:rowDnaSocialInformationOverlap .
+
+ex:rowDnaIntentNotEntailed a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateIntentNotEntailed ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryNonEntailmentObligation ] .
+
+ex:rowDnaCounterpartNonTransitive a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateCounterpartNonTransitive ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryNonEntailmentObligation ] .
+
+ex:rowDnaSocialInformationOverlap a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateSocialInformationOverlap ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "category" ; gmeow:cellValueIri logic:CategoryDeliberateOverlap ] .

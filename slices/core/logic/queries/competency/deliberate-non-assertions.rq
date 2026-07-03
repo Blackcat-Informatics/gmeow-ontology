@@ -1,0 +1,22 @@
+# Competency: the deliberate-non-assertion report — every intentional boundary the
+# ontology commits to must be enumerable, not merely respected in passing. A
+# deliberate non-assertion is a logic:FormalizationCandidate typed either
+# logic:CategoryNonEntailmentObligation (a conclusion the foundation must never draw,
+# carried by a standing logic:NonEntailmentObligation and enforced by the Arm A / Arm B
+# discharge check) or logic:CategoryDeliberateOverlap (a mereological sharing fact
+# deliberately admitted rather than disjointness-forbidden). Each row is one boundary;
+# its rationale is the candidate's own skos:definition and logic:candidateScope, and —
+# for the non-entailment ones — the forbidden predicate named by its linked obligation.
+# Read over the production ontology (no synthetic data file) this answers "which
+# deliberate non-assertions does the ontology guarantee, and of what kind?".
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?candidate ?category WHERE {
+    VALUES ?category {
+        logic:CategoryNonEntailmentObligation
+        logic:CategoryDeliberateOverlap
+    }
+    ?candidate a logic:FormalizationCandidate ;
+               logic:candidateCategory ?category .
+}
+ORDER BY ?candidate
