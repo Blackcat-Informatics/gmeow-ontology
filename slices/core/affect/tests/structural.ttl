@@ -45,3 +45,16 @@ ASK {
     FILTER (gmeow:affectiveElicitor != gmeow:affectiveTarget)
 }""" ;
     gmeow:saRationale "An emotion's cause (gmeow:affectiveElicitor) and its aboutness (gmeow:affectiveTarget) MUST be distinct object properties on gmeow:Emotion — aboutness is not cause (the Ithkuil OBJ distinction)." .
+
+ex:saElicitsIsInverseOfAffectiveElicitor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:elicits a owl:ObjectProperty ;
+        owl:inverseOf gmeow:affectiveElicitor ;
+        rdfs:range gmeow:Emotion .
+}""" ;
+    gmeow:saRationale "gmeow:elicits is the trigger-to-emotion inverse of gmeow:affectiveElicitor (the emotion-to-trigger cause property); asserting the elicitor from the emotion side lets the trigger-rooted reading follow by inversion, mirroring the gmeow:partOf / gmeow:hasPart convention." .

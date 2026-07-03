@@ -6659,6 +6659,11 @@ slots:
     range: decimal
     domain: GeoCoordinates
     multivalued: true
+  elicits:
+    slot_uri: https://blackcatinformatics.ca/gmeow/elicits
+    title: elicits
+    range: Emotion
+    multivalued: true
   eligibleForConsumer:
     slot_uri: https://blackcatinformatics.ca/gmeow/eligibleForConsumer
     title: eligible for consumer
