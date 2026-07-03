@@ -125,14 +125,29 @@ pub(crate) fn serialize_carrier_snapshot(
         .and_then(|p| p.artifact(crate::stages::frame_shapes::FRAME_SHAPES_PATH))
         .ok_or_else(|| stage_err("missing stage-export-frame-shapes frame-shapes.ttl artifact"))?
         .to_vec();
+    // THIS run's constraint-shapes surface (the SHACL projection of the logic: FOL axioms),
+    // folded into REP_SHAPES from the fresh product for the SAME reason as result/frame
+    // shapes: the committed generated/shapes/constraint-shapes.ttl is projected back from the
+    // bundle by the fanout, and on a first run it does not exist on disk at all, so only the
+    // fresh product can carry it (H8).
+    let constraint_shapes_ttl = upstream
+        .get("stage-export-constraint-shapes")
+        .and_then(|p| p.artifact(crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH))
+        .ok_or_else(|| {
+            stage_err("missing stage-export-constraint-shapes constraint-shapes.ttl artifact")
+        })?
+        .to_vec();
     let mut blobs = build_archive_blobs(
         root,
         &schema_json,
         &openapi_json,
         &compile_artifacts,
         &mappings_artifacts,
-        &result_shapes_ttl,
-        &frame_shapes_ttl,
+        &ShapeSurfaces {
+            result: &result_shapes_ttl,
+            frame: &frame_shapes_ttl,
+            constraint: &constraint_shapes_ttl,
+        },
     )?;
     blobs.extend(build_guide_blobs(root)?);
     // The rendered docs site embeds the per-term reasoning badge, so it carries the
@@ -818,6 +833,15 @@ fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     Ok(blobs)
 }
 
+/// THIS run's three generated SHACL shape surfaces, folded into REP_SHAPES from the
+/// producing export leaves' products (never a stale disk read). Grouped into named
+/// fields so the three same-typed `&[u8]` cannot be transposed at the call site.
+struct ShapeSurfaces<'a> {
+    result: &'a [u8],
+    frame: &'a [u8],
+    constraint: &'a [u8],
+}
+
 /// Build the bundle archive blobs from the repo tree: mappings, cells, queries,
 /// tests, schemas, the SHACL shape surface, and the compiled logic/DL axiom
 /// surface. The SHACL-derived JSON Schema + OpenAPI bytes are passed in from
@@ -830,8 +854,7 @@ fn build_archive_blobs(
     openapi_json: &[u8],
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
-    result_shapes_ttl: &[u8],
-    frame_shapes_ttl: &[u8],
+    shape_surfaces: &ShapeSurfaces<'_>,
 ) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
@@ -923,14 +946,21 @@ fn build_archive_blobs(
     // freeze the committed bytes forever (a new competency ResultShape could never
     // land). Fresh product bytes are passed in from the snapshot's consumed products;
     // absence hard-fails at the call site (no-optionality, fail-closed).
+    // constraint-shapes.ttl (the logic: FOL-axiom SHACL projection) folds fresh the same
+    // way — AND on a first run it does not yet exist on disk, so the `list_files` read
+    // above never included it: only the fresh product carries it into REP_SHAPES (H8).
     for (rel, fresh_bytes) in [
         (
             crate::stages::result_shapes::RESULT_SHAPES_PATH,
-            result_shapes_ttl,
+            shape_surfaces.result,
         ),
         (
             crate::stages::frame_shapes::FRAME_SHAPES_PATH,
-            frame_shapes_ttl,
+            shape_surfaces.frame,
+        ),
+        (
+            crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
+            shape_surfaces.constraint,
         ),
     ] {
         if let Some(entry) = shapes.iter_mut().find(|(k, _)| k == rel) {
@@ -3309,6 +3339,13 @@ mod ustar_tests {
         std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}"))
     }
 
+    // The committed logic: FOL-axiom SHACL projection — the stand-in for the
+    // stage-export-constraint-shapes product in blob-archive unit tests.
+    fn fresh_constraint_shapes_from_disk(root: &Path) -> Vec<u8> {
+        let rel = crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH;
+        std::fs::read(root.join(rel)).unwrap_or_else(|_| panic!("read {rel}"))
+    }
+
     #[test]
     fn build_docs_archive_packs_the_rendered_site() {
         // The archive packing is exercised with a model-only render (empty executable
@@ -3397,8 +3434,11 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &fresh_result_shapes_from_disk(&root),
-            &fresh_frame_shapes_from_disk(&root),
+            &ShapeSurfaces {
+                result: &fresh_result_shapes_from_disk(&root),
+                frame: &fresh_frame_shapes_from_disk(&root),
+                constraint: &fresh_constraint_shapes_from_disk(&root),
+            },
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3495,8 +3535,11 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &fresh_result_shapes_from_disk(&root),
-            &fresh_frame_shapes_from_disk(&root),
+            &ShapeSurfaces {
+                result: &fresh_result_shapes_from_disk(&root),
+                frame: &fresh_frame_shapes_from_disk(&root),
+                constraint: &fresh_constraint_shapes_from_disk(&root),
+            },
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3528,8 +3571,11 @@ mod ustar_tests {
             b"",
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
-            &fresh_result_shapes_from_disk(&root),
-            &fresh_frame_shapes_from_disk(&root),
+            &ShapeSurfaces {
+                result: &fresh_result_shapes_from_disk(&root),
+                frame: &fresh_frame_shapes_from_disk(&root),
+                constraint: &fresh_constraint_shapes_from_disk(&root),
+            },
         )
         .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();

@@ -2895,6 +2895,13 @@ logic:irreflexiveProperty
     skos:definition "The logic: property-characteristic marker for irreflexivity: a property P such that P(a,a) holds for no a. The logic: analogue of owl:IrreflexiveProperty, used together with logic:transitiveProperty and logic:asymmetricProperty to make logic:properPartOf a genuine strict partial order (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:acyclicProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "acyclic property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for acyclicity: a property P whose transitive closure P+ is irreflexive — P(a₁,a₂) ∧ … ∧ P(aₙ,a₁) holds for no chain, so following P never returns to its start. Stronger than logic:irreflexiveProperty (which forbids only the one-step P(a,a)) yet distinct from logic:transitiveProperty ∧ logic:irreflexiveProperty: an acyclic P is deliberately NOT transitive (its successors are the immediate steps, not every reachable node), so the characteristic is enforced by the native coherence gate's internal reachability walk rather than by materialising the closure. Marks a stepwise chain such as gmeow:linkNext that must never cycle."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:isHolon
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -4114,6 +4121,96 @@ logic:editionOfFunctionality
     logic:characterizes gmeow:editionOf ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:editionOf .
+
+logic:overridesIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "overrides is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:overrides is irreflexive: a norm never overrides itself, as its skos:definition states. The native coherence gate reads this to raise a violation for a norm asserted to override itself; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:characterizes gmeow:overrides ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:overrides .
+
+logic:linkNextAcyclicity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "linkNext is acyclic"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:linkNext is acyclic: a causal-cascade walk never reaches itself through gmeow:linkNext, as the Cascade prose states. linkNext is deliberately NOT transitive (it names the immediate next link, not every downstream one), so the native coherence gate enforces this with an internal reachability walk that raises a violation on any cycle, never by materialising the closure; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:characterizes gmeow:linkNext ;
+    logic:characteristicSort logic:acyclicProperty ;
+    logic:formalizes gmeow:linkNext .
+
+# ── Relatum-distinctness assertions (a relator's two roles must bind distinct values) ──
+# The canonical carrier for a mutual-inequality integrity condition on a relator: two
+# named roles on one focus node must bind DISTINCT values. OWL functionality of each role
+# does not reject a coincidence (it infers owl:sameAs); the native coherence gate joins
+# logic:distinctnessTarget + the two logic:distinctnessRole values to raise a violation
+# when they coincide, and the generated SHACL constraint surface is its projection.
+
+logic:RelatumDistinctnessAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "relatum distinctness assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, two named roles must bind DISTINCT values on any one focus node — the mutual-inequality integrity condition of a relator whose relata must differ (a Commitment's committed agent and beneficiary, a Criterion's reward and penalty poles). It names the class with logic:distinctnessTarget and the two roles with logic:distinctnessRole, the triple the native coherence gate joins to raise a violation when the roles coincide, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. The reasoning authority names and enforces it here; the domain slice keeps the OWL-facing role declarations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:distinctnessTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "distinctness target"@x-gmeow-english ;
+    skos:definition "Relates a logic:RelatumDistinctnessAssertion to the class whose focus nodes it constrains (the relator class). Read together with logic:distinctnessRole, it tells the native coherence gate which class bears the mutual-inequality condition. Domain logic:RelatumDistinctnessAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:distinctnessRole
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "distinctness role"@x-gmeow-english ;
+    skos:definition "Relates a logic:RelatumDistinctnessAssertion to one of the two roles that must bind distinct values on a focus node. Exactly two are asserted per record; the native coherence gate raises a violation when both roles bind the same value on one focus node. Domain logic:RelatumDistinctnessAssertion; two-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:commitmentBeneficiaryDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a commitment's beneficiary is distinct from its committed agent"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Commitment's gmeow:committedAgent and gmeow:commitmentBeneficiary must be distinct: a resolution made purely to oneself is an Intention, not a Commitment. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Commitment ;
+    logic:distinctnessRole gmeow:committedAgent , gmeow:commitmentBeneficiary ;
+    logic:formalizes gmeow:commitmentBeneficiary .
+
+logic:precedenceTenureDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a precedence tenure's higher and lower norms are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:PrecedenceTenure's gmeow:precedenceHigher and gmeow:precedenceLower norms must be distinct: a norm does not take precedence over itself. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:PrecedenceTenure ;
+    logic:distinctnessRole gmeow:precedenceHigher , gmeow:precedenceLower ;
+    logic:formalizes gmeow:precedenceHigher .
+
+logic:criterionPoleDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a criterion's reward and penalty poles are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Criterion's gmeow:rewardPole and gmeow:penaltyPole must be distinct: one pole is no axis. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Criterion ;
+    logic:distinctnessRole gmeow:rewardPole , gmeow:penaltyPole ;
+    logic:formalizes gmeow:rewardPole .
+
+logic:causalLinkDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a causal link's antecedent and consequent are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:CausalLink's gmeow:linkAntecedent and gmeow:linkConsequent must be distinct: nothing type-causes itself. The native coherence gate raises a violation when they coincide."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:CausalLink ;
+    logic:distinctnessRole gmeow:linkAntecedent , gmeow:linkConsequent ;
+    logic:formalizes gmeow:linkAntecedent .
 
 # ── A NET-NEW harvested integrity constraint (prose → enforced axiom) ─────────────
 # The harvest mechanism run on a constraint that did NOT exist as an axiom before:

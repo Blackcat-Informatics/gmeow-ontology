@@ -1762,6 +1762,159 @@ fn characteristic_asymmetric_mutual_pair_violates() {
 }
 
 #[test]
+fn characteristic_acyclic_cycle_violates_without_materializing_closure() {
+    // linkNext shape: acyclic + NOT transitive. A cycle A→B→C→A fires AcyclicityViolation
+    // on each node; the closure (e.g. A→C) is NOT materialized (one-step semantics kept).
+    let b = "https://example.org/char/acyclic";
+    let p = format!("{b}/linkNext");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}acyclicProperty> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/C> <{b}/g> .\n\
+         <{b}/C> <{p}> <{b}/A> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &format!("{b}/A"), "AcyclicityViolation"),
+        "a node that reaches itself through an acyclic property must fire AcyclicityViolation"
+    );
+    assert!(
+        !has_edge(&quads, &format!("{b}/A"), &p, &format!("{b}/C")),
+        "an acyclic property must NOT be transitively closed (no A→C edge materialized)"
+    );
+}
+
+#[test]
+fn characteristic_acyclic_violation_witness_is_on_the_cycle() {
+    // A's lexicographically-smallest outgoing edge (A->B) is a DEAD END; the cycle
+    // runs A->Z->A. The violation provenance must witness the on-cycle A->Z edge,
+    // never the decoy A->B edge that opens no cycle.
+    let b = "https://example.org/char/acyclic-witness";
+    let p = format!("{b}/linkNext");
+    let rec = format!("{b}/rec");
+    let a = format!("{b}/A");
+    let dead = format!("{b}/B"); // sorts before Z, dead end
+    let cyc = format!("{b}/Z"); // on the cycle
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}acyclicProperty> <{b}/g> .\n\
+         <{a}> <{p}> <{dead}> <{b}/g> .\n\
+         <{a}> <{p}> <{cyc}> <{b}/g> .\n\
+         <{cyc}> <{p}> <{a}> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    let pred = format!("{LOGIC}violation");
+    let obj = format!("<{LOGIC}AcyclicityViolation>");
+    let viol = quads
+        .iter()
+        .find(|q| q.subject == a && q.predicate == pred && q.object == obj)
+        .expect("A reaches itself and must fire an AcyclicityViolation");
+    let on_cycle = triple_reifier(&a, &p, &cyc).unwrap();
+    let decoy = triple_reifier(&a, &p, &dead).unwrap();
+    assert!(
+        viol.source_quad_ids.contains(&on_cycle),
+        "witness must be the on-cycle A->Z edge, got {:?}",
+        viol.source_quad_ids
+    );
+    assert!(
+        !viol.source_quad_ids.contains(&decoy),
+        "witness must NOT be the dead-end A->B edge, got {:?}",
+        viol.source_quad_ids
+    );
+}
+
+#[test]
+fn characteristic_acyclic_chain_is_clean() {
+    // A non-cyclic chain A→B→C fires no violation.
+    let b = "https://example.org/char/acyclic-clean";
+    let p = format!("{b}/linkNext");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}characterizes> <{p}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}characteristicSort> <{LOGIC}acyclicProperty> <{b}/g> .\n\
+         <{b}/A> <{p}> <{b}/B> <{b}/g> .\n\
+         <{b}/B> <{p}> <{b}/C> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &format!("{b}/A"), "AcyclicityViolation")
+            && !has_violation(&quads, &format!("{b}/B"), "AcyclicityViolation")
+            && !has_violation(&quads, &format!("{b}/C"), "AcyclicityViolation"),
+        "an acyclic chain must fire no AcyclicityViolation"
+    );
+}
+
+#[test]
+fn relatum_distinctness_coincident_roles_violate() {
+    // Commitment shape: committedAgent and commitmentBeneficiary must be distinct.
+    let b = "https://example.org/distinct";
+    let cls = format!("{b}/Commitment");
+    let r1 = format!("{b}/committedAgent");
+    let r2 = format!("{b}/commitmentBeneficiary");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}distinctnessTarget> <{cls}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}distinctnessRole> <{r1}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}distinctnessRole> <{r2}> <{b}/g> .\n\
+         <{b}/c1> <{RDF_TYPE_P}> <{cls}> <{b}/g> .\n\
+         <{b}/c1> <{r1}> <{b}/alice> <{b}/g> .\n\
+         <{b}/c1> <{r2}> <{b}/alice> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        has_violation(&quads, &format!("{b}/c1"), "RelatumDistinctnessViolation"),
+        "a commitment whose agent and beneficiary coincide must fire RelatumDistinctnessViolation"
+    );
+}
+
+#[test]
+fn relatum_distinctness_distinct_roles_are_clean() {
+    let b = "https://example.org/distinct-clean";
+    let cls = format!("{b}/Commitment");
+    let r1 = format!("{b}/committedAgent");
+    let r2 = format!("{b}/commitmentBeneficiary");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{LOGIC}distinctnessTarget> <{cls}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}distinctnessRole> <{r1}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}distinctnessRole> <{r2}> <{b}/g> .\n\
+         <{b}/c1> <{RDF_TYPE_P}> <{cls}> <{b}/g> .\n\
+         <{b}/c1> <{r1}> <{b}/alice> <{b}/g> .\n\
+         <{b}/c1> <{r2}> <{b}/bob> <{b}/g> .\n"
+    );
+    let quads = run(&nq, AntiRigidityPolicy::WitnessObligation);
+    assert!(
+        !has_violation(&quads, &format!("{b}/c1"), "RelatumDistinctnessViolation"),
+        "a commitment with distinct agent and beneficiary must be clean"
+    );
+}
+
+#[test]
+fn relatum_distinctness_malformed_role_count_hard_fails() {
+    // A RelatumDistinctnessAssertion naming only ONE role is malformed. The native pass
+    // must fail closed — exactly as the SHACL projector rejects the same record — never
+    // silently drop it (no-optionality: the two enforcement halves of one axiom must
+    // agree on malformed input).
+    let b = "https://example.org/distinct-malformed";
+    let cls = format!("{b}/Commitment");
+    let r1 = format!("{b}/committedAgent");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{RDF_TYPE_P}> <{LOGIC}RelatumDistinctnessAssertion> <{b}/g> .\n\
+         <{rec}> <{LOGIC}distinctnessTarget> <{cls}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}distinctnessRole> <{r1}> <{b}/g> .\n"
+    );
+    let err = evaluate(&store_from(&nq), AntiRigidityPolicy::WitnessObligation)
+        .expect_err("a one-role distinctness assertion must hard-fail, not be skipped");
+    assert!(
+        err.contains("exactly two") && err.contains(&rec),
+        "error must name the malformed record and the two-role requirement, got: {err}"
+    );
+}
+
+#[test]
 fn characteristic_unmarked_property_is_inert() {
     // The counterpartOf shape: a plain (unmarked) property must NOT be closed — proving
     // the pass fires ONLY on declared characteristics (non-transitivity is respected).
