@@ -534,6 +534,29 @@ fn info() -> i32 {
     0
 }
 
+/// `gmeow-dev mcp` — serve the native, repo-anchored MCP developer surface over
+/// stdio. Reads the on-disk `generated/dist/gmeow.gts` snapshot from the working
+/// tree (like every other dev command) and passes the repository root so the
+/// [`McpMode::Dev`](gmeow_pipeline::mcp::McpMode::Dev) repo-reading maintenance
+/// tools (validate/reason/regenerate/constitution) are exposed alongside the
+/// consumer surface. Blocks on the JSON-RPC loop until EOF.
+fn mcp() -> i32 {
+    use gmeow_pipeline::mcp::{McpMode, McpServer};
+    let root = project_root();
+    let bytes = match snapshot_bytes(&root) {
+        Ok(b) => b,
+        Err(code) => return code,
+    };
+    let server = match McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev) {
+        Ok(server) => server,
+        Err(e) => return dev_common::fail(format!("mcp: {e}")),
+    };
+    match server.run_stdio() {
+        Ok(()) => 0,
+        Err(e) => dev_common::fail(format!("mcp: {e}")),
+    }
+}
+
 /// Parse the arguments, dispatch to the wired backend, and return the exit code.
 pub fn run() -> i32 {
     let cli = Cli::parse();
@@ -715,10 +738,7 @@ pub fn run() -> i32 {
             sign_key,
             public_key,
         } => dev_build::compile_gts(out.as_deref(), sign_key.as_deref(), public_key.as_deref()),
-        Commands::Mcp => {
-            eprintln!("mcp: wired in the MCP task");
-            0
-        }
+        Commands::Mcp => mcp(),
         Commands::ImportFoundation { jsonl, out, nq } => {
             dev_project::import_foundation(&jsonl, &out, nq.as_deref())
         }
