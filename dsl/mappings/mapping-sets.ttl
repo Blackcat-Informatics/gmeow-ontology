@@ -131,6 +131,18 @@ gmeow:mapsetWikidata a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "GMEOW term to Wikidata Q-item alignments (concept-scheme layer; QIDs validated)." .
 
+gmeow:mapsetGlottolog a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-glottolog.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/glottolog" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "GMEOW sign-system → Glottolog languoid alignments (genealogy/languoid catalog, richer than ISO 639; by reference, curl-validated). A Glottolog languoid names a language variety, a close but not always identical companion to a GMEOW sign system (skos:closeMatch)." .
+
+gmeow:mapsetLexvo a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-lexvo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/lexvo" ;
+    gmeow:license "https://creativecommons.org/licenses/by-sa/3.0/" ;
+    gmeow:setComment "GMEOW sign-system and script → Lexvo alignments — the ISO 639 language-code and ISO 15924 script-code hub (which also anchors the BCP-47 primary subtags; by reference, curl-validated). A Lexvo ISO-code IRI is a code-scoped identifier, a related resource rather than identity (skos:relatedMatch)." .
+
 gmeow:mapsetFoundational a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-foundational.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/foundational" ;

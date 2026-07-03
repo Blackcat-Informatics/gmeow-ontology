@@ -181,6 +181,34 @@ lang:ebnfFormalism
     rdfs:label "EBNF"@x-gmeow-english ;
     skos:definition "The ISO/IEC 14977 EBNF grammar-interchange formalism."@x-gmeow-english .
 
+# --- Canonical sign-system and script references ---------------------------- #
+# A minimal set of first-class sign-system individuals the reference layer names
+# and the alignment records anchor to. English and Turtle are sign systems; Latin
+# is a script. External identifiers (Wikidata, Glottolog, ISO 639, ISO 15924) name
+# alignments of these individuals in mappings/equivalences.ttl, never their identity.
+
+lang:english
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "English"@x-gmeow-english ;
+    skos:definition "The English natural language as a first-class sign system: a lang:SignSystem of lang:naturalLanguageKind in the written modality. Its BCP-47 tag en, ISO 639-3 code eng, Glottolog languoid, and Wikidata QID are generated identifiers recorded as alignments, never its definition."@x-gmeow-english ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+lang:turtle
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Turtle"@x-gmeow-english ;
+    skos:definition "The W3C Turtle serialization as a first-class sign system: a lang:SignSystem of lang:formalLanguageKind in the written modality, licensed by a lang:Grammar. One of GMEOW's own serialization sign systems."@x-gmeow-english ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality .
+
+lang:latinScript
+    a owl:NamedIndividual , lang:Script ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Latin script"@x-gmeow-english ;
+    skos:definition "The Latin script as a first-class character repertoire: a lang:Script. Its ISO 15924 code Latn and Wikidata QID are alignments, never its identity."@x-gmeow-english .
+
 # =========================================================================== #
 # Form AST — the stratified form calculus
 # =========================================================================== #
