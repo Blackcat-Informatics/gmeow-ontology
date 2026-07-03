@@ -136,6 +136,86 @@ pub fn available_doc_languages(snapshot: &[u8]) -> Result<Vec<String>, PipelineE
     Ok(langs.into_iter().collect())
 }
 
+/// Summarise every term in a folded GTS snapshot as `(curie, label, definition)`.
+///
+/// Confirms and exposes the native authority behind `bundle_term_summaries`:
+/// [`crate::stages::export::FoldView`] + [`crate::stages::export::collect_terms`]. A
+/// term with an empty `label` / `definition` is a "missing" one for the source-free
+/// bundle checks (`gmeow verify`). No logic is duplicated here — this is a one-name
+/// pass-through so a `gmeow` / `gmeow-dev` binary need not reach into `stages::export`.
+///
+/// # Errors
+///
+/// - The snapshot cannot be folded into the carrier dataset.
+pub fn bundle_term_summaries(
+    gts_bytes: &[u8],
+) -> Result<Vec<(String, String, String)>, PipelineError> {
+    let dataset =
+        purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| PipelineError::Stage {
+            stage: "bundle-checks".to_string(),
+            message: format!("fold gts snapshot: {e}"),
+        })?;
+    let view = crate::stages::export::FoldView::new(&dataset);
+    let terms = crate::stages::export::collect_terms(&view);
+    Ok(terms
+        .into_iter()
+        .map(|t| (t.curie, t.label, t.definition))
+        .collect())
+}
+
+/// Render every flat consumer export view from a folded GTS snapshot and write each to
+/// `out_dir`, returning the written paths (sorted).
+///
+/// Confirms and exposes the native authority behind the retired Python
+/// `gmeow_tools.export` orchestration:
+/// [`crate::stages::export::render_all_with_languages`] (honoring the requested public
+/// BCP-47 `languages`; an empty list falls back to `["en"]`). Each artifact is keyed by
+/// its canonical `dist/<basename>` name; this writes `<out_dir>/<basename>`. No logic is
+/// duplicated here — every rendered byte comes from the native export stage.
+///
+/// # Errors
+///
+/// - The snapshot cannot be folded, an export view fails to render, `out_dir` cannot be
+///   created, or an artifact cannot be written.
+pub fn export_views(
+    gts_bytes: &[u8],
+    out_dir: &Path,
+    languages: &[String],
+) -> Result<Vec<String>, PipelineError> {
+    let dataset =
+        purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| PipelineError::Stage {
+            stage: "export".to_string(),
+            message: format!("fold gts snapshot: {e}"),
+        })?;
+    let langs: Vec<String> = if languages.is_empty() {
+        vec!["en".to_string()]
+    } else {
+        languages.to_vec()
+    };
+    let artifacts = crate::stages::export::render_all_with_languages(&dataset, &langs)?;
+    std::fs::create_dir_all(out_dir).map_err(|e| PipelineError::Stage {
+        stage: "export".to_string(),
+        message: format!("cannot create {}: {e}", out_dir.display()),
+    })?;
+    let mut written: Vec<String> = Vec::with_capacity(artifacts.len());
+    for (dist_path, bytes) in &artifacts {
+        let name = Path::new(dist_path)
+            .file_name()
+            .ok_or_else(|| PipelineError::Stage {
+                stage: "export".to_string(),
+                message: format!("export artifact {dist_path:?} has no file name"),
+            })?;
+        let dest = out_dir.join(name);
+        std::fs::write(&dest, bytes).map_err(|e| PipelineError::Stage {
+            stage: "export".to_string(),
+            message: format!("cannot write {}: {e}", dest.display()),
+        })?;
+        written.push(dest.display().to_string());
+    }
+    written.sort();
+    Ok(written)
+}
+
 /// Rewrite a Turtle document in native canonical, review-friendly form.
 ///
 /// Confirms and exposes the native authority behind `normalize.canonicalize`:

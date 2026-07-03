@@ -1797,12 +1797,15 @@ dependencies = [
  "clap",
  "gmeow-cli-core",
  "gmeow-diagnostics",
+ "gmeow-docs",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-music",
  "gmeow-pipeline",
  "gmeow-validate",
  "predicates",
+ "purrdf",
+ "serde_json",
  "trycmd",
 ]
 
