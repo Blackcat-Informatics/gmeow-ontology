@@ -583,8 +583,8 @@ consumers lives in the generated projections (Principle 4), never in the canon.
 [`slices/grounding/math/design/MATHEMATICS.md`](./slices/grounding/math/design/MATHEMATICS.md),
 and [`slices/grounding/lang/design/LANG.md`](./slices/grounding/lang/design/LANG.md), with their
 sibling charters — the `slices/grounding/` group is the layers' home (the group segment is human
-organization the build never reads; `logic`'s relocation from `slices/grounding/logic` is queued
-mechanical work). *Tested by:* for the `logic:` layer, the Principle 17 gates
+organization the build never reads); all three grounding charters — `logic`, `math`, and `lang` —
+now live under `slices/grounding/`. *Tested by:* for the `logic:` layer, the Principle 17 gates
 (`meta:gate-logic-conformance`, `meta:gate-logic-round-trip`); the `math:` and `lang:` layers are
 design-stage — enforced by design-set review practice (`meta:practice-grounding-design`) until
 their slices land with the conformance charters their design sets already specify, at which point
