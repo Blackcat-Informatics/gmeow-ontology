@@ -45,6 +45,10 @@ enum AestheticQualityEnum {
   qualitySublimity
 }
 
+enum AffectFunctionEnum {
+  fnAffectiveIntensity
+}
+
 enum AgentEnum {
   fixtureAnalystA
   fixtureAnalystAI
@@ -93,9 +97,15 @@ enum AnnotationMotivationEnum {
 }
 
 enum AppraisalDimensionEnum {
-  dimensionArousal
-  dimensionDominance
-  dimensionValence
+  dimensionAgency
+  dimensionCertainty
+  dimensionCoping
+  dimensionGoalCongruence
+  dimensionGoalRelevance
+  dimensionNormCompatibility
+  dimensionNovelty
+  dimensionObjectFocus
+  dimensionTemporalOrientation
 }
 
 enum ArcTypeEnum {
@@ -488,6 +498,12 @@ enum ContentTransferEncodingEnum {
   transferEncodingQuotedPrintable
 }
 
+enum ContinuityVerdictEnum {
+  continuityDifferent
+  continuityIndeterminate
+  continuitySame
+}
+
 enum ContradictionKindEnum {
   contradictionKindFactual
   contradictionKindFraming
@@ -560,6 +576,12 @@ enum ControlFlowEnum {
   flowIngestion5
 }
 
+enum ControlLevelEnum {
+  controlContested
+  controlFull
+  controlPartial
+}
+
 enum CopyrightStatusEnum {
   copyrightStatusInCopyright
   copyrightStatusInCopyrightEducationalUse
@@ -574,6 +596,13 @@ enum CopyrightStatusEnum {
   copyrightStatusNotEvaluated
   copyrightStatusPublicDomain
   copyrightStatusUndetermined
+}
+
+enum CoreAffectDimensionEnum {
+  dimensionArousal
+  dimensionDominance
+  dimensionUnpredictability
+  dimensionValence
 }
 
 enum CoverageDepthEnum {
@@ -707,6 +736,12 @@ enum DeterminacyEnum {
   determinacyVague
 }
 
+enum DeterminationForceEnum {
+  forceAdvisory
+  forceBinding
+  forceProvisional
+}
+
 enum DeterminationStatusEnum {
   determinationConstrained
   determinationDelegatedEnvironment
@@ -721,6 +756,11 @@ enum DiagnosticSeverityEnum {
   severityInfo
   severityNote
   severityWarning
+}
+
+enum DimensionFamilyEnum {
+  familyAppraisal
+  familyCoreAffect
 }
 
 enum DisclosurePolicyEnum {
@@ -766,6 +806,8 @@ enum EmotionTypeEnum {
   emotionFear
   emotionJoy
   emotionSadness
+  emotionSaudade
+  emotionSchadenfreude
   emotionSurprise
   emotionTrust
 }
@@ -856,6 +898,7 @@ enum EventTypeEnum {
   eventTypeImageScanning
   eventTypeImmigration
   eventTypeImpersonation
+  eventTypeInhabitationTransition
   eventTypeJamSession
   eventTypeLie
   eventTypeManifestationProduction
@@ -1222,6 +1265,11 @@ enum InferenceModeEnum {
   modeAnalogical
   modeDeduction
   modeInduction
+}
+
+enum InhabitationLocusKindEnum {
+  locusSelf
+  locusVessel
 }
 
 enum InstrumentConfigurationEnum {
@@ -2661,6 +2709,11 @@ enum SLSALevelEnum {
   slsaLevel4
 }
 
+enum ScalePolarityEnum {
+  polarityBipolar
+  polarityUnipolar
+}
+
 enum SceneRelationTypeEnum {
   sceneRelationAbove
   sceneRelationBelow
@@ -2687,6 +2740,14 @@ enum SchenkerLevelEnum {
 
 enum ScoreEditionEnum {
   fixtureGraphicScoreVisual
+}
+
+enum ScoreSemanticsEnum {
+  scoreCalibratedProbability
+  scoreLogit
+  scoreMargin
+  scoreSigmoid
+  scoreSoftmax
 }
 
 enum ScriptRoleEnum {
@@ -3265,10 +3326,83 @@ type AestheticQuality {
   iri: String
 }
 
+type AffectClassifierLabel {
+  id: String
+  iri: String
+  memberOfLabelSet: [AffectLabelSet!]
+}
+
+type AffectClassifierOutput {
+  id: String
+  iri: String
+  canonicalizesAs: [String!]
+  classifiedTarget: [String!]
+  classifierScore: [Float!]
+  emittedLabel: [AffectClassifierLabel!]
+  producedBy: ModelInferenceRun
+  scoreCalibration: [String!]
+  scoreSemantics: ScoreSemantics
+  thresholdApplied: [Float!]
+}
+
+type AffectComposite {
+  id: String
+  iri: String
+  affectiveConstituent: [String!]
+}
+
+type AffectEvaluationConcluded {
+  id: String
+  iri: String
+}
+
+type AffectFunction {
+  id: String
+  iri: String
+}
+
+type AffectLabelSet {
+  id: String
+  iri: String
+}
+
+type AffectScaleProfile {
+  id: String
+  iri: String
+  profileMidpoint: Float
+  profilePolarity: ScalePolarity
+  profileRangeMax: Float
+  profileRangeMin: Float
+  profileTransform: String
+}
+
+type AffectTelemetryStream {
+  id: String
+  iri: String
+  telemetryBlob: [String!]
+}
+
+type AffectVectorObservation {
+  id: String
+  iri: String
+  vectorComponent: [Appraisal!]
+  vectorProfile: AffectScaleProfile
+}
+
+type AffectiveClaim {
+  id: String
+  iri: String
+}
+
 type AffectiveExperience {
   id: String
   iri: String
   feltAffect: [AffectiveMoment!]
+}
+
+type AffectiveExpression {
+  id: String
+  iri: String
 }
 
 type AffectiveMoment {
@@ -3283,6 +3417,7 @@ type Agent {
   asks: [String!]
   attendsTo: [Entity!]
   awareOfNotKnowing: [String!]
+  bearsDigitalSubject: [DigitalSubjectTenure!]
   believes: [String!]
   claimsToKnowThat: [String!]
   curiousAbout: [Entity!]
@@ -3390,12 +3525,14 @@ type Appraisal {
   appraisalDimension: [AppraisalDimension!]
   appraisalOf: String
   appraisalQuality: [AestheticQuality!]
+  appraisalScaleProfile: AffectScaleProfile
   appraisalValue: [Float!]
 }
 
 type AppraisalDimension {
   id: String
   iri: String
+  dimensionFamily: [DimensionFamily!]
 }
 
 type ArcSample {
@@ -4060,6 +4197,20 @@ type ContentTransferEncoding {
   iri: String
 }
 
+type ContinuityDetermination {
+  id: String
+  iri: String
+  determinationForce: [DeterminationForce!]
+  determinationGrounds: [String!]
+  determinationValidity: [TimeInterval!]
+  determiningAuthority: [Agent!]
+}
+
+type ContinuityVerdict {
+  id: String
+  iri: String
+}
+
 type Contract {
   id: String
   iri: String
@@ -4097,6 +4248,15 @@ type ContributionRole {
   iri: String
 }
 
+type ControlAssessment {
+  id: String
+  iri: String
+  controlAgent: [Agent!]
+  controlInterval: [TimeInterval!]
+  controlLevel: [ControlLevel!]
+  controlOver: [String!]
+}
+
 type ControlFlow {
   id: String
   iri: String
@@ -4104,6 +4264,11 @@ type ControlFlow {
   flowOrder: [Int!]
   flowSource: [ProcedureStep!]
   flowTarget: [ProcedureStep!]
+}
+
+type ControlLevel {
+  id: String
+  iri: String
 }
 
 type CoordinateMatrix {
@@ -4133,6 +4298,11 @@ type Copyright {
 }
 
 type CopyrightStatus {
+  id: String
+  iri: String
+}
+
+type CoreAffectDimension {
   id: String
   iri: String
 }
@@ -4372,12 +4542,27 @@ type DerivationType {
   iri: String
 }
 
+type DerivedAffectIntensityObservation {
+  id: String
+  iri: String
+  derivedByFunction: [AffectFunction!]
+  intensityBasis: AffectVectorObservation
+  metricProfile: AffectScaleProfile
+  normFunction: String
+  weightingPolicy: String
+}
+
 type Desire {
   id: String
   iri: String
 }
 
 type Determinacy {
+  id: String
+  iri: String
+}
+
+type DeterminationForce {
   id: String
   iri: String
 }
@@ -4397,6 +4582,24 @@ type Diff {
   iri: String
   diffFrom: Commit
   diffTo: Commit
+}
+
+type DigitalSubject {
+  id: String
+  iri: String
+}
+
+type DigitalSubjectTenure {
+  id: String
+  iri: String
+  tenureSubjectAgent: [Agent!]
+  tenureSupportedBy: [Observation!]
+  tenureVantage: [Agent!]
+}
+
+type DimensionFamily {
+  id: String
+  iri: String
 }
 
 type DisclosurePolicy {
@@ -4530,6 +4733,19 @@ type Embedding {
   embeddingModel: SoftwareAgent
   embeddingOf: InformationObject
   vectorRef: [String!]
+}
+
+type EmbodimentAssignment {
+  id: String
+  iri: String
+  assignmentCapability: [String!]
+  assignmentCarrier: [EmbodimentCarrierRole!]
+  assignmentSubject: [Agent!]
+}
+
+type EmbodimentCarrierRole {
+  id: String
+  iri: String
 }
 
 type Emotion {
@@ -4688,6 +4904,7 @@ type Event {
   hasDuration: [Duration!]
   hasParticipant: [Agent!]
   hasSubEvent: [Event!]
+  hasTransferManifest: [TransferManifest!]
   heldStandpoint: [DoxasticStandpointClaim!]
   implicates: [Entity!]
   latestEnd: [String!]
@@ -4698,6 +4915,8 @@ type Event {
   overlappedBy: [Event!]
   overlaps: [Event!]
   performanceOf: [CreativeWork!]
+  portalFrom: [InhabitationTenure!]
+  portalTo: [InhabitationTenure!]
   predecessorOrganization: [Organization!]
   producesClaim: [ClaimToken!]
   projectedStandpoint: [DoxasticStandpointClaim!]
@@ -5136,6 +5355,14 @@ type Identifier {
   jurisdiction: [Location!]
 }
 
+type IdentityContinuityAssessment {
+  id: String
+  iri: String
+  assessmentFromStage: [SubjectStage!]
+  assessmentToStage: [SubjectStage!]
+  continuityVerdict: [ContinuityVerdict!]
+}
+
 type IdentityFacet {
   id: String
   iri: String
@@ -5202,6 +5429,50 @@ type InformationObject {
   contributesToFrame: [NarrativeReferenceFrame!]
   detectedMediaType: [String!]
   writtenInLanguage: [Language!]
+}
+
+type Inhabitant {
+  id: String
+  iri: String
+}
+
+type InhabitationClaim {
+  id: String
+  iri: String
+}
+
+type InhabitationConfiguration {
+  id: String
+  iri: String
+  configurationEmbodiment: [EmbodimentAssignment!]
+  configurationFacet: [String!]
+  configurationOfTenure: [InhabitationTenure!]
+}
+
+type InhabitationDescription {
+  id: String
+  iri: String
+  describedHost: [String!]
+  describedLocusKind: [String!]
+  describedSubject: [String!]
+}
+
+type InhabitationLocusKind {
+  id: String
+  iri: String
+}
+
+type InhabitationTenure {
+  id: String
+  iri: String
+  inhabitationLocusKind: InhabitationLocusKind
+  inhabitationSubject: Agent
+  inhabitedHost: Entity
+}
+
+type InhabitedSystem {
+  id: String
+  iri: String
 }
 
 type InlinePart {
@@ -5942,6 +6213,18 @@ type ModelCard {
   modelProvider: [String!]
   modelTrainingCutoff: [String!]
   modelVersionTag: [String!]
+}
+
+type ModelInferenceRun {
+  id: String
+  iri: String
+  labelSetRevision: [String!]
+  modelFramework: [String!]
+  modelIdentifier: String
+  modelRevision: String
+  modelTask: [String!]
+  tokenizerRevision: [String!]
+  usedInput: [String!]
 }
 
 type ModelInvocation {
@@ -7173,6 +7456,11 @@ type ScalarQuantity {
   quantityValue: Float
 }
 
+type ScalePolarity {
+  id: String
+  iri: String
+}
+
 type Scenario {
   id: String
   iri: String
@@ -7226,6 +7514,11 @@ type ScoreScale {
   scaleMax: Float
   scaleMin: Float
   scaleStep: Float
+}
+
+type ScoreSemantics {
+  id: String
+  iri: String
 }
 
 type ScriptLanguageAttribution {
@@ -7621,6 +7914,18 @@ type StyleGuide {
   voiceExemplifiedBy: [Document!]
 }
 
+type SubjectLineage {
+  id: String
+  iri: String
+}
+
+type SubjectStage {
+  id: String
+  iri: String
+  stageBearer: [Agent!]
+  stageOfLineage: [SubjectLineage!]
+}
+
 type Summary {
   id: String
   iri: String
@@ -7837,6 +8142,7 @@ type TimeScopedRelation {
   id: String
   iri: String
   duringInterval: [TimeInterval!]
+  tenureEndedBy: [Event!]
 }
 
 type TimeZone {
@@ -7895,6 +8201,12 @@ type TransactionStatus {
 type TransactionType {
   id: String
   iri: String
+}
+
+type TransferManifest {
+  id: String
+  iri: String
+  transferredView: [String!]
 }
 
 type TransformCodec {

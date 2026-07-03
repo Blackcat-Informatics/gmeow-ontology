@@ -30,6 +30,13 @@ NAMESPACE = ONTOLOGY_IRI + "/"
 #: lossy projections (Principle 17); term IRIs are ``LOGIC_NAMESPACE + local``.
 LOGIC_NAMESPACE = "https://blackcatinformatics.ca/logic/"
 
+#: The ``math:`` namespace — GMEOW Mathematics' grounding vocabulary, a peer of
+#: ``logic:``. It grounds number systems and exactness, arithmetic, sets, and
+#: relations/functions — the primitive objects every other mathematical charter
+#: quantifies, indexes, maps, and measures over; term IRIs are
+#: ``MATH_NAMESPACE + local``.
+MATH_NAMESPACE = "https://blackcatinformatics.ca/math/"
+
 #: Explicit allowlist for ``owl:sameAs`` assertions whose object is outside the
 #: GMEOW namespace. GMEOW's default policy (Principle 5) forbids such triples
 #: because they collapse contested or standpoint-indexed identity. Entries here
@@ -327,6 +334,9 @@ PREFIXES: dict[str, str] = {
     # GMEOW Logic — the canonical reasoning vocabulary (Principle 17). gUFO,
     # OWL, Datalog, SHACL, Prolog and N3 are generated lossy projections of it.
     "logic": LOGIC_NAMESPACE,
+    # GMEOW Mathematics — the grounding vocabulary of numbers, sets, and functions,
+    # a peer of logic:.
+    "math": MATH_NAMESPACE,
     "owl": "http://www.w3.org/2002/07/owl#",
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
@@ -349,6 +359,16 @@ PREFIXES: dict[str, str] = {
     "fnom": "https://w3id.org/function/vocabulary/mapping#",
     "edoal": "http://ns.inria.org/edoal/1.0/#",
     "align": "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
+    # Affect classifier label registries — per-registry external label identities,
+    # held under a distinct authority path so a model label can never be mistaken
+    # for a canonical gmeow: emotion term.
+    "gmeow-goemotions": "https://blackcatinformatics.ca/gmeow-registry/goemotions/",
+    "gmeow-hf": "https://blackcatinformatics.ca/gmeow-registry/hf/",
+    "gmeow-labelset": "https://blackcatinformatics.ca/gmeow-registry/labelset/",
+    # W3C EmotionML Vocabularies — the external bridge target of the affect EmotionML
+    # projection (set-level relatedMatch cells; the per-item categories are XML `name`
+    # attributes with no per-term IRI, so only the vocabulary-set anchors are bridged).
+    "emo": "https://www.w3.org/TR/emotion-voc/#",
     # Upper-ontology spine
     "gufo": "http://purl.org/nemo/gufo#",
     "ontouml": "https://w3id.org/ontouml#",

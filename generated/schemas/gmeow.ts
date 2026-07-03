@@ -45,6 +45,10 @@ export enum AestheticQualityEnum {
     qualitySublimity = "qualitySublimity",
 }
 
+export enum AffectFunctionEnum {
+    fnAffectiveIntensity = "fnAffectiveIntensity",
+}
+
 export enum AgentEnum {
     fixtureAnalystA = "fixtureAnalystA",
     fixtureAnalystAI = "fixtureAnalystAI",
@@ -93,9 +97,15 @@ export enum AnnotationMotivationEnum {
 }
 
 export enum AppraisalDimensionEnum {
-    dimensionArousal = "dimensionArousal",
-    dimensionDominance = "dimensionDominance",
-    dimensionValence = "dimensionValence",
+    dimensionAgency = "dimensionAgency",
+    dimensionCertainty = "dimensionCertainty",
+    dimensionCoping = "dimensionCoping",
+    dimensionGoalCongruence = "dimensionGoalCongruence",
+    dimensionGoalRelevance = "dimensionGoalRelevance",
+    dimensionNormCompatibility = "dimensionNormCompatibility",
+    dimensionNovelty = "dimensionNovelty",
+    dimensionObjectFocus = "dimensionObjectFocus",
+    dimensionTemporalOrientation = "dimensionTemporalOrientation",
 }
 
 export enum ArcTypeEnum {
@@ -488,6 +498,12 @@ export enum ContentTransferEncodingEnum {
     transferEncodingQuotedPrintable = "transferEncodingQuotedPrintable",
 }
 
+export enum ContinuityVerdictEnum {
+    continuityDifferent = "continuityDifferent",
+    continuityIndeterminate = "continuityIndeterminate",
+    continuitySame = "continuitySame",
+}
+
 export enum ContradictionKindEnum {
     contradictionKindFactual = "contradictionKindFactual",
     contradictionKindFraming = "contradictionKindFraming",
@@ -560,6 +576,12 @@ export enum ControlFlowEnum {
     flowIngestion5 = "flowIngestion5",
 }
 
+export enum ControlLevelEnum {
+    controlContested = "controlContested",
+    controlFull = "controlFull",
+    controlPartial = "controlPartial",
+}
+
 export enum CopyrightStatusEnum {
     copyrightStatusInCopyright = "copyrightStatusInCopyright",
     copyrightStatusInCopyrightEducationalUse = "copyrightStatusInCopyrightEducationalUse",
@@ -574,6 +596,13 @@ export enum CopyrightStatusEnum {
     copyrightStatusNotEvaluated = "copyrightStatusNotEvaluated",
     copyrightStatusPublicDomain = "copyrightStatusPublicDomain",
     copyrightStatusUndetermined = "copyrightStatusUndetermined",
+}
+
+export enum CoreAffectDimensionEnum {
+    dimensionArousal = "dimensionArousal",
+    dimensionDominance = "dimensionDominance",
+    dimensionUnpredictability = "dimensionUnpredictability",
+    dimensionValence = "dimensionValence",
 }
 
 export enum CoverageDepthEnum {
@@ -707,6 +736,12 @@ export enum DeterminacyEnum {
     determinacyVague = "determinacyVague",
 }
 
+export enum DeterminationForceEnum {
+    forceAdvisory = "forceAdvisory",
+    forceBinding = "forceBinding",
+    forceProvisional = "forceProvisional",
+}
+
 export enum DeterminationStatusEnum {
     determinationConstrained = "determinationConstrained",
     determinationDelegatedEnvironment = "determinationDelegatedEnvironment",
@@ -721,6 +756,11 @@ export enum DiagnosticSeverityEnum {
     severityInfo = "severityInfo",
     severityNote = "severityNote",
     severityWarning = "severityWarning",
+}
+
+export enum DimensionFamilyEnum {
+    familyAppraisal = "familyAppraisal",
+    familyCoreAffect = "familyCoreAffect",
 }
 
 export enum DisclosurePolicyEnum {
@@ -766,6 +806,8 @@ export enum EmotionTypeEnum {
     emotionFear = "emotionFear",
     emotionJoy = "emotionJoy",
     emotionSadness = "emotionSadness",
+    emotionSaudade = "emotionSaudade",
+    emotionSchadenfreude = "emotionSchadenfreude",
     emotionSurprise = "emotionSurprise",
     emotionTrust = "emotionTrust",
 }
@@ -856,6 +898,7 @@ export enum EventTypeEnum {
     eventTypeImageScanning = "eventTypeImageScanning",
     eventTypeImmigration = "eventTypeImmigration",
     eventTypeImpersonation = "eventTypeImpersonation",
+    eventTypeInhabitationTransition = "eventTypeInhabitationTransition",
     eventTypeJamSession = "eventTypeJamSession",
     eventTypeLie = "eventTypeLie",
     eventTypeManifestationProduction = "eventTypeManifestationProduction",
@@ -1222,6 +1265,11 @@ export enum InferenceModeEnum {
     modeAnalogical = "modeAnalogical",
     modeDeduction = "modeDeduction",
     modeInduction = "modeInduction",
+}
+
+export enum InhabitationLocusKindEnum {
+    locusSelf = "locusSelf",
+    locusVessel = "locusVessel",
 }
 
 export enum InstrumentConfigurationEnum {
@@ -2661,6 +2709,11 @@ export enum SLSALevelEnum {
     slsaLevel4 = "slsaLevel4",
 }
 
+export enum ScalePolarityEnum {
+    polarityBipolar = "polarityBipolar",
+    polarityUnipolar = "polarityUnipolar",
+}
+
 export enum SceneRelationTypeEnum {
     sceneRelationAbove = "sceneRelationAbove",
     sceneRelationBelow = "sceneRelationBelow",
@@ -2687,6 +2740,14 @@ export enum SchenkerLevelEnum {
 
 export enum ScoreEditionEnum {
     fixtureGraphicScoreVisual = "fixtureGraphicScoreVisual",
+}
+
+export enum ScoreSemanticsEnum {
+    scoreCalibratedProbability = "scoreCalibratedProbability",
+    scoreLogit = "scoreLogit",
+    scoreMargin = "scoreMargin",
+    scoreSigmoid = "scoreSigmoid",
+    scoreSoftmax = "scoreSoftmax",
 }
 
 export enum ScriptRoleEnum {
@@ -3239,8 +3300,59 @@ export interface AdoptiveParentChild extends ParentChildRelationship {
 export interface AestheticQuality {
 }
 
+export interface AffectClassifierLabel extends InformationObject {
+    memberOfLabelSet?: AffectLabelSet[],
+}
+
+export interface AffectClassifierOutput extends Observation {
+    canonicalizesAs?: string[],
+    classifiedTarget?: string[],
+    classifierScore?: number[],
+    emittedLabel?: AffectClassifierLabel[],
+    producedBy?: ModelInferenceRun,
+    scoreCalibration?: string[],
+    scoreSemantics?: ScoreSemantics,
+    thresholdApplied?: number[],
+}
+
+export interface AffectComposite extends Emotion {
+    affectiveConstituent?: string[],
+}
+
+export interface AffectEvaluationConcluded extends Observation {
+}
+
+export interface AffectFunction {
+}
+
+export interface AffectLabelSet extends InformationObject {
+}
+
+export interface AffectScaleProfile extends InformationObject {
+    profileMidpoint?: number,
+    profilePolarity?: ScalePolarity,
+    profileRangeMax?: number,
+    profileRangeMin?: number,
+    profileTransform?: string,
+}
+
+export interface AffectTelemetryStream extends Stream {
+    telemetryBlob?: string[],
+}
+
+export interface AffectVectorObservation extends Observation {
+    vectorComponent?: Appraisal[],
+    vectorProfile?: AffectScaleProfile,
+}
+
+export interface AffectiveClaim extends Observation {
+}
+
 export interface AffectiveExperience extends Experience {
     feltAffect?: AffectiveMoment[],
+}
+
+export interface AffectiveExpression extends Observation {
 }
 
 export interface AffectiveMoment extends Entity {
@@ -3251,6 +3363,7 @@ export interface Agent extends Entity {
     asks?: string[],
     attendsTo?: Entity[],
     awareOfNotKnowing?: string[],
+    bearsDigitalSubject?: DigitalSubjectTenure[],
     believes?: string[],
     claimsToKnowThat?: string[],
     curiousAbout?: Entity[],
@@ -3340,10 +3453,12 @@ export interface Appraisal extends Observation {
     appraisalDimension?: AppraisalDimension[],
     appraisalOf?: string,
     appraisalQuality?: AestheticQuality[],
+    appraisalScaleProfile?: AffectScaleProfile,
     appraisalValue?: number[],
 }
 
 export interface AppraisalDimension {
+    dimensionFamily?: DimensionFamily[],
 }
 
 export interface ArcSample extends Observation {
@@ -3808,6 +3923,16 @@ export interface ContentSegmentType {
 export interface ContentTransferEncoding {
 }
 
+export interface ContinuityDetermination extends IdentityContinuityAssessment {
+    determinationForce?: DeterminationForce[],
+    determinationGrounds?: string[],
+    determinationValidity?: TimeInterval[],
+    determiningAuthority?: Agent[],
+}
+
+export interface ContinuityVerdict {
+}
+
 export interface Contract extends Agreement {
 }
 
@@ -3833,11 +3958,21 @@ export interface ContributionDegree {
 export interface ContributionRole {
 }
 
+export interface ControlAssessment extends Observation {
+    controlAgent?: Agent[],
+    controlInterval?: TimeInterval[],
+    controlLevel?: ControlLevel[],
+    controlOver?: string[],
+}
+
 export interface ControlFlow {
     flowGuard?: BranchConditionType[],
     flowOrder?: number[],
     flowSource?: ProcedureStep[],
     flowTarget?: ProcedureStep[],
+}
+
+export interface ControlLevel {
 }
 
 export interface CoordinateMatrix extends Entity {
@@ -3861,6 +3996,9 @@ export interface Copyright {
 }
 
 export interface CopyrightStatus {
+}
+
+export interface CoreAffectDimension extends AppraisalDimension {
 }
 
 export interface Corpus extends InformationObject {
@@ -4040,10 +4178,21 @@ export interface DerivationKind {
 export interface DerivationType {
 }
 
+export interface DerivedAffectIntensityObservation extends Observation {
+    derivedByFunction?: AffectFunction[],
+    intensityBasis?: AffectVectorObservation,
+    metricProfile?: AffectScaleProfile,
+    normFunction?: string,
+    weightingPolicy?: string,
+}
+
 export interface Desire extends IntentionalMode {
 }
 
 export interface Determinacy {
+}
+
+export interface DeterminationForce {
 }
 
 export interface DeterminationStatus {
@@ -4055,6 +4204,18 @@ export interface DiagnosticSeverity {
 export interface Diff extends InformationObject {
     diffFrom?: Commit,
     diffTo?: Commit,
+}
+
+export interface DigitalSubject extends Agent {
+}
+
+export interface DigitalSubjectTenure extends TimeScopedRelation {
+    tenureSubjectAgent?: Agent[],
+    tenureSupportedBy?: Observation[],
+    tenureVantage?: Agent[],
+}
+
+export interface DimensionFamily {
 }
 
 export interface DisclosurePolicy {
@@ -4156,6 +4317,15 @@ export interface Embedding extends InformationObject {
     embeddingModel?: SoftwareAgent,
     embeddingOf?: InformationObject,
     vectorRef?: string[],
+}
+
+export interface EmbodimentAssignment extends TimeScopedRelation {
+    assignmentCapability?: string[],
+    assignmentCarrier?: EmbodimentCarrierRole[],
+    assignmentSubject?: Agent[],
+}
+
+export interface EmbodimentCarrierRole extends Entity {
 }
 
 export interface Emotion extends AffectiveMoment {
@@ -4292,6 +4462,7 @@ export interface Event {
     hasDuration?: Duration[],
     hasParticipant?: Agent[],
     hasSubEvent?: Event[],
+    hasTransferManifest?: TransferManifest[],
     heldStandpoint?: DoxasticStandpointClaim[],
     implicates?: Entity[],
     latestEnd?: string[],
@@ -4302,6 +4473,8 @@ export interface Event {
     overlappedBy?: Event[],
     overlaps?: Event[],
     performanceOf?: CreativeWork[],
+    portalFrom?: InhabitationTenure[],
+    portalTo?: InhabitationTenure[],
     predecessorOrganization?: Organization[],
     producesClaim?: ClaimToken[],
     projectedStandpoint?: DoxasticStandpointClaim[],
@@ -4610,6 +4783,12 @@ export interface Identifier {
     jurisdiction?: Location[],
 }
 
+export interface IdentityContinuityAssessment extends Observation {
+    assessmentFromStage?: SubjectStage[],
+    assessmentToStage?: SubjectStage[],
+    continuityVerdict?: ContinuityVerdict[],
+}
+
 export interface IdentityFacet extends Observation {
     selfAsserted?: boolean,
 }
@@ -4656,6 +4835,36 @@ export interface InformationObject extends Entity {
     contributesToFrame?: NarrativeReferenceFrame[],
     detectedMediaType?: string[],
     writtenInLanguage?: Language[],
+}
+
+export interface Inhabitant extends Agent {
+}
+
+export interface InhabitationClaim extends StandpointClaim {
+}
+
+export interface InhabitationConfiguration extends TimeScopedRelation {
+    configurationEmbodiment?: EmbodimentAssignment[],
+    configurationFacet?: string[],
+    configurationOfTenure?: InhabitationTenure[],
+}
+
+export interface InhabitationDescription extends Proposition {
+    describedHost?: string[],
+    describedLocusKind?: string[],
+    describedSubject?: string[],
+}
+
+export interface InhabitationLocusKind {
+}
+
+export interface InhabitationTenure extends TimeScopedRelation {
+    inhabitationLocusKind?: InhabitationLocusKind,
+    inhabitationSubject?: Agent,
+    inhabitedHost?: Entity,
+}
+
+export interface InhabitedSystem extends Entity {
 }
 
 export interface InlinePart extends BodyPart {
@@ -5192,6 +5401,16 @@ export interface ModelCard extends InformationObject {
     modelProvider?: string[],
     modelTrainingCutoff?: string[],
     modelVersionTag?: string[],
+}
+
+export interface ModelInferenceRun extends Entity {
+    labelSetRevision?: string[],
+    modelFramework?: string[],
+    modelIdentifier?: string,
+    modelRevision?: string,
+    modelTask?: string[],
+    tokenizerRevision?: string[],
+    usedInput?: string[],
 }
 
 export interface ModelInvocation extends Activity {
@@ -6083,6 +6302,9 @@ export interface ScalarQuantity extends Entity {
     quantityValue?: number,
 }
 
+export interface ScalePolarity {
+}
+
 export interface Scenario extends Entity {
 }
 
@@ -6120,6 +6342,9 @@ export interface ScoreScale extends InformationObject {
     scaleMax?: number,
     scaleMin?: number,
     scaleStep?: number,
+}
+
+export interface ScoreSemantics {
 }
 
 export interface ScriptLanguageAttribution extends Observation {
@@ -6387,6 +6612,14 @@ export interface StyleGuide extends InformationObject {
     voiceExemplifiedBy?: Document[],
 }
 
+export interface SubjectLineage extends InformationObject {
+}
+
+export interface SubjectStage extends TimeScopedRelation {
+    stageBearer?: Agent[],
+    stageOfLineage?: SubjectLineage[],
+}
+
 export interface Summary extends InformationObject {
 }
 
@@ -6541,6 +6774,7 @@ export interface TimeScale extends Entity {
 
 export interface TimeScopedRelation {
     duringInterval?: TimeInterval[],
+    tenureEndedBy?: Event[],
 }
 
 export interface TimeZone extends Entity {
@@ -6583,6 +6817,10 @@ export interface TransactionStatus {
 }
 
 export interface TransactionType {
+}
+
+export interface TransferManifest extends InformationObject {
+    transferredView?: string[],
 }
 
 export interface TransformCodec {

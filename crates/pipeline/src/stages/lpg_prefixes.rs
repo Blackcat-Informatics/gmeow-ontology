@@ -51,6 +51,7 @@ const PREFIXES_BY_LEN: &[(&str, &str)] = &[
     ("brick", "https://brickschema.org/schema/Brick#"),
     ("geo", "http://www.opengis.net/ont/geosparql#"),
     ("mrg", "http://marineregions.org/ns/ontology#"),
+    ("math", "https://blackcatinformatics.ca/math/"),
     ("skos", "http://www.w3.org/2004/02/skos/core#"),
     ("pato", "http://purl.obolibrary.org/obo/PATO_"),
     ("crmarc", "http://www.cidoc-crm.org/crmarchaeo/"),

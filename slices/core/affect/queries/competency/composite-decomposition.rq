@@ -1,0 +1,21 @@
+# Competency question 9: "Which axis-vector and relations decompose a given named
+# emotion — is this 'schadenfreude' a positive vector over another's misfortune?"
+# The composite's declared constituents are its core-affect vector cells (valence,
+# arousal) plus its differentiating appraisal relations (agency other-directed,
+# norm deserved). Modeling up, not minting: the decomposing axes are queryable.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/tests/>
+
+SELECT DISTINCT ?dimension WHERE {
+    ex:schadenfreude gmeow:affectiveConstituent ?constituent .
+    {
+        ?constituent gmeow:appraisalDimension ?dimension .
+    }
+    UNION
+    {
+        ?constituent gmeow:vectorComponent ?cell .
+        ?cell gmeow:appraisalDimension ?dimension .
+    }
+}
+ORDER BY ?dimension

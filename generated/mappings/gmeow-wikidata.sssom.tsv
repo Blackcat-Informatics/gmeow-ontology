@@ -7,6 +7,7 @@
 # comment: "GMEOW term to Wikidata Q-item alignments (concept-scheme layer; QIDs validated)."
 # curie_map:
 #   gmeow: https://blackcatinformatics.ca/gmeow/
+#   math: https://blackcatinformatics.ca/math/
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
 #   wd: http://www.wikidata.org/entity/
@@ -66,3 +67,11 @@ gmeow:rightsTypeRelatedRights	skos:closeMatch	wd:Q489344	related rights	semapv:M
 gmeow:rightsTypeTradeSecret	skos:closeMatch	wd:Q602938	trade secret	semapv:ManualMappingCuration	0.8	
 gmeow:rightsTypeTrademark	skos:closeMatch	wd:Q167270	trademark	semapv:ManualMappingCuration	0.8	
 gmeow:trademarkMark	skos:relatedMatch	wd:P1716	brand	semapv:ManualMappingCuration	0.6	
+math:complexNumbers	skos:closeMatch	wd:Q11567	complex number	semapv:ManualMappingCuration	0.85	math:complexNumbers is the system ℂ; wd:Q11567 (complex number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object.
+math:eulerMascheroni	skos:exactMatch	wd:Q273023	Euler–Mascheroni constant	semapv:ManualMappingCuration	1.0	math:eulerMascheroni is the exact constant γ; wd:Q273023 (Euler–Mascheroni constant) is the same constant — the limiting difference between the harmonic series and the natural logarithm. Identity, so skos:exactMatch.
+math:eulerNumber	skos:exactMatch	wd:Q82435	Euler's number	semapv:ManualMappingCuration	1.0	math:eulerNumber is the exact constant e; wd:Q82435 (Euler's number) is the same constant — the base of the natural logarithm. Identity, so skos:exactMatch.
+math:integers	skos:closeMatch	wd:Q12503	integer	semapv:ManualMappingCuration	0.85	math:integers is the system ℤ; wd:Q12503 (integer) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object.
+math:naturalNumbers	skos:closeMatch	wd:Q21199	natural number	semapv:ManualMappingCuration	0.85	math:naturalNumbers is the system ℕ; wd:Q21199 (natural number) names the number-type concept. closeMatch, not identity: the system individual and the (deliberately ambiguous — non-negative or positive) number-type concept are close counterparts, not invertibly the same object.
+math:pi	skos:exactMatch	wd:Q167	pi	semapv:ManualMappingCuration	1.0	math:pi is the exact constant π; wd:Q167 (pi) is the same constant — the ratio of a circle's circumference to its diameter. Identity, so skos:exactMatch.
+math:rationalNumbers	skos:closeMatch	wd:Q1244890	rational number	semapv:ManualMappingCuration	0.85	math:rationalNumbers is the system ℚ; wd:Q1244890 (rational number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object.
+math:realNumbers	skos:closeMatch	wd:Q12916	real number	semapv:ManualMappingCuration	0.85	math:realNumbers is the system ℝ; wd:Q12916 (real number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object.

@@ -69,6 +69,10 @@ class AestheticQualityEnum(str, Enum):
     qualitySublimity = "qualitySublimity"
 
 
+class AffectFunctionEnum(str, Enum):
+    fnAffectiveIntensity = "fnAffectiveIntensity"
+
+
 class AgentEnum(str, Enum):
     fixtureAnalystA = "fixtureAnalystA"
     fixtureAnalystAI = "fixtureAnalystAI"
@@ -117,9 +121,15 @@ class AnnotationMotivationEnum(str, Enum):
 
 
 class AppraisalDimensionEnum(str, Enum):
-    dimensionArousal = "dimensionArousal"
-    dimensionDominance = "dimensionDominance"
-    dimensionValence = "dimensionValence"
+    dimensionAgency = "dimensionAgency"
+    dimensionCertainty = "dimensionCertainty"
+    dimensionCoping = "dimensionCoping"
+    dimensionGoalCongruence = "dimensionGoalCongruence"
+    dimensionGoalRelevance = "dimensionGoalRelevance"
+    dimensionNormCompatibility = "dimensionNormCompatibility"
+    dimensionNovelty = "dimensionNovelty"
+    dimensionObjectFocus = "dimensionObjectFocus"
+    dimensionTemporalOrientation = "dimensionTemporalOrientation"
 
 
 class ArcTypeEnum(str, Enum):
@@ -512,6 +522,12 @@ class ContentTransferEncodingEnum(str, Enum):
     transferEncodingQuotedPrintable = "transferEncodingQuotedPrintable"
 
 
+class ContinuityVerdictEnum(str, Enum):
+    continuityDifferent = "continuityDifferent"
+    continuityIndeterminate = "continuityIndeterminate"
+    continuitySame = "continuitySame"
+
+
 class ContradictionKindEnum(str, Enum):
     contradictionKindFactual = "contradictionKindFactual"
     contradictionKindFraming = "contradictionKindFraming"
@@ -584,6 +600,12 @@ class ControlFlowEnum(str, Enum):
     flowIngestion5 = "flowIngestion5"
 
 
+class ControlLevelEnum(str, Enum):
+    controlContested = "controlContested"
+    controlFull = "controlFull"
+    controlPartial = "controlPartial"
+
+
 class CopyrightStatusEnum(str, Enum):
     copyrightStatusInCopyright = "copyrightStatusInCopyright"
     copyrightStatusInCopyrightEducationalUse = "copyrightStatusInCopyrightEducationalUse"
@@ -598,6 +620,13 @@ class CopyrightStatusEnum(str, Enum):
     copyrightStatusNotEvaluated = "copyrightStatusNotEvaluated"
     copyrightStatusPublicDomain = "copyrightStatusPublicDomain"
     copyrightStatusUndetermined = "copyrightStatusUndetermined"
+
+
+class CoreAffectDimensionEnum(str, Enum):
+    dimensionArousal = "dimensionArousal"
+    dimensionDominance = "dimensionDominance"
+    dimensionUnpredictability = "dimensionUnpredictability"
+    dimensionValence = "dimensionValence"
 
 
 class CoverageDepthEnum(str, Enum):
@@ -731,6 +760,12 @@ class DeterminacyEnum(str, Enum):
     determinacyVague = "determinacyVague"
 
 
+class DeterminationForceEnum(str, Enum):
+    forceAdvisory = "forceAdvisory"
+    forceBinding = "forceBinding"
+    forceProvisional = "forceProvisional"
+
+
 class DeterminationStatusEnum(str, Enum):
     determinationConstrained = "determinationConstrained"
     determinationDelegatedEnvironment = "determinationDelegatedEnvironment"
@@ -745,6 +780,11 @@ class DiagnosticSeverityEnum(str, Enum):
     severityInfo = "severityInfo"
     severityNote = "severityNote"
     severityWarning = "severityWarning"
+
+
+class DimensionFamilyEnum(str, Enum):
+    familyAppraisal = "familyAppraisal"
+    familyCoreAffect = "familyCoreAffect"
 
 
 class DisclosurePolicyEnum(str, Enum):
@@ -790,6 +830,8 @@ class EmotionTypeEnum(str, Enum):
     emotionFear = "emotionFear"
     emotionJoy = "emotionJoy"
     emotionSadness = "emotionSadness"
+    emotionSaudade = "emotionSaudade"
+    emotionSchadenfreude = "emotionSchadenfreude"
     emotionSurprise = "emotionSurprise"
     emotionTrust = "emotionTrust"
 
@@ -880,6 +922,7 @@ class EventTypeEnum(str, Enum):
     eventTypeImageScanning = "eventTypeImageScanning"
     eventTypeImmigration = "eventTypeImmigration"
     eventTypeImpersonation = "eventTypeImpersonation"
+    eventTypeInhabitationTransition = "eventTypeInhabitationTransition"
     eventTypeJamSession = "eventTypeJamSession"
     eventTypeLie = "eventTypeLie"
     eventTypeManifestationProduction = "eventTypeManifestationProduction"
@@ -1246,6 +1289,11 @@ class InferenceModeEnum(str, Enum):
     modeAnalogical = "modeAnalogical"
     modeDeduction = "modeDeduction"
     modeInduction = "modeInduction"
+
+
+class InhabitationLocusKindEnum(str, Enum):
+    locusSelf = "locusSelf"
+    locusVessel = "locusVessel"
 
 
 class InstrumentConfigurationEnum(str, Enum):
@@ -2685,6 +2733,11 @@ class SLSALevelEnum(str, Enum):
     slsaLevel4 = "slsaLevel4"
 
 
+class ScalePolarityEnum(str, Enum):
+    polarityBipolar = "polarityBipolar"
+    polarityUnipolar = "polarityUnipolar"
+
+
 class SceneRelationTypeEnum(str, Enum):
     sceneRelationAbove = "sceneRelationAbove"
     sceneRelationBelow = "sceneRelationBelow"
@@ -2711,6 +2764,14 @@ class SchenkerLevelEnum(str, Enum):
 
 class ScoreEditionEnum(str, Enum):
     fixtureGraphicScoreVisual = "fixtureGraphicScoreVisual"
+
+
+class ScoreSemanticsEnum(str, Enum):
+    scoreCalibratedProbability = "scoreCalibratedProbability"
+    scoreLogit = "scoreLogit"
+    scoreMargin = "scoreMargin"
+    scoreSigmoid = "scoreSigmoid"
+    scoreSoftmax = "scoreSoftmax"
 
 
 class ScriptRoleEnum(str, Enum):
@@ -3292,6 +3353,7 @@ class Event(ConfiguredBaseModel):
     hasDuration: list[Duration] | None = Field(default=None)
     hasParticipant: list[Agent] | None = Field(default=None)
     hasSubEvent: list[Event] | None = Field(default=None)
+    hasTransferManifest: list[TransferManifest] | None = Field(default=None)
     heldStandpoint: list[DoxasticStandpointClaim] | None = Field(default=None)
     implicates: list[Entity] | None = Field(default=None)
     latestEnd: list[str] | None = Field(default=None)
@@ -3302,6 +3364,8 @@ class Event(ConfiguredBaseModel):
     overlappedBy: list[Event] | None = Field(default=None)
     overlaps: list[Event] | None = Field(default=None)
     performanceOf: list[CreativeWork] | None = Field(default=None)
+    portalFrom: list[InhabitationTenure] | None = Field(default=None)
+    portalTo: list[InhabitationTenure] | None = Field(default=None)
     predecessorOrganization: list[Organization] | None = Field(default=None)
     producesClaim: list[ClaimToken] | None = Field(default=None)
     projectedStandpoint: list[DoxasticStandpointClaim] | None = Field(default=None)
@@ -3323,6 +3387,7 @@ class Activity(Event):
 class TimeScopedRelation(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TimeScopedRelation"
     duringInterval: list[TimeInterval] | None = Field(default=None)
+    tenureEndedBy: list[Event] | None = Field(default=None)
 
 
 class AddressTenure(TimeScopedRelation):
@@ -3382,28 +3447,6 @@ class AdoptiveParentChild(ParentChildRelationship):
 class AestheticQuality(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AestheticQuality"
     pass
-
-
-class MentalProcess(Event):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/MentalProcess"
-    is_a: ClassVar[str] = "Event"
-    experiencer: Agent | None = Field(default=None)
-    mentalProcessType: list[MentalProcessType] | None = Field(default=None)
-    producesMentalMoment: list[MentalMoment] | None = Field(default=None)
-    realizesMentalMoment: list[MentalMoment] | None = Field(default=None)
-    updatesMentalTenure: list[TimeScopedRelation] | None = Field(default=None)
-
-
-class Experience(MentalProcess):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Experience"
-    is_a: ClassVar[str] = "MentalProcess"
-    dreamElement: list[str] | None = Field(default=None, description="Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9).")
-
-
-class AffectiveExperience(Experience):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectiveExperience"
-    is_a: ClassVar[str] = "Experience"
-    feltAffect: list[AffectiveMoment] | None = Field(default=None)
 
 
 class Entity(ConfiguredBaseModel):
@@ -3466,9 +3509,135 @@ class Entity(ConfiguredBaseModel):
     wasGeneratedBy: list[Activity] | None = Field(default=None)
 
 
+class InformationObject(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InformationObject"
+    is_a: ClassVar[str] = "Entity"
+    contributesToFrame: list[NarrativeReferenceFrame] | None = Field(default=None)
+    detectedMediaType: list[str] | None = Field(default=None)
+    writtenInLanguage: list[Language] | None = Field(default=None)
+
+
+class AffectClassifierLabel(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel"
+    is_a: ClassVar[str] = "InformationObject"
+    memberOfLabelSet: list[AffectLabelSet] | None = Field(default=None)
+
+
+class AffectClassifierOutput(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput"
+    is_a: ClassVar[str] = "Observation"
+    canonicalizesAs: list[str] | None = Field(default=None)
+    classifiedTarget: list[str] | None = Field(default=None)
+    classifierScore: list[float] | None = Field(default=None)
+    emittedLabel: list[AffectClassifierLabel] | None = Field(default=None)
+    producedBy: ModelInferenceRun | None = Field(default=None)
+    scoreCalibration: list[str] | None = Field(default=None)
+    scoreSemantics: ScoreSemantics | None = Field(default=None)
+    thresholdApplied: list[float] | None = Field(default=None)
+
+
 class AffectiveMoment(Entity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectiveMoment"
     is_a: ClassVar[str] = "Entity"
+    pass
+
+
+class Emotion(AffectiveMoment):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Emotion"
+    is_a: ClassVar[str] = "AffectiveMoment"
+    affectiveElicitor: list[str] | None = Field(default=None)
+    affectiveTarget: list[str] | None = Field(default=None)
+    emotionBearer: Agent | None = Field(default=None)
+    emotionType: list[EmotionType] | None = Field(default=None)
+
+
+class AffectComposite(Emotion):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectComposite"
+    is_a: ClassVar[str] = "Emotion"
+    affectiveConstituent: list[str] | None = Field(default=None)
+
+
+class AffectEvaluationConcluded(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectEvaluationConcluded"
+    is_a: ClassVar[str] = "Observation"
+    pass
+
+
+class AffectFunction(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectFunction"
+    pass
+
+
+class AffectLabelSet(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectLabelSet"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
+class AffectScaleProfile(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectScaleProfile"
+    is_a: ClassVar[str] = "InformationObject"
+    profileMidpoint: float | None = Field(default=None)
+    profilePolarity: ScalePolarity | None = Field(default=None)
+    profileRangeMax: float | None = Field(default=None)
+    profileRangeMin: float | None = Field(default=None)
+    profileTransform: str | None = Field(default=None)
+
+
+class Stream(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Stream"
+    is_a: ClassVar[str] = "Entity"
+    streamInterval: TimeInterval | None = Field(default=None)
+    streamOf: Entity | None = Field(default=None)
+    streamPlatform: list[Agent] | None = Field(default=None)
+    streamSample: list[Entity] | None = Field(default=None)
+    streamSensor: list[Agent] | None = Field(default=None)
+
+
+class AffectTelemetryStream(Stream):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectTelemetryStream"
+    is_a: ClassVar[str] = "Stream"
+    telemetryBlob: list[str] | None = Field(default=None)
+
+
+class AffectVectorObservation(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectVectorObservation"
+    is_a: ClassVar[str] = "Observation"
+    vectorComponent: list[Appraisal] | None = Field(default=None)
+    vectorProfile: AffectScaleProfile | None = Field(default=None)
+
+
+class AffectiveClaim(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectiveClaim"
+    is_a: ClassVar[str] = "Observation"
+    pass
+
+
+class MentalProcess(Event):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/MentalProcess"
+    is_a: ClassVar[str] = "Event"
+    experiencer: Agent | None = Field(default=None)
+    mentalProcessType: list[MentalProcessType] | None = Field(default=None)
+    producesMentalMoment: list[MentalMoment] | None = Field(default=None)
+    realizesMentalMoment: list[MentalMoment] | None = Field(default=None)
+    updatesMentalTenure: list[TimeScopedRelation] | None = Field(default=None)
+
+
+class Experience(MentalProcess):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Experience"
+    is_a: ClassVar[str] = "MentalProcess"
+    dreamElement: list[str] | None = Field(default=None, description="Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9).")
+
+
+class AffectiveExperience(Experience):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectiveExperience"
+    is_a: ClassVar[str] = "Experience"
+    feltAffect: list[AffectiveMoment] | None = Field(default=None)
+
+
+class AffectiveExpression(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectiveExpression"
+    is_a: ClassVar[str] = "Observation"
     pass
 
 
@@ -3479,6 +3648,7 @@ class Agent(Entity):
     asks: list[str] | None = Field(default=None)
     attendsTo: list[Entity] | None = Field(default=None)
     awareOfNotKnowing: list[str] | None = Field(default=None)
+    bearsDigitalSubject: list[DigitalSubjectTenure] | None = Field(default=None)
     believes: list[str] | None = Field(default=None)
     claimsToKnowThat: list[str] | None = Field(default=None)
     curiousAbout: list[Entity] | None = Field(default=None)
@@ -3583,12 +3753,13 @@ class Appraisal(Observation):
     appraisalDimension: list[AppraisalDimension] | None = Field(default=None)
     appraisalOf: str | None = Field(default=None)
     appraisalQuality: list[AestheticQuality] | None = Field(default=None)
+    appraisalScaleProfile: AffectScaleProfile | None = Field(default=None)
     appraisalValue: list[float] | None = Field(default=None)
 
 
 class AppraisalDimension(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AppraisalDimension"
-    pass
+    dimensionFamily: list[DimensionFamily] | None = Field(default=None)
 
 
 class ArcSample(Observation):
@@ -3632,14 +3803,6 @@ class ArgumentEvaluation(ConfiguredBaseModel):
     evaluatesArgument: Argument | None = Field(default=None)
     extensionMember: list[Argument] | None = Field(default=None)
     underSemantics: str | None = Field(default=None)
-
-
-class InformationObject(Entity):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InformationObject"
-    is_a: ClassVar[str] = "Entity"
-    contributesToFrame: list[NarrativeReferenceFrame] | None = Field(default=None)
-    detectedMediaType: list[str] | None = Field(default=None)
-    writtenInLanguage: list[Language] | None = Field(default=None)
 
 
 class CreativeWork(InformationObject):
@@ -4450,6 +4613,28 @@ class ContentTransferEncoding(ConfiguredBaseModel):
     pass
 
 
+class IdentityContinuityAssessment(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/IdentityContinuityAssessment"
+    is_a: ClassVar[str] = "Observation"
+    assessmentFromStage: list[SubjectStage] | None = Field(default=None)
+    assessmentToStage: list[SubjectStage] | None = Field(default=None)
+    continuityVerdict: list[ContinuityVerdict] | None = Field(default=None)
+
+
+class ContinuityDetermination(IdentityContinuityAssessment):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ContinuityDetermination"
+    is_a: ClassVar[str] = "IdentityContinuityAssessment"
+    determinationForce: list[DeterminationForce] | None = Field(default=None)
+    determinationGrounds: list[str] | None = Field(default=None)
+    determinationValidity: list[TimeInterval] | None = Field(default=None)
+    determiningAuthority: list[Agent] | None = Field(default=None)
+
+
+class ContinuityVerdict(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ContinuityVerdict"
+    pass
+
+
 class Contract(Agreement):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Contract"
     is_a: ClassVar[str] = "Agreement"
@@ -4486,12 +4671,26 @@ class ContributionRole(ConfiguredBaseModel):
     pass
 
 
+class ControlAssessment(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ControlAssessment"
+    is_a: ClassVar[str] = "Observation"
+    controlAgent: list[Agent] | None = Field(default=None)
+    controlInterval: list[TimeInterval] | None = Field(default=None)
+    controlLevel: list[ControlLevel] | None = Field(default=None)
+    controlOver: list[str] | None = Field(default=None)
+
+
 class ControlFlow(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ControlFlow"
     flowGuard: list[BranchConditionType] | None = Field(default=None)
     flowOrder: list[int] | None = Field(default=None)
     flowSource: list[ProcedureStep] | None = Field(default=None)
     flowTarget: list[ProcedureStep] | None = Field(default=None)
+
+
+class ControlLevel(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ControlLevel"
+    pass
 
 
 class CoordinateMatrix(Entity):
@@ -4527,6 +4726,12 @@ class Copyright(ConfiguredBaseModel):
 
 class CopyrightStatus(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CopyrightStatus"
+    pass
+
+
+class CoreAffectDimension(AppraisalDimension):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CoreAffectDimension"
+    is_a: ClassVar[str] = "AppraisalDimension"
     pass
 
 
@@ -4734,6 +4939,16 @@ class DerivationType(ConfiguredBaseModel):
     pass
 
 
+class DerivedAffectIntensityObservation(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation"
+    is_a: ClassVar[str] = "Observation"
+    derivedByFunction: list[AffectFunction] | None = Field(default=None)
+    intensityBasis: AffectVectorObservation | None = Field(default=None)
+    metricProfile: AffectScaleProfile | None = Field(default=None)
+    normFunction: str | None = Field(default=None)
+    weightingPolicy: str | None = Field(default=None)
+
+
 class IntentionalMode(IntentionalMoment):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/IntentionalMode"
     is_a: ClassVar[str] = "IntentionalMoment"
@@ -4748,6 +4963,11 @@ class Desire(IntentionalMode):
 
 class Determinacy(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Determinacy"
+    pass
+
+
+class DeterminationForce(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DeterminationForce"
     pass
 
 
@@ -4766,6 +4986,25 @@ class Diff(InformationObject):
     is_a: ClassVar[str] = "InformationObject"
     diffFrom: Commit | None = Field(default=None)
     diffTo: Commit | None = Field(default=None)
+
+
+class DigitalSubject(Agent):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DigitalSubject"
+    is_a: ClassVar[str] = "Agent"
+    pass
+
+
+class DigitalSubjectTenure(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DigitalSubjectTenure"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    tenureSubjectAgent: list[Agent] | None = Field(default=None)
+    tenureSupportedBy: list[Observation] | None = Field(default=None)
+    tenureVantage: list[Agent] | None = Field(default=None)
+
+
+class DimensionFamily(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DimensionFamily"
+    pass
 
 
 class DisclosurePolicy(ConfiguredBaseModel):
@@ -4949,13 +5188,18 @@ class Embedding(InformationObject):
     vectorRef: list[str] | None = Field(default=None)
 
 
-class Emotion(AffectiveMoment):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Emotion"
-    is_a: ClassVar[str] = "AffectiveMoment"
-    affectiveElicitor: list[str] | None = Field(default=None)
-    affectiveTarget: list[str] | None = Field(default=None)
-    emotionBearer: Agent | None = Field(default=None)
-    emotionType: list[EmotionType] | None = Field(default=None)
+class EmbodimentAssignment(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/EmbodimentAssignment"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    assignmentCapability: list[str] | None = Field(default=None)
+    assignmentCarrier: list[EmbodimentCarrierRole] | None = Field(default=None)
+    assignmentSubject: list[Agent] | None = Field(default=None)
+
+
+class EmbodimentCarrierRole(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/EmbodimentCarrierRole"
+    is_a: ClassVar[str] = "Entity"
+    pass
 
 
 class EmotionType(ConfiguredBaseModel):
@@ -5500,6 +5744,59 @@ class InferenceTenure(TimeScopedRelation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InferenceTenure"
     is_a: ClassVar[str] = "TimeScopedRelation"
     tenureOf: InferenceCommitment | None = Field(default=None)
+
+
+class Inhabitant(Agent):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Inhabitant"
+    is_a: ClassVar[str] = "Agent"
+    pass
+
+
+class InhabitationClaim(StandpointClaim):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationClaim"
+    is_a: ClassVar[str] = "StandpointClaim"
+    pass
+
+
+class InhabitationConfiguration(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationConfiguration"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    configurationEmbodiment: list[EmbodimentAssignment] | None = Field(default=None)
+    configurationFacet: list[str] | None = Field(default=None)
+    configurationOfTenure: list[InhabitationTenure] | None = Field(default=None)
+
+
+class Proposition(SocialObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Proposition"
+    is_a: ClassVar[str] = "SocialObject"
+    pass
+
+
+class InhabitationDescription(Proposition):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationDescription"
+    is_a: ClassVar[str] = "Proposition"
+    describedHost: list[str] | None = Field(default=None)
+    describedLocusKind: list[str] | None = Field(default=None)
+    describedSubject: list[str] | None = Field(default=None)
+
+
+class InhabitationLocusKind(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationLocusKind"
+    pass
+
+
+class InhabitationTenure(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationTenure"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    inhabitationLocusKind: InhabitationLocusKind | None = Field(default=None)
+    inhabitationSubject: Agent | None = Field(default=None)
+    inhabitedHost: Entity | None = Field(default=None)
+
+
+class InhabitedSystem(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitedSystem"
+    is_a: ClassVar[str] = "Entity"
+    pass
 
 
 class InlinePart(BodyPart):
@@ -6118,6 +6415,18 @@ class ModelCard(InformationObject):
     modelProvider: list[str] | None = Field(default=None)
     modelTrainingCutoff: list[str] | None = Field(default=None)
     modelVersionTag: list[str] | None = Field(default=None)
+
+
+class ModelInferenceRun(Entity):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelInferenceRun"
+    is_a: ClassVar[str] = "Entity"
+    labelSetRevision: list[str] | None = Field(default=None)
+    modelFramework: list[str] | None = Field(default=None)
+    modelIdentifier: str | None = Field(default=None)
+    modelRevision: str | None = Field(default=None)
+    modelTask: list[str] | None = Field(default=None)
+    tokenizerRevision: list[str] | None = Field(default=None)
+    usedInput: list[str] | None = Field(default=None)
 
 
 class ModelInvocation(Activity):
@@ -7013,12 +7322,6 @@ class PronounSet(InformationObject):
     pronounSubject: str | None = Field(default=None)
 
 
-class Proposition(SocialObject):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Proposition"
-    is_a: ClassVar[str] = "SocialObject"
-    pass
-
-
 class ProximityMeasurement(Measurement):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ProximityMeasurement"
     is_a: ClassVar[str] = "Measurement"
@@ -7293,6 +7596,11 @@ class ScalarQuantity(Entity):
     quantityValue: float | None = Field(default=None)
 
 
+class ScalePolarity(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ScalePolarity"
+    pass
+
+
 class Scenario(Entity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Scenario"
     is_a: ClassVar[str] = "Entity"
@@ -7346,6 +7654,11 @@ class ScoreScale(InformationObject):
     scaleMax: float | None = Field(default=None)
     scaleMin: float | None = Field(default=None)
     scaleStep: float | None = Field(default=None)
+
+
+class ScoreSemantics(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ScoreSemantics"
+    pass
 
 
 class ScriptLanguageAttribution(Observation):
@@ -7691,21 +8004,24 @@ class StrandOrientation(ConfiguredBaseModel):
     pass
 
 
-class Stream(Entity):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Stream"
-    is_a: ClassVar[str] = "Entity"
-    streamInterval: TimeInterval | None = Field(default=None)
-    streamOf: Entity | None = Field(default=None)
-    streamPlatform: list[Agent] | None = Field(default=None)
-    streamSample: list[Entity] | None = Field(default=None)
-    streamSensor: list[Agent] | None = Field(default=None)
-
-
 class StyleGuide(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/StyleGuide"
     is_a: ClassVar[str] = "InformationObject"
     styleGuideFor: list[str] | None = Field(default=None)
     voiceExemplifiedBy: list[Document] | None = Field(default=None)
+
+
+class SubjectLineage(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SubjectLineage"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
+class SubjectStage(TimeScopedRelation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/SubjectStage"
+    is_a: ClassVar[str] = "TimeScopedRelation"
+    stageBearer: list[Agent] | None = Field(default=None)
+    stageOfLineage: list[SubjectLineage] | None = Field(default=None)
 
 
 class Support(ConfiguredBaseModel):
@@ -7964,6 +8280,12 @@ class TransactionStatus(ConfiguredBaseModel):
 class TransactionType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TransactionType"
     pass
+
+
+class TransferManifest(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TransferManifest"
+    is_a: ClassVar[str] = "InformationObject"
+    transferredView: list[str] | None = Field(default=None)
 
 
 class TransformCodec(ConfiguredBaseModel):

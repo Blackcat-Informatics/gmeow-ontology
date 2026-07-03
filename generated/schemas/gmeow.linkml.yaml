@@ -70,12 +70,79 @@ classes:
   AestheticQuality:
     class_uri: https://blackcatinformatics.ca/gmeow/AestheticQuality
     title: Aesthetic Quality
+  AffectClassifierLabel:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectClassifierLabel
+    title: Affect Classifier Label
+    is_a: InformationObject
+    slots:
+    - memberOfLabelSet
+  AffectClassifierOutput:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectClassifierOutput
+    title: Affect Classifier Output
+    is_a: Observation
+    slots:
+    - canonicalizesAs
+    - classifiedTarget
+    - classifierScore
+    - emittedLabel
+    - producedBy
+    - scoreCalibration
+    - scoreSemantics
+    - thresholdApplied
+  AffectComposite:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectComposite
+    title: Affect Composite
+    is_a: Emotion
+    slots:
+    - affectiveConstituent
+  AffectEvaluationConcluded:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectEvaluationConcluded
+    title: Affect Evaluation Concluded
+    is_a: Observation
+  AffectFunction:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectFunction
+    title: Affect Function
+  AffectLabelSet:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectLabelSet
+    title: Affect Label Set
+    is_a: InformationObject
+  AffectScaleProfile:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectScaleProfile
+    title: Affect Scale Profile
+    is_a: InformationObject
+    slots:
+    - profileMidpoint
+    - profilePolarity
+    - profileRangeMax
+    - profileRangeMin
+    - profileTransform
+  AffectTelemetryStream:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectTelemetryStream
+    title: Affect Telemetry Stream
+    is_a: Stream
+    slots:
+    - telemetryBlob
+  AffectVectorObservation:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectVectorObservation
+    title: Affect Vector Observation
+    is_a: Observation
+    slots:
+    - vectorComponent
+    - vectorProfile
+  AffectiveClaim:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectiveClaim
+    title: Affective Claim
+    is_a: Observation
   AffectiveExperience:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectiveExperience
     title: Affective Experience
     is_a: Experience
     slots:
     - feltAffect
+  AffectiveExpression:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectiveExpression
+    title: Affective Expression
+    is_a: Observation
   AffectiveMoment:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectiveMoment
     title: Affective Moment
@@ -89,6 +156,7 @@ classes:
     - asks
     - attendsTo
     - awareOfNotKnowing
+    - bearsDigitalSubject
     - believes
     - claimsToKnowThat
     - curiousAbout
@@ -185,10 +253,13 @@ classes:
     - appraisalDimension
     - appraisalOf
     - appraisalQuality
+    - appraisalScaleProfile
     - appraisalValue
   AppraisalDimension:
     class_uri: https://blackcatinformatics.ca/gmeow/AppraisalDimension
     title: Appraisal Dimension
+    slots:
+    - dimensionFamily
   ArcSample:
     class_uri: https://blackcatinformatics.ca/gmeow/ArcSample
     title: Arc Sample
@@ -766,6 +837,18 @@ classes:
   ContentTransferEncoding:
     class_uri: https://blackcatinformatics.ca/gmeow/ContentTransferEncoding
     title: Content Transfer Encoding
+  ContinuityDetermination:
+    class_uri: https://blackcatinformatics.ca/gmeow/ContinuityDetermination
+    title: Continuity Determination
+    is_a: IdentityContinuityAssessment
+    slots:
+    - determinationForce
+    - determinationGrounds
+    - determinationValidity
+    - determiningAuthority
+  ContinuityVerdict:
+    class_uri: https://blackcatinformatics.ca/gmeow/ContinuityVerdict
+    title: Continuity Verdict
   Contract:
     class_uri: https://blackcatinformatics.ca/gmeow/Contract
     title: Contract
@@ -794,6 +877,15 @@ classes:
   ContributionRole:
     class_uri: https://blackcatinformatics.ca/gmeow/ContributionRole
     title: Contribution Role
+  ControlAssessment:
+    class_uri: https://blackcatinformatics.ca/gmeow/ControlAssessment
+    title: Control Assessment
+    is_a: Observation
+    slots:
+    - controlAgent
+    - controlInterval
+    - controlLevel
+    - controlOver
   ControlFlow:
     class_uri: https://blackcatinformatics.ca/gmeow/ControlFlow
     title: Control Flow
@@ -802,6 +894,9 @@ classes:
     - flowOrder
     - flowSource
     - flowTarget
+  ControlLevel:
+    class_uri: https://blackcatinformatics.ca/gmeow/ControlLevel
+    title: Control Level
   CoordinateMatrix:
     class_uri: https://blackcatinformatics.ca/gmeow/CoordinateMatrix
     title: Coordinate Matrix
@@ -830,6 +925,10 @@ classes:
   CopyrightStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/CopyrightStatus
     title: Copyright Status
+  CoreAffectDimension:
+    class_uri: https://blackcatinformatics.ca/gmeow/CoreAffectDimension
+    title: Core-Affect Dimension
+    is_a: AppraisalDimension
   Corpus:
     class_uri: https://blackcatinformatics.ca/gmeow/Corpus
     title: Corpus
@@ -1036,6 +1135,16 @@ classes:
   DerivationType:
     class_uri: https://blackcatinformatics.ca/gmeow/DerivationType
     title: Derivation Type
+  DerivedAffectIntensityObservation:
+    class_uri: https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation
+    title: Derived Affect Intensity Observation
+    is_a: Observation
+    slots:
+    - derivedByFunction
+    - intensityBasis
+    - metricProfile
+    - normFunction
+    - weightingPolicy
   Desire:
     class_uri: https://blackcatinformatics.ca/gmeow/Desire
     title: Desire
@@ -1043,6 +1152,9 @@ classes:
   Determinacy:
     class_uri: https://blackcatinformatics.ca/gmeow/Determinacy
     title: Determinacy
+  DeterminationForce:
+    class_uri: https://blackcatinformatics.ca/gmeow/DeterminationForce
+    title: Determination Force
   DeterminationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/DeterminationStatus
     title: Determination Status
@@ -1056,6 +1168,21 @@ classes:
     slots:
     - diffFrom
     - diffTo
+  DigitalSubject:
+    class_uri: https://blackcatinformatics.ca/gmeow/DigitalSubject
+    title: Digital Subject
+    is_a: Agent
+  DigitalSubjectTenure:
+    class_uri: https://blackcatinformatics.ca/gmeow/DigitalSubjectTenure
+    title: Digital Subject Tenure
+    is_a: TimeScopedRelation
+    slots:
+    - tenureSubjectAgent
+    - tenureSupportedBy
+    - tenureVantage
+  DimensionFamily:
+    class_uri: https://blackcatinformatics.ca/gmeow/DimensionFamily
+    title: Dimension Family
   DisclosurePolicy:
     class_uri: https://blackcatinformatics.ca/gmeow/DisclosurePolicy
     title: Disclosure Policy
@@ -1181,6 +1308,18 @@ classes:
     - embeddingModel
     - embeddingOf
     - vectorRef
+  EmbodimentAssignment:
+    class_uri: https://blackcatinformatics.ca/gmeow/EmbodimentAssignment
+    title: Embodiment Assignment
+    is_a: TimeScopedRelation
+    slots:
+    - assignmentCapability
+    - assignmentCarrier
+    - assignmentSubject
+  EmbodimentCarrierRole:
+    class_uri: https://blackcatinformatics.ca/gmeow/EmbodimentCarrierRole
+    title: Embodiment Carrier Role
+    is_a: Entity
   Emotion:
     class_uri: https://blackcatinformatics.ca/gmeow/Emotion
     title: Emotion
@@ -1328,6 +1467,7 @@ classes:
     - hasDuration
     - hasParticipant
     - hasSubEvent
+    - hasTransferManifest
     - heldStandpoint
     - implicates
     - latestEnd
@@ -1338,6 +1478,8 @@ classes:
     - overlappedBy
     - overlaps
     - performanceOf
+    - portalFrom
+    - portalTo
     - predecessorOrganization
     - producesClaim
     - projectedStandpoint
@@ -1708,6 +1850,14 @@ classes:
     - identifierUrl
     - identifierValue
     - jurisdiction
+  IdentityContinuityAssessment:
+    class_uri: https://blackcatinformatics.ca/gmeow/IdentityContinuityAssessment
+    title: Identity Continuity Assessment
+    is_a: Observation
+    slots:
+    - assessmentFromStage
+    - assessmentToStage
+    - continuityVerdict
   IdentityFacet:
     class_uri: https://blackcatinformatics.ca/gmeow/IdentityFacet
     title: Identity Facet
@@ -1770,6 +1920,45 @@ classes:
     - contributesToFrame
     - detectedMediaType
     - writtenInLanguage
+  Inhabitant:
+    class_uri: https://blackcatinformatics.ca/gmeow/Inhabitant
+    title: Inhabitant
+    is_a: Agent
+  InhabitationClaim:
+    class_uri: https://blackcatinformatics.ca/gmeow/InhabitationClaim
+    title: Inhabitation Claim
+    is_a: StandpointClaim
+  InhabitationConfiguration:
+    class_uri: https://blackcatinformatics.ca/gmeow/InhabitationConfiguration
+    title: Inhabitation Configuration
+    is_a: TimeScopedRelation
+    slots:
+    - configurationEmbodiment
+    - configurationFacet
+    - configurationOfTenure
+  InhabitationDescription:
+    class_uri: https://blackcatinformatics.ca/gmeow/InhabitationDescription
+    title: Inhabitation Description
+    is_a: Proposition
+    slots:
+    - describedHost
+    - describedLocusKind
+    - describedSubject
+  InhabitationLocusKind:
+    class_uri: https://blackcatinformatics.ca/gmeow/InhabitationLocusKind
+    title: Inhabitation Locus Kind
+  InhabitationTenure:
+    class_uri: https://blackcatinformatics.ca/gmeow/InhabitationTenure
+    title: Inhabitation Tenure
+    is_a: TimeScopedRelation
+    slots:
+    - inhabitationLocusKind
+    - inhabitationSubject
+    - inhabitedHost
+  InhabitedSystem:
+    class_uri: https://blackcatinformatics.ca/gmeow/InhabitedSystem
+    title: Inhabited System
+    is_a: Entity
   InlinePart:
     class_uri: https://blackcatinformatics.ca/gmeow/InlinePart
     title: Inline Part
@@ -2422,6 +2611,18 @@ classes:
     - modelProvider
     - modelTrainingCutoff
     - modelVersionTag
+  ModelInferenceRun:
+    class_uri: https://blackcatinformatics.ca/gmeow/ModelInferenceRun
+    title: Model Inference Run
+    is_a: Entity
+    slots:
+    - labelSetRevision
+    - modelFramework
+    - modelIdentifier
+    - modelRevision
+    - modelTask
+    - tokenizerRevision
+    - usedInput
   ModelInvocation:
     class_uri: https://blackcatinformatics.ca/gmeow/ModelInvocation
     title: Model Invocation
@@ -3509,6 +3710,9 @@ classes:
     slots:
     - quantityUncertainty
     - quantityValue
+  ScalePolarity:
+    class_uri: https://blackcatinformatics.ca/gmeow/ScalePolarity
+    title: Scale Polarity
   Scenario:
     class_uri: https://blackcatinformatics.ca/gmeow/Scenario
     title: Scenario
@@ -3556,6 +3760,9 @@ classes:
     - scaleMax
     - scaleMin
     - scaleStep
+  ScoreSemantics:
+    class_uri: https://blackcatinformatics.ca/gmeow/ScoreSemantics
+    title: Score Semantics
   ScriptLanguageAttribution:
     class_uri: https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution
     title: Script Language Attribution
@@ -3884,6 +4091,17 @@ classes:
     slots:
     - styleGuideFor
     - voiceExemplifiedBy
+  SubjectLineage:
+    class_uri: https://blackcatinformatics.ca/gmeow/SubjectLineage
+    title: Subject Lineage
+    is_a: InformationObject
+  SubjectStage:
+    class_uri: https://blackcatinformatics.ca/gmeow/SubjectStage
+    title: Subject Stage
+    is_a: TimeScopedRelation
+    slots:
+    - stageBearer
+    - stageOfLineage
   Summary:
     class_uri: https://blackcatinformatics.ca/gmeow/Summary
     title: Summary
@@ -4068,6 +4286,7 @@ classes:
     title: Time-Scoped Relation
     slots:
     - duringInterval
+    - tenureEndedBy
   TimeZone:
     class_uri: https://blackcatinformatics.ca/gmeow/TimeZone
     title: Time Zone
@@ -4119,6 +4338,12 @@ classes:
   TransactionType:
     class_uri: https://blackcatinformatics.ca/gmeow/TransactionType
     title: Transaction Type
+  TransferManifest:
+    class_uri: https://blackcatinformatics.ca/gmeow/TransferManifest
+    title: Transfer Manifest
+    is_a: InformationObject
+    slots:
+    - transferredView
   TransformCodec:
     class_uri: https://blackcatinformatics.ca/gmeow/TransformCodec
     title: Transform Codec
@@ -4507,6 +4732,12 @@ slots:
     range: Language
     domain: LanguageChangeEvent
     multivalued: true
+  affectiveConstituent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/affectiveConstituent
+    title: affective constituent
+    range: uriorcurie
+    domain: AffectComposite
+    multivalued: true
   affectiveElicitor:
     slot_uri: https://blackcatinformatics.ca/gmeow/affectiveElicitor
     title: affective elicitor
@@ -4708,6 +4939,12 @@ slots:
     range: AestheticQuality
     domain: Appraisal
     multivalued: true
+  appraisalScaleProfile:
+    slot_uri: https://blackcatinformatics.ca/gmeow/appraisalScaleProfile
+    title: appraisal scale profile
+    range: AffectScaleProfile
+    domain: Appraisal
+    multivalued: false
   appraisalValue:
     slot_uri: https://blackcatinformatics.ca/gmeow/appraisalValue
     title: appraisal value
@@ -4844,6 +5081,12 @@ slots:
     range: Criterion
     domain: Assessment
     multivalued: false
+  assessmentFromStage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/assessmentFromStage
+    title: assessment from stage
+    range: SubjectStage
+    domain: IdentityContinuityAssessment
+    multivalued: true
   assessmentRubric:
     slot_uri: https://blackcatinformatics.ca/gmeow/assessmentRubric
     title: assessment rubric
@@ -4862,6 +5105,12 @@ slots:
     range: uriorcurie
     domain: Assessment
     multivalued: false
+  assessmentToStage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/assessmentToStage
+    title: assessment to stage
+    range: SubjectStage
+    domain: IdentityContinuityAssessment
+    multivalued: true
   assetIdentifier:
     slot_uri: https://blackcatinformatics.ca/gmeow/assetIdentifier
     title: asset identifier
@@ -4880,12 +5129,30 @@ slots:
     range: MetricStructure
     domain: MeterAssignment
     multivalued: false
+  assignmentCapability:
+    slot_uri: https://blackcatinformatics.ca/gmeow/assignmentCapability
+    title: assignment capability
+    range: uriorcurie
+    domain: EmbodimentAssignment
+    multivalued: true
+  assignmentCarrier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/assignmentCarrier
+    title: assignment carrier
+    range: EmbodimentCarrierRole
+    domain: EmbodimentAssignment
+    multivalued: true
   assignmentSpan:
     slot_uri: https://blackcatinformatics.ca/gmeow/assignmentSpan
     title: assignment span
     range: MusicalTimeSpan
     domain: MeterAssignment
     multivalued: false
+  assignmentSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/assignmentSubject
+    title: assignment subject
+    range: Agent
+    domain: EmbodimentAssignment
+    multivalued: true
   atNarrativePosition:
     slot_uri: https://blackcatinformatics.ca/gmeow/atNarrativePosition
     title: at narrative position
@@ -5189,6 +5456,12 @@ slots:
     range: double
     domain: Orientation
     multivalued: true
+  bearsDigitalSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/bearsDigitalSubject
+    title: bears digital subject
+    range: DigitalSubjectTenure
+    domain: Agent
+    multivalued: true
   before:
     slot_uri: https://blackcatinformatics.ca/gmeow/before
     title: before
@@ -5341,6 +5614,12 @@ slots:
     title: canonicalized identity
     range: Agent
     domain: AuthorIdentity
+    multivalued: true
+  canonicalizesAs:
+    slot_uri: https://blackcatinformatics.ca/gmeow/canonicalizesAs
+    title: canonicalizes as
+    range: uriorcurie
+    domain: AffectClassifierOutput
     multivalued: true
   capacityOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/capacityOf
@@ -5582,6 +5861,18 @@ slots:
     range: uriorcurie
     domain: Agent
     multivalued: true
+  classifiedTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/classifiedTarget
+    title: classified target
+    range: uriorcurie
+    domain: AffectClassifierOutput
+    multivalued: true
+  classifierScore:
+    slot_uri: https://blackcatinformatics.ca/gmeow/classifierScore
+    title: classifier score
+    range: decimal
+    domain: AffectClassifierOutput
+    multivalued: true
   cloneUrl:
     slot_uri: https://blackcatinformatics.ca/gmeow/cloneUrl
     title: clone URL
@@ -5787,6 +6078,18 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/confidence
     title: confidence
     range: string
+  configurationEmbodiment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/configurationEmbodiment
+    title: configuration embodiment
+    range: EmbodimentAssignment
+    domain: InhabitationConfiguration
+    multivalued: true
+  configurationFacet:
+    slot_uri: https://blackcatinformatics.ca/gmeow/configurationFacet
+    title: configuration facet
+    range: uriorcurie
+    domain: InhabitationConfiguration
+    multivalued: true
   configurationInstrumentType:
     slot_uri: https://blackcatinformatics.ca/gmeow/configurationInstrumentType
     title: configuration instrument type
@@ -5811,6 +6114,12 @@ slots:
     range: Entity
     domain: InstrumentConfiguration
     multivalued: false
+  configurationOfTenure:
+    slot_uri: https://blackcatinformatics.ca/gmeow/configurationOfTenure
+    title: configuration of tenure
+    range: InhabitationTenure
+    domain: InhabitationConfiguration
+    multivalued: true
   configurationTuningFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/configurationTuningFrame
     title: configuration tuning frame
@@ -5950,6 +6259,12 @@ slots:
     title: content origin
     range: ContentOrigin
     multivalued: true
+  continuityVerdict:
+    slot_uri: https://blackcatinformatics.ca/gmeow/continuityVerdict
+    title: continuity verdict
+    range: ContinuityVerdict
+    domain: IdentityContinuityAssessment
+    multivalued: true
   contractAddress:
     slot_uri: https://blackcatinformatics.ca/gmeow/contractAddress
     title: contract address
@@ -5998,6 +6313,30 @@ slots:
     range: Agent
     domain: Contribution
     multivalued: false
+  controlAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/controlAgent
+    title: control agent
+    range: Agent
+    domain: ControlAssessment
+    multivalued: true
+  controlInterval:
+    slot_uri: https://blackcatinformatics.ca/gmeow/controlInterval
+    title: control interval
+    range: TimeInterval
+    domain: ControlAssessment
+    multivalued: true
+  controlLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/controlLevel
+    title: control level
+    range: ControlLevel
+    domain: ControlAssessment
+    multivalued: true
+  controlOver:
+    slot_uri: https://blackcatinformatics.ca/gmeow/controlOver
+    title: control over
+    range: uriorcurie
+    domain: ControlAssessment
+    multivalued: true
   controlPointOfTrajectory:
     slot_uri: https://blackcatinformatics.ca/gmeow/controlPointOfTrajectory
     title: control point of trajectory
@@ -6416,11 +6755,35 @@ slots:
     range: DerivationType
     domain: CreativeDerivation
     multivalued: true
+  derivedByFunction:
+    slot_uri: https://blackcatinformatics.ca/gmeow/derivedByFunction
+    title: derived by function
+    range: AffectFunction
+    domain: DerivedAffectIntensityObservation
+    multivalued: true
   derivedFromSpectrum:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivedFromSpectrum
     title: derived from spectrum
     range: Spectrum
     domain: PitchCollection
+    multivalued: true
+  describedHost:
+    slot_uri: https://blackcatinformatics.ca/gmeow/describedHost
+    title: described host
+    range: uriorcurie
+    domain: InhabitationDescription
+    multivalued: true
+  describedLocusKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/describedLocusKind
+    title: described locus kind
+    range: uriorcurie
+    domain: InhabitationDescription
+    multivalued: true
+  describedSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/describedSubject
+    title: described subject
+    range: uriorcurie
+    domain: InhabitationDescription
     multivalued: true
   describesEvent:
     slot_uri: https://blackcatinformatics.ca/gmeow/describesEvent
@@ -6464,6 +6827,30 @@ slots:
     range: Determinacy
     domain: ReferenceFrame
     multivalued: false
+  determinationForce:
+    slot_uri: https://blackcatinformatics.ca/gmeow/determinationForce
+    title: determination force
+    range: DeterminationForce
+    domain: ContinuityDetermination
+    multivalued: true
+  determinationGrounds:
+    slot_uri: https://blackcatinformatics.ca/gmeow/determinationGrounds
+    title: determination grounds
+    range: uriorcurie
+    domain: ContinuityDetermination
+    multivalued: true
+  determinationValidity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/determinationValidity
+    title: determination validity
+    range: TimeInterval
+    domain: ContinuityDetermination
+    multivalued: true
+  determiningAuthority:
+    slot_uri: https://blackcatinformatics.ca/gmeow/determiningAuthority
+    title: determining authority
+    range: Agent
+    domain: ContinuityDetermination
+    multivalued: true
   developmentSignalEvent:
     slot_uri: https://blackcatinformatics.ca/gmeow/developmentSignalEvent
     title: development signal (event)
@@ -6501,6 +6888,12 @@ slots:
     domain: ReferenceFrame
     minimum_value: 0
     multivalued: false
+  dimensionFamily:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dimensionFamily
+    title: dimension family
+    range: DimensionFamily
+    domain: AppraisalDimension
+    multivalued: true
   discourseTimeOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/discourseTimeOf
     title: discourse time of
@@ -6717,6 +7110,12 @@ slots:
     title: embodies
     range: Expression
     domain: Manifestation
+    multivalued: true
+  emittedLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/emittedLabel
+    title: emitted label
+    range: AffectClassifierLabel
+    domain: AffectClassifierOutput
     multivalued: true
   emotionBearer:
     slot_uri: https://blackcatinformatics.ca/gmeow/emotionBearer
@@ -8591,6 +8990,12 @@ slots:
     range: LocationState
     domain: Trajectory
     multivalued: true
+  hasTransferManifest:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasTransferManifest
+    title: has transfer manifest
+    range: TransferManifest
+    domain: Event
+    multivalued: true
   hasTranslator:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasTranslator
     title: has translator
@@ -8922,6 +9327,24 @@ slots:
     range: datetime
     domain: ImportActivity
     multivalued: false
+  inhabitationLocusKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inhabitationLocusKind
+    title: inhabitation locus kind
+    range: InhabitationLocusKind
+    domain: InhabitationTenure
+    multivalued: false
+  inhabitationSubject:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inhabitationSubject
+    title: inhabitation subject
+    range: Agent
+    domain: InhabitationTenure
+    multivalued: false
+  inhabitedHost:
+    slot_uri: https://blackcatinformatics.ca/gmeow/inhabitedHost
+    title: inhabited host
+    range: Entity
+    domain: InhabitationTenure
+    multivalued: false
   inquiresInto:
     slot_uri: https://blackcatinformatics.ca/gmeow/inquiresInto
     title: inquires into
@@ -8976,6 +9399,12 @@ slots:
     range: Work
     domain: Item
     multivalued: true
+  intensityBasis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/intensityBasis
+    title: intensity basis
+    range: AffectVectorObservation
+    domain: DerivedAffectIntensityObservation
+    multivalued: false
   intentBearer:
     slot_uri: https://blackcatinformatics.ca/gmeow/intentBearer
     title: intent bearer
@@ -9335,6 +9764,12 @@ slots:
     title: knows that in
     range: uriorcurie
     domain: Agent
+    multivalued: true
+  labelSetRevision:
+    slot_uri: https://blackcatinformatics.ca/gmeow/labelSetRevision
+    title: label-set revision
+    range: string
+    domain: ModelInferenceRun
     multivalued: true
   languageCode:
     slot_uri: https://blackcatinformatics.ca/gmeow/languageCode
@@ -9802,6 +10237,12 @@ slots:
     range: Organization
     domain: Agent
     multivalued: true
+  memberOfLabelSet:
+    slot_uri: https://blackcatinformatics.ca/gmeow/memberOfLabelSet
+    title: member of label set
+    range: AffectLabelSet
+    domain: AffectClassifierLabel
+    multivalued: true
   membershipAuthority:
     slot_uri: https://blackcatinformatics.ca/gmeow/membershipAuthority
     title: membership authority
@@ -9941,6 +10382,12 @@ slots:
     domain: MetricGroup
     minimum_value: 0
     multivalued: false
+  metricProfile:
+    slot_uri: https://blackcatinformatics.ca/gmeow/metricProfile
+    title: metric profile
+    range: AffectScaleProfile
+    domain: DerivedAffectIntensityObservation
+    multivalued: false
   metricStructureOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/metricStructureOf
     title: metric structure of
@@ -9991,11 +10438,35 @@ slots:
     domain: ModelCard
     minimum_value: 1
     multivalued: true
+  modelFramework:
+    slot_uri: https://blackcatinformatics.ca/gmeow/modelFramework
+    title: model framework
+    range: string
+    domain: ModelInferenceRun
+    multivalued: true
+  modelIdentifier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/modelIdentifier
+    title: model identifier
+    range: string
+    domain: ModelInferenceRun
+    multivalued: false
   modelProvider:
     slot_uri: https://blackcatinformatics.ca/gmeow/modelProvider
     title: model provider
     range: string
     domain: ModelCard
+    multivalued: true
+  modelRevision:
+    slot_uri: https://blackcatinformatics.ca/gmeow/modelRevision
+    title: model revision
+    range: string
+    domain: ModelInferenceRun
+    multivalued: false
+  modelTask:
+    slot_uri: https://blackcatinformatics.ca/gmeow/modelTask
+    title: model task
+    range: string
+    domain: ModelInferenceRun
     multivalued: true
   modelTrainingCutoff:
     slot_uri: https://blackcatinformatics.ca/gmeow/modelTrainingCutoff
@@ -10221,6 +10692,12 @@ slots:
     range: Condition
     domain: Norm
     multivalued: true
+  normFunction:
+    slot_uri: https://blackcatinformatics.ca/gmeow/normFunction
+    title: norm function
+    range: string
+    domain: DerivedAffectIntensityObservation
+    multivalued: false
   normIssuer:
     slot_uri: https://blackcatinformatics.ca/gmeow/normIssuer
     title: norm issuer
@@ -10868,6 +11345,18 @@ slots:
     range: Commit
     domain: Ref
     multivalued: true
+  portalFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/portalFrom
+    title: portal from
+    range: InhabitationTenure
+    domain: Event
+    multivalued: true
+  portalTo:
+    slot_uri: https://blackcatinformatics.ca/gmeow/portalTo
+    title: portal to
+    range: InhabitationTenure
+    domain: Event
+    multivalued: true
   poseFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/poseFrame
     title: pose frame
@@ -11060,6 +11549,12 @@ slots:
     title: process rule text
     range: string
     domain: GenerativeProcess
+  producedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/producedBy
+    title: produced by
+    range: ModelInferenceRun
+    domain: AffectClassifierOutput
+    multivalued: false
   produces:
     slot_uri: https://blackcatinformatics.ca/gmeow/produces
     title: produces
@@ -11131,12 +11626,42 @@ slots:
     title: profile descriptor
     range: string
     domain: Profile
+  profileMidpoint:
+    slot_uri: https://blackcatinformatics.ca/gmeow/profileMidpoint
+    title: profile midpoint
+    range: decimal
+    domain: AffectScaleProfile
+    multivalued: false
   profileOpenValue:
     slot_uri: https://blackcatinformatics.ca/gmeow/profileOpenValue
     title: profile open value
     range: uriorcurie
     domain: Profile
     multivalued: true
+  profilePolarity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/profilePolarity
+    title: profile polarity
+    range: ScalePolarity
+    domain: AffectScaleProfile
+    multivalued: false
+  profileRangeMax:
+    slot_uri: https://blackcatinformatics.ca/gmeow/profileRangeMax
+    title: profile range max
+    range: decimal
+    domain: AffectScaleProfile
+    multivalued: false
+  profileRangeMin:
+    slot_uri: https://blackcatinformatics.ca/gmeow/profileRangeMin
+    title: profile range min
+    range: decimal
+    domain: AffectScaleProfile
+    multivalued: false
+  profileTransform:
+    slot_uri: https://blackcatinformatics.ca/gmeow/profileTransform
+    title: profile transform
+    range: string
+    domain: AffectScaleProfile
+    multivalued: false
   programmingLanguage:
     slot_uri: https://blackcatinformatics.ca/gmeow/programmingLanguage
     title: programming language
@@ -11982,6 +12507,18 @@ slots:
     range: TimeZone
     domain: EventSchedule
     multivalued: false
+  scoreCalibration:
+    slot_uri: https://blackcatinformatics.ca/gmeow/scoreCalibration
+    title: score calibration
+    range: string
+    domain: AffectClassifierOutput
+    multivalued: true
+  scoreSemantics:
+    slot_uri: https://blackcatinformatics.ca/gmeow/scoreSemantics
+    title: score semantics
+    range: ScoreSemantics
+    domain: AffectClassifierOutput
+    multivalued: false
   scriptCode:
     slot_uri: https://blackcatinformatics.ca/gmeow/scriptCode
     title: script code
@@ -12401,11 +12938,23 @@ slots:
     range: PitchSpellingSystem
     domain: PitchSpelling
     multivalued: false
+  stageBearer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/stageBearer
+    title: stage bearer
+    range: Agent
+    domain: SubjectStage
+    multivalued: true
   stageImpl:
     slot_uri: https://blackcatinformatics.ca/gmeow/stageImpl
     title: stage impl
     range: string
     domain: PipelineStage
+    multivalued: true
+  stageOfLineage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/stageOfLineage
+    title: stage of lineage
+    range: SubjectLineage
+    domain: SubjectStage
     multivalued: true
   standpointAssertoricForce:
     slot_uri: https://blackcatinformatics.ca/gmeow/standpointAssertoricForce
@@ -12733,6 +13282,11 @@ slots:
     range: EpistemicStandard
     domain: SupportAssessment
     multivalued: false
+  supportsAffectiveClaim:
+    slot_uri: https://blackcatinformatics.ca/gmeow/supportsAffectiveClaim
+    title: supports affective claim
+    range: AffectiveClaim
+    multivalued: true
   supportsClaim:
     slot_uri: https://blackcatinformatics.ca/gmeow/supportsClaim
     title: supports claim
@@ -12859,6 +13413,12 @@ slots:
     range: Agent
     domain: Teaching
     multivalued: false
+  telemetryBlob:
+    slot_uri: https://blackcatinformatics.ca/gmeow/telemetryBlob
+    title: telemetry blob
+    range: string
+    domain: AffectTelemetryStream
+    multivalued: true
   telephone:
     slot_uri: https://blackcatinformatics.ca/gmeow/telephone
     title: telephone
@@ -12906,6 +13466,12 @@ slots:
     title: tenure determinacy
     range: Determinacy
     domain: LandTenure
+    multivalued: true
+  tenureEndedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tenureEndedBy
+    title: tenure ended by
+    range: Event
+    domain: TimeScopedRelation
     multivalued: true
   tenureInquirer:
     slot_uri: https://blackcatinformatics.ca/gmeow/tenureInquirer
@@ -12967,11 +13533,29 @@ slots:
     range: Standpoint
     domain: StandpointTenure
     multivalued: false
+  tenureSubjectAgent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tenureSubjectAgent
+    title: tenure subject agent
+    range: Agent
+    domain: DigitalSubjectTenure
+    multivalued: true
+  tenureSupportedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tenureSupportedBy
+    title: tenure supported by
+    range: Observation
+    domain: DigitalSubjectTenure
+    multivalued: true
   tenureType:
     slot_uri: https://blackcatinformatics.ca/gmeow/tenureType
     title: tenure type
     range: LandTenureType
     domain: LandTenure
+    multivalued: true
+  tenureVantage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tenureVantage
+    title: tenure vantage
+    range: Agent
+    domain: DigitalSubjectTenure
     multivalued: true
   tenuredContactPoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/tenuredContactPoint
@@ -12994,6 +13578,12 @@ slots:
     title: thread subject
     range: string
     domain: Thread
+    multivalued: true
+  thresholdApplied:
+    slot_uri: https://blackcatinformatics.ca/gmeow/thresholdApplied
+    title: threshold applied
+    range: decimal
+    domain: AffectClassifierOutput
     multivalued: true
   timbreObservationResult:
     slot_uri: https://blackcatinformatics.ca/gmeow/timbreObservationResult
@@ -13060,6 +13650,12 @@ slots:
     title: to level
     range: uriorcurie
     domain: LearningEvent
+    multivalued: true
+  tokenizerRevision:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tokenizerRevision
+    title: tokenizer revision
+    range: string
+    domain: ModelInferenceRun
     multivalued: true
   toneEventArticulation:
     slot_uri: https://blackcatinformatics.ca/gmeow/toneEventArticulation
@@ -13180,6 +13776,12 @@ slots:
     title: transcription of
     range: CreativeWork
     domain: CreativeWork
+    multivalued: true
+  transferredView:
+    slot_uri: https://blackcatinformatics.ca/gmeow/transferredView
+    title: transferred view
+    range: uriorcurie
+    domain: TransferManifest
     multivalued: true
   transformationParameter:
     slot_uri: https://blackcatinformatics.ca/gmeow/transformationParameter
@@ -13440,6 +14042,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/useWhen
     title: use when
     range: string
+  usedInput:
+    slot_uri: https://blackcatinformatics.ca/gmeow/usedInput
+    title: used input
+    range: uriorcurie
+    domain: ModelInferenceRun
+    multivalued: true
   usedModel:
     slot_uri: https://blackcatinformatics.ca/gmeow/usedModel
     title: used model
@@ -13517,6 +14125,18 @@ slots:
     range: Language
     domain: LanguageVariety
     multivalued: true
+  vectorComponent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vectorComponent
+    title: vector component
+    range: Appraisal
+    domain: AffectVectorObservation
+    multivalued: true
+  vectorProfile:
+    slot_uri: https://blackcatinformatics.ca/gmeow/vectorProfile
+    title: vector profile
+    range: AffectScaleProfile
+    domain: AffectVectorObservation
+    multivalued: false
   vectorRef:
     slot_uri: https://blackcatinformatics.ca/gmeow/vectorRef
     title: vector ref
@@ -13702,6 +14322,12 @@ slots:
     range: string
     domain: Repository
     multivalued: true
+  weightingPolicy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/weightingPolicy
+    title: weighting policy
+    range: string
+    domain: DerivedAffectIntensityObservation
+    multivalued: false
   what3words:
     slot_uri: https://blackcatinformatics.ca/gmeow/what3words
     title: what3words
@@ -13838,6 +14464,12 @@ enums:
       qualitySublimity:
         meaning: https://blackcatinformatics.ca/gmeow/qualitySublimity
         title: sublimity
+  AffectFunctionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AffectFunction
+    permissible_values:
+      fnAffectiveIntensity:
+        meaning: https://blackcatinformatics.ca/gmeow/fnAffectiveIntensity
+        title: affective intensity
   AgentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Agent
     permissible_values:
@@ -13958,15 +14590,33 @@ enums:
   AppraisalDimensionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AppraisalDimension
     permissible_values:
-      dimensionArousal:
-        meaning: https://blackcatinformatics.ca/gmeow/dimensionArousal
-        title: arousal
-      dimensionDominance:
-        meaning: https://blackcatinformatics.ca/gmeow/dimensionDominance
-        title: dominance
-      dimensionValence:
-        meaning: https://blackcatinformatics.ca/gmeow/dimensionValence
-        title: valence
+      dimensionAgency:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionAgency
+        title: agency
+      dimensionCertainty:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionCertainty
+        title: certainty
+      dimensionCoping:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionCoping
+        title: coping potential
+      dimensionGoalCongruence:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionGoalCongruence
+        title: goal congruence
+      dimensionGoalRelevance:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionGoalRelevance
+        title: goal relevance
+      dimensionNormCompatibility:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionNormCompatibility
+        title: norm compatibility
+      dimensionNovelty:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionNovelty
+        title: novelty
+      dimensionObjectFocus:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionObjectFocus
+        title: object focus
+      dimensionTemporalOrientation:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionTemporalOrientation
+        title: temporal orientation
   ArcTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ArcType
     permissible_values:
@@ -14939,6 +15589,18 @@ enums:
       transferEncodingQuotedPrintable:
         meaning: https://blackcatinformatics.ca/gmeow/transferEncodingQuotedPrintable
         title: quoted-printable
+  ContinuityVerdictEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ContinuityVerdict
+    permissible_values:
+      continuityDifferent:
+        meaning: https://blackcatinformatics.ca/gmeow/continuityDifferent
+        title: different
+      continuityIndeterminate:
+        meaning: https://blackcatinformatics.ca/gmeow/continuityIndeterminate
+        title: indeterminate
+      continuitySame:
+        meaning: https://blackcatinformatics.ca/gmeow/continuitySame
+        title: same
   ContradictionKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ContradictionKind
     permissible_values:
@@ -15131,6 +15793,18 @@ enums:
       flowIngestion5:
         meaning: https://blackcatinformatics.ca/gmeow/flowIngestion5
         title: ingestion 5
+  ControlLevelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ControlLevel
+    permissible_values:
+      controlContested:
+        meaning: https://blackcatinformatics.ca/gmeow/controlContested
+        title: contested
+      controlFull:
+        meaning: https://blackcatinformatics.ca/gmeow/controlFull
+        title: full
+      controlPartial:
+        meaning: https://blackcatinformatics.ca/gmeow/controlPartial
+        title: partial
   CopyrightStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CopyrightStatus
     permissible_values:
@@ -15173,6 +15847,21 @@ enums:
       copyrightStatusUndetermined:
         meaning: https://blackcatinformatics.ca/gmeow/copyrightStatusUndetermined
         title: copyright undetermined
+  CoreAffectDimensionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CoreAffectDimension
+    permissible_values:
+      dimensionArousal:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionArousal
+        title: arousal
+      dimensionDominance:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionDominance
+        title: dominance
+      dimensionUnpredictability:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionUnpredictability
+        title: unpredictability
+      dimensionValence:
+        meaning: https://blackcatinformatics.ca/gmeow/dimensionValence
+        title: valence
   CoverageDepthEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CoverageDepth
     permissible_values:
@@ -15494,6 +16183,18 @@ enums:
       determinacyVague:
         meaning: https://blackcatinformatics.ca/gmeow/determinacyVague
         title: vague
+  DeterminationForceEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DeterminationForce
+    permissible_values:
+      forceAdvisory:
+        meaning: https://blackcatinformatics.ca/gmeow/forceAdvisory
+        title: advisory
+      forceBinding:
+        meaning: https://blackcatinformatics.ca/gmeow/forceBinding
+        title: binding
+      forceProvisional:
+        meaning: https://blackcatinformatics.ca/gmeow/forceProvisional
+        title: provisional
   DeterminationStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DeterminationStatus
     permissible_values:
@@ -15530,6 +16231,15 @@ enums:
       severityWarning:
         meaning: https://blackcatinformatics.ca/gmeow/severityWarning
         title: warning
+  DimensionFamilyEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DimensionFamily
+    permissible_values:
+      familyAppraisal:
+        meaning: https://blackcatinformatics.ca/gmeow/familyAppraisal
+        title: appraisal
+      familyCoreAffect:
+        meaning: https://blackcatinformatics.ca/gmeow/familyCoreAffect
+        title: core-affect
   DisclosurePolicyEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DisclosurePolicy
     permissible_values:
@@ -15635,6 +16345,12 @@ enums:
       emotionSadness:
         meaning: https://blackcatinformatics.ca/gmeow/emotionSadness
         title: sadness
+      emotionSaudade:
+        meaning: https://blackcatinformatics.ca/gmeow/emotionSaudade
+        title: saudade
+      emotionSchadenfreude:
+        meaning: https://blackcatinformatics.ca/gmeow/emotionSchadenfreude
+        title: schadenfreude
       emotionSurprise:
         meaning: https://blackcatinformatics.ca/gmeow/emotionSurprise
         title: surprise
@@ -15869,6 +16585,9 @@ enums:
       eventTypeImpersonation:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeImpersonation
         title: impersonation
+      eventTypeInhabitationTransition:
+        meaning: https://blackcatinformatics.ca/gmeow/eventTypeInhabitationTransition
+        title: inhabitation transition
       eventTypeJamSession:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeJamSession
         title: jam session
@@ -16763,6 +17482,15 @@ enums:
       modeInduction:
         meaning: https://blackcatinformatics.ca/gmeow/modeInduction
         title: induction
+  InhabitationLocusKindEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/InhabitationLocusKind
+    permissible_values:
+      locusSelf:
+        meaning: https://blackcatinformatics.ca/gmeow/locusSelf
+        title: self
+      locusVessel:
+        meaning: https://blackcatinformatics.ca/gmeow/locusVessel
+        title: vessel
   InstrumentConfigurationEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/InstrumentConfiguration
     permissible_values:
@@ -20342,6 +21070,15 @@ enums:
       slsaLevel4:
         meaning: https://blackcatinformatics.ca/gmeow/slsaLevel4
         title: SLSA Level 4
+  ScalePolarityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ScalePolarity
+    permissible_values:
+      polarityBipolar:
+        meaning: https://blackcatinformatics.ca/gmeow/polarityBipolar
+        title: bipolar
+      polarityUnipolar:
+        meaning: https://blackcatinformatics.ca/gmeow/polarityUnipolar
+        title: unipolar
   SceneRelationTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SceneRelationType
     permissible_values:
@@ -20408,6 +21145,24 @@ enums:
       fixtureGraphicScoreVisual:
         meaning: https://blackcatinformatics.ca/gmeow/fixtureGraphicScoreVisual
         title: graphic score visual manifestation
+  ScoreSemanticsEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/ScoreSemantics
+    permissible_values:
+      scoreCalibratedProbability:
+        meaning: https://blackcatinformatics.ca/gmeow/scoreCalibratedProbability
+        title: calibrated probability
+      scoreLogit:
+        meaning: https://blackcatinformatics.ca/gmeow/scoreLogit
+        title: logit
+      scoreMargin:
+        meaning: https://blackcatinformatics.ca/gmeow/scoreMargin
+        title: margin
+      scoreSigmoid:
+        meaning: https://blackcatinformatics.ca/gmeow/scoreSigmoid
+        title: sigmoid score
+      scoreSoftmax:
+        meaning: https://blackcatinformatics.ca/gmeow/scoreSoftmax
+        title: softmax probability
   ScriptRoleEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ScriptRole
     permissible_values:

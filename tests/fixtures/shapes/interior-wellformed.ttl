@@ -99,11 +99,17 @@ ex:dread a gmeow:Emotion ;
 ex:criticA a gmeow:Person ; rdfs:label "critic A"@en .
 ex:criticB a gmeow:Person ; rdfs:label "critic B"@en .
 
+ex:padUnitScale a gmeow:AffectScaleProfile ;
+    gmeow:profileRangeMin -1.0 ;
+    gmeow:profileRangeMax 1.0 ;
+    gmeow:profilePolarity gmeow:polarityBipolar .
+
 ex:padCell a gmeow:Appraisal ;
     gmeow:vantage ex:criticA ;
     gmeow:appraisalOf ex:ch31 ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
-    gmeow:appraisalValue 0.85 .
+    gmeow:appraisalValue 0.85 ;
+    gmeow:appraisalScaleProfile ex:padUnitScale .
 
 ex:tasteCell a gmeow:Appraisal ;
     gmeow:vantage ex:criticB ;

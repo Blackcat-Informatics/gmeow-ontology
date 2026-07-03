@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a function declaring its domain, codomain, image, and injectivity/
+# surjectivity/bijectivity. Conforms to math:FunctionFramingShape. Bound by
+# ex:ecFunctionFramed.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:successor a math:Function ;
+    math:domain ex:naturals ;
+    math:codomain ex:naturals ;
+    math:image ex:positives ;
+    math:isInjective true ;
+    math:isSurjective false ;
+    math:isBijective false .
+
+ex:naturals a math:Set .
+ex:positives a math:Set .

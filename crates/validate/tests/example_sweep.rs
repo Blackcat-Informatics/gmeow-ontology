@@ -75,9 +75,14 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/inference/examples/belief-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inference/examples/deduction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inference/examples/induction.ttl", // gmeow:observationMethod → shared method individual untyped standalone
+    "slices/core/inhabitation/examples/continuity-upgrade.ttl", // gmeow:observationMethod (methodExpertJudgement), gmeow:continuityVerdict (continuitySame/Different), gmeow:determinationForce (forceBinding) → shared method/value individuals untyped standalone; gmeow:stageBearer/observedFeature → Agent/Entity not typed standalone (SoftwareAgent⊑Agent chain); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
+    "slices/core/inhabitation/examples/control.ttl", // gmeow:controlLevel (controlFull/controlPartial), gmeow:observationMethod (methodExpertJudgement) → shared value/method individuals untyped standalone; gmeow:controlOver → Entity not typed standalone (PhysicalObject⊑Entity chain); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
+    "slices/core/inhabitation/examples/inhabitation-tenure.ttl", // gmeow:inhabitationLocusKind (locusVessel), gmeow:eventType (eventTypeInhabitationTransition) → shared value/type individuals untyped standalone; gmeow:inhabitationSubject/inhabitedHost/assignmentSubject → Agent/Entity not typed standalone (SoftwareAgent⊑Agent, PhysicalObject⊑Entity chains); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
+    "slices/core/inhabitation/examples/subject-status.ttl", // gmeow:tenureSubjectAgent/tenureVantage → Agent not typed standalone (SoftwareAgent⊑Agent chain); gmeow:hasTemporalFrame → shared TemporalFrame untyped standalone
     "slices/core/inquiry/examples/loaded-question.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inquiry/examples/open-question-and-resolution.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
+    "slices/grounding/math/examples/numbers-sets-functions.ttl", // math:hasElement → set-member individuals (two/three/five/seven) untyped standalone; math:memberCondition → a logic:Formula node (no closed-world schema entry, the denotation seam)
     "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/metacognition/examples/reflection-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/names/examples/person-names.ttl", // gmeow:usageAppellation/usageNamed → Appellation/Entity not typed standalone
@@ -207,6 +212,10 @@ fn gmeow_namespaces() -> json_schema::Namespaces {
             (
                 "logic".to_owned(),
                 "https://blackcatinformatics.ca/logic/".to_owned(),
+            ),
+            (
+                "math".to_owned(),
+                "https://blackcatinformatics.ca/math/".to_owned(),
             ),
         ],
     )

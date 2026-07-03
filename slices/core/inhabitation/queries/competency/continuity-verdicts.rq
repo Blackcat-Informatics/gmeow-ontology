@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# CQ1 + CQ9 (INHABITED-COMPETENCY.md, INHABITED-IDENTITY.md): for one
+# gmeow:SubjectLineage, an affirming ('same', the atman reading) and a denying
+# ('different', the anatta reading) gmeow:IdentityContinuityAssessment COEXIST as
+# asserted verdicts — the denial (CQ9) is a positive verdict, never the mere
+# absence of an affirmation, and the affirmation (CQ1) does not collapse the two
+# distinct gmeow:SubjectStage nodes to owl:sameAs (Principle 9). Asserted lane:
+# a gmeow:ContinuityDetermination (a SubKind of IdentityContinuityAssessment)
+# is NOT matched without reasoning, so the decisional layer stays out and only
+# the two descriptive assessments surface.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?verdict WHERE {
+    ?a a gmeow:IdentityContinuityAssessment ;
+       gmeow:observedFeature <https://blackcatinformatics.ca/gmeow/examples/inhabitation/lillithLineage> ;
+       gmeow:continuityVerdict ?verdict .
+}
+ORDER BY ?verdict
