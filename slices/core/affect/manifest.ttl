@@ -9,7 +9,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/affect>
     a gmeow:Slice ;
     rdfs:label "affect"@x-gmeow-english ;
-    skos:definition "The affect slice of the GMEOW ontology (core tier): GMEOW Affect Module — emotions and appraisals (and, in later stages, the affective evidence and dimensional model). Core because Principle 14 makes affective memory load-bearing for grounded agent memory. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The affect slice of the GMEOW ontology (core tier): GMEOW Affect Module — emotions, appraisals, and the occurrent affective-experience branch. Core because Principle 14 makes affective memory load-bearing for grounded agent memory. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     dcterms:title "GMEOW Affect Module"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;

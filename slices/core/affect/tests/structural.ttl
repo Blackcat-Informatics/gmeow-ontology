@@ -59,7 +59,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:elicits is the trigger-to-emotion inverse of gmeow:affectiveElicitor (the emotion-to-trigger cause property); asserting the elicitor from the emotion side lets the trigger-rooted reading follow by inversion, mirroring the gmeow:partOf / gmeow:hasPart convention." .
 
-# ── Stage 2 — the occurrent (feeling) branch ──────────────────────────────────
+# ── The occurrent (feeling) branch ────────────────────────────────────────────
 # These are module-scoped (affect-local) facts; the cross-module transitive
 # mode/experience cut (Experience ⊑ MentalProcess lives in mentation) is verified
 # over the merged graph by the ex:cqModeExperienceCut competency ASK.

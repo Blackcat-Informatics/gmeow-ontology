@@ -31,14 +31,14 @@ occurrents (`logic:Event`).
 
 ## Scope of the current module
 
-The kernel models emotions and appraisals; it does not yet carry a distinct
-affective-experience or mood/tenure class, a dimensional landscape, or an
-evidence spine — see `design/AFFECT-DESIGN.md` for the comprehensive design of
-those:
+The module models emotions and appraisals and the occurrent felt-episode branch
+(`gmeow:AffectiveExperience`); it does not yet carry a distinct mood/tenure class,
+a dimensional landscape, or an evidence spine — see `design/AFFECT-DESIGN.md` for
+the comprehensive design of those:
 
-- **Mood/tenure** has no named surface yet; a diffuse, long-lived `gmeow:Mood`
-  and its tenure land in a later stage (see the design doc). The felt-episode
-  surface (`gmeow:AffectiveExperience`) is now present — the occurrent branch.
+- **Mood/tenure** has no named surface; a diffuse, long-lived `gmeow:Mood` and its
+  tenure are described in `design/AFFECT-DESIGN.md`. The felt-episode surface
+  (`gmeow:AffectiveExperience`) is present — the occurrent branch.
 - **`appraisalValue`** is a plain decimal; it does not yet reference an
   `AffectScaleProfile` for the open two-family axis basis, scale profiles,
   vector observations, and composition that the fuller model specifies.
