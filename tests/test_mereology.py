@@ -11,7 +11,7 @@ invariants now live in `slices/core/kernel/tests/structural.ttl`.
 
 from __future__ import annotations
 
-from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from purrdf.compat.rdflib import OWL, RDF, Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
 
@@ -20,37 +20,6 @@ GM = Namespace("https://blackcatinformatics.ca/gmeow/")
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-# --------------------------------------------------------------------------- #
-# Per-slice part-like relations (Task 8)
-# --------------------------------------------------------------------------- #
-
-
-def test_existing_part_like_relations_specialize_the_spine() -> None:
-    g = _graph()
-    part_subproperties = {
-        GM.containedInLocation,
-        GM.containedInPlace,
-        GM.rcc8tpp,
-        GM.rcc8ntpp,
-        GM.subOrganizationOf,
-        GM.subEventOf,
-        GM.partOfThread,
-    }
-    has_part_subproperties = {
-        GM.rcc8tppi,
-        GM.rcc8ntppi,
-        GM.hasSubEvent,
-        GM.hasNamePart,
-        GM.hasBodyPart,
-        GM.hasAttachment,
-    }
-
-    for prop in part_subproperties:
-        assert (prop, RDFS.subPropertyOf, GM.partOf) in g
-    for prop in has_part_subproperties:
-        assert (prop, RDFS.subPropertyOf, GM.hasPart) in g
 
 
 def test_no_winner_or_cardinality_terms_for_parts() -> None:

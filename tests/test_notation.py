@@ -4,14 +4,10 @@ systems building block (#172).
 The asserted-TBox MUST / MUST-NOT invariants whose subjects are defined in
 slices/core/notation/module.ttl have been migrated to declarative slicetest
 cells in slices/core/notation/tests/structural.ttl (19 cells, issue #867).
+The cross-slice language/notion-boundary invariants (WritingSystem, Language,
+and FormalLanguage hierarchies) live in slices/core/language/tests/structural.ttl.
 
 RETAINED here (not migratable as module-scoped ASK cells):
-- test_writing_system_is_sibling_not_subclass — gmeow:WritingSystem is a
-  subject defined in another slice.
-- test_language_is_sibling_not_subclass_of_symbolic — gmeow:Language is a
-  subject defined in another slice.
-- test_formal_language_not_subclass_of_notation — gmeow:FormalLanguage is a
-  subject defined in another slice.
 - test_value_vocabularies_not_subclasses — the graph.subjects() loop that
   sweeps the whole merged graph for unexpected subclasses of SymbolicSystemKind
   and NotationUsageRole is a dynamic whole-graph sweep; the static positive
@@ -32,64 +28,6 @@ GMEOW = "https://blackcatinformatics.ca/gmeow/"
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-# --------------------------------------------------------------------------- #
-# Hierarchy — cross-slice siblings (subjects defined in other slices)
-# --------------------------------------------------------------------------- #
-
-
-def test_writing_system_is_sibling_not_subclass() -> None:
-    """WritingSystem remains a sibling to SymbolicSystem, not a subclass."""
-    graph = _graph()
-    # WritingSystem is under InformationObject
-    assert (
-        URIRef(GMEOW + "WritingSystem"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "InformationObject"),
-    ) in graph
-    # But NOT under SymbolicSystem
-    assert (
-        URIRef(GMEOW + "WritingSystem"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "SymbolicSystem"),
-    ) not in graph
-
-
-def test_language_is_sibling_not_subclass_of_symbolic() -> None:
-    """Language remains a sibling to SymbolicSystem, not a subclass."""
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Language"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "InformationObject"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "Language"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "SymbolicSystem"),
-    ) not in graph
-
-
-# --------------------------------------------------------------------------- #
-# Boundary — cross-slice subject
-# --------------------------------------------------------------------------- #
-
-
-def test_formal_language_not_subclass_of_notation() -> None:
-    """A FormalLanguage is not a NotationSystem — grammar-defined languages are
-    structurally distinct from representational notations."""
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "FormalLanguage"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "NotationSystem"),
-    ) not in graph
-
-
-# --------------------------------------------------------------------------- #
-# Value vocabularies — dynamic whole-graph subclass sweep
-# --------------------------------------------------------------------------- #
 
 
 def test_value_vocabularies_not_subclasses() -> None:

@@ -856,3 +856,16 @@ ASK {
         rdfs:range rdfs:Literal .
 }""" ;
     gmeow:saRationale """gmeow:analysisInputBodyLine MUST be a DatatypeProperty on EmailMessage ranging over Literal. Mirrors test_analysis_input_body_line_literal_on_email_message.""" .
+
+# --- Email part-like relations specialize the universal part spine (MUST) ----
+ex:saEmailPartLikeRelationsSpecializeSpine a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:partOfThread  rdfs:subPropertyOf gmeow:partOf .
+    gmeow:hasBodyPart   rdfs:subPropertyOf gmeow:hasPart .
+    gmeow:hasAttachment rdfs:subPropertyOf gmeow:hasPart .
+}""" ;
+    gmeow:saRationale """gmeow:partOfThread MUST be rdfs:subPropertyOf gmeow:partOf; gmeow:hasBodyPart and gmeow:hasAttachment MUST be rdfs:subPropertyOf gmeow:hasPart -- email/conversation part-like relations specialize the universal spine. Mirrors test_existing_part_like_relations_specialize_the_spine (email side).""" .

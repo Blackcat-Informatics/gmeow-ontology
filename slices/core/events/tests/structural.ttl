@@ -774,6 +774,28 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:causalPartOf rdfs:subPropertyOf gmeow:during . }""" ;
     gmeow:saRationale "gmeow:causalPartOf MUST NOT be rdfs:subPropertyOf gmeow:during -- causal mereology is orthogonal to the TEMPORAL Allen DURING relation, which only orders extents and implies nothing causal." .
 
+# --- 57. subEventOf specializes the universal partOf spine (MUST) ------------
+ex:saSubEventOfSpecializesPartOf a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:subEventOf rdfs:subPropertyOf gmeow:partOf .
+}""" ;
+    gmeow:saRationale "gmeow:subEventOf MUST be rdfs:subPropertyOf gmeow:partOf -- event decomposition specializes the universal part-to-whole spine. Mirrors test_existing_part_like_relations_specialize_the_spine (events partOf side)." .
+
+# --- 58. hasSubEvent specializes the universal hasPart spine (MUST) ------------
+ex:saHasSubEventSpecializesHasPart a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasSubEvent rdfs:subPropertyOf gmeow:hasPart .
+}""" ;
+    gmeow:saRationale "gmeow:hasSubEvent MUST be rdfs:subPropertyOf gmeow:hasPart -- whole-to-sub-event decomposition specializes the universal has-part spine. Mirrors test_existing_part_like_relations_specialize_the_spine (events hasPart side)." .
+
 # --- 57. Organizer and attendee roles exist as ParticipantRole values (MUST) -
 # Cross-slice: the calendar slice reuses these role individuals; they are
 # defined in this events module, so the assertion belongs here.

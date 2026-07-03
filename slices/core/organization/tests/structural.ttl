@@ -234,3 +234,14 @@ ex:saOrganizationPurposeProperty a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:organizationPurpose a owl:DatatypeProperty . }""" ;
     gmeow:saRationale "gmeow:organizationPurpose MUST be an owl:DatatypeProperty carrying a free-text mission statement. Mirrors test_new_organization_properties_exist (organizationPurpose part)." .
+
+# --- 20. subOrganizationOf specializes the universal partOf spine (MUST) -------
+ex:saSubOrganizationOfSpecializesPartOf a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:subOrganizationOf rdfs:subPropertyOf gmeow:partOf .
+}""" ;
+    gmeow:saRationale "gmeow:subOrganizationOf MUST be rdfs:subPropertyOf gmeow:partOf -- organizational nesting specializes the universal part-to-whole spine. Mirrors test_existing_part_like_relations_specialize_the_spine (organization partOf side)." .

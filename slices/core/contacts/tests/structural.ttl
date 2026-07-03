@@ -39,3 +39,72 @@ ASK {
         rdfs:range rdfs:Literal .
 }""" ;
     gmeow:saRationale """gmeow:addressValue, localPart, and domainPart MUST be functional DatatypeProperties on EmailAddress ranging over Literal. The EmailAddress stable properties are owned by the contacts slice (cross-slice ownership). Mirrors test_stable_address_properties_on_email_address.""" .
+
+# --- 3. PostalAddress subclasses ContactPoint (MUST) -------------------------
+ex:saPostalAddressSubclassesContactPoint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:PostalAddress rdfs:subClassOf gmeow:ContactPoint .
+}""" ;
+    gmeow:saRationale "gmeow:PostalAddress MUST be rdfs:subClassOf gmeow:ContactPoint. Mirrors test_address_components_present_and_nonfunctional (PostalAddress part)." .
+
+# --- 4. Postal address component properties are DatatypeProperties (MUST) ----
+ex:saPostalAddressComponentsAreDatatypeProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:streetAddress   a owl:DatatypeProperty .
+    gmeow:extendedAddress a owl:DatatypeProperty .
+    gmeow:postOfficeBox   a owl:DatatypeProperty .
+    gmeow:addressLocality a owl:DatatypeProperty .
+    gmeow:addressRegion   a owl:DatatypeProperty .
+    gmeow:postalCode      a owl:DatatypeProperty .
+    gmeow:countryCode     a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "The seven postal-address component properties MUST be owl:DatatypeProperty. Mirrors test_address_components_present_and_nonfunctional (component-type part)." .
+
+# --- 5. Postal address component properties are NOT functional (MUST-NOT) ----
+ex:saPostalAddressComponentsNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?p {
+        gmeow:streetAddress gmeow:extendedAddress gmeow:postOfficeBox
+        gmeow:addressLocality gmeow:addressRegion gmeow:postalCode gmeow:countryCode
+    }
+    ?p a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "The seven postal-address component properties MUST NOT be owl:FunctionalProperty -- source variants coexist (Principle 9). Mirrors test_address_components_present_and_nonfunctional (non-functional part)." .
+
+# --- 6. addressPlace ranges over Place (MUST) ---------------------------------
+ex:saAddressPlaceRangesPlace a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:addressPlace rdfs:range gmeow:Place .
+}""" ;
+    gmeow:saRationale "gmeow:addressPlace MUST have rdfs:range gmeow:Place -- the seam from a postal address surface form to the resolved geographic place. Mirrors test_address_components_present_and_nonfunctional (addressPlace part)." .
+
+# --- 7. postalAddressFrame is a functional subproperty of hasReferenceFrame (MUST)
+ex:saPostalAddressFrameProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:postalAddressFrame a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:subPropertyOf gmeow:hasReferenceFrame ;
+        rdfs:domain gmeow:PostalAddress ;
+        rdfs:range gmeow:ReferenceFrame .
+}""" ;
+    gmeow:saRationale "gmeow:postalAddressFrame MUST be a functional owl:ObjectProperty, rdfs:subPropertyOf gmeow:hasReferenceFrame, with domain gmeow:PostalAddress and range gmeow:ReferenceFrame. Mirrors test_postal_address_frame_property." .

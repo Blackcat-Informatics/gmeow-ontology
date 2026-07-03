@@ -610,3 +610,47 @@ ASK {
     gmeow:MentalMoment rdfs:subClassOf logic:Mode .
 }""" ;
     gmeow:saRationale "gmeow:MentalMoment MUST subclass logic:Mode — this is the native-logic grounding that keeps IntentionalMode and other intrinsic modes transitively under Mode without a direct gufo:IntrinsicMode assertion." .
+
+# =============================================================================
+# 11. Connectivity universal spine (migrated from tests/test_connectivity.py)
+# =============================================================================
+
+# --- 11.1 connectsTo is a universal ObjectProperty (MUST) ---------------------
+ex:saConnectsToIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:connectsTo a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:connectsTo MUST be an owl:ObjectProperty -- the universal traversable-link spine. Mirrors test_connects_to_universal_spine (positive part)." .
+
+# --- 11.2 connectsTo has no rdfs:domain or rdfs:range (MUST-NOT) --------------
+ex:saConnectsToHasNoDomainRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:connectsTo rdfs:domain ?d . }
+    UNION
+    { gmeow:connectsTo rdfs:range ?r . }
+}""" ;
+    gmeow:saRationale "gmeow:connectsTo MUST NOT carry rdfs:domain or rdfs:range -- it is a universal spine. Mirrors test_connects_to_universal_spine (no-domain/range part)." .
+
+# --- 11.3 connectsTo is NOT symmetric (MUST-NOT) ------------------------------
+ex:saConnectsToNotSymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:connectsTo a owl:SymmetricProperty . }""" ;
+    gmeow:saRationale "gmeow:connectsTo MUST NOT be owl:SymmetricProperty -- subproperties decide their own directionality. Mirrors test_connects_to_universal_spine (not-symmetric part)." .
+
+# --- 11.4 connectsTo is NOT transitive (MUST-NOT) -----------------------------
+ex:saConnectsToNotTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:connectsTo a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:connectsTo MUST NOT be owl:TransitiveProperty -- reachability is computed by the solver (Principle 12). Mirrors test_connects_to_universal_spine (not-transitive part)." .
