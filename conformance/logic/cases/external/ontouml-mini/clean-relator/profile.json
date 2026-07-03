@@ -1,0 +1,8 @@
+{
+  "certify": false,
+  "foundation_lowering": true,
+  "mode": "native",
+  "reasoning_contract": {
+    "preset": "StratifiedNAFProfile"
+  }
+}

@@ -582,6 +582,41 @@ maint-tptp-corpus: ## Grade the native FOL path against a live/local TPTP subset
 	'
 	@echo "TPTP Lane-B grading complete; divergences in generated/conformance/divergence-tptp.nq"
 
+# The scratch dir the Lane-B OntoUML grade reads catalog models from (ontology.ttl /
+# model.ttl). Populate it from a local `ontouml-models` checkout, or set
+# ONTOUML_SUBSET_URL to a tarball of a catalog subset. Defaults to a gitignored
+# scratch dir (never committed).
+ONTOUML_MODELS_DIR ?= .tmp/ontouml
+ONTOUML_SUBSET_URL ?=
+
+maint-ontouml-corpus: ## Grade the native foundation disciplines against a live/local FAIR OntoUML/UFO catalog subset (Lane-B, CC BY-SA — NEVER vendored); record divergences as a gmeow:Finding graph.
+	# `.tmp` holds the fetched subset tarball; create it explicitly so an overridden
+	# ONTOUML_MODELS_DIR (pointing outside `.tmp`) does not leave `curl -o .tmp/...` without a parent.
+	mkdir -p .tmp $(ONTOUML_MODELS_DIR) generated/conformance
+	# The FAIR OntoUML/UFO catalog is CC BY-SA 4.0 (ReferenceOnly under the native
+	# license policy) and is NEVER vendored/committed ($(ONTOUML_MODELS_DIR) is a
+	# gitignored scratch dir). This lane parses the real OntoUML metamodel models,
+	# lowers the endurant-sortal + relator fragment onto the native foundation
+	# disciplines, audits each model's own license from its metadata, and records every
+	# fired discipline (a presumed-clean model that trips a discipline) or capability
+	# gap as a gmeow:Finding. It is the documented path from the tiny committed Lane-A
+	# `ontouml-mini` corpus to the full catalog.
+	bash -euo pipefail -c '\
+	  dir="$(ONTOUML_MODELS_DIR)"; url="$(ONTOUML_SUBSET_URL)"; \
+	  if [ -n "$$url" ] && [ -z "$$(find "$$dir" \( -name "ontology.ttl" -o -name "model.ttl" \) -print -quit 2>/dev/null)" ]; then \
+	    echo "fetching OntoUML catalog subset tarball $$url"; \
+	    curl -sSL "$$url" -o .tmp/ontouml-subset.tgz; \
+	    tar -xzf .tmp/ontouml-subset.tgz -C "$$dir" --strip-components=1 || tar -xzf .tmp/ontouml-subset.tgz -C "$$dir"; \
+	  fi; \
+	  test -n "$$(find "$$dir" \( -name "ontology.ttl" -o -name "model.ttl" \) -print -quit 2>/dev/null)" || { \
+	    echo "no OntoUML models (ontology.ttl/model.ttl) under $$dir."; \
+	    echo "populate it from a local ontouml-models checkout (git clone https://github.com/OntoUML/ontouml-models $$dir),"; \
+	    echo "or run: make maint-ontouml-corpus ONTOUML_SUBSET_URL=<tarball-of-catalog-models>"; \
+	    exit 1; }; \
+	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-ontouml "$$dir" ontouml-live generated/conformance/divergence-ontouml.nq; \
+	'
+	@echo "OntoUML Lane-B grading complete; divergences in generated/conformance/divergence-ontouml.nq"
+
 native-py: $(NATIVE_PY_STAMP)
 
 $(NATIVE_PY_STAMP): $(NATIVE_PY_INPUTS)
