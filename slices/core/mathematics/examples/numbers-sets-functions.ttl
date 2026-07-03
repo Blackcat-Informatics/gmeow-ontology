@@ -1,0 +1,61 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# An illustrative, well-formed scene over the mathematics bedrock: a situated exact
+# number and a distinct approximation of it, an exact named constant, a finite set
+# with a cardinality, an intensional set whose condition denotes a logic: formula,
+# and a function with a declared frame. It validates cleanly under the global gate.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/mathematics/> .
+
+# An exact rational number, and a distinct approximate value that stands in for it.
+ex:oneThird a math:RationalNumber ;
+    rdfs:label "1/3"@x-gmeow-english ;
+    math:inNumberSystem math:rationalNumbers ;
+    math:isExact true .
+
+ex:oneThirdDecimal a math:ApproximateValue ;
+    rdfs:label "0.333333 (≈ 1/3)"@x-gmeow-english ;
+    math:approximates ex:oneThird ;
+    math:approximationError "3.4e-7"^^xsd:double ;
+    math:quantityValue "0.333333"^^xsd:double ;
+    math:numericDatatype xsd:double .
+
+# An exact named constant, given as an individual — never a decimal literal.
+ex:goldenRatio a math:MathematicalConstant ;
+    rdfs:label "φ (golden ratio)"@x-gmeow-english ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
+
+# A finite set given extensionally, with a cardinality.
+ex:smallPrimes a math:FiniteSet ;
+    rdfs:label "{2, 3, 5, 7}"@x-gmeow-english ;
+    math:hasElement ex:two , ex:three , ex:five , ex:seven ;
+    math:hasCardinality math:cardinalityFinite ;
+    math:quantityValue 4 .
+
+# An intensional set whose condition denotes a logic: formula (the denotation seam).
+ex:evenNumbers a math:SetBuilderExpression ;
+    rdfs:label "{ x | x mod 2 = 0 }"@x-gmeow-english ;
+    math:memberCondition ex:evenCondition .
+
+ex:evenCondition a logic:Formula ;
+    rdfs:label "x mod 2 = 0"@x-gmeow-english .
+
+# A bijective function with a fully declared frame.
+ex:negation a math:Function ;
+    rdfs:label "n ↦ −n on ℤ"@x-gmeow-english ;
+    math:domain ex:integerSet ;
+    math:codomain ex:integerSet ;
+    math:image ex:integerSet ;
+    math:isInjective true ;
+    math:isSurjective true ;
+    math:isBijective true .
+
+ex:integerSet a math:Set ;
+    rdfs:label "ℤ"@x-gmeow-english ;
+    math:hasCardinality math:alephNull .

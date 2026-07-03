@@ -1,0 +1,15 @@
+# Competency question: "What number system does each number belong to, and is it
+# exact?"  This exercises the bedrock discipline that a number situates itself in a
+# declared math:NumberSystem (the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ) and declares
+# its exactness. Scoped to the fixture namespace so the answer is the two fixture
+# numbers {half → ℚ (exact), negFive → ℤ (exact)}, not every situated number in the
+# merged ontology.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?number ?system ?exact WHERE {
+    ?number math:inNumberSystem ?system ;
+            math:isExact ?exactRaw .
+    FILTER(STRSTARTS(STR(?number), "http://example.org/math/"))
+    BIND(STR(?exactRaw) AS ?exact)
+}
+ORDER BY ?number

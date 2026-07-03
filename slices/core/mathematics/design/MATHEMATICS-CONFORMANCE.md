@@ -67,7 +67,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
 | An intensional set's member condition denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyMemberCondition` |
-| A complement names its ambient set | SHACL-SPARQL | `math:UnqualifiedComplement` |
+| A complement names its ambient set | SHACL Core | `math:UnqualifiedComplement` |
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
 | A `math:Function` declares its domain and codomain | SHACL Core | `math:UnframedFunction` |
 
