@@ -36,6 +36,9 @@ gmeow-docs = { path = "../docs" }
 # (`gts::read`, `flattened_dataset_from_bytes`, `serialize_dataset`). A published
 # runtime dependency, never a repo-maintenance one.
 purrdf = "0.2"
+# TOCTOU/symlink-safe staging of the embedded bundle to a temp path for the
+# external `gts` passthrough (atomic create + remove-on-drop).
+tempfile = "3"
 
 [dev-dependencies]
 assert_cmd = "2"

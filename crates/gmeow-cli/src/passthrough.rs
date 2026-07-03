@@ -121,33 +121,27 @@ pub(crate) fn music(command: &MusicCommands) -> i32 {
 }
 
 /// A scoped temp copy of the embedded bundle, removed on drop.
+///
+/// Backed by [`tempfile::NamedTempFile`], which creates the file atomically with
+/// `O_EXCL` semantics and a randomized name — closing the TOCTOU / symlink race a
+/// predictable pid+timestamp name would open — and unlinks it on drop.
 struct StagedBundle {
-    path: PathBuf,
+    file: tempfile::NamedTempFile,
 }
 
 impl StagedBundle {
     fn write(bytes: &[u8]) -> std::io::Result<Self> {
-        let mut path = std::env::temp_dir();
-        let unique = format!(
-            "gmeow-gts-{}-{}.gts",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_nanos())
-                .unwrap_or(0)
-        );
-        path.push(unique);
-        std::fs::write(&path, bytes)?;
-        Ok(Self { path })
+        use std::io::Write;
+        let mut file = tempfile::Builder::new()
+            .prefix("gmeow-gts-")
+            .suffix(".gts")
+            .tempfile()?;
+        file.write_all(bytes)?;
+        file.flush()?;
+        Ok(Self { file })
     }
 
     fn path(&self) -> &Path {
-        &self.path
-    }
-}
-
-impl Drop for StagedBundle {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_file(&self.path);
+        self.file.path()
     }
 }
