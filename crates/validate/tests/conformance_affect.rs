@@ -50,7 +50,7 @@ fn conforms(#[case] case: Case) {
 #[case::run_missing_identifier(
     Case::inline(ttl("ex:run a gmeow:ModelInferenceRun ; gmeow:modelRevision \"r\" .\n"))
         .fails()
-        .violations(&["must declare a gmeow:modelIdentifier"])
+        .violations(&["must declare exactly one gmeow:modelIdentifier"])
 )]
 // ── Hard-fail rule 1: output provenance completeness ──────────────────────────
 #[case::output_missing_producedby(
@@ -76,7 +76,7 @@ fn conforms(#[case] case: Case) {
 #[case::output_missing_semantics(
     Case::inline(ttl("ex:out a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:classifiedTarget ex:c ; gmeow:emittedLabel gmeow-goemotions:joy ; gmeow:classifierScore 0.8 .\n"))
         .fails()
-        .violations(&["must declare its gmeow:scoreSemantics"])
+        .violations(&["must declare exactly one gmeow:scoreSemantics"])
 )]
 // ── Hard-fail rule 2: label not registered in a label set ─────────────────────
 #[case::label_unregistered(
@@ -131,6 +131,12 @@ fn conforms(#[case] case: Case) {
     Case::inline(ttl("ex:p a gmeow:AffectScaleProfile ; gmeow:profileRangeMin 1.0 ; gmeow:profileRangeMax -1.0 .\n"))
         .fails()
         .violations(&["must strictly exceed"])
+)]
+// ── Stage-4 provenance is single-valued: a run with two pinned revisions reds ──
+#[case::run_multiple_revisions(
+    Case::inline(ttl("ex:run a gmeow:ModelInferenceRun ; gmeow:modelIdentifier \"m\" ; gmeow:modelRevision \"r1\" ; gmeow:modelRevision \"r2\" .\n"))
+        .fails()
+        .violations(&["single pinned revision"])
 )]
 fn hard_fails(#[case] case: Case) {
     case.run();

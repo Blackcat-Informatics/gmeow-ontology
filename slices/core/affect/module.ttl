@@ -116,7 +116,7 @@ gmeow:AffectComposite
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Composite"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Emotion ;
-    skos:definition "A named emotion whose meaning is given by a DECLARED composition — a core-affect vector bound by relations to its elicitor, target, agency attribution, norm, and, where relevant, other emotions — rather than left as an unanalyzed primitive. GMEOW models up: schadenfreude, saudade, and Fernweh are structure over the foundational axes and relations, not new primitive EmotionTypes. A composite MUST carry its decomposition via gmeow:affectiveConstituent (SHACL); if a quality cannot be decomposed into the current axes, that is evidence the axis basis is incomplete (add an axis), never a licence for an opaque primitive."@x-gmeow-english ;
+    skos:definition "A named emotion whose meaning is given by a DECLARED composition — a core-affect vector bound by relations to its elicitor, target, agency attribution, norm, and, where relevant, other emotions — rather than left as an unanalyzed primitive. GMEOW models up: schadenfreude and saudade are structure over the foundational axes and relations, not new primitive EmotionTypes. A composite MUST carry its decomposition via gmeow:affectiveConstituent (SHACL); if a quality cannot be decomposed into the current axes, that is evidence the axis basis is incomplete (add an axis), never a licence for an opaque primitive."@x-gmeow-english ;
     skos:example "ex:schadenfreude a gmeow:AffectComposite ; gmeow:emotionBearer ex:agent ; gmeow:affectiveConstituent ex:positiveCoreVector , ex:otherMisfortuneElicited ."@x-gmeow-english ;
     skos:scopeNote "A named region/composite in the affect landscape (⊑ gmeow:Emotion, so it inherits the mode/bearer/target/elicitor surface). The composite layer stays analysable; the expressive power stays total."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for an unanalyzed primitive feeling (mint no opaque emotionX — either decompose it here or add the missing axis) and for the felt EPISODE (that is gmeow:AffectiveExperience)."@x-gmeow-english ;
@@ -584,7 +584,7 @@ gmeow:modelFramework
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelIdentifier
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty , owl:FunctionalProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model identifier"@x-gmeow-english ;
@@ -593,7 +593,7 @@ gmeow:modelIdentifier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelRevision
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty , owl:FunctionalProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model revision"@x-gmeow-english ;
@@ -628,7 +628,7 @@ gmeow:scoreCalibration
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:scoreSemantics
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "score semantics"@x-gmeow-english ;
