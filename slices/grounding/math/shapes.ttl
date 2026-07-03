@@ -146,16 +146,18 @@ math:FunctionFramingShape
     sh:property [
         sh:path math:domain ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:class math:Set ;
         sh:severity sh:Violation ;
-        sh:message "A math:Function must declare its math:domain naming the source set; a function without a domain is ill-formed." ;
+        sh:message "A math:Function must declare exactly one math:domain naming the source set; a function without a domain, or with several, is ill-formed." ;
     ] ;
     sh:property [
         sh:path math:codomain ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:class math:Set ;
         sh:severity sh:Violation ;
-        sh:message "A math:Function must declare its math:codomain naming the target set; a function without a codomain is ill-formed." ;
+        sh:message "A math:Function must declare exactly one math:codomain naming the target set; a function without a codomain, or with several, is ill-formed." ;
     ] .
