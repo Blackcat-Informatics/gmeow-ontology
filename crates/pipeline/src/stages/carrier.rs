@@ -1312,6 +1312,20 @@ fn build_fanout_opaque_blob(
         )?,
     );
 
+    // The EmotionML XML projection of the affect vocabulary rides in from the sink-consumed
+    // stage-mappings product (rendered once by that stage). It is a non-RDF (XML) projection,
+    // so it cannot reconstruct from a canonical named-graph fold; carried here as a committed
+    // byte projection so a single regenerate folds the fresh document into gmeow.gts (never a
+    // stale disk read — the committed file is not flushed until phase 1 returns).
+    members.insert(
+        crate::stages::mappings::EMOTIONML_PATH.to_string(),
+        producer_artifact(
+            "stage-mappings",
+            crate::stages::mappings::EMOTIONML_PATH,
+            upstream,
+        )?,
+    );
+
     let mut members: Vec<(String, Vec<u8>)> = members.into_iter().collect();
     members.sort_by(|a, b| a.0.cmp(&b.0));
     archive_blob(REP_GENERATED, &members)
