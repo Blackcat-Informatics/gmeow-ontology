@@ -526,9 +526,14 @@ category `CategoryNonEntailmentObligation` records the intent, the linked obliga
 forbidden predicate, and the two arms enforce it.
 
 The deliberate-non-assertion boundaries the foundation commits to are each recorded as a reviewed
-candidate, so the whole set is enumerable rather than tacit — queryable as a report over the
-accepted candidates, and each carrying a caught-violation fixture that proves the boundary holds
-against a live chase:
+candidate flagged `logic:candidateDeliberateNonAssertion`, so the whole set is enumerable rather
+than tacit — queryable as one report over the accepted candidates regardless of their
+`logic:candidateCategory` (the flag cuts across the category facet, so an integrity-constraint
+boundary is enumerated alongside the obligations rather than lost among ordinary integrity
+constraints). The four enforced boundaries each carry a caught-violation fixture that proves the
+boundary holds against a live chase; the fifth — the deliberately-preserved overlap — carries a
+positive coherence case and its countermodel instead, since an allow-by-design non-assertion has
+no runtime violation to catch:
 
 - **deceptive intent is attributed, never entailed**, and **cross-realm counterpart identity never
   becomes transitive** — two `CategoryNonEntailmentObligation` candidates, each carrying its
