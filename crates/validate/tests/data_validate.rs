@@ -99,7 +99,7 @@ fn fail_fixture_yields_two_errors_one_warning_with_locations() {
                     .as_deref()
                     .is_some_and(|d| d.contains(IDENTITY_SHAPE))
         }),
-        "missing P9 disjointness error (IdentityAxisOrthogonalityShape / SPARQLConstraintComponent)"
+        "missing P9 disjointness error (IdentityAxisDisjointnessConstraintShape / SPARQLConstraintComponent)"
     );
     assert!(
         errors.iter().any(|f| {
