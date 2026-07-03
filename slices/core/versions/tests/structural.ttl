@@ -295,8 +295,9 @@ ASK {
     gmeow:hasChangelogEntry a owl:AnnotationProperty .
     gmeow:entryVersion     a owl:AnnotationProperty .
     gmeow:entryNote        a owl:AnnotationProperty .
+    gmeow:definitionDigest a owl:AnnotationProperty .
 }""" ;
-    gmeow:saRationale "The per-term lifecycle predicates (termStability, addedInVersion, hasChangelogEntry, entryVersion, entryNote) MUST be owl:AnnotationProperty — they are asserted ABOUT TBox classes/properties, so the annotation form keeps the generated OWL downcast in OWL 2 DL (the gmeow:accordingTo pattern, Principle 3)." .
+    gmeow:saRationale "The per-term lifecycle predicates (termStability, addedInVersion, hasChangelogEntry, entryVersion, entryNote, definitionDigest) MUST be owl:AnnotationProperty — they are asserted ABOUT TBox classes/properties, so the annotation form keeps the generated OWL downcast in OWL 2 DL (the gmeow:accordingTo pattern, Principle 3)." .
 
 # --- 15. ChangelogEntry is a logic:Kind information object (MUST) ------------
 ex:saChangelogEntryIsInformationObject a gmeow:StructuralAssertion ;

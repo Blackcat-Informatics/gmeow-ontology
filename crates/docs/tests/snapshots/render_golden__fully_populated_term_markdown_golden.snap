@@ -64,6 +64,10 @@ The entity whose data quality is being assessed — the feature of interest of t
 
 - `full`
 
+## Changelog
+
+- **Added in:** 0\.1\.0
+
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/assessedEntity>

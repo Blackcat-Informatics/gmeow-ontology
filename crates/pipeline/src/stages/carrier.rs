@@ -486,6 +486,12 @@ fn rdf_fanout_members(
             "stage-constraint-catalog",
             crate::stages::constraint_catalog::CONSTRAINT_CATALOG_RDF_PATH,
         ),
+        // The generated term content manifest `.nq` — its own fanout named graph,
+        // reconstructed byte-for-byte by the superset gate.
+        (
+            "stage-term-manifest",
+            crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH,
+        ),
     ] {
         let bytes = upstream
             .get(stage)
@@ -1898,6 +1904,9 @@ impl SnapshotStage {
                 // re-loading + re-canonicalizing the sources (PIPELINE_SPINE §3.2/§4).
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
+                // The generated term content manifest `.nq`, folded as the
+                // graph/fanout/catalog/term-content-manifest.nq named graph.
+                "stage-term-manifest".to_string(),
                 "stage-validate".to_string(),
             ],
         }

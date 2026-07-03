@@ -407,6 +407,19 @@ gmeow:entryNote
     gmeow:howToUse "Attach one localizable prose literal to the entry on the @x-gmeow-english carrier; keep it terse — one change, one sentence."@x-gmeow-english ;
     gmeow:useWhen "Use to say in words what changed about a term in a given release, beyond the bare version string."@x-gmeow-english .
 
+gmeow:definitionDigest
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+    gmeow:addedInVersion "1.0.2" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "definition digest"@x-gmeow-english ;
+    skos:definition "The RDFC-1.0-canonical content digest (blake3) of a vocabulary term's DEFINING triples — its content-address. Computed over the term's concise bounded description with the per-term provenance predicates (this digest, gmeow:versionFingerprint, gmeow:addedInVersion, gmeow:hasChangelogEntry and its parts, gmeow:termStability) excluded, so recording provenance never perturbs the digest that generated it. An owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) because it is asserted ABOUT a class or property, keeping the generated OWL in OWL 2 DL. Drives the computed per-term changelog (a definition whose digest differs from the prior release records a change) and serves as a stable citation permalink for the term's meaning."@x-gmeow-english ;
+    skos:example "gmeow:SomeTerm gmeow:definitionDigest \"blake3:1a2b3c…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a concrete artifact's byte-exact hash (use gmeow:contentDigest) or a semantic artifact fingerprint (use gmeow:versionFingerprint); reserve it for the canonical digest of a TBox term's defining triples, and never author it by hand — it is computed from the term's definition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the pipeline compute it from the term's canonical definition; read it to detect when a term's meaning changed between releases or to cite a term's definition by content-address."@x-gmeow-english ;
+    gmeow:useWhen "Use to content-address a vocabulary term's meaning — to detect when its definition changed across releases (driving the computed changelog) or to cite the exact definition by digest."@x-gmeow-english .
+
 <https://blackcatinformatics.ca/gmeow/slices/versions>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;

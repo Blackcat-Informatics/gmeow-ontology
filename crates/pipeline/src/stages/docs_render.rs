@@ -159,6 +159,13 @@ pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, 
     if four_boxes.is_file() {
         files.push(four_boxes);
     }
+    // The committed term content manifest: the docs model reads it for each term's
+    // content digest, first-seen version, and computed changelog, so a manifest edit
+    // must bust the docs cache (cache soundness).
+    let term_manifest = root.join(crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH);
+    if term_manifest.is_file() {
+        files.push(term_manifest);
+    }
     walk_files(&root.join("i18n"), &mut files)?;
     walk_files(&root.join("shapes"), &mut files)?;
     files.sort();
