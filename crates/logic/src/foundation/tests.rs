@@ -1853,6 +1853,29 @@ fn relatum_distinctness_distinct_roles_are_clean() {
 }
 
 #[test]
+fn relatum_distinctness_malformed_role_count_hard_fails() {
+    // A RelatumDistinctnessAssertion naming only ONE role is malformed. The native pass
+    // must fail closed — exactly as the SHACL projector rejects the same record — never
+    // silently drop it (no-optionality: the two enforcement halves of one axiom must
+    // agree on malformed input).
+    let b = "https://example.org/distinct-malformed";
+    let cls = format!("{b}/Commitment");
+    let r1 = format!("{b}/committedAgent");
+    let rec = format!("{b}/rec");
+    let nq = format!(
+        "<{rec}> <{RDF_TYPE_P}> <{LOGIC}RelatumDistinctnessAssertion> <{b}/g> .\n\
+         <{rec}> <{LOGIC}distinctnessTarget> <{cls}> <{b}/g> .\n\
+         <{rec}> <{LOGIC}distinctnessRole> <{r1}> <{b}/g> .\n"
+    );
+    let err = evaluate(&store_from(&nq), AntiRigidityPolicy::WitnessObligation)
+        .expect_err("a one-role distinctness assertion must hard-fail, not be skipped");
+    assert!(
+        err.contains("exactly two") && err.contains(&rec),
+        "error must name the malformed record and the two-role requirement, got: {err}"
+    );
+}
+
+#[test]
 fn characteristic_unmarked_property_is_inert() {
     // The counterpartOf shape: a plain (unmarked) property must NOT be closed — proving
     // the pass fires ONLY on declared characteristics (non-transitivity is respected).
