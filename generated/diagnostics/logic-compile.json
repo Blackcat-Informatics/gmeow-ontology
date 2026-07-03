@@ -17527,7 +17527,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from gmeow:memberOf's skos:definition, which states membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from gmeow:memberOf's skos:definition, which states membership propagates up the organizational part/whole hierarchy through gmeow:subOrganizationOf (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -17626,7 +17626,7 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
-      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:e69c9076321932cd8ca8fb9784382dd625429a454cbdc52ce2ab165e0f40567d\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:5b391ca1b4bd12c69da58106cae0e62086db0bbc0fad863734f42d5a2ca67556\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {

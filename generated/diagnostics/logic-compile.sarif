@@ -30289,10 +30289,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from gmeow:memberOf's skos:definition, which states membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> \"hand-harvested from gmeow:memberOf's skos:definition, which states membership propagates up the organizational part/whole hierarchy through gmeow:subOrganizationOf (design/LOGIC-FOUNDATION.md, §Typed formalization governance)\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "5acc79811ab72ce6"
+            "gmeowFindingHash/v2": "2a4f4bfd746be714"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -30460,10 +30460,10 @@
             }
           ],
           "message": {
-            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:e69c9076321932cd8ca8fb9784382dd625429a454cbdc52ce2ab165e0f40567d\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/candidateOrgMembershipPropagation> <https://blackcatinformatics.ca/logic/candidateSourceHash> \"sha256:5b391ca1b4bd12c69da58106cae0e62086db0bbc0fad863734f42d5a2ca67556\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "09d75f0db4f3bac9"
+            "gmeowFindingHash/v2": "49f325777c96b9d6"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
