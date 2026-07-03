@@ -921,14 +921,14 @@ fn slash_path(path: &Path) -> String {
         .join("/")
 }
 
-// ── generated/ produce-path read ban (#1278) ────────────────────────────────────
+// ── generated/ produce-path read ban ────────────────────────────────────
 
 /// No pipeline PRODUCE stage may read a `generated/` artifact off disk. Every `generated/`
 /// file has exactly one producing stage, so a consumer must add a `dataflowConsumes` edge
 /// and read the producer's IN-MEMORY product; a disk read at `run()` time carries the
 /// last-committed bytes forever (the post-pipeline fanout rewrites those files from the
 /// bundle), so `make regenerate` reports "unchanged" while `check-generated` reds
-/// permanently — the stale-disk-fold bug class (#1278). This gate scans every Rust source
+/// permanently — the stale-disk-fold bug class. This gate scans every Rust source
 /// under `crates/pipeline/src/stages/` and flags any DISK-PATH construction under
 /// `generated/`: a literal `.join("generated"…)` or a `.join(NAME)` where `NAME` is a
 /// `const … = "generated/…"` path constant. A read from a stage PRODUCT (`.artifact(NAME)`)
@@ -999,7 +999,7 @@ fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStat
             }
             report.error(format!(
                 "{rel}:{}: pipeline produce-stage constructs a generated/ disk path \
-                 (stale-disk-fold bug class, #1278) — consume the producing stage's in-memory \
+                 (stale-disk-fold bug class) — consume the producing stage's in-memory \
                  product instead of reading the committed file, or, for a dev-CLI AUDIT-lane read \
                  of committed output, mark it `// GENERATED-READ-OK: <reason>`: {}",
                 idx + 1,
@@ -1686,7 +1686,7 @@ mod tests {
         assert!(report.ok(), "{:?}", report.errors);
     }
 
-    // ── generated/-read ban (#1278) ─────────────────────────────────────────────
+    // ── generated/-read ban ─────────────────────────────────────────────
 
     #[test]
     fn blank_pass_keeps_strings_blanks_comments_and_cfg_test_bodies() {

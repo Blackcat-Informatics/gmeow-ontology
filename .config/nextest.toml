@@ -176,7 +176,7 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # Full-carrier round-trip tests decode the committed `gmeow.gts` and re-emit /
-# extract it back through the native gmeow-gts codecs (#909). All are on-gate
+# extract it back through the native gmeow-gts codecs. All are on-gate
 # (the blob-input `gts_sink` serialization test rejoined the gate at ~0.3 s once
 # its docs-model seam removed the whole-ontology discovery). Keep a longer runaway
 # cliff because they are codec / I-O-bound and not protected by the `engine`
