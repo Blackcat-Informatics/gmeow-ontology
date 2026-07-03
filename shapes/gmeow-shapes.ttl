@@ -4152,8 +4152,9 @@ gmeow:AppraisalShape
         sh:path gmeow:appraisalScaleProfile ;
         sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
+        sh:class gmeow:AffectScaleProfile ;
         sh:severity sh:Violation ;
-        sh:message "gmeow:appraisalScaleProfile names exactly one gmeow:AffectScaleProfile IRI — never a literal or blank node." ;
+        sh:message "gmeow:appraisalScaleProfile names exactly one gmeow:AffectScaleProfile IRI — never a literal, a blank node, or a non-profile IRI (the reshape's frame must actually be a frame, Principle 6)." ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -4222,6 +4223,18 @@ gmeow:AffectScaleProfileShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "gmeow:profilePolarity names at most one gmeow:ScalePolarity IRI (open vocabulary — never a literal)." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "An AffectScaleProfile is degenerate: gmeow:profileRangeMax must strictly exceed gmeow:profileRangeMin — an inverted or empty range frames nothing (Principle 11)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/profileRangeMin> ?min .
+                $this <https://blackcatinformatics.ca/gmeow/profileRangeMax> ?max .
+                FILTER ( ?min >= ?max )
+            }
+        """ ;
     ] .
 
 gmeow:AffectVectorObservationShape
