@@ -81,6 +81,17 @@ pub struct AgreementTally {
 pub fn agreement_tally(corpus: &str, comparisons: &[ExternalComparison]) -> AgreementTally {
     let rows = compare_external_corpus(corpus, comparisons);
     let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    // `cases` is the true attempted count. `compare_external_corpus` is a total map
+    // (one row per comparison, always exactly one of Agree/CorpusOnly/DlGap) and
+    // `build_ledger` counts every row without dedup or filtering, so the partition
+    // `agree + corpus_only + dl_gap == cases` holds by construction. Enforce it here
+    // rather than trust it: if a future edit ever makes the grading filter or dedup, a
+    // deflated agree rate must surface loudly, never silently.
+    debug_assert_eq!(
+        ledger.agree + ledger.corpus_only + ledger.dl_gap,
+        comparisons.len(),
+        "agreement tally must partition every graded comparison into agree/corpus-only/dl-gap"
+    );
     AgreementTally {
         corpus: corpus.to_string(),
         cases: comparisons.len(),
