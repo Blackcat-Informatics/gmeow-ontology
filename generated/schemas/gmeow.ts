@@ -1511,6 +1511,7 @@ export enum MemoryKindEnum {
 }
 
 export enum MentalProcessTypeEnum {
+    processAffectiveExperience = "processAffectiveExperience",
     processAttention = "processAttention",
     processDeliberation = "processDeliberation",
     processDreaming = "processDreaming",
@@ -3235,6 +3236,10 @@ export interface AdoptiveParentChild extends ParentChildRelationship {
 }
 
 export interface AestheticQuality {
+}
+
+export interface AffectiveExperience extends Experience {
+    feltAffect?: AffectiveMoment[],
 }
 
 export interface AffectiveMoment extends Entity {
