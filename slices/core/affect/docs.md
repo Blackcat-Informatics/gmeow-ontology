@@ -62,14 +62,42 @@ is read against (SHACL hard-fail). An unframed magnitude is ill-formed, not a
 permitted default — this is Principle 6 (reshape, don't shim) enforcing Principle 11
 (a value asserted without its frame is ill-formed).
 
+## The evidence spine
+
+Model outputs and signals are **attributed evidence, never inner-state truth**. A
+classifier output is "this model, at this revision, over this span, emitted this
+label with this score under this label set" — never "the user is joyful".
+
+- `gmeow:ModelInferenceRun` — one classifier execution (PROV-O-aligned) with full
+  run provenance and a **mandatory pinned** `modelRevision`.
+- `gmeow:AffectClassifierOutput` — one emitted output (label + raw score +
+  `scoreSemantics` + threshold), `producedBy` a run, over a `classifiedTarget`. It
+  `supportsAffectiveClaim` — evidence, never entailment.
+- `gmeow:AffectClassifierLabel` / `gmeow:AffectLabelSet` — the exact external label
+  identities, registered under their own authority path (`gmeow-goemotions:`,
+  `gmeow-hf:`, `gmeow-labelset:`), **never** the canonical `gmeow:` emotion
+  namespace. GoEmotions (28), Ekman-7, SST-2, and CardiffNLP TweetEval are seeded.
+- `gmeow:AffectiveClaim` — the richer human-level claim evidence supports; the
+  evidence/claim boundary made explicit (the *expresses / reports / felt / appraised*
+  readings stay separate claims).
+- `gmeow:AffectiveExpression` — an observed expression (facial, vocal, textual) that
+  evidences a claim but never entails the state.
+- `gmeow:AffectTelemetryStream` — high-frequency evidence held by-reference
+  (`telemetryBlob`, a digest + origin), never a per-frame triple storm.
+
+A raw sigmoid/softmax `classifierScore` is `logic:evidenceStrength`/probability, and
+only a **calibrated** probability (declared `scoreCalibration`) may be read as
+confidence — `logic:confidence ≠ probability` without a declared mapping.
+
+The label prefixes are registered in **both** the Rust (`prefixes.rs`) and Python
+(`config.py`) prefix registries, kept byte-parallel.
+
 ## Scope of the current module
 
 Still absent (see `design/AFFECT-DESIGN.md`), landing in later work:
 
 - **Mood/tenure** has no named surface; a diffuse, long-lived `gmeow:Mood` and its
   tenure are described in `design/AFFECT-DESIGN.md`.
-- **Evidence** (expression, classifier outputs, telemetry as attributed evidence)
-  is modelled as its own spine below the dimensional landscape.
 
 Permanent stances (true regardless of how the model grows): **no emotion or
 aesthetic hierarchies** — open value vocabularies, contested by design (P9);

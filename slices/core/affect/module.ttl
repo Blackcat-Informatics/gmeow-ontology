@@ -6,6 +6,9 @@
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .
+@prefix gmeow-hf: <https://blackcatinformatics.ca/gmeow-registry/hf/> .
+@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .
 
 gmeow:AestheticQuality
     a logic:AbstractIndividualType ,
@@ -169,6 +172,106 @@ gmeow:DerivedAffectIntensityObservation
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Compute the norm externally, then record it as a gmeow:DerivedAffectIntensityObservation declaring gmeow:intensityBasis, gmeow:metricProfile, gmeow:weightingPolicy, and gmeow:normFunction (and gmeow:derivedByFunction gmeow:fnAffectiveIntensity for the CLI handle)."@x-gmeow-english ;
     gmeow:useWhen "Use to expose overall intensity (the vector norm) to the CLI as a derived observation under a named metric — the answer to 'how intense, and along which dominant axis?'."@x-gmeow-english .
+
+gmeow:AffectClassifierLabel
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Classifier Label"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The exact, lossless external identity of a label emitted by a classifier or dataset label set (GoEmotions joy, SST-2 NEGATIVE, CardiffNLP Positive). An information artifact, NEVER a gmeow:EmotionType: labels live under their own per-registry authority (gmeow-goemotions:, gmeow-hf:) so a model label can never be mistaken for a canonical emotion. 'NEG', 'Negative', 'LABEL_0' are distinct identities until a reviewed correspondence maps them (Principle 5). The reviewed skos:closeMatch/exactMatch link to a canonical GMEOW term is a generated correspondence lowering, authored separately."@x-gmeow-english ;
+    skos:example "gmeow-goemotions:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a classifier label as a gmeow:EmotionType (that is a category error, and 'neutral' as an EmotionType is a hard fail) and avoid asserting an unreviewed exactMatch to a canonical term (closeMatch by default)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Register each external label as a gmeow:AffectClassifierLabel individual under its per-registry prefix, bind it to its gmeow:AffectLabelSet via gmeow:memberOfLabelSet, and map it to canonical GMEOW terms only through a reviewed correspondence lowering."@x-gmeow-english ;
+    gmeow:useWhen "Use to register the exact identity of an external classifier/dataset label, preserved losslessly and kept distinct from canonical GMEOW emotion vocabulary."@x-gmeow-english .
+
+gmeow:AffectClassifierOutput
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Classifier Output"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "One emitted model output over one target span — a model-vantage gmeow:Observation carrying the emitted label (gmeow:emittedLabel), raw score (gmeow:classifierScore), score semantics (gmeow:scoreSemantics), and threshold (gmeow:thresholdApplied), produced by a gmeow:ModelInferenceRun (gmeow:producedBy). It is EVIDENCE, not the human-level claim and not an inner-state truth: 'this model, at this revision, over this span, emitted this label with this score under this label set'. A raw sigmoid/softmax score is logic:evidenceStrength/probability under declared calibration, NEVER logic:confidence. It supports a gmeow:AffectiveClaim by gmeow:supportsAffectiveClaim (an evidence link, never entailment)."@x-gmeow-english ;
+    skos:example "ex:out a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:emittedLabel gmeow-goemotions:joy ; gmeow:classifierScore 0.84 ; gmeow:scoreSemantics gmeow:scoreSigmoid ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting an inner affect directly from an output (it must support a gmeow:AffectiveClaim, never entail one) and avoid storing its score as logic:confidence without calibration metadata (a raw score is not a calibrated probability — a hard fail)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Record each model output as a gmeow:AffectClassifierOutput linked to its gmeow:ModelInferenceRun (gmeow:producedBy), its target (gmeow:classifiedTarget), its emitted label, raw score, and score semantics; link it to a richer claim via gmeow:supportsAffectiveClaim."@x-gmeow-english ;
+    gmeow:useWhen "Use for one classifier output over one target — attributed model evidence with score and provenance, never a privileged truth about inner affect."@x-gmeow-english .
+
+gmeow:AffectLabelSet
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Label Set"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A named label vocabulary/registry that a classifier or dataset emits over (GoEmotions, Ekman-7, SST-2, CardiffNLP TweetEval). Its members are gmeow:AffectClassifierLabel individuals (gmeow:memberOfLabelSet). An information artifact: a label set is NOT an ontology of emotion and never defines canonical affect semantics. A Hugging Face label not registered in some gmeow:AffectLabelSet fails canonical projection (a hard fail)."@x-gmeow-english ;
+    skos:example "gmeow-labelset:GoEmotions a gmeow:AffectLabelSet ; rdfs:label \"GoEmotions\"@en ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a label set as a canonical emotion taxonomy (it is evidence provenance, not ontology) and avoid emitting a label with no registered set (unregistered labels fail projection)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the label set, then register each of its labels as a gmeow:AffectClassifierLabel with gmeow:memberOfLabelSet pointing back at it."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a classifier/dataset label vocabulary whose members are external label identities."@x-gmeow-english .
+
+gmeow:AffectTelemetryStream
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Telemetry Stream"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Stream ;
+    skos:definition "The parent for high-frequency affective evidence — per-frame facial cues, voice latency, heart rate — whose dense time-series block is held by-reference (gmeow:telemetryBlob, a content-address digest + origin), NEVER materialised as ten-plus Appraisal triples per frame (that craters the triple store and violates the blob-by-reference doctrine). A gmeow:Stream (reused, not re-minted). Aggregating the dense block up into queryable gmeow:AffectVectorObservation cell bundles is a computation (Principle 12) whose provenance points back at the block; individual cell bundles are reserved for the moments a consumer actually queries (macro state changes, narrative checkpoints, explicit self-reports)."@x-gmeow-english ;
+    skos:example "ex:stream a gmeow:AffectTelemetryStream ; gmeow:streamOf ex:agent ; gmeow:telemetryBlob \"sha256:…\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid materialising per-frame telemetry as Appraisal triples (a triple storm — use the by-reference block) and avoid inlining the dense payload (it is held by digest + origin, never as bytes in the graph)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the stream (gmeow:streamOf its subject), hold the dense time-series block by-reference with gmeow:telemetryBlob, and aggregate up into gmeow:AffectVectorObservation cell bundles only at the moments a consumer queries."@x-gmeow-english ;
+    gmeow:useWhen "Use as the parent for continuous physiological/vocal affect ingest, keeping the dense block out of the triple store."@x-gmeow-english .
+
+gmeow:AffectiveClaim
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affective Claim"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "A richer GMEOW affect claim SUPPORTED BY evidence — a classifier output, an expression observation, or a self-report — with its own vantage and standpoint. The evidence/claim boundary made explicit (Principle 9): a classifier output that directly asserts someone's inner affect WITHOUT this claim boundary is a hard fail. Self-report outranks third-party attribution for the subject's own standpoint but does not delete the attributed claim; both coexist. The text-expresses-joy / speaker-reports-joy / speaker-likely-felt-joy / reader-appraised-joyful readings are SEPARATE claims, never collapsed."@x-gmeow-english ;
+    skos:example "ex:claim a gmeow:AffectiveClaim ; gmeow:vantage ex:analyst ; gmeow:observedFeature ex:author ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing the distinct claim templates (expresses / reports / felt / appraised) into one and avoid deleting a superseded claim (suppress/close it — both standpoints stay queryable)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the claim with its vantage and target, and link the evidence that supports it via the inverse of gmeow:supportsAffectiveClaim from each gmeow:AffectClassifierOutput / expression / self-report."@x-gmeow-english ;
+    gmeow:useWhen "Use for a human-level affective claim distinct from its evidence — the thing evidence SUPPORTS, never the raw model output itself."@x-gmeow-english .
+
+gmeow:AffectiveExpression
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affective Expression"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "An observation of an observable expression — a facial expression, word choice, vocal tremor, emoji, posture, latency spike — that EVIDENCES an affective claim but never entails the state itself (Principle: expression is evidence, not the emotion). 'She looked angry' is an expression observation plus an optional low-authority attributed claim, not a direct emotion fact. Kept in the evidence spine so a facial-expression record never entails an inner state."@x-gmeow-english ;
+    skos:example "ex:frown a gmeow:AffectiveExpression ; gmeow:vantage ex:observer ; gmeow:observedFeature ex:subject ; gmeow:supportsAffectiveClaim ex:claim ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid letting an expression entail an emotion (it only supports a claim) and avoid conflating the expression with the felt gmeow:AffectiveExperience or the enduring gmeow:Emotion mode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Record the observed expression as a gmeow:AffectiveExpression with its vantage and subject, and link it to the claim it supports via gmeow:supportsAffectiveClaim."@x-gmeow-english ;
+    gmeow:useWhen "Use for an observable expression/signal offered as evidence for an affective claim, never as the emotion itself."@x-gmeow-english .
+
+gmeow:ModelInferenceRun
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Model Inference Run"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "One execution of a classifier over an input — a PROV-O-aligned activity (prov:Activity by generated correspondence) carrying its full run provenance: a pinned model id (gmeow:modelIdentifier) and MANDATORY revision (gmeow:modelRevision), model framework/task, tokenizer + label-set revisions, the id2label mapping, activation/functionToApply, topK/returnAllScores, threshold policy, and a calibration profile whenever a score is claimed as a probability. A model name without a pinned revision fails reproducibility (a hard fail). Its outputs are gmeow:AffectClassifierOutput observations (gmeow:producedBy)."@x-gmeow-english ;
+    skos:example "ex:run a gmeow:ModelInferenceRun ; gmeow:modelIdentifier \"SamLowe/roberta-base-go_emotions\" ; gmeow:modelRevision \"a1b2c3d\" ; gmeow:usedInput ex:chunk ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid recording a run without a pinned gmeow:modelRevision (unreproducible — a hard fail) and avoid treating the run's outputs as inner-state truth (they are attributed evidence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Record the run with its pinned model id + revision and full framework/task/tokenizer/label-set provenance, link its input via gmeow:usedInput, and attach each emitted output via gmeow:producedBy."@x-gmeow-english ;
+    gmeow:useWhen "Use for one classifier execution over an input — the provenance-bearing activity whose outputs are attributed affect evidence."@x-gmeow-english .
+
+gmeow:ScoreSemantics
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Score Semantics"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "An OPEN value vocabulary for what a classifier score MEANS — seeded with sigmoid score, softmax probability, calibrated probability, logit, and margin. Mandatory on every gmeow:AffectClassifierOutput: a raw sigmoid/softmax score is logic:evidenceStrength/probability, and only a CALIBRATED probability may be read as a confidence (Principle 9/17: confidence ≠ probability without a declared mapping). Kept open, never an sh:in enum."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Emotion
     a logic:Kind ,
@@ -420,6 +523,160 @@ gmeow:weightingPolicy
     skos:definition "The declared weighting policy under which a derived intensity combines its axes, named as a string spec (e.g. 'equal-weight core-affect axes', 'valence-dominant'). Mandatory (SHACL): weighting is explicit, and applying it is solver work (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:canonicalizesAs
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AffectClassifierOutput ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "canonicalizes as"@x-gmeow-english ;
+    skos:definition "Links a gmeow:AffectClassifierOutput to the canonical GMEOW construct it canonicalizes into under a reviewed mapping — e.g. an SST-2 positive output to a valence gmeow:Appraisal of the target text (positive sentiment is NOT joy). Range intentionally open. The mapping is reviewed and lossy-declared; canonicalization NEVER discards the original label/score."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:classifiedTarget
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:AffectClassifierOutput ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "classified target"@x-gmeow-english ;
+    skos:definition "The target span a classifier output was emitted over — the chunk/text/segment classified (⊑ gmeow:observedFeature, the observation-spine bridge). Range intentionally open. Mandatory on an output (SHACL): an output with no target is unmoored evidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:classifierScore
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AffectClassifierOutput ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "classifier score"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The raw score a classifier emitted for its label. Its MEANING is fixed by gmeow:scoreSemantics (sigmoid/softmax/logit/…), never assumed: a raw score is logic:evidenceStrength/probability, and only a CALIBRATED probability may be read as confidence. Mandatory on an output (SHACL)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:emittedLabel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AffectClassifierOutput ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "emitted label"@x-gmeow-english ;
+    rdfs:range gmeow:AffectClassifierLabel ;
+    skos:definition "The exact external gmeow:AffectClassifierLabel a classifier output emitted — its lossless label identity (gmeow-goemotions:joy, gmeow-hf:sst2Negative). Mandatory on an output (SHACL); the label MUST be registered in a gmeow:AffectLabelSet or canonical projection fails."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:labelSetRevision
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInferenceRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "label-set revision"@x-gmeow-english ;
+    skos:definition "The pinned revision of the label set the run emitted over — part of the full run provenance (a zero-shot candidate label set is part of the run identity; a zero-shot 'joy' is not GoEmotions joy)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:memberOfLabelSet
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "member of label set"@x-gmeow-english ;
+    rdfs:range gmeow:AffectLabelSet ;
+    skos:definition "Binds a gmeow:AffectClassifierLabel to the gmeow:AffectLabelSet it belongs to (GoEmotions, Ekman-7, SST-2, CardiffNLP). Mandatory on a label (SHACL): an unregistered label fails canonical projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:modelFramework
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInferenceRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "model framework"@x-gmeow-english ;
+    skos:definition "The model framework of an inference run (e.g. 'transformers', 'onnxruntime') — part of the full run provenance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:modelIdentifier
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInferenceRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "model identifier"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The model repository id of an inference run (e.g. the Hugging Face repo 'SamLowe/roberta-base-go_emotions'). Mandatory (SHACL); a model id WITHOUT a pinned gmeow:modelRevision fails reproducibility."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:modelRevision
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInferenceRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "model revision"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The pinned model revision/commit of an inference run — MANDATORY (SHACL). A model name without a pinned revision is unreproducible and fails. The single most drift-prone field for zero-shot/generative adapters."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:modelTask
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInferenceRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "model task"@x-gmeow-english ;
+    skos:definition "The model task of an inference run (e.g. 'text-classification', 'zero-shot-classification') — part of the full run provenance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:producedBy
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectClassifierOutput ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "produced by"@x-gmeow-english ;
+    rdfs:range gmeow:ModelInferenceRun ;
+    skos:definition "The gmeow:ModelInferenceRun that produced a classifier output — its provenance handle (PROV-O prov:wasGeneratedBy by generated correspondence). Mandatory and functional (SHACL): one output, one run."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:scoreCalibration
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AffectClassifierOutput ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "score calibration"@x-gmeow-english ;
+    skos:definition "The declared calibration profile of a score, named as a string spec (e.g. 'temperature-scaled T=1.4', 'isotonic'). REQUIRED whenever a score's semantics is gmeow:scoreCalibratedProbability: a raw sigmoid/softmax score stored as a calibrated probability/confidence without calibration metadata is a hard fail."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:scoreSemantics
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AffectClassifierOutput ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "score semantics"@x-gmeow-english ;
+    rdfs:range gmeow:ScoreSemantics ;
+    skos:definition "What a gmeow:classifierScore MEANS — a sigmoid score, softmax probability, calibrated probability, logit, or margin (open gmeow:ScoreSemantics vocab). Mandatory on an output (SHACL): a bare number with no declared semantics is uninterpretable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:supportsAffectiveClaim
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "supports affective claim"@x-gmeow-english ;
+    rdfs:range gmeow:AffectiveClaim ;
+    skos:definition "The evidence link from a gmeow:AffectClassifierOutput or gmeow:AffectiveExpression to the richer gmeow:AffectiveClaim it SUPPORTS — evidence, NEVER entailment. Domain intentionally open across the evidence surfaces; non-functional (one claim may be supported by several pieces of evidence). A classifier output that asserts inner affect without this claim boundary is a hard fail."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:telemetryBlob
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AffectTelemetryStream ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "telemetry blob"@x-gmeow-english ;
+    skos:definition "The by-reference handle (a content-address digest + origin) for a gmeow:AffectTelemetryStream's dense time-series block — the block is held by reference, NEVER inlined as triples (the blob-by-reference doctrine; high-frequency telemetry must not become a triple storm)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:thresholdApplied
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AffectClassifierOutput ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "threshold applied"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The threshold used to binarize/select a classifier's label. The applied threshold policy travels with each output — a single global 0.5 must not be assumed canonical (GoEmotions documents per-label threshold optimization)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tokenizerRevision
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ModelInferenceRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "tokenizer revision"@x-gmeow-english ;
+    skos:definition "The pinned tokenizer revision of an inference run — part of the full run provenance (a tokenizer change silently shifts scores)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:usedInput
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ModelInferenceRun ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "used input"@x-gmeow-english ;
+    skos:definition "The input a gmeow:ModelInferenceRun consumed (PROV-O prov:used by generated correspondence). Range intentionally open (a chunk, document, or media segment)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:dimensionAgency
     a gmeow:AppraisalDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
@@ -543,6 +800,41 @@ gmeow:fnAffectiveIntensity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "affective intensity"@x-gmeow-english ;
     skos:definition "The canonical derived-affect function the gmeow CLI exposes for overall intensity — the norm of a gmeow:AffectVectorObservation under a declared weighted / metric-tensor metric (never a bare L² over the non-orthogonal basis). A named handle for a computation carried out outside the logic (Principle 12); it names the derivation, it does not compute in triples."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreCalibratedProbability
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "calibrated probability"@x-gmeow-english ;
+    skos:definition "A calibrated probability — the ONLY score semantics that may be read as an epistemic confidence, and only with a declared gmeow:scoreCalibration profile."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreLogit
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "logit"@x-gmeow-english ;
+    skos:definition "A raw pre-activation logit — not a probability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreMargin
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "margin"@x-gmeow-english ;
+    skos:definition "A decision margin (e.g. an SVM-style distance) — not a probability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreSigmoid
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "sigmoid score"@x-gmeow-english ;
+    skos:definition "A per-label sigmoid score (multi-label, e.g. GoEmotions) — evidence strength, NOT a calibrated probability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scoreSoftmax
+    a gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "softmax probability"@x-gmeow-english ;
+    skos:definition "A softmax probability over a mutually-exclusive label set — a raw model probability, not calibrated unless a gmeow:scoreCalibration says so."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:polarityBipolar
@@ -689,6 +981,319 @@ gmeow:qualitySublimity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "sublimity"@x-gmeow-english ;
     skos:definition "The sublimity aesthetic quality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── Classifier label registries ──────────────────────────────────────────────
+# External label identities under their own authority path (gmeow-registry), never
+# the canonical gmeow: emotion namespace. Reviewed correspondences to canonical
+# GMEOW terms are generated lowerings, authored in the mappings layer.
+
+gmeow-labelset:CardiffTweetEval
+    a gmeow:AffectLabelSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "CardiffNLP TweetEval sentiment"@x-gmeow-english ;
+    skos:definition "The CardiffNLP Twitter-RoBERTa ternary sentiment label set (Negative/Neutral/Positive)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-labelset:Ekman7
+    a gmeow:AffectLabelSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Ekman-7"@x-gmeow-english ;
+    skos:definition "The Ekman-7 emotion label set used by j-hartmann/emotion-english-distilroberta-base (anger, disgust, fear, joy, neutral, sadness, surprise)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-labelset:GoEmotions
+    a gmeow:AffectLabelSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "GoEmotions"@x-gmeow-english ;
+    skos:definition "The GoEmotions label set (27 emotion categories + neutral, multi-label) — the reference classifier adapter, as used by SamLowe/roberta-base-go_emotions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-labelset:SST2
+    a gmeow:AffectLabelSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "SST-2 binary sentiment"@x-gmeow-english ;
+    skos:definition "The SST-2 binary sentiment label set (POSITIVE/NEGATIVE) — the default text-classification sentiment pipeline."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:admiration a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "admiration"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'admiration' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:amusement a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "amusement"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'amusement' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:anger a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "anger"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'anger' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:annoyance a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "annoyance"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'annoyance' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:approval a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "approval"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'approval' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:caring a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "caring"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'caring' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:confusion a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "confusion"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'confusion' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:curiosity a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "curiosity"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'curiosity' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:desire a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "desire"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'desire' classifier label — a conative label bridging to teleology's gmeow:Desire, not an emotion type."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:disappointment a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "disappointment"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'disappointment' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:disapproval a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "disapproval"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'disapproval' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:disgust a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "disgust"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'disgust' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:embarrassment a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "embarrassment"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'embarrassment' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:excitement a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "excitement"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'excitement' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:fear a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "fear"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'fear' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:gratitude a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "gratitude"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'gratitude' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:grief a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "grief"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'grief' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:joy a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "joy"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'joy' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:love a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "love"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'love' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:nervousness a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "nervousness"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'nervousness' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:neutral a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "neutral"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'neutral' classifier label — a no-detected-affect output. NEVER a gmeow:EmotionType: under open-world semantics it is not proof that no emotion exists."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:optimism a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "optimism"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'optimism' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:pride a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "pride"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'pride' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:realization a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "realization"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'realization' classifier label — a cognitive/epistemic label bridging across affect and mentation."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:relief a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "relief"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'relief' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:remorse a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "remorse"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'remorse' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:sadness a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "sadness"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'sadness' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-goemotions:surprise a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "surprise"@x-gmeow-english ;
+    skos:definition "The GoEmotions 'surprise' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:GoEmotions ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:cardiffNegative a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Negative"@x-gmeow-english ;
+    skos:definition "The CardiffNLP TweetEval 'Negative' sentiment label — a valence bucket below midpoint, not an emotion."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:CardiffTweetEval ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:cardiffNeutral a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Neutral"@x-gmeow-english ;
+    skos:definition "The CardiffNLP TweetEval 'Neutral' sentiment label — near midpoint / no polarity detected, never a gmeow:EmotionType."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:CardiffTweetEval ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:cardiffPositive a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Positive"@x-gmeow-english ;
+    skos:definition "The CardiffNLP TweetEval 'Positive' sentiment label — a valence bucket above midpoint, not an emotion."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:CardiffTweetEval ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:ekmanAnger a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "anger"@x-gmeow-english ;
+    skos:definition "The j-hartmann Ekman-7 'anger' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:Ekman7 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:ekmanDisgust a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "disgust"@x-gmeow-english ;
+    skos:definition "The j-hartmann Ekman-7 'disgust' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:Ekman7 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:ekmanFear a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "fear"@x-gmeow-english ;
+    skos:definition "The j-hartmann Ekman-7 'fear' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:Ekman7 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:ekmanJoy a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "joy"@x-gmeow-english ;
+    skos:definition "The j-hartmann Ekman-7 'joy' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:Ekman7 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:ekmanNeutral a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "neutral"@x-gmeow-english ;
+    skos:definition "The j-hartmann Ekman-7 'neutral' classifier label — a no-detected-affect output, NEVER a gmeow:EmotionType."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:Ekman7 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:ekmanSadness a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "sadness"@x-gmeow-english ;
+    skos:definition "The j-hartmann Ekman-7 'sadness' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:Ekman7 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:ekmanSurprise a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "surprise"@x-gmeow-english ;
+    skos:definition "The j-hartmann Ekman-7 'surprise' classifier label."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:Ekman7 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:sst2Negative a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "NEGATIVE"@x-gmeow-english ;
+    skos:definition "The SST-2 'NEGATIVE' sentiment label — a valence appraisal of the target text, not an emotion (negative sentiment is not sadness)."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:SST2 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow-hf:sst2Positive a gmeow:AffectClassifierLabel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "POSITIVE"@x-gmeow-english ;
+    skos:definition "The SST-2 'POSITIVE' sentiment label — a valence appraisal of the target text, not an emotion (positive sentiment is not joy)."@x-gmeow-english ;
+    gmeow:memberOfLabelSet gmeow-labelset:SST2 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/affect>

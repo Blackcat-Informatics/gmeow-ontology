@@ -349,6 +349,12 @@ PREFIXES: dict[str, str] = {
     "fnom": "https://w3id.org/function/vocabulary/mapping#",
     "edoal": "http://ns.inria.org/edoal/1.0/#",
     "align": "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
+    # Affect classifier label registries — per-registry external label identities,
+    # held under a distinct authority path so a model label can never be mistaken
+    # for a canonical gmeow: emotion term.
+    "gmeow-goemotions": "https://blackcatinformatics.ca/gmeow-registry/goemotions/",
+    "gmeow-hf": "https://blackcatinformatics.ca/gmeow-registry/hf/",
+    "gmeow-labelset": "https://blackcatinformatics.ca/gmeow-registry/labelset/",
     # Upper-ontology spine
     "gufo": "http://purl.org/nemo/gufo#",
     "ontouml": "https://w3id.org/ontouml#",
