@@ -429,23 +429,24 @@ pub fn release_bundle(
 /// Parse one `path:media_type:attestation_type:rep:label` evidence spec, reading
 /// the artifact file (HARD-fails on a missing/unreadable file, per §18).
 fn parse_evidence_spec(spec: &str) -> Result<gmeow_pipeline::stages::release::EvidenceInput, i32> {
-    let parts: Vec<&str> = spec.splitn(5, ':').collect();
+    // Split from the right: the four trailing metadata fields are colon-free, so
+    // the path (which may itself contain a colon — a Windows drive letter, or a
+    // URL-like local path) is the whole remainder and stays intact. `rsplitn`
+    // yields the parts in reverse, hence the descending indices below.
+    let parts: Vec<&str> = spec.rsplitn(5, ':').collect();
     if parts.len() != 5 {
         return Err(fail(format!(
             "malformed --evidence spec {spec:?}; expected path:media_type:attestation_type:rep:label"
         )));
     }
-    let data = std::fs::read(parts[0]).map_err(|e| {
-        fail(format!(
-            "evidence artifact {:?} is unreadable: {e}",
-            parts[0]
-        ))
-    })?;
+    let path = parts[4];
+    let data = std::fs::read(path)
+        .map_err(|e| fail(format!("evidence artifact {path:?} is unreadable: {e}")))?;
     Ok(gmeow_pipeline::stages::release::EvidenceInput {
         data,
-        media_type: parts[1].to_owned(),
+        media_type: parts[3].to_owned(),
         attestation_type_iri: parts[2].to_owned(),
-        rep: parts[3].to_owned(),
-        subject_label: parts[4].to_owned(),
+        rep: parts[1].to_owned(),
+        subject_label: parts[0].to_owned(),
     })
 }
