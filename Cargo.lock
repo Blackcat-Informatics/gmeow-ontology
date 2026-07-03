@@ -1848,13 +1848,18 @@ dependencies = [
  "gmeow-diagnostics",
  "gmeow-docs",
  "gmeow-foundation-corpus",
+ "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-music",
  "gmeow-pipeline",
  "gmeow-validate",
  "predicates",
+ "purrdf",
+ "serde_json",
+ "toml",
  "trycmd",
+ "ureq",
 ]
 
 [[package]]

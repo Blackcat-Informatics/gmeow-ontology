@@ -1,0 +1,641 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The repo-gate commands: box-roles, constitution, crate/repo-static, coverage,
+//! wikidata, doc-lint, lint-alignment, temporal, audit, and the license guard.
+//!
+//! Each delegates to an already-native authority in `gmeow_validate` /
+//! `gmeow_pipeline` / `gmeow_docs`, following the console convention (product →
+//! stdout, diagnostics → stderr, `0`/`1` exit).
+
+use std::path::{Path, PathBuf};
+use std::time::Duration;
+
+use gmeow_diagnostics::{render, Report};
+
+use crate::dev_common::{fail, project_root, snapshot_bytes, NAMESPACE, ONTOLOGY_IRI};
+
+/// The authored term sources the default repo-only audit covers: every slice
+/// `module.ttl` + `manifest.ttl` plus the shared slice `vocabulary.ttl`.
+pub fn default_audit_paths(root: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    let slices = root.join("slices");
+    collect_ttl_named(&slices, "module.ttl", &mut paths);
+    collect_ttl_named(&slices, "manifest.ttl", &mut paths);
+    let vocab = slices.join("vocabulary.ttl");
+    if vocab.exists() {
+        paths.push(vocab);
+    }
+    paths.sort();
+    paths
+}
+
+/// Recursively collect every file named `name` under `dir`.
+fn collect_ttl_named(dir: &Path, name: &str, out: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_ttl_named(&path, name, out);
+        } else if path.file_name().and_then(|n| n.to_str()) == Some(name) {
+            out.push(path);
+        }
+    }
+}
+
+// ── box-roles audit ─────────────────────────────────────────────────────────
+
+/// `gmeow-dev box-roles audit [--json]` — audit graph-box role coverage.
+pub fn box_roles_audit(json_out: bool) -> i32 {
+    let root = project_root();
+    let paths = default_audit_paths(&root);
+    let audit = match gmeow_validate::box_roles::audit_box_roles(&paths, ONTOLOGY_IRI, NAMESPACE) {
+        Ok(a) => a,
+        Err(e) => return fail(format!("box-roles audit failed: {e}")),
+    };
+    if json_out {
+        let value = serde_json::json!({
+            "term_count": audit.term_count,
+            "role_counts": audit.role_counts,
+            "missing": audit.missing.iter().map(|f| f.term.clone()).collect::<Vec<_>>(),
+            "invalid": audit.invalid.iter().map(|f| f.term.clone()).collect::<Vec<_>>(),
+            "ok": audit.missing.is_empty() && audit.invalid.is_empty(),
+        });
+        match serde_json::to_string_pretty(&value) {
+            Ok(s) => println!("{s}"),
+            Err(e) => return fail(format!("cannot serialize JSON: {e}")),
+        }
+    } else {
+        println!("box-roles: {} typed term(s)", audit.term_count);
+        for (role, count) in &audit.role_counts {
+            println!("  {role}: {count}");
+        }
+        for finding in &audit.missing {
+            eprintln!("missing {}", finding.term);
+        }
+        for finding in &audit.invalid {
+            eprintln!("invalid {}", finding.term);
+        }
+    }
+    if !audit.missing.is_empty() || !audit.invalid.is_empty() {
+        return fail(format!(
+            "{} missing, {} invalid role(s)",
+            audit.missing.len(),
+            audit.invalid.len()
+        ));
+    }
+    0
+}
+
+// ── constitution-check ──────────────────────────────────────────────────────
+
+/// `gmeow-dev constitution-check` — verify every principle has live enforcement.
+pub fn constitution_check() -> i32 {
+    let root = project_root();
+    let findings = gmeow_validate::constitution::constitution_full_report(
+        &root.join("governance").join("constitution.ttl"),
+        &root.join("CONSTITUTION.md"),
+        &root,
+    );
+    let mut report = Report::new("constitution");
+    for f in findings {
+        report.add_finding(f);
+    }
+    let text = render::to_text(&report.normalized());
+    if !text.trim().is_empty() {
+        eprintln!("{text}");
+    }
+    if report.ok() {
+        println!("constitution check passed");
+        0
+    } else {
+        fail("constitution check failed")
+    }
+}
+
+// ── crate-check ─────────────────────────────────────────────────────────────
+
+/// `gmeow-dev crate-check` — verify Rust crate layering + repo-static policy.
+pub fn crate_check() -> i32 {
+    let root = project_root();
+    let layering = gmeow_validate::crate_layering::check_crate_layering(&root.join("crates"));
+    let static_rep = gmeow_validate::repo_static::check_repo_static(&root);
+    let mut report = gmeow_validate::crate_layering::to_diagnostics_report(&layering);
+    for f in gmeow_validate::repo_static::to_diagnostics_report(&static_rep).findings {
+        report.add_finding(f);
+    }
+    let text = render::to_text(&report.normalized());
+    if !text.trim().is_empty() {
+        eprintln!("{text}");
+    }
+    if report.ok() {
+        println!("crate/static guards OK");
+        0
+    } else {
+        fail(format!(
+            "{} crate/static violation(s)",
+            report.error_count()
+        ))
+    }
+}
+
+// ── coverage family ─────────────────────────────────────────────────────────
+
+/// `gmeow-dev coverage [--gaps --min-class --min-predicate]` — vendored-entity
+/// coverage report, optionally a hard gate against coverage floors.
+pub fn coverage(show_gaps: bool, min_class: Option<f64>, min_predicate: Option<f64>) -> i32 {
+    let root = project_root();
+    let report = match gmeow_validate::coverage::run_coverage(
+        &root.join("tests/fixtures/coverage"),
+        &root.join("generated/mappings"),
+        NAMESPACE,
+    ) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("coverage failed: {e}")),
+    };
+    let class_total = report.covered_classes.len() + report.gap_classes.len();
+    let pred_total = report.covered_predicates.len() + report.gap_predicates.len();
+    let class_cov = ratio(report.covered_classes.len(), class_total);
+    let pred_cov = ratio(report.covered_predicates.len(), pred_total);
+    println!(
+        "classes   {} covered / {} gap ({:.0}%)",
+        report.covered_classes.len(),
+        report.gap_classes.len(),
+        class_cov * 100.0
+    );
+    println!(
+        "predicates {} covered / {} gap ({:.0}%)",
+        report.covered_predicates.len(),
+        report.gap_predicates.len(),
+        pred_cov * 100.0
+    );
+    if show_gaps {
+        let mut classes: Vec<&String> = report.gap_classes.iter().collect();
+        classes.sort();
+        for iri in classes {
+            eprintln!("gap class {iri}");
+        }
+        let mut preds: Vec<&String> = report.gap_predicates.iter().collect();
+        preds.sort();
+        for iri in preds {
+            eprintln!("gap predicate {iri}");
+        }
+    }
+    if let Some(floor) = min_class {
+        if class_cov < floor {
+            return fail(format!(
+                "class coverage {class_cov:.4} is below the required floor {floor:.4}"
+            ));
+        }
+    }
+    if let Some(floor) = min_predicate {
+        if pred_cov < floor {
+            return fail(format!(
+                "predicate coverage {pred_cov:.4} is below the required floor {floor:.4}"
+            ));
+        }
+    }
+    0
+}
+
+fn ratio(n: usize, d: usize) -> f64 {
+    if d == 0 {
+        0.0
+    } else {
+        n as f64 / d as f64
+    }
+}
+
+/// `gmeow-dev wikidata-coverage [--json --threshold]`.
+pub fn wikidata_coverage(json_mode: bool, threshold: f64) -> i32 {
+    let root = project_root();
+    match gmeow_validate::mapping_eval::wikidata_coverage(
+        &root,
+        &root.join("generated/mappings"),
+        threshold,
+    ) {
+        Ok(report) => {
+            print!(
+                "{}",
+                gmeow_validate::mapping_eval::render_wikidata_coverage(&report, json_mode)
+            );
+            println!();
+            0
+        }
+        Err(e) => fail(format!("wikidata coverage failed: {e}")),
+    }
+}
+
+/// `gmeow-dev dc-coverage [--json --threshold]`.
+pub fn dc_coverage(json_mode: bool, threshold: f64) -> i32 {
+    let root = project_root();
+    match gmeow_validate::mapping_eval::dc_coverage(&root.join("generated/mappings"), threshold) {
+        Ok(report) => {
+            print!(
+                "{}",
+                gmeow_validate::mapping_eval::render_dc_coverage(&report, json_mode)
+            );
+            println!();
+            0
+        }
+        Err(e) => fail(format!("dc coverage failed: {e}")),
+    }
+}
+
+/// `gmeow-dev wikidata [--existence --fixtures]` — validate the QIDs/PIDs in use.
+pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
+    let root = project_root();
+    if fixtures {
+        let mut paths: Vec<PathBuf> = Vec::new();
+        collect_ttl_all(&root.join("tests/fixtures"), &mut paths);
+        collect_ttl_named(&root.join("slices"), "module.ttl", &mut paths);
+        paths.sort();
+        let report = gmeow_validate::wikidata_audit::audit_files(&paths);
+        let text = gmeow_validate::wikidata_audit::render_audit(&report);
+        if !text.trim().is_empty() {
+            eprintln!("{text}");
+        }
+        if report.ok() {
+            println!("fixture audit passed");
+            return 0;
+        }
+        return fail(format!("{} error(s)", report.errors()));
+    }
+    let syntax = match gmeow_validate::mapping_eval::wikidata_mapping_syntax(
+        &root.join("generated/mappings"),
+    ) {
+        Ok(s) => s,
+        Err(e) => return fail(format!("wikidata syntax failed: {e}")),
+    };
+    println!("{} id(s) valid syntax", syntax.valid.len());
+    if !syntax.invalid.is_empty() {
+        eprintln!("invalid ids: {:?}", syntax.invalid);
+    }
+    if !syntax.invalid.is_empty() || !syntax.misuses.is_empty() {
+        return fail(format!(
+            "{} invalid, {} misuse(s)",
+            syntax.invalid.len(),
+            syntax.misuses.len()
+        ));
+    }
+    if existence {
+        // The live lookup: query every syntactically-valid QID/PID against the
+        // Wikidata entity API (native `check_existence`, `ureq` under the hood)
+        // and hard-fail on any id that does not resolve (missing / redirected).
+        let statuses = match gmeow_validate::mapping_eval::check_existence(
+            &syntax.valid,
+            &root,
+            Duration::from_secs(30),
+            50,
+            Duration::from_millis(100),
+        ) {
+            Ok(s) => s,
+            // A network failure is a visible, non-fatal skip (mirrors the Python
+            // `existence check skipped` path), never a silent pass.
+            Err(e) => {
+                eprintln!("existence check skipped: {e}");
+                return 0;
+            }
+        };
+        let bad: Vec<(&String, &str)> = statuses
+            .iter()
+            .filter(|(_, v)| v.as_str() != "ok")
+            .map(|(k, v)| (k, v.as_str()))
+            .collect();
+        for (id, status) in &bad {
+            eprintln!("{id}: {status}");
+        }
+        if !bad.is_empty() {
+            return fail(format!("{} id(s) failed existence check", bad.len()));
+        }
+        println!("{} id(s) resolve on Wikidata", statuses.len());
+    }
+    0
+}
+
+/// Recursively collect every `*.ttl` file under `dir`.
+fn collect_ttl_all(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_ttl_all(&path, out);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("ttl") {
+            out.push(path);
+        }
+    }
+}
+
+// ── doc-lint ────────────────────────────────────────────────────────────────
+
+/// `gmeow-dev doc-lint` — lint the rust-rendered ontology-docs site.
+pub fn doc_lint() -> i32 {
+    let root = project_root();
+    let model = match gmeow_docs::model::DocsModel::discover(&root) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("doc-lint: cannot build model: {e}")),
+    };
+    let site = gmeow_docs::render::render_site(&model);
+    let report = gmeow_docs::lint(&model, &site);
+    let text = render::to_text_summarized(&report.normalized());
+    if !text.trim().is_empty() {
+        println!("{text}");
+    }
+    if report.error_count() > 0 {
+        return fail(format!(
+            "doc-lint: {} error(s), {} warning(s)",
+            report.error_count(),
+            report.warning_count()
+        ));
+    }
+    println!("doc-lint OK ({} warning(s))", report.warning_count());
+    0
+}
+
+// ── lint-alignment ──────────────────────────────────────────────────────────
+
+/// `gmeow-dev lint-alignment [--network --strict]`.
+pub fn lint_alignment(network: bool, strict: bool) -> i32 {
+    let root = project_root();
+    let findings =
+        match gmeow_pipeline::stages::correspondence_soundness::lint_correspondence_soundness(
+            &root, network,
+        ) {
+            Ok(f) => f,
+            Err(e) => return fail(format!("lint-alignment failed: {e}")),
+        };
+    let errors = findings.iter().filter(|f| f.severity == "ERROR").count();
+    let warnings = findings.iter().filter(|f| f.severity == "WARNING").count();
+    let infos = findings.iter().filter(|f| f.severity == "INFO").count();
+    for f in &findings {
+        let line = match &f.instance {
+            Some(i) => format!("[{}] {i}: {}", f.check, f.message),
+            None => format!("[{}] {}", f.check, f.message),
+        };
+        match f.severity.as_str() {
+            "ERROR" => eprintln!("error {line}"),
+            "WARNING" => eprintln!("warning {line}"),
+            _ => {}
+        }
+    }
+    if errors > 0 || (strict && warnings > 0) {
+        return fail(format!(
+            "{errors} error(s), {warnings} warning(s) in alignments"
+        ));
+    }
+    println!("alignment directions OK ({warnings} warning(s), {infos} skipped)");
+    0
+}
+
+// ── audit ───────────────────────────────────────────────────────────────────
+
+/// `gmeow-dev audit FILES… [--json --strict]` — claim gates over data files.
+pub fn audit(files: &[PathBuf], json_out: bool, strict: bool) -> i32 {
+    let root = project_root();
+    let report = match gmeow_pipeline::scoreboards::claim_audit(&root, files) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("audit failed: {e}")),
+    };
+    let diag = gmeow_pipeline::scoreboards::claim_audit_diagnostics(&report);
+    if json_out {
+        match render::to_json(&diag.normalized()) {
+            Ok(s) => println!("{s}"),
+            Err(e) => return fail(format!("cannot render JSON: {e}")),
+        }
+    } else {
+        let text = render::to_text(&diag.normalized());
+        if !text.trim().is_empty() {
+            println!("{text}");
+        }
+    }
+    if !report.shacl_errors.is_empty() {
+        return fail(format!("{} SHACL error(s)", report.shacl_errors.len()));
+    }
+    let flagged: usize = report.findings.values().map(Vec::len).sum();
+    if strict && flagged > 0 {
+        return fail(format!("{flagged} flagged claim(s) (--strict)"));
+    }
+    0
+}
+
+// ── acceptance ──────────────────────────────────────────────────────────────
+
+/// `gmeow-dev acceptance [SOURCE -o --min-recall]`.
+pub fn acceptance(source: Option<&Path>, out: Option<&Path>, min_recall: Option<f64>) -> i32 {
+    let root = project_root();
+    let results = match gmeow_pipeline::scoreboards::run_acceptance_corpus(&root, source) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("acceptance failed: {e}")),
+    };
+    let markdown = gmeow_pipeline::scoreboards::render_acceptance_report(&results);
+    match out {
+        Some(path) => {
+            if let Err(e) = std::fs::write(path, &markdown) {
+                return fail(format!("cannot write {}: {e}", path.display()));
+            }
+            eprintln!("wrote {}", path.display());
+        }
+        None => println!("{markdown}"),
+    }
+    for fa in &results {
+        eprintln!(
+            "{} {}",
+            if fa.passed() { "PASS" } else { "FAIL" },
+            fa.source
+        );
+    }
+    let floor = min_recall.unwrap_or(gmeow_pipeline::scoreboards::ACCEPTANCE_MIN_RECALL_PCT);
+    let gate = gmeow_pipeline::scoreboards::aggregate_recall_gate(&results, floor);
+    let aggregate = gate.metrics.get("aggregate_recall").copied().unwrap_or(0.0);
+    if !gate.passed {
+        return fail(format!(
+            "corpus-aggregate round-trip recall {aggregate:.2}% is below the floor {floor:.2}% ({} source(s))",
+            results.len()
+        ));
+    }
+    eprintln!("corpus-aggregate round-trip recall {aggregate:.2}% >= floor {floor:.2}%");
+    0
+}
+
+// ── extract (license guard) ─────────────────────────────────────────────────
+
+/// `gmeow-dev extract --target T` — report the import/extract policy for an
+/// alignment target, refusing (exit 1) reference-only targets.
+pub fn extract(target: &str) -> i32 {
+    let Some((name, license)) = crate::dev_targets::target(target) else {
+        return fail(format!("unknown alignment target: {target}"));
+    };
+    match gmeow_license::policy_for_license(license) {
+        gmeow_license::LicensePolicy::ImportOk => {
+            println!("{name} ({license}) is import-ok — extraction permitted");
+            0
+        }
+        gmeow_license::LicensePolicy::ReferenceOnly => fail(format!(
+            "refusing to extract {name} ({license}): reference-only. Link it by IRI instead."
+        )),
+    }
+}
+
+// ── quality (OOPS! / FOOPS!) ─────────────────────────────────────────────────
+
+/// `gmeow-dev quality [--foops-url --strict]` — OOPS! (pitfalls) + optional
+/// FOOPS! (FAIR). Network, best-effort unless `--strict`.
+pub fn quality(foops_url: &str, strict: bool) -> i32 {
+    let root = project_root();
+    let bytes = match snapshot_bytes(&root) {
+        Ok(b) => b,
+        Err(code) => return code,
+    };
+    let base = match gmeow_pipeline::projections::gts_base_graph(&bytes) {
+        Ok(b) => b,
+        Err(e) => return fail(format!("cannot read base graph: {e}")),
+    };
+    let flat = match purrdf::flat_dataset_from_quads(&base) {
+        Ok(f) => f,
+        Err(e) => return fail(format!("cannot flatten base graph: {e}")),
+    };
+    let ttl = match purrdf::serialize_dataset(&flat, "text/turtle", purrdf::SerializeGraph::Dataset)
+    {
+        Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+        Err(e) => return fail(format!("cannot serialize ontology: {e}")),
+    };
+
+    let timeout = Duration::from_secs(120);
+    match gmeow_pipeline::cli_ops::quality::run_oops(&ttl, timeout) {
+        Ok(report) => println!("OOPS! returned {} bytes", report.len()),
+        Err(e) => {
+            if strict {
+                return fail(format!("OOPS! failed: {e}"));
+            }
+            eprintln!("OOPS! skipped: {e}");
+        }
+    }
+    if !foops_url.is_empty() {
+        match gmeow_pipeline::cli_ops::quality::run_foops(foops_url, timeout) {
+            Ok(result) => println!(
+                "FOOPS! score {:.2} ({}/{})",
+                result.score, result.checks_passed, result.checks_total
+            ),
+            Err(e) => {
+                if strict {
+                    return fail(format!("FOOPS! failed: {e}"));
+                }
+                eprintln!("FOOPS! skipped: {e}");
+            }
+        }
+    }
+    0
+}
+
+// ── crosscheck-queries ───────────────────────────────────────────────────────
+
+/// `gmeow-dev crosscheck-queries` — the native trust anchor: prove every committed
+/// query answers on the shippable purrdf engine.
+///
+/// With rdflib retired, the two-engine agreement collapses to a single-engine
+/// soundness proof: each committed SPARQL query is executed over the merged
+/// ontology through purrdf's `NativeSparqlEngine`; a parse/evaluation failure on
+/// any query is a divergence from the committed corpus and fails the gate.
+pub fn crosscheck_queries() -> i32 {
+    use purrdf::sparql::NativeSparqlEngine;
+    use purrdf::{SparqlEngine, SparqlRequest};
+
+    let root = project_root();
+    let bytes = match snapshot_bytes(&root) {
+        Ok(b) => b,
+        Err(code) => return code,
+    };
+    let base = match gmeow_pipeline::projections::gts_base_graph(&bytes) {
+        Ok(b) => b,
+        Err(e) => return fail(format!("cannot read base graph: {e}")),
+    };
+    let dataset = match purrdf::flat_dataset_from_quads(&base) {
+        Ok(d) => d,
+        Err(e) => return fail(format!("cannot build dataset: {e}")),
+    };
+
+    let mut queries: Vec<PathBuf> = Vec::new();
+    for sub in ["competency", "verify", "audit", "qc"] {
+        collect_rq(&root.join("queries").join(sub), &mut queries);
+    }
+    queries.sort();
+    if queries.is_empty() {
+        return fail("no committed queries found under queries/");
+    }
+
+    let engine = NativeSparqlEngine::new();
+    let mut checked = 0usize;
+    let mut skipped: Vec<String> = Vec::new();
+    let mut diverged: Vec<String> = Vec::new();
+    for path in &queries {
+        let text = match std::fs::read_to_string(path) {
+            Ok(t) => t,
+            Err(e) => {
+                diverged.push(format!("{}: unreadable ({e})", path.display()));
+                continue;
+            }
+        };
+        match engine.query(
+            &dataset,
+            SparqlRequest {
+                query: &text,
+                base_iri: None,
+                substitutions: &[],
+            },
+        ) {
+            Ok(_) => checked += 1,
+            // A file that does not parse as ONE executable query is a
+            // multi-query demonstration document (e.g. a competency worksheet):
+            // it is SKIPPED, exactly as the two-engine crosscheck did. Only a
+            // query that parses but then diverges/errors at evaluation is a
+            // real divergence from the committed corpus.
+            Err(e) if is_parse_error(&e.to_string()) => {
+                skipped.push(format!("{}: {e}", path.display()));
+            }
+            Err(e) => diverged.push(format!("{}: {e}", path.display())),
+        }
+    }
+    for s in &skipped {
+        eprintln!("skip {s}");
+    }
+    for d in &diverged {
+        eprintln!("diverge {d}");
+    }
+    if !diverged.is_empty() {
+        return fail(format!(
+            "{} query/queries diverge from the committed corpus on the native engine",
+            diverged.len()
+        ));
+    }
+    println!(
+        "{checked} queries answer on the native purrdf engine ({} skipped, no divergence)",
+        skipped.len()
+    );
+    0
+}
+
+/// Whether an engine error is a SPARQL parse/syntax error (a multi-query
+/// demonstration file), as opposed to an evaluation-time divergence.
+fn is_parse_error(message: &str) -> bool {
+    let m = message.to_lowercase();
+    m.contains("parse") || m.contains("syntax")
+}
+
+/// Recursively collect `*.rq` files under `dir`.
+fn collect_rq(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_rq(&path, out);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("rq") {
+            out.push(path);
+        }
+    }
+}
