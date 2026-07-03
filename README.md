@@ -90,9 +90,10 @@ the position paper *"An LLM Output Is a Claim, Not a Truth: A Substrate for Grou
 Memory."*
 
 **Principles.** Every design decision and pull request is measured against
-[`CONSTITUTION.md`](./CONSTITUTION.md) — seventeen normative principles (claim-not-truth,
+[`CONSTITUTION.md`](./CONSTITUTION.md) — nineteen normative principles (claim-not-truth,
 the-product-is-a-tool, RDF-1.2-first, one-canonical-source, maximal bridging, greenfield,
-verified-by-construction, frame-relativity, suppression-never-erasure, …).
+verified-by-construction, frame-relativity, suppression-never-erasure, logic-is-canonical,
+the-grounding-layer-triad, …).
 Cite them by number in issues and PRs.
 
 - **Canonical IRI:** <https://blackcatinformatics.ca/gmeow> (slash namespace, term IRIs
@@ -143,7 +144,7 @@ slice's model *and* how it aligns/projects.
 
 | Guide | Kind | What it covers |
 |---|---|---|
-| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The seventeen normative principles every design decision and PR is measured against |
+| [`CONSTITUTION.md`](./CONSTITUTION.md) | Governance | The nineteen normative principles every design decision and PR is measured against |
 | [`docs/REALIGNMENT-v0.2.0.md`](./docs/REALIGNMENT-v0.2.0.md) | Governance | The v0.2.0 realignment: one engine, three products — positioning, recast inventory, deliverables D1–D7 |
 | [`docs/RATIONALE.md`](./docs/RATIONALE.md) | Doctrine | Why GMEOW exists — the nine challenges of digital existence and the architectural answers |
 | [`docs/mcp-server.md`](./docs/mcp-server.md) | Product | The MCP server: the grounded-memory triad (`store_claim`/`recall`/`revise_belief`) + the ontology toolchain tools; one-line install |
