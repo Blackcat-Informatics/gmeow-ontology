@@ -44,8 +44,24 @@
 #     into that corpus, nudging it just past budget. No coverage class leaves the
 #     gate: the importer's graph-shape parity stays on-gate via the four sibling
 #     SPARQL acceptance tests (scores/roles/trajectory) in the same file, and
-#     whole-ontology SHACL conformance stays on-gate via the domain conformance_*
-#     validate tests.
+#     whole-ontology SHACL conformance stays on-gate via the ~35 fixture-only
+#     domain conformance_* validate tests (the four whole-ontology-union
+#     conformance binaries join this off-gate group — see next entry — for the
+#     same reason).
+#   - gmeow-validate conformance_{finance,agentic,ai_claims,music_analysis}:
+#     ~8.8 s locally / 24-26 s in CI. These are exactly the domain conformance
+#     binaries whose cases use Case::with_ontology(): each unions its fixture with
+#     the WHOLE merged ontology (every slices/*/*/module.ttl) and validates that
+#     entire graph — not just the fixture — against the ENTIRE shape corpus, so it
+#     carries the same H8 sh:sparql-constraint cost as imported_graph_conforms_to_shapes
+#     above. Measured: fixture-only conformance cases run in ~0.05 s, so the whole
+#     cost is the ontology-union validation and is independent of which fixture is
+#     under test — the four ride the 25 s cliff together and CI jitter alone decides
+#     which trip on a given run, so the whole class is carved out rather than the
+#     cases that happened to trip. No coverage class leaves the gate: the ~35
+#     fixture-only conformance_* domain tests stay on-gate against the same full
+#     shape corpus, and the whole-ontology-union path stays covered on maint-heavy
+#     alongside imported_graph_conforms_to_shapes.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
 #     ~95 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
 #     the native Nemo chase over it twice (once benign, once with an injected
@@ -64,6 +80,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
+    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis)))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }

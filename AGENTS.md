@@ -299,8 +299,19 @@ in CI shard 2; whole-ontology SHACL conformance — validates the importer outpu
 unioned with every `slices/*/*/module.ttl` against the entire shape corpus, which
 now includes the H8-migrated `sh:sparql` constraint shapes; the importer's
 graph-shape parity stays on-gate via the four sibling SPARQL acceptance tests and
-whole-ontology SHACL conformance stays on-gate via the domain `conformance_*`
-validate tests); and
+whole-ontology SHACL conformance stays on-gate via the ~35 fixture-only domain
+`conformance_*` validate tests); the four `gmeow-validate` whole-ontology-union
+conformance binaries `conformance_finance`, `conformance_agentic`,
+`conformance_ai_claims`, and `conformance_music_analysis` (~8.8 s locally / 24–26 s
+in CI; these are exactly the domain conformance binaries whose cases use
+`Case::with_ontology()`, unioning the fixture with the WHOLE merged ontology and
+validating that entire graph — not just the fixture — against the ENTIRE shape
+corpus, so they carry the same H8 `sh:sparql`-constraint cost as
+`imported_graph_conforms_to_shapes`; fixture-only conformance cases measure ~0.05 s,
+so the cost is the ontology-union validation and is fixture-independent — the four
+ride the 25 s cliff together and CI jitter alone decides which trip, so the whole
+class is carved out; the ~35 fixture-only `conformance_*` domain tests stay on-gate
+against the same shape corpus and the union path stays covered on `maint-heavy`); and
 `gmeow-logic::whole_bundle_coherence_gate_catches_injected_clash` (~95 s locally;
 it imports the WHOLE committed `gmeow.gts` bundle and drives the native Nemo
 chase over it twice, proving the shipped ontology is coherent and that an
