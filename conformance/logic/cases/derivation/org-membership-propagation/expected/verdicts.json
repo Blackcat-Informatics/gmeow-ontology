@@ -1,0 +1,6 @@
+{
+  "https://example.org/derivation/org-membership-propagation/world": {
+    "quads": 5,
+    "status": "consistent"
+  }
+}

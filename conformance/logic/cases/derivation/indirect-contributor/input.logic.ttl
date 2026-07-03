@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: derivation/indirect-contributor
+#
+# AC: a cross-slice derivation rule's head appears in the native materialization.
+#
+# input.nq models a provenance generation chain as DATA: an entity gmeow:wasGeneratedBy
+# an activity that gmeow:wasAssociatedWith an agent. The rule composes the two hops.
+#
+# The rule under test — a monotone positive-Horn logic:Rule mirroring the production
+# logic:ruleIndirectContributor (gmeow:wasGeneratedBy ∘ gmeow:wasAssociatedWith ⇒
+# gmeow:indirectContributor). Every head variable is a frontier variable bound positively
+# in the body, so it lowers to an evaluable rule and the chase DERIVES its head:
+# materialized.nq is a strict superset of input.nq carrying the derived
+# gmeow:indirectContributor edge — proof the derivation materializes (logic:ExactPreservation),
+# not SoundUnderApproximation residue.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/derivation/indirect-contributor/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# gmeow:wasGeneratedBy(entity, activity) ∧ gmeow:wasAssociatedWith(activity, agent)
+#   ⇒ gmeow:indirectContributor(entity, agent)
+ex:ruleIndirectContributor
+    a logic:Rule ;
+    logic:provenance ex:ruleIndirectContributor ;
+    logic:head [
+        rdf:subject   "?entity" ;
+        rdf:predicate gmeow:indirectContributor ;
+        rdf:object    "?agent"
+    ] ;
+    logic:body [
+        rdf:subject   "?entity" ;
+        rdf:predicate gmeow:wasGeneratedBy ;
+        rdf:object    "?activity"
+    ] ;
+    logic:body [
+        rdf:subject   "?activity" ;
+        rdf:predicate gmeow:wasAssociatedWith ;
+        rdf:object    "?agent"
+    ] .

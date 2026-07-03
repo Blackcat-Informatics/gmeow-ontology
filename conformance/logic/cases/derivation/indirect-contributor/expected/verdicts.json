@@ -1,0 +1,6 @@
+{
+  "https://example.org/derivation/indirect-contributor/world": {
+    "quads": 3,
+    "status": "consistent"
+  }
+}

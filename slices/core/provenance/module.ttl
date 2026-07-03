@@ -158,6 +158,21 @@ gmeow:wasAttributedTo
     gmeow:howToUse "Relate the gmeow:Entity to its responsible gmeow:Agent; when the attribution itself is uncertain or sourced, carry gmeow:confidence and the asserting source on the statement layer, and reify to a Contribution relator when role or credit share matters (P3)."@x-gmeow-english ;
     gmeow:useWhen "Use to ascribe responsibility for an enduring entity — a document, dataset, or artifact — to the agent who authored, owns, or is accountable for it."@x-gmeow-english .
 
+gmeow:indirectContributor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "indirect contributor"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent indirectly credited with an entity: derived, never asserted, by composing the entity's generating activity (gmeow:wasGeneratedBy) with that activity's performer (gmeow:wasAssociatedWith), so an entity's indirect contributors are exactly the agents that ran the activities that produced it. Distinct from gmeow:wasAttributedTo, which ascribes DIRECT responsibility — authorship, ownership, accountability — as an asserted fact: indirect contribution is a reasoned consequence of the generation chain and must never be read as, nor collapse into, that direct attribution."@x-gmeow-english ;
+    skos:example "ex:summary gmeow:indirectContributor ex:vcardImporter ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting this link by hand — it is derived from gmeow:wasGeneratedBy and gmeow:wasAssociatedWith by the reasoner; and avoid reading it as direct authorship or accountability, which is gmeow:wasAttributedTo."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernProvenanceEvidence ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Do not assert it: record the generating gmeow:Activity with gmeow:wasGeneratedBy and its performer with gmeow:wasAssociatedWith, and let the cross-slice derivation rule surface the indirect contributor; consume it to credit the agents behind an entity's production without conflating them with its directly attributed responsible party."@x-gmeow-english ;
+    gmeow:useWhen "Use to read off the agents that indirectly contributed to an entity through the activities that generated it — the performers reached by composing generation with association — as distinct from the entity's directly attributed author or owner."@x-gmeow-english .
+
 gmeow:wasDerivedFrom
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
