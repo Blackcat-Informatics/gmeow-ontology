@@ -78,6 +78,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/inquiry/examples/loaded-question.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/inquiry/examples/open-question-and-resolution.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/logic/examples/formalization-governance.ttl", // logic:candidateCategory/candidateProjectionBehavior/candidateNonEntailment → shared governance individuals (categories, preservation kinds, the standing obligations) defined in module.ttl, untyped standalone
+    "slices/core/mathematics/examples/numbers-sets-functions.ttl", // math:hasElement → set-member individuals (two/three/five/seven) untyped standalone; math:memberCondition → a logic:Formula node (no closed-world schema entry, the denotation seam)
     "slices/core/metacognition/examples/dunning-kruger.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/metacognition/examples/reflection-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/names/examples/person-names.ttl", // gmeow:usageAppellation/usageNamed → Appellation/Entity not typed standalone
@@ -206,6 +207,10 @@ fn gmeow_namespaces() -> json_schema::Namespaces {
             (
                 "logic".to_owned(),
                 "https://blackcatinformatics.ca/logic/".to_owned(),
+            ),
+            (
+                "math".to_owned(),
+                "https://blackcatinformatics.ca/math/".to_owned(),
             ),
         ],
     )
