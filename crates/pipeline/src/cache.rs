@@ -655,6 +655,8 @@ impl PipelineCache {
     /// The conventional cache base directory under a repo root. [`open`](Self::open)
     /// appends the version segment, so this is the un-segmented base.
     pub fn default_dir(root: &Path) -> PathBuf {
+        // GENERATED-READ-OK: the pipeline cache is a gitignored scratch dir under generated/, not a
+        // committed fanout projection — reading its path cannot trigger the stale-disk-fold bug class.
         root.join("generated").join(".pipeline-cache")
     }
 
