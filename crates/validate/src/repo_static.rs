@@ -931,9 +931,12 @@ fn slash_path(path: &Path) -> String {
 /// permanently — the stale-disk-fold bug class. This gate scans every Rust source
 /// under `crates/pipeline/src/` (recursively — no produce helper outside `stages/`
 /// can silently escape the gate) and flags any DISK-PATH construction under
-/// `generated/`: a literal `.join("generated"…)` or a `.join(NAME)` where `NAME` is a
-/// `const … = "generated/…"` path constant. A read from a stage PRODUCT (`.artifact(NAME)`)
-/// is not a disk read and is never flagged.
+/// `generated/`: a literal `.join("generated"…)` (whitespace- and `format!`-tolerant) or a
+/// `.join(NAME)` — including the `.join(&NAME)` / `.join(NAME.as_str())` indirections — where
+/// `NAME` is a `const … = "generated/…"` path constant. A read from a stage PRODUCT
+/// (`.artifact(NAME)`) is not a disk read and is never flagged. A read whose `.join(` argument is
+/// split across physical lines or aliased through a local binding is left to the fixed-point
+/// backstop below (a single-line textual scanner cannot see it).
 ///
 /// Exemptions (both fail the class OPEN unless justified): `#[cfg(test)] mod …` blocks (test
 /// fixtures may mirror committed files) and a read carrying an inline `// GENERATED-READ-OK:
@@ -1009,9 +1012,17 @@ fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStat
         let orig_lines: Vec<&str> = text.lines().collect();
         for (idx, line) in detect.lines().enumerate() {
             let literal = literal_re.is_match(line);
-            let const_indirect = generated_consts
-                .iter()
-                .any(|name| line.contains(&format!(".join({name})")));
+            // A `.join(NAME)` builds a disk path from a generated/ const. Catch the
+            // idiomatic indirections too — `.join(&NAME)` (borrow), `.join(NAME.as_str())`
+            // (method), and `.join(NAME, …)` (wrapped first arg) — each bounded by a
+            // terminator (`)`/`.`/`,`) so one const name that prefixes another cannot
+            // false-match. A `.artifact(NAME)` PRODUCT read has no `.join(` and is ignored.
+            let const_indirect = generated_consts.iter().any(|name| {
+                [')', '.', ','].iter().any(|t| {
+                    line.contains(&format!(".join({name}{t}"))
+                        || line.contains(&format!(".join(&{name}{t}"))
+                })
+            });
             if !(literal || const_indirect) {
                 continue;
             }
@@ -1762,6 +1773,23 @@ mod tests {
         );
         let errs = ban_errors(temp.path());
         assert_eq!(errs.len(), 1, "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_borrowed_or_method_const_generated_read() {
+        // Idiomatic indirections must not slip the ban: `.join(&NAME)` (borrow) and
+        // `.join(NAME.as_str())` (method) both build a disk path from a generated const.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "const DCAT: &str = \"generated/queries/dcat.rq\";\n\
+             fn run(root: &std::path::Path) {\n\
+             \x20   let _ = std::fs::read(root.join(&DCAT));\n\
+             \x20   let _ = std::fs::read(root.join(DCAT.as_str()));\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 2, "{errs:?}");
     }
 
     #[test]
