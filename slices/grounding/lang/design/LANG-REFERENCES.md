@@ -1,0 +1,119 @@
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# GMEOW Language — References and the External Survey
+
+> The **references appendix** of the GMEOW Language design set: the classified survey of the
+> external standards, ontologies, formalisms, classification schemes, and engines the language
+> grounding layer subsumes, projects to, links, or references — each tagged with its relation,
+> license posture, and kind, staged for the `metadata/references.ttl` ledger. Where no external
+> ontology exists for something the design needs, this appendix says so and marks the surface as
+> GMEOW-authored — original authorship is recorded, never disguised as alignment.
+>
+> **Tags.** *subsume* = the contribution is carried natively and exceeded; *project* = a generated
+> lossy emission target ([`LANG-PROJECTIONS.md`](LANG-PROJECTIONS.md)); *link* = an
+> alignment/authority surface via `gmeow:TermEquivalence`; *reference* = cited theory or spec,
+> no artifact. Licenses are as reviewed at design time; anything marked *review* requires a
+> license pass before any data (not spec) ingestion.
+
+## Primary anchors
+
+The four external anchors the design leans on hardest, peer to `math:`'s mathlib/Wikidata/QUDT
+set:
+
+| Anchor | Role | Relation | License |
+|---|---|---|---|
+| **OntoLex-Lemon** (W3C CG) | the form/sense/reference lexicon interface; primary lexical projection | subsume + project | W3C CG report — spec use unencumbered |
+| **Universal Dependencies** | the de facto morphosyntax standard; feature and relation inventories | subsume (inventories) + project (CoNLL-U) | guidelines CC-BY-SA 4.0; treebank licenses vary — *review per treebank* |
+| **Unicode / UAX #15 / UTS #10** | character identity, scripts, normalization, collation | reference (properties referenced, never re-modeled) | Unicode License v3 |
+| **Wikidata (lexemes + QIDs)** | authority ids for languages, lexemes, senses, concepts | link | CC0 |
+
+## Lexical and sense resources
+
+| Resource | Contributes | Relation | License / posture |
+|---|---|---|---|
+| WordNet (Princeton) | synsets, lexical relations | link | WordNet license (permissive) — data ingestion after review |
+| Open English WordNet | maintained fork, RDF-native | link | CC-BY 4.0 |
+| ILI (interlingual index) | cross-WordNet sense pivot | link | CC-BY 4.0 |
+| BabelNet | multilingual sense graph | reference only | restrictive (non-commercial) — **no data ingestion** |
+| Wiktionary / DBnary extracts | broad multilingual lexica | link, ingestion *review* | CC-BY-SA — share-alike implications gate any folding |
+| lexinfo / OLiA | linguistic category registries for Lemon | project (property targets) | open — used as emission vocabulary |
+| GOLD | general ontology for linguistic description | reference | inactive; historical alignment only |
+
+## Morphosyntax, annotation, and meaning representation
+
+| Resource | Contributes | Relation | License / posture |
+|---|---|---|---|
+| CoNLL-U format | token/feature/dependency exchange | project + ingest | spec open |
+| UniMorph | inflectional feature schema across languages | link (feature alignment) | CC-BY-SA 4.0 |
+| ISO 24617 (SemAF, all parts) | dialogue acts, semantic roles, time (ISO-TimeML), discourse | project (annotation surfaces) | ISO specs — *reference by citation, not reproduction* |
+| AMR / PropBank / FrameNet / VerbNet | meaning-graph and role-inventory practice | project (AMR) + link (inventories) | AMR/PropBank open; FrameNet *review* (non-commercial data) |
+| NIF 2.0 / W3C Web Annotation | stand-off anchoring | project | open |
+| TEI P5 | scholarly document encoding | project | CC-BY 4.0 / BSD-2 |
+| ISO-TimeML | temporal annotation of text | reference (the `temporal` slice owns time; the annotation surface routes through SemAF) | ISO |
+
+## Identification and registries
+
+| Resource | Contributes | Relation | License / posture |
+|---|---|---|---|
+| BCP-47 / RFC 5646 | language tagging | project (tag emission) | IETF |
+| ISO 639-1/-3 (SIL registry) | language codes | link | registry open for identification use |
+| ISO 15924 | script codes | link | open |
+| Glottolog | languoid catalog with genealogy — richer than ISO 639 | link (preferred identity companion) | CC-BY 4.0 |
+| IANA language subtag registry | the operative BCP-47 registry | link (generated-tag validation source) | IETF |
+| CLDR | locale data | reference | Unicode License v3 |
+| Lexvo | RDF ids for languages/scripts | link | CC-BY |
+
+## Grammars, formal languages, and self-hosting surfaces
+
+| Resource | Contributes | Relation | License / posture |
+|---|---|---|---|
+| ISO/IEC 14977 EBNF | grammar interchange | project + ingest (round-trip bar) | ISO — syntax use unencumbered |
+| RFC 5234 ABNF | IETF grammar dialect | project + ingest | IETF |
+| W3C Turtle / RDF 1.2 grammars | GMEOW's own serializations as sign systems | subsume (as `lang:Grammar` individuals) | W3C |
+| GTS grammar | the bundle format's own grammar — the self-hosting apex | subsume (GMEOW-authored individual) | project-internal |
+| Grammatical Framework (GF) | abstract/concrete syntax architecture; the buildability proof | reference (architecture), *not* a runtime dependency | GF runtime licensing mixed — no linkage planned |
+
+## Theory (cited, staged for `references.ttl`)
+
+Frege, *Über Sinn und Bedeutung* (the sense/reference discipline); Peirce, the triadic sign
+(interpretation as act); Montague, *Universal Grammar* / PTQ (compositional denotation into a
+typed logic; the natural-formal continuity license); Saussure (system-relative form identity);
+Austin & Searle (speech acts and force); Kaplan, *Demonstratives* (indexical anchoring); Ranta,
+*Grammatical Framework* (abstract syntax as canon); Melʹčuk (morph/lexeme stratification); Nida
+(translation loss as the object of study, not an embarrassment). Each entry lands in
+`metadata/references.ttl` with its claim-supporting role, per the repository's citation
+discipline.
+
+## Engines (oracles, never authorities)
+
+Candidate external engines for the [`LANG-RUNTIME.md`](LANG-RUNTIME.md) handoff seam, all held to
+the oracle-not-authority rule and the divergence-ledger demotion discipline the logic stack
+already applies:
+
+| Engine | Use | Posture |
+|---|---|---|
+| UDPipe / Stanza / spaCy | UD parsing, tagging, lemmatization | oracle producing vantage-held readings; Rust-side invocation via subprocess seam; **no Python in-tree** — outputs ingested as CoNLL-U |
+| Apertium | rule-based MT with published lexical data | data link *review* (GPL data); engine as oracle |
+| ICU4X | segmentation, normalization, collation in Rust | candidate direct dependency (Rust-native, Unicode-licensed) — the one entry here that may join the core rather than sit behind the seam |
+| Lindera / Vaporetto | Rust tokenizers (CJK) | candidate direct dependency, review at implementation |
+
+The deliberate absence: **no LLM in the conformance path.** LLM-produced analyses are lawful as
+oracle readings with engine vantage like any other engine output, but no gate may depend on one —
+gates must be deterministic, and the acceptance bar of the runtime charter is deterministic
+round-trips and typed failures throughout.
+
+## GMEOW-authored surfaces (no adequate external source exists)
+
+Recorded as original, per the honesty rule:
+
+- the **reified denotation record** with kind-typed targets bottoming out in `logic:` — no
+  external vocabulary carries denotation with vantage, context, and preservation;
+- the **co-resident reading model** for ambiguity — annotation formats pick winners; none holds
+  the multiplicity as first-class data with vantages;
+- **translation as `logic:Correspondence`** with per-unit preservation judgments — translation
+  memory formats (TMX) carry pairs, not audited maps; TMX may later join the projection charter
+  if a consumer materializes;
+- the **analyzed/unanalyzed discipline** as a recorded status over every surface form;
+- the **rendering relation** as a single grounded theory across notations, serializations, and
+  documentation.
