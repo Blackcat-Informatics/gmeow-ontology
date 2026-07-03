@@ -53,6 +53,10 @@ impl GtsSinkStage {
                 // the sink would re-read the previous-run committed file from disk and lag a
                 // regenerate behind a competency ResultShape edit (§3.2 transform-once).
                 "stage-export-result-shapes".to_string(),
+                // THIS run's constraint-shapes.ttl (logic: FOL-axiom SHACL projection):
+                // `build_archive_blobs` folds its fresh product into REP_SHAPES, so the sink
+                // must consume it (and on a first run it is not yet on disk to re-read).
+                "stage-export-constraint-shapes".to_string(),
                 "stage-compile-logic".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),

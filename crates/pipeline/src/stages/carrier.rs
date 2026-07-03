@@ -119,6 +119,15 @@ pub(crate) fn serialize_carrier_snapshot(
         .get("stage-export-result-shapes")
         .ok_or_else(|| stage_err("missing stage-export-result-shapes product"))?
         .artifacts();
+    // THIS run's constraint-shapes surface (the SHACL projection of the logic: FOL axioms),
+    // folded into REP_SHAPES from the stage product for the SAME reason as result-shapes:
+    // the committed generated/shapes/constraint-shapes.ttl is not flushed until phase 1
+    // returns, and on a first run it does not exist on disk at all, so only the fresh
+    // product can carry it into the bundle for the fanout to project back out.
+    let constraint_shapes_artifacts = upstream
+        .get("stage-export-constraint-shapes")
+        .ok_or_else(|| stage_err("missing stage-export-constraint-shapes product"))?
+        .artifacts();
     let mut blobs = build_archive_blobs(
         root,
         &schema_json,
@@ -126,6 +135,7 @@ pub(crate) fn serialize_carrier_snapshot(
         &compile_artifacts,
         &mappings_artifacts,
         &result_shapes_artifacts,
+        &constraint_shapes_artifacts,
     )?;
     blobs.extend(build_guide_blobs(root)?);
     // The rendered docs site embeds the per-term reasoning badge, so it carries the
@@ -824,6 +834,7 @@ fn build_archive_blobs(
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
     result_shapes_artifacts: &BTreeMap<String, Vec<u8>>,
+    constraint_shapes_artifacts: &BTreeMap<String, Vec<u8>>,
 ) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
@@ -930,6 +941,26 @@ fn build_archive_blobs(
         entry.1 = rs_fresh.clone();
     } else {
         shapes.push((rs_rel, rs_fresh.clone()));
+    }
+    // constraint-shapes.ttl is a `stage-export-constraint-shapes` PRODUCT (the SHACL
+    // projection of the logic: FOL axioms), folded fresh for the SAME reason as
+    // result-shapes above — AND, on a first run, it does not yet exist on disk, so the
+    // `list_files` disk read above never included it: only the fresh product carries it
+    // into REP_SHAPES for the fanout to project back out. Hard-fail if absent (the leaf
+    // always emits it).
+    let cs_rel = crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH.to_string();
+    let cs_fresh = constraint_shapes_artifacts
+        .get(crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH)
+        .ok_or_else(|| {
+            stage_err(
+                "carrier: stage-export-constraint-shapes produced no constraint-shapes.ttl \
+                 product; refusing to carry a stale on-disk read",
+            )
+        })?;
+    if let Some(entry) = shapes.iter_mut().find(|(k, _)| *k == cs_rel) {
+        entry.1 = cs_fresh.clone();
+    } else {
+        shapes.push((cs_rel, cs_fresh.clone()));
     }
     shapes.sort_by(|a, b| a.0.cmp(&b.0));
     // axioms: the compiled logic/DL projection surface, member = repo-relative path.
@@ -3279,6 +3310,21 @@ mod ustar_tests {
         out
     }
 
+    // Mirror the production stage-export-constraint-shapes product by re-rendering it from
+    // the authored logic: axioms (no disk dependency), so build_archive_blobs's fail-closed
+    // override finds the required constraint-shapes.ttl bytes.
+    fn constraint_shapes_artifacts_rendered(root: &Path) -> BTreeMap<String, Vec<u8>> {
+        let rel = crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH;
+        let mut out = BTreeMap::new();
+        out.insert(
+            rel.to_string(),
+            crate::stages::constraint_shapes::render_constraint_shapes(root)
+                .expect("render constraint-shapes")
+                .into_bytes(),
+        );
+        out
+    }
+
     #[test]
     fn build_docs_archive_packs_the_rendered_site() {
         // The archive packing is exercised with a model-only render (empty executable
@@ -3371,6 +3417,7 @@ mod ustar_tests {
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
             &result_shapes_artifacts,
+            &constraint_shapes_artifacts_rendered(&root),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3469,6 +3516,7 @@ mod ustar_tests {
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
             &result_shapes_artifacts,
+            &constraint_shapes_artifacts_rendered(&root),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -3501,6 +3549,7 @@ mod ustar_tests {
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
             &result_shapes_artifacts,
+            &constraint_shapes_artifacts_rendered(&root),
         )
         .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();
