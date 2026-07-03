@@ -17,7 +17,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/tests/> .
-@prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/> .
 
 ex:cqMentalLife a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/affect/queries/competency/mental-life.rq" ;
@@ -46,28 +45,18 @@ ex:cqMLRowDoxastic a gmeow:ExpectedRow ;
 ex:cqMLRowIntentional a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:IntentionalMode ] .
 
-# Stage 2 — the feeling bridge. "Which felt episodes realized which affective
-# mode?" A felt gmeow:AffectiveExperience (occurrent) links to the enduring
-# gmeow:Emotion mode it manifests via gmeow:feltAffect. The gmeow:cqDataFile
-# overlay supplies the felt-anger scene (slice-relative examples/felt-anger.ttl,
-# asserted lane); the single projected row binds the episode to its mode.
+# Stage 2 — the feeling bridge. "Does a felt episode realize its affective mode,
+# borne by the same agent?" A felt gmeow:AffectiveExperience (occurrent) links to
+# the enduring gmeow:Emotion mode it manifests via gmeow:feltAffect, and the
+# episode's gmeow:experiencer is the mode's gmeow:emotionBearer. Authored as an
+# ASK (no logic:ResultShape projection): the gmeow:cqDataFile overlay supplies the
+# felt-anger scene (slice-relative examples/felt-anger.ttl, asserted lane) and the
+# query returns true when the whole occurrent→mode bridge is present.
 ex:cqFeltEpisodes a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/core/affect/queries/competency/felt-episodes.rq" ;
     gmeow:cqDataFile "examples/felt-anger.ttl" ;
-    gmeow:cqRationale "Stage 2 acceptance: an agent's felt mental life is queryable — a felt gmeow:AffectiveExperience (occurrent) is joined to the enduring gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment). The overlay scene binds exa:feltAnger to exa:angerMode." ;
-    gmeow:cqResultShape ex:cqFeltEpisodesShape ;
-    gmeow:cqExpectRow ex:cqFeltAngerRow .
-
-ex:cqFeltEpisodesShape a logic:ResultShape ;
-    logic:declaresColumn
-        [ logic:columnVariable "episode" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:declaresColumn
-        [ logic:columnVariable "mode" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
-    logic:shapeCardinality logic:RowsContains .
-
-ex:cqFeltAngerRow a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "episode" ; gmeow:cellValueIri exa:feltAnger ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mode" ; gmeow:cellValueIri exa:angerMode ] .
+    gmeow:cqRationale "Stage 2 acceptance: an agent's felt mental life is queryable — a felt gmeow:AffectiveExperience (occurrent) is joined to the enduring gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment), the episode's experiencer being the mode's bearer (one agent, two aspects). The overlay felt-anger scene makes the whole bridge present." ;
+    gmeow:cqExpectAsk true .
 
 # Stage 2 — the mode/experience cut, verified over the whole merged ontology.
 # The felt episode sits on the mental-PROCESS spine and is NEVER a MentalMoment;
