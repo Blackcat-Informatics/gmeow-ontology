@@ -1,15 +1,33 @@
 # Retention: `tests/test_allen_jepd.py`
 
-**Category:** Domain invariant → slicetest cells
+**Category:** Domain invariant → slicetest cells (partial)
 
 ## What it tests
 
 Tests for Allen interval relations and JEPD disjointness (issue #67).
 
-## Why it cannot move to Rust today
+## What moved
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+All module-local structural assertions migrated to
+`slices/core/temporal/tests/structural.ttl`:
 
-## What is needed to move it to Rust
+| Pytest function | DSL cell IRI |
+|---|---|
+| `test_all_interval_level_allen_relations_exist` | `ex:saAllIntervalLevelAllenRelationsExist` |
+| `test_interval_before_and_after_are_transitive` | `ex:saIntervalBeforeAndAfterAreTransitive` |
+| `test_interval_coincides_with_is_symmetric_and_transitive` | `ex:saIntervalCoincidesWithIsSymmetricAndTransitive` |
+| `test_no_event_interval_property_disjointness_in_owl` | `ex:saNoEventIntervalPropertyDisjointnessInOwl` |
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+## What stays in pytest
+
+`test_no_owl_all_disjoint_properties_over_interval_relations` — a whole-graph
+sweep over every `owl:AllDisjointProperties` to ensure no interval-level Allen
+relation is grouped into an OWL disjoint-properties axiom. A finite
+module-scoped SPARQL ASK cannot express this universal guard.
+
+## What is needed to retire the remaining function
+
+Either a Rust-native whole-ontology scan for `owl:AllDisjointProperties`
+membership of non-simple properties, or a SHACL shape that closes over the
+entire merged graph. The slicetest harness evaluates one slice module at a time
+by design, so this cross-ontology sweep stays in pytest for now.

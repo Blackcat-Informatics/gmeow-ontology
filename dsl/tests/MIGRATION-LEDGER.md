@@ -199,6 +199,44 @@ The temporal pytest loaded the FULL merged graph (`load_merged_graph(include_imp
 
 **Temporal tally:** 7 converted, 1 retained-with-reason (cross-slice merged-graph). Source file `tests/test_temporal.py` trimmed to the 1 retained function (not deleted).
 
+## `slices/core/temporal` — issue #1120 temporal cluster
+
+Issue #1120 migrates the temporal pytest cluster (`tests/test_edtf.py`,
+`tests/test_allen_jepd.py`, `tests/test_named_period.py`) into the temporal
+slice's declarative `tests/structural.ttl`. Every subject below is asserted in
+`temporal/module.ttl`, so each cell uses `gmeow:scopeModule`. The one retained
+function is a whole-graph sweep that cannot be narrowed to the module graph
+without losing the regression guard.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_edtf_value_is_datatype_property` | `tests/test_edtf.py` | `ex:saEdtfValueIsDatatypeProperty` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_edtf_value_range_is_literal` | `tests/test_edtf.py` | `ex:saEdtfValueRangeIsLiteral` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_instant_exists_and_has_instant_value` | `tests/test_edtf.py` | `ex:saInstantExistsAndHasInstantValue` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_all_interval_level_allen_relations_exist` | `tests/test_allen_jepd.py` | `ex:saAllIntervalLevelAllenRelationsExist` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_interval_before_and_after_are_transitive` | `tests/test_allen_jepd.py` | `ex:saIntervalBeforeAndAfterAreTransitive` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_interval_coincides_with_is_symmetric_and_transitive` | `tests/test_allen_jepd.py` | `ex:saIntervalCoincidesWithIsSymmetricAndTransitive` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_event_interval_property_disjointness_in_owl` | `tests/test_allen_jepd.py` | `ex:saNoEventIntervalPropertyDisjointnessInOwl` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_owl_all_disjoint_properties_over_interval_relations` | `tests/test_allen_jepd.py` | — | — | **retained** | Whole-graph sweep over every `owl:AllDisjointProperties` to ensure no interval-level Allen relation is grouped into an OWL disjoint-properties axiom; not expressible as a finite module-scoped ASK. | pytest |
+| `test_named_period_subclasses_entity` | `tests/test_named_period.py` | `ex:saNamedPeriodSubclassesEntity` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_period_type_exists` | `tests/test_named_period.py` | `ex:saPeriodTypeExists` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_seed_geologic_periods_exist` | `tests/test_named_period.py` | `ex:saSeedGeologicPeriodsExist` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_period_part_of_is_transitive` | `tests/test_named_period.py` | `ex:saPeriodPartOfIsTransitive` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_period_part_of_links` | `tests/test_named_period.py` | `ex:saPeriodPartOfLinks` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_period_contains_period_is_inverse` | `tests/test_named_period.py` | `ex:saPeriodContainsPeriodIsInverse` | StructuralAssertion | converted | — | `make slicetest` |
+
+**Temporal cluster tally:** 13 converted → cells 7-19 of
+`slices/core/temporal/tests/structural.ttl`; 1 retained-with-reason
+(whole-graph `AllDisjointProperties` sweep). Source files `tests/test_edtf.py`
+and `tests/test_named_period.py` are DELETED; `tests/test_allen_jepd.py` is
+trimmed to the 1 retained function.
+
+### Cross-slice item from `tests/test_calendar.py`
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason | Run by |
+|---|---|---|---|---|---|---|
+| `test_organizer_and_attendee_roles_exist` | `tests/test_calendar.py` | `slices/core/events/tests/structural.ttl` `ex:saOrganizerAndAttendeeRolesExist` | StructuralAssertion | converted | The role individuals are defined in `slices/core/events/module.ttl`, so the assertion is authored in the owning slice. | `make slicetest` |
+
 ## `slices/core/gts`
 
 The gts pytest mixed merged-graph, module-only, and competency loads. Subjects of the migrated subClassOf/subPropertyOf edges are home-asserted in gts/module.ttl (verified), so they convert even though the parent classes live in other slices. The two dynamic universals use `FILTER NOT EXISTS` over a type pattern (not a VALUES blacklist); adversarially break-probed 2026-06-23 (a TransformCodec without codecClass, an untyped gmeow term, a stray OpacityReason → the three cells reded as `mustNot but the ASK pattern HELD`, then reverted).

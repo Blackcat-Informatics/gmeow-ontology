@@ -46,6 +46,11 @@
 #     verify the exact member order; bnode list structure is not expressible as a
 #     simple module-scoped ASK.
 #
+# CROSS-SLICE migrated INTO this file (from tests/test_calendar.py):
+#   test_organizer_and_attendee_roles_exist — gmeow:roleOrganizer and
+#     gmeow:roleAttendee are defined in this events module, so the cell now lives
+#     here as ex:saOrganizerAndAttendeeRolesExist.
+#
 # See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -765,3 +770,16 @@ ex:saCausalPartOfNotDuring a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:causalPartOf rdfs:subPropertyOf gmeow:during . }""" ;
     gmeow:saRationale "gmeow:causalPartOf MUST NOT be rdfs:subPropertyOf gmeow:during -- causal mereology is orthogonal to the TEMPORAL Allen DURING relation, which only orders extents and implies nothing causal." .
+
+# --- 57. Organizer and attendee roles exist as ParticipantRole values (MUST) -
+# Cross-slice: the calendar slice reuses these role individuals; they are
+# defined in this events module, so the assertion belongs here.
+ex:saOrganizerAndAttendeeRolesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:roleOrganizer a gmeow:ParticipantRole .
+    gmeow:roleAttendee  a gmeow:ParticipantRole .
+}""" ;
+    gmeow:saRationale "gmeow:roleOrganizer and gmeow:roleAttendee MUST exist as gmeow:ParticipantRole individuals — the calendar slice reuses these event-defined role values (iCal ATTENDEE / ORGANIZER). Mirrors test_organizer_and_attendee_roles_exist." .

@@ -145,7 +145,8 @@ meta:tests-suppression a meta:TestSuite ;
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
     meta:artifact "crates/validate/tests/conformance_reference_frames.rs",
-        "tests/test_calendar.py", "tests/test_edtf.py" .
+        "tests/test_calendar.py",
+        "slices/core/temporal/tests/structural.ttl" .
 
 meta:lint-reasoning-invariants a meta:Lint ;
     rdfs:label "closed-world reasoning invariants (solver boundary)"@x-gmeow-english ;
