@@ -129,7 +129,7 @@ pub(crate) fn serialize_carrier_snapshot(
     // folded into REP_SHAPES from the fresh product for the SAME reason as result/frame
     // shapes: the committed generated/shapes/constraint-shapes.ttl is projected back from the
     // bundle by the fanout, and on a first run it does not exist on disk at all, so only the
-    // fresh product can carry it (H8, #742).
+    // fresh product can carry it (H8).
     let constraint_shapes_ttl = upstream
         .get("stage-export-constraint-shapes")
         .and_then(|p| p.artifact(crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH))
@@ -940,7 +940,7 @@ fn build_archive_blobs(
     // absence hard-fails at the call site (no-optionality, fail-closed).
     // constraint-shapes.ttl (the logic: FOL-axiom SHACL projection) folds fresh the same
     // way — AND on a first run it does not yet exist on disk, so the `list_files` read
-    // above never included it: only the fresh product carries it into REP_SHAPES (H8, #742).
+    // above never included it: only the fresh product carries it into REP_SHAPES (H8).
     for (rel, fresh_bytes) in [
         (
             crate::stages::result_shapes::RESULT_SHAPES_PATH,

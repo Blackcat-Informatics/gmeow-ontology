@@ -72,7 +72,7 @@ impl GtsSinkStage {
                 // the bundle — the fanout would rewrite the stale committed
                 // generated/shapes bytes forever. constraint-shapes.ttl (the logic:
                 // FOL-axiom projection) folds the same way, and on a first run does not
-                // yet exist on disk, so only the fresh product can carry it (H8, #742).
+                // yet exist on disk, so only the fresh product can carry it (H8).
                 "stage-export-frame-shapes".to_string(),
                 "stage-export-result-shapes".to_string(),
                 "stage-export-constraint-shapes".to_string(),
