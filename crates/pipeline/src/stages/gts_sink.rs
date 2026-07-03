@@ -220,7 +220,8 @@ mod tests {
             "generated/mappings/gmeow-test.sssom.tsv".to_string(),
             b"# minimal sssom\n".to_vec(),
         );
-        // The fanout presenter reads dsl-stats + the JSON-LD context off this product.
+        // The fanout presenter reads dsl-stats + the JSON-LD context + the EmotionML XML
+        // projection off this product.
         mapping_artifacts.insert(
             crate::stages::mappings::DSL_STATS_PATH.to_string(),
             b"{}".to_vec(),
@@ -228,6 +229,10 @@ mod tests {
         mapping_artifacts.insert(
             crate::stages::mappings::JSONLD_CONTEXT_PATH.to_string(),
             b"{}".to_vec(),
+        );
+        mapping_artifacts.insert(
+            crate::stages::mappings::EMOTIONML_PATH.to_string(),
+            b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<emotionml/>\n".to_vec(),
         );
         let mappings = StageProduct::from_artifacts("stage-mappings", mapping_artifacts);
 
