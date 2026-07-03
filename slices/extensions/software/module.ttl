@@ -207,6 +207,15 @@ gmeow:Project
     skos:definition "A social object representing an endeavour — an activity with purpose, participants, and duration, independent of any product, repository, or codebase. A project persists, bears identity and PIDs, and participants come and go; it is realised through events (milestones, releases, sprints), not identical to them. Modelled as an endurant (social object), not a perdurant (process)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# The six software facets are orthogonal — no individual may fill two (Principle 9).
+# Named so the SHACL constraint projection can anchor a logic:formalizes back-reference
+# on the generated facet-orthogonality shape; the native DL-coherence gate enforces the
+# disjointness directly.
+gmeow:softwareFacetDisjointness
+    a owl:AllDisjointClasses ;
+    owl:members ( gmeow:Project gmeow:SoftwareProduct gmeow:SourceTree gmeow:Repository gmeow:Commit gmeow:Release ) ;
+    logic:formalizes gmeow:SoftwareProduct .
+
 gmeow:Push
     a logic:Event ,
         owl:Class ;

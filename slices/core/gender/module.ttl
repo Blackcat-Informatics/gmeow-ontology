@@ -388,9 +388,12 @@ gmeow:sexAssignedAtBirth
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
-_:b0
+# Named so the SHACL constraint projection can anchor a logic:formalizes back-reference
+# on the generated identity-axis orthogonality shape (a blank axiom node cannot).
+gmeow:identityAxisDisjointness
     a owl:AllDisjointClasses ;
-    owl:members ( gmeow:GenderIdentity gmeow:GenderExpression gmeow:SexAssignedAtBirth gmeow:SexualOrientation gmeow:RomanticOrientation gmeow:PronounSet gmeow:Honorific ) .
+    owl:members ( gmeow:GenderIdentity gmeow:GenderExpression gmeow:SexAssignedAtBirth gmeow:SexualOrientation gmeow:RomanticOrientation gmeow:PronounSet gmeow:Honorific ) ;
+    logic:formalizes gmeow:GenderIdentity .
 
 _:b1
     a owl:AllDisjointClasses ;
