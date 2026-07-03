@@ -564,7 +564,7 @@ ASK {
 
 # =============================================================================
 # 10. MentalMoment umbrella + proficiency vocabulary (migrated from
-#     tests/test_cognition.py and tests/test_teleology.py, #1120)
+#     tests/test_cognition.py and tests/test_teleology.py)
 # =============================================================================
 
 # test_mental_moment_is_category_under_intrinsic_mode

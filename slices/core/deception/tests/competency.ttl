@@ -215,7 +215,7 @@ ex:cqDeceptionLicensedFalsehoodShape a logic:ResultShape ;
     logic:shapeCardinality logic:RowsCount ;
     logic:shapeRowCount 0 .
 
-# ── E. Disinformation boundary query (#1120) ──────────────────────────────────
+# ── E. Disinformation boundary query ──────────────────────────────────
 ex:cqDisinformationBoundary a gmeow:CompetencyQuestion ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX exd: <https://example.org/test/>

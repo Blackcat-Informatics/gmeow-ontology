@@ -4,7 +4,7 @@
 
 ## What it tests
 
-Competency test for the doxastic belief-revision pattern (#560).
+Competency test for the doxastic belief-revision pattern.
 
 Retained dynamic tests:
 

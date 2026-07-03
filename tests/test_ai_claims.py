@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Competency tests for the AI claim layer (#54) and the graphrag extension.
+"""Competency tests for the AI claim layer and the graphrag extension.
 
-The examples gate (#332) validates both worked examples structurally; here the
+The examples gate validates both worked examples structurally; here the
 CONSTITUTIONAL commitments are pinned — above all the thinness: the unified
 observation stance (P9) means no parallel claim/evaluation construct may ever
-exist, and the tombstone tests keep PR #388's mistakes buried.
+exist, and the tombstone tests keep the mistaken parallel Claim constructs buried.
 
-Migrated to declarative slicetest cells (#1120):
+Migrated to declarative slicetest cells:
   - test_extraction_methods_are_observation_methods
       → slices/core/ai/tests/structural.ttl (saExtractionMethodsAreObservationMethods)
   - test_invocation_and_retrieval_are_activities
@@ -44,7 +44,7 @@ def _n(local: str) -> URIRef:
 
 
 def test_no_parallel_claim_construct_exists() -> None:
-    """gmeow:Observation IS the universal claim construct — PR #388's parallel
+    """gmeow:Observation IS the universal claim construct — the earlier
     Claim/GeneratedClaim/ExtractedClaim classes must never return."""
     g = _g()
     for tombstone in ("Claim", "GeneratedClaim", "ExtractedClaim", "claimText"):

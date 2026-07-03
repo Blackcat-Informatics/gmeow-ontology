@@ -4,7 +4,7 @@
 
 ## What it tests
 
-The rubrics facility (#353, EPIC #348), in the norms slice.
+The rubrics facility, in the norms slice.
 
 Retained dynamic tests:
 

@@ -1,4 +1,4 @@
-"""The standpoint / contested-claims facility (#43).
+"""The standpoint / contested-claims facility.
 
 GMEOW dissolves the edit war by refusing a single winning slot: a contested fact
 is several standpoint-indexed claims that COEXIST, none privileged. This module
@@ -10,8 +10,8 @@ SHACL-clean and reasoning-safe. The facility realises Standpoint Logic
 gmeow:universalStandpoint). See slices/core/standpoint/module.ttl.
 
 Asserted-TBox invariants whose ASK subjects are all local to the standpoint
-module have been migrated to slices/core/standpoint/tests/structural.ttl
-(#867, #1120). The StandpointModality vocabulary (including gmeow:bullshit)
+module have been migrated to slices/core/standpoint/tests/structural.ttl.
+The StandpointModality vocabulary (including gmeow:bullshit)
 is pinned there by saStandpointModalitySeeds / saNoExtraStandpointModality.
 
 Retained here: dynamic-set sweeps, whole-graph guards, bnode-list
@@ -60,7 +60,7 @@ def _graph() -> Graph:
 # hierarchy, sharpens transitivity, universalStandpoint individual,
 # standpointClaim property shape, claimModality property shape, and the
 # StandpointModality five-value vocabulary have been migrated to
-# slices/core/standpoint/tests/structural.ttl (#867, #1120).
+# slices/core/standpoint/tests/structural.ttl.
 # --------------------------------------------------------------------------- #
 
 
@@ -263,10 +263,10 @@ def test_schema_projection_emits_per_standpoint_claims() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Issue #127 — StandpointClaim as Observation specialization
+# StandpointClaim as Observation specialization
 # --------------------------------------------------------------------------- #
 # NOTE: standpointClaim and claimModality property shapes have been migrated
-# to slices/core/standpoint/tests/structural.ttl (#867, cells 12-14).
+# to slices/core/standpoint/tests/structural.ttl.
 # --------------------------------------------------------------------------- #
 
 
@@ -282,7 +282,7 @@ def test_standpoint_tenure_generates_claim_restriction() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Projection competency tests — StandpointClaim individuals (#127)
+# Projection competency tests — StandpointClaim individuals
 # --------------------------------------------------------------------------- #
 
 
@@ -346,17 +346,17 @@ def test_bbc_projection_emits_news_event() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Issue #170 — Language variety standpoint coexistence
+# Language variety standpoint coexistence
 # --------------------------------------------------------------------------- #
 
 
 # --------------------------------------------------------------------------- #
-# Issue #171 — Etymology derivation coexistence
+# Etymology derivation coexistence
 # --------------------------------------------------------------------------- #
 
 
 # --------------------------------------------------------------------------- #
-# Mapping alignment tests (#127)
+# Mapping alignment tests
 # --------------------------------------------------------------------------- #
 
 

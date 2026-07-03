@@ -1,6 +1,6 @@
 """Structural guards for the MessageParticipant relator and EmailAddress facets.
 
-Issue #159: Email address occurrences — the relator binds a message, an address,
+Email address occurrences — the relator binds a message, an address,
 and a header/envelope role, keeping display-name and raw-value claims scoped to
 the occurrence rather than asserting them as global facts about the EmailAddress.
 """
@@ -24,7 +24,7 @@ def _graph() -> Graph:
 
 def test_resent_properties_are_multivalued_in_linkml_schema() -> None:
     """Regression guard: non-functional datatype properties must compile to
-    multivalued slots (issue #134 review feedback)."""
+    multivalued slots (review feedback)."""
     linkml_path = (
         Path(__file__).parent.parent / "generated" / "schemas" / "gmeow.linkml.yaml"
     )

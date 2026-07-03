@@ -4,7 +4,7 @@
 
 ## What it tests
 
-Email versioning, variant, and patch-diff guards (issue #136).
+Email versioning, variant, and patch-diff guards.
 
 Retained dynamic tests:
 

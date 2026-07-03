@@ -1,10 +1,10 @@
-"""Retained guards for the cognition module (issues #556/#557/#558).
+"""Retained guards for the cognition module.
 
 Asserted-TBox structural invariants whose ASK subjects live in the cognition
 module graph have been migrated to the declarative test-DSL cell file at
-slices/core/cognition/tests/structural.ttl (#867).
+slices/core/cognition/tests/structural.ttl.
 
-Cross-slice asserted-TBox invariants migrated to their owning slices (#1120):
+Cross-slice asserted-TBox invariants migrated to their owning slices:
   - test_mental_moment_is_category_under_intrinsic_mode
       → slices/core/kernel/tests/structural.ttl (saMentalMomentIsCategoryUnderMode)
   - test_intentional_mode_reparented_under_mental_moment
@@ -58,7 +58,7 @@ def _logic(local: str) -> URIRef:
 
 
 # --------------------------------------------------------------------------- #
-# MentalMoment umbrella (#556) — dynamic sweep; RETAINED.
+# MentalMoment umbrella — dynamic sweep; RETAINED.
 # --------------------------------------------------------------------------- #
 
 
@@ -103,7 +103,7 @@ def test_mental_moment_has_exactly_one_gufo_metaclass() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# SSSOM alignment ledger coverage (#549 / PR #678).
+# SSSOM alignment ledger coverage.
 # --------------------------------------------------------------------------- #
 
 
@@ -151,8 +151,7 @@ def test_cognition_sssom_rows_include_expected_alignments() -> None:
 
 
 def test_cognition_sssom_includes_corrected_wikidata_qids() -> None:
-    """The issue-supplied QIDs were rejected and replaced with verified entities
-    (#549)."""
+    """The issue-supplied QIDs were rejected and replaced with verified entities."""
     rows = _cognition_sssom_rows()
     qids = {obj for _subj, _pred, obj in rows if obj.startswith("wd:")}
     assert "wd:Q6501338" in qids, "attention QID expected"
@@ -165,6 +164,6 @@ def test_cognition_sssom_includes_corrected_wikidata_qids() -> None:
 
 
 def test_cognition_sssom_includes_opencyc_knows_about() -> None:
-    """OpenCyc knowsAbout is present as a relatedMatch anchor (#549)."""
+    """OpenCyc knowsAbout is present as a relatedMatch anchor."""
     rows = _cognition_sssom_rows()
     assert ("gmeow:knowsAbout", "skos:relatedMatch", "cyc:knowsAbout") in rows

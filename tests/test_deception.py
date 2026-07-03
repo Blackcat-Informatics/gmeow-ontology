@@ -1,11 +1,11 @@
-"""Deception -- SHACL / dynamic tests retained from issue #213.
+"""Deception -- SHACL / dynamic tests retained.
 
 TBox structural assertions (EventType individuals, property shapes,
 ClaimVeridicality, MaximViolationType, no-isFalse guards, etc.) have been
 migrated to slices/core/deception/tests/structural.ttl as declarative
 gmeow:StructuralAssertion cells run by the native Rust slicetest harness.
 
-Migrated to declarative slicetest cells (#1120):
+Migrated to declarative slicetest cells:
   - test_bullshit_modality_exists
       → slices/core/standpoint/tests/structural.ttl (saStandpointModalitySeeds)
   - test_disinformation_boundary_query
@@ -17,7 +17,7 @@ Retained here (not migratable to module-scoped declarative cells):
   - test_licensed_falsehood_not_a_lie:
       run_shacl() + cross-slice NarrativeReferenceFrame guard.
 
-Migrated to crates/validate/tests/conformance_deception.rs (#867 Batch 2):
+Migrated to crates/validate/tests/conformance_deception.rs (Batch 2):
   - test_standpoint_divergence_coexists
   - test_deception_event_shacl_passes
   - test_deception_cue_shacl_passes
@@ -74,8 +74,8 @@ def _doxastic_claim(
 
 
 def test_blame_deflection_example_uses_doxastic_standpoint_claims() -> None:
-    """Issue #561 re-grounding: every held/projected standpoint in the
-    blame-deflection example is typed gmeow:DoxasticStandpointClaim."""
+    """Every held/projected standpoint in the blame-deflection example is typed
+    gmeow:DoxasticStandpointClaim."""
     g = Graph()
     example = (
         Path(__file__).resolve().parents[1]

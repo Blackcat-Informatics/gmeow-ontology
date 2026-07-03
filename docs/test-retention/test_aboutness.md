@@ -4,7 +4,7 @@
 
 ## What it tests
 
-The universal aboutness vocabulary (#349, EPIC #348).
+The universal aboutness vocabulary.
 
 Retained dynamic tests:
 

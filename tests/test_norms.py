@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: MIT
-"""The norms extension + rights graft (#351 / #352, EPIC #348) — RETAINED tests.
+"""The norms extension + rights graft — RETAINED tests.
 
 All asserted-TBox invariants and competency questions have been migrated to the
 slice-resident declarative test-DSL:
@@ -27,7 +27,7 @@ GM = Namespace(GMEOW)
 
 
 # --------------------------------------------------------------------------- #
-# The rights graft (#352) — cross-slice file-load check (not migratable to DSL)
+# The rights graft — cross-slice file-load check (not migratable to DSL)
 # --------------------------------------------------------------------------- #
 
 

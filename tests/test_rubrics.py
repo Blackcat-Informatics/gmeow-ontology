@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: MIT
-"""The rubrics facility (#353, EPIC #348), in the norms slice.
+"""The rubrics facility, in the norms slice.
 
 All structural invariants and the exemplar-polarity competency question have been
 migrated to the slice-resident declarative test-DSL:

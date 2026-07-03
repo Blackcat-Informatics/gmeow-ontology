@@ -1,4 +1,4 @@
-"""WEMI creative-works spine (issue #208).
+"""WEMI creative-works spine.
 
 Structural TBox invariants have been migrated to the declarative slicetest DSL
 in the slices that define their subject terms:
@@ -9,7 +9,7 @@ in the slices that define their subject terms:
   - slices/core/events/tests/structural.ttl (creation event type individuals)
 
 SHACL well-formedness (ExampleConformance) tests have been migrated to Rust at
-crates/validate/tests/conformance_creative_works.rs (#867).
+crates/validate/tests/conformance_creative_works.rs.
 
 RETAINED:
   - test_wemi_tiers_subclass_information_object: uses transitive_objects()

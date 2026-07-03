@@ -1,10 +1,10 @@
-"""Universal mereology spine — structural TBox well-formedness (#76).
+"""Universal mereology spine — structural TBox well-formedness.
 
 The OWL 2 RL propagation tests that used to live here — specialized-part relations
 entailing generic parthood, ``memberOf`` propagating through ``subOrganizationOf``,
 event location propagating through spatial containment — were migrated to the
-native Rust reasoning harness (``crates/logic/tests/ontology_entailments.rs``)
-under issue #896. What remains are the **structural** checks for per-slice
+native Rust reasoning harness (``crates/logic/tests/ontology_entailments.rs``).
+What remains are the **structural** checks for per-slice
 part-like relations and no-winner/cardinality terms; the universal spine
 invariants now live in `slices/core/kernel/tests/structural.ttl`.
 """

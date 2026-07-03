@@ -25,7 +25,7 @@ SELECT ?tool ?invocation ?args WHERE {
           gmeow:toolArguments ?args .
 }""" ;
     gmeow:cqDataFile "examples/agent-trajectory.ttl" ;
-    gmeow:cqRationale "The agentic trajectory example must answer which tool produced ex:note-2200, under which invocation, with what arguments — the tool-call provenance question (#390)." ;
+    gmeow:cqRationale "The agentic trajectory example must answer which tool produced ex:note-2200, under which invocation, with what arguments — the tool-call provenance question." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ext:cqWhichToolShape ;
     gmeow:cqExpectRow ext:cqWhichToolRow .

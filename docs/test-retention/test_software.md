@@ -4,7 +4,7 @@
 
 ## What it tests
 
-Behavioural guards for the software module (#231 Phase A, #232 Phase B).
+Behavioural guards for the software module.
 
 Retained dynamic tests:
 

@@ -10,7 +10,7 @@
 # Events IS migrated: class stereotypes are logic: (logic:Event, logic:Kind,
 # logic:Relator, logic:AbstractIndividualType, logic:QualityValue), NOT gufo:.
 #
-# MIGRATED to declarative slicetest cells (#1120):
+# MIGRATED to declarative slicetest cells:
 #   test_event_is_grounded_in_gufo_event -- the gmeow:Activity rdfs:subClassOf
 #     gmeow:Event assertion moves to slices/core/provenance/tests/structural.ttl
 #     because gmeow:Activity is defined there.

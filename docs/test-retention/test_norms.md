@@ -4,7 +4,7 @@
 
 ## What it tests
 
-The norms extension + rights graft (#351 / #352, EPIC #348) — RETAINED tests.
+The norms extension + rights graft — RETAINED tests.
 
 Retained dynamic tests:
 

@@ -4,11 +4,11 @@
 
 ## What it tests
 
-Competency tests for the AI claim layer (#54) and the graphrag extension.
+Competency tests for the AI claim layer and the graphrag extension.
 
 Retained dynamic tests:
 
-- `test_no_parallel_claim_construct_exists` — gmeow:Observation IS the universal claim construct — PR #388's parallel
+- `test_no_parallel_claim_construct_exists` — gmeow:Observation IS the universal claim construct — the earlier parallel
 - `test_no_parallel_evaluation_construct_exists` — Evaluation is the norms extension's Assessment (judge-as-vantage).
 - `test_no_duplicate_provenance_properties` — Outputs hang off the EXISTING wasGeneratedBy — no forward duplicates.
 - `test_no_winner_machinery_anywhere` — Contradictions surface; nothing ranks them (P9).

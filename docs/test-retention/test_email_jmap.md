@@ -5,7 +5,7 @@
 ## What it tests
 
 Structural guards for JMAP structural identifiers: blobId, bodyStructure,
-and BodyValue. Issue #140.
+and BodyValue.
 
 Retained dynamic tests:
 

@@ -492,7 +492,7 @@ def test_place_type_parcel_exists() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Standpoint coexistence — contested sovereignty / place names (#51)
+# Standpoint coexistence — contested sovereignty / place names
 # --------------------------------------------------------------------------- #
 
 
@@ -530,7 +530,7 @@ def test_superseded_historical_name_suppressed() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Terrestrial realm deepening (#82)
+# Terrestrial realm deepening
 # --------------------------------------------------------------------------- #
 
 
@@ -591,7 +591,7 @@ def test_geometry_has_type_and_geojson() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# RegulatoryOverlay — legal / regulatory overlays (#103)
+# RegulatoryOverlay — legal / regulatory overlays
 # --------------------------------------------------------------------------- #
 
 
@@ -681,7 +681,7 @@ def test_contested_eez_coexistence() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Motion — Streaming (#96)
+# Motion — Streaming
 # --------------------------------------------------------------------------- #
 
 
@@ -717,7 +717,7 @@ def test_stream_and_trajectory_coexist() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Capacity / Occupancy / Utilization (#100)
+# Capacity / Occupancy / Utilization
 # --------------------------------------------------------------------------- #
 
 
@@ -782,7 +782,7 @@ def test_storage_capacity_in_bytes() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Virtual Location Type + Network Address Space (#84)
+# Virtual Location Type + Network Address Space
 # --------------------------------------------------------------------------- #
 
 
@@ -878,7 +878,7 @@ def test_contested_dns_names_coexist() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Biological sequence (#90)
+# Biological sequence
 # --------------------------------------------------------------------------- #
 
 
@@ -898,7 +898,7 @@ def test_biological_standpoint_coordinate_claims_coexist() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Geocoding frames (#91)
+# Geocoding frames
 # --------------------------------------------------------------------------- #
 
 
@@ -929,7 +929,7 @@ def test_geocode_shape_invalid_two_codes() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# SpatialMeasurement / CoordinateObservation (#125)
+# SpatialMeasurement / CoordinateObservation
 # --------------------------------------------------------------------------- #
 
 

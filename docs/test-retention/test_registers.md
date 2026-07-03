@@ -4,7 +4,7 @@
 
 ## What it tests
 
-The registers & personas facility (#355, EPIC #348), in the norms slice.
+The registers & personas facility, in the norms slice.
 
 Retained dynamic tests:
 

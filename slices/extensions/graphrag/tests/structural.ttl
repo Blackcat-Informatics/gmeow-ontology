@@ -76,7 +76,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The QualityValue idiom: gmeow:DistanceMetric and gmeow:IndexAlgorithm are vocabularies of individuals, never per-value subclasses — the slice MUST NOT declare any subclass of either. New metrics/algorithms extend the vocabulary as individuals. VALUES ranges over the two closed value-vocabulary classes the slice declares." .
 
-# --- Migrated from tests/test_ai_claims.py (#1120) --------------------------------
+# --- Migrated from tests/test_ai_claims.py --------------------------------
 
 # test_invocation_and_retrieval_are_activities (RetrievalEvent half; ModelInvocation half lives in ai)
 ex:saRetrievalEventIsActivity a gmeow:StructuralAssertion ;

@@ -1,9 +1,9 @@
 """Retained cross-slice and dynamic guards for the notation and symbolic
-systems building block (#172).
+systems building block.
 
 The asserted-TBox MUST / MUST-NOT invariants whose subjects are defined in
 slices/core/notation/module.ttl have been migrated to declarative slicetest
-cells in slices/core/notation/tests/structural.ttl (19 cells, issue #867).
+cells in slices/core/notation/tests/structural.ttl (19 cells).
 The cross-slice language/notion-boundary invariants (WritingSystem, Language,
 and FormalLanguage hierarchies) live in slices/core/language/tests/structural.ttl.
 

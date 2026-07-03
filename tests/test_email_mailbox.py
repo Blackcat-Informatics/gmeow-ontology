@@ -1,6 +1,6 @@
 """Structural guards for mailbox hierarchy and provider-derived state terms.
 
-Issue #132: JMAP mailbox hierarchy (parentMailbox, childMailbox),
+JMAP mailbox hierarchy (parentMailbox, childMailbox),
 sort order, path, and derived message counts.
 """
 

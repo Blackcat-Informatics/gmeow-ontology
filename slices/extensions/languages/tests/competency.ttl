@@ -76,7 +76,7 @@ ex:plNative a gmeow:ExpectedRow ;
 ex:plHeritage a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:levelHeritage ] .
 
-# ── LanguageState bitemporal query (#1120) ───────────────────────────────────
+# ── LanguageState bitemporal query ───────────────────────────────────
 ex:cqLanguageStateBitemporal a gmeow:CompetencyQuestion ;
     gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>

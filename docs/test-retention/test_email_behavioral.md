@@ -5,7 +5,7 @@
 ## What it tests
 
 Structural guards for email behavioral metadata: MessageKind, header facets,
-and disposition-notification request. Issue #137.
+and disposition-notification request.
 
 Retained dynamic tests:
 

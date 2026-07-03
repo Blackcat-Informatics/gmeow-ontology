@@ -1,4 +1,4 @@
-# Well-formed registers fixture (#355, EPIC #348). One agent, two co-equal
+# Well-formed registers fixture. One agent, two co-equal
 # personas (public / private) expressing the SAME tier-1 norm (the
 # same-norms invariant, queryable), each with an activation condition, a
 # register from the shared spine (one names-core seed, one persona-facing

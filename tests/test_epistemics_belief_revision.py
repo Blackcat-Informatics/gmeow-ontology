@@ -1,8 +1,8 @@
-"""Competency test for the doxastic belief-revision pattern (#560).
+"""Competency test for the doxastic belief-revision pattern.
 
 The ontology-constraint assertions from test_ontology_constraints_and_functionality
 have been migrated to declarative slicetest cells in
-slices/core/epistemics/tests/structural.ttl (#1120, Task 9). The remaining
+slices/core/epistemics/tests/structural.ttl. The remaining
 functions exercise fixture-data instances from
 slices/core/epistemics/tests/fixtures/coverage/epistemics-belief-revision.ttl
 and stay in pytest as competency-style instance checks.

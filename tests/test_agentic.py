@@ -1,19 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""The agentic extension (#390): tool-call provenance, gated.
+"""The agentic extension: tool-call provenance, gated.
 
 TBox structural assertions (ToolCall idiom, property ends/functionality, and
 the no-forward-output closed-set sweep) have been migrated to the declarative
-slicetest DSL in slices/extensions/agentic/tests/structural.ttl (#867).
+slicetest DSL in slices/extensions/agentic/tests/structural.ttl.
 
 The worked-example competency query
 (test_example_answers_which_tool_under_which_invocation) has been migrated to
-slices/extensions/agentic/tests/competency.ttl (#1120).
+slices/extensions/agentic/tests/competency.ttl.
 
 Retained here: all runtime/Memory/MCP integration tests that are not expressible
 as module-scoped SPARQL ASK cells or example-file competency questions.
 
-Migrated to crates/validate/tests/conformance_agentic.rs (#867):
+Migrated to crates/validate/tests/conformance_agentic.rs:
   - test_double_valued_toolcall_violates_the_closed_world_twins
 """
 

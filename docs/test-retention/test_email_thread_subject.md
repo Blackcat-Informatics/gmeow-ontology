@@ -4,7 +4,7 @@
 
 ## What it tests
 
-Structural guards for threadSubject and subjectPrefix. Issue #138.
+Structural guards for threadSubject and subjectPrefix.
 
 Retained dynamic tests:
 

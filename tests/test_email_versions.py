@@ -1,7 +1,7 @@
-"""Email versioning, variant, and patch-diff guards (issue #136).
+"""Email versioning, variant, and patch-diff guards.
 
 Email canonical/variant status is modeled via the cross-cutting VersionMembership
-relator from versions.ttl (#161), not as email-specific subclasses. This module
+relator from versions.ttl, not as email-specific subclasses. This module
 tests the email-specific identity keys, collision flags, fingerprints, and
 patch-diff artifact terms.
 """

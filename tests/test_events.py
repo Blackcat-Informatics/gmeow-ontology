@@ -12,7 +12,7 @@ The centrepiece here is the anti-subclass / anti-subproperty REGRESSION GUARD: i
 pins the refactor permanently, so the frozen taxonomy can never grow back. See
 slices/core/events/module.ttl.
 
-MIGRATED to declarative slicetest cells (#1120):
+MIGRATED to declarative slicetest cells:
   test_event_is_grounded_in_gufo_event -- the gmeow:Activity rdfs:subClassOf
     gmeow:Event assertion moves to slices/core/provenance/tests/structural.ttl
     because gmeow:Activity is defined there.
@@ -21,7 +21,7 @@ MIGRATED to declarative slicetest cells (#1120):
     to slices/core/events/tests/structural.ttl; Activity ⊑ Event stays in the
     provenance slice.
 
-MIGRATED to slices/core/events/tests/structural.ttl (#867):
+MIGRATED to slices/core/events/tests/structural.ttl:
   test_participation_is_a_gufo_relator
   test_event_type_and_role_are_value_object_properties
   test_former_role_subproperties_are_gone_and_are_values_now

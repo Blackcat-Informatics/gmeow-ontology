@@ -1,5 +1,5 @@
 """Structural guards for JMAP structural identifiers: blobId, bodyStructure,
-and BodyValue. Issue #140.
+and BodyValue.
 """
 
 from __future__ import annotations

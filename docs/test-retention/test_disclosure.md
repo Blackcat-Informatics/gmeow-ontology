@@ -4,7 +4,7 @@
 
 ## What it tests
 
-Tests for the consumer projection policy / disclosure control facility (#225).
+Tests for the consumer projection policy / disclosure control facility.
 
 Retained dynamic tests:
 

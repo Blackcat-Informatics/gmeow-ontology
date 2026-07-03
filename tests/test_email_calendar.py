@@ -1,6 +1,6 @@
 """Structural guards for the calendar invitation email→event bridge.
 
-Issue #139: Email messages with text/calendar attachments describe events.
+Email messages with text/calendar attachments describe events.
 """
 
 from __future__ import annotations

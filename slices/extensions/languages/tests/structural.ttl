@@ -534,7 +534,7 @@ ASK {
 
 # ---------------------------------------------------------------------------
 # GROUP 8: LanguageVariety hierarchy and non-functional classification roles
-# Migrated from tests/test_language_varieties.py (#1120, Task 9).
+# Migrated from tests/test_language_varieties.py.
 # ---------------------------------------------------------------------------
 
 # --- 35. LanguageVariety is a subclass of Language (MUST)
@@ -586,7 +586,7 @@ ASK { gmeow:varietyOf a owl:FunctionalProperty . }""" ;
 
 # ---------------------------------------------------------------------------
 # GROUP 9: LanguageState relator pattern — one functional role, three non-functional
-# Migrated from tests/test_language_varieties.py (#1120, Task 9).
+# Migrated from tests/test_language_varieties.py.
 # ---------------------------------------------------------------------------
 
 # --- 38. stateLanguage is a functional ObjectProperty (MUST)
@@ -625,7 +625,7 @@ ASK {
 
 # ---------------------------------------------------------------------------
 # GROUP 10: LanguageChangeEvent event pattern
-# Migrated from tests/test_language_varieties.py (#1120, Task 9).
+# Migrated from tests/test_language_varieties.py.
 # ---------------------------------------------------------------------------
 
 # --- 41. LanguageChangeEvent is an Activity subclass (MUST)

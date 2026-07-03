@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: MIT
-"""The teleology core slice (#350, EPIC #348).
+"""The teleology core slice.
 
 Retained tests (not migrated to slices/core/teleology/tests/structural.ttl):
 
@@ -8,24 +8,24 @@ Retained tests (not migrated to slices/core/teleology/tests/structural.ttl):
     all subjects filtered by IRI prefix; scoping to the teleology module would
     silently narrow the live-set intent.
 
-Migrated to slices/core/teleology/tests/structural.ttl (#867, #1120):
+Migrated to slices/core/teleology/tests/structural.ttl:
   - test_intrinsic_modes_are_grounded (module-local half)
       → saIntentionalModeIsCategory, saDesireIsKindIntentionalMode,
         saIntentionIsKindIntentionalMode
   - test_intentional_mode_reparented_under_mental_moment (cross-slice negative half)
       → saIntentionalModeNotDirectlyIntrinsicMode
 
-Migrated to slices/core/teleology/tests/competency.ttl (#1120):
+Migrated to slices/core/teleology/tests/competency.ttl:
   - test_competency_teleology_modes_query
       → cqTeleologyModes
 
-Migrated to crates/validate/tests/conformance_teleology.rs (#867):
+Migrated to crates/validate/tests/conformance_teleology.rs:
   test_wellformed_teleology_fixture_conforms → wellformed_teleology_fixture_conforms
   test_malformed_teleology_fixture_is_flagged → malformed_teleology_fixture_is_flagged
 
 All asserted-TBox structural invariants whose subjects are defined in
 slices/core/teleology/module.ttl have been migrated to
-slices/core/teleology/tests/structural.ttl (#867).
+slices/core/teleology/tests/structural.ttl.
 """
 
 from __future__ import annotations

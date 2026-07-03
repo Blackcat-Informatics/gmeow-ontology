@@ -4,7 +4,7 @@
 
 ## What it tests
 
-The teleology core slice (#350, EPIC #348).
+The teleology core slice.
 
 Retained dynamic tests:
 

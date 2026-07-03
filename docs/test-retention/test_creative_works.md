@@ -4,7 +4,7 @@
 
 ## What it tests
 
-WEMI creative-works spine (issue #208).
+WEMI creative-works spine.
 
 Retained dynamic tests:
 

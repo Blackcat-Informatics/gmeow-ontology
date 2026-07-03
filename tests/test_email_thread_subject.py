@@ -1,4 +1,4 @@
-"""Structural guards for threadSubject and subjectPrefix. Issue #138."""
+"""Structural guards for threadSubject and subjectPrefix."""
 
 from __future__ import annotations
 

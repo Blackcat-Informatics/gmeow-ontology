@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: MIT
-"""The registers & personas facility (#355, EPIC #348), in the norms slice.
+"""The registers & personas facility, in the norms slice.
 
 All structural invariants and the same-norms competency question have been
 migrated to the slice-resident declarative test-DSL:

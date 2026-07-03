@@ -5,7 +5,7 @@
 ## What it tests
 
 Retained cross-slice and dynamic guards for the notation and symbolic
-systems building block (#172).
+systems building block.
 
 Retained dynamic tests:
 

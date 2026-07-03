@@ -1,4 +1,4 @@
-"""Tests for the consumer projection policy / disclosure control facility (#225).
+"""Tests for the consumer projection policy / disclosure control facility.
 
 Covers the ontology structure (ProjectionContext and DisclosurePolicy as universal
 QualityValue types, eligibleForConsumer and hasDisclosurePolicy as domain-free

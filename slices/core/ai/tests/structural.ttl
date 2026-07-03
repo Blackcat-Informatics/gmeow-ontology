@@ -39,7 +39,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:contradictsClaim rdfs:range ?range . }""" ;
     gmeow:saRationale "gmeow:contradictsClaim MUST NOT have an rdfs:range; the claim node form is intentionally open across StandpointClaims, Observations, and statement reifiers." .
 
-# --- Migrated from tests/test_ai_claims.py (#1120) --------------------------------
+# --- Migrated from tests/test_ai_claims.py --------------------------------
 
 # test_extraction_methods_are_observation_methods
 ex:saExtractionMethodsAreObservationMethods a gmeow:StructuralAssertion ;

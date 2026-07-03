@@ -4,7 +4,7 @@
 
 ## What it tests
 
-The agentic extension (#390): tool-call provenance, gated.
+The agentic extension: tool-call provenance, gated.
 
 Retained dynamic tests:
 

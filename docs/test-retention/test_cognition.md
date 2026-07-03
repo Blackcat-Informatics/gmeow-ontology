@@ -4,14 +4,14 @@
 
 ## What it tests
 
-Retained guards for the cognition module (issues #556/#557/#558).
+Retained guards for the cognition module.
 
 Retained dynamic tests:
 
 - `test_mental_moment_has_exactly_one_gufo_metaclass` — Each new class carries exactly one ontological metaclass.
 - `test_cognition_sssom_rows_include_expected_alignments` — The cognition SSSOM ledger contains the expected cross-ontology rows.
-- `test_cognition_sssom_includes_corrected_wikidata_qids` — The issue-supplied QIDs were rejected and replaced with verified entities (#549).
-- `test_cognition_sssom_includes_opencyc_knows_about` — OpenCyc knowsAbout is present as a relatedMatch anchor (#549).
+- `test_cognition_sssom_includes_corrected_wikidata_qids` — The issue-supplied QIDs were rejected and replaced with verified entities.
+- `test_cognition_sssom_includes_opencyc_knows_about` — OpenCyc knowsAbout is present as a relatedMatch anchor.
 
 ## Why it cannot move to Rust today
 
