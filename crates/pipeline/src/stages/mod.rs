@@ -60,6 +60,7 @@ pub mod schemas;
 pub mod source_load;
 pub mod statements;
 pub mod superset;
+pub mod term_manifest;
 pub mod validate;
 pub mod yaml_ld;
 
@@ -85,6 +86,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register(
         "constraint_catalog",
         Arc::new(constraint_catalog::ConstraintCatalogStage::new()),
+    );
+    registry.register(
+        "term_manifest",
+        Arc::new(term_manifest::TermManifestStage::new()),
     );
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));

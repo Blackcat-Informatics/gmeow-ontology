@@ -25,6 +25,12 @@ const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+const GMEOW_DEFINITION_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/definitionDigest";
+const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/addedInVersion";
+const GMEOW_HAS_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/hasChangelogEntry";
+const GMEOW_ENTRY_VERSION: &str = "https://blackcatinformatics.ca/gmeow/entryVersion";
+const GMEOW_ENTRY_NOTE: &str = "https://blackcatinformatics.ca/gmeow/entryNote";
+const GMEOW_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/ChangelogEntry";
 
 /// Project the documentation model into the `gmeow:` RDF vocabulary as N-Quads,
 /// all in the `gmeow:graph/documentation` named graph.
@@ -34,6 +40,11 @@ const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 ///   with `gmeow:documents <term-iri>`, `gmeow:docCategory "Class|…"`,
 ///   `gmeow:docHasDefinition "true|false"^^xsd:boolean`, `gmeow:docUrl
 ///   "terms/{slug}/index.html"`, and `gmeow:docOwnerSlice <slice-iri>`.
+/// - each term's REAL IRI → its content-address provenance (from the term content
+///   manifest): `gmeow:definitionDigest "blake3:…"`, `gmeow:addedInVersion "…"`,
+///   and one `gmeow:hasChangelogEntry <changelog-iri>` per release — each entry a
+///   deterministically-minted `gmeow:documentation/changelog/{term}/{version}` `a
+///   gmeow:ChangelogEntry` with `gmeow:entryVersion` and optional `gmeow:entryNote`.
 /// - each slice → `gmeow:documentation/slice/{slug}` `a gmeow:DocumentedSlice`,
 ///   `gmeow:documents <slice-iri>`, `gmeow:docUrl "slices/{slug}/index.html"`.
 /// - each concern → `gmeow:documentation/concern/{slug}` `a
@@ -145,6 +156,47 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             ),
             &mut lines,
         );
+
+        // Per-term content-address provenance, projected on the REAL term IRI (not
+        // the documentation-entry subject): the content digest, first-seen version,
+        // and a reified changelog entry per release. Blank nodes are forbidden here
+        // (the graph round-trips through GTS as IRIs), so each changelog entry is a
+        // deterministically-minted IRI under the documentation namespace.
+        let real = format!("<{}>", term.iri);
+        if !term.content_digest.is_empty() {
+            triple(
+                &real,
+                GMEOW_DEFINITION_DIGEST,
+                &literal(&term.content_digest),
+                &mut lines,
+            );
+        }
+        if let Some(version) = &term.added_in_version {
+            triple(&real, GMEOW_ADDED_IN_VERSION, &literal(version), &mut lines);
+        }
+        for entry in &term.changelog {
+            let entry_iri = format!(
+                "<{GMEOW}documentation/changelog/{}/{}>",
+                term_slug(term),
+                set_slug(&entry.version)
+            );
+            triple(&real, GMEOW_HAS_CHANGELOG_ENTRY, &entry_iri, &mut lines);
+            triple(
+                &entry_iri,
+                RDF_TYPE,
+                &format!("<{GMEOW_CHANGELOG_ENTRY}>"),
+                &mut lines,
+            );
+            triple(
+                &entry_iri,
+                GMEOW_ENTRY_VERSION,
+                &literal(&entry.version),
+                &mut lines,
+            );
+            if let Some(note) = &entry.note {
+                triple(&entry_iri, GMEOW_ENTRY_NOTE, &literal(note), &mut lines);
+            }
+        }
     }
 
     // Slices (model.slices is IRI-sorted).

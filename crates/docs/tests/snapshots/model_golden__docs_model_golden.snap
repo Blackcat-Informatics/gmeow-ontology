@@ -1,19 +1,18 @@
 ---
 source: crates/docs/tests/model_golden.rs
-assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "6",
+  "version": "7",
   "slice_count": 75,
-  "term_count": 2276,
+  "term_count": 2277,
   "dependency_edge_count": 827,
   "term_count_by_category": {
     "Class": 686,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1586
+    "Property": 1587
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -193,8 +192,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:d6470c559d25036e50b4d84de570b8ba8dedd056a39e7e972c5cf5f92d744a2d",
       "profiles": [
         "claims",
         "dreaming",
@@ -242,8 +242,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:4f5b4ea54d5738f764aab4111804bd4ffb80874d178369db4b84a72c8495b12c",
       "profiles": [
         "claims",
         "dreaming",
@@ -279,8 +280,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:9377d5bb8e26abf8a92e498d619ffdf9307be63122874c3230d1853052a68c68",
       "profiles": [
         "claims",
         "dreaming",

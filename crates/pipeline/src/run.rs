@@ -155,6 +155,10 @@ pub fn full_spec() -> PipelineSpec {
             "constraint_catalog",
             &["stage-reason"],
         ),
+        // The generated term content manifest: one gmeow:definitionDigest per
+        // documented term (plus first-seen version + computed changelog entries),
+        // folded into the bundle by stage-snapshot.
+        st("stage-term-manifest", "term_manifest", &["stage-reason"]),
         st(
             "stage-snapshot",
             "snapshot",
@@ -182,6 +186,8 @@ pub fn full_spec() -> PipelineSpec {
                 // them off this product instead of re-loading + re-canonicalizing sources.
                 "stage-source-load",
                 "stage-statements",
+                // Fold the generated term content manifest into graph/fanout/catalog.
+                "stage-term-manifest",
                 "stage-validate",
             ],
         ),

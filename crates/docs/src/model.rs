@@ -122,6 +122,7 @@ const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/added
 const GMEOW_HAS_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/hasChangelogEntry";
 const GMEOW_ENTRY_VERSION: &str = "https://blackcatinformatics.ca/gmeow/entryVersion";
 const GMEOW_ENTRY_NOTE: &str = "https://blackcatinformatics.ca/gmeow/entryNote";
+const GMEOW_DEFINITION_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/definitionDigest";
 const STABILITY_STABLE_CURIE: &str = "gmeow:stabilityStable";
 const STABILITY_EXPERIMENTAL_CURIE: &str = "gmeow:stabilityExperimental";
 const STABILITY_DEPRECATED_CURIE: &str = "gmeow:stabilityDeprecated";
@@ -162,6 +163,13 @@ pub enum DocsError {
     /// silent empty — a dropped `MappingSet` would leave relocated linkage
     /// resolving its set IRI to the raw filename.
     MappingSets(String),
+    /// The committed term content manifest
+    /// (`generated/catalog/term-content-manifest.nq`) is missing, unreadable,
+    /// unparsable, carries a term with no `gmeow:definitionDigest`, or omits a
+    /// documented term (a coverage gap). A regenerated tree always carries a
+    /// complete, well-formed manifest, so any of these is a broken invariant, never
+    /// an optional input.
+    TermManifest(String),
 }
 
 impl std::fmt::Display for DocsError {
@@ -170,6 +178,7 @@ impl std::fmt::Display for DocsError {
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
+            DocsError::TermManifest(msg) => write!(f, "term content manifest error: {msg}"),
         }
     }
 }
@@ -408,8 +417,15 @@ pub struct DocTerm {
     /// lowest-sorted literal when multiply asserted); `None` until seeded (#1026).
     pub added_in_version: Option<String>,
     /// `gmeow:hasChangelogEntry` — reified per-release change records, sorted by
-    /// `(version, note)` (#1026). Empty when the term carries no changelog.
+    /// `(version, note)`. Unions the authored changelog with the computed changelog
+    /// read from the term content manifest. Empty when the term carries neither.
     pub changelog: Vec<DocChangelogEntry>,
+    /// `gmeow:definitionDigest` — the RDFC-1.0-canonical blake3 content-address of
+    /// the term's defining triples, read from the committed term content manifest
+    /// (`generated/catalog/term-content-manifest.nq`). Always populated on a
+    /// discovered model; empty on a bare `from_catalog` model until the manifest is
+    /// applied.
+    pub content_digest: String,
     /// The named profiles whose membership closure includes this term's owner
     /// slice, plus the always-present `full` aggregate (sorted/deduped, #1026).
     /// Computed in `from_catalog` from the slices' `sliceProfile` /
@@ -765,7 +781,7 @@ impl DocsModel {
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "6";
+    pub const VERSION: &'static str = "7";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1066,8 +1082,8 @@ impl DocsModel {
         let central_sets = read_central_mapping_sets(root)?;
         let mut model = Self::from_catalog(&catalog, &ownership, &central_sets);
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
-        // Concept DOI for the per-term citation block (#1026): the
-        // `dcterms:identifier` on the `gmeow:Work` subject of the self-description.
+        // Concept DOI for the per-term citation block: the `dcterms:identifier` on
+        // the `gmeow:Work` subject of the self-description.
         model.concept_doi = read_concept_doi(root);
         // Root-level SHACL shapes (`<root>/shapes/*.ttl`) — aggregate node shapes
         // not owned by any single slice — merged into the slice-level shapes and
@@ -1080,8 +1096,119 @@ impl DocsModel {
         // artifact is a broken invariant on a regenerated tree, not an optional
         // input — hard-fail rather than render an empty-state page.
         model.constraint_rules = read_constraint_catalog(root)?;
+        // The per-term content-address manifest, read from the committed N-Quads
+        // fanout artifact. It sets each documented term's content digest and
+        // first-seen version and unions the computed changelog into the authored
+        // one. A missing/unparsable manifest, or a documented term with no manifest
+        // entry (a coverage gap), is a broken invariant — hard-fail.
+        apply_term_manifest(&mut model, root)?;
         Ok(model)
     }
+}
+
+/// The prior-independent provenance a term carries in the committed manifest.
+struct TermProvenance {
+    /// `gmeow:definitionDigest` — the term's content-address (always present).
+    digest: String,
+    /// `gmeow:addedInVersion` — the release the term was first seen in.
+    added_in_version: Option<String>,
+    /// The computed changelog: one entry per release whose digest diverged.
+    changelog: Vec<DocChangelogEntry>,
+}
+
+/// Read the term content manifest from
+/// `<root>/generated/catalog/term-content-manifest.nq` — every term's
+/// `gmeow:definitionDigest`, `gmeow:addedInVersion`, and reified
+/// `gmeow:hasChangelogEntry` records, keyed by term IRI. The file is a committed
+/// fixed-point projection of `gmeow.gts` (N-Quads: every triple in the manifest
+/// fanout named graph), so the reader queries graph-agnostically.
+///
+/// This is a hard-fail read (mirrors [`read_constraint_catalog`]): a regenerated
+/// tree always carries this artifact, so a missing file, an unparsable one, or a
+/// term subject with no `gmeow:definitionDigest` is a broken invariant, never an
+/// optional input.
+fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, DocsError> {
+    let path = root.join("generated/catalog/term-content-manifest.nq");
+    let bytes = std::fs::read(&path)
+        .map_err(|e| DocsError::TermManifest(format!("cannot read {}: {e}", path.display())))?;
+    let store = Store::parse_nquads(&bytes)
+        .map_err(|e| DocsError::TermManifest(format!("cannot parse {}: {e}", path.display())))?;
+    let mut out: BTreeMap<String, TermProvenance> = BTreeMap::new();
+    for term in store.subjects_with_predicate_any(GMEOW_DEFINITION_DIGEST) {
+        // The digest is the identity; a term subject with none is malformed
+        // generated data, not a tolerable optional field.
+        let digest = store
+            .first_literal_any(&term, GMEOW_DEFINITION_DIGEST)
+            .ok_or_else(|| {
+                DocsError::TermManifest(format!(
+                    "term {term} in {} carries no gmeow:definitionDigest",
+                    path.display()
+                ))
+            })?;
+        let added_in_version = store.first_literal_any(&term, GMEOW_ADDED_IN_VERSION);
+        let mut changelog: Vec<DocChangelogEntry> = Vec::new();
+        for object in store.objects_any(&term, GMEOW_HAS_CHANGELOG_ENTRY) {
+            let entry_node = match object {
+                Object::Named(n) => Node::Named(n),
+                Object::Blank(b) => Node::Blank(b),
+                _ => continue,
+            };
+            let version = store.first_literal_of_any(&entry_node, GMEOW_ENTRY_VERSION);
+            let note = store.first_literal_of_any(&entry_node, GMEOW_ENTRY_NOTE);
+            if let Some(version) = version {
+                changelog.push(DocChangelogEntry { version, note });
+            }
+        }
+        changelog.sort();
+        changelog.dedup();
+        out.insert(
+            term,
+            TermProvenance {
+                digest,
+                added_in_version,
+                changelog,
+            },
+        );
+    }
+    Ok(out)
+}
+
+/// Apply the term content manifest to a discovered model: set each documented
+/// term's `content_digest` and (manifest-authoritative) `added_in_version`, and
+/// UNION the manifest's computed changelog with the authored one (keyed by version;
+/// the authored `entryNote` wins a collision; authored-only and manifest-only
+/// versions are both kept). A documented term with no manifest entry is a coverage
+/// gap — hard-fail.
+fn apply_term_manifest(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
+    let manifest = read_term_manifest(root)?;
+    for term in &mut model.terms {
+        let provenance = manifest.get(&term.iri).ok_or_else(|| {
+            DocsError::TermManifest(format!(
+                "documented term {} has no entry in the term content manifest",
+                term.iri
+            ))
+        })?;
+        term.content_digest = provenance.digest.clone();
+        term.added_in_version = provenance.added_in_version.clone();
+        // Union by version: seed with the manifest entries, then let the authored
+        // entries override (authored note wins) — authored-only and manifest-only
+        // versions both survive.
+        let mut by_version: BTreeMap<String, Option<String>> = BTreeMap::new();
+        for entry in &provenance.changelog {
+            by_version.insert(entry.version.clone(), entry.note.clone());
+        }
+        for entry in &term.changelog {
+            by_version.insert(entry.version.clone(), entry.note.clone());
+        }
+        let mut merged: Vec<DocChangelogEntry> = by_version
+            .into_iter()
+            .map(|(version, note)| DocChangelogEntry { version, note })
+            .collect();
+        merged.sort();
+        merged.dedup();
+        term.changelog = merged;
+    }
+    Ok(())
 }
 
 /// Read the constraint catalog from `<root>/generated/catalog/constraint-catalog.nq`
@@ -1329,6 +1456,9 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
             stability,
             added_in_version,
             changelog,
+            // The content-address is read from the committed term content manifest
+            // in `discover` (a disk-read leaf), not from the module graph.
+            content_digest: String::new(),
             // Profile membership needs the full slice set; computed in
             // `from_catalog`'s second pass.
             profiles: Vec::new(),
