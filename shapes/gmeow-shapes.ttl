@@ -4072,6 +4072,18 @@ gmeow:EmotionShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "An Emotion must carry at least one gmeow:emotionType (an IRI — the vocabulary is OPEN per Principle 9: blended emotions and rival traditions coexist)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:affectiveElicitor ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:affectiveElicitor must be an IRI — the event/state/act that triggered the emotion (open range)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:affectiveTarget ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:affectiveTarget must be an IRI — the emotion's intentional object (open range)." ;
     ] .
 
 gmeow:AppraisalShape
