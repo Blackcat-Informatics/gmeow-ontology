@@ -9,8 +9,9 @@
 //! value is constrained to a `DV_QUANTITY`, a `magnitude` interval with four
 //! boundary fields (`lower`, `upper`, `lower_included`, `upper_included`) plus
 //! a sibling `units` string. [`read_magnitude_interval`] walks the OPT DOM to
-//! find that interval for a given `node_id`, and [`read_opt_quantity_constraint`]
-//! packages it as an [`crate::opt_lift::OptConstraintIr`] — the XML-free value
+//! find that interval for a given `node_id`; [`read_all_opt_constraints`] is the
+//! SINGLE production reader — it walks the whole OPT and packages every recognized
+//! constraint node as an [`crate::opt_lift::OptConstraintIr`] — the XML-free value
 //! the `logic:` lift and the SHACL Core / ShEx projections consume. This crate does the XML
 //! parsing ONLY; the SHACL/ShEx surfaces are projected in `gmeow-logic-compile` from the
 //! canonical `logic:ValidationShape` (Principle 4 — the canon is the authoring ground; there
@@ -19,15 +20,23 @@
 //! OPT files reuse `lower_included`/`upper_included` field names inside many
 //! unrelated interval blocks (`occurrences`, `existence`, `precision`, and
 //! even a `DV_CODED_TEXT`-valued `ELEMENT` that happens to share an at-code
-//! with a `DV_QUANTITY`-valued one elsewhere in the template). The reader
+//! with a `DV_QUANTITY`-valued one elsewhere in the template). [`read_magnitude_interval`]
 //! therefore does not grab the first interval it finds; it descends a fixed
 //! structural path — `ELEMENT[node_id] → attributes[rm_attribute_name=value]
 //! → children[xsi:type=C_DV_QUANTITY] → list → magnitude` — and hard-fails if
-//! any step of that path is absent for the requested `node_id`.
+//! any step of that path is absent for the requested `node_id`. [`read_all_opt_constraints`]
+//! faces the same at-code reuse when naming shapes: it resolves each constraint's ENCLOSING
+//! at-code from the nearest ancestor `<node_id>`, so two unrelated `ELEMENT`s that happen to
+//! share an at-code (as above) still mint distinct, stable shape names.
 
 use std::fmt;
 
 use crate::opt_lift::{OptConstraintIr, OptConstraintKind, OptInterval};
+
+/// The XML local name of an OPT ordinal-value-set node kind.
+const C_DV_ORDINAL: &str = "C_DV_ORDINAL";
+/// The XML local name of an OPT datetime-validity-pattern node kind.
+const C_DATE_TIME: &str = "C_DATE_TIME";
 
 /// A parsed `C_DV_QUANTITY` magnitude interval, read verbatim from an OPT.
 #[derive(Debug, Clone, PartialEq)]
@@ -202,65 +211,56 @@ pub fn read_magnitude_interval(
     )))
 }
 
-/// Reads a `C_DV_QUANTITY` constraint for `node_id` and packages it as the pure,
-/// crate-agnostic [`OptConstraintIr`] the `logic:` lift consumes. Reuses the hard-fail
-/// fixed-path descent of [`read_magnitude_interval`]; `magnitude_path`/`units_path` are the
-/// domain predicates the lifted shape constrains.
-pub fn read_opt_quantity_constraint(
-    opt_xml: &str,
-    node_id: &str,
-    shape_iri: &str,
-    target_class: &str,
-    magnitude_path: &str,
-    units_path: &str,
-) -> Result<OptConstraintIr, OptError> {
-    let m = read_magnitude_interval(opt_xml, node_id)?;
-    Ok(OptConstraintIr {
-        shape_iri: shape_iri.to_owned(),
-        target_class: target_class.to_owned(),
-        kind: OptConstraintKind::Quantity {
-            magnitude_path: magnitude_path.to_owned(),
-            interval: OptInterval {
-                lower: Some(m.lower),
-                upper: Some(m.upper),
-                lower_included: m.lower_included,
-                upper_included: m.upper_included,
-            },
-            units_path: units_path.to_owned(),
-            units: m.units,
-        },
-    })
-}
-
 /// Walks an OPT document and extracts EVERY constraint it recognizes — `C_DV_QUANTITY`
 /// magnitude intervals, `C_STRING` regex patterns, `C_CODE_PHRASE` coded value sets,
 /// `C_COMPLEX_OBJECT` `<occurrences>` cardinality, and `<term_bindings>` external terminology
-/// references — as pure [`OptConstraintIr`] values in document order. Shape/class IRIs are minted
-/// deterministically from `base_iri` + a document-order index, so the same OPT always yields
-/// the same shapes. Hard-fails on a recognized-but-malformed constraint node (no silent skip)
-/// and on an OPT with no recognized constraint at all.
+/// references — as pure [`OptConstraintIr`] values in document order.
 ///
-/// This is the general native-parser surface: `read_opt_quantity_constraint` targets one
-/// at-coded quantity ELEMENT (what the production pipeline lifts, the meaningful data-value
-/// constraints); this walker proves the reader handles the other ADL2 constraint node kinds
-/// present in a real OPT.
+/// Shape/class IRIs are minted from the constraint's ENCLOSING at-code (the nearest ancestor
+/// element — possibly the node itself — carrying a non-empty `<node_id>`), never from a
+/// document-order index: the same OPT always yields the same shapes, and a shape's identity
+/// survives unrelated edits elsewhere in the template. `naming` maps an at-code (e.g. `at0004`)
+/// to a meaningful local name (e.g. `Systolic`); an at-code absent from `naming` falls back to
+/// the raw at-code itself. The bare mapped name is reserved for the `Quantity` family (the
+/// production data-value constraints `naming` exists to name); any other family whose enclosing
+/// at-code collides with a `naming` entry is qualified with its family tag, and any further
+/// collision (the same candidate name minted twice — e.g. two `C_COMPLEX_OBJECT` cardinality
+/// nodes sharing an at-code) is disambiguated with a stable, content-derived counter suffix. A
+/// constraint with no enclosing at-code at all (e.g. a root-level `<term_bindings>`) is named
+/// from the OPT's own archetype/template id instead.
+///
+/// Hard-fails on a recognized-but-malformed constraint node (no silent skip) and on an OPT with
+/// no recognized constraint at all.
+///
+/// This is the SINGLE production OPT reader: the constraints axis lifts every
+/// [`OptConstraintIr`] this walker yields, not just the curated blood-pressure quantity pair.
 pub fn read_all_opt_constraints(
     opt_xml: &str,
     base_iri: &str,
+    naming: &std::collections::BTreeMap<String, String>,
 ) -> Result<Vec<OptConstraintIr>, OptError> {
     let doc = roxmltree::Document::parse(opt_xml)
         .map_err(|e| opt_err(format!("XML parse failure: {e}")))?;
+    let archetype_tag = archetype_or_template_tag(&doc);
+    let mut used_locals: std::collections::BTreeMap<String, u32> =
+        std::collections::BTreeMap::new();
     let mut out = Vec::new();
+    // `idx` is an internal loop counter for error-message context ONLY — it must never be
+    // minted into a shape/target/path IRI (that was the positional-naming bug this walker
+    // replaces).
     let mut idx = 0usize;
     for node in doc.descendants().filter(|n| n.is_element()) {
+        let at_code = enclosing_at_code(node);
+        let label = at_code.as_deref().unwrap_or(&archetype_tag);
         let kind = match xsi_type(node) {
             Some("C_DV_QUANTITY") => {
-                let (interval, units) = magnitude_from_quantity(node, idx)?;
+                let (interval, units, precision) = magnitude_from_quantity(node, label)?;
                 Some(OptConstraintKind::Quantity {
                     magnitude_path: format!("{base_iri}magnitude"),
                     interval,
                     units_path: format!("{base_iri}units"),
                     units,
+                    precision: precision.map(|iv| (format!("{base_iri}precision"), iv)),
                 })
             }
             Some("C_STRING") => {
@@ -273,55 +273,209 @@ pub fn read_all_opt_constraints(
                     })
             }
             Some("C_CODE_PHRASE") => code_phrase_value_set(node, base_iri)?,
+            Some(C_DV_ORDINAL) => ordinal_value_set(node, base_iri)?,
+            Some(C_DATE_TIME) => datetime_pattern(node, base_iri)?,
             // A complex-object node carries its multiplicity as a direct `<occurrences>`
             // interval — the OPT's cardinality/occurrences constraint node kind.
-            Some("C_COMPLEX_OBJECT") => cardinality_from_occurrences(node, base_iri, idx)?,
+            Some("C_COMPLEX_OBJECT") => cardinality_from_occurrences(node, base_iri, label)?,
+            // A single-/multiple-attribute node carries its multiplicity as a direct `<existence>`
+            // interval — structurally identical to `<occurrences>`, minted on a distinct path.
+            Some("C_SINGLE_ATTRIBUTE") | Some("C_MULTIPLE_ATTRIBUTE") => {
+                cardinality_from_existence(node, base_iri, label)?
+            }
             // `<term_bindings>` is not an `xsi:type`-tagged node; match it by tag name.
             _ if node.tag_name().name() == "term_bindings" => {
-                terminology_from_bindings(node, base_iri)
+                terminology_from_bindings(node, base_iri)?
             }
             _ => None,
         };
         if let Some(kind) = kind {
+            let family = family_tag(&kind);
+            let is_priority_family = matches!(kind, OptConstraintKind::Quantity { .. });
+            // Non-pinned names are scoped by the OPT's own archetype/template tag so that at-codes
+            // reused across different OPTs (every template restarts at at0000) never collide in the
+            // FLAT keyspace a downstream projection derives (e.g. the JSON Schema / OpenAPI `$defs`
+            // key, which is the target-class local name alone). Only a pinned priority name
+            // (systolic/diastolic, from the naming map) bypasses the scope, keeping its
+            // established hand-wired identity.
+            let candidate = match &at_code {
+                Some(code) => match naming.get(code) {
+                    Some(name) if is_priority_family => name.clone(),
+                    Some(name) => format!("{archetype_tag}-{name}-{family}"),
+                    None => format!("{archetype_tag}-{code}"),
+                },
+                None => format!("{archetype_tag}-{family}"),
+            };
+            let local = dedupe_local(candidate, &mut used_locals);
             out.push(OptConstraintIr {
-                shape_iri: format!("{base_iri}shape-{idx}"),
-                target_class: format!("{base_iri}Constraint-{idx}"),
+                shape_iri: format!("{base_iri}{local}Shape"),
+                target_class: format!("{base_iri}{local}"),
                 kind,
             });
             idx += 1;
         }
     }
+    let _ = idx;
     if out.is_empty() {
         return Err(opt_err(
-            "no C_DV_QUANTITY / C_STRING / C_CODE_PHRASE / occurrences / term_binding constraint \
-             found in OPT",
+            "no C_DV_QUANTITY / C_STRING / C_CODE_PHRASE / occurrences / term_binding / \
+             C_DV_ORDINAL / C_DATE_TIME constraint found in OPT",
         ));
     }
     Ok(out)
 }
 
-/// Extract the magnitude interval + units from a `C_DV_QUANTITY` node's `<list><magnitude>`.
+/// The at-code (`<node_id>` text) of the nearest ancestor of `node` — possibly `node` itself —
+/// that carries a non-empty `<node_id>` child. Returns `None` when no ancestor up to the
+/// document root carries one (a genuinely at-code-free constraint, e.g. a root `term_bindings`).
+fn enclosing_at_code(node: roxmltree::Node) -> Option<String> {
+    node.ancestors().find_map(|n| {
+        child_element(n, "node_id")
+            .and_then(|nid| nid.text())
+            .map(str::trim)
+            .filter(|t| !t.is_empty())
+            .map(str::to_owned)
+    })
+}
+
+/// A stable tag for an OPT document: the root `<template_id>/<value>`, falling back to the
+/// `<definition>`'s `<archetype_id>/<value>`, falling back to a fixed `"root"` tag. Used to
+/// name at-code-free constraints (e.g. a root-level `<term_bindings>`).
+fn archetype_or_template_tag(doc: &roxmltree::Document) -> String {
+    let root = doc.root_element();
+    if let Some(v) = child_element(root, "template_id")
+        .and_then(|t| child_element(t, "value"))
+        .and_then(|v| v.text())
+    {
+        return v.trim().to_owned();
+    }
+    if let Some(def) = child_element(root, "definition") {
+        if let Some(v) = child_element(def, "archetype_id")
+            .and_then(|a| child_element(a, "value"))
+            .and_then(|v| v.text())
+        {
+            return v.trim().to_owned();
+        }
+    }
+    "root".to_owned()
+}
+
+/// A short, stable family tag for a constraint kind — used to qualify a local name that would
+/// otherwise collide with another family sharing the same at-code, and to name at-code-free
+/// constraints from the archetype tag.
+fn family_tag(kind: &OptConstraintKind) -> &'static str {
+    match kind {
+        OptConstraintKind::Quantity { .. } => "quantity",
+        OptConstraintKind::Cardinality { .. } => "cardinality",
+        OptConstraintKind::ValueSet { .. } => "valueSet",
+        OptConstraintKind::DateTime { .. } => "dateTime",
+        OptConstraintKind::StringPattern { .. } => "stringPattern",
+        OptConstraintKind::TerminologyBinding { .. } => "termBinding",
+        OptConstraintKind::Ordinal { .. } => "ordinal",
+        OptConstraintKind::DateTimePattern { .. } => "dateTimePattern",
+    }
+}
+
+/// Disambiguates `candidate` against every local name minted so far in this walk, appending a
+/// deterministic `-2`, `-3`, … counter suffix on a repeat (content-derived, NOT a document-order
+/// index — the same candidate always grows the same suffix sequence).
+fn dedupe_local(candidate: String, used: &mut std::collections::BTreeMap<String, u32>) -> String {
+    match used.get_mut(&candidate) {
+        None => {
+            used.insert(candidate.clone(), 2);
+            candidate
+        }
+        Some(next) => {
+            let disambiguated = format!("{candidate}-{next}");
+            *next += 1;
+            disambiguated
+        }
+    }
+}
+
+/// Extract the magnitude interval, units, and optional precision interval from a `C_DV_QUANTITY`
+/// node's `<list>`. An unbounded end (`lower_unbounded`/`upper_unbounded` = `true`, or the bound
+/// element simply absent) is an open interval end (`None`); a bound that is PRESENT but not a valid
+/// number is a hard failure, as is a `<list>`/`<magnitude>`/`<units>` structure that is missing
+/// outright. The sibling `<precision>` interval (a `DV_QUANTITY.precision` decimal-place count,
+/// same interval structure as `<magnitude>`) is OPTIONAL — `Ok(None)` when the `<list>` omits it.
 fn magnitude_from_quantity(
     node: roxmltree::Node,
-    idx: usize,
-) -> Result<(OptInterval, String), OptError> {
+    label: &str,
+) -> Result<(OptInterval, String, Option<OptInterval>), OptError> {
     let list = child_element(node, "list")
-        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: no <list>")))?;
-    let magnitude = child_element(list, "magnitude")
-        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: <list> has no <magnitude>")))?;
+        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY {label:?}: no <list>")))?;
+    let magnitude = child_element(list, "magnitude").ok_or_else(|| {
+        opt_err(format!(
+            "C_DV_QUANTITY {label:?}: <list> has no <magnitude>"
+        ))
+    })?;
     let units = child_element(list, "units")
         .and_then(|u| u.text())
-        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY #{idx}: no <units>")))?
+        .ok_or_else(|| opt_err(format!("C_DV_QUANTITY {label:?}: no <units>")))?
         .to_owned();
+    let precision = match child_element(list, "precision") {
+        None => None,
+        Some(precision) => Some(OptInterval {
+            lower: optional_bound(precision, "lower", "lower_unbounded")?,
+            upper: optional_bound(precision, "upper", "upper_unbounded")?,
+            lower_included: element_text_bool(precision, "lower_included")?,
+            upper_included: element_text_bool(precision, "upper_included")?,
+        }),
+    };
     Ok((
         OptInterval {
-            lower: Some(element_text_f64(magnitude, "lower")?),
-            upper: Some(element_text_f64(magnitude, "upper")?),
+            lower: optional_bound(magnitude, "lower", "lower_unbounded")?,
+            upper: optional_bound(magnitude, "upper", "upper_unbounded")?,
             lower_included: element_text_bool(magnitude, "lower_included")?,
             upper_included: element_text_bool(magnitude, "upper_included")?,
         },
         units,
+        precision,
     ))
+}
+
+/// Reads one open-or-closed magnitude bound. An explicit `<{unbounded_name}>true</>` (mirroring
+/// [`cardinality_from_occurrences`]'s `*_unbounded` handling) or a genuinely absent unbounded flag
+/// with no bound element both mean "open" (`None`). A bound element that IS present must parse as a
+/// number. When the unbounded flag is explicitly `false` the end IS bounded, so a missing bound
+/// element is a malformed OPT and hard-fails — never silently widened to open (which would accept
+/// magnitudes the constraint rejects).
+fn optional_bound(
+    node: roxmltree::Node,
+    name: &str,
+    unbounded_name: &str,
+) -> Result<Option<f64>, OptError> {
+    let mut explicitly_bounded = false;
+    if let Some(u) = child_element(node, unbounded_name) {
+        let text = u
+            .text()
+            .ok_or_else(|| opt_err(format!("<{unbounded_name}> has no text content")))?;
+        match text.trim() {
+            "true" => return Ok(None),
+            "false" => explicitly_bounded = true,
+            other => {
+                return Err(opt_err(format!(
+                    "<{unbounded_name}> value {other:?} is not a boolean"
+                )))
+            }
+        }
+    }
+    match child_element(node, name) {
+        None if explicitly_bounded => Err(opt_err(format!(
+            "interval end is bounded (<{unbounded_name}> is false) but <{name}> is missing"
+        ))),
+        None => Ok(None),
+        Some(child) => {
+            let text = child
+                .text()
+                .ok_or_else(|| opt_err(format!("<{name}> has no text content")))?;
+            text.trim()
+                .parse::<f64>()
+                .map(Some)
+                .map_err(|e| opt_err(format!("<{name}> value {text:?} is not a number: {e}")))
+        }
+    }
 }
 
 /// Extract a coded value set (`<code_list>` codes qualified by `<terminology_id><value>`)
@@ -360,6 +514,65 @@ fn code_phrase_value_set(
     }))
 }
 
+/// Extract an ordinal value set from a `C_DV_ORDINAL` node's `<list>` entries: each `<list>` is
+/// an `<value>` ordinal integer plus a `<symbol>/<defining_code>` coded term. Returns
+/// `Ok(None)` when the node has no `<list>`; hard-fails on a `<list>` missing its integer value
+/// or its terminology-qualified code (a malformed OPT — never mint a bogus code).
+fn ordinal_value_set(
+    node: roxmltree::Node,
+    base_iri: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let mut ordinals: Vec<(i64, String)> = Vec::new();
+    for list in node
+        .children()
+        .filter(|c| c.is_element() && c.tag_name().name() == "list")
+    {
+        let value: i64 = child_element(list, "value")
+            .and_then(|v| v.text())
+            .map(str::trim)
+            .ok_or_else(|| opt_err("C_DV_ORDINAL <list> has no <value>"))?
+            .parse()
+            .map_err(|e| opt_err(format!("C_DV_ORDINAL <value> is not an integer: {e}")))?;
+        let defining_code = child_element(list, "symbol")
+            .and_then(|s| child_element(s, "defining_code"))
+            .ok_or_else(|| opt_err("C_DV_ORDINAL <list> symbol has no <defining_code>"))?;
+        let terminology = child_element(defining_code, "terminology_id")
+            .and_then(|t| child_element(t, "value"))
+            .and_then(|v| v.text())
+            .map(str::trim)
+            .ok_or_else(|| opt_err("C_DV_ORDINAL defining_code has no terminology_id/value"))?;
+        let code = child_element(defining_code, "code_string")
+            .and_then(|c| c.text())
+            .map(str::trim)
+            .ok_or_else(|| opt_err("C_DV_ORDINAL defining_code has no code_string"))?;
+        ordinals.push((value, format!("{base_iri}terminology/{terminology}/{code}")));
+    }
+    if ordinals.is_empty() {
+        return Ok(None);
+    }
+    ordinals.sort();
+    Ok(Some(OptConstraintKind::Ordinal {
+        path: format!("{base_iri}value"),
+        ordinals,
+    }))
+}
+
+/// Extract a datetime validity pattern from a `C_DATE_TIME` node's `<pattern>` child. Returns
+/// `Ok(None)` when the node carries no `<pattern>` (an unconstrained datetime has nothing to
+/// lift).
+fn datetime_pattern(
+    node: roxmltree::Node,
+    base_iri: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let Some(pattern) = child_element(node, "pattern").and_then(|p| p.text()) else {
+        return Ok(None);
+    };
+    Ok(Some(OptConstraintKind::DateTimePattern {
+        path: format!("{base_iri}value"),
+        pattern: pattern.trim().to_owned(),
+    }))
+}
+
 /// Extract a cardinality constraint from a complex-object node's direct `<occurrences>`
 /// multiplicity interval — the OPT's `occurrences`/`existence` constraint node kind. Returns
 /// `None` when the node has no `<occurrences>` child. An unbounded end (`*_unbounded = true`)
@@ -367,7 +580,7 @@ fn code_phrase_value_set(
 fn cardinality_from_occurrences(
     node: roxmltree::Node,
     base_iri: &str,
-    idx: usize,
+    label: &str,
 ) -> Result<Option<OptConstraintKind>, OptError> {
     let Some(occ) = child_element(node, "occurrences") else {
         return Ok(None);
@@ -383,7 +596,39 @@ fn cardinality_from_occurrences(
         Some(element_text_u32(occ, "upper")?)
     };
     Ok(Some(OptConstraintKind::Cardinality {
-        path: format!("{base_iri}occurrences/{idx}"),
+        path: format!("{base_iri}occurrences/{label}"),
+        min,
+        max,
+    }))
+}
+
+/// Extract a cardinality constraint from an attribute node's direct `<existence>` multiplicity
+/// interval — the OPT's `existence` constraint node kind, structurally identical to
+/// `<occurrences>` (a `{lower,upper,*_included,*_unbounded}` interval). Returns `None` when the
+/// node has no `<existence>` child. An unbounded end (`*_unbounded = true`) maps to an open count
+/// (`None`); a bounded end reads its non-negative-integer value. The path is minted under
+/// `existence/{label}` (distinct from occurrences' `occurrences/{label}`) so the two families'
+/// shapes never collide on a shared enclosing at-code.
+fn cardinality_from_existence(
+    node: roxmltree::Node,
+    base_iri: &str,
+    label: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
+    let Some(existence) = child_element(node, "existence") else {
+        return Ok(None);
+    };
+    let min = if element_text_bool(existence, "lower_unbounded")? {
+        None
+    } else {
+        Some(element_text_u32(existence, "lower")?)
+    };
+    let max = if element_text_bool(existence, "upper_unbounded")? {
+        None
+    } else {
+        Some(element_text_u32(existence, "upper")?)
+    };
+    Ok(Some(OptConstraintKind::Cardinality {
+        path: format!("{base_iri}existence/{label}"),
         min,
         max,
     }))
@@ -392,15 +637,13 @@ fn cardinality_from_occurrences(
 /// Extract an external terminology binding from a `<term_bindings terminology="…">` block: the
 /// `terminology` attribute is the id, each `<items>/<value>/<code_string>` is a bound code. The
 /// codes are sorted (a binding set is order-free) so the lifted shape recovers to the identical
-/// IR. Returns `None` when the block binds no code.
-fn terminology_from_bindings(node: roxmltree::Node, base_iri: &str) -> Option<OptConstraintKind> {
-    let terminology_id = node
-        .attributes()
-        .find(|a| a.name() == "terminology")
-        .map(|a| a.value())
-        .unwrap_or("unknown")
-        .trim()
-        .to_owned();
+/// IR. Returns `Ok(None)` when the block binds no code; hard-fails when a block DOES bind codes but
+/// carries no (or an empty) `terminology` id — a malformed OPT, never mint a bogus `unknown`
+/// terminology (mirroring [`code_phrase_value_set`]).
+fn terminology_from_bindings(
+    node: roxmltree::Node,
+    base_iri: &str,
+) -> Result<Option<OptConstraintKind>, OptError> {
     let mut codes: Vec<String> = node
         .descendants()
         .filter(|d| d.is_element() && d.tag_name().name() == "code_string")
@@ -408,14 +651,22 @@ fn terminology_from_bindings(node: roxmltree::Node, base_iri: &str) -> Option<Op
         .map(|s| s.trim().to_owned())
         .collect();
     if codes.is_empty() {
-        return None;
+        return Ok(None);
     }
+    let terminology_id = node
+        .attributes()
+        .find(|a| a.name() == "terminology")
+        .map(|a| a.value().trim().to_owned())
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| {
+            opt_err("<term_bindings> with bound codes is missing its `terminology` id")
+        })?;
     codes.sort();
-    Some(OptConstraintKind::TerminologyBinding {
+    Ok(Some(OptConstraintKind::TerminologyBinding {
         path: format!("{base_iri}termBinding"),
         terminology_id,
         codes,
-    })
+    }))
 }
 #[cfg(test)]
 mod tests {
@@ -434,8 +685,68 @@ mod tests {
         let xml = "<c xsi:type=\"C_CODE_PHRASE\" \
                    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\
                    <code_list>at0004</code_list></c>";
-        let err = read_all_opt_constraints(xml, "https://ex/").unwrap_err();
+        let naming = std::collections::BTreeMap::new();
+        let err = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap_err();
         assert!(err.to_string().contains("terminology_id"), "got: {err}");
+    }
+
+    #[test]
+    fn existence_on_a_single_attribute_yields_cardinality() {
+        // A `<existence>` interval on a C_SINGLE_ATTRIBUTE node is read exactly like an
+        // `<occurrences>` interval — a Cardinality on a distinct `existence/` path.
+        let xml = "<c xsi:type=\"C_SINGLE_ATTRIBUTE\" \
+                   xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\
+                   <existence>\
+                   <lower_included>true</lower_included>\
+                   <upper_included>true</upper_included>\
+                   <lower_unbounded>false</lower_unbounded>\
+                   <upper_unbounded>false</upper_unbounded>\
+                   <lower>1</lower><upper>1</upper>\
+                   </existence></c>";
+        let naming = std::collections::BTreeMap::new();
+        let all = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap();
+        let card = all
+            .iter()
+            .find_map(|c| match &c.kind {
+                OptConstraintKind::Cardinality { path, min, max }
+                    if path.contains("existence/") =>
+                {
+                    Some((*min, *max))
+                }
+                _ => None,
+            })
+            .expect("an existence cardinality on an existence/ path");
+        assert_eq!(card, (Some(1), Some(1)));
+    }
+
+    #[test]
+    fn bounded_interval_with_missing_bound_element_hard_fails() {
+        // <lower_unbounded>false</lower_unbounded> asserts the lower end IS bounded; a missing
+        // <lower> must hard-fail, never be silently widened to open (which would accept magnitudes
+        // the constraint rejects).
+        let xml = "<c xsi:type=\"C_DV_QUANTITY\" \
+                   xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\
+                   <list><magnitude>\
+                   <lower_included>true</lower_included>\
+                   <upper_included>true</upper_included>\
+                   <lower_unbounded>false</lower_unbounded>\
+                   <upper_unbounded>true</upper_unbounded>\
+                   </magnitude><units>mmHg</units></list></c>";
+        let naming = std::collections::BTreeMap::new();
+        let err = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap_err();
+        assert!(err.to_string().contains("<lower> is missing"), "got: {err}");
+    }
+
+    #[test]
+    fn term_bindings_with_codes_but_no_terminology_hard_fails() {
+        // A <term_bindings> that binds codes but carries no `terminology` id is malformed —
+        // hard-fail rather than mint a bogus `unknown` terminology.
+        let xml = "<term_bindings>\
+                   <items><value><code_string>at0004</code_string></value></items>\
+                   </term_bindings>";
+        let naming = std::collections::BTreeMap::new();
+        let err = read_all_opt_constraints(xml, "https://ex/", &naming).unwrap_err();
+        assert!(err.to_string().contains("terminology"), "got: {err}");
     }
 }
 
@@ -453,9 +764,29 @@ mod walker_tests {
 
     const BASE: &str = "https://gmeow.example/openehr/bp/";
 
+    fn test_all_datatypes() -> String {
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push("../../validations/openehr-test-datatypes/TestAllDatatypes.opt");
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    }
+
+    const ALL_TYPES_BASE: &str = "https://gmeow.example/openehr/alltypes/";
+
+    /// The naming map the production pipeline uses for the vendored Blutdruck OPT: the
+    /// systolic/diastolic at-codes get meaningful local names, every other recognized at-code
+    /// falls back to its raw form.
+    fn bp_naming() -> std::collections::BTreeMap<String, String> {
+        std::collections::BTreeMap::from([
+            ("at0004".to_string(), "Systolic".to_string()),
+            ("at0005".to_string(), "Diastolic".to_string()),
+        ])
+    }
+
     #[test]
     fn walker_extracts_every_constraint_family_present_in_the_real_opt() {
-        let all = read_all_opt_constraints(&blutdruck(), BASE).expect("walk Blutdruck.opt");
+        let naming = std::collections::BTreeMap::new();
+        let all =
+            read_all_opt_constraints(&blutdruck(), BASE, &naming).expect("walk Blutdruck.opt");
         // The vendored OPT carries C_DV_QUANTITY magnitudes, C_STRING patterns, a C_CODE_PHRASE
         // code list, C_COMPLEX_OBJECT <occurrences> cardinality, and a <term_bindings> block —
         // the walker must surface every one of those families.
@@ -486,7 +817,8 @@ mod walker_tests {
     #[test]
     fn every_walked_constraint_round_trips_u_after_d_is_identity() {
         // The section/retraction law holds on EVERY constraint the walker reads from real XML.
-        let all = read_all_opt_constraints(&blutdruck(), BASE).expect("walk");
+        let naming = bp_naming();
+        let all = read_all_opt_constraints(&blutdruck(), BASE, &naming).expect("walk");
         assert!(
             all.len() >= 3,
             "expected several constraints, got {}",
@@ -501,10 +833,70 @@ mod walker_tests {
 
     #[test]
     fn walker_is_deterministic_and_hard_fails_on_a_constraint_free_document() {
-        let a = read_all_opt_constraints(&blutdruck(), BASE).unwrap();
-        let b = read_all_opt_constraints(&blutdruck(), BASE).unwrap();
+        let naming = bp_naming();
+        let a = read_all_opt_constraints(&blutdruck(), BASE, &naming).unwrap();
+        let b = read_all_opt_constraints(&blutdruck(), BASE, &naming).unwrap();
         assert_eq!(a, b, "the walker must be deterministic in document order");
-        let err = read_all_opt_constraints("<template></template>", BASE).unwrap_err();
+        let empty_naming = std::collections::BTreeMap::new();
+        let err =
+            read_all_opt_constraints("<template></template>", BASE, &empty_naming).unwrap_err();
         assert!(err.to_string().contains("no C_DV_QUANTITY"), "got: {err}");
+    }
+
+    #[test]
+    fn walker_extracts_ordinal_and_datetime_from_the_real_all_types_opt() {
+        let naming = std::collections::BTreeMap::new();
+        let all = read_all_opt_constraints(&test_all_datatypes(), ALL_TYPES_BASE, &naming)
+            .expect("walk TestAllDatatypes.opt");
+        let has = |pred: fn(&OptConstraintKind) -> bool| all.iter().any(|c| pred(&c.kind));
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::Ordinal { .. })),
+            "no ordinal value set extracted from {} constraints",
+            all.len()
+        );
+        assert!(
+            has(|k| matches!(k, OptConstraintKind::DateTimePattern { .. })),
+            "no datetime pattern extracted"
+        );
+    }
+
+    #[test]
+    fn every_all_types_constraint_round_trips_u_after_d_is_identity() {
+        let naming = std::collections::BTreeMap::new();
+        let all = read_all_opt_constraints(&test_all_datatypes(), ALL_TYPES_BASE, &naming)
+            .expect("walk TestAllDatatypes.opt");
+        assert!(
+            all.len() >= 2,
+            "expected several constraints, got {}",
+            all.len()
+        );
+        for c in &all {
+            let shape = lift_opt_to_validation_shape(c).expect("lift");
+            let recovered = recover_opt_from_shape(&shape).expect("recover");
+            assert_eq!(&recovered, c, "u∘d must be the identity on {c:?}");
+        }
+    }
+
+    #[test]
+    fn walker_mints_meaningful_stable_names_from_the_naming_map_not_positional_ones() {
+        // Proves the walker mints the SAME shape/target identity the curated production reader
+        // used to hand-wire, purely from the enclosing at-code + naming map — never a
+        // `Constraint-{idx}` positional name.
+        let naming = bp_naming();
+        let all = read_all_opt_constraints(&blutdruck(), BASE, &naming).expect("walk");
+        let systolic = all
+            .iter()
+            .find(|c| {
+                matches!(&c.kind, OptConstraintKind::Quantity { units, .. } if units == "mm[Hg]")
+                    && c.target_class == format!("{BASE}Systolic")
+            })
+            .expect("a Systolic quantity shape");
+        assert_eq!(systolic.target_class, format!("{BASE}Systolic"));
+        assert_eq!(systolic.shape_iri, format!("{BASE}SystolicShape"));
+        assert!(
+            !all.iter()
+                .any(|c| c.shape_iri.contains("shape-") || c.target_class.contains("Constraint-")),
+            "no minted IRI may be positional: {all:?}"
+        );
     }
 }
