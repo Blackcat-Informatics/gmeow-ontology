@@ -161,6 +161,75 @@ fn slice_fix_deps_runs() {
 }
 
 #[test]
+fn slice_fix_deps_dry_run_writes_nothing() {
+    // The reviewable-diff contract: a dry run (no `--apply`) is READ-ONLY — it
+    // renders the proposed manifest patches but must not touch a single file. We
+    // point `--slices-dir` at a copy of the committed tree, fingerprint every file
+    // before and after, and assert nothing was created, deleted, or modified.
+    let copy = tempdir().join("slices");
+    copy_tree(&repo_root().join("slices"), &copy);
+    let before = fingerprint_tree(&copy);
+
+    dev_cmd()
+        .arg("slice-fix-deps")
+        .arg("--slices-dir")
+        .arg(&copy)
+        .assert()
+        .success();
+
+    let after = fingerprint_tree(&copy);
+    assert_eq!(
+        before, after,
+        "slice-fix-deps without --apply must not create, delete, or modify any file"
+    );
+    std::fs::remove_dir_all(copy.parent().unwrap_or(&copy)).ok();
+}
+
+/// Recursively copy `src` into `dst` (files + directory structure).
+fn copy_tree(src: &std::path::Path, dst: &std::path::Path) {
+    std::fs::create_dir_all(dst).expect("create dst dir");
+    for entry in std::fs::read_dir(src).expect("read_dir src") {
+        let entry = entry.expect("dir entry");
+        let from = entry.path();
+        let to = dst.join(entry.file_name());
+        if from.is_dir() {
+            copy_tree(&from, &to);
+        } else {
+            std::fs::copy(&from, &to).expect("copy file");
+        }
+    }
+}
+
+/// A deterministic `relative-path → (len, content-hash)` fingerprint of every file
+/// under `root` — equal iff the file set and every byte are unchanged.
+fn fingerprint_tree(root: &std::path::Path) -> std::collections::BTreeMap<String, (u64, u64)> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut out = std::collections::BTreeMap::new();
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        for entry in std::fs::read_dir(&dir).expect("read_dir") {
+            let path = entry.expect("dir entry").path();
+            if path.is_dir() {
+                stack.push(path);
+            } else {
+                let bytes = std::fs::read(&path).expect("read file");
+                let mut hasher = DefaultHasher::new();
+                bytes.hash(&mut hasher);
+                let rel = path
+                    .strip_prefix(root)
+                    .expect("under root")
+                    .to_string_lossy()
+                    .into_owned();
+                out.insert(rel, (bytes.len() as u64, hasher.finish()));
+            }
+        }
+    }
+    out
+}
+
+#[test]
 fn build_writes_serializations() {
     // `build` folds the committed snapshot and writes the derived serializations.
     dev_cmd()
