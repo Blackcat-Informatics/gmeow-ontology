@@ -3453,7 +3453,7 @@ mod ustar_tests {
         axiom_artifacts
     }
 
-    /// FIXED-POINT PROOF (#1278, acceptance criterion 3): a change to the `stage-mappings`
+    /// FIXED-POINT PROOF (acceptance criterion 3): a change to the `stage-mappings`
     /// product's generated SPARQL surface reaches the bundle in ONE fold. REP_QUERIES is
     /// product-sourced (`members_basename_from_artifacts`), not a disk read, so a query that
     /// exists ONLY in the in-memory product — never on disk — MUST appear in the archive. Were
