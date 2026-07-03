@@ -23,11 +23,11 @@ Docker-optional classic-cross-check report at
 | corpus | lane | cases | agree | corpus-only | dl-gap | agree rate |
 |---|---|---|---|---|---|---|
 | ontouml-mini | a | 8 | 8 | 0 | 0 | 100.0% |
-| szs-mini | a | 3 | 2 | 0 | 1 | 66.6% |
+| szs-mini | a | 3 | 2 | 0 | 1 | 66.7% |
 | tptp-mini | a | 6 | 6 | 0 | 0 | 100.0% |
 | w3c-mini | a | 2 | 2 | 0 | 0 | 100.0% |
 | w3c-owl2-el | a | 19 | 19 | 0 | 0 | 100.0% |
-| **TOTAL** | — | 38 | 37 | 0 | 1 | **97.3%** |
+| **TOTAL** | — | 38 | 37 | 0 | 1 | **97.4%** |
 
 ## Documented divergences (native EL intentionally differs — not defects)
 
