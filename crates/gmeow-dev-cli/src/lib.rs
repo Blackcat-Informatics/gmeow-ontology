@@ -3,14 +3,34 @@
 
 //! `gmeow-dev-cli` — the repo-maintenance `gmeow-dev` command surface.
 //!
-//! Unlike the consumer `gmeow` binary, every command here NEEDS the repository:
-//! regeneration, fanout, reasoning, verification, mappings, and the i18n
-//! toolchain all operate on the working tree. The command variants are stubs for
-//! now — this task establishes the top-level clap wiring and the console
-//! convention; real command bodies land later.
+//! Unlike the consumer `gmeow` binary (which reads an embedded bundle), every
+//! command here NEEDS the repository: regeneration, fanout, reasoning,
+//! verification, mappings, and the i18n toolchain all operate on the working
+//! tree. Each command marshals its inputs and delegates to an already-native
+//! backend, following the shared console convention from [`gmeow_cli_core`]:
+//! product results → stdout, diagnostics → stderr, exit `0`/`1`/`2`.
+//!
+//! The clap `Cli`/`Commands` surface and its dispatch live here; the wired
+//! command bodies live in the per-area `dev_*` modules.
+
+mod dev_build;
+mod dev_common;
+mod dev_feedback;
+mod dev_gates;
+mod dev_i18n;
+mod dev_logic;
+mod dev_project;
+mod dev_reason;
+mod dev_targets;
+mod dev_transpile;
+mod dev_validate;
+
+use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use gmeow_cli_core::ConsoleMode;
+
+use dev_common::{project_root, snapshot_bytes};
 
 /// The `gmeow-dev` repo-maintenance CLI.
 #[derive(Debug, Parser)]
@@ -24,106 +44,367 @@ pub struct Cli {
     #[arg(long, global = true, value_enum)]
     pub console: Option<ConsoleMode>,
 
-    /// The degree of parallelism for pipeline stages.
-    #[arg(long, global = true)]
-    pub jobs: Option<usize>,
-
     #[command(subcommand)]
     pub command: Commands,
 }
 
-/// The developer subcommands. Each is a stub for now.
+/// The developer subcommands.
 #[derive(Debug, Subcommand)]
 pub enum Commands {
-    /// Print version information.
+    /// Print the gmeow package version.
     Version,
-    /// Print environment and workspace info.
+    /// Show a summary of the bundled GMEOW ontology snapshot.
     Info,
-    /// Regenerate all generated artifacts from the slices.
-    Regenerate,
-    /// Run the post-pipeline fanout.
-    Fanout,
-    /// Assemble a release bundle.
-    ReleaseBundle,
-    /// Check the generated artifacts for drift.
-    CheckGenerated,
-    /// Validate the ontology and shapes.
-    Validate,
-    /// Emit developer feedback diagnostics.
-    Feedback,
-    /// Run an external tool integration.
-    ExternalTool,
-    /// Check constitution-gate evidence.
+    /// Rebuild all checked-in generated artifacts from canonical sources.
+    Regenerate {
+        #[arg(short = 'j', long = "jobs")]
+        jobs: Option<usize>,
+        #[arg(long = "check")]
+        check: bool,
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+    },
+    /// Project the flat consumer tree back out of gmeow.gts.
+    Fanout {
+        #[arg(short = 'j', long = "jobs")]
+        jobs: Option<usize>,
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+    },
+    /// Drift-check every committed artifact against its canonical source.
+    #[command(name = "check-generated")]
+    CheckGenerated {
+        #[arg(short = 'j', long = "jobs")]
+        jobs: Option<usize>,
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+    },
+    /// Fold check/conformance/SARIF evidence into a SIGNED gmeow.gts.
+    #[command(name = "release-bundle")]
+    ReleaseBundle {
+        #[arg(long = "out", default_value = "dist/gmeow.gts")]
+        out: PathBuf,
+        #[arg(long = "sign-key")]
+        sign_key: PathBuf,
+        #[arg(long = "public-key")]
+        public_key: PathBuf,
+        #[arg(long = "source", default_value = "generated/dist/gmeow.gts")]
+        source: PathBuf,
+        #[arg(long = "issued-at")]
+        issued_at: String,
+        #[arg(
+            long = "attester",
+            default_value = "https://blackcatinformatics.ca/gmeow/agent/release-lane"
+        )]
+        attester: String,
+        #[arg(
+            long = "release-subject",
+            default_value = "https://blackcatinformatics.ca/gmeow/release/gmeow.gts"
+        )]
+        release_subject: String,
+        #[arg(long = "evidence")]
+        evidence: Vec<String>,
+    },
+    /// Validate Turtle syntax, term annotations, and SHACL conformance.
+    Validate {
+        #[arg(long = "timings")]
+        timings: bool,
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
+        #[arg(long = "trust-policy")]
+        trust_policy: Option<PathBuf>,
+        #[arg(long = "require-signed")]
+        require_signed: bool,
+        #[arg(long = "trusted-key")]
+        trusted_key: Option<PathBuf>,
+        #[arg(long = "deep")]
+        deep: bool,
+    },
+    /// Write first-class diagnostics artifacts for the whole dev gate.
+    Feedback {
+        #[arg(long = "diagnostics-console")]
+        diagnostics_console: Option<String>,
+        #[arg(long = "diagnostics-artifacts")]
+        diagnostics_artifacts: Option<String>,
+        #[arg(long = "diagnostics-dir")]
+        diagnostics_dir: Option<PathBuf>,
+        #[arg(long = "diagnostics-stem")]
+        diagnostics_stem: Option<String>,
+        #[arg(long = "diagnostics-category")]
+        diagnostics_category: Option<String>,
+        #[arg(long = "timings")]
+        timings: bool,
+    },
+    /// Run an external gate tool and represent a failure as a canonical finding.
+    #[command(name = "external-tool")]
+    ExternalTool {
+        #[arg(long = "name")]
+        name: String,
+        #[arg(long = "diagnostics-console")]
+        diagnostics_console: Option<String>,
+        #[arg(long = "diagnostics-artifacts")]
+        diagnostics_artifacts: Option<String>,
+        #[arg(long = "diagnostics-dir")]
+        diagnostics_dir: Option<PathBuf>,
+        #[arg(long = "diagnostics-stem")]
+        diagnostics_stem: Option<String>,
+        #[arg(long = "diagnostics-category")]
+        diagnostics_category: Option<String>,
+        /// The external command to run, e.g. `-- mypy src`.
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        command: Vec<String>,
+    },
+    /// Verify every constitutional principle has live enforcement.
+    #[command(name = "constitution-check")]
     ConstitutionCheck,
-    /// Audit the ontology or provenance.
-    Audit,
-    /// Emit a compliance report.
-    ComplianceReport,
-    /// Cross-check competency queries.
+    /// Audit claims (ungrounded / contradicted / stale) over data files.
+    Audit {
+        files: Vec<PathBuf>,
+        #[arg(long = "json")]
+        json: bool,
+        #[arg(long = "strict")]
+        strict: bool,
+    },
+    /// Emit the RDF compliance report.
+    #[command(name = "compliance-report")]
+    ComplianceReport {
+        #[arg(long = "from-passing-check")]
+        from_passing_check: bool,
+    },
+    /// Cross-check competency queries across two engines.
+    #[command(name = "crosscheck-queries")]
     CrosscheckQueries,
-    /// Run native reasoning.
-    Reason,
-    /// Explain a derivation.
+    /// Reason over the ontology (native EL/DL, Docker-free).
+    Reason {
+        #[arg(long = "mode", default_value = "native")]
+        mode: String,
+        #[arg(long = "merge")]
+        merge: bool,
+        #[arg(long = "reasoner", default_value = "ELK")]
+        reasoner: String,
+        #[arg(long = "profile", default_value = "DL")]
+        profile: String,
+        #[arg(long = "full")]
+        full: bool,
+        #[arg(long = "exclude-tautologies")]
+        exclude_tautologies: Option<String>,
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+    },
+    /// Explain unsatisfiable classes / inconsistency.
     Explain,
-    /// Run native verification.
-    Verify,
-    /// Run reasoning followed by verification.
-    ReasonVerify,
-    /// Temporal-reasoning operations.
-    Temporal,
-    /// Extract data from the ontology.
-    Extract,
-    /// Lint cross-source alignments.
-    LintAlignment,
-    /// Lint documentation.
+    /// Run reasoned-graph negative tests (native).
+    Verify {
+        #[arg(long = "mode", default_value = "native")]
+        mode: String,
+        #[arg(long = "reasoner", default_value = "ELK")]
+        reasoner: String,
+        #[arg(long = "reasoned-input")]
+        reasoned_input: Option<PathBuf>,
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+    },
+    /// Run native reasoning followed by reasoned-graph verify.
+    #[command(name = "reason-verify")]
+    ReasonVerify {
+        #[arg(long = "merge")]
+        merge: bool,
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+    },
+    /// Run a TQL (Temporal Query Language) query over the events model.
+    Temporal {
+        query: String,
+        #[arg(long = "data")]
+        data: Option<PathBuf>,
+        #[arg(long = "focus")]
+        focus: Option<String>,
+        #[arg(long = "window-start")]
+        window_start: Option<String>,
+        #[arg(long = "window-end")]
+        window_end: Option<String>,
+        #[arg(long = "valid-at")]
+        valid_at: Option<String>,
+        #[arg(long = "as-of")]
+        as_of: Option<String>,
+    },
+    /// Report the import/extract policy for an alignment target.
+    Extract {
+        #[arg(long = "target")]
+        target: String,
+    },
+    /// Lint SSSOM property mappings for direction/domain-range mismatches.
+    #[command(name = "lint-alignment")]
+    LintAlignment {
+        #[arg(long = "network")]
+        network: bool,
+        #[arg(long = "strict")]
+        strict: bool,
+    },
+    /// Lint the rust-rendered ontology-docs site.
+    #[command(name = "doc-lint")]
     DocLint,
-    /// Check the Rust crates.
+    /// Verify Rust crate layering and repository-static policy.
+    #[command(name = "crate-check")]
     CrateCheck,
-    /// Refresh target axioms.
-    RefreshTargetAxioms,
-    /// Emit alignment mappings.
+    /// Re-vendor minimal target-axiom snapshots (network).
+    #[command(name = "refresh-target-axioms")]
+    RefreshTargetAxioms {
+        #[arg(long = "target", default_value = "all")]
+        target: String,
+    },
+    /// Build alignment axioms + VoID linksets from SSSOM.
     Mappings,
-    /// Wikidata operations.
-    Wikidata,
-    /// Report Wikidata coverage.
-    WikidataCoverage,
-    /// Report Dublin Core coverage.
-    DcCoverage,
-    /// Audit the up-projection.
-    UpProjectionAudit,
-    /// Report ontology coverage.
-    Coverage,
-    /// Cross-reference terms across sources.
+    /// Validate the Wikidata QIDs/PIDs used in the mappings.
+    Wikidata {
+        #[arg(long = "existence")]
+        existence: bool,
+        #[arg(long = "fixtures")]
+        fixtures: bool,
+    },
+    /// Report Wikidata mapping coverage by domain/module.
+    #[command(name = "wikidata-coverage")]
+    WikidataCoverage {
+        #[arg(long = "json")]
+        json: bool,
+        #[arg(long = "threshold", default_value_t = 0.5)]
+        threshold: f64,
+    },
+    /// Report Dublin Core mapping coverage by namespace.
+    #[command(name = "dc-coverage")]
+    DcCoverage {
+        #[arg(long = "json")]
+        json: bool,
+        #[arg(long = "threshold", default_value_t = 0.5)]
+        threshold: f64,
+    },
+    /// Audit consumer→GMEOW up-projection invertibility.
+    #[command(name = "up-projection-audit")]
+    UpProjectionAudit {
+        #[arg(long = "report")]
+        report: Option<PathBuf>,
+        #[arg(long = "gaps")]
+        gaps: bool,
+    },
+    /// Report how much of the vendored entity slice GMEOW covers.
+    Coverage {
+        #[arg(long = "gaps")]
+        gaps: bool,
+        #[arg(long = "min-class")]
+        min_class: Option<f64>,
+        #[arg(long = "min-predicate")]
+        min_predicate: Option<f64>,
+    },
+    /// Generate the CrossRef DOI deposit XML.
     Crossref,
-    /// Normalize serializations.
+    /// Canonicalize the authored ontology sources.
     Normalize,
-    /// Build a derived artifact.
+    /// Build serializations and OWL-native syntaxes into dist/.
     Build,
-    /// Project the ontology to a target vocabulary.
-    Project,
-    /// Apply a transform.
-    Transform,
-    /// Run the up-projection.
-    UpProject,
-    /// Run the acceptance suite.
-    Acceptance,
-    /// Run the quality gate.
-    Quality,
-    /// Compile the ontology to a GTS bundle.
-    CompileGts,
-    /// Run the MCP server surface.
+    /// Project GMEOW to a pure vocabulary profile.
+    Project {
+        source: Option<PathBuf>,
+        #[arg(long = "profile", default_value = "all")]
+        profile: String,
+        #[arg(long = "data", default_value = "")]
+        data: String,
+        #[arg(long = "lang", short = 'l')]
+        lang: Option<String>,
+    },
+    /// Transpile an A-Box to MAXIMAL(G).
+    Transform {
+        abox: PathBuf,
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+        #[arg(long = "profiles", default_value = "all")]
+        profiles: String,
+        #[arg(long = "diff-target")]
+        diff_target: Option<PathBuf>,
+        #[arg(long = "report")]
+        report: Option<PathBuf>,
+        #[arg(long = "lang", short = 'l')]
+        lang: Option<String>,
+    },
+    /// Lift a consumer-vocabulary RDF file UP into pure GMEOW.
+    #[command(name = "up-project")]
+    UpProject {
+        source: PathBuf,
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+    },
+    /// Score the full transpile against real data.
+    Acceptance {
+        source: Option<PathBuf>,
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+        #[arg(long = "min-recall")]
+        min_recall: Option<f64>,
+    },
+    /// Run OOPS! (pitfalls) and optionally FOOPS! (FAIR).
+    Quality {
+        #[arg(long = "foops-url", default_value = "")]
+        foops_url: String,
+        #[arg(long = "strict")]
+        strict: bool,
+    },
+    /// Compile the statement-complete GTS dist snapshot.
+    #[command(name = "compile-gts")]
+    CompileGts {
+        #[arg(long = "out", short = 'o')]
+        out: Option<PathBuf>,
+        #[arg(long = "sign-key")]
+        sign_key: Option<PathBuf>,
+        #[arg(long = "public-key")]
+        public_key: Option<PathBuf>,
+    },
+    /// Start the GMEOW MCP server (wired in the MCP task).
     Mcp,
     /// Import the foundation corpus.
-    ImportFoundation,
-    /// Describe an ontology term or resource.
-    Describe,
-    /// Extract documentation.
-    ExtractDocs,
-    /// Emit a certification artifact.
-    Certify,
-    /// Fix slice crate dependencies.
-    SliceFixDeps,
-    /// Box-role operations.
+    #[command(name = "import-foundation")]
+    ImportFoundation {
+        jsonl: PathBuf,
+        #[arg(long = "out", default_value = "build/foundation")]
+        out: PathBuf,
+        #[arg(long = "nq")]
+        nq: Option<PathBuf>,
+    },
+    /// Describe a GMEOW term as useful prose.
+    Describe {
+        term: String,
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
+        #[arg(long = "lang", short = 'l')]
+        lang: Option<String>,
+    },
+    /// Extract the browsable docs tree from a GTS snapshot.
+    #[command(name = "extract-docs")]
+    ExtractDocs {
+        gts_file: Option<PathBuf>,
+        #[arg(long = "directory", short = 'd')]
+        directory: PathBuf,
+        #[arg(long = "force")]
+        force: bool,
+        #[arg(long = "lang", short = 'l')]
+        lang: Option<String>,
+    },
+    /// Statically certify a logic program against its declared profile.
+    Certify {
+        input_path: PathBuf,
+        #[arg(long = "profile")]
+        profile: Option<String>,
+    },
+    /// Propose manifest dependency edits as a reviewable unified diff.
+    #[command(name = "slice-fix-deps")]
+    SliceFixDeps {
+        #[arg(long = "apply")]
+        apply: bool,
+        #[arg(long = "slices-dir")]
+        slices_dir: Option<PathBuf>,
+    },
+    /// Audit graph-box role coverage in authored sources.
+    #[command(name = "box-roles")]
     BoxRoles {
         #[command(subcommand)]
         command: BoxRolesCommands,
@@ -143,132 +424,379 @@ pub enum Commands {
 /// `gmeow-dev box-roles` subcommands.
 #[derive(Debug, Subcommand)]
 pub enum BoxRolesCommands {
-    /// Audit box-role assignments.
-    Audit,
+    /// Audit explicit ABox/TBox/RBox/CBox/ConfigBox role coverage.
+    Audit {
+        #[arg(long = "json")]
+        json: bool,
+    },
 }
 
 /// `gmeow-dev logic` subcommands.
 #[derive(Debug, Subcommand)]
 pub enum LogicCommands {
-    /// Run a logic query.
-    Query,
-    /// Compile the logic core.
-    Compile,
+    /// Resolve a backward goal over a materialized world.
+    Query {
+        world: PathBuf,
+        query_file: PathBuf,
+        #[arg(long = "profile", default_value = "PositiveHornProfile")]
+        profile: String,
+        #[arg(long = "world-iri")]
+        world_iri: Option<String>,
+        #[arg(long = "max-answers")]
+        max_answers: Option<usize>,
+        #[arg(long = "max-steps")]
+        max_steps: Option<u64>,
+        #[arg(long = "json")]
+        json: bool,
+    },
+    /// Compile logic: vocabulary → IR → canonical artifact + projections.
+    Compile {
+        #[arg(long = "check")]
+        check: bool,
+        #[arg(long = "mode")]
+        mode: Option<String>,
+    },
 }
 
 /// `gmeow-dev i18n` subcommands.
 #[derive(Debug, Subcommand)]
 pub enum I18nCommands {
-    /// Extract translatable strings.
-    Extract,
-    /// Sync the English source tree.
-    SyncEnglish,
-    /// Merge translations.
-    Merge,
-    /// Export translations as CSV.
-    ExportCsv,
-    /// Export translations as XLIFF.
-    ExportXliff,
+    /// Extract translatable ontology strings into gettext catalogs.
+    Extract {
+        #[arg(long = "root")]
+        root: Option<PathBuf>,
+        #[arg(long = "output-dir", short = 'o')]
+        output_dir: Option<PathBuf>,
+        #[arg(long = "lang", short = 'l')]
+        lang: Option<String>,
+        #[arg(long = "terms-only")]
+        terms_only: bool,
+    },
+    /// Sync English translations from PO catalogs back to canonical sources.
+    #[command(name = "sync-english")]
+    SyncEnglish {
+        #[arg(long = "root")]
+        root: Option<PathBuf>,
+        #[arg(long = "dry-run")]
+        dry_run: bool,
+    },
+    /// Merge committed PO translations into a multilingual RDF graph.
+    Merge {
+        #[arg(long = "root")]
+        root: Option<PathBuf>,
+        #[arg(long = "output", short = 'o')]
+        output: Option<PathBuf>,
+        #[arg(long = "lang")]
+        lang: Option<String>,
+    },
+    /// Export translated PO catalogs to a flat CSV file.
+    #[command(name = "export-csv")]
+    ExportCsv {
+        #[arg(long = "root")]
+        root: Option<PathBuf>,
+        #[arg(long = "output", short = 'o')]
+        output: Option<PathBuf>,
+    },
+    /// Export translated PO catalogs to an XLIFF 1.2 file.
+    #[command(name = "export-xliff")]
+    ExportXliff {
+        #[arg(long = "root")]
+        root: Option<PathBuf>,
+        #[arg(long = "output", short = 'o')]
+        output: Option<PathBuf>,
+    },
 }
 
-impl Commands {
-    /// The stable kebab/lower name used in the stub diagnostic line, including
-    /// the nested subcommand where present.
-    fn name(&self) -> String {
-        let base = match self {
-            Commands::Version => "version",
-            Commands::Info => "info",
-            Commands::Regenerate => "regenerate",
-            Commands::Fanout => "fanout",
-            Commands::ReleaseBundle => "release-bundle",
-            Commands::CheckGenerated => "check-generated",
-            Commands::Validate => "validate",
-            Commands::Feedback => "feedback",
-            Commands::ExternalTool => "external-tool",
-            Commands::ConstitutionCheck => "constitution-check",
-            Commands::Audit => "audit",
-            Commands::ComplianceReport => "compliance-report",
-            Commands::CrosscheckQueries => "crosscheck-queries",
-            Commands::Reason => "reason",
-            Commands::Explain => "explain",
-            Commands::Verify => "verify",
-            Commands::ReasonVerify => "reason-verify",
-            Commands::Temporal => "temporal",
-            Commands::Extract => "extract",
-            Commands::LintAlignment => "lint-alignment",
-            Commands::DocLint => "doc-lint",
-            Commands::CrateCheck => "crate-check",
-            Commands::RefreshTargetAxioms => "refresh-target-axioms",
-            Commands::Mappings => "mappings",
-            Commands::Wikidata => "wikidata",
-            Commands::WikidataCoverage => "wikidata-coverage",
-            Commands::DcCoverage => "dc-coverage",
-            Commands::UpProjectionAudit => "up-projection-audit",
-            Commands::Coverage => "coverage",
-            Commands::Crossref => "crossref",
-            Commands::Normalize => "normalize",
-            Commands::Build => "build",
-            Commands::Project => "project",
-            Commands::Transform => "transform",
-            Commands::UpProject => "up-project",
-            Commands::Acceptance => "acceptance",
-            Commands::Quality => "quality",
-            Commands::CompileGts => "compile-gts",
-            Commands::Mcp => "mcp",
-            Commands::ImportFoundation => "import-foundation",
-            Commands::Describe => "describe",
-            Commands::ExtractDocs => "extract-docs",
-            Commands::Certify => "certify",
-            Commands::SliceFixDeps => "slice-fix-deps",
-            Commands::BoxRoles { command } => {
-                return format!("box-roles {}", command.name());
-            }
-            Commands::Logic { command } => {
-                return format!("logic {}", command.name());
-            }
-            Commands::I18n { command } => {
-                return format!("i18n {}", command.name());
-            }
-        };
-        base.to_owned()
+/// `gmeow-dev version` — print the package version to stdout.
+fn version() -> i32 {
+    println!("{}", env!("CARGO_PKG_VERSION"));
+    0
+}
+
+/// `gmeow-dev info` — summarize the committed GTS snapshot.
+fn info() -> i32 {
+    let root = project_root();
+    let bytes = match snapshot_bytes(&root) {
+        Ok(b) => b,
+        Err(code) => return code,
+    };
+    let graph = purrdf::gts::reader::read(&bytes, true, None);
+    println!("gmeow.gts");
+    println!("  terms        {}", graph.terms.len());
+    println!("  quads        {}", graph.quads.len());
+    println!("  reifiers     {}", graph.reifiers.len());
+    println!("  annotations  {}", graph.annotations.len());
+    println!("  docs blobs   {}", graph.blobs.len());
+    println!("  opaque       {}", graph.opaque.len());
+    for diag in &graph.diagnostics {
+        eprintln!("{}: {}", diag.code, diag.detail);
     }
+    0
 }
 
-impl BoxRolesCommands {
-    fn name(&self) -> &'static str {
-        match self {
-            BoxRolesCommands::Audit => "audit",
-        }
-    }
-}
-
-impl LogicCommands {
-    fn name(&self) -> &'static str {
-        match self {
-            LogicCommands::Query => "query",
-            LogicCommands::Compile => "compile",
-        }
-    }
-}
-
-impl I18nCommands {
-    fn name(&self) -> &'static str {
-        match self {
-            I18nCommands::Extract => "extract",
-            I18nCommands::SyncEnglish => "sync-english",
-            I18nCommands::Merge => "merge",
-            I18nCommands::ExportCsv => "export-csv",
-            I18nCommands::ExportXliff => "export-xliff",
-        }
-    }
-}
-
-/// Parse the arguments, dispatch, and return the process exit code.
-///
-/// Every command is a stub: it prints `unimplemented: <name>` to stderr and
-/// returns `0`. clap emits its own usage errors (exit `2`) before this returns.
+/// Parse the arguments, dispatch to the wired backend, and return the exit code.
 pub fn run() -> i32 {
     let cli = Cli::parse();
-    eprintln!("unimplemented: {}", cli.command.name());
-    0
+    let console = cli.console;
+    match cli.command {
+        Commands::Version => version(),
+        Commands::Info => info(),
+        Commands::Regenerate {
+            jobs,
+            check,
+            timings_json,
+        } => dev_build::regenerate(jobs, check, timings_json.as_deref(), console),
+        Commands::Fanout { jobs, timings_json } => {
+            dev_build::fanout(jobs, timings_json.as_deref(), console)
+        }
+        Commands::CheckGenerated { jobs, timings_json } => {
+            dev_build::check_generated(jobs, timings_json.as_deref(), console)
+        }
+        Commands::ReleaseBundle {
+            out,
+            sign_key,
+            public_key,
+            source,
+            issued_at,
+            attester,
+            release_subject,
+            evidence,
+        } => dev_build::release_bundle(
+            &out,
+            &sign_key,
+            &public_key,
+            &source,
+            &issued_at,
+            &attester,
+            &release_subject,
+            &evidence,
+        ),
+        Commands::Validate {
+            timings,
+            timings_json,
+            gts,
+            trust_policy,
+            require_signed,
+            trusted_key,
+            deep,
+        } => dev_validate::validate(
+            timings,
+            timings_json.as_deref(),
+            gts.as_deref(),
+            trust_policy.as_deref(),
+            require_signed,
+            trusted_key.as_deref(),
+            deep,
+        ),
+        Commands::Feedback {
+            diagnostics_console,
+            diagnostics_artifacts,
+            diagnostics_dir,
+            diagnostics_stem,
+            diagnostics_category,
+            timings: _,
+        } => dev_feedback::feedback(
+            diagnostics_console.and_then(parse_console),
+            diagnostics_artifacts.as_deref(),
+            diagnostics_dir.as_deref(),
+            diagnostics_stem.as_deref(),
+            diagnostics_category.as_deref(),
+        ),
+        Commands::ExternalTool {
+            name,
+            diagnostics_console,
+            diagnostics_artifacts,
+            diagnostics_dir,
+            diagnostics_stem,
+            diagnostics_category,
+            command,
+        } => dev_feedback::external_tool(
+            &command,
+            &name,
+            diagnostics_console.and_then(parse_console),
+            diagnostics_artifacts.as_deref(),
+            diagnostics_dir.as_deref(),
+            diagnostics_stem.as_deref(),
+            diagnostics_category.as_deref(),
+        ),
+        Commands::ConstitutionCheck => dev_gates::constitution_check(),
+        Commands::Audit {
+            files,
+            json,
+            strict,
+        } => dev_gates::audit(&files, json, strict),
+        Commands::ComplianceReport { from_passing_check } => {
+            dev_project::compliance_report(from_passing_check)
+        }
+        Commands::CrosscheckQueries => dev_gates::crosscheck_queries(),
+        Commands::Reason {
+            mode, timings_json, ..
+        } => dev_reason::reason(&mode, timings_json.as_deref()),
+        Commands::Explain => dev_reason::explain(),
+        Commands::Verify {
+            mode, timings_json, ..
+        } => dev_reason::verify(&mode, timings_json.as_deref()),
+        Commands::ReasonVerify {
+            merge: _,
+            timings_json,
+        } => dev_reason::reason_verify(timings_json.as_deref()),
+        Commands::Temporal {
+            query,
+            data,
+            focus,
+            window_start,
+            window_end,
+            valid_at,
+            as_of,
+        } => dev_project::temporal(
+            &query,
+            data.as_deref(),
+            focus.as_deref(),
+            window_start.as_deref(),
+            window_end.as_deref(),
+            valid_at.as_deref(),
+            as_of.as_deref(),
+        ),
+        Commands::Extract { target } => dev_gates::extract(&target),
+        Commands::LintAlignment { network, strict } => dev_gates::lint_alignment(network, strict),
+        Commands::DocLint => dev_gates::doc_lint(),
+        Commands::CrateCheck => dev_gates::crate_check(),
+        Commands::RefreshTargetAxioms { target } => dev_project::refresh_target_axioms(&target),
+        Commands::Mappings => dev_build::mappings(),
+        Commands::Wikidata {
+            existence,
+            fixtures,
+        } => dev_gates::wikidata(existence, fixtures),
+        Commands::WikidataCoverage { json, threshold } => {
+            dev_gates::wikidata_coverage(json, threshold)
+        }
+        Commands::DcCoverage { json, threshold } => dev_gates::dc_coverage(json, threshold),
+        Commands::UpProjectionAudit { report, gaps } => {
+            dev_project::up_projection_audit(report.as_deref(), gaps)
+        }
+        Commands::Coverage {
+            gaps,
+            min_class,
+            min_predicate,
+        } => dev_gates::coverage(gaps, min_class, min_predicate),
+        Commands::Crossref => dev_project::crossref(),
+        Commands::Normalize => dev_build::normalize(),
+        Commands::Build => dev_transpile::build(),
+        Commands::Project {
+            source,
+            profile,
+            data,
+            lang,
+        } => dev_transpile::project(source.as_deref(), &profile, &data, lang.as_deref()),
+        Commands::Transform {
+            abox,
+            out,
+            profiles,
+            diff_target,
+            report,
+            lang,
+        } => dev_transpile::transform(
+            &abox,
+            out.as_deref(),
+            &profiles,
+            diff_target.as_deref(),
+            report.as_deref(),
+            lang.as_deref(),
+        ),
+        Commands::UpProject { source, out } => dev_transpile::up_project(&source, out.as_deref()),
+        Commands::Acceptance {
+            source,
+            out,
+            min_recall,
+        } => dev_gates::acceptance(source.as_deref(), out.as_deref(), min_recall),
+        Commands::Quality { foops_url, strict } => dev_gates::quality(&foops_url, strict),
+        Commands::CompileGts {
+            out,
+            sign_key,
+            public_key,
+        } => dev_build::compile_gts(out.as_deref(), sign_key.as_deref(), public_key.as_deref()),
+        Commands::Mcp => {
+            eprintln!("mcp: wired in the MCP task");
+            0
+        }
+        Commands::ImportFoundation { jsonl, out, nq } => {
+            dev_project::import_foundation(&jsonl, &out, nq.as_deref())
+        }
+        Commands::Describe { term, gts, lang } => {
+            dev_project::describe(&term, gts.as_deref(), lang.as_deref())
+        }
+        Commands::ExtractDocs {
+            gts_file,
+            directory,
+            force,
+            lang,
+        } => dev_project::extract_docs(gts_file.as_deref(), &directory, force, lang.as_deref()),
+        Commands::Certify {
+            input_path,
+            profile,
+        } => dev_reason::certify(&input_path, profile.as_deref()),
+        Commands::SliceFixDeps { apply, slices_dir } => {
+            dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())
+        }
+        Commands::BoxRoles { command } => match command {
+            BoxRolesCommands::Audit { json } => dev_gates::box_roles_audit(json),
+        },
+        Commands::Logic { command } => match command {
+            LogicCommands::Query {
+                world,
+                query_file,
+                profile,
+                world_iri,
+                max_answers,
+                max_steps,
+                json,
+            } => dev_logic::query(
+                &world,
+                &query_file,
+                &profile,
+                world_iri.as_deref(),
+                max_answers,
+                max_steps,
+                json,
+            ),
+            LogicCommands::Compile { check, mode } => dev_logic::compile(check, mode.as_deref()),
+        },
+        Commands::I18n { command } => match command {
+            I18nCommands::Extract {
+                root,
+                output_dir,
+                lang,
+                terms_only,
+            } => dev_i18n::extract(
+                root.as_deref(),
+                output_dir.as_deref(),
+                lang.as_deref(),
+                terms_only,
+            ),
+            I18nCommands::SyncEnglish { root, dry_run } => {
+                dev_i18n::sync_english(root.as_deref(), dry_run)
+            }
+            I18nCommands::Merge { root, output, lang } => {
+                dev_i18n::merge(root.as_deref(), output.as_deref(), lang.as_deref())
+            }
+            I18nCommands::ExportCsv { root, output } => {
+                dev_i18n::export_csv(root.as_deref(), output.as_deref())
+            }
+            I18nCommands::ExportXliff { root, output } => {
+                dev_i18n::export_xliff(root.as_deref(), output.as_deref())
+            }
+        },
+    }
+}
+
+/// Parse a `--diagnostics-console` spelling into a [`ConsoleMode`].
+fn parse_console(value: String) -> Option<ConsoleMode> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "auto" => Some(ConsoleMode::Auto),
+        "pretty" => Some(ConsoleMode::Pretty),
+        "text" => Some(ConsoleMode::Text),
+        "jsonl" => Some(ConsoleMode::Jsonl),
+        "silent" => Some(ConsoleMode::Silent),
+        _ => None,
+    }
 }
