@@ -107,6 +107,69 @@ gmeow:ScalePolarity
     skos:definition "An OPEN value vocabulary for the polarity of an affect scale — seeded with bipolar (a signed axis with a neutral midpoint, e.g. valence −1…1) and unipolar (a one-sided magnitude, e.g. arousal 0…1). Kept open, never an sh:in enum: a closed set anywhere in canonical affect is a projection artifact only."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+gmeow:AffectComposite
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Composite"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Emotion ;
+    skos:definition "A named emotion whose meaning is given by a DECLARED composition — a core-affect vector bound by relations to its elicitor, target, agency attribution, norm, and, where relevant, other emotions — rather than left as an unanalyzed primitive. GMEOW models up: schadenfreude, saudade, and Fernweh are structure over the foundational axes and relations, not new primitive EmotionTypes. A composite MUST carry its decomposition via gmeow:affectiveConstituent (SHACL); if a quality cannot be decomposed into the current axes, that is evidence the axis basis is incomplete (add an axis), never a licence for an opaque primitive."@x-gmeow-english ;
+    skos:example "ex:schadenfreude a gmeow:AffectComposite ; gmeow:emotionBearer ex:agent ; gmeow:affectiveConstituent ex:positiveCoreVector , ex:otherMisfortuneElicited ."@x-gmeow-english ;
+    skos:scopeNote "A named region/composite in the affect landscape (⊑ gmeow:Emotion, so it inherits the mode/bearer/target/elicitor surface). The composite layer stays analysable; the expressive power stays total."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for an unanalyzed primitive feeling (mint no opaque emotionX — either decompose it here or add the missing axis) and for the felt EPISODE (that is gmeow:AffectiveExperience)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type the named compound gmeow:AffectComposite, bind its bearer, and declare its decomposition with gmeow:affectiveConstituent — a gmeow:AffectVectorObservation for the core-affect signature plus the elicitor/target/agency/norm relations that differentiate it."@x-gmeow-english ;
+    gmeow:useWhen "Use for a culturally salient named affect (schadenfreude, saudade) minted for developer utility and mapping ONLY when it carries its declared decomposition links."@x-gmeow-english .
+
+gmeow:AffectEvaluationConcluded
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Evaluation Concluded"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "A positive, queryable record that affect WAS checked over a target and found flat — zero active dimension magnitudes — distinct from no check ever having run. Rejecting a 'neutral' EmotionType (the evidence-spine hard-fail) preserves open-world integrity but must not blind the agent: downstream logic genuinely needs to tell 'a check ran and found a flat baseline' from 'no evaluation'. An Observation (vantage = who concluded it, observedFeature = the target), never an emotion or an EmotionType."@x-gmeow-english ;
+    skos:example "ex:concluded a gmeow:AffectEvaluationConcluded ; gmeow:vantage ex:classifier ; gmeow:observedFeature ex:chunk ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it to assert that NO affect exists (open-world: a flat check is not proof of absence) and avoid modeling it as a 'neutral' EmotionType (that is a hard fail)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Record it as an Observation over the checked target when an affect evaluation ran and returned no salient magnitude, so 'concluded flat' is a fact separate from 'never checked'."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that an affect check ran and found a flat baseline — the checked-and-flat state, never conflated with the absence of any evaluation."@x-gmeow-english .
+
+gmeow:AffectFunction
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Function"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "An OPEN value vocabulary naming the canonical derived-affect functions the gmeow CLI exposes — seeded with gmeow:fnAffectiveIntensity (the vector norm under a declared metric). A function is a NAMED HANDLE for a computation carried out outside the logic (Principle 12); the function individual declares which derivation was applied, it does not compute in triples."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:AffectVectorObservation
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Vector Observation"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "The stable, queryable identity for 'the vector reading' — a reified multidimensional assessment (the same idiom as logic:GoalEvaluation / logic:AgencyAssessment) grouping the per-axis gmeow:Appraisal cells that share vantage, target, elicitor, and time, and naming its metric/basis via gmeow:vectorProfile. One cell per axis is preserved (gmeow:vectorComponent → each dimensional Appraisal); the grouping is the handle that makes the vector citable, signable, suppressible, and projectable as a unit. Overall intensity and cross-basis coordinates are DERIVED views over this record, never stored cells (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:vec a gmeow:AffectVectorObservation ; gmeow:vantage ex:agent ; gmeow:vectorProfile ex:padUnitScale ; gmeow:vectorComponent ex:valenceCell , ex:arousalCell ."@x-gmeow-english ;
+    skos:scopeNote "A reified assessment whose per-axis components decompose the canonical factored axes; its coarse emotion labels are generated projections. NOT a stored intensity — the norm is a derived gmeow:DerivedAffectIntensityObservation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid materialising a dense high-frequency stream as vector observations (that is a gmeow:AffectTelemetryStream dense block by-reference) and avoid storing the norm as a component cell (it is derived)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the vector observation, name its basis with gmeow:vectorProfile, and attach one dimensional gmeow:Appraisal per axis via gmeow:vectorComponent; share vantage/target/elicitor/time across the cells."@x-gmeow-english ;
+    gmeow:useWhen "Use to give a multi-axis affect reading one queryable identity — the stable handle for the vector, distinct from its per-axis cells and from any derived intensity."@x-gmeow-english .
+
+gmeow:DerivedAffectIntensityObservation
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Derived Affect Intensity Observation"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "Overall affect intensity as a DERIVED view — the norm of a gmeow:AffectVectorObservation computed OUTSIDE the logic under a declared metric (Principle 12), never a separately stored ground fact. Because the axis basis is non-orthogonal (valence correlates with goal-congruence, dominance overlaps coping), a raw Euclidean L² norm is NOT the default: the metric is an explicit declared weighted / metric-tensor form. An intensity record MUST declare its basis (gmeow:intensityBasis), scale normalization (gmeow:metricProfile), weighting policy (gmeow:weightingPolicy), and norm/distance function (gmeow:normFunction) — any missing declaration is a hard fail. No intensity is canonical without that named basis."@x-gmeow-english ;
+    skos:example "ex:intensity a gmeow:DerivedAffectIntensityObservation ; gmeow:intensityBasis ex:vec ; gmeow:metricProfile ex:padUnitScale ; gmeow:weightingPolicy \"equal-weight core-affect axes\" ; gmeow:normFunction \"weighted metric-tensor norm (non-L2)\" ; gmeow:derivedByFunction gmeow:fnAffectiveIntensity ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing it as a canonical ground fact (it is a recomputable view), avoid a bare L² norm over the non-orthogonal basis, and avoid omitting any of basis / scale / weighting / norm (each omission is a hard fail)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Compute the norm externally, then record it as a gmeow:DerivedAffectIntensityObservation declaring gmeow:intensityBasis, gmeow:metricProfile, gmeow:weightingPolicy, and gmeow:normFunction (and gmeow:derivedByFunction gmeow:fnAffectiveIntensity for the CLI handle)."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose overall intensity (the vector norm) to the CLI as a derived observation under a named metric — the answer to 'how intense, and along which dominant axis?'."@x-gmeow-english .
+
 gmeow:Emotion
     a logic:Kind ,
         owl:Class ;
@@ -273,6 +336,90 @@ gmeow:profileTransform
     skos:definition "The declared normalization/transform a scale applies, named as a string spec (e.g. 'linear', 'z-score', 'min-max to [-1,1]'). The transform is DECLARED here, never computed in triples — applying it, and converting between scales, is solver work (Principle 12). Functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:affectiveConstituent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AffectComposite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "affective constituent"@x-gmeow-english ;
+    skos:definition "A declared part of a gmeow:AffectComposite's decomposition — a core-affect gmeow:AffectVectorObservation, a constituent gmeow:Emotion, or an appraisal/relation cell (elicitor, target, agency, norm) that gives the named compound its structure. Range intentionally open; NOT functional (a composite has several constituents). Mandatory on a composite (SHACL): a composite with no declared constituent is an unanalyzed primitive, which is forbidden."@x-gmeow-english ;
+    skos:example "ex:schadenfreude gmeow:affectiveConstituent ex:positiveCoreVector ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid leaving a composite with no constituents (that is the forbidden opaque primitive) and avoid using it for the bearer/target/elicitor of the composite as a whole (those are gmeow:emotionBearer / gmeow:affectiveTarget / gmeow:affectiveElicitor)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "From a gmeow:AffectComposite, point gmeow:affectiveConstituent at each part of its declared decomposition — the core-affect vector observation plus the differentiating relation/appraisal cells."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare what a named compound emotion decomposes into, so schadenfreude/saudade are modeled up from axes and relations, not minted as primitives."@x-gmeow-english .
+
+gmeow:derivedByFunction
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DerivedAffectIntensityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "derived by function"@x-gmeow-english ;
+    rdfs:range gmeow:AffectFunction ;
+    skos:definition "The named gmeow:AffectFunction (e.g. gmeow:fnAffectiveIntensity) that produced a derived-affect observation — the CLI-exposed handle for the computation, carried out outside the logic (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:intensityBasis
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:DerivedAffectIntensityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "intensity basis"@x-gmeow-english ;
+    rdfs:range gmeow:AffectVectorObservation ;
+    skos:definition "The gmeow:AffectVectorObservation a derived intensity is the norm OF — its declared basis. Mandatory (SHACL): an intensity with no basis is a floating number. Functional: one intensity, one vector."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:metricProfile
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:DerivedAffectIntensityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "metric profile"@x-gmeow-english ;
+    rdfs:range gmeow:AffectScaleProfile ;
+    skos:definition "The gmeow:AffectScaleProfile declaring the scale normalization under which a derived intensity is computed. Mandatory (SHACL). Functional. Distinct from a component cell's gmeow:appraisalScaleProfile — this is the metric/basis of the WHOLE vector."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:normFunction
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:DerivedAffectIntensityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "norm function"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The declared norm/distance function under which a derived intensity is computed, named as a string spec (e.g. 'weighted metric-tensor norm', never a bare L² over the non-orthogonal basis). Mandatory (SHACL): the metric is explicit, and computing it is solver work (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:vectorComponent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AffectVectorObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "vector component"@x-gmeow-english ;
+    rdfs:range gmeow:Appraisal ;
+    skos:definition "A per-axis gmeow:Appraisal cell grouped by a gmeow:AffectVectorObservation — one dimensional reading (dimension + value + scale profile) that is one component of the vector. NOT functional: a vector groups several axis cells. One cell per axis is preserved; the grouping does not overwrite the cells."@x-gmeow-english ;
+    skos:example "ex:vec gmeow:vectorComponent ex:valenceCell ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at anything but a dimensional gmeow:Appraisal cell, and avoid collapsing several axes into one cell (one cell, one axis)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "From a gmeow:AffectVectorObservation, attach one dimensional gmeow:Appraisal per axis via gmeow:vectorComponent; the cells share the observation's vantage/target/time."@x-gmeow-english ;
+    gmeow:useWhen "Use to group the per-axis appraisal cells that make up a vector reading under one queryable identity."@x-gmeow-english .
+
+gmeow:vectorProfile
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectVectorObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "vector profile"@x-gmeow-english ;
+    rdfs:range gmeow:AffectScaleProfile ;
+    skos:definition "The gmeow:AffectScaleProfile naming the metric/basis of a gmeow:AffectVectorObservation — the frame the whole vector is read against. Mandatory (SHACL). Functional: one vector, one declared basis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:weightingPolicy
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:DerivedAffectIntensityObservation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "weighting policy"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The declared weighting policy under which a derived intensity combines its axes, named as a string spec (e.g. 'equal-weight core-affect axes', 'valence-dominant'). Mandatory (SHACL): weighting is explicit, and applying it is solver work (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 gmeow:dimensionAgency
     a gmeow:AppraisalDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
@@ -391,6 +538,13 @@ gmeow:familyCoreAffect
     skos:definition "The experiential family of affect axes — the felt quality itself (valence, arousal, dominance, unpredictability), low-dimensional and present even in objectless mood."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:fnAffectiveIntensity
+    a gmeow:AffectFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "affective intensity"@x-gmeow-english ;
+    skos:definition "The canonical derived-affect function the gmeow CLI exposes for overall intensity — the norm of a gmeow:AffectVectorObservation under a declared weighted / metric-tensor metric (never a bare L² over the non-orthogonal basis). A named handle for a computation carried out outside the logic (Principle 12); it names the derivation, it does not compute in triples."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:polarityBipolar
     a gmeow:ScalePolarity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
@@ -455,6 +609,20 @@ gmeow:emotionSadness
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "sadness"@x-gmeow-english ;
     skos:definition "The sadness emotion type (Plutchik primary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionSaudade
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "saudade"@x-gmeow-english ;
+    skos:definition "The saudade emotion type — a named COMPOSITE prototype (not a Plutchik primary), minted for developer utility and external mapping. Its meaning is not primitive: it is mixed valence (bittersweet) + a past/absent affectiveTarget + prospective longing toward something unrecoverable, declared on gmeow:AffectComposite instances via gmeow:affectiveConstituent. Modeled up from axes and relations, never an opaque primitive (Principle 9 open vocabulary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:emotionSchadenfreude
+    a gmeow:EmotionType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "schadenfreude"@x-gmeow-english ;
+    skos:definition "The schadenfreude emotion type — a named COMPOSITE prototype (not a Plutchik primary), minted for developer utility and external mapping. Its meaning is not primitive: it is positive core affect whose affectiveElicitor is another agent's goal-incongruent outcome, with an other-directed agency structure and a deservingness/norm flavour, declared on gmeow:AffectComposite instances via gmeow:affectiveConstituent. Modeled up from axes and relations, never an opaque primitive (Principle 9 open vocabulary)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:emotionSurprise
