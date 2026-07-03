@@ -130,6 +130,7 @@ pub(crate) fn serialize_carrier_snapshot(
     let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
         .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
     docs_model.attach_reasoning(reasoning_verdict);
+    assert_okf_docs_cover_documented_terms(carrier, &docs_model)?;
     let docs_exec = build_executable_docs_data(upstream, carrier, &docs_model)?;
     blobs.push(build_docs_archive(root, &docs_model, &docs_exec)?);
     blobs.push(build_reasoning_blob(upstream)?);
@@ -160,6 +161,68 @@ pub(crate) fn serialize_carrier_snapshot(
         },
     ];
     serialize_snapshot(carrier, blobs, report_blobs)
+}
+
+/// Hard-fail if any documented class/property/individual term would link to an OKF
+/// document the OKF bundle does not emit. The docs term surface
+/// (`gmeow_docs::model::DocsModel::terms`) and the OKF term surface
+/// (`crate::stages::export::collect_term_surface`) are collected by different paths, so
+/// this enforces "no dangling OKF link" — a missing document is a HARD FAIL, never a
+/// silent dangling reference. Reuses the renderer's own `okf_doc_reference` (the exact
+/// path the site links) and the OKF stage's `doc_relpath` (the exact path it emits), so
+/// the two can never diverge in scheme; this gate only checks existence.
+fn assert_okf_docs_cover_documented_terms(
+    carrier: &purrdf::RdfDataset,
+    model: &gmeow_docs::model::DocsModel,
+) -> Result<(), PipelineError> {
+    let (_, _, terms) = crate::stages::export::collect_term_surface(carrier)?;
+    let emitted: std::collections::BTreeSet<String> =
+        terms.iter().map(crate::stages::okf::doc_relpath).collect();
+    let links: Vec<Option<String>> = model
+        .terms
+        .iter()
+        .map(gmeow_docs::okf_doc_reference)
+        .collect();
+    let missing = okf_link_targets_missing_from(&emitted, &links);
+    if !missing.is_empty() {
+        let mut curies: Vec<String> = missing
+            .into_iter()
+            .map(|i| model.terms[i].curie.clone())
+            .collect();
+        curies.sort();
+        return Err(stage_err(&format!(
+            "OKF projection is missing documents for {} documented term(s), which would \
+             ship as dangling links: {}",
+            curies.len(),
+            curies.join(", ")
+        )));
+    }
+    Ok(())
+}
+
+/// The pure set-comparison the OKF-coverage gate delegates to: given the bundle-relative
+/// paths the OKF projection actually emits and the ordered list of link targets the docs
+/// site would generate (`None` for categories the OKF bundle deliberately skips), return
+/// the indices of `links` whose target the OKF bundle does not emit. Kept as a standalone
+/// function so the hard-fail logic itself is directly unit-testable, independent of a
+/// live `DocsModel`/carrier fixture.
+fn okf_link_targets_missing_from(
+    emitted: &std::collections::BTreeSet<String>,
+    links: &[Option<String>],
+) -> Vec<usize> {
+    links
+        .iter()
+        .enumerate()
+        .filter_map(|(i, link)| {
+            let link = link.as_ref()?;
+            let relpath = link.strip_prefix("gmeow-okf/").unwrap_or(link);
+            if emitted.contains(relpath) {
+                None
+            } else {
+                Some(i)
+            }
+        })
+        .collect()
 }
 
 /// Assemble the FULL snapshot carrier: every named graph parsed into ONE native
@@ -3484,6 +3547,41 @@ mod ustar_tests {
 
         let blob2 = build_okf_blob_from_dataset(dataset.as_ref()).expect("second okf archive");
         assert_eq!(blob.data, blob2.data, "OKF archive must be deterministic");
+    }
+
+    #[test]
+    fn okf_docs_cover_every_documented_term_on_the_committed_ontology() {
+        // Happy path: the real committed ontology must not ship a single dangling
+        // OKF link — every documented class/property/individual term the docs site
+        // would link to has a corresponding document in the OKF projection.
+        let root = repo_root();
+        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gts");
+        let dataset = purrdf::import_gts_events(&gts)
+            .expect("import committed gts")
+            .dataset;
+        let model = gmeow_docs::model::DocsModel::discover(&root).expect("docs model");
+        assert_okf_docs_cover_documented_terms(dataset.as_ref(), &model)
+            .expect("committed ontology must not have dangling OKF links");
+    }
+
+    #[test]
+    fn okf_link_targets_missing_from_flags_only_the_absent_target() {
+        // Pure-logic test of the hard-fail comparison itself: prove it does not
+        // silently accept a link whose target the OKF bundle never emits, and does
+        // not false-positive on a link whose target IS emitted.
+        let emitted: std::collections::BTreeSet<String> =
+            ["classes/Present.md".to_string()].into_iter().collect();
+        let links = vec![
+            Some("gmeow-okf/classes/Present.md".to_string()),
+            Some("gmeow-okf/classes/Absent.md".to_string()),
+            None, // e.g. a Datatype/Other term the OKF bundle deliberately skips
+        ];
+        let missing = okf_link_targets_missing_from(&emitted, &links);
+        assert_eq!(
+            missing,
+            vec![1],
+            "only the link whose target is absent from the emitted set must be flagged"
+        );
     }
 
     #[test]

@@ -654,7 +654,7 @@ fn append_slice_executable_sections(
 /// (`crates/pipeline/src/stages/okf.rs` — `category_dir` + `slug`); a mismatch
 /// would produce a dangling reference, so only the three covered categories emit
 /// one and the datatype/other arms deliberately return `None`.
-fn okf_doc_reference(term: &DocTerm) -> Option<String> {
+pub fn okf_doc_reference(term: &DocTerm) -> Option<String> {
     let dir = match term.category {
         DocTermCategory::Class => "classes",
         DocTermCategory::Property => "properties",
