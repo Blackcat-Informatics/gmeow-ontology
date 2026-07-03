@@ -87,6 +87,7 @@ implementation time; bump deliberately, never float.
 | Diagnostics model | **`gmeow_diagnostics`** (reuse) | in-repo | Already the canonical serde model with JSON/SARIF/RDF/HTML/text/NDJSON renderers, category taxonomy, and GTS-coordinate locations. Reused, not re-invented. |
 | Internal error type | **thiserror** | 1.x | Already the house style; a typed CLI error enum maps to stable exit codes. |
 | Logging / telemetry | **tracing** + **tracing-subscriber** | 0.1.44 / 0.3.23 | Instrument-once / many-sinks; **stderr-bound**; `EnvFilter` via `GMEOW_LOG` / `RUST_LOG`; near-zero cost when a level is disabled (hot-path safe). Mandatory for the stdio MCP server (see [§3](#3-two-output-channels)). |
+| Telemetry export (minimal) | **tracing-opentelemetry** + **opentelemetry** + **opentelemetry-otlp** | 0.33.0 / 0.32.0 / 0.32.0 | **Approved, minimal surface** (decision 2026-07-03): a *spans-only* OTLP export layer, no metrics/logs pipeline. Activated by the standard `OTEL_EXPORTER_OTLP_ENDPOINT` env (absent → no-op), so it is runtime-configured, never a behavior-changing feature gate. Gives agent-fleet observability across thousands of runs without touching the deterministic product output. |
 | MCP protocol | **rmcp** (official SDK) | 2.1.0 | The official `modelcontextprotocol/rust-sdk`; `#[tool_router]` / `#[tool]` macros, schemars-generated tool schemas, resources/prompts, current protocol version, and a path to HTTP/SSE. Replaces the hand-rolled JSON-RPC. |
 | Async runtime (MCP only) | **tokio** | 1.x | rmcp's stdio transport needs it; kept off the synchronous `gmeow describe` hot path for fast startup. |
 | CLI testing | **assert_cmd** + **trycmd** / **snapbox** + **predicates** | latest | Exactly the parity-coverage toolset the issue names; `trycmd` snapshots the human surface, `assert_cmd`/`predicates` assert exit codes and machine output. |
@@ -104,11 +105,6 @@ implementation time; bump deliberately, never float.
 - **A busybox-style single multi-call binary** — rejected in favour of two bin
   crates sharing a `gmeow-cli-core` library, so the wheel-only razor is
   *structurally* enforceable: the `gmeow` binary never links repo-maintenance code.
-- **OpenTelemetry / OTLP export** (`tracing-opentelemetry`) — *not* pre-committed.
-  A telemetry exporter is a documented future extension, held back so a build-time
-  observability add-on does not become a runtime degraded-fallback and trip the
-  no-optionality doctrine. The baseline `tracing` stderr subscriber ships regardless.
-  Carried as an open decision in [§9](#9-open-decisions).
 
 ## 3. Two output channels
 
@@ -132,6 +128,13 @@ dictates. The stdio-MCP rule — *never write to stdout* — is satisfied
 subscriber. The existing opt-in `GMEOW_PIPELINE_TIMING` stderr dump is reframed as
 ordinary `tracing` spans without disturbing the deterministic `--timings-json`
 artifact.
+
+A third, optional sink on the same `tracing` event bus is the **minimal
+OpenTelemetry span-export layer** ([§2](#2-crate-decision-record)): when
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set, spans are exported over OTLP; when it is
+absent the layer is a no-op. It observes the same instrumentation as the stderr
+subscriber — one instrumented codebase, three sinks (human `fmt`, machine JSON,
+OTLP) — and never touches stdout, so the product contract is unaffected.
 
 ## 4. Shared core — `crates/cli-core` (`gmeow-cli-core`)
 
@@ -221,7 +224,8 @@ This retires the CLI-surface and thin PyO3-seam tests the issue enumerates —
 
 The MCP server is already Rust (`crates/pipeline/src/mcp.rs`) but hand-rolls
 JSON-RPC 2.0, pins protocol `2024-11-05`, is gated behind the `python` cargo
-feature, and is launched by thin Python shims. The port:
+feature, and is launched by thin Python shims. **rmcp is the approved path**
+(decision recorded 2026-07-03). The port:
 
 - **Migrate to rmcp 2.1.0:** express tools with `#[tool_router]` / `#[tool]`,
   request structs deriving `schemars::JsonSchema`, over the stdio transport. Gains:
@@ -246,33 +250,39 @@ feature, and is launched by thin Python shims. The port:
 
 ## 8. Migration epic
 
-The port lands surface by surface (replace-and-delete). Each phase deletes the
-named pytest **and** its `docs/test-retention/` dossier **and** redirects any
+**The port lands as one large PR** (decision 2026-07-03) covering all three
+surfaces, still executed internally as replace-and-delete: each surface's Python
+predecessor is deleted in the same change that lands its Rust replacement, so the
+tree never carries a parallel Python + Rust CLI. The single PR deletes each named
+pytest **and** its `docs/test-retention/` dossier **and** redirects any
 `governance/constitution.ttl` `meta:artifact` citation of a deleted test to the
 Rust artifact that now proves the principle (a dossier must not outlive its test).
 
-- **Phase A — `cli-core` + `gmeow` consumer bin.** Retires `tests/test_cli.py`,
+The three internal workstreams within that PR:
+
+- **A — `cli-core` + `gmeow` consumer bin.** Retires `tests/test_cli.py`,
   `tests/test_cli_feedback.py`, `tests/test_validate_rdf.py` (+ dossiers).
-- **Phase B — `gmeow-dev` bin + live reporting.** Retires `tests/test_logic_cli.py`,
+- **B — `gmeow-dev` bin + live reporting.** Retires `tests/test_logic_cli.py`,
   `tests/test_logic_engine.py`, `tests/test_logic_compile_diagnostics.py`,
   `tests/test_slice_fix_deps.py`, `tests/test_external_tool.py` (+ dossiers).
-- **Phase C — MCP → rmcp + native subcommand + local-file read tools.** Removes the
+- **C — MCP → rmcp + native subcommand + local-file read tools.** Removes the
   Python MCP shims and the `gmeow_logic` / Typer PyO3 consumers once no Python
   imports them.
 
-## 9. Open decisions
+Landing all three together is what lets the Python `gmeow` / `gmeow-dev` console
+entry points be re-pointed to the Rust binaries and the PyO3 seam retired in a
+single atomic cutover — no interim state where both surfaces coexist.
 
-1. **Execution shape:** one large epic PR vs. surface-by-surface (Phase A/B/C) PRs.
-   This document assumes surface-by-surface — safer, and it respects greenfield
-   replace-and-delete.
-2. **rmcp adoption vs. keeping hand-rolled JSON-RPC:** recommended is rmcp for
-   protocol currency, resources/prompts, and the HTTP/SSE path; the counter-argument
-   is that the hand-rolled server is small and already carries bespoke TR semantics
-   that must not weaken.
-3. **OpenTelemetry export:** whether to pre-commit `tracing-opentelemetry` + an OTLP
-   exporter for agent-fleet observability, or keep it a documented future extension.
-   Deferred here to respect no-optionality; the baseline `tracing` stderr subscriber
-   ships regardless.
+## 9. Resolved decisions (2026-07-03)
+
+1. **Execution shape:** **one large PR** covering all three surfaces (§8), executed
+   internally as replace-and-delete so the tree never carries a parallel
+   Python + Rust CLI.
+2. **MCP protocol:** **rmcp 2.1.0** — migrate off the hand-rolled JSON-RPC while
+   preserving the Transaction-Logic memory semantics verbatim (§7 checklist).
+3. **OpenTelemetry export:** **approved, minimal surface** — a spans-only OTLP export
+   layer on the `tracing` bus, activated by `OTEL_EXPORTER_OTLP_ENDPOINT` (no-op when
+   absent), no metrics/logs pipeline (§2, §3).
 
 ## 10. Non-goals
 
