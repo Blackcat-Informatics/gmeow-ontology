@@ -48,6 +48,16 @@ impl Lane {
             )),
         }
     }
+
+    /// The lowercase wire token for this lane (`"a"`, `"b"`, `"divergence"`) — the
+    /// inverse of [`Lane::parse`], for carrying the lane in a projection.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Lane::A => "a",
+            Lane::B => "b",
+            Lane::Divergence => "divergence",
+        }
+    }
 }
 
 /// Parsed `corpus.json` metadata for one vendored external corpus.

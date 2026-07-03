@@ -30,9 +30,10 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_conformance::divergence::emit_divergence_nq;
+use gmeow_conformance::divergence::{agreement_tally, emit_divergence_nq, AgreementTally};
 use gmeow_conformance::external::{outcome_from_szs, parse_test_manifest};
 use gmeow_logic::reason::ExternalComparison;
+use serde::{Deserialize, Serialize};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -42,6 +43,34 @@ use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 /// `pipeline/` prefix marks it as in-memory dataflow that is never written to disk
 /// (the same convention the diagnostics / composed dataflow products follow).
 pub const CONFORMANCE_NQ_PATH: &str = "pipeline/conformance-divergence.nq";
+
+/// The in-memory logical path of the per-corpus agreement-tally product
+/// `stage-export-agreement` consumes to render the benchmark dashboard. Like
+/// [`CONFORMANCE_NQ_PATH`] the `pipeline/` prefix marks it as in-memory dataflow
+/// never written to disk — it is the single graded result, attached once, that the
+/// dashboard projects (PIPELINE_SPINE §3.2: consumers read the attached result, they
+/// do not re-grade).
+pub const AGREEMENT_TALLIES_PATH: &str = "pipeline/agreement-tallies.json";
+
+/// One corpus's agreement counts as they ride in [`AGREEMENT_TALLIES_PATH`]. The
+/// corpus name is the JSON map key, so the record itself carries only the counts and
+/// the corpus lane — serialized in a `BTreeMap` (sorted keys) with integer fields, so
+/// the attached bytes are deterministic (the `bench` integer-baseline discipline;
+/// no `f64`).
+///
+/// `lane` is the `corpus.json` lane (`"a"`/`"b"`/`"divergence"`). The dashboard needs
+/// it to present a `divergence`-lane corpus honestly: its `corpus_only` rows are the
+/// DOCUMENTED, intended native↔published divergences (native EL correctly differs from
+/// the published DL/Full answer), never engine defects — so they are excluded from the
+/// headline agreement rate rather than counted as failures.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub(crate) struct TallyRecord {
+    pub(crate) lane: String,
+    pub(crate) cases: usize,
+    pub(crate) agree: usize,
+    pub(crate) corpus_only: usize,
+    pub(crate) dl_gap: usize,
+}
 
 /// The committed external-corpus root: one `<corpus>/<case>/` subtree per vendored
 /// suite (`w3c-owl2-el`, `w3c-mini`, `szs-mini`, …).
@@ -69,21 +98,38 @@ struct GradedCase {
 /// corpus contributes nothing; an empty result means the whole committed corpus
 /// agrees with every published expectation.
 pub fn build_conformance_divergence(root: &Path) -> Result<Vec<u8>, PipelineError> {
+    Ok(divergence_nq_from_corpora(&grade_external_corpora(root)?))
+}
+
+/// Grade every committed external corpus case once, grouped by corpus and sorted
+/// deterministically within each corpus. This is the SINGLE grading walk the stage
+/// runs; both the divergence findings graph and the agreement-tally dashboard project
+/// from its result, never re-grading (PIPELINE_SPINE §3.2/§8, the razor).
+pub fn grade_external_corpora(
+    root: &Path,
+) -> Result<BTreeMap<String, Vec<ExternalComparison>>, PipelineError> {
     let external = root.join(EXTERNAL_ROOT);
     let mut by_corpus: BTreeMap<String, Vec<ExternalComparison>> = BTreeMap::new();
-
     for graded in grade_external_cases(&external)? {
         by_corpus
             .entry(graded.corpus)
             .or_default()
             .push(graded.comparison);
     }
-
-    let mut out = String::new();
-    for (corpus, mut comparisons) in by_corpus {
-        // Deterministic per-corpus order (the case id is unique within a corpus).
+    // Deterministic per-corpus order (the case id is unique within a corpus).
+    for comparisons in by_corpus.values_mut() {
         comparisons.sort_by(|a, b| a.case.cmp(&b.case).then(a.world.cmp(&b.world)));
-        let nq = emit_divergence_nq(&corpus, &comparisons);
+    }
+    Ok(by_corpus)
+}
+
+/// Project the graded corpora into the `graph/conformance` divergence N-Quads (the
+/// non-agreeing rows only), concatenated in corpus order. An all-agree corpus
+/// contributes nothing.
+fn divergence_nq_from_corpora(by_corpus: &BTreeMap<String, Vec<ExternalComparison>>) -> Vec<u8> {
+    let mut out = String::new();
+    for (corpus, comparisons) in by_corpus {
+        let nq = emit_divergence_nq(corpus, comparisons);
         if !nq.is_empty() {
             out.push_str(&nq);
             if !out.ends_with('\n') {
@@ -91,7 +137,46 @@ pub fn build_conformance_divergence(root: &Path) -> Result<Vec<u8>, PipelineErro
             }
         }
     }
-    Ok(out.into_bytes())
+    out.into_bytes()
+}
+
+/// Project the graded corpora into the deterministic per-corpus agreement-tally JSON
+/// ([`AGREEMENT_TALLIES_PATH`]) `stage-export-agreement` consumes. Keyed by corpus
+/// (a `BTreeMap`, so sorted), integer counts only — no `f64`, no re-grade. The corpus
+/// lane is read from each `corpus.json` (a metadata read, not a re-grade of the cases).
+pub(crate) fn agreement_tallies_json(
+    root: &Path,
+    by_corpus: &BTreeMap<String, Vec<ExternalComparison>>,
+) -> Result<Vec<u8>, PipelineError> {
+    let external = root.join(EXTERNAL_ROOT);
+    let mut records: BTreeMap<String, TallyRecord> = BTreeMap::new();
+    for (corpus, comparisons) in by_corpus {
+        let AgreementTally {
+            corpus: _,
+            cases,
+            agree,
+            corpus_only,
+            dl_gap,
+        } = agreement_tally(corpus, comparisons);
+        let meta = gmeow_conformance::external::load_corpus_meta(
+            &external.join(corpus).join("corpus.json"),
+        )
+        .map_err(|e| stage_err(&format!("load corpus.json lane for {corpus}: {e}")))?;
+        records.insert(
+            corpus.clone(),
+            TallyRecord {
+                lane: meta.lane.as_str().to_string(),
+                cases,
+                agree,
+                corpus_only,
+                dl_gap,
+            },
+        );
+    }
+    let mut json = serde_json::to_string_pretty(&records)
+        .map_err(|e| stage_err(&format!("serialize agreement tallies: {e}")))?;
+    json.push('\n');
+    Ok(json.into_bytes())
 }
 
 /// Discover and grade every committed external case under `external`, sorted by
@@ -411,7 +496,11 @@ impl Stage for ConformanceStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let nq = build_conformance_divergence(input.root)?;
+        // Grade the committed corpus ONCE; both projections read this single result
+        // (PIPELINE_SPINE §3.2/§8 — no re-walk, no re-grade).
+        let by_corpus = grade_external_corpora(input.root)?;
+        let nq = divergence_nq_from_corpora(&by_corpus);
+        let tallies = agreement_tallies_json(input.root, &by_corpus)?;
         // Attach the divergence-Finding graph as the carrier's `graph/conformance` named
         // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4), never
         // re-parses the byte artifact. An all-agree corpus yields no quads; the presenter
@@ -423,6 +512,9 @@ impl Stage for ConformanceStage {
         )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CONFORMANCE_NQ_PATH.to_string(), nq);
+        // The single graded result, attached for `stage-export-agreement` to project
+        // into the benchmark dashboard — never written to disk (`pipeline/` prefix).
+        artifacts.insert(AGREEMENT_TALLIES_PATH.to_string(), tallies);
         Ok(StageOutput {
             product: StageProduct::from_artifacts_over(self.id(), dataset, artifacts),
         })
@@ -439,6 +531,41 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
+    }
+
+    #[test]
+    fn agreement_tallies_are_deterministic_sorted_and_cover_lane_a() {
+        // The single grade feeds a deterministic, sorted tally JSON. Every committed
+        // Lane-A corpus must appear with cases == agree + corpus_only + dl_gap.
+        let root = repo_root();
+        let by_corpus = grade_external_corpora(&root).expect("grade");
+        let a = agreement_tallies_json(&root, &by_corpus).expect("tallies a");
+        let b = agreement_tallies_json(&root, &by_corpus).expect("tallies b");
+        assert_eq!(a, b, "agreement tallies must be deterministic");
+
+        let records: BTreeMap<String, TallyRecord> =
+            serde_json::from_slice(&a).expect("tally JSON parses");
+        assert!(
+            !records.is_empty(),
+            "the committed corpus must grade something"
+        );
+        for (corpus, r) in &records {
+            assert_eq!(
+                r.cases,
+                r.agree + r.corpus_only + r.dl_gap,
+                "corpus {corpus}: cases must partition into agree/corpus-only/dl-gap"
+            );
+            assert!(
+                matches!(r.lane.as_str(), "a" | "b" | "divergence"),
+                "corpus {corpus}: lane must be a recognized token, got {:?}",
+                r.lane
+            );
+        }
+        // Sorted keys: the serialized order must equal the BTreeMap key order.
+        let keys: Vec<&String> = records.keys().collect();
+        let mut sorted = keys.clone();
+        sorted.sort();
+        assert_eq!(keys, sorted, "tally JSON keys must be sorted");
     }
 
     #[test]

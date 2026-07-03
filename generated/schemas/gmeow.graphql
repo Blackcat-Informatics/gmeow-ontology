@@ -2045,6 +2045,7 @@ enum PipelineStageEnum {
   stage_conformance
   stage_constraint_catalog
   stage_docs_render
+  stage_export_agreement
   stage_export_apache
   stage_export_bench
   stage_export_catalog
