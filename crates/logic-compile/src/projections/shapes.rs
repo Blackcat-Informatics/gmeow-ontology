@@ -112,6 +112,33 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
             }
             v
         }
+        // A precision satellite projects to the same numeric facets as a magnitude range — it is
+        // faithfully expressible in SHACL Core (no residue).
+        ConstraintComponent::PrecisionRange {
+            min,
+            max,
+            min_inclusive,
+            max_inclusive,
+        } => {
+            let mut v = Vec::new();
+            if let Some(lo) = min {
+                let p = if *min_inclusive {
+                    "minInclusive"
+                } else {
+                    "minExclusive"
+                };
+                v.push(format!("sh:{p} {}", format_bound(*lo)));
+            }
+            if let Some(hi) = max {
+                let p = if *max_inclusive {
+                    "maxInclusive"
+                } else {
+                    "maxExclusive"
+                };
+                v.push(format!("sh:{p} {}", format_bound(*hi)));
+            }
+            v
+        }
         ConstraintComponent::Datatype(d) => vec![format!("sh:datatype {}", iri_term(d))],
         ConstraintComponent::Class(c) => vec![format!("sh:class {}", iri_term(c))],
         ConstraintComponent::NodeKindShacl(k) => vec![format!("sh:nodeKind sh:{}", k.as_str())],
@@ -168,6 +195,22 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
         // Lossy for SHACL Core: an external terminology has no faithful closed shape form.
         // Carried in the loss ledger by shacl_residue, never emitted as a silent constraint.
         ConstraintComponent::TerminologyBinding { .. } => Vec::new(),
+        // Project only the coded symbols as sh:in; the ordinal integers and their ordering have
+        // no SHACL form — carried in the loss ledger by shacl_residue.
+        ConstraintComponent::OrdinalSet { pairs } => {
+            let items = pairs
+                .iter()
+                .map(|(_, c)| iri_term(c))
+                .collect::<Vec<_>>()
+                .join(" ");
+            vec![format!("sh:in ( {items} )")]
+        }
+        // An openEHR datetime validity pattern is a format template (e.g. `yyyy-mm-ddTHH:MM:SS`),
+        // NOT an XPath regular expression. Emitting it as `sh:pattern` would match those literal
+        // characters and reject every valid datetime — an inverted constraint, not a lossy one.
+        // Nothing faithful survives in SHACL Core, so it is carried in the loss ledger by
+        // `shacl_residue`, never emitted as a broken constraint (cf. `TerminologyBinding` above).
+        ConstraintComponent::DateTimePattern(_) => Vec::new(),
     }
 }
 
@@ -257,6 +300,24 @@ pub fn shacl_residue(shape: &ValidationShapeIr) -> Vec<String> {
                     p.path,
                     codes.len()
                 )),
+                ConstraintComponent::OrdinalSet { pairs } => residue.push(format!(
+                    "ordinal set on {} projects only its coded symbols (sh:in); the ordinal \
+                     integer values ({}) and their ordering have no SHACL/ShEx form and are \
+                     carried in the canonical logic: layer",
+                    p.path,
+                    pairs
+                        .iter()
+                        .map(|(v, _)| v.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )),
+                ConstraintComponent::DateTimePattern(pat) => residue.push(format!(
+                    "datetime validity pattern ({pat}) on {} is a format template, not an XPath \
+                     regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would \
+                     reject every valid datetime), so its meaning is carried in the canonical \
+                     logic: layer",
+                    p.path
+                )),
                 _ => {}
             }
         }
@@ -299,6 +360,14 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
                 .join(" ");
             return format!("[{items}]");
         }
+        if let ConstraintComponent::OrdinalSet { pairs } = c {
+            let items = pairs
+                .iter()
+                .map(|(_, s)| iri_term(s))
+                .collect::<Vec<_>>()
+                .join(" ");
+            return format!("[{items}]");
+        }
     }
     let mut datatype = String::new();
     let mut nodekind: Option<&str> = None;
@@ -307,6 +376,30 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
         match c {
             ConstraintComponent::Datatype(d) => datatype = iri_term(d),
             ConstraintComponent::NumericRange {
+                min,
+                max,
+                min_inclusive,
+                max_inclusive,
+            } => {
+                if let Some(lo) = min {
+                    let f = if *min_inclusive {
+                        "MININCLUSIVE"
+                    } else {
+                        "MINEXCLUSIVE"
+                    };
+                    facets.push(format!("{f} {}", format_bound(*lo)));
+                }
+                if let Some(hi) = max {
+                    let f = if *max_inclusive {
+                        "MAXINCLUSIVE"
+                    } else {
+                        "MAXEXCLUSIVE"
+                    };
+                    facets.push(format!("{f} {}", format_bound(*hi)));
+                }
+            }
+            // A precision satellite projects to the same ShEx numeric facets as a magnitude range.
+            ConstraintComponent::PrecisionRange {
                 min,
                 max,
                 min_inclusive,
@@ -348,11 +441,15 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
             // A class-membership constraint: ShEx has no `sh:class` facet, so the values are
             // only constrained to IRIs here; the class itself is declared in shex_residue.
             ConstraintComponent::Class(_) => nodekind = Some("IRI"),
-            // Not faithfully expressible in ShEx — declared in shex_residue.
+            // Not faithfully expressible in ShEx — declared in shex_residue. A DateTimePattern is a
+            // format template, not a regex, so emitting it as a `/…/` facet would reject every
+            // valid datetime; its meaning is carried in the canonical logic: layer.
             ConstraintComponent::DateTimeRange { .. }
+            | ConstraintComponent::DateTimePattern(_)
             | ConstraintComponent::LanguageIn(_)
             | ConstraintComponent::TerminologyBinding { .. }
-            | ConstraintComponent::In(_) => {}
+            | ConstraintComponent::In(_)
+            | ConstraintComponent::OrdinalSet { .. } => {}
         }
     }
     let base = if !datatype.is_empty() {
@@ -667,6 +764,69 @@ mod tests {
             residue[0].contains("no faithful SHACL Core form"),
             "{residue:?}"
         );
+    }
+
+    #[test]
+    fn ordinal_set_projects_sh_in_symbols_and_ledgers_integers() {
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/value",
+                vec![ConstraintComponent::OrdinalSet {
+                    pairs: vec![
+                        (1, "https://ex/terminology/local/at0014".into()),
+                        (2, "https://ex/terminology/local/at0015".into()),
+                    ],
+                }],
+            )],
+        );
+        let ttl = project_validation_shape_shacl(&s);
+        assert!(
+            ttl.contains(
+                "sh:in ( <https://ex/terminology/local/at0014> \
+                 <https://ex/terminology/local/at0015> )"
+            ),
+            "{ttl}"
+        );
+        assert!(!ttl.contains(" 1 ") && !ttl.contains(" 2 "), "{ttl}");
+        let residue = shacl_residue(&s);
+        assert_eq!(
+            residue.len(),
+            1,
+            "ordinal set must be ledgered: {residue:?}"
+        );
+        assert!(residue[0].contains("1"), "{residue:?}");
+        assert!(residue[0].contains("2"), "{residue:?}");
+    }
+
+    #[test]
+    fn datetime_pattern_emits_no_shacl_constraint_but_is_ledgered() {
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/value",
+                vec![ConstraintComponent::DateTimePattern(
+                    "yyyy-mm-ddTHH:MM:SS".into(),
+                )],
+            )],
+        );
+        // An openEHR validity pattern is a format template, not an XPath regex; emitting it as
+        // `sh:pattern` would reject every valid datetime. Nothing is emitted; the meaning is
+        // carried only in the loss ledger.
+        let ttl = project_validation_shape_shacl(&s);
+        assert!(
+            !ttl.contains("sh:pattern"),
+            "datetime pattern must NOT be emitted as a SHACL constraint: {ttl}"
+        );
+        let residue = shacl_residue(&s);
+        assert_eq!(
+            residue.len(),
+            1,
+            "datetime pattern must be ledgered: {residue:?}"
+        );
+        assert!(residue[0].contains("validity pattern"), "{residue:?}");
     }
 
     #[test]
