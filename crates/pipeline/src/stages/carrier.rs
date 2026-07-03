@@ -282,7 +282,11 @@ pub(crate) fn self_description_source_files(root: &Path) -> Result<Vec<PathBuf>,
         files.push(metadata);
     }
     files.extend(list_files(&root.join("shapes"), "ttl")?);
-    files.extend(list_files(&root.join("generated/shapes"), "ttl")?);
+    // The `generated/shapes/*.ttl` are NOT declared here: they are produced projections,
+    // not authored sources source-load reads at run(), and each is covered by its own
+    // producing stage's cache (frame/result/constraint-shapes + compile-logic). Reading
+    // `generated/` from disk to cache-key a stage is the stale-disk-fold class this change
+    // retires — freshness rides the consumes chain, not a disk enumeration here.
     files.extend(slice_named_files(root, "shapes.ttl")?);
     files.sort();
     files.dedup();
@@ -872,12 +876,27 @@ fn build_archive_blobs(
              the mappings archive would fold empty (fail-closed)",
         ));
     }
-    // queries: member = bare filename.
-    let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?)?;
+    // queries: member = bare filename, sourced from THIS run's stage-mappings product
+    // (not re-read from disk) so a generated-query edit folds into the bundle in one
+    // regenerate — the committed generated/queries/*.rq are not written until phase 1
+    // returns, so a disk read here would tar the stale committed set (the same
+    // stale-disk-fold trap the mappings archive above avoids). `stage-mappings` is
+    // already consumed by the sink, so no new consumes edge is required.
+    let queries = members_basename_from_artifacts(mappings_artifacts, "generated/queries/", ".rq");
+    // Fail closed, mirroring the mappings guard above: an empty match means the
+    // stage-mappings product keyed its `.rq` under an unexpected prefix (or emitted
+    // none), which would silently fold an EMPTY queries archive. A missing required
+    // surface is a hard error, never a degraded fallback.
+    if queries.is_empty() {
+        return Err(stage_err(
+            "no generated/queries/*.rq artifacts in the stage-mappings product — \
+             the queries archive would fold empty (fail-closed)",
+        ));
+    }
     // schemas: the SHACL-derived JSON Schema + OpenAPI, member = bare
     // filename, taken from the in-memory stage product so the bundle never lags the
-    // committed files by a regenerate. Byte-identical to the prior `members_basename`
-    // member names (`gmeow.schema.json` / `gmeow.openapi.json`), so the fold is stable.
+    // committed files by a regenerate. Bare-filename member names
+    // (`gmeow.schema.json` / `gmeow.openapi.json`), so the fold is stable.
     let schemas = vec![
         ("gmeow.schema.json".to_string(), schema_json.to_vec()),
         ("gmeow.openapi.json".to_string(), openapi_json.to_vec()),
@@ -898,58 +917,43 @@ fn build_archive_blobs(
     let mut tests = members_relpath(root, &slice_files(root, "tests")?)?;
     tests.sort_by(|a, b| a.0.cmp(&b.0));
     // shapes: the FULL SHACL surface, member = repo-relative path —
-    // shapes/*.ttl + generated/shapes/*.ttl (P11, fail-closed if none) +
-    // slices/<g>/<n>/shapes.ttl. Carried whole so a repo-free `gmeow validate`
-    // can reassemble both the data-graph union and the DSL phases.
+    // shapes/*.ttl (authored source) + the four generated/shapes/*.ttl members
+    // (product-sourced below, P11 fail-closed) + slices/<g>/<n>/shapes.ttl. Carried
+    // whole so a repo-free `gmeow validate` can reassemble both the data-graph union
+    // and the DSL phases. The `generated/shapes/*.ttl` members are NEVER read off disk:
+    // every one is a produced projection whose committed file the fanout rewrites from
+    // the bundle, so a disk read would freeze the last-committed bytes forever (the
+    // stale-disk-fold class). They are folded from THIS run's consumed products instead.
     let mut shapes: Vec<(String, Vec<u8>)> =
         members_relpath(root, &list_files(&root.join("shapes"), "ttl")?)?;
-    let generated_shapes = list_files(&root.join("generated/shapes"), "ttl")?;
-    if generated_shapes.is_empty() {
-        // P11 frame-relativity must never silently drop — mirror shape_union's
-        // fail-closed (the validator union requires generated frame shapes).
-        return Err(stage_err(
-            "no generated/shapes/*.ttl to fold into REP_SHAPES — run `gmeow regenerate frame-shapes` (P11 enforcement)",
-        ));
-    }
-    shapes.extend(members_relpath(root, &generated_shapes)?);
     shapes.extend(members_relpath(
         root,
         &slice_named_files(root, "shapes.ttl")?,
     )?);
-    // REP_SHAPES is the FULL shape surface (like the DSL lints, carried for a repo-free
-    // consumer that opts into them); the validator applies `shape_union::EXCLUDED` to get the
-    // enforced data-graph union. `validation-shapes.ttl` is a `stage-compile-logic` PRODUCT
-    // (the OPT axis + the OWL-restriction derivation), so override the stale disk read with the fresh
-    // product bytes — otherwise the archive/fanout carry the last-committed file, never the
-    // freshly derived shapes (the axioms archive below reads from the product for this reason).
-    // The fresh product MUST exist (stage-compile-logic always emits it) — falling back to the
-    // stale on-disk read is exactly the failure this override exists to prevent, so hard-fail
-    // rather than silently carry last-committed bytes (no-optionality, fail-closed).
-    let rel = crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string();
-    let fresh = axiom_artifacts
+    // The four generated/shapes/*.ttl members, each product-sourced (no disk enumeration):
+    //   validation-shapes.ttl ← stage-compile-logic (OPT axis + OWL-restriction derivation)
+    //   result-shapes.ttl     ← stage-export-result-shapes (ResultShape SHACL projection)
+    //   frame-shapes.ttl      ← stage-export-frame-shapes (P11 frame relativity)
+    //   constraint-shapes.ttl ← stage-export-constraint-shapes (logic: FOL-axiom projection)
+    // Each MUST exist in its product (no-optionality, fail-closed): validation-shapes is
+    // pulled from `axiom_artifacts` with a hard error on absence; result/frame/constraint
+    // arrive as `shape_surfaces` fields already hard-failed at the call site in
+    // `serialize_carrier_snapshot`. constraint-shapes does not exist on disk on a first
+    // run at all, so only the fresh product can carry it (H8) — the very reason a disk
+    // enumeration was wrong. This replaces the P11 "fail-closed if none" disk guard.
+    let validation_shapes = axiom_artifacts
         .get(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH)
         .ok_or_else(|| {
             stage_err(
                 "carrier: stage-compile-logic produced no validation-shapes.ttl product; refusing \
-                 to carry a stale on-disk read",
+                 to carry a stale on-disk read (P11 enforcement, fail-closed)",
             )
         })?;
-    if let Some(entry) = shapes.iter_mut().find(|(k, _)| *k == rel) {
-        entry.1 = fresh.clone();
-    } else {
-        shapes.push((rel, fresh.clone()));
-    }
-    // The generated ResultShape SHACL projection and the P11 frame shapes are the
-    // OTHER two generated/shapes/*.ttl members, and they need the identical override:
-    // both are products of source-reading export leaves whose committed files are
-    // projected back from the bundle by the fanout, so carrying the disk read would
-    // freeze the committed bytes forever (a new competency ResultShape could never
-    // land). Fresh product bytes are passed in from the snapshot's consumed products;
-    // absence hard-fails at the call site (no-optionality, fail-closed).
-    // constraint-shapes.ttl (the logic: FOL-axiom SHACL projection) folds fresh the same
-    // way — AND on a first run it does not yet exist on disk, so the `list_files` read
-    // above never included it: only the fresh product carries it into REP_SHAPES (H8).
     for (rel, fresh_bytes) in [
+        (
+            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+            validation_shapes.as_slice(),
+        ),
         (
             crate::stages::result_shapes::RESULT_SHAPES_PATH,
             shape_surfaces.result,
@@ -1055,7 +1059,7 @@ pub(crate) fn archive_rep_carries_generated(rep: &str) -> bool {
 /// this stage's member-naming conventions, so the superset gate and the fanout
 /// projection resolve a blob member to its `generated/` path without guessing. The
 /// basename-keyed reps (`REP_MAPPINGS`/`REP_QUERIES`/`REP_SCHEMAS`, keyed by bare
-/// filename in their single directory via `members_basename`) get their directory
+/// filename in their single directory via `members_basename_from_artifacts`) get their directory
 /// prefix restored here; the repo-relative reps (`REP_AXIOMS`/`REP_SHAPES`/
 /// `REP_GENERATED`, keyed by `members_relpath`) pass through unchanged. One authority:
 /// carrier.rs owns both the forward member naming and this inverse. Returns `None`
@@ -1935,21 +1939,6 @@ fn slice_named_files(root: &Path, file: &str) -> Result<Vec<PathBuf>, PipelineEr
 /// A read error HARD-FAILS rather than silently dropping the file: an incomplete
 /// archive would silently break the wheel-mode consumers (no-optionality, the
 /// no-silent-caps doctrine — the same as [`members_relpath`]).
-fn members_basename(files: &[PathBuf]) -> Result<Vec<(String, Vec<u8>)>, PipelineError> {
-    let mut out: Vec<(String, Vec<u8>)> = Vec::with_capacity(files.len());
-    for p in files {
-        let name = p
-            .file_name()
-            .ok_or_else(|| stage_err(&format!("archive member has no file name: {}", p.display())))?
-            .to_string_lossy()
-            .into_owned();
-        let data =
-            std::fs::read(p).map_err(|e| stage_err(&format!("read {}: {e}", p.display())))?;
-        out.push((name, data));
-    }
-    Ok(out)
-}
-
 /// `(filename, bytes)` archive members sourced from a STAGE PRODUCT's in-memory
 /// artifacts (not disk): every artifact whose path is under `dir` and ends with
 /// `suffix`, keyed by bare filename, sorted. Used for the mappings archive so the
@@ -2137,14 +2126,17 @@ impl Stage for SnapshotStage {
         // a doc-source edit busts this stage and re-renders the embedded site (cache
         // soundness) — shared with `DocsRenderStage` via `docs_source_files`.
         let mut files = crate::stages::docs_render::docs_source_files(root)?;
-        // The folded shape surface (REP_SHAPES) is read from disk in
-        // `build_archive_blobs`; declare it so a shape edit busts this stage and re-folds
-        // the bundle — otherwise a changed shape could ship a stale gmeow.gts (cache
-        // soundness). The compiled axiom surface (REP_AXIOMS) is now sourced from
-        // the consumed `stage-compile-logic` product, whose digest already covers a logic
-        // source change, so the AXIOM_FILES are no longer declared here.
+        // REP_SHAPES folds the AUTHORED shape surface (`shapes/*.ttl` +
+        // `slices/<g>/<n>/shapes.ttl`) off disk in `build_archive_blobs` (authored
+        // sources, allowed) — declare them so an authored-shape edit busts this stage and
+        // the sink re-folds the bundle (cache soundness). The GENERATED shape members
+        // (validation/result/frame/constraint-shapes) are NO LONGER read from disk: the
+        // sink product-sources them from the consumed export-leaf + compile-logic products,
+        // whose digests already cover a shape-source edit, so `generated/shapes` is no
+        // longer declared here (the stale-disk-fold class this change retires). Likewise
+        // REP_AXIOMS is sourced from the `stage-compile-logic` product, so the AXIOM_FILES
+        // are not declared here either.
         files.extend(list_files(&root.join("shapes"), "ttl")?);
-        files.extend(list_files(&root.join("generated/shapes"), "ttl")?);
         files.extend(slice_named_files(root, "shapes.ttl")?);
         files.sort();
         files.dedup();
@@ -3309,15 +3301,23 @@ mod ustar_tests {
             .unwrap()
     }
 
-    /// Mirror the committed `generated/mappings/*.sssom.tsv` into an artifact map
-    /// keyed by repo-relative path — the stand-in for the stage-mappings product in
-    /// blob-archive unit tests (production sources these from the in-memory product).
+    /// Mirror the committed `generated/mappings/*.sssom.tsv` AND `generated/queries/*.rq`
+    /// into an artifact map keyed by repo-relative path — the stand-in for the
+    /// stage-mappings product in blob-archive unit tests (production sources both the
+    /// SSSOM surface and the SPARQL query surface from the in-memory product).
     fn mappings_artifacts_from_disk(root: &Path) -> BTreeMap<String, Vec<u8>> {
         let mut out = BTreeMap::new();
         for p in list_files(&root.join("generated/mappings"), "sssom.tsv").unwrap_or_default() {
             let name = p.file_name().unwrap().to_string_lossy().into_owned();
             out.insert(
                 format!("generated/mappings/{name}"),
+                std::fs::read(&p).unwrap_or_else(|_| panic!("read {}", p.display())),
+            );
+        }
+        for p in list_files(&root.join("generated/queries"), "rq").unwrap_or_default() {
+            let name = p.file_name().unwrap().to_string_lossy().into_owned();
+            out.insert(
+                format!("generated/queries/{name}"),
                 std::fs::read(&p).unwrap_or_else(|_| panic!("read {}", p.display())),
             );
         }
