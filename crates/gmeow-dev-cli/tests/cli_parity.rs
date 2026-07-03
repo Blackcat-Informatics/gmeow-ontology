@@ -52,6 +52,73 @@ fn version_prints_package_version() {
         .stdout(predicate::str::starts_with(env!("CARGO_PKG_VERSION")));
 }
 
+/// Scrape the subcommand names from the `Commands:` block of a clap `--help`
+/// screen, asserting the help itself renders and exits 0. Returns an empty vec
+/// for a leaf command (no `Commands:` block). `help` is elided.
+fn subcommand_names(path: &[&str]) -> Vec<String> {
+    let mut cmd = dev_cmd();
+    cmd.args(path).arg("--help");
+    let out = cmd.output().expect("run --help");
+    assert!(
+        out.status.success(),
+        "`gmeow-dev {} --help` must exit 0",
+        path.join(" ")
+    );
+    let text = String::from_utf8_lossy(&out.stdout);
+    let mut names = Vec::new();
+    let mut in_commands = false;
+    for line in text.lines() {
+        if line.trim_end() == "Commands:" {
+            in_commands = true;
+            continue;
+        }
+        if in_commands {
+            // The block ends at the first blank line or the next `Section:` header.
+            if line.trim().is_empty() || !line.starts_with(' ') {
+                break;
+            }
+            if let Some(name) = line.split_whitespace().next() {
+                if name != "help" {
+                    names.push(name.to_string());
+                }
+            }
+        }
+    }
+    names
+}
+
+/// Every command and nested sub-app command answers `--help` with exit 0. A
+/// cheap on-gate wiring smoke test over the whole surface: it proves each command
+/// is reachable and its clap parser is well-formed, without running any gate.
+#[test]
+fn every_subcommand_responds_to_help() {
+    let top = subcommand_names(&[]);
+    assert!(
+        top.len() >= 40,
+        "expected the full gmeow-dev command surface, got {}: {top:?}",
+        top.len()
+    );
+    for name in &top {
+        // `subcommand_names` asserts `<name> --help` exits 0 and returns any
+        // nested sub-app commands; assert `--help` on each of those too.
+        for sub in subcommand_names(&[name.as_str()]) {
+            dev_cmd()
+                .args([name.as_str(), sub.as_str(), "--help"])
+                .assert()
+                .success();
+        }
+    }
+}
+
+/// An unknown subcommand is a clap usage error (exit code 2), never a silent 0.
+#[test]
+fn unknown_subcommand_is_a_usage_error() {
+    dev_cmd()
+        .arg("definitely-not-a-real-command")
+        .assert()
+        .code(2);
+}
+
 #[test]
 fn logic_query_recursive_ancestor() {
     let case = repo_root().join("conformance/logic/cases/profiles/goal-recursive-ancestor");
