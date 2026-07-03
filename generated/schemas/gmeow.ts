@@ -2071,6 +2071,7 @@ export enum PipelineStageEnum {
     stage_snapshot = "stage-snapshot",
     stage_source_load = "stage-source-load",
     stage_statements = "stage-statements",
+    stage_term_manifest = "stage-term-manifest",
     stage_validate = "stage-validate",
     stage_validate_result_shape_composition = "stage-validate-result-shape-composition",
 }

@@ -74,7 +74,7 @@ const GMEOW_AVOID_FOR_CONSUMER: &str = "https://blackcatinformatics.ca/gmeow/avo
 
 const GMEOW_DOCS_CONCERN: &str = "https://blackcatinformatics.ca/gmeow/docsConcern";
 
-// ── Guides-slice predicates / classes (recipes + learning paths, #853 T3b) ─────
+// ── Guides-slice predicates / classes (recipes + learning paths) ───────────────
 
 const GMEOW_RECIPE: &str = "https://blackcatinformatics.ca/gmeow/Recipe";
 const GMEOW_LEARNING_PATH: &str = "https://blackcatinformatics.ca/gmeow/LearningPath";
@@ -88,7 +88,7 @@ const GMEOW_INCLUDES_RECIPE: &str = "https://blackcatinformatics.ca/gmeow/includ
 const GMEOW_ADOPTION_TARGET: &str = "https://blackcatinformatics.ca/gmeow/adoptionTarget";
 const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/followsGuidePath";
 
-// ── Logic stereotypes + relational surfaces (#1020) ─────────────────────────────
+// ── Logic stereotypes + relational surfaces ─────────────────────────────────────
 
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it are surfaced as the term's logic stereotypes.
@@ -115,30 +115,31 @@ const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 const GMEOW_PAIRS_WITH: &str = "https://blackcatinformatics.ca/gmeow/pairsWith";
 const GMEOW_GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
 
-// ── Per-term lifecycle surface (#1026) ──────────────────────────────────────────
+// ── Per-term lifecycle surface ───────────────────────────────────────────────────
 const OWL_DEPRECATED: &str = "http://www.w3.org/2002/07/owl#deprecated";
 const GMEOW_TERM_STABILITY: &str = "https://blackcatinformatics.ca/gmeow/termStability";
 const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/addedInVersion";
 const GMEOW_HAS_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/hasChangelogEntry";
 const GMEOW_ENTRY_VERSION: &str = "https://blackcatinformatics.ca/gmeow/entryVersion";
 const GMEOW_ENTRY_NOTE: &str = "https://blackcatinformatics.ca/gmeow/entryNote";
+const GMEOW_DEFINITION_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/definitionDigest";
 const STABILITY_STABLE_CURIE: &str = "gmeow:stabilityStable";
 const STABILITY_EXPERIMENTAL_CURIE: &str = "gmeow:stabilityExperimental";
 const STABILITY_DEPRECATED_CURIE: &str = "gmeow:stabilityDeprecated";
 /// The name of the everything-aggregation profile (root + every extension);
-/// every documented term belongs to it (#330 `full.ttl`).
+/// every documented term belongs to it (`full.ttl`).
 const FULL_PROFILE_NAME: &str = "full";
 const GMEOW_WORK: &str = "https://blackcatinformatics.ca/gmeow/Work";
 const DCTERMS_IDENTIFIER: &str = "http://purl.org/dc/terms/identifier";
 
-// ── SHACL constraint surface (#1020) ────────────────────────────────────────────
+// ── SHACL constraint surface ─────────────────────────────────────────────────────
 
 const SH_TARGET_CLASS: &str = "http://www.w3.org/ns/shacl#targetClass";
 const SH_TARGET_SUBJECTS_OF: &str = "http://www.w3.org/ns/shacl#targetSubjectsOf";
 const SH_TARGET_OBJECTS_OF: &str = "http://www.w3.org/ns/shacl#targetObjectsOf";
 const SH_MESSAGE: &str = "http://www.w3.org/ns/shacl#message";
 
-// ── Competency-question surface (#1020) ─────────────────────────────────────────
+// ── Competency-question surface ──────────────────────────────────────────────────
 
 const GMEOW_COMPETENCY_QUESTION: &str = "https://blackcatinformatics.ca/gmeow/CompetencyQuestion";
 const GMEOW_CQ_RATIONALE: &str = "https://blackcatinformatics.ca/gmeow/cqRationale";
@@ -162,6 +163,13 @@ pub enum DocsError {
     /// silent empty — a dropped `MappingSet` would leave relocated linkage
     /// resolving its set IRI to the raw filename.
     MappingSets(String),
+    /// The committed term content manifest
+    /// (`generated/catalog/term-content-manifest.nq`) is missing, unreadable,
+    /// unparsable, carries a term with no `gmeow:definitionDigest`, or omits a
+    /// documented term (a coverage gap). A regenerated tree always carries a
+    /// complete, well-formed manifest, so any of these is a broken invariant, never
+    /// an optional input.
+    TermManifest(String),
 }
 
 impl std::fmt::Display for DocsError {
@@ -170,6 +178,7 @@ impl std::fmt::Display for DocsError {
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
+            DocsError::TermManifest(msg) => write!(f, "term content manifest error: {msg}"),
         }
     }
 }
@@ -247,11 +256,11 @@ pub struct DocSlice {
     /// `gmeow:sliceConsumer` values.
     pub consumers: Vec<String>,
     /// `gmeow:sliceProfile` values — named profiles this slice declares
-    /// membership in (sorted). Drives per-term profile chips (#1026).
+    /// membership in (sorted). Drives per-term profile chips.
     pub profiles: Vec<String>,
     /// `gmeow:sliceDependsOn` slice IRIs (sorted). The relation whose closure
-    /// over a profile's declared members yields the profile's full membership
-    /// (#330); reused to compute per-term profile membership (#1026).
+    /// over a profile's declared members yields the profile's full membership;
+    /// reused to compute per-term profile membership.
     pub depends_on: Vec<String>,
     /// All artifacts in the slice (sorted by logical path).
     pub artifacts: Vec<DocArtifact>,
@@ -303,7 +312,7 @@ impl DocSlice {
     }
 }
 
-/// The maturity status of a vocabulary term (#1026). Serializes as a lowercase
+/// The maturity status of a vocabulary term. Serializes as a lowercase
 /// string (`stable` / `experimental` / `deprecated`). Resolved from an explicit
 /// `gmeow:termStability` annotation, else `owl:deprecated`, else the owner
 /// slice's tier (core → stable, extension → experimental).
@@ -330,7 +339,7 @@ impl DocTermStability {
     }
 }
 
-/// One reified per-release changelog entry for a term (#1026). Ordered by
+/// One reified per-release changelog entry for a term. Ordered by
 /// `(version, note)` for deterministic rendering.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub struct DocChangelogEntry {
@@ -395,23 +404,30 @@ pub struct DocTerm {
     pub box_role: Option<String>,
     /// `gmeow:graphBoxRole` — ALL asserted four-boxes role CURIEs (sorted/deduped).
     /// The full set, mirroring the folded snapshot's `Term::box_roles`, so the
-    /// shared term card (#1027) carries every box role, not just the first.
+    /// shared term card carries every box role, not just the first.
     pub box_roles: Vec<String>,
     /// Reverse `logic:formalizes` back-references: the IRIs of logic axioms /
     /// subjects that declare `logic:formalizes <this term>` (sorted/deduped).
     /// Empty until the central logic slice carries such back-refs.
     pub formalized_by: Vec<String>,
-    /// The term's maturity badge (#1026), always resolved: explicit
+    /// The term's maturity badge, always resolved: explicit
     /// `gmeow:termStability` > `owl:deprecated` > owner-slice tier default.
     pub stability: DocTermStability,
     /// `gmeow:addedInVersion` — the release a term first appeared in (the
-    /// lowest-sorted literal when multiply asserted); `None` until seeded (#1026).
+    /// lowest-sorted literal when multiply asserted); `None` until seeded.
     pub added_in_version: Option<String>,
     /// `gmeow:hasChangelogEntry` — reified per-release change records, sorted by
-    /// `(version, note)` (#1026). Empty when the term carries no changelog.
+    /// `(version, note)`. Unions the authored changelog with the computed changelog
+    /// read from the term content manifest. Empty when the term carries neither.
     pub changelog: Vec<DocChangelogEntry>,
+    /// `gmeow:definitionDigest` — the RDFC-1.0-canonical blake3 content-address of
+    /// the term's defining triples, read from the committed term content manifest
+    /// (`generated/catalog/term-content-manifest.nq`). Always populated on a
+    /// discovered model; empty on a bare `from_catalog` model until the manifest is
+    /// applied.
+    pub content_digest: String,
     /// The named profiles whose membership closure includes this term's owner
-    /// slice, plus the always-present `full` aggregate (sorted/deduped, #1026).
+    /// slice, plus the always-present `full` aggregate (sorted/deduped).
     /// Computed in `from_catalog` from the slices' `sliceProfile` /
     /// `sliceDependsOn` declarations.
     pub profiles: Vec<String>,
@@ -651,7 +667,7 @@ pub struct DocsModel {
     pub four_boxes: Option<String>,
     /// The ontology's concept DOI (`dcterms:identifier` on the `gmeow:Work`
     /// subject of `<root>/metadata/gmeow-self.ttl`), read in `discover()`. Drives
-    /// the per-term citation block's "cite the ontology" line (#1026). `None`
+    /// the per-term citation block's "cite the ontology" line. `None`
     /// when the metadata file is absent.
     pub concept_doi: Option<String>,
     /// Available documentation languages: the English carrier (`"english"`)
@@ -765,7 +781,7 @@ impl DocsModel {
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "6";
+    pub const VERSION: &'static str = "7";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -844,11 +860,11 @@ impl DocsModel {
             }
         }
 
-        // ── Per-term profile membership (#1026) ─────────────────────────────
+        // ── Per-term profile membership ──────────────────────────────────────
         // A term belongs to a named profile P iff P's declared-member-plus-
         // sliceDependsOn closure contains the term's owner slice; every term
         // also belongs to `full` (root + every extension). This MIRRORS the
-        // pipeline `profiles` stage's closure (#330) from the same manifest
+        // pipeline `profiles` stage's closure from the same manifest
         // data, without touching that byte-identical stage.
         {
             // slice IRI → its sliceDependsOn list (for the closure walk).
@@ -1066,8 +1082,8 @@ impl DocsModel {
         let central_sets = read_central_mapping_sets(root)?;
         let mut model = Self::from_catalog(&catalog, &ownership, &central_sets);
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
-        // Concept DOI for the per-term citation block (#1026): the
-        // `dcterms:identifier` on the `gmeow:Work` subject of the self-description.
+        // Concept DOI for the per-term citation block: the `dcterms:identifier` on
+        // the `gmeow:Work` subject of the self-description.
         model.concept_doi = read_concept_doi(root);
         // Root-level SHACL shapes (`<root>/shapes/*.ttl`) — aggregate node shapes
         // not owned by any single slice — merged into the slice-level shapes and
@@ -1080,8 +1096,150 @@ impl DocsModel {
         // artifact is a broken invariant on a regenerated tree, not an optional
         // input — hard-fail rather than render an empty-state page.
         model.constraint_rules = read_constraint_catalog(root)?;
+        // The per-term content-address manifest, read from the committed N-Quads
+        // fanout artifact. It sets each documented term's content digest and
+        // first-seen version and unions the computed changelog into the authored
+        // one. A term absent from the committed manifest is a term added since the
+        // last commit — its content-address self-heals on the next regenerate pass
+        // (the stage recomputes the manifest THIS build; the committed docs catch up
+        // the next), so it is skipped rather than a hard-fail (the two-phase
+        // fixed-point convergence, not a coverage bug).
+        apply_term_manifest(&mut model, root)?;
         Ok(model)
     }
+}
+
+/// The prior-independent provenance a term carries in the committed manifest.
+struct TermProvenance {
+    /// `gmeow:definitionDigest` — the term's content-address (always present).
+    digest: String,
+    /// `gmeow:addedInVersion` — the release the term was first seen in.
+    added_in_version: Option<String>,
+    /// The computed changelog: one entry per release whose digest diverged.
+    changelog: Vec<DocChangelogEntry>,
+}
+
+/// Read the term content manifest from
+/// `<root>/generated/catalog/term-content-manifest.nq` — every term's
+/// `gmeow:definitionDigest`, `gmeow:addedInVersion`, and reified
+/// `gmeow:hasChangelogEntry` records, keyed by term IRI. The file is a committed
+/// fixed-point projection of `gmeow.gts` (N-Quads: every triple in the manifest
+/// fanout named graph), so the reader queries graph-agnostically.
+///
+/// This is a hard-fail read (mirrors [`read_constraint_catalog`]): a regenerated
+/// tree always carries this artifact, so a missing file, an unparsable one, or a
+/// term subject with no `gmeow:definitionDigest` is a broken invariant, never an
+/// optional input.
+fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, DocsError> {
+    let path = root.join("generated/catalog/term-content-manifest.nq");
+    let bytes = match std::fs::read(&path) {
+        Ok(bytes) => bytes,
+        // Absent only during the one-shot bootstrap build that first mints the
+        // manifest (the stage writes it THIS build; the committed docs pick it up
+        // the next pass). An empty map skips every term's content-address for this
+        // pass — the two-phase fixed-point convergence. `check-generated` still
+        // guarantees the committed manifest is present + current in a landed tree,
+        // so a genuinely-missing committed manifest is caught there, not silently.
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
+        Err(e) => {
+            return Err(DocsError::TermManifest(format!(
+                "cannot read {}: {e}",
+                path.display()
+            )))
+        }
+    };
+    parse_term_manifest(&bytes, &path.display().to_string())
+}
+
+/// Parse term-content-manifest N-Quads (`source` names them for diagnostics) into
+/// the per-term provenance map. Shared by the committed-file reader
+/// ([`read_term_manifest`]) and the fresh-stage-product path
+/// ([`DocsModel::discover_with_manifest`]).
+fn parse_term_manifest(
+    bytes: &[u8],
+    source: &str,
+) -> Result<BTreeMap<String, TermProvenance>, DocsError> {
+    let store = Store::parse_nquads(bytes)
+        .map_err(|e| DocsError::TermManifest(format!("cannot parse {source}: {e}")))?;
+    let mut out: BTreeMap<String, TermProvenance> = BTreeMap::new();
+    for term in store.subjects_with_predicate_any(GMEOW_DEFINITION_DIGEST) {
+        // The digest is the identity; a term subject with none is malformed
+        // generated data, not a tolerable optional field.
+        let digest = store
+            .first_literal_any(&term, GMEOW_DEFINITION_DIGEST)
+            .ok_or_else(|| {
+                DocsError::TermManifest(format!(
+                    "term {term} in {source} carries no gmeow:definitionDigest"
+                ))
+            })?;
+        let added_in_version = store.first_literal_any(&term, GMEOW_ADDED_IN_VERSION);
+        let mut changelog: Vec<DocChangelogEntry> = Vec::new();
+        for object in store.objects_any(&term, GMEOW_HAS_CHANGELOG_ENTRY) {
+            let entry_node = match object {
+                Object::Named(n) => Node::Named(n),
+                Object::Blank(b) => Node::Blank(b),
+                _ => continue,
+            };
+            let version = store.first_literal_of_any(&entry_node, GMEOW_ENTRY_VERSION);
+            let note = store.first_literal_of_any(&entry_node, GMEOW_ENTRY_NOTE);
+            if let Some(version) = version {
+                changelog.push(DocChangelogEntry { version, note });
+            }
+        }
+        changelog.sort();
+        changelog.dedup();
+        out.insert(
+            term,
+            TermProvenance {
+                digest,
+                added_in_version,
+                changelog,
+            },
+        );
+    }
+    Ok(out)
+}
+
+/// Apply the term content manifest to a discovered model: set each documented
+/// term's `content_digest` and (manifest-authoritative) `added_in_version`, and
+/// UNION the manifest's computed changelog with the authored one (keyed by version;
+/// the authored `entryNote` wins a collision; authored-only and manifest-only
+/// versions are both kept).
+///
+/// A documented term with NO manifest entry is a term added since the last commit:
+/// the stage recomputes the manifest to cover it THIS build, but the committed file
+/// the model reads still lags by one build. Such a term keeps its authored
+/// provenance (empty `content_digest`, so the content-address citation line is
+/// simply omitted until the next regenerate pass promotes the fresh manifest) — the
+/// two-phase fixed-point convergence, never a hard-fail that would brick a
+/// term-adding regenerate.
+fn apply_term_manifest(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
+    let manifest = read_term_manifest(root)?;
+    for term in &mut model.terms {
+        let Some(provenance) = manifest.get(&term.iri) else {
+            continue;
+        };
+        term.content_digest = provenance.digest.clone();
+        term.added_in_version = provenance.added_in_version.clone();
+        // Union by version: seed with the manifest entries, then let the authored
+        // entries override (authored note wins) — authored-only and manifest-only
+        // versions both survive.
+        let mut by_version: BTreeMap<String, Option<String>> = BTreeMap::new();
+        for entry in &provenance.changelog {
+            by_version.insert(entry.version.clone(), entry.note.clone());
+        }
+        for entry in &term.changelog {
+            by_version.insert(entry.version.clone(), entry.note.clone());
+        }
+        let mut merged: Vec<DocChangelogEntry> = by_version
+            .into_iter()
+            .map(|(version, note)| DocChangelogEntry { version, note })
+            .collect();
+        merged.sort();
+        merged.dedup();
+        term.changelog = merged;
+    }
+    Ok(())
 }
 
 /// Read the constraint catalog from `<root>/generated/catalog/constraint-catalog.nq`
@@ -1150,7 +1308,7 @@ fn read_constraint_catalog(root: &Path) -> Result<Vec<ConstraintRule>, DocsError
 }
 
 /// Read the ontology's concept DOI from `<root>/metadata/gmeow-self.ttl`: the
-/// `dcterms:identifier` literal on the `gmeow:Work` subject (#1026). Returns
+/// `dcterms:identifier` literal on the `gmeow:Work` subject. Returns
 /// `None` if the file is absent, unparsable, or carries no Work DOI — the
 /// citation block degrades to the term-IRI permalink alone.
 fn read_concept_doi(root: &Path) -> Option<String> {
@@ -1203,7 +1361,7 @@ fn read_central_mapping_sets(root: &Path) -> Result<Vec<DocMappingSet>, DocsErro
 /// Parse Turtle bytes into the native [`Store`] query wrapper via the native
 /// codecs (the gmeow-gts codecs are lenient on GMEOW's `@x-gmeow-*` language
 /// tags). The store is kept for the term-extraction pattern queries; no oxigraph
-/// round-trip (EPIC #906).
+/// round-trip.
 pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
     Store::parse_turtle(bytes)
 }
@@ -1296,7 +1454,7 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
         box_roles.dedup();
         let box_role = box_roles.first().cloned();
 
-        // Per-term lifecycle (#1026): maturity badge (fully resolved with the
+        // Per-term lifecycle: maturity badge (fully resolved with the
         // owner-slice tier in hand), added-in version, and reified changelog.
         let stability = resolve_stability(store, &iri, tier);
         let added_in_version = first_literal(store, &iri, GMEOW_ADDED_IN_VERSION);
@@ -1329,6 +1487,9 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
             stability,
             added_in_version,
             changelog,
+            // The content-address is read from the committed term content manifest
+            // in `discover` (a disk-read leaf), not from the module graph.
+            content_digest: String::new(),
             // Profile membership needs the full slice set; computed in
             // `from_catalog`'s second pass.
             profiles: Vec::new(),
@@ -1337,7 +1498,7 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
     terms
 }
 
-/// Resolve a term's stability badge (#1026): an explicit `gmeow:termStability`
+/// Resolve a term's stability badge: an explicit `gmeow:termStability`
 /// annotation wins (the lowest-sorted CURIE when multiply asserted, a
 /// deterministic and conservative tiebreak); else `owl:deprecated true` →
 /// Deprecated; else the owner-slice tier default (extension → Experimental,
@@ -1368,7 +1529,7 @@ fn resolve_stability(store: &Store, iri: &str, tier: Option<&SliceTier>) -> DocT
     }
 }
 
-/// Extract a term's reified changelog entries (#1026): each
+/// Extract a term's reified changelog entries: each
 /// `?term gmeow:hasChangelogEntry ?entry` whose `?entry` carries a
 /// `gmeow:entryVersion` (required) and optional `gmeow:entryNote`. Sorted by
 /// `(version, note)`; oxigraph blank-node iteration order is not stable.
@@ -2130,7 +2291,7 @@ gmeow:hasOwner a owl:ObjectProperty ;
         assert!(extract_terms(&store, "s", None).is_empty());
     }
 
-    /// Stability derivation precedence (#1026): explicit `gmeow:termStability`
+    /// Stability derivation precedence: explicit `gmeow:termStability`
     /// wins; else `owl:deprecated`; else the owner-slice tier default.
     #[test]
     fn stability_resolves_by_precedence() {
@@ -2166,7 +2327,7 @@ gmeow:Explicit    a owl:Class ;
     }
 
     /// Reified changelog entries are parsed from blank nodes and sorted by
-    /// `(version, note)` (#1026); `addedInVersion` is the lowest literal.
+    /// `(version, note)`; `addedInVersion` is the lowest literal.
     #[test]
     fn changelog_entries_parse_and_sort() {
         let ttl = r#"

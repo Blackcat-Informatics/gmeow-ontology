@@ -175,10 +175,13 @@ fn graph_rep_for_path(path: &str) -> Option<GraphRep> {
     let iri = rdf_fanout_graph_iri(path)?;
     let form = if path.ends_with(".nt") {
         GraphForm::NTriples
-    } else if path == "generated/catalog/constraint-catalog.nq" {
-        // The catalog `.nq` carries its OWN fanout IRI as the 4th-column label (it is
-        // generated with that label, not the shared diagnostics one), so its
-        // reconstruction restamps back to the per-file fanout container.
+    } else if path == "generated/catalog/constraint-catalog.nq"
+        || path == "generated/catalog/term-content-manifest.nq"
+    {
+        // The catalog / term-manifest `.nq` carry their OWN fanout IRI as the
+        // 4th-column label (they are generated with that label, not the shared
+        // diagnostics one), so their reconstruction restamps back to the per-file
+        // fanout container.
         GraphForm::NQuadsSelf
     } else if path.ends_with(".nq") {
         // The diagnostics `.nq` carry the shared `graph/diagnostics` 4th-column label;
@@ -219,6 +222,10 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         // restamp to the shared `graph/diagnostics` label), so its reconstruction
         // restamps to its OWN fanout IRI (see `graph_rep_for_path`).
         || path == "generated/catalog/constraint-catalog.nq"
+        // The generated term content manifest: like the constraint catalog, its
+        // committed `.nq` carries its OWN fanout graph IRI as the 4th column, so it
+        // reconstructs via `GraphForm::NQuadsSelf` (see `graph_rep_for_path`).
+        || path == "generated/catalog/term-content-manifest.nq"
         // The non-EDOAL RDF projections; EDOAL keeps its dedicated graph/projections/.
         || path == "generated/projections/core-prefixes.ttl"
         || path == "generated/projections/functions.fno.ttl"
@@ -399,7 +406,7 @@ pub(crate) fn rdf_prefixes() -> Vec<(String, String)> {
 /// `.nt`/`.nq` graph) and the producing stage (emitting the committed file), so
 /// `file == fold` holds by construction — idempotent even with blank nodes.
 pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> Result<Vec<u8>, String> {
-    // Native RDFC-1.0 over the FLATTENED carrier (#910): the statement overlay is
+    // Native RDFC-1.0 over the FLATTENED carrier: the statement overlay is
     // re-materialized to plain `rdf:reifies`/annotation triples before canonicalizing.
     // Format-adaptive: a default-graph dataset yields N-Triples lines, a graph-labelled
     // one N-Quads — byte-identical to the prior oxigraph-flat path.
@@ -519,7 +526,7 @@ mod tests {
 
     #[test]
     fn rdfstar_closure_folds_byte_identically() {
-        // The reasoning closure is RDF-1.2 with thousands of ANONYMOUS reifiers (#1155).
+        // The reasoning closure is RDF-1.2 with thousands of ANONYMOUS reifiers.
         // With the parse (anon-reifier collapse), `rdf:reifies` interning, render
         // (side-table emission) and content-stable Triple-signature fixes, a per-file
         // carrier fold must reproduce the canonical bytes exactly.
