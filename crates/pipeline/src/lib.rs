@@ -29,6 +29,7 @@
 //! (single source of truth).
 
 pub mod bundle;
+pub mod bundle_blobs;
 pub mod cache;
 pub mod error;
 pub mod fanout;
