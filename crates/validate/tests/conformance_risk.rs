@@ -15,9 +15,9 @@ use rstest::rstest;
         .violations(&[
             "exactly one gmeow:hazardBearer",
             "at least one feared gmeow:manifestedAsType",
-            "antecedent and consequent must be distinct",
+            "gmeow:linkAntecedent and gmeow:linkConsequent must be distinct",
             "exactly one gmeow:causalModality",
-            "no causal link may reach itself",
+            "reach itself through gmeow:linkNext",
             "an ungraded cascade is just a story",
             "at least one gmeow:mitigationMeasure",
             "CausalLink (barrier on the chain) or a Hazard",
