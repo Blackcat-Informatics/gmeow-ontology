@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# OntoUML metamodel model — the MixRig anti-pattern (documented in the OntoUML
+# anti-pattern catalogue at https://ontouml.readthedocs.io/en/latest/anti-patterns/).
+#
+# A rigid sortal (kind/subkind) must never specialize an anti-rigid type (role,
+# phase, mixin, …): a rigid type cannot inherit contingent instantiation.
+# ex:SpecialCitizen is a rigid subkind whose ancestor ex:Voter is an anti-rigid
+# role, so it violates the discipline. The documented verdict is MixRig.
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini/mix-rig/> .
+
+ex:Voter          a ontouml:Class ; ontouml:stereotype ontouml:role .
+ex:SpecialCitizen a ontouml:Class ; ontouml:stereotype ontouml:subkind .
+
+ex:g1 a ontouml:Generalization ;
+    ontouml:general  ex:Voter ;
+    ontouml:specific ex:SpecialCitizen .
