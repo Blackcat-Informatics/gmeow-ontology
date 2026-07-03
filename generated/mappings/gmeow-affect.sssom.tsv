@@ -1,0 +1,48 @@
+# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool_version: 0.1.0
+# mapping_date: 2026-06-03
+# curie_map:
+#   bfo: http://purl.obolibrary.org/obo/
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   gmeow-goemotions: https://blackcatinformatics.ca/gmeow-registry/goemotions/
+#   gmeow-hf: https://blackcatinformatics.ca/gmeow-registry/hf/
+#   oa: http://www.w3.org/ns/oa#
+#   prov: http://www.w3.org/ns/prov#
+#   semapv: https://w3id.org/semapv/vocab/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   wd: http://www.wikidata.org/entity/
+subject_id	predicate_id	object_id	mapping_justification	confidence	comment
+gmeow-goemotions:anger	skos:closeMatch	gmeow:emotionAnger	semapv:ManualMappingCuration	0.9	
+gmeow-goemotions:desire	skos:closeMatch	gmeow:Desire	semapv:ManualMappingCuration	0.85	a conative label — GoEmotions 'desire' bridges to teleology's gmeow:Desire, not to any emotion type
+gmeow-goemotions:disgust	skos:closeMatch	gmeow:emotionDisgust	semapv:ManualMappingCuration	0.9	
+gmeow-goemotions:fear	skos:closeMatch	gmeow:emotionFear	semapv:ManualMappingCuration	0.9	
+gmeow-goemotions:grief	skos:broadMatch	gmeow:emotionSadness	semapv:ManualMappingCuration	0.8	grief is an intense, bereavement-scoped sadness — a narrower reading, so the GoEmotions label broad-matches the canonical sadness type
+gmeow-goemotions:joy	skos:closeMatch	gmeow:emotionJoy	semapv:ManualMappingCuration	0.9	
+gmeow-goemotions:sadness	skos:closeMatch	gmeow:emotionSadness	semapv:ManualMappingCuration	0.9	
+gmeow-goemotions:surprise	skos:closeMatch	gmeow:emotionSurprise	semapv:ManualMappingCuration	0.9	
+gmeow-hf:cardiffNegative	skos:relatedMatch	gmeow:dimensionValence	semapv:ManualMappingCuration	0.75	
+gmeow-hf:cardiffPositive	skos:relatedMatch	gmeow:dimensionValence	semapv:ManualMappingCuration	0.75	
+gmeow-hf:ekmanAnger	skos:closeMatch	gmeow:emotionAnger	semapv:ManualMappingCuration	0.9	
+gmeow-hf:ekmanDisgust	skos:closeMatch	gmeow:emotionDisgust	semapv:ManualMappingCuration	0.9	
+gmeow-hf:ekmanFear	skos:closeMatch	gmeow:emotionFear	semapv:ManualMappingCuration	0.9	
+gmeow-hf:ekmanJoy	skos:closeMatch	gmeow:emotionJoy	semapv:ManualMappingCuration	0.9	
+gmeow-hf:ekmanSadness	skos:closeMatch	gmeow:emotionSadness	semapv:ManualMappingCuration	0.9	
+gmeow-hf:ekmanSurprise	skos:closeMatch	gmeow:emotionSurprise	semapv:ManualMappingCuration	0.9	
+gmeow-hf:sst2Negative	skos:relatedMatch	gmeow:dimensionValence	semapv:ManualMappingCuration	0.75	SST-2 NEGATIVE is a valence appraisal of the target text (below midpoint), never an emotion — relatedMatch to the valence axis
+gmeow-hf:sst2Positive	skos:relatedMatch	gmeow:dimensionValence	semapv:ManualMappingCuration	0.75	SST-2 POSITIVE is a valence appraisal of the target text (above midpoint), never an emotion — relatedMatch to the valence axis
+gmeow:AffectClassifierOutput	skos:closeMatch	prov:Entity	semapv:ManualMappingCuration	0.85	
+gmeow:AffectiveExpression	skos:relatedMatch	oa:Annotation	semapv:ManualMappingCuration	0.7	an affective expression observed over a span is annotation-shaped; relatedMatch — an expression is evidence, not a bare annotation
+gmeow:Emotion	skos:closeMatch	bfo:MFOEM_000001	semapv:ManualMappingCuration	0.85	MFOEM_000001 'emotion process'; closeMatch — GMEOW's Emotion is the endurant mode, MFOEM's is the occurrent process, so not exact
+gmeow:Emotion	skos:closeMatch	wd:Q9415	semapv:ManualMappingCuration	0.85	wd:Q9415 'emotion'
+gmeow:ModelInferenceRun	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9	a model run is a prov:Activity; closeMatch, since GMEOW pins richer model provenance than PROV requires
+gmeow:classifiedTarget	skos:relatedMatch	oa:hasTarget	semapv:ManualMappingCuration	0.7	
+gmeow:emotionAnger	skos:closeMatch	bfo:MFOEM_000009	semapv:ManualMappingCuration	0.9	
+gmeow:emotionAnger	skos:closeMatch	wd:Q260704	semapv:ManualMappingCuration	0.85	wd:Q260704 'anger'
+gmeow:emotionDisgust	skos:closeMatch	bfo:MFOEM_000019	semapv:ManualMappingCuration	0.9	
+gmeow:emotionDisgust	skos:closeMatch	wd:Q208351	semapv:ManualMappingCuration	0.85	wd:Q208351 'disgust'
+gmeow:emotionFear	skos:closeMatch	bfo:MFOEM_000026	semapv:ManualMappingCuration	0.9	
+gmeow:emotionJoy	skos:closeMatch	bfo:MFOEM_000034	semapv:ManualMappingCuration	0.9	
+gmeow:emotionSadness	skos:closeMatch	bfo:MFOEM_000056	semapv:ManualMappingCuration	0.9	
+gmeow:emotionSurprise	skos:closeMatch	bfo:MFOEM_000032	semapv:ManualMappingCuration	0.9	
+gmeow:producedBy	skos:closeMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.9	
+gmeow:usedInput	skos:closeMatch	prov:used	semapv:ManualMappingCuration	0.9	
