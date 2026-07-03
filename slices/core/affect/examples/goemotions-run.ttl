@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Worked example: a GoEmotions classifier output ingested LOSSLESSLY as attributed
+# evidence — a pinned model run, one emitted output (the exact external label +
+# raw sigmoid score + score semantics + threshold), supporting a richer affective
+# claim. Evidence, never inner-state truth: the output supports the claim, it does
+# not entail it.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:analyst a gmeow:Person ; rdfs:label "the analyst"@en .
+ex:author a gmeow:Person ; rdfs:label "the comment author"@en .
+ex:chunk rdfs:label "the classified comment span"@en .
+
+ex:goEmotionsRun a gmeow:ModelInferenceRun ;
+    rdfs:label "a GoEmotions inference run"@en ;
+    gmeow:modelIdentifier "SamLowe/roberta-base-go_emotions" ;
+    gmeow:modelRevision "a1b2c3d4e5f6" ;
+    gmeow:modelFramework "transformers" ;
+    gmeow:modelTask "text-classification" ;
+    gmeow:usedInput ex:chunk .
+
+ex:joyOutput a gmeow:AffectClassifierOutput ;
+    rdfs:label "the emitted joy output"@en ;
+    gmeow:vantage ex:goEmotionsRun ;
+    gmeow:producedBy ex:goEmotionsRun ;
+    gmeow:classifiedTarget ex:chunk ;
+    gmeow:emittedLabel gmeow-goemotions:joy ;
+    gmeow:classifierScore 0.84 ;
+    gmeow:scoreSemantics gmeow:scoreSigmoid ;
+    gmeow:thresholdApplied 0.5 ;
+    gmeow:supportsAffectiveClaim ex:joyExpressedClaim .
+
+# The evidence/claim boundary: the output SUPPORTS this claim, never entails it.
+ex:joyExpressedClaim a gmeow:AffectiveClaim ;
+    rdfs:label "the text expresses joy"@en ;
+    gmeow:vantage ex:analyst ;
+    gmeow:observedFeature ex:chunk .

@@ -32,11 +32,21 @@ ex:sublimeReading a gmeow:Appraisal ;
     gmeow:appraisalOf ex:novel ;
     gmeow:appraisalQuality gmeow:qualitySublimity .
 
+# A dimensional reading always carries its declared scale/frame (Principle 11): the
+# magnitude 0.9 is meaningless without the profile it is read against.
+ex:padUnitScale a gmeow:AffectScaleProfile ;
+    rdfs:label "PAD unit scale"@en ;
+    gmeow:profileRangeMin -1.0 ;
+    gmeow:profileRangeMax 1.0 ;
+    gmeow:profileMidpoint 0.0 ;
+    gmeow:profilePolarity gmeow:polarityBipolar .
+
 ex:arousalReading a gmeow:Appraisal ;
     gmeow:vantage ex:criticA ;
     gmeow:appraisalOf ex:novel ;
     gmeow:appraisalDimension gmeow:dimensionArousal ;
-    gmeow:appraisalValue 0.9 .
+    gmeow:appraisalValue 0.9 ;
+    gmeow:appraisalScaleProfile ex:padUnitScale .
 
 ex:kitschReading a gmeow:Appraisal ;
     gmeow:vantage ex:criticB ;

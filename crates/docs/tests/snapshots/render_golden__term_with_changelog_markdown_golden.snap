@@ -2,47 +2,55 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Affective Moment
+# Affect Composite
 
-`gmeow:AffectiveMoment` · Class
+`gmeow:AffectComposite` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AffectiveMoment` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AffectiveMoment` |
+| CURIE | `gmeow:AffectComposite` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AffectComposite` |
 | Category | Class |
 | Slice | [GMEOW Affect Module](../../slices/affect/index.md) |
 
-![completeness: Docs 5/6](../../badges/completeness/5.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Category](../../badges/stereotype/category.svg)
+![completeness: Docs 5/6](../../badges/completeness/5.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: SubKind](../../badges/stereotype/subkind.svg)
 
 ## Definition
 
-The abstract affective member of the kernel gmeow:MentalMoment family \(alongside cognition's gmeow:CognitiveState, epistemics' doxastic states, and teleology's gmeow:IntentionalMode\) — intrinsic affective modes inhering in one agent, so an agent's whole mental life, including what it feels, is queryable as one family \(Principles 14, 15\)\. Never instantiated directly: instances are Emotions \(the fuller model specifies Moods and affective dispositions\)\.
+A named emotion whose meaning is given by a DECLARED composition — a core\-affect vector bound by relations to its elicitor, target, agency attribution, norm, and, where relevant, other emotions — rather than left as an unanalyzed primitive\. GMEOW models up: schadenfreude and saudade are structure over the foundational axes and relations, not new primitive EmotionTypes\. A composite MUST carry its decomposition via gmeow:affectiveConstituent \(SHACL\); if a quality cannot be decomposed into the current axes, that is evidence the axis basis is incomplete \(add an axis\), never a licence for an opaque primitive\.
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/affectivemoment.svg)
+![Term neighborhood](../../diagrams/terms/affectcomposite.svg)
 
 ## Super\-classes
 
-- [`gmeow:Entity`](../entity/index.md)
-- [`gmeow:MentalMoment`](../mentalmoment/index.md)
+- [`gmeow:Emotion`](../emotion/index.md)
 
 ## Usage Advice
 
-- **Scope:** The affective branch of gmeow:MentalMoment; groups the affective MODES \(endurants\)\. NOT the occurrent felt episode — that is the perdurant gmeow:AffectiveExperience \(under mentation's gmeow:Experience\), which realizes such a mode via gmeow:feltAffect\.
-- **Example:** ex:awe a gmeow:Emotion ; gmeow:emotionBearer ex:reader \.  \# an AffectiveMoment by inheritance
-- **Use when:** Use as the shared parent for an agent's affective modes, or to query the whole affective branch of an agent's mental life as one family \(Principles 14, 15\)\.
-- **Avoid when:** Avoid instantiating it directly \(type the specific mode — an Emotion, and later a Mood or affective disposition\); and avoid it for the occurrent felt EPISODE, which is gmeow:AffectiveExperience \(a perdurant\), not a MentalMoment\.
-- **How to use:** Subclass the concrete affective mode \(gmeow:Emotion, later gmeow:Mood\) under it, so one agent\-memory query over gmeow:MentalMoment returns an agent's feelings alongside its knowings, beliefs, and intentions\.
+- **Scope:** A named region/composite in the affect landscape \(⊑ gmeow:Emotion, so it inherits the mode/bearer/target/elicitor surface\)\. The composite layer stays analysable; the expressive power stays total\.
+- **Example:** ex:schadenfreude a gmeow:AffectComposite ; gmeow:emotionBearer ex:agent ; gmeow:affectiveConstituent ex:positiveCoreVector , ex:otherMisfortuneElicited \.
+- **Use when:** Use for a culturally salient named affect \(schadenfreude, saudade\) minted for developer utility and mapping ONLY when it carries its declared decomposition links\.
+- **Avoid when:** Avoid it for an unanalyzed primitive feeling \(mint no opaque emotionX — either decompose it here or add the missing axis\) and for the felt EPISODE \(that is gmeow:AffectiveExperience\)\.
+- **How to use:** Type the named compound gmeow:AffectComposite, bind its bearer, and declare its decomposition with gmeow:affectiveConstituent — a gmeow:AffectVectorObservation for the core\-affect signature plus the elicitor/target/agency/norm relations that differentiate it\.
 
 ## Logic stereotypes
 
-`logic:Category` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:SubKind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
 [TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
+
+## Constraints
+
+- An AffectComposite must declare at least one gmeow:affectiveConstituent — a named compound with no decomposition is a forbidden unanalyzed primitive \(model up from axes, or add the missing axis\)\.
+
+## Examples using this term
+
+- [PAD unit scale](../../slices/affect/index.md) — `examples/saudade.ttl`
+- [PAD unit scale](../../slices/affect/index.md) — `examples/schadenfreude.ttl`
 
 ## Stability
 
@@ -64,6 +72,6 @@ The abstract affective member of the kernel gmeow:MentalMoment family \(alongsid
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AffectiveMoment>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AffectiveMoment@blake3:ca00a8d4db555080f067a8f07ee1bf9d9b971a821d0c0470c8ff5e1c968f8ae6`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/AffectComposite>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AffectComposite@blake3:5f5ed61dcf7e41e5000b466787c4e4b459192300df61ac6bfdeb8965eae72285`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
