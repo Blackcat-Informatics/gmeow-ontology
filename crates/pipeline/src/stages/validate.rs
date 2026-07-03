@@ -29,7 +29,7 @@ pub const SHACL_HTML_PATH: &str = "generated/diagnostics/shacl.html";
 pub const SHACL_RDF_PATH: &str = "generated/diagnostics/shacl.nq";
 
 /// Convert the native SHACL engine report into the canonical diagnostics report.
-fn diagnostics_report(report: &gmeow_shacl::report::ValidationReport) -> Report {
+fn diagnostics_report(report: &purrdf::shapes::report::ValidationReport) -> Report {
     let mut out = Report::new("shacl");
     out.metadata.insert("category".to_owned(), json!("shacl"));
     out.metadata
@@ -81,12 +81,12 @@ fn render_artifacts(report: &Report) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
 pub fn validate_source_graph(root: &Path, source_nquads: &[u8]) -> Result<Report, PipelineError> {
     // Parse the source graph into the native IR and validate it directly through the
     // native SHACL engine (`validate_dataset`), oxigraph-free (EPIC #906).
-    let dataset = gmeow_rdf::parse_dataset(source_nquads, "application/n-quads", None)
+    let dataset = purrdf::parse_dataset(source_nquads, "application/n-quads", None)
         .map_err(|e| PipelineError::Parse(format!("source graph parse: {e}")))?;
     let (_shape_store, shapes) =
-        gmeow_shacl::shape_union::load_shapes(root).map_err(PipelineError::Parse)?;
-    let report =
-        gmeow_shacl::engine::validate_dataset(&dataset, &shapes).map_err(PipelineError::Parse)?;
+        purrdf::shapes::shape_union::load_shapes(root).map_err(PipelineError::Parse)?;
+    let report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
+        .map_err(PipelineError::Parse)?;
     Ok(diagnostics_report(&report))
 }
 
@@ -122,7 +122,7 @@ impl Stage for ValidateStage {
         "validate.v1-shacl-diagnostics"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
-        gmeow_shacl::shape_union::shape_files(root).map_err(PipelineError::Parse)
+        purrdf::shapes::shape_union::shape_files(root).map_err(PipelineError::Parse)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let source_graph = input

@@ -1,0 +1,6 @@
+{
+  "https://example.org/coreference/counterpart-not-transitive/world": {
+    "quads": 4,
+    "status": "consistent"
+  }
+}

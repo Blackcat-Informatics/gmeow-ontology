@@ -4,14 +4,14 @@
 //! PyO3-free RDF ingestion for the validation lints (native `RdfDataset` IR, #906).
 //!
 //! Every validation engine (coverage, lint, gUFO, statement, constitution, the DSL
-//! SHACL merge, the data-graph path) reads a frozen [`gmeow_rdf::RdfDataset`]: the
+//! SHACL merge, the data-graph path) reads a frozen [`purrdf::RdfDataset`]: the
 //! sources are parsed once with the native gmeow-rdf codecs ([`parse_dataset`]),
-//! merged under per-file blank scopes via [`gmeow_rdf::RdfDatasetBuilder`], and
-//! queried through the indexed [`gmeow_rdf::DatasetView::quads_for_pattern`]. The
+//! merged under per-file blank scopes via [`purrdf::RdfDatasetBuilder`], and
+//! queried through the indexed [`purrdf::DatasetView::quads_for_pattern`]. The
 //! SHACL engine is itself native ([`shacl_validate_dataset`]).
 //!
 //! This module is fully oxigraph-free (#906): every helper returns or queries the
-//! native [`gmeow_rdf::RdfDataset`]. The transitional oxigraph `Store` construction
+//! native [`purrdf::RdfDataset`]. The transitional oxigraph `Store` construction
 //! that still backs the PyO3 `ValidationStore`/`_store_capsule` lives entirely in
 //! [`crate::py`]; the final rdf pass removes it when the rdf `py_store` goes native.
 //!
@@ -23,7 +23,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_rdf::{parse_dataset, RdfDataset, RdfDatasetBuilder};
+use purrdf::{parse_dataset, RdfDataset, RdfDatasetBuilder};
 
 use crate::model::owl;
 
@@ -35,9 +35,9 @@ use crate::model::owl;
 /// infallible for a frozen, validated dataset.
 pub fn shacl_validate_dataset(
     dataset: &RdfDataset,
-    shapes: &gmeow_shacl::shapes::Shapes,
-) -> gmeow_shacl::report::ValidationReport {
-    gmeow_shacl::engine::validate_dataset(dataset, shapes)
+    shapes: &purrdf::shapes::shapes::Shapes,
+) -> purrdf::shapes::report::ValidationReport {
+    purrdf::shapes::engine::validate_dataset(dataset, shapes)
         .expect("validation over a frozen dataset is infallible")
 }
 
@@ -96,7 +96,7 @@ pub fn dataset_from_nt(data_nt: &str) -> Result<Arc<RdfDataset>, String> {
 /// Build a frozen native [`RdfDataset`] from a GTS byte bundle, flattening every named
 /// graph into the default graph (so the lints/shapes see the whole graph).
 ///
-/// Routes through the oxigraph-free [`gmeow_rdf::gts::flattened_dataset_from_bytes`]:
+/// Routes through the oxigraph-free [`purrdf::gts::flattened_dataset_from_bytes`]:
 /// `read_all_segments` → the native statement-layer fold → `freeze` with every quad
 /// re-homed to the default graph. A non-empty diagnostic list is a hard failure.
 ///
@@ -105,7 +105,7 @@ pub fn dataset_from_nt(data_nt: &str) -> Result<Arc<RdfDataset>, String> {
 /// Returns `Err(message)` if the GTS fold reports any diagnostics or the projected
 /// quads cannot be folded into the IR.
 pub fn dataset_from_gts(bytes: &[u8]) -> Result<Arc<RdfDataset>, String> {
-    gmeow_rdf::gts::flattened_dataset_from_bytes(bytes).map_err(|e| e.to_string())
+    purrdf::gts::flattened_dataset_from_bytes(bytes).map_err(|e| e.to_string())
 }
 
 /// Render a resolved subject term the way the legacy `_ox_term_display` did:
@@ -114,8 +114,8 @@ pub fn dataset_from_gts(bytes: &[u8]) -> Result<Arc<RdfDataset>, String> {
 /// A triple subject is exactly an IRI or a blank node in well-formed RDF; a
 /// literal/triple subject stringifies defensively (never reached on the validation
 /// path).
-pub fn subject_display(subject: gmeow_rdf::TermRef<'_>) -> String {
-    use gmeow_rdf::TermRef;
+pub fn subject_display(subject: purrdf::TermRef<'_>) -> String {
+    use purrdf::TermRef;
     match subject {
         TermRef::Iri(iri) => iri.to_owned(),
         TermRef::Blank { label, .. } => format!("_:{label}"),
@@ -136,7 +136,7 @@ pub fn sameas_violations(
     namespace: &str,
     allowlist: &[(String, String)],
 ) -> Vec<(String, String)> {
-    use gmeow_rdf::{DatasetView, GraphMatch, TermRef, TermValue};
+    use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
     let Some(sameas_id) = dataset.term_id_by_value(&TermValue::iri(owl::SAME_AS)) else {
         return Vec::new();
@@ -161,7 +161,7 @@ pub fn sameas_violations(
     out
 }
 
-/// Parse GTS bytes into a [`gmeow_gts::model::Graph`].
+/// Parse GTS bytes into a [`purrdf::gts::model::Graph`].
 ///
 /// Folds the GTS bytes with all segments enabled (`allow_segments = true`). Any
 /// non-empty diagnostic list is treated as a hard failure (fail-fast) so callers
@@ -171,8 +171,8 @@ pub fn sameas_violations(
 ///
 /// Returns `Err(message)` if the GTS fold reports any diagnostics (corruption,
 /// truncation, empty input, or unfolded segments).
-pub fn read_gts_graph(bytes: &[u8]) -> Result<gmeow_gts::model::Graph, String> {
-    gmeow_rdf::gts::read_all_segments(bytes).map_err(|e| e.to_string())
+pub fn read_gts_graph(bytes: &[u8]) -> Result<purrdf::gts::model::Graph, String> {
+    purrdf::gts::read_all_segments(bytes).map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -185,7 +185,7 @@ mod tests {
         path
     }
 
-    use gmeow_rdf::{DatasetView, GraphMatch};
+    use purrdf::{DatasetView, GraphMatch};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -299,10 +299,10 @@ mod tests {
 
     #[test]
     fn dataset_from_gts_loads_single_triple_in_default_graph() {
-        use gmeow_gts::model::{Term, TermKind};
-        use gmeow_gts::writer::Writer;
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
 
-        let mut graph = gmeow_gts::model::Graph::default();
+        let mut graph = purrdf::gts::model::Graph::default();
         for iri in [
             "https://example.org/s",
             "https://example.org/p",
@@ -342,13 +342,13 @@ mod tests {
 
     #[test]
     fn dataset_from_gts_accepts_private_lang_tag_and_flattens_named_graph() {
-        use gmeow_gts::model::{Term, TermKind};
-        use gmeow_gts::writer::Writer;
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
 
         // A literal with a private-use `@x-gmeow-*` tag (BCP-47 subtag > 8 chars)
         // in a NAMED graph. The lenient native fold must accept the tag and collapse
         // the named graph into the default graph (#644).
-        let mut graph = gmeow_gts::model::Graph::default();
+        let mut graph = purrdf::gts::model::Graph::default();
         for value in ["https://example.org/s", "https://example.org/p"] {
             graph.terms.push(Term {
                 kind: TermKind::Iri,
@@ -390,7 +390,7 @@ mod tests {
             .next()
             .expect("one default-graph quad");
         match ds.resolve(q.o) {
-            gmeow_rdf::TermRef::Literal { language, .. } => {
+            purrdf::TermRef::Literal { language, .. } => {
                 assert_eq!(language, Some("x-gmeow-afrikaans"), "lang tag preserved");
             }
             other => panic!("object must be a literal, got {other:?}"),
@@ -433,10 +433,10 @@ mod tests {
 
     #[test]
     fn read_gts_graph_populates_segment_heads() {
-        use gmeow_gts::model::{Term, TermKind};
-        use gmeow_gts::writer::Writer;
+        use purrdf::gts::model::{Term, TermKind};
+        use purrdf::gts::writer::Writer;
 
-        let mut graph = gmeow_gts::model::Graph::default();
+        let mut graph = purrdf::gts::model::Graph::default();
         graph.terms.push(Term {
             kind: TermKind::Iri,
             value: Some("https://example.org/s".to_owned()),

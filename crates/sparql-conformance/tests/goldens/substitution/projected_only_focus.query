@@ -1,1 +1,0 @@
-SELECT ?this WHERE { ?this <http://ex/knows> ?o }

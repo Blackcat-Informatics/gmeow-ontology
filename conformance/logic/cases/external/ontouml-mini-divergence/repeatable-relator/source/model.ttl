@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# documented-antipattern: RepRel (Repeatable Relator)
+#
+# OntoUML metamodel model — the RepRel anti-pattern (documented in the OntoUML
+# anti-pattern catalogue at https://ontouml.readthedocs.io/en/latest/anti-patterns/):
+# a relator whose mediation multiplicities allow the SAME pair of relata to be
+# connected by more than one instance of the relator (an unintended repeatable
+# relationship). Detecting RepRel requires reasoning over mediation MULTIPLICITIES,
+# which the five native structural disciplines do not carry.
+#
+# This model lowers cleanly and fires NO native discipline: ex:Enrolment is a
+# well-formed relator mediating two distinct entities, so RelComp abstains. The
+# documented RepRel verdict is therefore an HONEST COVERAGE GAP — the native
+# disciplines cannot yet reproduce it — pinned by the divergence gate and feeding
+# the formalization backlog, never a silently wrong verdict.
+
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix ex:      <https://gmeow.example/ontouml-mini-divergence/repeatable-relator/> .
+
+ex:Person    a ontouml:Class ; ontouml:stereotype ontouml:kind .
+ex:Course    a ontouml:Class ; ontouml:stereotype ontouml:kind .
+ex:Student   a ontouml:Class ; ontouml:stereotype ontouml:role .
+ex:Offering  a ontouml:Class ; ontouml:stereotype ontouml:role .
+ex:Enrolment a ontouml:Class ; ontouml:stereotype ontouml:relator .
+
+ex:g1 a ontouml:Generalization ;
+    ontouml:general  ex:Person ;
+    ontouml:specific ex:Student .
+ex:g2 a ontouml:Generalization ;
+    ontouml:general  ex:Course ;
+    ontouml:specific ex:Offering .
+
+ex:med a ontouml:Relation ;
+    ontouml:stereotype  ontouml:mediation ;
+    ontouml:relatorEnd  ex:Enrolment ;
+    ontouml:mediatedEnd ex:Student ,
+                        ex:Offering .

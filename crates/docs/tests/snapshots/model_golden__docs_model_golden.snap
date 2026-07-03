@@ -4,15 +4,15 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "5",
+  "version": "7",
   "slice_count": 75,
-  "term_count": 2276,
-  "dependency_edge_count": 805,
+  "term_count": 2335,
+  "dependency_edge_count": 849,
   "term_count_by_category": {
-    "Class": 686,
+    "Class": 705,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1586
+    "Property": 1626
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -141,8 +141,8 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "7a6add3719932a36dc535d90998abed130f11755ce618bfcb7c978d87fe76a78",
-        "semantic_digest": "31c3e9efc13c4011259729291ade793f98c3bcc1584cbb63df84be3e440d6c3d"
+        "raw_digest": "f92829a3a938a0f5951c953fae21041d32666b6fa1378621df8ddbc4113a4076",
+        "semantic_digest": "fc5669686ccdda45a89af6a954748a6dc4fc0cf1af3571c2f496c9eea3608d22"
       },
       {
         "role": "TestDsl",
@@ -192,8 +192,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:d6470c559d25036e50b4d84de570b8ba8dedd056a39e7e972c5cf5f92d744a2d",
       "profiles": [
         "claims",
         "dreaming",
@@ -241,8 +242,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:4f5b4ea54d5738f764aab4111804bd4ffb80874d178369db4b84a72c8495b12c",
       "profiles": [
         "claims",
         "dreaming",
@@ -278,8 +280,9 @@ expression: summary
       ],
       "formalized_by": [],
       "stability": "stable",
-      "added_in_version": null,
+      "added_in_version": "0.1.0",
       "changelog": [],
+      "content_digest": "blake3:9377d5bb8e26abf8a92e498d619ffdf9307be63122874c3230d1853052a68c68",
       "profiles": [
         "claims",
         "dreaming",
@@ -290,11 +293,11 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 54,
-  "linkage_count": 1400,
-  "example_count": 110,
+  "mapping_set_count": 71,
+  "linkage_count": 1810,
+  "example_count": 115,
   "concern_count": 7,
-  "external_term_count": 1237,
+  "external_term_count": 1554,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -306,14 +309,14 @@ expression: summary
     "equivalence_count": 14
   },
   "sample_linkage": {
-    "mapping_set": "https://blackcatinformatics.ca/gmeow/mapsetNarrative",
-    "subject": "http://www.wikidata.org/entity/Q15706943",
-    "subject_curie": "http://www.wikidata.org/entity/Q15706943",
+    "mapping_set": "https://blackcatinformatics.ca/gmeow/mapsetClasses",
+    "subject": "http://id.loc.gov/ontologies/bibframe/Work",
+    "subject_curie": "http://id.loc.gov/ontologies/bibframe/Work",
     "predicate": "http://www.w3.org/2004/02/skos/core#closeMatch",
-    "object": "https://blackcatinformatics.ca/gmeow/NarrativeReferenceFrame",
+    "object": "https://blackcatinformatics.ca/gmeow/CreativeWork",
     "justification": "https://w3id.org/semapv/vocab/ManualMappingCuration",
     "confidence": 0.8,
-    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/narrative"
+    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/documents"
   },
   "sample_example": {
     "slice": "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -412,8 +415,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 291,
-  "competency_count": 53,
+  "shape_count": 299,
+  "competency_count": 63,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
@@ -423,21 +426,13 @@ expression: summary
     "owner_slice": "root"
   },
   "sample_competency": {
-    "iri": "https://blackcatinformatics.ca/gmeow/examples/citations/tests/cqCitationIntents",
-    "rationale": "GMEOW must model citation intents (CiTO-aligned): cites-as-data-source, uses-method-in, extends, is-inspired-by, conforms-to, derived-from, documents, supports, disagrees-with, bridged-by-reference.",
-    "query_file": "queries/competency/citation-intents.rq",
+    "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqCompositeDecomposition",
+    "rationale": "A named emotion is modeled UP, not minted: schadenfreude decomposes into a positive core-affect vector over another agent's misfortune with an other-directed agency structure. The query projects the per-axis readings that decompose the composite — answering 'is this schadenfreude a positive vector over another's misfortune?' directly from the data (positive valence AND other-directed negative agency).",
+    "query_file": "slices/core/affect/queries/competency/composite-decomposition.rq",
     "exercises": [
-      "https://blackcatinformatics.ca/gmeow/intentBridgedByReference",
-      "https://blackcatinformatics.ca/gmeow/intentCitesAsDataSource",
-      "https://blackcatinformatics.ca/gmeow/intentConformsTo",
-      "https://blackcatinformatics.ca/gmeow/intentDerivedFrom",
-      "https://blackcatinformatics.ca/gmeow/intentDisagreesWith",
-      "https://blackcatinformatics.ca/gmeow/intentDocuments",
-      "https://blackcatinformatics.ca/gmeow/intentExtends",
-      "https://blackcatinformatics.ca/gmeow/intentIsInspiredBy",
-      "https://blackcatinformatics.ca/gmeow/intentSupports",
-      "https://blackcatinformatics.ca/gmeow/intentUsesMethodIn"
+      "https://blackcatinformatics.ca/gmeow/dimensionAgency",
+      "https://blackcatinformatics.ca/gmeow/dimensionValence"
     ],
-    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/citations"
+    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/affect"
   }
 }

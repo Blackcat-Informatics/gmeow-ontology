@@ -5,7 +5,17 @@ Principles 4, 5, 8, 9, 11, 16.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
+from purrdf.compat.rdflib import (
+    OWL,
+    RDF,
+    RDFS,
+    SKOS,
+    Graph,
+    Literal,
+    Namespace,
+    URIRef,
+)
+from purrdf.compat.rdflib.namespace import XSD
 from tests._graph_nt import run_shacl
 
 from gmeow_tools.graph import load_merged_graph
@@ -200,6 +210,27 @@ def test_instrument_configuration_valid_with_type_passes_shacl() -> None:
         (config, GMEOW.configurationModification, GMEOW.instrumentModificationPrepared)
     )
     g.add((config, GMEOW.configurationTuningFrame, GMEOW.tuningSystem12EDO))
+    # Standalone fixture (no ontology import): the generated sh:class range shapes
+    # need the referenced value individuals typed in-graph, and TuningSystemShape
+    # then requires the tuning-system frame descriptors (values copied verbatim
+    # from slices/extensions/music/module.ttl, gmeow:tuningSystem12EDO). Honest
+    # ABox completion (P11), no fabrication.
+    g.add(
+        (GMEOW.instrumentModificationPrepared, RDF.type, GMEOW.InstrumentModification)
+    )
+    g.add((GMEOW.tuningSystem12EDO, RDF.type, GMEOW.TuningSystem))
+    g.add(
+        (GMEOW.tuningSystem12EDO, GMEOW.tuningKind, GMEOW.tuningSystemKindEqualDivision)
+    )
+    g.add((GMEOW.tuningSystem12EDO, GMEOW.frameRealm, GMEOW.frameRealmMusicalPitch))
+    g.add((GMEOW.tuningSystem12EDO, GMEOW.frameKind, GMEOW.frameKindScalar))
+    g.add(
+        (
+            GMEOW.tuningSystem12EDO,
+            GMEOW.requiresHost,
+            Literal(False, datatype=XSD.boolean),
+        )
+    )
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 
@@ -215,6 +246,22 @@ def test_instrument_configuration_valid_with_item_passes_shacl() -> None:
     g.add((config, GMEOW.configurationModification, GMEOW.instrumentModificationCapo))
     g.add((config, GMEOW.configurationTuningFrame, GMEOW.tuningSystem12EDO))
     g.add((config, GMEOW.configurationInterval, GMEOW.pitchIntervalMajorSecondDown))
+    # Standalone fixture: type + complete the referenced value individuals in-graph
+    # (tuning-system descriptors copied from module.ttl gmeow:tuningSystem12EDO) (P11).
+    g.add((GMEOW.instrumentModificationCapo, RDF.type, GMEOW.InstrumentModification))
+    g.add((GMEOW.tuningSystem12EDO, RDF.type, GMEOW.TuningSystem))
+    g.add(
+        (GMEOW.tuningSystem12EDO, GMEOW.tuningKind, GMEOW.tuningSystemKindEqualDivision)
+    )
+    g.add((GMEOW.tuningSystem12EDO, GMEOW.frameRealm, GMEOW.frameRealmMusicalPitch))
+    g.add((GMEOW.tuningSystem12EDO, GMEOW.frameKind, GMEOW.frameKindScalar))
+    g.add(
+        (
+            GMEOW.tuningSystem12EDO,
+            GMEOW.requiresHost,
+            Literal(False, datatype=XSD.boolean),
+        )
+    )
     result = run_shacl(g)
     assert result.ok, _error_text(result)
 
@@ -281,5 +328,28 @@ def test_instrument_configuration_compound_modification_passes_shacl() -> None:
         )
     )
     g.add((config, GMEOW.configurationTuningFrame, GMEOW.tuningSystem12EDO))
+    # Standalone fixture: type + complete the referenced value individuals in-graph
+    # (tuning-system descriptors copied from module.ttl gmeow:tuningSystem12EDO) (P11).
+    g.add((GMEOW.instrumentModificationMute, RDF.type, GMEOW.InstrumentModification))
+    g.add(
+        (
+            GMEOW.instrumentModificationElectrified,
+            RDF.type,
+            GMEOW.InstrumentModification,
+        )
+    )
+    g.add((GMEOW.tuningSystem12EDO, RDF.type, GMEOW.TuningSystem))
+    g.add(
+        (GMEOW.tuningSystem12EDO, GMEOW.tuningKind, GMEOW.tuningSystemKindEqualDivision)
+    )
+    g.add((GMEOW.tuningSystem12EDO, GMEOW.frameRealm, GMEOW.frameRealmMusicalPitch))
+    g.add((GMEOW.tuningSystem12EDO, GMEOW.frameKind, GMEOW.frameKindScalar))
+    g.add(
+        (
+            GMEOW.tuningSystem12EDO,
+            GMEOW.requiresHost,
+            Literal(False, datatype=XSD.boolean),
+        )
+    )
     result = run_shacl(g)
     assert result.ok, _error_text(result)

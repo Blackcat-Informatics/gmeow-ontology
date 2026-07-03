@@ -1,0 +1,21 @@
+# Harvest back-link paired: the harvest link is a pair — logic:candidateFormalizes
+# (which prose-bearing term) and logic:candidateSourceField (which of that term's
+# annotation fields). A candidate carrying exactly ONE of the two records a
+# half-link: a term with no field, or a field with no term, neither of which pins
+# the harvested axiom to an exact source triple. The link is optional (a candidate
+# whose source is a doc section carries neither), but a partial link is a hard
+# governance error, never a silent pass. Any returned row is a violation
+# (LOGIC-FOUNDATION.md, §Typed formalization governance).
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?candidate WHERE {
+    ?candidate a logic:FormalizationCandidate .
+    {
+        ?candidate logic:candidateFormalizes ?term .
+        FILTER NOT EXISTS { ?candidate logic:candidateSourceField ?field }
+    } UNION {
+        ?candidate logic:candidateSourceField ?field .
+        FILTER NOT EXISTS { ?candidate logic:candidateFormalizes ?term }
+    }
+}
+ORDER BY ?candidate

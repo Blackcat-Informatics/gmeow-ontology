@@ -2126,8 +2126,8 @@ gmeow:SelfPrivateEvidenceWarningShape
     a sh:NodeShape ;
     rdfs:label "Self/private-only evidence warning shape"@x-gmeow-english ;
     sh:targetClass gmeow:CitationAct ;
-    sh:severity sh:Warning ;   # NodeShape-level so the SHACL engine honors it (a source may lag the flag)
     sh:sparql [
+        sh:severity sh:Warning ;   # on the constraint, where conformant SHACL honors it (a source may lag the flag)
         sh:message "This citation relies solely on self-asserted or private evidence from a self/issuer-originated source — consider suppressing it from public projections (Principle 10)." ;
         sh:select """
             SELECT $this WHERE {
@@ -4072,6 +4072,43 @@ gmeow:EmotionShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "An Emotion must carry at least one gmeow:emotionType (an IRI — the vocabulary is OPEN per Principle 9: blended emotions and rival traditions coexist)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:affectiveElicitor ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:affectiveElicitor must be an IRI — the event/state/act that triggered the emotion (open range)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:affectiveTarget ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:affectiveTarget must be an IRI — the emotion's intentional object (open range)." ;
+    ] .
+
+gmeow:AffectiveExperienceShape
+    a sh:NodeShape ;
+    rdfs:label "Affective Experience Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectiveExperience ;
+    sh:property [
+        sh:path gmeow:experiencer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectiveExperience must have exactly one gmeow:experiencer — the agent undergoing the felt episode (a mental occurrent inheres in exactly one agent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:mentalProcessType ;
+        sh:hasValue gmeow:processAffectiveExperience ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectiveExperience must carry gmeow:mentalProcessType gmeow:processAffectiveExperience (the pinned occurrent kind — assert it explicitly; SHACL does not infer the OWL hasValue restriction)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:feltAffect ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectiveExperience must realize at least one affective mode via gmeow:feltAffect (an IRI — a felt episode realizes some gmeow:AffectiveMoment by definition)." ;
     ] .
 
 gmeow:AppraisalShape
@@ -4109,7 +4146,26 @@ gmeow:AppraisalShape
         sh:maxCount 1 ;
         sh:datatype xsd:decimal ;
         sh:severity sh:Violation ;
-        sh:message "An Appraisal carries at most one decimal gmeow:appraisalValue, with its dimension." ;
+        sh:message "An Appraisal carries at most one decimal gmeow:appraisalValue, with its dimension AND its scale profile." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:appraisalScaleProfile ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:AffectScaleProfile ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:appraisalScaleProfile names exactly one gmeow:AffectScaleProfile IRI — never a literal, a blank node, or a non-profile IRI (the reshape's frame must actually be a frame, Principle 6)." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A dimensional appraisal reading is unframed: gmeow:appraisalValue requires a gmeow:appraisalScaleProfile (the greenfield reshape removed the bare-decimal floor — an unframed magnitude is ill-formed, Principle 6/11)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ?p . }
+            }
+        """ ;
     ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -4137,6 +4193,223 @@ gmeow:AppraisalShape
                 UNION
                 { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d .
                   FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v . } }
+            }
+        """ ;
+    ] .
+
+gmeow:AffectScaleProfileShape
+    a sh:NodeShape ;
+    rdfs:label "Affect Scale Profile Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectScaleProfile ;
+    sh:property [
+        sh:path gmeow:profileRangeMin ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectScaleProfile must declare exactly one gmeow:profileRangeMin — a frame with no range declares nothing (Principle 11)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:profileRangeMax ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectScaleProfile must declare exactly one gmeow:profileRangeMax — a frame with no range declares nothing (Principle 11)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:profilePolarity ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:profilePolarity names at most one gmeow:ScalePolarity IRI (open vocabulary — never a literal)." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "An AffectScaleProfile is degenerate: gmeow:profileRangeMax must strictly exceed gmeow:profileRangeMin — an inverted or empty range frames nothing (Principle 11)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/profileRangeMin> ?min .
+                $this <https://blackcatinformatics.ca/gmeow/profileRangeMax> ?max .
+                FILTER ( ?min >= ?max )
+            }
+        """ ;
+    ] .
+
+gmeow:AffectVectorObservationShape
+    a sh:NodeShape ;
+    rdfs:label "Affect Vector Observation Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectVectorObservation ;
+    sh:property [
+        sh:path gmeow:vectorProfile ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectVectorObservation must name exactly one gmeow:vectorProfile (its metric/basis) — a vector with no declared basis is uninterpretable (Principle 11)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:vectorComponent ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectVectorObservation must group at least one gmeow:vectorComponent (a per-axis Appraisal cell) — an empty vector is no reading." ;
+    ] .
+
+gmeow:AffectCompositeShape
+    a sh:NodeShape ;
+    rdfs:label "Affect Composite Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectComposite ;
+    sh:property [
+        sh:path gmeow:affectiveConstituent ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectComposite must declare at least one gmeow:affectiveConstituent — a named compound with no decomposition is a forbidden unanalyzed primitive (model up from axes, or add the missing axis)." ;
+    ] .
+
+gmeow:DerivedAffectIntensityObservationShape
+    a sh:NodeShape ;
+    rdfs:label "Derived Affect Intensity Observation Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:DerivedAffectIntensityObservation ;
+    sh:property [
+        sh:path gmeow:intensityBasis ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must declare its gmeow:intensityBasis (the AffectVectorObservation it is the norm of) — a floating intensity with no basis is a hard fail (Principle 12)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:metricProfile ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must declare its gmeow:metricProfile (scale normalization) — an intensity with no declared scale is a hard fail." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:weightingPolicy ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must declare its gmeow:weightingPolicy — the basis is non-orthogonal, so the weighting is explicit, never assumed." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:normFunction ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must declare its gmeow:normFunction (the norm/distance) — a raw L² over the non-orthogonal affect basis is not a default; the metric is explicit or it is a hard fail." ;
+    ] .
+
+gmeow:ModelInferenceRunShape
+    a sh:NodeShape ;
+    rdfs:label "Model Inference Run Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:ModelInferenceRun ;
+    sh:property [
+        sh:path gmeow:modelIdentifier ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ModelInferenceRun must declare exactly one gmeow:modelIdentifier (the model repo id) — run provenance is mandatory and single-valued." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:modelRevision ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
+    ] .
+
+gmeow:AffectClassifierLabelShape
+    a sh:NodeShape ;
+    rdfs:label "Affect Classifier Label Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectClassifierLabel ;
+    sh:property [
+        sh:path gmeow:memberOfLabelSet ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierLabel must be registered in a gmeow:AffectLabelSet via gmeow:memberOfLabelSet — an unregistered label fails canonical projection." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A classifier label must not be modeled as a gmeow:EmotionType — 'neutral' (or any no-detected-affect label) as an EmotionType is a hard fail; labels are external identities, never canonical emotion vocabulary." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> .
+                $this a <https://blackcatinformatics.ca/gmeow/EmotionType> .
+            }
+        """ ;
+    ] .
+
+gmeow:AffectClassifierOutputShape
+    a sh:NodeShape ;
+    rdfs:label "Affect Classifier Output Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectClassifierOutput ;
+    sh:property [
+        sh:path gmeow:producedBy ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must be gmeow:producedBy exactly one gmeow:ModelInferenceRun — output provenance is mandatory." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:classifiedTarget ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must name its gmeow:classifiedTarget (the span classified) — an output with no target is unmoored evidence." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:emittedLabel ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must carry a gmeow:emittedLabel (a registered gmeow:AffectClassifierLabel IRI)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:classifierScore ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must carry a raw gmeow:classifierScore." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:scoreSemantics ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A score claimed as a calibrated probability requires a gmeow:scoreCalibration profile — a raw sigmoid/softmax score stored as a confidence without calibration metadata is a hard fail (confidence is not a probability without a declared mapping)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/scoreSemantics> <https://blackcatinformatics.ca/gmeow/scoreCalibratedProbability> .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/scoreCalibration> ?c . }
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A classifier output must not directly assert inner affect (gmeow:emotionType / gmeow:emotionBearer) — it supports a gmeow:AffectiveClaim by gmeow:supportsAffectiveClaim (evidence, never entailment); asserting inner affect without the claim boundary is a hard fail." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this a <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> .
+                { $this <https://blackcatinformatics.ca/gmeow/emotionType> ?e . }
+                UNION
+                { $this <https://blackcatinformatics.ca/gmeow/emotionBearer> ?b . }
             }
         """ ;
     ] .

@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the epistemically HARD tagging scene — the shape the easy
+# folksonomy example never exercises (docs/SLICE_GUIDE.md §6.5, §8).
+#
+#   * HOMONYMY: two distinct tags share the surface label "jaguar" — one form,
+#     two meanings, two IRIs. String identity never stands in for meaning;
+#     coreference (if any) is asserted in data, never by collapsing IRIs.
+#   * CONTESTED, COEXISTING taggings (Principle 9): Maria reads the photo as the
+#     animal (confidence 0.9); Devon reads it as the car (confidence 0.4). BOTH
+#     reified acts coexist as co-equal, attributed, confidence-weighted claims —
+#     no primary, no winner, no adjudication by rank.
+#   * SUPPRESSION, NEVER ERASURE (Principle 10): an earlier off-topic tagging is
+#     retracted with gmeow:displayable false — retained for audit, withheld from
+#     display through the projection layer, never deleted.
+#   * TIME-SCOPED ACTS: the curation pass is interval-scoped via
+#     gmeow:taggingInterval, the relator carrying its period as a first-class
+#     node (Principle 11's frame discipline applied to time).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The resource under curation.
+ex:photo a gmeow:CreativeWork ;
+    gmeow:title "Rainforest shoot, frame 12"@x-gmeow-english .
+
+# --- Homonyms: one surface form, two tags. The label is a rendering of each
+# --- tag; the IRI is the identity. Neither collapses into the other.
+ex:tagJaguarAnimal a gmeow:Tag ;
+    rdfs:label "jaguar"@x-gmeow-english ;
+    gmeow:tagInScheme ex:wildlifeVocab .
+
+ex:tagJaguarCar a gmeow:Tag ;
+    rdfs:label "jaguar"@x-gmeow-english ;
+    gmeow:tagInScheme ex:vehicleVocab .
+
+ex:tagOffTopic a gmeow:Tag ;
+    rdfs:label "off-topic"@x-gmeow-english .
+
+ex:wildlifeVocab a gmeow:TagScheme ; rdfs:label "Wildlife keywords"@x-gmeow-english .
+ex:vehicleVocab  a gmeow:TagScheme ; rdfs:label "Vehicle keywords"@x-gmeow-english .
+
+# --- Two curators.
+ex:maria a gmeow:Person ; gmeow:name "Maria"@x-gmeow-english .
+ex:devon a gmeow:Person ; gmeow:name "Devon"@x-gmeow-english .
+
+# --- The contested pair: two reified acts, coexisting. Confidence is the
+# --- tagger's epistemic state about THEIR claim — not a ranking between them.
+ex:taggingAnimal a gmeow:Tagging ;
+    gmeow:taggingTagged ex:photo ;
+    gmeow:taggingTag    ex:tagJaguarAnimal ;
+    gmeow:taggingTagger ex:maria ;
+    gmeow:taggingScheme ex:wildlifeVocab ;
+    gmeow:confidence    0.9 ;
+    gmeow:taggingInterval ex:curationPass .
+
+ex:taggingCar a gmeow:Tagging ;
+    gmeow:taggingTagged ex:photo ;
+    gmeow:taggingTag    ex:tagJaguarCar ;
+    gmeow:taggingTagger ex:devon ;
+    gmeow:taggingScheme ex:vehicleVocab ;
+    gmeow:confidence    0.4 ;
+    gmeow:taggingInterval ex:curationPass .
+
+ex:curationPass a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-07-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-07-01T17:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- The retracted act: RETAINED with full provenance, suppressed from display.
+# --- Deleting it would destroy the audit trail; the projection layer withholds it.
+ex:taggingOffTopic a gmeow:Tagging ;
+    gmeow:taggingTagged ex:photo ;
+    gmeow:taggingTag    ex:tagOffTopic ;
+    gmeow:taggingTagger ex:devon ;
+    gmeow:confidence    0.6 ;
+    gmeow:displayable   false .

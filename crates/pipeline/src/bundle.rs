@@ -40,8 +40,8 @@ use gmeow_logic::result::ReasoningResult;
 use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::relational_core::RelationalCoreProgram;
-use gmeow_rdf::provenance::DatasetProvenance;
-use gmeow_rdf::{
+use purrdf::provenance::DatasetProvenance;
+use purrdf::{
     ContentStore, PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfLookaside, RdfLookasideKind,
     RdfLookasideResource,
 };
@@ -168,7 +168,7 @@ pub fn bundle_artifact<'b>(
         .resources_of_kind(ARTIFACT_KIND)
         .find(|r| r.name.as_deref() == Some(logical_path))?;
     let hex = resource.content_digest.as_deref()?;
-    let digest = gmeow_rdf::ContentDigest::from_hex(hex)?;
+    let digest = purrdf::ContentDigest::from_hex(hex)?;
     bundle.blobs().get(&digest).map(Vec::as_slice)
 }
 
@@ -185,7 +185,7 @@ pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<Str
         else {
             continue;
         };
-        let Some(digest) = gmeow_rdf::ContentDigest::from_hex(hex) else {
+        let Some(digest) = purrdf::ContentDigest::from_hex(hex) else {
             continue;
         };
         if let Some(bytes) = bundle.blobs().get(&digest) {

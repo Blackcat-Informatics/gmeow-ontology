@@ -10,17 +10,17 @@
 //! preservation is `ValidationOnly`. The derivation (range typing, IRI minting, the
 //! `used_by`/`transform_cells` scan, `_var_for_predicate`/`_output_var`, the sort
 //! order, the deterministic blank-node labels) is reproduced exactly; the
-//! [`gmeow_rdf::fno`] serializer owns the triple shapes. Extraction runs over the
+//! [`purrdf::fno`] serializer owns the triple shapes. Extraction runs over the
 //! oxigraph-free [`DslView`] (the DSL view for functions/cells, the ontology view for
 //! ranges + the language-tag map).
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_rdf::fno::{
+use purrdf::fno::{
     self, FnFunction, FnImpl, FnMapping, FnOutput, FnParam, FnParamMapping, FnReturnMapping,
     FnoCatalog,
 };
-use gmeow_rdf::{turtle, RdfQuad, RdfTerm};
+use purrdf::{turtle, RdfQuad, RdfTerm};
 
 use crate::ingest::{DslTerm, DslView};
 use crate::projections::{correspondence_result, ProjectionResult};
@@ -640,10 +640,23 @@ fn build_tag_map(onto: &DslView) -> BTreeMap<String, String> {
     map
 }
 
+/// purrdf's FnO serializer stamps every localizable literal with its own neutral
+/// placeholder tag until the consuming ontology remaps it (purrdf-core `fno`
+/// `X_PURRDF_ENGLISH`). gmeow's catalog content is authored in gmeow-english, so
+/// treat that placeholder as gmeow's internal `x-gmeow-english` tag — the
+/// ontology-driven [`build_tag_map`] then remaps it to the public BCP-47 tag.
+const PURRDF_FNO_ENGLISH_PLACEHOLDER: &str = "x-purrdf-english";
+const GMEOW_INTERNAL_ENGLISH: &str = "x-gmeow-english";
+
 fn retag_quad(mut quad: RdfQuad, tag_map: &BTreeMap<String, String>) -> RdfQuad {
     if let RdfTerm::Literal(lit) = &mut quad.object {
         if let Some(lang) = &lit.language {
-            if let Some(ext) = tag_map.get(lang) {
+            let internal = if lang == PURRDF_FNO_ENGLISH_PLACEHOLDER {
+                GMEOW_INTERNAL_ENGLISH
+            } else {
+                lang.as_str()
+            };
+            if let Some(ext) = tag_map.get(internal) {
                 lit.language = Some(ext.clone());
             }
         }
@@ -678,7 +691,7 @@ mod tests {
 
     #[test]
     fn lower_fno_extracts_nested_collection_atoms() {
-        use gmeow_rdf::{parse_dataset, NativeRdfFormat, RdfDatasetBuilder};
+        use purrdf::{parse_dataset, NativeRdfFormat, RdfDatasetBuilder};
         let dsl_ttl = r#"
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .

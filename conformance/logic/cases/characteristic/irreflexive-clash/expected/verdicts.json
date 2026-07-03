@@ -1,0 +1,6 @@
+{
+  "https://example.org/characteristic/irreflexive-clash/schema": {
+    "quads": 3,
+    "status": "consistent"
+  }
+}

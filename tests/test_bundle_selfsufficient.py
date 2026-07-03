@@ -37,7 +37,7 @@ if sys.argv[1] == "wheel":
     cfg.SLICES_DIR = GONE / "slices"
     cfg.PROJECTION_QUERY_DIR = GONE / "generated/queries"
 
-from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
+from purrdf.compat.rdflib import Graph, Literal, URIRef
 from gmeow_tools.transpile import transpile_graph
 
 src = Graph()

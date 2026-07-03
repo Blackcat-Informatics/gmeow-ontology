@@ -45,6 +45,10 @@ enum AestheticQualityEnum {
   qualitySublimity
 }
 
+enum AffectFunctionEnum {
+  fnAffectiveIntensity
+}
+
 enum AgentEnum {
   fixtureAnalystA
   fixtureAnalystAI
@@ -93,9 +97,15 @@ enum AnnotationMotivationEnum {
 }
 
 enum AppraisalDimensionEnum {
-  dimensionArousal
-  dimensionDominance
-  dimensionValence
+  dimensionAgency
+  dimensionCertainty
+  dimensionCoping
+  dimensionGoalCongruence
+  dimensionGoalRelevance
+  dimensionNormCompatibility
+  dimensionNovelty
+  dimensionObjectFocus
+  dimensionTemporalOrientation
 }
 
 enum ArcTypeEnum {
@@ -576,6 +586,13 @@ enum CopyrightStatusEnum {
   copyrightStatusUndetermined
 }
 
+enum CoreAffectDimensionEnum {
+  dimensionArousal
+  dimensionDominance
+  dimensionUnpredictability
+  dimensionValence
+}
+
 enum CoverageDepthEnum {
   coverageDepthPassingMention
   coverageDepthRoutineFiling
@@ -723,6 +740,11 @@ enum DiagnosticSeverityEnum {
   severityWarning
 }
 
+enum DimensionFamilyEnum {
+  familyAppraisal
+  familyCoreAffect
+}
+
 enum DisclosurePolicyEnum {
   policyInternalOnly
   policyNeverPublic
@@ -766,6 +788,8 @@ enum EmotionTypeEnum {
   emotionFear
   emotionJoy
   emotionSadness
+  emotionSaudade
+  emotionSchadenfreude
   emotionSurprise
   emotionTrust
 }
@@ -1511,6 +1535,7 @@ enum MemoryKindEnum {
 }
 
 enum MentalProcessTypeEnum {
+  processAffectiveExperience
   processAttention
   processDeliberation
   processDreaming
@@ -2044,6 +2069,7 @@ enum PipelineStageEnum {
   stage_conformance
   stage_constraint_catalog
   stage_docs_render
+  stage_export_agreement
   stage_export_apache
   stage_export_bench
   stage_export_catalog
@@ -2069,6 +2095,7 @@ enum PipelineStageEnum {
   stage_snapshot
   stage_source_load
   stage_statements
+  stage_term_manifest
   stage_validate
   stage_validate_result_shape_composition
 }
@@ -2657,6 +2684,11 @@ enum SLSALevelEnum {
   slsaLevel4
 }
 
+enum ScalePolarityEnum {
+  polarityBipolar
+  polarityUnipolar
+}
+
 enum SceneRelationTypeEnum {
   sceneRelationAbove
   sceneRelationBelow
@@ -2683,6 +2715,14 @@ enum SchenkerLevelEnum {
 
 enum ScoreEditionEnum {
   fixtureGraphicScoreVisual
+}
+
+enum ScoreSemanticsEnum {
+  scoreCalibratedProbability
+  scoreLogit
+  scoreMargin
+  scoreSigmoid
+  scoreSoftmax
 }
 
 enum ScriptRoleEnum {
@@ -3261,6 +3301,90 @@ type AestheticQuality {
   iri: String
 }
 
+type AffectClassifierLabel {
+  id: String
+  iri: String
+  memberOfLabelSet: [AffectLabelSet!]
+}
+
+type AffectClassifierOutput {
+  id: String
+  iri: String
+  canonicalizesAs: [String!]
+  classifiedTarget: [String!]
+  classifierScore: [Float!]
+  emittedLabel: [AffectClassifierLabel!]
+  producedBy: ModelInferenceRun
+  scoreCalibration: [String!]
+  scoreSemantics: ScoreSemantics
+  thresholdApplied: [Float!]
+}
+
+type AffectComposite {
+  id: String
+  iri: String
+  affectiveConstituent: [String!]
+}
+
+type AffectEvaluationConcluded {
+  id: String
+  iri: String
+}
+
+type AffectFunction {
+  id: String
+  iri: String
+}
+
+type AffectLabelSet {
+  id: String
+  iri: String
+}
+
+type AffectScaleProfile {
+  id: String
+  iri: String
+  profileMidpoint: Float
+  profilePolarity: ScalePolarity
+  profileRangeMax: Float
+  profileRangeMin: Float
+  profileTransform: String
+}
+
+type AffectTelemetryStream {
+  id: String
+  iri: String
+  telemetryBlob: [String!]
+}
+
+type AffectVectorObservation {
+  id: String
+  iri: String
+  vectorComponent: [Appraisal!]
+  vectorProfile: AffectScaleProfile
+}
+
+type AffectiveClaim {
+  id: String
+  iri: String
+}
+
+type AffectiveExperience {
+  id: String
+  iri: String
+  feltAffect: [AffectiveMoment!]
+}
+
+type AffectiveExpression {
+  id: String
+  iri: String
+}
+
+type AffectiveMoment {
+  id: String
+  iri: String
+}
+
 type Agent {
   id: String
   iri: String
@@ -3375,12 +3499,14 @@ type Appraisal {
   appraisalDimension: [AppraisalDimension!]
   appraisalOf: String
   appraisalQuality: [AestheticQuality!]
+  appraisalScaleProfile: AffectScaleProfile
   appraisalValue: [Float!]
 }
 
 type AppraisalDimension {
   id: String
   iri: String
+  dimensionFamily: [DimensionFamily!]
 }
 
 type ArcSample {
@@ -4122,6 +4248,11 @@ type CopyrightStatus {
   iri: String
 }
 
+type CoreAffectDimension {
+  id: String
+  iri: String
+}
+
 type Corpus {
   id: String
   iri: String
@@ -4357,6 +4488,16 @@ type DerivationType {
   iri: String
 }
 
+type DerivedAffectIntensityObservation {
+  id: String
+  iri: String
+  derivedByFunction: [AffectFunction!]
+  intensityBasis: AffectVectorObservation
+  metricProfile: AffectScaleProfile
+  normFunction: String
+  weightingPolicy: String
+}
+
 type Desire {
   id: String
   iri: String
@@ -4382,6 +4523,11 @@ type Diff {
   iri: String
   diffFrom: Commit
   diffTo: Commit
+}
+
+type DimensionFamily {
+  id: String
+  iri: String
 }
 
 type DisclosurePolicy {
@@ -4520,6 +4666,8 @@ type Embedding {
 type Emotion {
   id: String
   iri: String
+  affectiveElicitor: [String!]
+  affectiveTarget: [String!]
   emotionBearer: Agent
   emotionType: [EmotionType!]
 }
@@ -4580,6 +4728,7 @@ type Entity {
   hasVersion: [Entity!]
   hasVoice: [Voice!]
   hasWebPage: [WebPage!]
+  indirectContributor: [Agent!]
   instanceOfConcept: [Concept!]
   isAbout: [Entity!]
   isAccessibleForFree: [Boolean!]
@@ -5320,6 +5469,7 @@ type Item {
   iri: String
   exemplifies: [Manifestation!]
   hasCarrier: [PhysicalObject!]
+  instantiatesWork: [Work!]
 }
 
 type JournalEntry {
@@ -5923,6 +6073,18 @@ type ModelCard {
   modelProvider: [String!]
   modelTrainingCutoff: [String!]
   modelVersionTag: [String!]
+}
+
+type ModelInferenceRun {
+  id: String
+  iri: String
+  labelSetRevision: [String!]
+  modelFramework: [String!]
+  modelIdentifier: String
+  modelRevision: String
+  modelTask: [String!]
+  tokenizerRevision: [String!]
+  usedInput: [String!]
 }
 
 type ModelInvocation {
@@ -7154,6 +7316,11 @@ type ScalarQuantity {
   quantityValue: Float
 }
 
+type ScalePolarity {
+  id: String
+  iri: String
+}
+
 type Scenario {
   id: String
   iri: String
@@ -7207,6 +7374,11 @@ type ScoreScale {
   scaleMax: Float
   scaleMin: Float
   scaleStep: Float
+}
+
+type ScoreSemantics {
+  id: String
+  iri: String
 }
 
 type ScriptLanguageAttribution {

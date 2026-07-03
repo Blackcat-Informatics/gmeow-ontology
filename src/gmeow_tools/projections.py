@@ -15,8 +15,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import gmeow_rdf
-from gmeow_rdf.compat.rdflib import Graph
+import purrdf
+from purrdf.compat.rdflib import Graph
 
 from gmeow_tools import sparql
 from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, PREFIXES, PROJECTION_QUERY_DIR
@@ -127,20 +127,20 @@ def _load_projection_query(profile: str) -> str:
 
 def project_graph(
     profile: str,
-    source: Graph | gmeow_rdf.Store,
+    source: Graph | purrdf.Store,
     *,
     selector: LangSelector | None = None,
 ) -> Graph:
     """Run a profile's CONSTRUCT over a source, returning the projection.
 
-    The CONSTRUCT runs on gmeow_rdf (~12x faster than rdflib's engine); the
+    The CONSTRUCT runs on purrdf (~12x faster than rdflib's engine); the
     :mod:`gmeow_tools.oracles.engine_crosscheck` gate proves the two engines
     agree, so the output is identical to the former rdflib path.
 
     Args:
         profile: A key of :data:`PROFILES`.
         source: The data to project (ontology + instance data), either a
-            gmeow_rdf store (preferred — no copy) or an rdflib graph (loaded into
+            purrdf store (preferred — no copy) or an rdflib graph (loaded into
             a fresh store).
         selector: Optional language selector for emitted labels/definitions.
 
@@ -150,9 +150,7 @@ def project_graph(
     prof = PROFILES[profile]
     query = _load_projection_query(profile)
     store = (
-        source
-        if isinstance(source, gmeow_rdf.Store)
-        else sparql.store_from_graph(source)
+        source if isinstance(source, purrdf.Store) else sparql.store_from_graph(source)
     )
     out = sparql.construct(store, query)
     # Projection-boundary BCP-47 retag: the in-query retag only fires for
@@ -180,7 +178,7 @@ def _serialize(graph: Graph, path: Path) -> Path:
     return path
 
 
-def _example_store() -> gmeow_rdf.Store:
+def _example_store() -> purrdf.Store:
     """The asserted ontology plus the worked-example fixtures, as a store."""
     paths = [FIXTURES_DIR / fixture for fixture in _EXAMPLE_FIXTURES]
     return sparql.store_with(*paths, include_imports=False)
@@ -261,7 +259,7 @@ def project_file(
     selector: LangSelector | None = None,
 ) -> Path:
     """Project an input data file to one profile (ontology merged in for context)."""
-    from gmeow_rdf.compat.rdflib.util import guess_format
+    from purrdf.compat.rdflib.util import guess_format
 
     data = Graph().parse(input_path, format=guess_format(str(input_path)) or "turtle")
     store = sparql.store_with(include_imports=False, extra_triples=data)
@@ -282,33 +280,33 @@ def gts_base_graph(gts_path: Path) -> Graph:
     A ``.gts`` is the canonical RDF-1.2 product: base/derived triples *plus* their
     provenance reifiers. This returns just the plain asserted triples — the
     reifier rows (``rdf:reifies``) and the quoted triple-terms are dropped — by
-    routing through gmeow_rdf (which parses RDF-1.2 N-Quads that rdflib cannot).
+    routing through purrdf (which parses RDF-1.2 N-Quads that rdflib cannot).
     """
     import io
 
     import gts
 
     nquads = gts.to_nquads(gts.read(gts_path.read_bytes()))
-    parsed = gmeow_rdf.Store()
-    parsed.bulk_load(nquads.encode(), format=gmeow_rdf.RdfFormat.N_QUADS)
-    reifies = gmeow_rdf.NamedNode(_REIFIES)
-    base = gmeow_rdf.Store()
+    parsed = purrdf.Store()
+    parsed.bulk_load(nquads.encode(), format=purrdf.RdfFormat.N_QUADS)
+    reifies = purrdf.NamedNode(_REIFIES)
+    base = purrdf.Store()
     for quad in parsed:
         # drop reifier rows and any quad with a quoted triple-term endpoint
         # (RDF-1.2 allows them in subject OR object; plain N-Triples / rdflib
         # cannot represent either, so they are not asserted base triples)
         if (
             quad.predicate == reifies
-            or isinstance(quad.subject, gmeow_rdf.Triple)
-            or isinstance(quad.object, gmeow_rdf.Triple)
+            or isinstance(quad.subject, purrdf.Triple)
+            or isinstance(quad.object, purrdf.Triple)
         ):
             continue
-        base.add(gmeow_rdf.Quad(quad.subject, quad.predicate, quad.object))
+        base.add(purrdf.Quad(quad.subject, quad.predicate, quad.object))
     buf = io.BytesIO()
     base.dump(
         buf,
-        format=gmeow_rdf.RdfFormat.N_TRIPLES,
-        from_graph=gmeow_rdf.DefaultGraph(),
+        format=purrdf.RdfFormat.N_TRIPLES,
+        from_graph=purrdf.DefaultGraph(),
     )
     graph = Graph()
     graph.parse(data=buf.getvalue(), format="nt")
@@ -341,7 +339,7 @@ def project_gts_subset(
     predicate is in the view's namespaces, or when it types a subject into a
     class of those namespaces (``rdf:type`` to a kept class).
     """
-    from gmeow_rdf.compat.rdflib import RDF, URIRef
+    from purrdf.compat.rdflib import RDF, URIRef
 
     base = gts_base_graph(gts_path)
     namespaces = _view_namespaces(view)

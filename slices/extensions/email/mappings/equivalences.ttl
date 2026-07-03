@@ -7,6 +7,7 @@
 @prefix sioc: <http://rdfs.org/sioc/ns#> .
 @prefix nmo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
 @prefix ical: <http://www.w3.org/2002/12/cal/icaltzd#> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 
 # Term equivalences for the email domain — GMEOW authoring source.
 # Compiled to mappings/gmeow-email.sssom.tsv by `gmeow compile-mappings`.
@@ -323,3 +324,15 @@ gmeow:eqEmail034 a gmeow:TermEquivalence ;
     gmeow:confidence 0.8 ;
     gmeow:comment "a thread is a SIOC container of its posts; closeMatch because Container is the broader contents-holder notion (PROV activity alignment phase 3 — declares the sioc projection's Container typing row)";
     gmeow:sssomFile "gmeow-email.sssom.tsv" .
+
+# Term equivalences (authored in-slice; source of alignment linkage).
+
+gmeow:eqWikidata045 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:Mailbox ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1531418 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "mailbox" ;
+    gmeow:comment "Wikidata 'mailbox' is primarily physical; GMEOW Mailbox covers both physical and electronic. Directional lossy projection." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

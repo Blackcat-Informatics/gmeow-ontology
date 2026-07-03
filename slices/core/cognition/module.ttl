@@ -42,6 +42,8 @@ gmeow:KnowledgeProficiency
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "Knowledge Proficiency"@x-gmeow-english ;
+    logic:mediates gmeow:knowledgeProficiencyAgent ,
+        gmeow:knowledgeProficiencySubject ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;

@@ -54,7 +54,7 @@
 use std::collections::{BTreeMap, HashSet};
 use std::sync::{LazyLock, Mutex};
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 use scryer_prolog::{LeafAnswer, MachineBuilder, Term as PlTerm};
 
 use crate::provenance::term_n3;

@@ -226,14 +226,14 @@ fn canonical_quads(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
     // Native text ingress (#909) + native full RDFC-1.0 (#910): no oxigraph::io
     // parse, no oxrdf `Dataset::canonicalize`.
     for media_type in ["text/turtle", "application/n-quads"] {
-        let Ok(ir) = gmeow_rdf::parse_dataset(bytes, media_type, None) else {
+        let Ok(ir) = purrdf::parse_dataset(bytes, media_type, None) else {
             continue;
         };
-        let quads = gmeow_rdf::flat_rdf_quads_from_dataset(&ir);
+        let quads = purrdf::flat_rdf_quads_from_dataset(&ir);
         if !quads.is_empty() {
-            let flat = gmeow_rdf::flat_dataset_from_quads(&quads).ok()?;
+            let flat = purrdf::flat_dataset_from_quads(&quads).ok()?;
             return Some(
-                gmeow_rdf::canonicalize(&flat)
+                purrdf::canonicalize(&flat)
                     .nquads
                     .lines()
                     .map(str::to_owned)
@@ -347,7 +347,7 @@ fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
 }
 
 fn fold_shape(bytes: &[u8]) -> FoldShape {
-    let g = gmeow_rdf::gts::read_graph(bytes, true).expect("read_graph");
+    let g = purrdf::gts::read_graph(bytes, true).expect("read_graph");
     let term = |id: usize| -> String {
         g.terms
             .get(id)

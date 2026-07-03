@@ -46,8 +46,10 @@ faithfulness) are the load-bearing invariants.
 
 | Category | Input artifact | Verification (expected output) | Rung |
 |---|---|---|---|
-| `foundation/` | `input.logic.ttl` with UFO⁺ stereotype, subsumption, and mediation facts | `materialized.nq` contains the expected `logic:violation` / `logic:rigidityViolation` / `logic:dischargeObligation` quads; the lint-equivalence gate proves the derived offending-class sets match `crates/validate/src/gufo.rs` exactly | #503 |
+| `foundation/` | `input.logic.ttl` with UFO⁺ stereotype, subsumption, and mediation facts | `materialized.nq` contains the expected `logic:violation` / `logic:rigidityViolation` / `logic:dischargeObligation` quads. The disciplines are enforced natively — the relator-mediation discipline runs over the whole ontology (`whole_bundle_relcomp_gate`), with `crates/validate/src/gufo.rs` retained as the regression oracle the lowering is validated against | #503 |
 | `worlds-A/` | standpoint / deception / narrative source | `materialized.nq` carries each world as its own named graph; the contested claim coexists (Crimea `conceivable` vs `refuted`), neither privileged | #501 |
+| `deception/` | an event of `gmeow:eventTypeDeception` carrying a divergent `heldStandpoint` / `projectedStandpoint` doxastic-claim pair, with no asserted intent | `materialized.nq` derives a live positive-control witness over the divergence data (proving the engine reasons over the structure) yet contains **no derived `gmeow:deceptiveIntentClaim`** — the engine-level complement of the standing `logic:IntentNotFromDeceptionObligation`: intent is evidence, never entailment, of a held/projected gap | deception family |
+| `derivation/` | a monotone positive-Horn `logic:Rule` composing terms across two or more domain slices (`indirect-contributor`, `wemi-instantiation`, `org-membership-propagation`, `tenure-claim-surfacing`) | `materialized.nq` is a strict superset of `input.nq` carrying the rule's derived `gmeow:` head edge — the cross-slice inference materializes natively (`logic:ExactPreservation`), never `SoundUnderApproximation` residue | derivation family |
 | `worlds-B/` | risk cascade, teleology, or norms source | `materialized.nq` proves **exactly zero `Event` instances** are generated (the no-occurrence gate), with type-level force present | #501 |
 | `worlds-C/` | counterfactual antecedent query | `answers/<q>.json` confirms the consequent and `materialized.nq` shows **no leakage** of the constructed world into the base graph; a deterministic revision yields one world, a genuine tie returns `unknown` | #505 |
 | `projections/` | any `input.logic.ttl` | `projections/` (OWL DL/EL, Datalog, N3, gUFO) compare by isomorphism; the preservation ledger matches | #500 |
@@ -105,6 +107,9 @@ Six cases under `cases/foundation/` (one stub `.gitkeep` + five populated):
 | `relcomp-under-mediated/` | `logic:RelComp` |
 | `cross-world-rigidity/` | `logic:rigidityViolation` + `logic:dischargeObligation` (multi-world) |
 
-The lint-equivalence gate (`tests/test_logic_foundation_lint_equivalence.py`) proves that for the
-three type-level disciplines the derived offending-class sets match `crates/validate/src/gufo.rs` by full-map
-equality. The cross-world rigidity soundness suite is in `tests/test_logic_rigidity.py`.
+The foundation disciplines are enforced by the native lowering, not by an external lint. The
+relator-mediation discipline (RelComp) runs over the whole ontology in
+`crates/logic/tests/coherence_gate.rs` (`whole_bundle_relcomp_gate`), reading mediation by entity
+count; `crates/validate/src/gufo.rs` is retained as the regression oracle the lowering is validated
+against. The foundation-lowering and cross-world rigidity soundness suites are the native tests in
+`crates/logic/src/foundation/` and the conformance cases here.

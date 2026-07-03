@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The intra-engine dogfood parity gate (#1057, Upgrade #4): the well-founded
+//! The intra-engine dogfood parity gate: the well-founded
 //! materializer's per-world phase sequence authored as a sub-`logic:Plan` in
 //! `slices/core/logic/module.ttl` must walk left-first to EXACTLY the ordered
 //! phase descriptor the Rust runtime exposes
@@ -23,7 +23,7 @@
 
 use std::path::{Path, PathBuf};
 
-use gmeow_rdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+use purrdf::{parse_dataset, DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";

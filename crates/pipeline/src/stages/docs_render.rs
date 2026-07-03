@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `docs_render` stage (#861 P5): the typed documentation model as data.
+//! The `docs_render` stage: the typed documentation model as data.
 //!
-//! Pure WIRING of the Rust docs crate (#853) — no port. It discovers the
+//! Pure WIRING of the Rust docs crate — no port. It discovers the
 //! `gmeow_docs::DocsModel` from the slice catalog and projects it to the
 //! self-hosting documentation named graph via `gmeow_docs::to_gmeow_rdf` — the
 //! exact N-Quads the Python `DocSet.to_gmeow_rdf()` folds into `gmeow.gts`. The
@@ -14,7 +14,7 @@ use std::path::Path;
 
 use gmeow_docs::model::{DocsModel, ReasoningVerdict};
 use gmeow_docs::rdf::to_gmeow_rdf;
-use gmeow_rdf::RdfTerm;
+use purrdf::RdfTerm;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -84,7 +84,9 @@ pub(crate) fn reasoning_verdict_from_reason(
 /// Discover the docs model under `root`, attach the native-reasoner `verdict`, and
 /// project it to the documentation named graph (N-Quads). The verdict is required
 /// so the SPARQL surface always carries the per-term reasoning status (never a
-/// fabricated default).
+/// fabricated default). The per-term content-address provenance is read from the
+/// committed manifest (self-healing on a term-adding build; see
+/// `gmeow_docs::model::DocsModel::discover`).
 pub fn render_docs_graph(root: &Path, verdict: ReasoningVerdict) -> Result<String, PipelineError> {
     let mut model = DocsModel::discover(root).map_err(|e| PipelineError::Stage {
         stage: "stage-docs-render".to_string(),
@@ -120,7 +122,7 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), Pipel
 /// bodies ride the bundle only as blake3 digests), so any stage that derives an
 /// artifact from the docs model must declare them as `input_files` for cache
 /// soundness. Shared by `DocsRenderStage` (the documentation graph) and
-/// `SnapshotStage` (the embedded rendered site, #897).
+/// `SnapshotStage` (the embedded rendered site).
 pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     for module in crate::stages::source_load::module_files(root)? {
@@ -158,6 +160,13 @@ pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, 
     let four_boxes = root.join("docs").join("four-boxes.md");
     if four_boxes.is_file() {
         files.push(four_boxes);
+    }
+    // The committed term content manifest: the docs model reads it for each term's
+    // content digest, first-seen version, and computed changelog, so a manifest edit
+    // must bust the docs cache (cache soundness).
+    let term_manifest = root.join(crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH);
+    if term_manifest.is_file() {
+        files.push(term_manifest);
     }
     walk_files(&root.join("i18n"), &mut files)?;
     walk_files(&root.join("shapes"), &mut files)?;
@@ -198,15 +207,16 @@ impl Stage for DocsRenderStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v2: the documentation graph now carries per-term `gmeow:docReasoningStatus`
-        // (the stage consumes stage-reason). Bumped so the cache re-derives it.
-        "docs_render.v2"
+        // v3: the documentation graph now carries the per-term content-address
+        // provenance (definitionDigest / addedInVersion / changelog) read from the
+        // committed manifest. Bumped so the cache re-derives it.
+        "docs_render.v3"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
-        // four-boxes / per-slice i18n catalog edit busts the cache (cache soundness,
-        // #863). The snapshot stage embeds the rendered SITE from these same sources
-        // (#897), so it shares this list via `docs_source_files`.
+        // four-boxes / per-slice i18n catalog edit busts the cache (cache soundness).
+        // The snapshot stage embeds the rendered SITE from these same sources,
+        // so it shares this list via `docs_source_files`.
         docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {

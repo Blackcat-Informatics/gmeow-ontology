@@ -3,8 +3,8 @@
 
 //! Front-end parser: a `logic:` RDF 1.2 source graph → [`LogicProgram`].
 //!
-//! The `logic:` front-end parser (#664); the Python duplicate
-//! (`logic_frontend.py`) was retired in #727.  It parses a `logic:`-vocabulary
+//! The `logic:` front-end parser; the Python duplicate
+//! (`logic_frontend.py`) has since been retired.  It parses a `logic:`-vocabulary
 //! RDF graph (Turtle text or a parsed wasm-clean `RdfDataset`) into a typed
 //! [`LogicProgram`] plus a list of [`Diagnostic`] messages.
 //!
@@ -26,26 +26,27 @@
 //! 3. **Reasoning contracts** — `rdf:type logic:ReasoningContract` /
 //!    `logic:ReasoningPreset` declarations, with their facet selection.
 //! 4. **Rules** — `logic:Rule` nodes with `logic:head` / `logic:body` /
-//!    `logic:negatedBody` (#502) / `logic:distinctBody` (#503) links.
+//!    `logic:negatedBody` / `logic:distinctBody` links.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
-use gmeow_rdf::{parse_dataset, RdfDataset};
+use purrdf::{parse_dataset, RdfDataset};
 
 use super::compat;
 use super::graphutil::{
     canonicalize_blank_nodes, contains, default_graph_quads, has_predicate, has_predicate_object,
-    is_empty, nn, objects, subject_str, subjects_with, term_as_subject, term_is_literal, term_str,
-    value, Node, Subject, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT,
-    RDF_TYPE,
+    is_empty, nn, objects, subject_is_blank, subject_str, subjects_with, term_as_subject,
+    term_is_literal, term_str, value, Iri, Node, Subject, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
+    RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
 };
 use super::ir::{
-    AggregateSpec, ComplexityClass, ContextualScope, Correspondence, Formula, LogicAxiom,
-    LogicModality, LogicProgram, LogicRule, PathBase, PathShapeIr, ReasoningContract,
-    SemanticProfileId, Term, LOGIC_NAMESPACE,
+    AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintProvenance, ContextualScope,
+    Correspondence, Formula, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
+    PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShaclNodeKind,
+    ShapeTarget, Term, ValidationShapeIr, LOGIC_NAMESPACE,
 };
 
 /// Re-export the CGIF reader alongside CLIF (the conceptual-graph dialect inverse).
@@ -54,6 +55,10 @@ pub use crate::cgif::parse_cgif_str;
 /// entry points (`gmeow_logic_compile::frontend::parse_clif_str` resolves, as does the
 /// canonical `gmeow_logic_compile::clif::parse_clif_str`).
 pub use crate::clif::parse_clif_str;
+/// Re-export the XCL reader so the XML-dialect inverse sits alongside CLIF/CGIF
+/// (`gmeow_logic_compile::frontend::parse_xcl_str` resolves, as does the canonical
+/// `gmeow_logic_compile::xcl::parse_xcl_str`).
+pub use crate::xcl::parse_xcl_str;
 
 fn logic_iri(local: &str) -> String {
     format!("{LOGIC_NAMESPACE}{local}")
@@ -197,7 +202,7 @@ fn scope_from_node(
 // --------------------------------------------------------------------------- //
 
 /// The set of `logic:` predicate-local names that carry reasoning-contract /
-/// preset / closure *meta-configuration* (#767, Gap 1).  When such a predicate's
+/// preset / closure *meta-configuration*.  When such a predicate's
 /// subject is a `logic:ReasoningContract` / `logic:ReasoningPreset` /
 /// `logic:ClosureEntry` node, the triple is contract configuration consumed by
 /// [`extract_contracts`] — NOT a domain fact — and must NOT leak into `prog.axioms`
@@ -210,8 +215,8 @@ fn is_facet_config_predicate(prop_local: &str) -> bool {
         )
 }
 
-/// The reserved `logic:` predicate-local names that build the full-FOL formula AST
-/// (#719).  Like the rule-structural predicates, these are consumed by
+/// The reserved `logic:` predicate-local names that build the full-FOL formula AST.
+/// Like the rule-structural predicates, these are consumed by
 /// [`extract_formulas`] to reconstruct [`Formula`] trees and must NOT leak into
 /// `prog.axioms` (where they would pollute the Datalog / N3 / ledger projections and
 /// break the canonical round-trip).
@@ -292,7 +297,7 @@ fn aggregation_from_node(
 /// Collect the IRIs / blank-node ids of every subject typed
 /// `logic:ReasoningContract`, `logic:ReasoningPreset`, OR `logic:ClosureEntry`.
 /// These are the meta-configuration nodes whose facet-config triples must be kept
-/// out of the domain axiom set (#767, Gap 1).
+/// out of the domain axiom set.
 fn collect_contract_config_subjects(store: &RdfDataset) -> HashSet<String> {
     let mut subjects: HashSet<String> = HashSet::new();
     for class_local in ["ReasoningContract", "ReasoningPreset", "ClosureEntry"] {
@@ -308,7 +313,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
     // Meta-config subjects (contracts / presets / closure entries): facet-config
-    // triples on these are contract configuration, not domain facts (#767, Gap 1).
+    // triples on these are contract configuration, not domain facts.
     let config_subjects = collect_contract_config_subjects(store);
 
     // 1. Triples with a logic: predicate (excluding rdf:type).
@@ -329,7 +334,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
             continue;
         }
         // Formula-AST structural triples are consumed by extract_formulas; they are
-        // never domain facts (#719).
+        // never domain facts.
         if is_formula_structural_predicate(p_local) {
             continue;
         }
@@ -363,6 +368,20 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         }
         let o_str = term_str(&quad.object);
         if !o_str.starts_with(LOGIC_NAMESPACE) {
+            continue;
+        }
+        // Skip the type triple that DEFINES a contract-config subject
+        // (`?s rdf:type logic:{ReasoningContract,ReasoningPreset,ClosureEntry}`): it is
+        // consumed by extract_contracts, exactly like the facet-config predicates in
+        // step 1. Retaining it (for a non-`logic:` subject, whose type triple step 1's
+        // predicate filter never reaches) re-extracts as a spurious empty contract on
+        // every round-trip — a canonical-RDF-1.2 non-idempotence.
+        let o_local = &o_str[LOGIC_NAMESPACE.len()..];
+        if matches!(
+            o_local,
+            "ReasoningContract" | "ReasoningPreset" | "ClosureEntry"
+        ) && config_subjects.contains(&subject_str(&quad.subject))
+        {
             continue;
         }
         if subject_str(&quad.subject).starts_with(LOGIC_NAMESPACE) {
@@ -459,7 +478,7 @@ fn extract_scoped_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) 
 }
 
 // --------------------------------------------------------------------------- //
-// Reasoning-contract extraction (#767)
+// Reasoning-contract extraction
 // --------------------------------------------------------------------------- //
 
 /// The direct facet properties whose object is a single facet value individual.
@@ -501,7 +520,7 @@ fn facet_class_of(store: &RdfDataset, value_iri: &str) -> Option<String> {
 }
 
 /// The facet value-class a DIRECT facet property routes to, independent of the
-/// value individual's `rdf:type`.  This is the round-trip path (#767, Task 6): the
+/// value individual's `rdf:type`.  This is the round-trip path: the
 /// canonical RDF12 projection emits facet selections as bare
 /// `logic:<facetProp> logic:<Value>` triples WITHOUT re-typing each value
 /// individual, so the parser routes by the property name itself.  `expandsToFacet`
@@ -587,7 +606,7 @@ fn route_facet_value(contract: &mut ReasoningContract, facet_class: &str, value_
 
 /// Whether the source graph declares a probability model: either a triple with
 /// predicate `logic:probabilityModel`, or any individual typed
-/// `logic:ProbabilityModel` (reviewer C4 — probabilistic inference must never
+/// `logic:ProbabilityModel` (probabilistic inference must never
 /// silently assume independence over un-modelled confidence metadata).
 fn graph_declares_probability_model(store: &RdfDataset) -> bool {
     // Any triple whose predicate is logic:probabilityModel.
@@ -640,7 +659,7 @@ fn extract_contracts(
             match preset {
                 Some(p) => contract.preset = Some(p),
                 None => {
-                    // Greenfield (reviewer C3): an unrecognised preset reference is
+                    // Greenfield: an unrecognised preset reference is
                     // a hard error, not a silent approximation to a nearby preset.
                     diagnostics.push(Diagnostic::error(
                         "UNKNOWN_PROFILE",
@@ -689,7 +708,7 @@ fn extract_contracts(
         // Closure entries: logic:closureEntry → ClosureEntry node with
         // logic:closureKey (string) + logic:closureValue (ClosureValue individual).
         for entry_term in objects(store, &individual, &nn(&logic_iri("closureEntry"))) {
-            // HARD verdict (#767, Gap 4): a malformed closure entry — a non-node
+            // HARD verdict: a malformed closure entry — a non-node
             // object, or a node missing logic:closureKey / logic:closureValue — is a
             // Severity::Error (consistent with UNSUPPORTED_CONTRACT above), never a
             // silent skip, so the compile Report is not ok.
@@ -754,8 +773,8 @@ fn extract_contracts(
             }
         }
 
-        // ── Compatibility feature model (#767, Task 3) ──────────────────────
-        // HARD verdict (reviewer C3): an unsupported contract is a Severity::Error
+        // ── Compatibility feature model ─────────────────────────────────────
+        // HARD verdict: an unsupported contract is a Severity::Error
         // finding, so the compile Report is not ok and the program is never
         // silently approximated to a nearby semantics.
         if let compat::ContractVerdict::Unsupported(reasons) = compat::check(&contract) {
@@ -769,7 +788,7 @@ fn extract_contracts(
             ));
         }
 
-        // Graph-dependent RuleProbabilisticRequiresModel (reviewer C4): a
+        // Graph-dependent RuleProbabilisticRequiresModel: a
         // probabilistic measure demands a declared logic:ProbabilityModel; absent
         // one, refuse rather than silently assume independence.
         if contract
@@ -902,7 +921,7 @@ fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<L
             }
         }
 
-        // Inequality guards (#503): logic:distinctBody nodes carry rdf:subject /
+        // Inequality guards: logic:distinctBody nodes carry rdf:subject /
         // rdf:object variable Literals and NO rdf:predicate.
         let mut distinct_pairs: Vec<(String, String)> = Vec::new();
         for distinct_term in objects(store, &rule_node, &logic_distinct_body) {
@@ -948,7 +967,7 @@ fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<L
 }
 
 // --------------------------------------------------------------------------- //
-// Path-shape extraction (#1010; absent logic:PathShape → empty list)
+// Path-shape extraction (absent logic:PathShape → empty list)
 // --------------------------------------------------------------------------- //
 
 /// Parse a positive-integer literal's lexical value (`xsd:positiveInteger`),
@@ -960,7 +979,218 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
     }
 }
 
-/// Read `logic:PathShape` individuals (#1010) into [`PathShapeIr`]s.
+/// Derive closed-world [`ValidationShapeIr`]s from an ontology graph's OWL restrictions (the
+/// closed-world validation reading of the open-world axioms). For every `Class rdfs:subClassOf [
+/// owl:onProperty P ; owl:someValuesFrom C ]` the target `Class` gets a property shape on `P`
+/// carrying `sh:class C` (or `sh:datatype C` when `C` is a concrete datatype — a literal is never
+/// an instance of a class, so `sh:class` on a datatype would flag every node; or
+/// `sh:nodeKind sh:BlankNodeOrIRI` when `C` is `owl:Thing` — a universal-top range says "any
+/// individual", and spec-conformant `sh:class owl:Thing` would demand a never-materialized
+/// `rdf:type owl:Thing` edge, so the faithful closed-world projection of the open range is a
+/// node-kind constraint; or `sh:nodeKind sh:Literal` when `C` is `rdfs:Literal` — a
+/// universal-literal-top range says "any literal", and `sh:datatype rdfs:Literal` never matches
+/// a concrete literal, so the faithful projection is again a node-kind constraint). Unqualified
+/// `owl:cardinality` / `owl:minCardinality` / `owl:maxCardinality` restrictions lower to
+/// `sh:minCount`/`sh:maxCount` with [`ConstraintProvenance::OwlRestriction`]. Derived
+/// constraints are grouped per class and sorted + deduped for determinism.
+///
+/// These are closed-world readings of open-world axioms, so their ledger polarity is
+/// `logic:ValidationOnly` (an under-approximation) — never claimed as an entailment
+/// (Principle 17). **Public** so the pipeline can run it over the merged authored ontology
+/// (where the domain restrictions live), not just the logic: front-end source.
+///
+/// Hard-fails (returns `Err`) if a derived constraint is malformed (e.g. a cardinality
+/// restriction with `minCardinality > maxCardinality`) rather than silently dropping it — a
+/// required structural element that cannot be represented is a hard error, not a fallback.
+pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShapeIr>, String> {
+    let owl = "http://www.w3.org/2002/07/owl#";
+    let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
+    let xsd = "http://www.w3.org/2001/XMLSchema#";
+    let owl_class = Node::iri(format!("{owl}Class"));
+    let owl_thing = format!("{owl}Thing");
+    let rdfs_datatype = Node::iri(format!("{rdfs}Datatype"));
+    let rdfs_literal = format!("{rdfs}Literal");
+    let p_on = nn(&format!("{owl}onProperty"));
+    let p_some = nn(&format!("{owl}someValuesFrom"));
+    let p_mincard = nn(&format!("{owl}minCardinality"));
+    let p_maxcard = nn(&format!("{owl}maxCardinality"));
+    let p_card = nn(&format!("{owl}cardinality"));
+    let p_subclass = nn(&format!("{rdfs}subClassOf"));
+
+    // A someValuesFrom target is a DATATYPE (→ sh:datatype) rather than a class (→ sh:class)
+    // when it is in the XSD space, is rdfs:Literal, or is declared `a rdfs:Datatype`.
+    let is_datatype = |iri: &str| -> bool {
+        iri.starts_with(xsd)
+            || iri == rdfs_literal
+            || objects(store, &Subject::Iri(iri.to_owned()), &nn(RDF_TYPE)).contains(&rdfs_datatype)
+    };
+
+    // A non-negative-integer cardinality literal off a restriction blank node; `None` (never a
+    // hard error here) for an absent or non-integer object — a broken count contributes nothing.
+    let card_of = |restr: &Subject, p: &Iri| -> Option<u32> {
+        match value(store, restr, p) {
+            Some(Node::Lit(lex)) => lex.trim().parse::<u32>().ok(),
+            _ => None,
+        }
+    };
+
+    // A single derived constraint on one property of one class. Sorted + deduped so supply
+    // order never affects the emitted surface (content-addressed determinism).
+    #[derive(PartialEq, Eq, PartialOrd, Ord)]
+    enum Derived {
+        /// `someValuesFrom` target: (property IRI, target IRI, target-is-datatype).
+        Value(String, String, bool),
+        /// Unqualified cardinality: (property IRI, min_count, max_count).
+        Card(String, Option<u32>, Option<u32>),
+    }
+
+    // For every owl:Class, walk its `rdfs:subClassOf` restriction super-classes.
+    let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
+    let mut by_class: BTreeMap<String, Vec<Derived>> = BTreeMap::new();
+    // GMEOW is the authoring ground: derive validation shapes only for our own domain
+    // classes (Principle 4 / maximal dogfooding). Imported ontologies (gUFO, FOAF, …) are
+    // linked, not validated by our surface — and their target-class namespaces are not
+    // registered in the downstream JSON-Schema discriminator.
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    for class in classes {
+        // An anonymous class expression (blank node) is not a shape target — skip it.
+        if subject_is_blank(&class) {
+            continue;
+        }
+        let class_iri = subject_str(&class);
+        if !class_iri.starts_with(GMEOW_NS) {
+            continue;
+        }
+        for restr in objects(store, &class, &p_subclass) {
+            let Some(restr_subj) = term_as_subject(&restr) else {
+                continue;
+            };
+            // A restriction constrains exactly one property; skip a malformed one with no
+            // IRI-valued `owl:onProperty`.
+            let Some(Node::Iri(on)) = value(store, &restr_subj, &p_on) else {
+                continue;
+            };
+            // someValuesFrom → sh:class / sh:datatype. Only an IRI-valued target has a shape
+            // form: a blank someValuesFrom is an anonymous class expression (union/intersection),
+            // carried in the canon but never emitted as a bare blank label.
+            if let Some(Node::Iri(some_c)) = value(store, &restr_subj, &p_some) {
+                let dt = is_datatype(&some_c);
+                by_class
+                    .entry(class_iri.clone())
+                    .or_default()
+                    .push(Derived::Value(on.clone(), some_c, dt));
+            }
+            // Unqualified cardinality → sh:minCount/sh:maxCount. Qualified cardinality
+            // (`owl:onClass` + `owl:qualifiedCardinality`) is deliberately NOT lifted: it maps
+            // to `sh:qualifiedValueShape`/`sh:qualifiedMinCount`, a distinct construct, and
+            // reducing it to a plain count would over-constrain (count all values, not just the
+            // qualified ones).
+            let exact = card_of(&restr_subj, &p_card);
+            let (mut lo, mut hi) = (
+                card_of(&restr_subj, &p_mincard),
+                card_of(&restr_subj, &p_maxcard),
+            );
+            if let Some(n) = exact {
+                lo = Some(n);
+                hi = Some(n);
+            }
+            if lo.is_some() || hi.is_some() {
+                by_class
+                    .entry(class_iri.clone())
+                    .or_default()
+                    .push(Derived::Card(on, lo, hi));
+            }
+        }
+    }
+
+    let mut shapes = Vec::new();
+    for (class, mut derived) in by_class {
+        derived.sort();
+        derived.dedup();
+        let mut properties = Vec::new();
+        for d in derived {
+            let pc = match d {
+                // The two universal-tops project to an open node-kind constraint regardless of
+                // how the range was classified: both guards match `_` on the datatype flag and
+                // sit ahead of the general arms, so a classifier flip (a custom axiom or
+                // triplestore quirk parsing `rdfs:Literal` as a class, or `owl:Thing` as a
+                // datatype) can never fall through to a vacuous `sh:class rdfs:Literal` /
+                // `sh:datatype owl:Thing`.
+                //
+                // A universal-literal-top (`rdfs:Literal`) `someValuesFrom` says "any literal" —
+                // an intentionally open literal range. Under spec-conformant SHACL `sh:datatype
+                // rdfs:Literal` matches only a literal whose datatype IRI is literally `rdfs:Literal`
+                // (the class of all literals is never a concrete lexical datatype), so it flags
+                // every plain literal; the faithful projection of "any literal" is
+                // `sh:nodeKind sh:Literal`. Closed-world reading of the open range, `ValidationOnly`
+                // polarity, never an entailment (Principle 17).
+                Derived::Value(on, target, _) if target == rdfs_literal => {
+                    PropertyConstraintIr::new(
+                        &on,
+                        None,
+                        None,
+                        None,
+                        vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal)],
+                    )?
+                }
+                // A universal-top (`owl:Thing`) `someValuesFrom` says "any individual" — an
+                // intentionally open range. Under spec-conformant SHACL `sh:class owl:Thing`
+                // demands an explicit `rdf:type owl:Thing` edge (never materialized), which would
+                // flag every value; the faithful projection of "any individual, not a literal" is
+                // `sh:nodeKind sh:BlankNodeOrIRI`. This is the closed-world reading of the open
+                // range — still `logic:ValidationOnly` polarity, never an entailment (Principle 17).
+                Derived::Value(on, target, _) if target == owl_thing => PropertyConstraintIr::new(
+                    &on,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::NodeKindShacl(
+                        ShaclNodeKind::BlankNodeOrIri,
+                    )],
+                )?,
+                // Concrete datatype range (`true`) → `sh:datatype`; concrete class range
+                // (`false`) → `sh:class`.
+                Derived::Value(on, target, true) => PropertyConstraintIr::new(
+                    &on,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::Datatype(target)],
+                )?,
+                Derived::Value(on, target, false) => PropertyConstraintIr::new(
+                    &on,
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::Class(target)],
+                )?,
+                Derived::Card(on, lo, hi) => PropertyConstraintIr::new(
+                    &on,
+                    lo,
+                    hi,
+                    Some(ConstraintProvenance::OwlRestriction),
+                    vec![],
+                )?,
+            };
+            properties.push(pc);
+        }
+        if properties.is_empty() {
+            continue;
+        }
+        let shape = ValidationShapeIr::new(
+            format!("{class}-shape"),
+            ShapeTarget::Class(class),
+            properties,
+            None,
+            None,
+            false,
+        )?;
+        shapes.push(shape);
+    }
+    Ok(shapes)
+}
+
+/// Read `logic:PathShape` individuals into [`PathShapeIr`]s.
 ///
 /// Fail-soft, like the rest of the front-end: a malformed shape (a step that is
 /// both named and wildcard, neither named nor wildcard, a non-positive-integer
@@ -1109,7 +1339,7 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
 // --------------------------------------------------------------------------- //
 
 // --------------------------------------------------------------------------- //
-// Full first-order formula extraction (#719; absent logic:Formula → empty list)
+// Full first-order formula extraction (absent logic:Formula → empty list)
 // --------------------------------------------------------------------------- //
 
 /// The sub-formula link predicates: a `logic:Formula` reached through any of these is a
@@ -1370,7 +1600,7 @@ pub fn parse_logic_str(
     source_iri: Option<String>,
 ) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
     // Native codec parse → frozen wasm-clean IR dataset, straight into the parser
-    // (no oxigraph Store hop, #909/#732).
+    // (no oxigraph Store hop).
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
     parse_logic_dataset(dataset.as_ref(), source_iri)

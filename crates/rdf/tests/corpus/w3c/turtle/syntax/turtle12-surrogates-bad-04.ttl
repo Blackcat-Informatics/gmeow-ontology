@@ -1,2 +1,0 @@
-PREFIX : <http://example/>
-:s :p "Single high surrogate (\uD83C)" .

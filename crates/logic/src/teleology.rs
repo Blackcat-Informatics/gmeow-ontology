@@ -46,7 +46,7 @@ use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use gmeow_rdf::TermValue;
+use purrdf::TermValue;
 
 use crate::provenance::{mint_derivation_id, mint_reifier};
 use crate::result::PreservationClaim;
@@ -2030,6 +2030,331 @@ const GATE_COMPENSATION: &str = "gateCompensation";
 const GATE_ADMITTED: &str = "GateAdmitted";
 /// `logic:GateDenied` — the deny verdict individual.
 const GATE_DENIED: &str = "GateDenied";
+/// `logic:GateUndetermined` — the stale-datum verdict individual (freshness gate).
+const GATE_UNDETERMINED: &str = "GateUndetermined";
+/// `logic:gateUndeterminedReason` — the reason on a freshness-undetermined probe.
+const GATE_UNDETERMINED_REASON: &str = "gateUndeterminedReason";
+/// `logic:decisionTime` — the "now" a gate probe measures datum freshness against.
+const DECISION_TIME: &str = "decisionTime";
+/// `logic:freshnessGuard` — a schema's valid-time currency guard on a precondition.
+const FRESHNESS_GUARD: &str = "freshnessGuard";
+/// `logic:guardsPrecondition` — the precondition situation a freshness guard governs.
+const GUARDS_PRECONDITION: &str = "guardsPrecondition";
+/// `logic:freshnessHorizon` — the maximum admissible datum age (an xsd:duration).
+const FRESHNESS_HORIZON: &str = "freshnessHorizon";
+/// `logic:datumRecordedAt` — when a guarded precondition's datum was recorded.
+const DATUM_RECORDED_AT: &str = "datumRecordedAt";
+/// `logic:freshnessWindow` — marks that a guard carries an explicit valid-time window
+/// (the openEHR DLM `time_window` axis), orthogonal to the age horizon.
+const FRESHNESS_WINDOW: &str = "freshnessWindow";
+/// `logic:freshnessWindowStart` — the inclusive lower bound of the valid-time window.
+const FRESHNESS_WINDOW_START: &str = "freshnessWindowStart";
+/// `logic:freshnessWindowEnd` — the inclusive upper bound of the valid-time window.
+const FRESHNESS_WINDOW_END: &str = "freshnessWindowEnd";
+/// `logic:awaitsSignal` — the external signal a notification-wait schema waits on.
+const AWAITS_SIGNAL: &str = "awaitsSignal";
+/// `logic:awaitingSignal` — the witness that a wait probe is still pending its signal.
+const AWAITING_SIGNAL: &str = "awaitingSignal";
+
+/// The lexical value of an N3 literal (`"lex"^^<dt>` or `"lex"@lang` or `"lex"`).
+///
+/// Returns the text between the first unescaped quote pair with `\"`/`\\` unescaped,
+/// or `None` when `n3` is not a literal (e.g. an IRI form).  Used to read the
+/// xsd:dateTime / xsd:duration lexical forms the freshness gate compares.
+fn literal_lex(n3: &str) -> Option<String> {
+    let rest = n3.strip_prefix('"')?;
+    let mut lex = String::new();
+    let mut chars = rest.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' => match chars.next() {
+                Some('"') => lex.push('"'),
+                Some('\\') => lex.push('\\'),
+                Some(other) => {
+                    lex.push('\\');
+                    lex.push(other);
+                }
+                None => return None,
+            },
+            '"' => return Some(lex),
+            other => lex.push(other),
+        }
+    }
+    None
+}
+
+/// Parse an xsd:duration lexical form to a whole number of seconds.
+///
+/// Only FIXED-LENGTH designators are admissible: weeks (`W`), days (`D`), hours (`H`),
+/// minutes (`M`, in the time part after `T`), and seconds (`S`).  A nominal-length
+/// designator — years (`Y`) or months (`M`, in the date part) — is a hard error,
+/// because a currency window measured in nominal spans has no fixed second-count and
+/// the age comparison would be ill-defined.  A negative duration is also rejected.
+///
+/// # Errors
+///
+/// Returns `Err` for a malformed lexical form, a nominal designator, or a negative span.
+fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
+    // xsd:duration's negative form is a leading '-' BEFORE 'P' (e.g. "-P3D"); strip it and
+    // track the sign so a negative horizon is rejected with the intended "is negative"
+    // message rather than the generic "must start with 'P'". The scan below only ever
+    // accumulates non-negative magnitudes, so the sign lives here, not in `total`.
+    let (negative, rest) = match lex.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, lex),
+    };
+    let body = rest.strip_prefix('P').ok_or_else(|| {
+        format!("xsd:duration {lex:?} must start with 'P' (optionally preceded by '-')")
+    })?;
+    if body.is_empty() {
+        return Err(format!("xsd:duration {lex:?} carries no components"));
+    }
+    let (date_part, time_part) = match body.split_once('T') {
+        Some((d, t)) => (d, Some(t)),
+        None => (body, None),
+    };
+    let mut total = 0f64;
+    // Accumulate a number/designator scan; `in_time` selects the M meaning.
+    let scan = |part: &str, in_time: bool, total: &mut f64| -> Result<(), String> {
+        let mut num = String::new();
+        for c in part.chars() {
+            if c.is_ascii_digit() || c == '.' {
+                num.push(c);
+                continue;
+            }
+            if num.is_empty() {
+                return Err(format!(
+                    "xsd:duration {lex:?} has a designator with no number"
+                ));
+            }
+            let value: f64 = num
+                .parse()
+                .map_err(|_| format!("xsd:duration {lex:?} has a malformed number {num:?}"))?;
+            let secs = match c {
+                'W' if !in_time => value * 604_800.0,
+                'D' if !in_time => value * 86_400.0,
+                'H' if in_time => value * 3_600.0,
+                'M' if in_time => value * 60.0,
+                'S' if in_time => value,
+                'Y' | 'M' => {
+                    return Err(format!(
+                        "xsd:duration {lex:?} uses a nominal-length designator ({c}); a freshness horizon must be a fixed span (weeks/days/hours/minutes/seconds)"
+                    ));
+                }
+                _ => {
+                    return Err(format!(
+                        "xsd:duration {lex:?} has an unexpected designator {c:?}"
+                    ))
+                }
+            };
+            *total += secs;
+            num.clear();
+        }
+        if !num.is_empty() {
+            return Err(format!(
+                "xsd:duration {lex:?} has a trailing number {num:?} with no designator"
+            ));
+        }
+        Ok(())
+    };
+    scan(date_part, false, &mut total)?;
+    if let Some(tp) = time_part {
+        if tp.is_empty() {
+            return Err(format!(
+                "xsd:duration {lex:?} has an empty time part after 'T'"
+            ));
+        }
+        scan(tp, true, &mut total)?;
+    }
+    if negative {
+        return Err(format!(
+            "xsd:duration {lex:?} is negative; a freshness horizon must be non-negative"
+        ));
+    }
+    Ok(total.round() as i64)
+}
+
+/// Evaluate every `logic:freshnessGuard` on `schema` against `decision_time`.
+///
+/// For each guard, the guarded precondition's datum (`logic:datumRecordedAt`) is aged
+/// against the probe's `logic:decisionTime` and compared to the guard's
+/// `logic:freshnessHorizon`.  Returns `Ok(Some((sit, reason)))` for the FIRST guard
+/// whose datum is stale (age exceeds the horizon), `Ok(None)` when every guard is
+/// fresh (or the schema carries none).  A guard declared with no `logic:decisionTime`
+/// on the probe, or no `logic:datumRecordedAt` on the datum, is a HARD ERROR — the age
+/// comparison has no reference point and the evaluator refuses to guess (no silent pass).
+///
+/// # Errors
+///
+/// Returns `Err` for a missing decision-time / record-time under a declared guard, a
+/// malformed xsd:dateTime, or a malformed / nominal xsd:duration horizon.
+fn freshness_verdict(
+    facts: &WorldFacts,
+    schema: &str,
+    decision_time: Option<&str>,
+) -> Result<Option<(String, String)>, String> {
+    use chrono::DateTime;
+    let guards: Vec<String> = facts
+        .objects(schema, &logic(FRESHNESS_GUARD))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    for guard in &guards {
+        let sit = facts
+            .object(guard, &logic(GUARDS_PRECONDITION))
+            .ok_or_else(|| {
+                format!("logic:FreshnessGuard {guard:?} has no logic:guardsPrecondition")
+            })?
+            .to_owned();
+        // Absent-horizon semantics: a guard that declares no logic:freshnessHorizon
+        // imposes NO constraint on the age axis (a window-only guard is gated solely by
+        // window_verdict, and a guard with neither axis constrains nothing). Mirrors the
+        // absent-window rule in window_verdict.
+        let Some(horizon_lex) = facts
+            .object_n3(guard, &logic(FRESHNESS_HORIZON))
+            .and_then(literal_lex)
+        else {
+            continue;
+        };
+        let horizon_secs = parse_xsd_duration_seconds(&horizon_lex)?;
+        let decision_lex = decision_time.ok_or_else(|| {
+            format!(
+                "logic:GateProbe gates schema {schema:?} whose logic:FreshnessGuard {guard:?} requires a logic:decisionTime, but the probe declares none"
+            )
+        })?;
+        let recorded_lex = facts
+            .object_n3(&sit, &logic(DATUM_RECORDED_AT))
+            .and_then(literal_lex)
+            .ok_or_else(|| {
+                format!(
+                    "precondition {sit:?} guarded by logic:FreshnessGuard {guard:?} has no logic:datumRecordedAt"
+                )
+            })?;
+        let decision = DateTime::parse_from_rfc3339(decision_lex).map_err(|e| {
+            format!("logic:decisionTime {decision_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        let recorded = DateTime::parse_from_rfc3339(&recorded_lex).map_err(|e| {
+            format!("logic:datumRecordedAt {recorded_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        let age_secs = decision.signed_duration_since(recorded).num_seconds();
+        if age_secs > horizon_secs {
+            let reason = format!(
+                "precondition {sit:?} datum recorded at {recorded_lex} is {age_secs}s old at decision time {decision_lex}, exceeding the freshness horizon {horizon_lex} ({horizon_secs}s)"
+            );
+            return Ok(Some((sit, reason)));
+        }
+    }
+    Ok(None)
+}
+
+/// Evaluate every `logic:freshnessWindow` on `schema`'s guards against `decision_time`.
+///
+/// This is the SECOND, INDEPENDENT valid-time axis of a `logic:FreshnessGuard`, distinct
+/// from the age horizon evaluated by `freshness_verdict`: it is an EXPLICIT ABSOLUTE
+/// valid-time interval (the openEHR DLM `time_window`), not a max-age ceiling. For each
+/// guard that declares a `logic:freshnessWindow`, the probe's `logic:decisionTime` must
+/// fall inside the closed `[logic:freshnessWindowStart, logic:freshnessWindowEnd]`
+/// interval. A guard that declares NO window imposes no constraint on this axis (the
+/// horizon, if any, still applies) — absent-window semantics, mirroring the flat
+/// optional-facet convention of the module.
+///
+/// Returns `Ok(Some((guard, reason)))` for the FIRST guard whose window is declared and
+/// whose `decision_time` falls OUTSIDE `[start, end]` (the undetermined verdict), and
+/// `Ok(None)` when every declared window contains the decision time (or no guard declares
+/// one). The window and horizon axes are evaluated independently; the caller reports the
+/// first failing axis deterministically.
+///
+/// # Errors
+///
+/// A declared window with NO `logic:decisionTime` on the probe is a HARD ERROR — exactly
+/// like the horizon path, the interval test has no reference point and the evaluator
+/// refuses to guess (no silent pass). A malformed `logic:freshnessWindowStart` /
+/// `logic:freshnessWindowEnd` (or a bound missing under a declared window), or an interval
+/// whose end precedes its start, is also a hard error.
+fn window_verdict(
+    facts: &WorldFacts,
+    schema: &str,
+    decision_time: Option<&str>,
+) -> Result<Option<(String, String)>, String> {
+    use chrono::DateTime;
+    let guards: Vec<String> = facts
+        .objects(schema, &logic(FRESHNESS_GUARD))
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+    for guard in &guards {
+        // Absent-window semantics: a guard that declares no logic:freshnessWindow
+        // imposes NO constraint on this axis (the horizon, if any, is the only gate).
+        if facts.object_n3(guard, &logic(FRESHNESS_WINDOW)).is_none() {
+            continue;
+        }
+        // A declared window without a decision time is a hard error — no reference point.
+        let decision_lex = decision_time.ok_or_else(|| {
+            format!(
+                "logic:GateProbe gates schema {schema:?} whose logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow, but the probe declares no logic:decisionTime"
+            )
+        })?;
+        let start_lex = facts
+            .object_n3(guard, &logic(FRESHNESS_WINDOW_START))
+            .and_then(literal_lex)
+            .ok_or_else(|| {
+                format!(
+                    "logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow but no logic:freshnessWindowStart"
+                )
+            })?;
+        let end_lex = facts
+            .object_n3(guard, &logic(FRESHNESS_WINDOW_END))
+            .and_then(literal_lex)
+            .ok_or_else(|| {
+                format!(
+                    "logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow but no logic:freshnessWindowEnd"
+                )
+            })?;
+        let decision = DateTime::parse_from_rfc3339(decision_lex).map_err(|e| {
+            format!("logic:decisionTime {decision_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        let start = DateTime::parse_from_rfc3339(&start_lex).map_err(|e| {
+            format!("logic:freshnessWindowStart {start_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        let end = DateTime::parse_from_rfc3339(&end_lex).map_err(|e| {
+            format!("logic:freshnessWindowEnd {end_lex:?} is not a timezoned xsd:dateTime: {e}")
+        })?;
+        if end < start {
+            return Err(format!(
+                "logic:FreshnessGuard {guard:?} valid-time window ends {end_lex} before it starts {start_lex}"
+            ));
+        }
+        // Closed interval [start, end]: outside ⇒ undetermined on the WINDOW axis (this is
+        // a different cause than the horizon — the datum is off-episode, not merely aged).
+        if decision < start || decision > end {
+            let reason = format!(
+                "logic:FreshnessGuard {guard:?} decision time {decision_lex} is outside its valid-time window [{start_lex}, {end_lex}]"
+            );
+            return Ok(Some((guard.to_owned(), reason)));
+        }
+    }
+    Ok(None)
+}
+
+/// Whether a notification-wait schema is still awaiting an external signal at `state`.
+///
+/// A `logic:NotificationWaitSchema` fires only once each `logic:ExternalSignal` it
+/// `logic:awaitsSignal` obtains in the state (the engine has been told). Returns
+/// `Some((signal, reason))` for the FIRST awaited signal that does NOT obtain — the wait
+/// is pending — and `None` when the schema awaits no signal or every awaited signal has
+/// arrived. Pure classification over the given structure (P12); the engine never
+/// synthesizes an un-signalled completion.
+fn wait_verdict(facts: &WorldFacts, schema: &str, state: &str) -> Option<(String, String)> {
+    for signal in facts.objects(schema, &logic(AWAITS_SIGNAL)) {
+        if !obtains_at(facts, state, signal) {
+            let reason = format!(
+                "notification-wait schema {schema:?} is pending external signal {signal:?}, which has not obtained at state {state:?}"
+            );
+            return Some((signal.to_owned(), reason));
+        }
+    }
+    None
+}
 
 /// Emit the gate verdict for one `logic:GateProbe`, surfacing the invariant-breach and
 /// resource-exhaustion denials (and the precondition/capability ones) as materialized
@@ -2062,6 +2387,32 @@ fn emit_gate_probe(
         .map(|s| (*s).to_owned())
         .collect();
     let gate = gate_action(facts, &schema, &state, &caps);
+    // The freshness gate is a probe-level refinement layered atop the base gate: it needs
+    // the probe's logic:decisionTime, which gate_action (a pure precondition / capability /
+    // invariant / resource gate over a bare state) has no access to.
+    //
+    // WELL-FORMEDNESS is checked UNCONDITIONALLY: a malformed logic:FreshnessGuard (a
+    // guarded precondition with no logic:datumRecordedAt, a probe with no logic:decisionTime
+    // under a declared guard, a nominal/negative horizon, a half-declared or inverted
+    // window) is a HARD, SURFACED error even when the base gate denies for an unrelated
+    // reason — never a silent skip (LOGIC-TELEOLOGY.md). Only the resulting VERDICT (stale /
+    // off-window / pending) refines an ADMIT: a gate that already denies is not re-labelled
+    // logic:GateUndetermined, so `.filter(|_| admits)` drops the verdict while `?` still
+    // propagates any malformation error. Every admit-case output is thus unchanged.
+    let admits = matches!(gate, ActionGate::Admit);
+    let decision_time = facts
+        .object_n3(probe, &logic(DECISION_TIME))
+        .and_then(literal_lex);
+    let stale = freshness_verdict(facts, &schema, decision_time.as_deref())?.filter(|_| admits);
+    // The SECOND freshness axis: an explicit valid-time window (the openEHR DLM
+    // `time_window`). It is INDEPENDENT of the age horizon above — a datum can pass the
+    // horizon yet fall outside its declared window, or vice versa — and yields the same
+    // logic:GateUndetermined verdict for a DISTINCT cause (off-episode, not merely aged).
+    let off_window = window_verdict(facts, &schema, decision_time.as_deref())?.filter(|_| admits);
+    // A notification-wait schema whose external signal has not obtained is pending — the
+    // same withheld-judgment value as a stale datum (logic:GateUndetermined), carrying a
+    // distinct witness (logic:awaitingSignal). Only meaningful when the base gate admits.
+    let awaiting = wait_verdict(facts, &schema, &state).filter(|_| admits);
 
     let source = triple_reifier(probe, &logic(PROBES_SCHEMA), &schema)?;
     let deriv = mint_derivation_id(TELEOLOGY_RULE_IRI, &[source.as_str()]);
@@ -2079,7 +2430,35 @@ fn emit_gate_probe(
     };
     match gate {
         ActionGate::Admit => {
-            push(&logic(GATE_VERDICT), n3(&logic(GATE_ADMITTED)));
+            // A pending wait and a stale datum are the same withheld-judgment verdict
+            // (logic:GateUndetermined) with distinct witnesses. The wait takes precedence:
+            // an un-signalled wait blocks regardless of a datum's freshness.
+            if let Some((signal, reason)) = awaiting {
+                push(&logic(GATE_VERDICT), n3(&logic(GATE_UNDETERMINED)));
+                push(&logic(AWAITING_SIGNAL), n3(&signal));
+                push(
+                    &logic(GATE_UNDETERMINED_REASON),
+                    format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+                );
+            } else if let Some((_, reason)) = stale {
+                // Freshness axis 1: the datum aged past its logic:freshnessHorizon.
+                push(&logic(GATE_VERDICT), n3(&logic(GATE_UNDETERMINED)));
+                push(
+                    &logic(GATE_UNDETERMINED_REASON),
+                    format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+                );
+            } else if let Some((_, reason)) = off_window {
+                // Freshness axis 2: the decision fell outside the datum's declared
+                // logic:freshnessWindow. Same withheld verdict, distinct cause; reported
+                // AFTER the horizon so the first failing axis is deterministic.
+                push(&logic(GATE_VERDICT), n3(&logic(GATE_UNDETERMINED)));
+                push(
+                    &logic(GATE_UNDETERMINED_REASON),
+                    format!("\"{}\"", reason.replace('\\', "\\\\").replace('"', "\\\"")),
+                );
+            } else {
+                push(&logic(GATE_VERDICT), n3(&logic(GATE_ADMITTED)));
+            }
         }
         ActionGate::Deny {
             compensation,

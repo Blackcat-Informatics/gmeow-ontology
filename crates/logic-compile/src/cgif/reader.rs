@@ -14,10 +14,11 @@
 
 use crate::frontend::{parse_logic_dataset, Diagnostic, LogicParseError, Severity};
 use crate::ir::LogicProgram;
+use crate::nt::{nt_escape_iri, nt_escape_literal};
 
 use super::{parse_forms, split_on_sentinel, CExpr};
 
-use gmeow_rdf::parse_dataset;
+use purrdf::parse_dataset;
 
 /// Parse CGIF source text into a [`LogicProgram`] + diagnostics.
 ///
@@ -229,46 +230,6 @@ fn parse_lit_form(items: &[CExpr]) -> Result<LitTerm, LogicParseError> {
             "(lit …) third argument must be a \"datatype\" or @lang, found {other:?}"
         ))),
     }
-}
-
-/// Escape an IRI for an N-Triples `<…>`. The N-Triples `IRIREF` grammar forbids `<`, `>`, `"`,
-/// `{`, `}`, `|`, `^`, `` ` ``, `\`, and every code point `<= 0x20` appearing raw; each must
-/// ride as a `\uXXXX` `UCHAR`. Emitting any of them raw would make the reader's reconstructed
-/// N-Triples re-parse hard-fail — turning a fail-soft round-trip into a panic — so escape them.
-fn nt_escape_iri(iri: &str) -> String {
-    let mut out = String::with_capacity(iri.len());
-    for c in iri.chars() {
-        match c {
-            '\\' => out.push_str("\\u005C"),
-            '"' => out.push_str("\\u0022"),
-            '<' => out.push_str("\\u003C"),
-            '>' => out.push_str("\\u003E"),
-            '{' => out.push_str("\\u007B"),
-            '}' => out.push_str("\\u007D"),
-            '|' => out.push_str("\\u007C"),
-            '^' => out.push_str("\\u005E"),
-            '`' => out.push_str("\\u0060"),
-            c if c <= ' ' => out.push_str(&format!("\\u{:04X}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out
-}
-
-/// Escape a literal lexical form for an N-Triples `"…"` string.
-fn nt_escape_literal(lex: &str) -> String {
-    let mut out = String::with_capacity(lex.len());
-    for c in lex.chars() {
-        match c {
-            '\\' => out.push_str("\\\\"),
-            '"' => out.push_str("\\\""),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c => out.push(c),
-        }
-    }
-    out
 }
 
 // --------------------------------------------------------------------------- //

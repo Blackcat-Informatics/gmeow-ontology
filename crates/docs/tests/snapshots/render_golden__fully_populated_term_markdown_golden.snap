@@ -46,6 +46,7 @@ The entity whose data quality is being assessed — the feature of interest of t
 
 - `closeMatch` → [http://www\.w3\.org/ns/dqv\#computedOn](http://www\.w3\.org/ns/dqv\#computedOn) — *approximate match (close) — not an exact equivalence.*
 - *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
+- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
 ## Box role
 
@@ -64,7 +65,12 @@ The entity whose data quality is being assessed — the feature of interest of t
 
 - `full`
 
+## Changelog
+
+- **Added in:** 0\.1\.0
+
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/assessedEntity>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/assessedEntity@blake3:cf3747eacfbae8d1d0b044115254b28e1df5077bebaf69bca4fa60839848428f`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

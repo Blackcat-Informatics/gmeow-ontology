@@ -6,15 +6,15 @@
 //!
 //! This is the native Rust statement compiler stage. The statement DSL is
 //! authored as plain Turtle (rdflib cannot parse RDF 1.2 triple terms), so it
-//! parses through the native `gmeow_rdf` codecs into a frozen [`RdfDataset`]; each
+//! parses through the native `purrdf` codecs into a frozen [`RdfDataset`]; each
 //! `gmeow:StatementMetadata` cell is a 1:1 transcription of one reifying
 //! statement (a quoted base triple + the annotations on its reifier). The OWL
 //! form reuses the reifier IRI as the named `owl:Axiom` node; the RDF 1.2 lead
 //! is materialized from it by the SAME pure-Rust codec the Python called
-//! (`gmeow_rdf::statements::project_owl_to_rdf12`, #667). Outputs are compared by
+//! (`purrdf::statements::project_owl_to_rdf12`, #667). Outputs are compared by
 //! graph isomorphism, never bytes, so serialization formatting is immaterial.
 //!
-//! EPIC #906: oxigraph-free. Every parse routes through `gmeow_rdf::parse_dataset`
+//! EPIC #906: oxigraph-free. Every parse routes through `purrdf::parse_dataset`
 //! and merges via `RdfDataset::union`; the invariant + lossless checks call the
 //! native `gmeow_validate::statement::*_dataset` twins (the `Store`-based functions
 //! stay for the PyO3 surface). The cell/annotation queries use the native
@@ -24,7 +24,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
 use sha1::{Digest as Sha1Digest, Sha1};
 
 use crate::error::PipelineError;
@@ -141,7 +141,7 @@ pub fn compile_statements(root: &Path) -> Result<(String, String), PipelineError
     cells.sort_by(|a, b| a.reifier.as_str().cmp(b.reifier.as_str()));
 
     let owl_ntriples = emit_owl(&cells);
-    let rdf12 = gmeow_rdf::statements::project_owl_to_rdf12(&owl_ntriples).map_err(|e| {
+    let rdf12 = purrdf::statements::project_owl_to_rdf12(&owl_ntriples).map_err(|e| {
         PipelineError::Stage {
             stage: "stage-statements".to_string(),
             message: format!("OWL → RDF 1.2 projection failed: {e}"),
@@ -181,7 +181,7 @@ pub fn compile_diagnostics_report(root: &Path, ontology_nt: &str) -> gmeow_diagn
         }
     }
 
-    let normalized_owl = match gmeow_rdf::statements::normalize_rdf12_to_owl(&rdf12_ttl) {
+    let normalized_owl = match purrdf::statements::normalize_rdf12_to_owl(&rdf12_ttl) {
         Ok(normalized) => normalized,
         Err(err) => {
             add_dsl_error(&mut report, format!("RDF 1.2 normalization failed: {err}"));
@@ -352,7 +352,7 @@ fn parse_cell(ds: &RdfDataset, cell: &Iri) -> Result<Vec<StatementCell>, Pipelin
 
 fn parse_annotations(
     ds: &RdfDataset,
-    cell_id: gmeow_rdf::TermId,
+    cell_id: purrdf::TermId,
     cell: &Iri,
 ) -> Result<Vec<(Iri, ObjTerm)>, PipelineError> {
     let Some(ann_pred_id) = ds.term_id_by_value(&TermValue::iri(format!("{GMEOW}annotation")))
@@ -362,7 +362,7 @@ fn parse_annotations(
     let mut out = Vec::new();
     // Materialize the annotation-node ids first so the borrow of `ds` from the pattern
     // iterator ends before the per-node sub-queries (which also borrow `ds`).
-    let ann_node_ids: Vec<gmeow_rdf::TermId> = ds
+    let ann_node_ids: Vec<purrdf::TermId> = ds
         .quads_for_pattern(Some(cell_id), Some(ann_pred_id), None, GraphMatch::Default)
         .map(|q| q.o)
         .collect();
@@ -422,7 +422,7 @@ fn mint_reifier(triple: &QuotedTriple) -> Result<Iri, PipelineError> {
 /// [`ObjTerm`] if it is an IRI or literal. Blank/triple-term objects map to `None`
 /// here (no statement field accepts them; the callers below either require an IRI or
 /// a literal/IRI value).
-fn resolve_obj(ds: &RdfDataset, id: gmeow_rdf::TermId) -> Option<ObjTerm> {
+fn resolve_obj(ds: &RdfDataset, id: purrdf::TermId) -> Option<ObjTerm> {
     match ds.resolve(id) {
         TermRef::Iri(iri) => Some(ObjTerm::Iri(iri.to_owned())),
         TermRef::Literal {
@@ -449,14 +449,14 @@ fn resolve_obj(ds: &RdfDataset, id: gmeow_rdf::TermId) -> Option<ObjTerm> {
 /// absent. More than one value is a hard error (no silent pick, #863).
 fn single_object(
     ds: &RdfDataset,
-    subject_id: gmeow_rdf::TermId,
+    subject_id: purrdf::TermId,
     subject: &Iri,
     predicate: &str,
 ) -> Result<Option<ObjTerm>, PipelineError> {
     let Some(p_id) = ds.term_id_by_value(&TermValue::iri(predicate)) else {
         return Ok(None);
     };
-    let obj_ids: Vec<gmeow_rdf::TermId> = ds
+    let obj_ids: Vec<purrdf::TermId> = ds
         .quads_for_pattern(Some(subject_id), Some(p_id), None, GraphMatch::Default)
         .map(|q| q.o)
         .collect();
@@ -482,7 +482,7 @@ fn single_object(
 /// non-IRI value is a hard error.
 fn single_named(
     ds: &RdfDataset,
-    subject_id: gmeow_rdf::TermId,
+    subject_id: purrdf::TermId,
     subject: &Iri,
     predicate: &str,
 ) -> Result<Option<Iri>, PipelineError> {
@@ -500,14 +500,14 @@ fn single_named(
 /// non-IRI value is a hard error (no silent skip, #863).
 fn all_named(
     ds: &RdfDataset,
-    subject_id: gmeow_rdf::TermId,
+    subject_id: purrdf::TermId,
     subject: &Iri,
     predicate: &str,
 ) -> Result<Vec<Iri>, PipelineError> {
     let Some(p_id) = ds.term_id_by_value(&TermValue::iri(predicate)) else {
         return Ok(Vec::new());
     };
-    let obj_ids: Vec<gmeow_rdf::TermId> = ds
+    let obj_ids: Vec<purrdf::TermId> = ds
         .quads_for_pattern(Some(subject_id), Some(p_id), None, GraphMatch::Default)
         .map(|q| q.o)
         .collect();
@@ -576,7 +576,7 @@ impl Stage for StatementsStage {
         // reifier bindings and the reifiers' other triples become annotations — so
         // the side-tables ride in the dataset, not flattened into base quads. The
         // OWL_PATH / RDF12_PATH byte lanes are kept for the pre-C3 byte readers.
-        let dataset = gmeow_rdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None)
+        let dataset = purrdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None)
             .map_err(|e| PipelineError::Parse(format!("RDF 1.2 statement-layer parse: {e}")))?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(OWL_PATH.to_string(), owl.into_bytes());
@@ -621,7 +621,7 @@ mod tests {
 
     /// Render any resolved term to the N-Triples form used by [`triple_set`] (IRIs
     /// as `<iri>`, literals via the [`ObjTerm`] Display).
-    fn render_test_term(ds: &RdfDataset, id: gmeow_rdf::TermId) -> String {
+    fn render_test_term(ds: &RdfDataset, id: purrdf::TermId) -> String {
         match resolve_obj(ds, id) {
             Some(obj) => obj.to_string(),
             // The statement artifacts are blank-free; defensively render anything else.
@@ -646,9 +646,9 @@ mod tests {
         // RDF 1.2 directly) and compare the normalized triple sets.
         let committed_rdf12 =
             std::fs::read_to_string(root.join(RDF12_PATH)).expect("committed rdf12");
-        let fresh_norm = gmeow_rdf::statements::normalize_rdf12_to_owl(&rdf12).expect("norm fresh");
-        let committed_norm = gmeow_rdf::statements::normalize_rdf12_to_owl(&committed_rdf12)
-            .expect("norm committed");
+        let fresh_norm = purrdf::statements::normalize_rdf12_to_owl(&rdf12).expect("norm fresh");
+        let committed_norm =
+            purrdf::statements::normalize_rdf12_to_owl(&committed_rdf12).expect("norm committed");
         assert_eq!(
             triple_set(&fresh_norm),
             triple_set(&committed_norm),

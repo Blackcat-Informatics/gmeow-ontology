@@ -7,8 +7,8 @@ fields; SHACL shape; and the no-truth-verdict doctrine.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from purrdf.compat.rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
 

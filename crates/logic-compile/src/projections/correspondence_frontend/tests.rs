@@ -13,16 +13,16 @@ const SKOS_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
 /// Build a representative `dsl/mappings/` fixture: two `gmeow:TermEquivalence` cells (an
 /// `exactMatch` and a `closeMatch`, so two distinct relation bands) plus one
 /// `gmeow:ProjectionMapping` carrying a single per-profile binding.
-fn fixture_dsl() -> std::sync::Arc<gmeow_rdf::RdfDataset> {
-    use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral};
+fn fixture_dsl() -> std::sync::Arc<purrdf::RdfDataset> {
+    use purrdf::{RdfDatasetBuilder, RdfLiteral};
 
     let mut b = RdfDatasetBuilder::new();
     let triple =
         |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
-            let s = b.intern_iri(s.to_owned());
-            let p = b.intern_iri(p.to_owned());
+            let s = b.intern_iri(s);
+            let p = b.intern_iri(p);
             let o = match (o_iri, o_lit) {
-                (Some(o), _) => b.intern_iri(o.to_owned()),
+                (Some(o), _) => b.intern_iri(o),
                 (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
                 _ => unreachable!(),
             };
@@ -177,8 +177,8 @@ fn fixture_dsl() -> std::sync::Arc<gmeow_rdf::RdfDataset> {
     b.freeze().expect("freeze fixture dsl")
 }
 
-fn parse_nt(nt: &str) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
-    gmeow_rdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+fn parse_nt(nt: &str) -> std::sync::Arc<purrdf::RdfDataset> {
+    purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .expect("parse projection N-Triples")
 }
 
@@ -271,17 +271,17 @@ fn correspondence_iris_are_content_stable() {
 /// shape of a bridge view trying to surface an equivalence predicate — the negative case
 /// the overclaim gate must refuse (Constitution Principle 5). When `bridge` is false the
 /// SAME cell is a plain (non-bridge) equivalence binding — the control that must pass.
-fn projection_bridge_dsl(bridge: bool) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
-    use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral};
+fn projection_bridge_dsl(bridge: bool) -> std::sync::Arc<purrdf::RdfDataset> {
+    use purrdf::{RdfDatasetBuilder, RdfLiteral};
 
     const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
     let mut b = RdfDatasetBuilder::new();
     let triple =
         |b: &mut RdfDatasetBuilder, s: &str, p: &str, o_iri: Option<&str>, o_lit: Option<&str>| {
-            let s = b.intern_iri(s.to_owned());
-            let p = b.intern_iri(p.to_owned());
+            let s = b.intern_iri(s);
+            let p = b.intern_iri(p);
             let o = match (o_iri, o_lit) {
-                (Some(o), _) => b.intern_iri(o.to_owned()),
+                (Some(o), _) => b.intern_iri(o),
                 (_, Some(l)) => b.intern_literal(RdfLiteral::simple(l.to_owned())),
                 _ => unreachable!(),
             };

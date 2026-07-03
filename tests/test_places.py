@@ -27,8 +27,8 @@ from __future__ import annotations
 from decimal import Decimal
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import XSD
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from purrdf.compat.rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl

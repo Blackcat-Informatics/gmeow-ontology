@@ -29,10 +29,6 @@
 #   - gmeow-pipeline fold_parity binary:
 #     32.231 s locally; this is the full real-repo terminal sink vs committed
 #     `generated/dist/gmeow.gts` fold-isomorphism oracle.
-#   - gmeow-rdf-capi c_smoke binary:
-#     82.854 s in CI shard 1; it cold-builds the `libpurrdf` cdylib and compiles /
-#     links / runs the real C program. Header/linkage coverage stays on the dedicated
-#     C-API CI lane and maint-heavy.
 #   - gmeow-pipeline end_to_end binary:
 #     82.351 s in CI shard 1; it runs the real production spine through
 #     `stage-snapshot`, which is full-DAG / ontology-size work. Focused per-stage
@@ -40,13 +36,21 @@
 #   - gmeow-pipeline gts_sink blob-input serialization test:
 #     25.8 s in CI shard 3; it exercises the terminal carrier serialization and
 #     import round-trip, which is codec/I-O-bound and has no remaining headroom.
+#   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
+#     ~95 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
+#     the native Nemo chase over it twice (once benign, once with an injected
+#     disjoint-class clash). This exclusion is budget-exempt, NOT gate-exempt: the
+#     test still runs on every `make check` via the dedicated `coherence-gate-teeth`
+#     target, which invokes it with `--ignore-default-filter` plus an explicit `-E`
+#     selector (overriding this `default-filter`) and does not feed its JUnit output
+#     into the 25 s budget gate.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-pipeline) & binary(fold_parity))
     | test(/corpus_conformance_heavy_offgate/)
     | test(/w3c_rdfc10_heavy_offgate/)
-    | (package(gmeow-rdf-capi) & binary(c_smoke))
+    | (package(gmeow-logic) & test(/whole_bundle_.*gate/))
     | (package(gmeow-pipeline) & binary(end_to_end))
     | (package(gmeow-pipeline) & test(/stages::gts_sink::tests::sink_serializes_the_snapshot_carrier_with_blob_inputs/))
   )
@@ -125,6 +129,17 @@ test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
+# The whole-ontology coherence-gate teeth tests (crates/logic/tests/coherence_gate.rs)
+# drive the native DL consistency path (dl_consistency -> reason_closure -> Nemo chase),
+# once over a minimal injected clash and once over the WHOLE committed gmeow.gts bundle.
+# They share the `engine` memory group so the full-bundle chase does not OOM-thrash
+# alongside other chases; the longer timeout is only a runaway cliff, the JUnit budget
+# gate still enforces the 25 s policy.
+filter = 'package(gmeow-logic) & binary(coherence_gate)'
+test-group = 'engine'
+slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
 # The consumer `gmeow validate --deep` AC1 test reasons over the user data merged
 # with the WHOLE bundled TBox via the native Nemo chase (~50s full-fold). It is
 # off-gated via `default-filter` (so it runs only on maint-heavy), but the override
@@ -144,6 +159,19 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # `engine` memory group.
 filter = 'package(gmeow-pipeline) & test(/gts_sink|stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site|stages::carrier::native_assembly_tests::authored_default_assembles_natively/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# The docs "try-it" goldens (crates/pipeline/src/stages/carrier.rs, mod
+# docs_try_it_golden) each drive the native Nemo chase (reason_over_dataset)
+# to reason the reduced authored-default-world seed — and the reduced-vs-full-EDB
+# equivalence golden reasons the full object-level EDB as well. They are on-gate
+# lib unit tests, so keep them in the `engine` memory group (like the Nemo-driving
+# binaries above): otherwise they over-parallelize with the other chases and
+# OOM-thrash on the 16 GB runner. Each fixture is tiny, so the JUnit budget gate's
+# 25 s policy still holds; the longer terminate cliff is only a runaway backstop.
+filter = 'package(gmeow-pipeline) & test(/stages::carrier::docs_try_it_golden/)'
+test-group = 'engine'
+slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 # Mapping-stage integration tests run the full `compile_mappings` registry check.

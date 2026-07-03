@@ -515,6 +515,41 @@ an executable obligation the foundation is held to, with a declared discharge co
 *absence* of an inference is as machine-checked as its presence — within the stated fragment or
 bound, and carried as `unknown` everywhere else.
 
+This machinery **is** the foundation's guard against over-typing (Principle 9's refusal to
+over-assert). A candidate whose formalization would entail a deliberately withheld conclusion —
+one touching a `NonEntailmentObligation`'s forbidden predicate — is surfaced as
+`logic:ObligationViolated` and returned to review, never silently asserted into the reasoned core
+nor silently skipped. The review of an over-typing collision *is* the non-entailment-obligation
+check (Arm A syntactic reachability over the rule heads, Arm B finite closure over the derived
+edges), realized through the typed candidate lifecycle rather than as a separate advisory flag: the
+category `CategoryNonEntailmentObligation` records the intent, the linked obligation names the
+forbidden predicate, and the two arms enforce it.
+
+The deliberate-non-assertion boundaries the foundation commits to are each recorded as a reviewed
+candidate flagged `logic:candidateDeliberateNonAssertion`, so the whole set is enumerable rather
+than tacit — queryable as one report over the accepted candidates regardless of their
+`logic:candidateCategory` (the flag cuts across the category facet, so an integrity-constraint
+boundary is enumerated alongside the obligations rather than lost among ordinary integrity
+constraints). The four enforced boundaries each carry a caught-violation fixture that proves the
+boundary holds against a live chase; the fifth — the deliberately-preserved overlap — carries a
+positive coherence case and its countermodel instead, since an allow-by-design non-assertion has
+no runtime violation to catch:
+
+- **deceptive intent is attributed, never entailed**, and **cross-realm counterpart identity never
+  becomes transitive** — two `CategoryNonEntailmentObligation` candidates, each carrying its
+  standing `NonEntailmentObligation` (the forbidden predicate is `gmeow:deceptiveIntentClaim` /
+  `gmeow:counterpartOf`), discharged by the two arms above;
+- **a measured value is frame-relative and ill-formed without its reference frame** (Principle 11),
+  and **an instance carries at most one ultimate Kind** (Principle 9) — two `CategoryIntegrityConstraint`
+  candidates that wrap the measurement-frame and identity-overlap (`MixIden`) disciplines whose
+  `logic:violation` materialises the finding;
+- the **`SocialObject` ∩ `InformationObject` overlap is deliberately preserved** — a
+  `CategoryDeliberateOverlap` candidate that records the reviewed decision *not* to assert disjointness.
+
+The proposed notion of a standalone over-typing-review flag is subsumed by this lifecycle: the review
+of an over-typing collision is the obligation or discipline check itself, surfaced through the typed
+candidate, never a separate advisory property.
+
 The lifecycle is a **closed four-state machine** (`logic:CandidateLifecycleState`):
 `proposed` → `under-review` → `accepted` or `rejected`. An extraction — an LLM's most of all —
 *always* enters at `proposed`; `accepted` (the canonical, axiom-bearing state) is reachable only
@@ -646,6 +681,16 @@ describe — five violation labels from four checks: `logic:StereotypeCardinalit
 `logic:FreeRole`, `logic:MixRig`, and `logic:RelComp`. The lowering certifies under
 `logic:StratifiedNAFProfile`. The discipline checks are the regression specification of the lowering;
 the lowering is the enforcement mechanism.
+
+Beyond that endogenous regression specification, the disciplines are graded against an *external*,
+independently-authored corpus of models in the OntoUML metamodel vocabulary, each carrying the
+community's documented anti-pattern verdict as engine-agnostic ground truth (the external
+foundation-discipline soundness oracle in the conformance design). Agreement establishes soundness,
+not merely stability; a clean model that fires any discipline is a false positive; and a documented
+anti-pattern the disciplines cannot yet reproduce is an honest gap that feeds this section's
+formalization backlog rather than a silent pass. The OntoUML stereotype vocabulary is subsumed by
+reference through the alignment stack (`skos:exactMatch` puns between the `logic:` stereotypes and
+their `ontouml:` counterparts), so the catalog vocabulary is dogfooded as aligned individuals.
 
 Profiled-mereology constraints are a *second* violation family, kept deliberately separate from the
 OntoUML disciplines. Weak supplementation — a whole with a proper part has another proper part

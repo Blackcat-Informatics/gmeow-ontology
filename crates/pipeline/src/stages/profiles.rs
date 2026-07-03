@@ -12,7 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_slice::rdf_query::{Dataset, Object};
+use purrdf::slice::rdf_query::{Dataset, Object};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -174,7 +174,7 @@ fn profile_document(
     // Canonicalize through the shared renderer so `file == render(graph)`: the same
     // serializer (and prefix authority) the superset gate folds the carried named
     // graph with. Fail-closed — a malformed profile body must not ship.
-    gmeow_rdf::turtle_normalize::canonical_turtle(
+    purrdf::turtle_normalize::canonical_turtle(
         body.as_bytes(),
         &crate::stages::superset::rdf_prefixes(),
     )

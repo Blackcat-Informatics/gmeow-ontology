@@ -56,6 +56,8 @@ gmeow:LanguageProficiency
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Proficiency"@x-gmeow-english ;
+    logic:mediates gmeow:proficiencyAgent ,
+        gmeow:proficiencyLanguage ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified, leveled proficiency of an agent in a language, in a particular skill modality — the gufo:Relator binding {agent} × {language} × {skill modality} × {level on a scale}, mirroring names' gmeow:NameUsage. Mint one per (agent, language, modality) so 'native overall' and 'B2 writing' coexist. The base gmeow:knowsLanguage relation states that an agent knows a language; this relator adds the level and the skill."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -65,6 +67,8 @@ gmeow:LanguageState
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language State"@x-gmeow-english ;
+    logic:mediates gmeow:stateLanguage ,
+        gmeow:stateAuthority ;
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
@@ -148,6 +152,8 @@ gmeow:WritingSystemUsage
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Writing System Usage"@x-gmeow-english ;
+    logic:mediates gmeow:usageLanguage ,
+        gmeow:usageWritingSystem ;
     rdfs:subClassOf logic:Relator ;
     skos:definition "A reified, role- and period-scoped use of a writing system by a language — the gufo:Relator binding {language} × {writing system} × {role} × {period}, mirroring names' gmeow:NameUsage. Lets Japanese co-mingle Han (logographic content), Hiragana (syllabic grammar), Katakana (loanwords) and Latin (transliteration) co-equally, and models script changes over time (Turkish Arabic→Latin, 1928) via the usage's validity. Mint one usage per (language, writing system, role) tuple."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .

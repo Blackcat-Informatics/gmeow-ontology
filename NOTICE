@@ -32,6 +32,30 @@ External correctness corpora (conformance/logic/cases/external/)
   committed — they may only be fetched live in the non-required Lane-B lane.
   - szs-mini, w3c-mini — self-authored by Blackcat Informatics® Inc., CC BY 4.0.
     Tiny seed corpora establishing the external-corpus convention.
+  - tptp-mini, tptp-mini-divergence — self-authored by Blackcat Informatics® Inc.,
+    CC BY 4.0, in TPTP FOF/CNF syntax (the format defined at https://www.tptp.org/).
+    The FOL problem bodies are parsed for real, reduced by the FOL-negation
+    refutation, and lowered onto the native DL consistency engine. The agreeing
+    Lane-A subset (tptp-mini) is decided in agreement with each problem's SZS
+    status; the source-only tptp-mini-divergence lane holds genuine first-order
+    problems the native EL/DL fragment cannot decide, pinned as honest capability
+    gaps. No third-party TPTP distribution problems are vendored — those are
+    fetched live only in the non-required Lane-B lane, audited per problem.
+  - ontouml-mini, ontouml-mini-divergence — self-authored by Blackcat Informatics®
+    Inc., CC BY 4.0, in the OntoUML metamodel vocabulary (https://w3id.org/ontouml#,
+    the serialization the FAIR OntoUML/UFO model catalog uses). Each model is parsed
+    for real and lowered onto the native world-scoped logic: stereotype ABox, then
+    graded by the five native OntoUML foundation disciplines; the fired discipline
+    set is compared to the model's documented anti-pattern verdict (the community's
+    anti-pattern catalogue, https://ontouml.readthedocs.io/en/latest/anti-patterns/).
+    The agreeing Lane-A subset (ontouml-mini) reproduces each documented verdict and
+    keeps clean controls violation-free; the source-only ontouml-mini-divergence lane
+    holds documented anti-patterns the native fragment cannot reproduce — a capability
+    gap (an out-of-fragment stereotype) or a coverage gap (a documented pattern no
+    native discipline decides) — pinned as honest gaps. The real FAIR OntoUML/UFO
+    catalog (github.com/OntoUML/ontouml-models) is CC BY-SA 4.0 (ReferenceOnly under
+    the native license policy) and is NEVER committed; it is graded live only in the
+    non-required Lane-B lane, each model's own license audited.
   - w3c-owl2-el — W3C OWL 2 conformance test cases (ConsistencyTest /
     InconsistencyTest, OWL 2 EL profile subset). Original suite maintained by
     the W3C OWL Working Group and archived at:

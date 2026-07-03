@@ -27,7 +27,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
-use gmeow_rdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
+use purrdf::{RdfDataset, RdfLiteral, RdfTerm, SparqlResult};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -37,7 +37,7 @@ use crate::stages::source_load::module_files;
 /// The native instance graph: a frozen dataset paired with its flat default-graph quad
 /// stream (collected once for the many linear-scan reads the projection performs).
 struct Store {
-    quads: Vec<gmeow_rdf::RdfQuad>,
+    quads: Vec<purrdf::RdfQuad>,
 }
 
 impl Store {
@@ -45,7 +45,7 @@ impl Store {
         // The research-object inputs are Turtle (default graph only); keep the default-
         // graph quads in source-faithful form (statement layer re-materialized so a
         // `gmeow:contentDigest` etc. is visible exactly as authored).
-        let quads = gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(dataset)
+        let quads = purrdf::native_quads::flat_rdf_quads_from_dataset(dataset)
             .into_iter()
             .filter(|q| q.graph_name.is_none())
             .collect();
@@ -53,7 +53,7 @@ impl Store {
     }
 
     /// Iterate `(subject, predicate, object)` of every default-graph quad.
-    fn triples(&self) -> impl Iterator<Item = &gmeow_rdf::RdfQuad> {
+    fn triples(&self) -> impl Iterator<Item = &purrdf::RdfQuad> {
         self.quads.iter()
     }
 }
@@ -1431,8 +1431,8 @@ fn serialize_source_turtle(
     // Re-emit each triple, retagging `@x-gmeow-*` literal language tags to their public
     // BCP-47 form on the way through; the flat quad stream re-materializes the RDF 1.2
     // statement layer so the source A-Box round-trips through the canonical serializer.
-    let mut retagged: Vec<gmeow_rdf::RdfQuad> =
-        gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(&dataset)
+    let mut retagged: Vec<purrdf::RdfQuad> =
+        purrdf::native_quads::flat_rdf_quads_from_dataset(&dataset)
             .into_iter()
             .map(|mut quad| {
                 if let RdfTerm::Literal(lit) = &quad.object {
@@ -1447,19 +1447,19 @@ fn serialize_source_turtle(
     for quad in &mut retagged {
         canonicalize_term_xsd(&mut quad.object)?;
     }
-    let flat = gmeow_rdf::native_quads::flat_dataset_from_quads(&retagged)
+    let flat = purrdf::native_quads::flat_dataset_from_quads(&retagged)
         .map_err(|e| PipelineError::Parse(format!("{path}: re-freeze retagged quads: {e}")))?;
-    let nt = gmeow_rdf::serialize_dataset(
+    let nt = purrdf::serialize_dataset(
         &flat,
         "application/n-triples",
-        gmeow_rdf::SerializeGraph::Dataset,
+        purrdf::SerializeGraph::Dataset,
     )
     .map_err(|e| PipelineError::Parse(format!("{path}: serialize N-Triples: {e}")))?;
 
     // Emit EXACTLY the canonical fold (shared prefix authority, no trailing fixup):
     // the file IS `render(graph)`, the same bytes the superset gate reconstructs.
     // `nt` is already bytes from the native serializer, so pass it by reference.
-    gmeow_rdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
+    purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
         .map_err(PipelineError::Parse)
 }
 
@@ -1488,7 +1488,7 @@ fn canonicalize_term_xsd(term: &mut RdfTerm) -> Result<(), PipelineError> {
                 return Ok(());
             }
             if let Some(datatype_iri) = literal.datatype.as_deref() {
-                match gmeow_xsd::parse_by_iri(&literal.lexical_form, datatype_iri) {
+                match purrdf::xsd::parse_by_iri(&literal.lexical_form, datatype_iri) {
                     Ok(Some(value)) => literal.lexical_form = value.canonical_lexical(),
                     Ok(None) => {}
                     Err(e) => {
@@ -1596,22 +1596,22 @@ fn render_dcat(root: &Path) -> Result<String, PipelineError> {
     // The CONSTRUCT result is a native dataset; canonicalize its typed-literal lexical
     // forms to the W3C XSD mapping (the native codecs preserve raw lexical forms),
     // serialize to N-Triples (NO gts round-trip), then canonicalize to Turtle.
-    let mut quads = gmeow_rdf::native_quads::flat_rdf_quads_from_dataset(&graph);
+    let mut quads = purrdf::native_quads::flat_rdf_quads_from_dataset(&graph);
     for quad in &mut quads {
         canonicalize_term_xsd(&mut quad.object)?;
     }
-    let canon = gmeow_rdf::native_quads::flat_dataset_from_quads(&quads)
+    let canon = purrdf::native_quads::flat_dataset_from_quads(&quads)
         .map_err(|e| PipelineError::Parse(format!("dcat.rq re-freeze: {e}")))?;
-    let nt = gmeow_rdf::serialize_dataset(
+    let nt = purrdf::serialize_dataset(
         &canon,
         "application/n-triples",
-        gmeow_rdf::SerializeGraph::Dataset,
+        purrdf::SerializeGraph::Dataset,
     )
     .map_err(|e| PipelineError::Parse(format!("dcat.rq serialize N-Triples: {e}")))?;
     // Emit EXACTLY the canonical fold (shared prefix authority, no banner): the file
     // IS `render(graph)`, the bytes the superset gate reconstructs from the bundle.
     // `nt` is already bytes from the native serializer, so pass it by reference.
-    gmeow_rdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
+    purrdf::turtle_normalize::canonical_turtle(&nt, &crate::stages::superset::rdf_prefixes())
         .map_err(PipelineError::Parse)
 }
 

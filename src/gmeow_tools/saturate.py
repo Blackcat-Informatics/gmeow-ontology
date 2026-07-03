@@ -31,8 +31,8 @@ from types import ModuleType
 from typing import TYPE_CHECKING, cast
 
 from gmeow_native.pipeline import compact_curie as curie
-from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, URIRef
-from gmeow_rdf.compat.rdflib.namespace import SKOS
+from purrdf.compat.rdflib import OWL, RDF, Graph, URIRef
+from purrdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.config import MAPPING_DSL_DIR, NAMESPACE
 
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    from gmeow_rdf.compat.rdflib.term import Node
+    from purrdf.compat.rdflib.term import Node
 
 _GM = NAMESPACE
 

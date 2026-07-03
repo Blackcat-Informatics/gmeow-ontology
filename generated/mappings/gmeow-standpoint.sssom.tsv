@@ -29,7 +29,7 @@ gmeow:Standpoint	skos:relatedMatch	iptc:Assertor	semapv:ManualMappingCuration	0.
 gmeow:Standpoint	skos:relatedMatch	prov:Agent	semapv:ManualMappingCuration	0.4	a standpoint is often (not always) a prov:Agent — the bearer of an attribution; relatedMatch because a frame need not be an actor
 gmeow:StandpointClaim	skos:closeMatch	crminf:I5_Inference_Making	semapv:ManualMappingCuration	0.6	a standpoint claim is an inference-making act concluding a belief (CRMinf I5)
 gmeow:StandpointClaim	skos:closeMatch	iao:assertion	semapv:ManualMappingCuration	0.6	a standpoint claim is an assertion in the IAO sense — an information content entity that bears a proposition
-gmeow:StandpointClaim	skos:closeMatch	oa:Annotation	semapv:ManualMappingCuration	0.55	a StandpointClaim individual projects to an OA Annotation where the body is the claim and the target is the observedFeature
+gmeow:StandpointClaim	skos:relatedMatch	oa:Annotation	semapv:ManualMappingCuration	0.55	a StandpointClaim projects to an OA Annotation via a directional lowering (body is the claim, target is the observedFeature); not interchangeable, so relatedMatch
 gmeow:StandpointTenure	skos:relatedMatch	crminf:I2_Belief	semapv:ManualMappingCuration	0.6	a standpoint holding a position over an interval is a temporal belief (CRMinf I2 Belief is a subclass of E2 Temporal Entity — the same standpoint-time)
 gmeow:StatementMetadata	skos:relatedMatch	crminf:I4_Proposition_Set	semapv:ManualMappingCuration	0.5	the reified base triple is the proposition set a belief is about (CRMinf J4 that)
 gmeow:StatementMetadata	skos:relatedMatch	dul:Situation	semapv:ManualMappingCuration	0.35	the standpoint-indexed claim is the DnS Situation that satisfies the standpoint's Description

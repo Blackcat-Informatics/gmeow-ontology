@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, URIRef
+from purrdf.compat.rdflib import OWL, RDF, RDFS, Graph, URIRef
 
 from gmeow_tools.config import PROJECTION_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph
@@ -97,7 +97,7 @@ def _sparql_parse(path: Path) -> None:
     """Minimal parse guard — the query must be syntactically valid SPARQL."""
     import sys
 
-    from gmeow_rdf.compat.rdflib.plugins.sparql import prepareQuery
+    from purrdf.compat.rdflib.plugins.sparql import prepareQuery
 
     # Large projection CONSTRUCT queries push pyparsing past the default limit.
     old = sys.getrecursionlimit()

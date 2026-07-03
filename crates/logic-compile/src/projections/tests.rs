@@ -130,6 +130,18 @@ fn projection_ledger_rows_are_sorted_and_classified() {
         !owl_dl.lossy_drops.is_empty(),
         "owl-dl is a lossy projection and must declare lossy_drops"
     );
+
+    // The EmotionML emitter is a many-to-one lossy projection: it must appear in the static
+    // ledger and its structural drops must name the collapsed affect families (rule 9).
+    let emotionml = find("emotionml");
+    assert!(
+        emotionml
+            .lossy_drops
+            .iter()
+            .any(|d| d.contains("AffectClassifierOutput") && d.contains("envelope")),
+        "emotionml must declare its many-to-one <emotion> envelope collapse: {:?}",
+        emotionml.lossy_drops
+    );
 }
 
 #[test]
@@ -193,7 +205,7 @@ fn parse(ttl: &str) -> LogicProgram {
 /// line reads `<s> <p> <o>`). No oxigraph Store — the compiler crate's test harness
 /// rides the same `gmeow-rdf` `gts` surface the projections themselves use.
 fn triple_set(turtle: &str) -> Vec<String> {
-    use gmeow_rdf::{parse_dataset, serialize_dataset, SerializeGraph};
+    use purrdf::{parse_dataset, serialize_dataset, SerializeGraph};
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("turtle parse failed: {e}\n---\n{turtle}"));
     let nt = serialize_dataset(
@@ -801,5 +813,157 @@ fn project_nemo_preservation_is_program_dependent_on_formulas() {
         nemo.actual_drops.iter().any(|d| d.contains("Disjunctive")),
         "the nemo loss ledger names the dropped FOL construct: {:?}",
         nemo.actual_drops
+    );
+}
+
+// ── Class-covering formula → OWL union / disjoint-union (H2) ──────────────────
+
+/// A programmatic covering `∀x. whole(x) → (m₁(x) ∨ … ∨ mₙ(x))` over gmeow: IRIs.
+fn covering_formula(whole: &str, members: &[&str]) -> Formula {
+    let iri = |s: &str| format!("https://blackcatinformatics.ca/gmeow/{s}");
+    let membership =
+        |c: &str| Formula::atom(Term::Iri(iri(c)), vec![Term::var("x").unwrap()]).unwrap();
+    Formula::Forall {
+        vars: vec!["x".to_owned()],
+        body: Box::new(Formula::Implies(
+            Box::new(membership(whole)),
+            Box::new(Formula::Or(members.iter().map(|m| membership(m)).collect())),
+        )),
+    }
+}
+
+/// A positive, unscoped `owl:disjointWith` axiom between two gmeow: classes.
+fn disjoint_axiom(a: &str, b: &str) -> crate::ir::LogicAxiom {
+    let iri = |s: &str| format!("https://blackcatinformatics.ca/gmeow/{s}");
+    crate::ir::LogicAxiom::new(
+        iri(a),
+        "http://www.w3.org/2002/07/owl#disjointWith",
+        iri(b),
+        false,
+        false,
+        crate::ir::ContextualScope::default(),
+    )
+    .unwrap()
+}
+
+#[test]
+fn covering_lowers_to_owl_union_for_overlapping_cover() {
+    // No member disjointness → a plain owl:unionOf cover (exhaustiveness only), never a
+    // partition — the SocialObject∩InformationObject overlap must survive.
+    let prog =
+        LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![covering_formula(
+            "Entity",
+            &[
+                "Agent",
+                "InformationObject",
+                "PhysicalObject",
+                "SocialObject",
+            ],
+        )]);
+    let dl = rdf::project_owl_dl(&prog).unwrap();
+    assert!(
+        dl.content.contains("unionOf"),
+        "emits a union:\n{}",
+        dl.content
+    );
+    assert!(
+        !dl.content.contains("disjointUnionOf"),
+        "an overlapping cover must NOT claim a partition:\n{}",
+        dl.content
+    );
+    assert!(
+        dl.content.contains("subClassOf"),
+        "whole ⊑ union:\n{}",
+        dl.content
+    );
+    // A faithfully-emitted covering is NOT a lossy drop.
+    assert!(
+        !dl.actual_drops.iter().any(|d| d.contains("logic:Formula")),
+        "a recognized covering is not disclosed as a drop: {:?}",
+        dl.actual_drops
+    );
+}
+
+#[test]
+fn covering_lowers_to_owl_disjoint_union_when_members_pairwise_disjoint() {
+    // Covering + all three pairwise disjointness axioms → a partition (owl:disjointUnionOf).
+    let prog = LogicProgram::new(
+        vec![
+            disjoint_axiom("A", "B"),
+            disjoint_axiom("A", "C"),
+            disjoint_axiom("B", "C"),
+        ],
+        vec![],
+        vec![],
+        None,
+    )
+    .with_formulas(vec![covering_formula("W", &["A", "B", "C"])]);
+    let dl = rdf::project_owl_dl(&prog).unwrap();
+    assert!(
+        dl.content.contains("disjointUnionOf"),
+        "a fully-disjoint cover lowers to a partition:\n{}",
+        dl.content
+    );
+}
+
+#[test]
+fn covering_owl_dl_is_deterministic() {
+    let prog =
+        LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![covering_formula(
+            "Entity",
+            &["Agent", "SocialObject", "PhysicalObject"],
+        )]);
+    let a = rdf::project_owl_dl(&prog).unwrap().content;
+    let b = rdf::project_owl_dl(&prog).unwrap().content;
+    assert_eq!(a, b, "covering projection is byte-stable across runs");
+}
+
+#[test]
+fn covering_dropped_in_el_and_gufo_with_shape_tag() {
+    let prog = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_formulas(vec![covering_formula("Entity", &["Agent", "SocialObject"])]);
+    for proj in [
+        rdf::project_owl_el(&prog).unwrap(),
+        rdf::project_gufo(&prog).unwrap(),
+    ] {
+        assert!(
+            proj.actual_drops.iter().any(|d| d.contains("Disjunctive")),
+            "EL/gUFO disclose the covering's disjunction as residue: {:?}",
+            proj.actual_drops
+        );
+    }
+}
+
+#[test]
+fn covering_roundtrips_from_authored_turtle() {
+    // Author the covering as a reified logic:Formula tree (as the slices will), parse it,
+    // and confirm it lowers to owl:unionOf — de-risking the hand-authored formula shape.
+    let ttl = r#"
+ex:cover a logic:Formula ;
+    logic:forall ex:coverBody ;
+    logic:quantifiedVariable ex:coverVar .
+ex:coverVar logic:termIndex 0 ; logic:termVariable "x" .
+ex:coverBody a logic:Formula ;
+    logic:antecedent ex:ante ;
+    logic:consequent ex:cons .
+ex:ante a logic:Formula ; logic:relation ex:Whole ; logic:argument ex:anteArg .
+ex:anteArg logic:termIndex 0 ; logic:termVariable "x" .
+ex:cons a logic:Formula ; logic:or ex:d0 , ex:d1 .
+ex:d0 a logic:Formula ; logic:relation ex:A ; logic:argument ex:d0a .
+ex:d0a logic:termIndex 0 ; logic:termVariable "x" .
+ex:d1 a logic:Formula ; logic:relation ex:B ; logic:argument ex:d1a .
+ex:d1a logic:termIndex 0 ; logic:termVariable "x" .
+"#;
+    let prog = parse(ttl);
+    assert_eq!(
+        prog.formulas.len(),
+        1,
+        "one top-level covering formula parsed"
+    );
+    let dl = rdf::project_owl_dl(&prog).unwrap();
+    assert!(
+        dl.content.contains("unionOf"),
+        "authored covering lowers to a union:\n{}",
+        dl.content
     );
 }

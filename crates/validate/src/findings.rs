@@ -11,14 +11,14 @@
 //! (it owns neither type), hence these are plain named functions.
 //!
 //! The whole point is *carry-through*: the GTS wire coordinates that
-//! [`gmeow_rdf::RdfLocation`] records and the focus/path/shape structure that a
+//! [`purrdf::RdfLocation`] records and the focus/path/shape structure that a
 //! SHACL result carries survive into the [`Finding`], so SARIF, the `gmeow:`
 //! RDF projection, and the content-addressed cache all anchor to the same
 //! position inside a bundle.
 
 use gmeow_diagnostics::{Finding, Location, Severity};
-use gmeow_rdf::{RdfDiagnostic, RdfLocation, RdfSeverity};
-use gmeow_shacl::report::{Severity as ShaclSeverity, ValidationResult};
+use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationResult};
+use purrdf::{RdfDiagnostic, RdfLocation, RdfSeverity};
 
 /// Normalize an [`RdfSeverity`] to the canonical diagnostics [`Severity`].
 fn severity_from_rdf(severity: RdfSeverity) -> Severity {
@@ -33,11 +33,14 @@ fn severity_from_rdf(severity: RdfSeverity) -> Severity {
 /// Normalize a SHACL [`ShaclSeverity`] to the canonical diagnostics [`Severity`].
 ///
 /// `sh:Violation` is the SHACL gate-failing level, so it maps to `error`.
-fn severity_from_shacl(severity: ShaclSeverity) -> Severity {
+fn severity_from_shacl(severity: &ShaclSeverity) -> Severity {
     match severity {
         ShaclSeverity::Violation => Severity::Error,
         ShaclSeverity::Warning => Severity::Warning,
         ShaclSeverity::Info => Severity::Info,
+        // A custom `sh:severity` IRI purrdf preserves verbatim. gmeow's gate
+        // treats an unrecognized severity as gate-failing (fail-closed).
+        ShaclSeverity::Other(_) => Severity::Error,
     }
 }
 
@@ -136,7 +139,7 @@ pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
         .clone()
         .unwrap_or_else(|| "SHACL constraint violated".to_owned());
     let mut finding =
-        Finding::new(severity_from_shacl(result.severity), code, message).with_tool("shacl");
+        Finding::new(severity_from_shacl(&result.severity), code, message).with_tool("shacl");
 
     finding.add_location(Location {
         logical: Some(strip_angle(&result.focus_node.to_string()).to_owned()),
@@ -165,7 +168,7 @@ pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_shacl::term::{NamedNode, Term};
+    use purrdf::shapes::term::{NamedNode, Term};
 
     #[test]
     fn ir_quad_location_threads_end_to_end_into_sarif() {
@@ -174,12 +177,12 @@ mod tests {
         // (b) the RdfLocation -> diagnostics Location bridge here, and (c) the
         // SARIF renderer — surfacing as a repo-relative physicalLocation. No
         // single layer's test crosses all three.
-        use gmeow_rdf::ir::RdfDatasetBuilder;
+        use purrdf::ir::RdfDatasetBuilder;
 
         let mut b = RdfDatasetBuilder::new();
-        let s = b.intern_iri("https://example.org/s".to_owned());
-        let p = b.intern_iri("https://example.org/p".to_owned());
-        let o = b.intern_iri("https://example.org/o".to_owned());
+        let s = b.intern_iri("https://example.org/s");
+        let p = b.intern_iri("https://example.org/p");
+        let o = b.intern_iri("https://example.org/o");
         let handle = b.next_quad_handle();
         b.push_quad(s, p, o, None);
         b.attach_location(
@@ -227,7 +230,7 @@ mod tests {
 
     #[test]
     fn rdf_losses_become_suggestions_and_related_locations() {
-        use gmeow_rdf::RdfLoss;
+        use purrdf::RdfLoss;
         let mut diagnostic =
             RdfDiagnostic::new(RdfSeverity::Warning, "gts.lossy", "language tag dropped");
         diagnostic.add_loss(
@@ -248,6 +251,7 @@ mod tests {
         let result = ValidationResult {
             focus_node: Term::NamedNode(NamedNode::new_unchecked("https://ex/a")),
             result_path: Some(Term::NamedNode(NamedNode::new_unchecked("https://ex/p"))),
+            path_structure: None,
             value: None,
             source_constraint_component: NamedNode::new_unchecked(
                 "http://www.w3.org/ns/shacl#MinCountConstraintComponent",

@@ -1,14 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Rust crate-layering gate: RDF core purity plus an acyclic crate DAG.
+//! Rust crate-layering gate: an acyclic first-party crate DAG.
 //!
-//! This is the Rust-side enforcement for the crate boundary described in #820
-//! S0: `gmeow-rdf-core` is the generic RDF 1.2 kernel, `gmeow-rdf-events` is
-//! the neutral event protocol seam, and `gmeow-rdf` is the oxigraph/PyO3 adapter
-//! that must depend on and re-export the core. First-party dependencies are
-//! `gmeow-*` crates declared with a local `path`; registry crates with the same
-//! prefix are external boundaries and do not become internal layering edges.
+//! Enforces that gmeow's own `crates/*` graph is acyclic and that every
+//! first-party dependency resolves to a `crates/*` member. First-party
+//! dependencies are `gmeow-*` crates declared with a local `path`; registry
+//! crates (including the external `purrdf` umbrella) are external boundaries and
+//! do not become internal layering edges.
+//!
+//! The RDF-1.2 kernel/adapter/event-seam crates are not gmeow's: the RDF 1.2 stack
+//! is the external `purrdf` toolkit, which owns and gates that layering internally.
+//! gmeow consumes it through the single `purrdf` umbrella, so those crates are not
+//! `crates/*` members and this gate does not police their purity. The
+//! `KERNEL_CRATE` / `RDF_*` constants below are generic crate-name fixtures for
+//! this module's unit tests only.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -239,57 +245,13 @@ pub fn check_crate_layering(crates_dir: &Path) -> CrateLayeringReport {
             .insert(name.to_owned(), first_party_deps(&manifest));
     }
 
-    match report.edges.get(KERNEL_CRATE) {
-        None => report.errors.push(format!(
-            "kernel crate {KERNEL_CRATE:?} not found under {}",
-            crates_dir.display()
-        )),
-        Some(kernel_deps) => {
-            let allowed = BTreeSet::from([RDF_EVENTS_CRATE.to_owned()]);
-            let disallowed = kernel_deps
-                .difference(&allowed)
-                .cloned()
-                .collect::<Vec<_>>();
-            if !disallowed.is_empty() {
-                report.errors.push(format!(
-                    "{KERNEL_CRATE} (the RDF-1.2 core kernel) may only depend on \
-                     {RDF_EVENTS_CRATE} first-party support crates, but depends on {} \
-                     - slice/domain/adapter semantics must layer ABOVE the core, \
-                     never inside it (#820 S0 RDF core purity)",
-                    disallowed.join(", ")
-                ));
-            }
-        }
-    }
-
-    match report.edges.get(RDF_EVENTS_CRATE) {
-        None => report.errors.push(format!(
-            "RDF event seam crate {RDF_EVENTS_CRATE:?} not found under {}",
-            crates_dir.display()
-        )),
-        Some(event_deps) if !event_deps.is_empty() => {
-            report.errors.push(format!(
-                "{RDF_EVENTS_CRATE} (the neutral RDF event protocol seam) must have \
-                 ZERO first-party dependencies, but depends on {} (#820 S0 protocol seam purity)",
-                event_deps.iter().cloned().collect::<Vec<_>>().join(", ")
-            ));
-        }
-        Some(_) => {}
-    }
-
-    match report.edges.get(RDF_ADAPTER_CRATE) {
-        None => report.errors.push(format!(
-            "RDF adapter crate {RDF_ADAPTER_CRATE:?} not found under {}",
-            crates_dir.display()
-        )),
-        Some(adapter_deps) if !adapter_deps.contains(KERNEL_CRATE) => {
-            report.errors.push(format!(
-                "{RDF_ADAPTER_CRATE} must depend on {KERNEL_CRATE}: the oxigraph/PyO3 \
-                 adapter is required to re-export the ring-fenced RDF core (#885 P2b)"
-            ));
-        }
-        Some(_) => {}
-    }
+    // The RDF-1.2 kernel / event-seam / adapter layering discipline (former #820 S0
+    // / #885 P2b: gmeow-rdf-core purity, gmeow-rdf-events zero-dep seam, gmeow-rdf
+    // adapter) is not gmeow's to enforce: the RDF stack is the external `purrdf`
+    // toolkit, which owns and gates that layering internally. gmeow consumes it
+    // through the single `purrdf` umbrella dependency, so those crates are not
+    // `crates/*` members here. The general first-party-dependency-resolves check
+    // below still applies to gmeow's own crate graph.
 
     for (krate, deps) in &report.edges {
         for dep in deps {
@@ -388,106 +350,15 @@ mod tests {
             .parent()
             .expect("validate crate should live under crates/");
         let report = check_crate_layering(crates_dir);
+        // The live gmeow workspace is acyclic and every first-party dependency
+        // resolves to a `crates/*` member. There are no RDF-crate-topology
+        // assertions (kernel/events/adapter edges): those crates live in the sibling
+        // `purrdf` package, not this workspace.
         assert!(report.ok(), "{:?}", report.errors);
-        assert_eq!(report.edges.get(RDF_EVENTS_CRATE), Some(&BTreeSet::new()));
-        assert_eq!(
-            report.edges.get(KERNEL_CRATE),
-            Some(&BTreeSet::from([RDF_EVENTS_CRATE.to_owned()]))
+        assert!(
+            !report.edges.is_empty(),
+            "the live workspace must contribute crate edges"
         );
-        assert!(report
-            .edges
-            .get(RDF_ADAPTER_CRATE)
-            .is_some_and(|deps| deps.contains(KERNEL_CRATE)));
-    }
-
-    #[test]
-    fn kernel_must_be_present() {
-        let temp = tempfile::tempdir().unwrap();
-        let crates = temp.path().join("crates");
-        write_crate(&crates, "gmeow-other", &[], &[]);
-        let report = check_crate_layering(&crates);
-        assert!(!report.ok());
-        assert!(report.errors.iter().any(|e| e.contains("not found")));
-    }
-
-    #[test]
-    fn rdf_core_disallowed_dependency_fails() {
-        let temp = tempfile::tempdir().unwrap();
-        let crates = temp.path().join("crates");
-        write_crate(&crates, RDF_EVENTS_CRATE, &[], &[]);
-        write_crate(&crates, "gmeow-diagnostics", &[], &[]);
-        write_crate(
-            &crates,
-            KERNEL_CRATE,
-            &[
-                (RDF_EVENTS_CRATE, RDF_EVENTS_CRATE),
-                ("gmeow-diagnostics", "gmeow-diagnostics"),
-            ],
-            &[],
-        );
-        write_crate(
-            &crates,
-            RDF_ADAPTER_CRATE,
-            &[(KERNEL_CRATE, KERNEL_CRATE)],
-            &[],
-        );
-        let report = check_crate_layering(&crates);
-        assert!(!report.ok());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("may only depend on")));
-    }
-
-    #[test]
-    fn rdf_events_must_have_zero_first_party_deps() {
-        let temp = tempfile::tempdir().unwrap();
-        let crates = temp.path().join("crates");
-        write_crate(&crates, "gmeow-diagnostics", &[], &[]);
-        write_crate(
-            &crates,
-            RDF_EVENTS_CRATE,
-            &[("gmeow-diagnostics", "gmeow-diagnostics")],
-            &[],
-        );
-        write_crate(
-            &crates,
-            KERNEL_CRATE,
-            &[(RDF_EVENTS_CRATE, RDF_EVENTS_CRATE)],
-            &[],
-        );
-        write_crate(
-            &crates,
-            RDF_ADAPTER_CRATE,
-            &[(KERNEL_CRATE, KERNEL_CRATE)],
-            &[],
-        );
-        let report = check_crate_layering(&crates);
-        assert!(!report.ok());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("protocol seam") && e.contains("ZERO first-party")));
-    }
-
-    #[test]
-    fn rdf_adapter_must_depend_on_core() {
-        let temp = tempfile::tempdir().unwrap();
-        let crates = temp.path().join("crates");
-        write_crate(&crates, RDF_EVENTS_CRATE, &[], &[]);
-        write_crate(
-            &crates,
-            KERNEL_CRATE,
-            &[(RDF_EVENTS_CRATE, RDF_EVENTS_CRATE)],
-            &[],
-        );
-        write_crate(&crates, RDF_ADAPTER_CRATE, &[], &[]);
-        let report = check_crate_layering(&crates);
-        assert!(!report.ok());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("must depend on gmeow-rdf-core")));
     }
 
     #[test]
@@ -578,11 +449,11 @@ mod tests {
         )
         .unwrap();
         let report = check_crate_layering(&crates);
-        assert!(!report.ok());
-        assert!(report
-            .errors
-            .iter()
-            .any(|e| e.contains("may only depend on")));
+        // A `package = "..."`-aliased path dependency is recognized as first-party
+        // by its resolved package name (`gmeow-diagnostics`), so it becomes a real
+        // graph edge. No RDF-core-purity rule constrains it (that layering is the
+        // sibling `purrdf` package's concern), so this edge does not trip a gate.
+        assert!(report.ok(), "{:?}", report.errors);
         assert_eq!(
             report.edges.get(KERNEL_CRATE),
             Some(&BTreeSet::from([
@@ -617,26 +488,18 @@ mod tests {
 
     #[test]
     fn diagnostics_projection_carries_errors() {
+        // A still-enforced violation (a first-party dep that resolves to no
+        // `crates/*` member) must surface through the diagnostics projection.
         let temp = tempfile::tempdir().unwrap();
         let crates = temp.path().join("crates");
-        write_crate(&crates, RDF_EVENTS_CRATE, &[], &[]);
-        write_crate(&crates, "gmeow-diagnostics", &[], &[]);
         write_crate(
             &crates,
-            KERNEL_CRATE,
-            &[
-                (RDF_EVENTS_CRATE, RDF_EVENTS_CRATE),
-                ("gmeow-diagnostics", "gmeow-diagnostics"),
-            ],
-            &[],
-        );
-        write_crate(
-            &crates,
-            RDF_ADAPTER_CRATE,
-            &[(KERNEL_CRATE, KERNEL_CRATE)],
+            "gmeow-a",
+            &[("gmeow-missing", "gmeow-missing")],
             &[],
         );
         let report = check_crate_layering(&crates);
+        assert!(!report.ok());
         let diagnostics = to_diagnostics_report(&report);
         assert_eq!(diagnostics.findings.len(), report.errors.len());
         assert!(diagnostics

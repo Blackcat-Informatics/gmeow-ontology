@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: derivation/wemi-instantiation
+#
+# AC: a cross-slice derivation rule's head appears in the native materialization.
+#
+# input.nq models the full WEMI spine as DATA: an Item gmeow:exemplifies a Manifestation
+# that gmeow:embodies an Expression that gmeow:realizes a Work. The rule composes all three
+# R-relations into the Item→Work shortcut.
+#
+# The rule under test — a monotone positive-Horn logic:Rule mirroring the production
+# logic:ruleInstantiatesWork (gmeow:exemplifies ∘ gmeow:embodies ∘ gmeow:realizes ⇒
+# gmeow:instantiatesWork). Every head variable is a frontier variable, so the chase DERIVES
+# its head: materialized.nq is a strict superset of input.nq carrying the derived
+# gmeow:instantiatesWork edge — proof the copy-to-Work derivation materializes
+# (logic:ExactPreservation).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/derivation/wemi-instantiation/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# gmeow:exemplifies(item, manifestation) ∧ gmeow:embodies(manifestation, expression)
+#   ∧ gmeow:realizes(expression, work) ⇒ gmeow:instantiatesWork(item, work)
+ex:ruleInstantiatesWork
+    a logic:Rule ;
+    logic:provenance ex:ruleInstantiatesWork ;
+    logic:head [
+        rdf:subject   "?item" ;
+        rdf:predicate gmeow:instantiatesWork ;
+        rdf:object    "?work"
+    ] ;
+    logic:body [
+        rdf:subject   "?item" ;
+        rdf:predicate gmeow:exemplifies ;
+        rdf:object    "?manifestation"
+    ] ;
+    logic:body [
+        rdf:subject   "?manifestation" ;
+        rdf:predicate gmeow:embodies ;
+        rdf:object    "?expression"
+    ] ;
+    logic:body [
+        rdf:subject   "?expression" ;
+        rdf:predicate gmeow:realizes ;
+        rdf:object    "?work"
+    ] .

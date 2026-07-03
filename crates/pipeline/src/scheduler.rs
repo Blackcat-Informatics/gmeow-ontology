@@ -18,7 +18,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 
-use gmeow_rdf::provenance::DatasetProvenance;
+use purrdf::provenance::DatasetProvenance;
 use rayon::prelude::*;
 
 use crate::bundle::set_bundle_provenance;

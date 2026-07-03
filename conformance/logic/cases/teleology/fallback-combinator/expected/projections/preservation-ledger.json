@@ -88,5 +88,29 @@
       "actual: ground axiom <https://example.org/teleology/fallback-combinator/GoalExpression> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/GoalExpression> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
     ],
     "preservation": "SoundUnderApproximation"
+  },
+  "shacl-core": {
+    "complexity": "closed-world shape validation (SHACL Core)",
+    "lossy_drops": [
+      "a shape surface validates but does not entail (ValidationOnly)",
+      "an intentionally-open existential range (owl:someValuesFrom owl:Thing / rdfs:Literal) is read closed-world as a bare sh:nodeKind (sh:BlankNodeOrIRI / sh:Literal): the existential's at-least-one force and the vacuous universal-top class membership are dropped, and the open range is carried in the canonical logic: layer",
+      "full-FOL integrity conditions, standpoint/world/time-indexed constraints, and cross-node conditions have no SHACL Core form and are carried in the canonical logic: layer",
+      "sh:pattern carries regex-dialect residue (SHACL uses the XPath flavour) and external terminology bindings have no faithful SHACL Core form; both are carried and flagged per shape"
+    ],
+    "preservation": "ValidationOnly"
+  },
+  "shex": {
+    "complexity": "closed-world shape validation (ShEx, strictly narrower than SHACL Core)",
+    "lossy_drops": [
+      "ShEx has no SPARQL target, no RDF-1.2 statement layer, no languageIn, and no datetime-range facet; those conditions are carried in the canonical logic: layer",
+      "a shape surface validates but does not entail (ValidationOnly)",
+      "everything SHACL Core drops (regex dialect, external terminology) is also dropped by ShEx, plus the ShEx-only drops above (a strictly larger residue set)"
+    ],
+    "preservation": "ValidationOnly"
+  },
+  "xcl": {
+    "complexity": "full first-order (semi-decidable)",
+    "lossy_drops": [],
+    "preservation": "ExactPreservation"
   }
 }

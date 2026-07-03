@@ -2,7 +2,7 @@
 
 OWL-heavy ontologies edited in Protégé or by hand produce noisy diffs (reordered
 triples, churned blank-node ids). Re-serializing each source through the native
-``gmeow_rdf`` canonical Turtle form (#819 Task 9) makes diffs reflect real
+``purrdf`` canonical Turtle form (#819 Task 9) makes diffs reflect real
 semantic changes only — it is the rdflib-free replacement for ``longturtle``,
 serialized over the gmeow-rdf IR (oxigraph is only the ingest-edge parser).
 
@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import gmeow_rdf
+import purrdf
 
 from gmeow_tools.config import PREFIXES
 from gmeow_tools.graph import iter_source_files
@@ -34,7 +34,7 @@ def canonicalize(path: Path) -> bool:
         ``True`` if the file content changed, ``False`` otherwise.
     """
     before = path.read_bytes()
-    canonical = gmeow_rdf.canonicalize_turtle(before, _EXTRA_PREFIXES)
+    canonical = purrdf.canonicalize_turtle(before, _EXTRA_PREFIXES)
     if before == canonical:
         return False
     path.write_bytes(canonical)

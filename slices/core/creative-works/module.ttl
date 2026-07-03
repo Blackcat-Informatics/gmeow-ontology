@@ -24,6 +24,9 @@ gmeow:Contribution
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Contribution"@x-gmeow-english ;
+    logic:mediates gmeow:contributor ,
+        gmeow:contributionTarget ,
+        gmeow:contributionRole ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -65,6 +68,9 @@ gmeow:CreativeDerivation
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Creative Derivation"@x-gmeow-english ;
+    logic:mediates gmeow:derivationSource ,
+        gmeow:derivationProduct ,
+        gmeow:derivationType ;
     rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
@@ -535,6 +541,19 @@ gmeow:exemplifies
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert from the Item to its Manifestation; a bound volume may exemplify several Manifestations (non-functional). Read the inverse gmeow:exemplifiedBy for Manifestation-rooted copy enumeration."@x-gmeow-english ;
     gmeow:useWhen "Use to climb from a single copy up to the edition it exemplifies — the Item→Manifestation R-relation at the bottom of the WEMI spine."@x-gmeow-english .
+
+gmeow:instantiatesWork
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Item ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    rdfs:label "instantiates work"@x-gmeow-english ;
+    rdfs:range gmeow:Work ;
+    skos:definition "The Work a concrete Item ultimately instantiates: derived, never asserted, by climbing the full WEMI spine — an Item gmeow:exemplifies a Manifestation that gmeow:embodies an Expression that gmeow:realizes a Work — so every physical copy links directly to the abstract Work it carries. The productive composition exemplifies ∘ embodies ∘ realizes; a copy-to-Work shortcut for consumers who need Item→Work reach without walking the three R-relations by hand. Never asserted: the three WEMI tiers remain the single source, and this edge is a reasoned consequence of them."@x-gmeow-english ;
+    skos:example "ex:myCopy gmeow:instantiatesWork ex:hamlet ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand — it is derived from gmeow:exemplifies, gmeow:embodies, and gmeow:realizes by the reasoner; and avoid collapsing the WEMI tiers onto it, which erases the Manifestation and Expression a copy passes through."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Do not assert it: model the three WEMI R-relations (gmeow:exemplifies, gmeow:embodies, gmeow:realizes) and let the cross-slice derivation rule surface the Item→Work link; consume it for a direct 'which Work is this copy of' answer without traversing the spine."@x-gmeow-english ;
+    gmeow:useWhen "Use to read the abstract gmeow:Work a concrete gmeow:Item instantiates — the copy-to-Work shortcut composed over the full WEMI spine — when a consumer needs Item→Work reach without walking Manifestation and Expression by hand."@x-gmeow-english .
 
 gmeow:formatAudiobook
     a gmeow:ManifestationFormat ;

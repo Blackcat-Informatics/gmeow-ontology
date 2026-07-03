@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: characteristic/transitive-closure
+# Property-characteristic enforcement (H4) — transitivity closure.
+#
+# ex:before is typed logic:transitiveProperty. Given ex:A before ex:B and
+# ex:B before ex:C, the native characteristic pass must derive ex:A before ex:C.
+# The chase seeds only from input.nq; this is the mirror axiom.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/characteristic/transitive-closure/> .
+
+ex:before a logic:transitiveProperty .
+ex:A ex:before ex:B .
+ex:B ex:before ex:C .

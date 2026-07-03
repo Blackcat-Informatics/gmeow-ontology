@@ -27,8 +27,8 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use gmeow_rdf::{parse_dataset, TermRef};
 use gmeow_validate::language_tags::{load_inverse_tag_map, load_tag_map, retag_graph_to_internal};
+use purrdf::{parse_dataset, TermRef};
 
 /// The GMEOW namespace prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -80,7 +80,7 @@ fn catalog_bytes() -> Vec<u8> {
 }
 
 /// Parse the catalog into a dataset (hard-fail on parse error).
-fn catalog_dataset() -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+fn catalog_dataset() -> std::sync::Arc<purrdf::RdfDataset> {
     parse_dataset(&catalog_bytes(), "text/turtle", None)
         .unwrap_or_else(|e| panic!("catalog must parse as turtle: {e}"))
 }
@@ -97,7 +97,7 @@ struct Index {
 }
 
 impl Index {
-    fn build(dataset: &gmeow_rdf::RdfDataset) -> Self {
+    fn build(dataset: &purrdf::RdfDataset) -> Self {
         let mut obj_iris: HashMap<(String, String), BTreeSet<String>> = HashMap::new();
         let mut obj_lits: HashMap<(String, String), BTreeSet<String>> = HashMap::new();
         for qr in dataset.quad_refs() {

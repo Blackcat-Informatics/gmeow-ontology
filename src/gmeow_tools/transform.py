@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 from types import ModuleType
 from typing import TYPE_CHECKING, cast
 
-from gmeow_rdf.compat.rdflib import Graph, URIRef
+from purrdf.compat.rdflib import Graph, URIRef
 
 from gmeow_tools.config import DIST_DIR, PREFIXES, PROJECT_ROOT
 from gmeow_tools.graph import bind_prefixes
@@ -146,7 +146,7 @@ def _serialize_outputs(
     ``base_plus_derived`` is retagged in place for the consumer tiers, and
     finally language-filtered if a selector was requested.
     """
-    import gmeow_rdf
+    import purrdf
     from gts import read, to_nquads
 
     from gmeow_tools.language_tags import retag_graph
@@ -162,7 +162,7 @@ def _serialize_outputs(
     nq_path = out_dir / "index.nq"
     nq_path.write_text(nq_text, encoding="utf-8")
     # RDF 1.2 verification: the trusted parser must accept every line.
-    list(gmeow_rdf.parse(nq_text.encode(), format=gmeow_rdf.RdfFormat.N_QUADS))
+    list(purrdf.parse(nq_text.encode(), format=purrdf.RdfFormat.N_QUADS))
     written.append(nq_path)
 
     # consumer-facing tiers only: retag x-gmeow-* → public BCP-47 across the whole
@@ -313,7 +313,7 @@ def vocab_coverage(maximal: Graph, target: Graph) -> str:
         raise ValueError(msg)
 
     def vocab_terms(g: Graph) -> set[str]:
-        from gmeow_rdf.compat.rdflib import RDF as _RDF
+        from purrdf.compat.rdflib import RDF as _RDF
 
         terms = {str(p) for p in g.predicates()}
         terms.update(

@@ -7,8 +7,8 @@ from pathlib import Path
 import gmeow_docs
 import gmeow_validate
 import pytest
-from gmeow_rdf.compat.rdflib import RDFS, Graph, Literal, URIRef
-from gmeow_rdf.compat.rdflib.namespace import OWL, RDF
+from purrdf.compat.rdflib import RDFS, Graph, Literal, URIRef
+from purrdf.compat.rdflib.namespace import OWL, RDF
 
 import gmeow_tools.validate as validate_mod
 from gmeow_tools.config import (

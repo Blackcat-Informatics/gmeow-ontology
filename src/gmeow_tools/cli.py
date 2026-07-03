@@ -31,7 +31,7 @@ from gmeow_tools.config import (
 from gmeow_tools.gts_views import FoldView
 
 if TYPE_CHECKING:
-    from gmeow_rdf.compat.rdflib import Graph
+    from purrdf.compat.rdflib import Graph
 
     from gmeow_tools.language_tags import LangSelector
 
@@ -140,7 +140,7 @@ def _read_turtle(source: Path) -> tuple[Graph, str]:
     """
     import sys
 
-    from gmeow_rdf.compat.rdflib import Graph
+    from purrdf.compat.rdflib import Graph
 
     graph = Graph()
     stdin = str(source) == "-"
@@ -666,21 +666,16 @@ def transpile(
     profiles: str = typer.Option(
         "all", "--profiles", help="Projection profiles for the maximal pass: all|name,…"
     ),
-    floor: bool = typer.Option(
-        False,
-        "--floor",
-        help="Use the per-term floor instead of the context-aware descent.",
-    ),
     lang: str | None = _lang_option(),
 ) -> None:
     """Transpile consumer RDF → pure GMEOW → MAXIMAL multi-vocab (#448).
 
-    The full pipeline: up-project the source into pure GMEOW (the context-aware
-    descent), write that draft, then run MAXIMAL(G) = G + E(G) + P(G) over it —
-    the canonical base, its strong-equivalence saturation, and every projection
-    profile — into one fat, provenance-audited multi-vocabulary file family.
-    Runs from the bundled snapshot alone (no repo); reads stdin when <source> is
-    '-' (``cat src | gmeow transpile -``).
+    The full pipeline: up-project the source into pure GMEOW through the lawful
+    native put-leg executor, write that draft, then run MAXIMAL(G) = G + E(G) +
+    P(G) over it — the canonical base, its strong-equivalence saturation, and
+    every projection profile — into one fat, provenance-audited multi-vocabulary
+    file family. Runs from the bundled snapshot alone (no repo); reads stdin when
+    <source> is '-' (``cat src | gmeow transpile -``).
     """
     from gmeow_tools.projections import PROFILES
     from gmeow_tools.transpile import transpile as run_transpile
@@ -725,7 +720,6 @@ def transpile(
                 stem,
                 out_dir=out,
                 profiles=names,
-                descend=not floor,
                 selector=selector,
             )
         elif source.suffix.lower() in (".jsonld", ".yamlld", ".yaml-ld", ".yld"):
@@ -743,7 +737,6 @@ def transpile(
                 source.stem,
                 out_dir=out,
                 profiles=names,
-                descend=not floor,
                 selector=selector,
             )
         else:
@@ -751,7 +744,6 @@ def transpile(
                 source,
                 out_dir=out,
                 profiles=names,
-                descend=not floor,
                 selector=selector,
             )
     except (OSError, ValueError, SyntaxError) as exc:
@@ -760,10 +752,7 @@ def transpile(
     err_console.print(
         f"[green]lifted[/green] {result.lifted} facts · "
         f"[cyan]claimed[/cyan] {result.claimed} inferred · "
-        f"[magenta]context[/magenta] {result.context_resolved} by-type · "
-        f"[blue]bridged[/blue] {result.tag_resolved} QID-tag · "
-        f"[yellow]gap[/yellow] {result.gap_terms} · "
-        f"[yellow]ambiguous[/yellow] {result.ambiguous_terms}",
+        f"[yellow]gap[/yellow] {result.gap_terms}",
     )
     err_console.print(
         f"[green]maximal[/green] asserted {result.transform.asserted} · "

@@ -14,7 +14,8 @@
 
 # --- Contributor transition --------------------------------------------------
 
-ex:eve a gmeow:Person .
+ex:eve a gmeow:Person ,
+        gmeow:Agent .
 
 ex:eveName a gmeow:PersonName ;
     gmeow:fullName "Eve" ;
@@ -36,12 +37,21 @@ ex:transitionCommit a gmeow:Commit ;
 
 # --- AI-author fixture -------------------------------------------------------
 
-ex:copilot a gmeow:SoftwareAgent ;
+ex:copilot a gmeow:SoftwareAgent ,
+        gmeow:Agent ;
     gmeow:name "GitHub-Copilot-Bot" .
 
-ex:alice a gmeow:Person .
+ex:alice a gmeow:Person ,
+        gmeow:Agent .
 
-ex:meowProduct a gmeow:SoftwareProduct .
+ex:meowProduct a gmeow:SoftwareProduct ,
+        gmeow:CreativeWork .
+
+# Contribution-role vocabulary value, restated locally: this fixture is
+# validated standalone (no ontology import), and the generated Contribution
+# range shape requires gmeow:contributionRole to resolve to a
+# gmeow:ContributionRole in the SAME data graph (Principle 11).
+gmeow:roleCodeReviewer a gmeow:ContributionRole .
 
 # IRIs here match the dsl/statements/examples.ttl cell ex:claim-ai-commit-authorship
 ex:aiCommit a gmeow:Commit ;

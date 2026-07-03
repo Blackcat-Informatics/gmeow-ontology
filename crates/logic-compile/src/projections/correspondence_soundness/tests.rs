@@ -12,7 +12,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use gmeow_rdf::{parse_dataset, NativeRdfFormat, RdfDataset};
+use purrdf::{parse_dataset, NativeRdfFormat, RdfDataset};
 
 use super::*;
 

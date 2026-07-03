@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use gmeow_diagnostics::{Finding, Location, Severity};
-use gmeow_shacl::term::Term;
+use purrdf::shapes::term::Term;
 
 use crate::dsl;
 use crate::findings::finding_from_shacl;
@@ -34,14 +34,14 @@ pub fn validate_dsl(
     label: &str,
 ) -> Result<Vec<Finding>, String> {
     let merge = dsl::merge_with_provenance(paths)?;
-    let shapes = gmeow_shacl::engine::parse_shapes(shapes_ttl)?;
+    let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl)?;
     let report = store::shacl_validate_dataset(&merge.dataset, &shapes);
     let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
     Ok(dsl_findings(&report, &focus_to_file, label))
 }
 
 fn dsl_findings(
-    report: &gmeow_shacl::report::ValidationReport,
+    report: &purrdf::shapes::report::ValidationReport,
     focus_to_file: &HashMap<String, String>,
     label: &str,
 ) -> Vec<Finding> {

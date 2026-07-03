@@ -18,11 +18,11 @@
 use std::sync::Arc;
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_rdf::{
+use purrdf::sparql::NativeSparqlEngine;
+use purrdf::{
     DatasetMut, MutableDataset, QuadValues, RdfDataset, SparqlEngine, SparqlRequest, SparqlResult,
     TermValue,
 };
-use gmeow_sparql_eval::NativeSparqlEngine;
 
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::reason_all;
@@ -257,6 +257,12 @@ pub fn verify_with_reasoning_result(
     for finding in crate::obligations::formalization_coverage(&reasoned)? {
         report.add_finding(finding);
     }
+    // Recompute-and-enforce logic:candidateSourceHash drift: gives the "a later prose
+    // edit surfaces as drift" governance claim executable teeth the presence-only SHACL
+    // shape cannot express — a stale hash on a harvested candidate is a hard error.
+    for finding in crate::obligations::check_candidate_source_hash_drift(&reasoned)? {
+        report.add_finding(finding);
+    }
 
     report.add_finding(
         Finding::new(
@@ -286,7 +292,7 @@ pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+    use purrdf::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";

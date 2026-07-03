@@ -1,16 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3-free engine for the gUFO/UFO reasoning invariants (#579).
+//! PyO3-free engine for the gUFO/UFO reasoning invariants.
 //!
-//! Ported byte-exact from `src/gmeow_tools/reasoning_lint.py`. The six OntoUML
-//! anti-pattern checks (`exactly_one_stereotype`, `identity_overlap`,
+//! The OntoUML anti-pattern checks (`exactly_one_stereotype`, `identity_overlap`,
 //! `anti_rigidity_discipline`, `relator_mediation`, `coequal_facet_orthogonality`,
-//! `frame_declaration_completeness`) run over a native [`gmeow_rdf::RdfDataset`]
+//! `frame_declaration_completeness`) run over a native [`purrdf::RdfDataset`]
 //! built from the merged ontology sources, querying through the indexed
-//! [`gmeow_rdf::DatasetView::quads_for_pattern`]. The aggregator
-//! [`reasoning_invariants`] runs all six and flattens their errors in the same
-//! order the Python does.
+//! [`purrdf::DatasetView::quads_for_pattern`]. The aggregator
+//! [`reasoning_invariants`] runs the five PRODUCTION checks and flattens their errors.
+//! `relator_mediation` (RelComp) is now enforced natively over the whole ontology by the
+//! foundation lowering and is retained here only as the regression oracle that native
+//! enforcement is validated against — it is not in the production aggregate.
 //!
 //! The hard parts reproduced exactly:
 //!
@@ -23,7 +24,7 @@
 //!   [`coequal_facet_orthogonality`].
 //!
 //! Graph handling: the legacy pipeline flattened named graphs into the default
-//! graph, so these read across all graphs with [`gmeow_rdf::GraphMatch::Any`].
+//! graph, so these read across all graphs with [`purrdf::GraphMatch::Any`].
 //!
 //! Determinism: wherever the Python sorts (by `str`), this sorts the same way;
 //! wherever the Python relied on graph-iteration order, the emitted output is
@@ -36,7 +37,7 @@
 use std::collections::{BTreeSet, HashSet, VecDeque};
 
 use gmeow_diagnostics::model::{Finding, Location, Severity};
-use gmeow_rdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use crate::model::{owl, rdf, rdfs};
 
@@ -960,14 +961,20 @@ fn transitive_subjects(ds: &RdfDataset, predicate_iri: &str, target: &str) -> Ha
     seen
 }
 
-/// Run every UFO anti-pattern check; an empty list means the graph is clean.
-/// The six checks run in the same order, their findings flattened.
+/// Run every production UFO anti-pattern check; an empty list means the graph is clean.
+///
+/// The relator-mediation discipline (RelComp) is deliberately NOT run here. It is now
+/// enforced natively over the WHOLE ontology by the foundation lowering — the canonical
+/// `logic:` enforcement mechanism, proved by the `whole_bundle_relcomp_gate` coherence-gate
+/// teeth test. The [`relator_mediation`] check below is retained as the regression ORACLE
+/// the native lowering is validated against (via its own unit tests and the projection
+/// conformance case), not as a second production enforcer — one canonical enforcer, no
+/// divergence between two mediation readings.
 pub fn reasoning_findings(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
     let mut out: Vec<Finding> = Vec::new();
     out.extend(exactly_one_stereotype(ds, cfg));
     out.extend(identity_overlap(ds, cfg));
     out.extend(anti_rigidity_discipline(ds, cfg));
-    out.extend(relator_mediation(ds, cfg));
     out.extend(coequal_facet_orthogonality(ds, cfg));
     out.extend(frame_declaration_completeness(ds, cfg));
     out
@@ -989,7 +996,7 @@ pub fn reasoning_invariants(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::parse_dataset;
+    use purrdf::parse_dataset;
     use std::sync::Arc;
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";

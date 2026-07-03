@@ -349,8 +349,19 @@ PREFIXES: dict[str, str] = {
     "fnom": "https://w3id.org/function/vocabulary/mapping#",
     "edoal": "http://ns.inria.org/edoal/1.0/#",
     "align": "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
+    # Affect classifier label registries — per-registry external label identities,
+    # held under a distinct authority path so a model label can never be mistaken
+    # for a canonical gmeow: emotion term.
+    "gmeow-goemotions": "https://blackcatinformatics.ca/gmeow-registry/goemotions/",
+    "gmeow-hf": "https://blackcatinformatics.ca/gmeow-registry/hf/",
+    "gmeow-labelset": "https://blackcatinformatics.ca/gmeow-registry/labelset/",
+    # W3C EmotionML Vocabularies — the external bridge target of the affect EmotionML
+    # projection (set-level relatedMatch cells; the per-item categories are XML `name`
+    # attributes with no per-term IRI, so only the vocabulary-set anchors are bridged).
+    "emo": "https://www.w3.org/TR/emotion-voc/#",
     # Upper-ontology spine
     "gufo": "http://purl.org/nemo/gufo#",
+    "ontouml": "https://w3id.org/ontouml#",
     "umbel": "http://umbel.org/umbel#",
     "umbelrc": "http://umbel.org/umbel/rc/",
     "dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
@@ -608,6 +619,9 @@ class AlignmentTarget:
 #: the policy is derived from each target's license automatically.
 ALIGNMENT_TARGETS: dict[str, AlignmentTarget] = {
     "gufo": AlignmentTarget("gUFO", PREFIXES["gufo"], "MIT", "upper"),
+    # OntoUML metamodel vocabulary — CC-BY-SA-4.0 (ReferenceOnly): aligned BY
+    # REFERENCE only (skos:exactMatch stereotype puns), never vendored as a snapshot.
+    "ontouml": AlignmentTarget("OntoUML", PREFIXES["ontouml"], "CC-BY-SA-4.0", "upper"),
     "umbel": AlignmentTarget("UMBEL", PREFIXES["umbel"], "CC-BY-3.0", "upper"),
     "dolce": AlignmentTarget("DOLCE/DUL", PREFIXES["dul"], "LGPL", "upper"),
     "bfo": AlignmentTarget(

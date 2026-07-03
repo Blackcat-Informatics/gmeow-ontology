@@ -1,0 +1,114 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions authored as slice-resident test-DSL data,
+# executed by the native Rust slice-test harness (crates/slicetest) over the
+# full merged ontology, asserted lane (gmeow:reasoningNone).
+#
+# "What mental moments does an agent have?" — queries/competency/mental-life.rq
+# projects the rdfs:subClassOf* descendants of gmeow:MentalMoment. The reparent
+# that put gmeow:Emotion under gmeow:AffectiveMoment under gmeow:MentalMoment
+# means this single query returns emotions ALONGSIDE knowings, beliefs, and
+# intentions — the agent-mental-life family is answerable as one query, not one
+# per discipline. The merged graph has more MentalMoment descendants than the
+# four witnesses pinned here, so this uses logic:RowsContains (superset/witness
+# mode), not RowsExact.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/affect/tests/> .
+
+ex:cqMentalLife a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/mental-life.rq" ;
+    gmeow:cqRationale "GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings (gmeow:CognitiveState), beliefs (gmeow:DoxasticState), and intentions (gmeow:IntentionalMode) — the agent-memory flagship capability. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant." ;
+    gmeow:cqResultShape ex:cqMentalLifeShape ;
+    gmeow:cqExpectRow
+        ex:cqMLRowEmotion ,
+        ex:cqMLRowCognitive ,
+        ex:cqMLRowDoxastic ,
+        ex:cqMLRowIntentional .
+
+ex:cqMentalLifeShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "moment" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqMLRowEmotion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:Emotion ] .
+
+ex:cqMLRowCognitive a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:CognitiveState ] .
+
+ex:cqMLRowDoxastic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:DoxasticState ] .
+
+ex:cqMLRowIntentional a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "moment" ; gmeow:cellValueIri gmeow:IntentionalMode ] .
+
+# The feeling bridge. "Does a felt episode realize its affective mode,
+# borne by the same agent?" A felt gmeow:AffectiveExperience (occurrent) links to
+# the enduring gmeow:Emotion mode it manifests via gmeow:feltAffect, and the
+# episode's gmeow:experiencer is the mode's gmeow:emotionBearer. Authored as an
+# ASK (no logic:ResultShape projection): the gmeow:cqDataFile overlay supplies the
+# felt-anger scene (slice-relative examples/felt-anger.ttl, asserted lane) and the
+# query returns true when the whole occurrent→mode bridge is present.
+ex:cqFeltEpisodes a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/felt-episodes.rq" ;
+    gmeow:cqDataFile "examples/felt-anger.ttl" ;
+    gmeow:cqRationale "An agent's felt mental life is queryable — a felt gmeow:AffectiveExperience (occurrent) is joined to the enduring gmeow:Emotion mode it realizes via gmeow:feltAffect (⊑ gmeow:realizesMentalMoment), the episode's experiencer being the mode's bearer (one agent, two aspects). The overlay felt-anger scene makes the whole bridge present." ;
+    gmeow:cqExpectAsk true .
+
+# The mode/experience cut, verified over the whole merged ontology.
+# The felt episode sits on the mental-PROCESS spine and is NEVER a MentalMoment;
+# ASK returns true (the Experience ⊑ MentalProcess edge lives in mentation, so
+# this needs the merged graph, not module scope).
+ex:cqModeExperienceCut a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/mode-experience-cut.rq" ;
+    gmeow:cqRationale "The mode/experience cut MUST hold: gmeow:AffectiveExperience ⊑ gmeow:MentalProcess (occurrent) and MUST NOT reach gmeow:MentalMoment (endurant). Modes are logic:Mode, experiences are logic:Event; the foundation's logic:Endurant/logic:Perdurant disjointness keeps them apart. Demonstrated, not merely asserted." ;
+    gmeow:cqExpectAsk true .
+
+# Q9: model up, don't mint. "Which axis-vector and relations decompose a given named
+# emotion?" The schadenfreude composite (examples/schadenfreude.ttl overlay) declares
+# its decomposition: a positive-valence core-affect vector plus an other-directed
+# agency reading and a deservingness/norm reading. The SELECT projects every axis
+# reading that decomposes it; the answer set contains more than the two witnesses
+# pinned here (positive valence + other-directed agency), so RowsContains.
+ex:cqCompositeDecomposition a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/composite-decomposition.rq" ;
+    gmeow:cqDataFile "examples/schadenfreude.ttl" ;
+    gmeow:cqRationale "A named emotion is modeled UP, not minted: schadenfreude decomposes into a positive core-affect vector over another agent's misfortune with an other-directed agency structure. The query projects the per-axis readings that decompose the composite — answering 'is this schadenfreude a positive vector over another's misfortune?' directly from the data (positive valence AND other-directed negative agency)." ;
+    gmeow:cqResultShape ex:cqCompositeDecompositionShape ;
+    gmeow:cqExpectRow
+        ex:cqCDRowValence ,
+        ex:cqCDRowAgency .
+
+ex:cqCompositeDecompositionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqCDRowValence a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri gmeow:dimensionValence ] .
+
+ex:cqCDRowAgency a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri gmeow:dimensionAgency ] .
+
+# Q10: "What is the overall intensity and dominant axis of an affective state?"
+# Intensity is a DERIVED view (the norm is computed outside the logic, never stored,
+# Principle 12), so the query returns the intensity observation's declared vector
+# basis and its per-axis magnitudes ordered so the dominant axis comes first. The
+# valence axis (0.7) dominates schadenfreude's core vector; RowsContains witnesses it.
+ex:cqVectorIntensity a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/vector-intensity.rq" ;
+    gmeow:cqDataFile "examples/schadenfreude.ttl" ;
+    gmeow:cqRationale "Overall intensity is exposed as a DERIVED observation (gmeow:DerivedAffectIntensityObservation) whose norm is computed outside the logic under a declared metric (Principle 12) — never a stored ground fact. The query anchors on that derived observation's vector basis and returns the per-axis magnitudes ordered by magnitude, so the dominant axis is retrievable; the norm itself the CLI computes under the declared weighting and metric." ;
+    gmeow:cqResultShape ex:cqVectorIntensityShape ;
+    gmeow:cqExpectRow ex:cqVIRowDominant .
+
+ex:cqVectorIntensityShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "dimension" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqVIRowDominant a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri gmeow:dimensionValence ] .

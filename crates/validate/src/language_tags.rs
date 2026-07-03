@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-use gmeow_rdf::{parse_dataset, TermRef};
+use purrdf::{parse_dataset, TermRef};
 
 /// The GMEOW namespace prefix for term IRIs.
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -97,7 +97,7 @@ pub fn load_tag_map(rdf_bytes: &[u8], format: &str) -> Result<HashMap<String, St
 /// language classes (``Language``, ``FormalLanguage``, ``ProgrammingLanguage``).
 ///
 /// Extracted for testability. Delegates to [`build_tag_map_for`].
-fn build_tag_map(dataset: &gmeow_rdf::RdfDataset) -> Result<HashMap<String, String>, String> {
+fn build_tag_map(dataset: &purrdf::RdfDataset) -> Result<HashMap<String, String>, String> {
     let lang_class = format!("{NAMESPACE}Language");
     let formal_class = format!("{NAMESPACE}FormalLanguage");
     let prog_class = format!("{NAMESPACE}ProgrammingLanguage");
@@ -116,7 +116,7 @@ fn build_tag_map(dataset: &gmeow_rdf::RdfDataset) -> Result<HashMap<String, Stri
 /// - More than one distinct value → returns `Err`.
 /// - Two individuals mapping one internal tag to DIFFERENT BCP-47 tags → `Err`.
 fn build_tag_map_for(
-    dataset: &gmeow_rdf::RdfDataset,
+    dataset: &purrdf::RdfDataset,
     classes: &[&str],
 ) -> Result<HashMap<String, String>, String> {
     let tag_prop = format!("{NAMESPACE}languageTag");
@@ -536,15 +536,15 @@ pub fn filter_literals(
 /// Build the public BCP-47 retag for a literal carrying an internal tag WITH a map
 /// entry, returning a swapped owned literal. Returns `None` when no swap applies.
 fn retagged_literal(
-    lit: &gmeow_rdf::RdfLiteral,
+    lit: &purrdf::RdfLiteral,
     tag_map: &HashMap<String, String>,
-) -> Option<gmeow_rdf::RdfLiteral> {
+) -> Option<purrdf::RdfLiteral> {
     let lang = lit.language.as_deref()?;
     if !is_internal_tag(lang) {
         return None;
     }
     let bcp = internal_tag_mapping(lang, tag_map)?;
-    Some(gmeow_rdf::RdfLiteral::language_tagged(
+    Some(purrdf::RdfLiteral::language_tagged(
         lit.lexical_form.clone(),
         bcp.clone(),
     ))
@@ -581,7 +581,7 @@ pub fn retag_graph_to_internal(
             return None;
         }
         let internal = inverse_map.get(&lang.to_lowercase())?;
-        Some(gmeow_rdf::RdfLiteral::language_tagged(
+        Some(purrdf::RdfLiteral::language_tagged(
             lit.lexical_form.clone(),
             internal.clone(),
         ))
@@ -596,7 +596,7 @@ pub fn retag_graph_to_internal(
 /// the reifier's statement in sync with the base triple.
 fn rewrite_graph<F>(rdf_bytes: &[u8], format: &str, rewrite: F) -> Result<Vec<u8>, String>
 where
-    F: Fn(&gmeow_rdf::RdfLiteral) -> Option<gmeow_rdf::RdfLiteral>,
+    F: Fn(&purrdf::RdfLiteral) -> Option<purrdf::RdfLiteral>,
 {
     let media_type = media_type_for(format)?;
     let dataset =
@@ -604,13 +604,11 @@ where
 
     // First pass: build the quad set and record which (subject, predicate, old_lit)
     // triples had their literal rewritten, so we can update matching reifier statements.
-    let mut literal_rewrites: HashMap<
-        (String, String, gmeow_rdf::RdfLiteral),
-        gmeow_rdf::RdfLiteral,
-    > = HashMap::new();
-    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    let mut literal_rewrites: HashMap<(String, String, purrdf::RdfLiteral), purrdf::RdfLiteral> =
+        HashMap::new();
+    let mut builder = purrdf::RdfDatasetBuilder::new();
     for mut quad in dataset.owned_quads() {
-        if let gmeow_rdf::RdfTerm::Literal(lit) = &quad.object {
+        if let purrdf::RdfTerm::Literal(lit) = &quad.object {
             if let Some(new_lit) = rewrite(lit) {
                 let key = (
                     quad.subject.to_string(),
@@ -618,7 +616,7 @@ where
                     lit.clone(),
                 );
                 literal_rewrites.insert(key, new_lit.clone());
-                quad.object = gmeow_rdf::RdfTerm::Literal(new_lit);
+                quad.object = purrdf::RdfTerm::Literal(new_lit);
             }
         }
         builder.push_owned_quad(&quad);
@@ -626,14 +624,14 @@ where
 
     // Second pass: copy reifiers, updating any whose statement object was rewritten.
     for mut reifier in dataset.owned_reifiers() {
-        if let gmeow_rdf::RdfTerm::Literal(obj_lit) = &reifier.statement.object {
+        if let purrdf::RdfTerm::Literal(obj_lit) = &reifier.statement.object {
             let key = (
                 reifier.statement.subject.to_string(),
                 reifier.statement.predicate.clone(),
                 obj_lit.clone(),
             );
             if let Some(new_lit) = literal_rewrites.get(&key) {
-                reifier.statement.object = gmeow_rdf::RdfTerm::Literal(new_lit.clone());
+                reifier.statement.object = purrdf::RdfTerm::Literal(new_lit.clone());
             }
         }
         builder.push_owned_reifier(&reifier);
@@ -672,12 +670,12 @@ pub fn filter_graph(
     // target predicates. The subject key is the owned term's canonical rendering,
     // which is stable for IRIs and blank nodes alike.
     type GroupKey = (String, String);
-    let mut group_lits: HashMap<GroupKey, Vec<gmeow_rdf::RdfLiteral>> = HashMap::new();
+    let mut group_lits: HashMap<GroupKey, Vec<purrdf::RdfLiteral>> = HashMap::new();
     for quad in dataset.owned_quads() {
         if !target_preds.contains(quad.predicate.as_str()) {
             continue;
         }
-        if let gmeow_rdf::RdfTerm::Literal(lit) = &quad.object {
+        if let purrdf::RdfTerm::Literal(lit) = &quad.object {
             if lit.language.is_some() {
                 let key = (quad.subject.to_string(), quad.predicate.clone());
                 group_lits.entry(key).or_default().push(lit.clone());
@@ -692,12 +690,10 @@ pub fn filter_graph(
     // (subject_str, predicate, old_literal). Value `Some(new_lit)` means the old literal
     // was retained but retagged; `None` means it was dropped entirely. This is used below
     // to keep reifier statements in sync with the filtered quad set.
-    let mut group_replacement: HashMap<GroupKey, Vec<gmeow_rdf::RdfLiteral>> = HashMap::new();
+    let mut group_replacement: HashMap<GroupKey, Vec<purrdf::RdfLiteral>> = HashMap::new();
     let mut group_skip: HashSet<GroupKey> = HashSet::new();
-    let mut stmt_remap: HashMap<
-        (String, String, gmeow_rdf::RdfLiteral),
-        Option<gmeow_rdf::RdfLiteral>,
-    > = HashMap::new();
+    let mut stmt_remap: HashMap<(String, String, purrdf::RdfLiteral), Option<purrdf::RdfLiteral>> =
+        HashMap::new();
     for (key, literals) in &group_lits {
         let descs: Vec<LitDesc> = literals
             .iter()
@@ -711,10 +707,10 @@ pub fn filter_graph(
             group_skip.insert(key.clone());
             continue;
         }
-        let chosen: Vec<gmeow_rdf::RdfLiteral> = selections
+        let chosen: Vec<purrdf::RdfLiteral> = selections
             .iter()
             .map(|sel| match &sel.retag_to {
-                Some(bcp) => gmeow_rdf::RdfLiteral::language_tagged(
+                Some(bcp) => purrdf::RdfLiteral::language_tagged(
                     literals[sel.index].lexical_form.clone(),
                     bcp.clone(),
                 ),
@@ -724,8 +720,8 @@ pub fn filter_graph(
 
         // Set-equality skip: if the chosen set equals the current set, leave the
         // group untouched (byte-identical output for an already-satisfied group).
-        let current: HashSet<&gmeow_rdf::RdfLiteral> = literals.iter().collect();
-        let chosen_set: HashSet<&gmeow_rdf::RdfLiteral> = chosen.iter().collect();
+        let current: HashSet<&purrdf::RdfLiteral> = literals.iter().collect();
+        let chosen_set: HashSet<&purrdf::RdfLiteral> = chosen.iter().collect();
         if current == chosen_set {
             group_skip.insert(key.clone());
         } else {
@@ -747,12 +743,12 @@ pub fn filter_graph(
 
     // Rebuild the dataset: drop the original language-tagged literals of replaced
     // groups, emit the chosen set once per group, copy everything else verbatim.
-    let mut builder = gmeow_rdf::RdfDatasetBuilder::new();
+    let mut builder = purrdf::RdfDatasetBuilder::new();
     let mut emitted_groups: HashSet<GroupKey> = HashSet::new();
     for quad in dataset.owned_quads() {
         let is_target = target_preds.contains(quad.predicate.as_str());
         if is_target {
-            if let gmeow_rdf::RdfTerm::Literal(lit) = &quad.object {
+            if let purrdf::RdfTerm::Literal(lit) = &quad.object {
                 if lit.language.is_some() {
                     let key = (quad.subject.to_string(), quad.predicate.clone());
                     if group_skip.contains(&key) {
@@ -765,7 +761,7 @@ pub fn filter_graph(
                         if emitted_groups.insert(key.clone()) {
                             for new_lit in chosen {
                                 let mut new_quad = quad.clone();
-                                new_quad.object = gmeow_rdf::RdfTerm::Literal(new_lit.clone());
+                                new_quad.object = purrdf::RdfTerm::Literal(new_lit.clone());
                                 builder.push_owned_quad(&new_quad);
                             }
                         }
@@ -785,7 +781,7 @@ pub fn filter_graph(
     // Annotations whose reifier was dropped are also removed.
     let mut dropped_reifier_ids: HashSet<String> = HashSet::new();
     for mut reifier in dataset.owned_reifiers() {
-        if let gmeow_rdf::RdfTerm::Literal(obj_lit) = &reifier.statement.object {
+        if let purrdf::RdfTerm::Literal(obj_lit) = &reifier.statement.object {
             let remap_key = (
                 reifier.statement.subject.to_string(),
                 reifier.statement.predicate.clone(),
@@ -795,7 +791,7 @@ pub fn filter_graph(
                 match remap {
                     Some(new_lit) => {
                         // Retagged: update the statement object and keep the reifier.
-                        reifier.statement.object = gmeow_rdf::RdfTerm::Literal(new_lit.clone());
+                        reifier.statement.object = purrdf::RdfTerm::Literal(new_lit.clone());
                         builder.push_owned_reifier(&reifier);
                     }
                     None => {
@@ -819,14 +815,14 @@ pub fn filter_graph(
 }
 
 /// Freeze `builder` and serialize the result to N-Triples bytes (default graph).
-fn serialize_ntriples(builder: gmeow_rdf::RdfDatasetBuilder) -> Result<Vec<u8>, String> {
+fn serialize_ntriples(builder: purrdf::RdfDatasetBuilder) -> Result<Vec<u8>, String> {
     let dataset = builder
         .freeze()
         .map_err(|e| format!("dataset freeze error: {e}"))?;
-    gmeow_rdf::serialize_dataset(
+    purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
-        gmeow_rdf::SerializeGraph::DefaultGraph,
+        purrdf::SerializeGraph::DefaultGraph,
     )
     .map_err(|e| format!("RDF serialize error: {e}"))
 }
@@ -1418,7 +1414,7 @@ gmeow:French a gmeow:Language ;
     }
 
     /// Resolve a `TermRef` datatype id to its IRI string (test helper).
-    fn dataset_iri(dataset: &gmeow_rdf::RdfDataset, datatype: gmeow_rdf::TermId) -> String {
+    fn dataset_iri(dataset: &purrdf::RdfDataset, datatype: purrdf::TermId) -> String {
         match dataset.resolve(datatype) {
             TermRef::Iri(iri) => iri.to_owned(),
             _ => String::new(),
@@ -1438,7 +1434,7 @@ gmeow:French a gmeow:Language ;
         annotation_predicate: &str,
         annotation_value: &str,
     ) -> Vec<u8> {
-        use gmeow_rdf::{
+        use purrdf::{
             RdfAnnotation, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple,
         };
 
@@ -1461,10 +1457,10 @@ gmeow:French a gmeow:Language ;
         builder.push_owned_annotation(&annotation);
 
         let dataset = builder.freeze().expect("freeze");
-        gmeow_rdf::serialize_dataset(
+        purrdf::serialize_dataset(
             &dataset,
             "application/n-triples",
-            gmeow_rdf::SerializeGraph::DefaultGraph,
+            purrdf::SerializeGraph::DefaultGraph,
         )
         .expect("serialize")
     }
@@ -1499,7 +1495,7 @@ gmeow:French a gmeow:Language ;
         // We check by parsing the output and inspecting owned_reifiers().
         let reparsed = parse_dataset(&out, "application/n-triples", None).expect("reparse");
         let reifier_stmt_updated = reparsed.owned_reifiers().any(|r| {
-            if let gmeow_rdf::RdfTerm::Literal(lit) = &r.statement.object {
+            if let purrdf::RdfTerm::Literal(lit) = &r.statement.object {
                 lit.language.as_deref() == Some("en") && lit.lexical_form == "Hello"
             } else {
                 false
@@ -1519,7 +1515,7 @@ gmeow:French a gmeow:Language ;
 
     #[test]
     fn filter_graph_drops_reifier_for_dropped_literal() {
-        use gmeow_rdf::{
+        use purrdf::{
             RdfAnnotation, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple,
         };
 
@@ -1550,10 +1546,10 @@ gmeow:French a gmeow:Language ;
         builder.push_owned_annotation(&annotation);
 
         let dataset = builder.freeze().expect("freeze");
-        let input = gmeow_rdf::serialize_dataset(
+        let input = purrdf::serialize_dataset(
             &dataset,
             "application/n-triples",
-            gmeow_rdf::SerializeGraph::DefaultGraph,
+            purrdf::SerializeGraph::DefaultGraph,
         )
         .expect("serialize");
 
@@ -1625,7 +1621,7 @@ gmeow:French a gmeow:Language ;
 
         // The reifier's statement object must be @en, not @x-gmeow-english.
         let reifier_updated = reparsed.owned_reifiers().any(|r| {
-            if let gmeow_rdf::RdfTerm::Literal(lit) = &r.statement.object {
+            if let purrdf::RdfTerm::Literal(lit) = &r.statement.object {
                 lit.language.as_deref() == Some("en") && lit.lexical_form == "Hello"
             } else {
                 false

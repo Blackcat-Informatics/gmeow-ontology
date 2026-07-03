@@ -4,7 +4,7 @@
 
 The production reasoning core (native ``gmeow_logic.rl_closure_nt``) is rdflib-free.
 This module is the **caller-boundary adapter** for the graph-native consumers — the
-competency/observation suites (which use the native ``gmeow_rdf.compat.rdflib``
+competency/observation suites (which use the native ``purrdf.compat.rdflib``
 ``Graph``) and the ``rl_agreement`` classic-cross-check oracle (which uses the
 upstream rdflib ``Graph`` to compare against ``owlrl``).
 
