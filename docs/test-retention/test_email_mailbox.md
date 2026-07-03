@@ -1,32 +1,23 @@
-# Retention: `test_email_mailbox.py`
+# Retention: `tests/test_email_mailbox.py`
 
-**Category:** Domain invariant → slicetest cells; dynamic fixture tests retained in pytest
+**Category:** Domain invariant → slicetest cells
 
 ## What it tests
 
-The structural TBox guards for the email extension have been migrated to
-`slices/extensions/email/tests/structural.ttl` (and the cross-slice
-EmailAddress stable properties to `slices/core/contacts/tests/structural.ttl`).
-This file now only retains genuinely dynamic tests that operate on the concrete
-coverage fixture (`tests/fixtures/coverage/email.ttl`) or on generated artifacts.
+Structural guards for mailbox hierarchy and provider-derived state terms.
 
-Remaining pytest functions:
+Retained dynamic tests:
 
-- `test_fixture_destroyed_mailbox_uses_lifecycle`
-- `test_fixture_mailbox_paths`
-- `test_fixture_messages_in_nested_mailbox`
-- `test_fixture_nested_hierarchy`
-- `test_fixture_sort_orders`
+- `test_fixture_nested_hierarchy` — The coverage fixture shows a three-level mailbox hierarchy.
+- `test_fixture_mailbox_paths` — Derived path strings are present on nested mailboxes.
+- `test_fixture_sort_orders` — Sort orders are present on nested mailboxes.
+- `test_fixture_destroyed_mailbox_uses_lifecycle` — A destroyed mailbox uses hasDestructionEvent, not a boolean flag.
+- `test_fixture_messages_in_nested_mailbox` — Messages reside in the nested projectsFolder.
 
-## Why the remainder cannot move to Rust today
+## Why it cannot move to Rust today
 
-The retained tests are fixture/artifact traversals, not module-graph invariants.
-They verify specific ABox triples in the coverage fixture or inspect the
-generated LinkML schema. These are appropriate for pytest until an
-example-conformance or generated-artifact conformance layer can express them.
+Whole-merged-graph sweeps that cannot be scoped to a single slice module; abox fixture instance checks; python-only file or value inspections.
 
-## What would be needed to retire this file
+## What is needed to move it to Rust
 
-Move the fixture-based assertions to slice-resident `example-conformance.ttl`
-cells (with fixtures under `slices/extensions/email/tests/conformance-fixtures/`)
-and move the LinkML schema check to a generated-schema conformance harness.
+Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.

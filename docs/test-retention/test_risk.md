@@ -6,10 +6,15 @@
 
 The risk slice (#354, EPIC #348) — retained pytest tests.
 
+Retained dynamic tests:
+
+- `test_no_occurrence_gate` — The EPIC #358-pattern gate: loading the risk fixtures and worked example entails ZERO gmeow:Event instances — cascades are expressible without anything having happened.
+- `test_competency_severity_order_query`
+
 ## Why it cannot move to Rust today
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+Whole-merged-graph sweeps that cannot be scoped to a single slice module; python-only file or value inspections.
 
 ## What is needed to move it to Rust
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.

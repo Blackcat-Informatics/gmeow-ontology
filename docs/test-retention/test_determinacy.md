@@ -6,10 +6,14 @@
 
 The universal determinacy vocabulary (#71).
 
+Retained dynamic tests:
+
+- `test_no_preferred_or_primary_term_is_declared` — No GMEOW vocabulary term is a preferred/primary selector (Principle 9).
+
 ## Why it cannot move to Rust today
 
-Structural / competency / cross-slice invariants over the module (or merged) graph — ontology *shape*, not Python logic.
+Whole-merged-graph sweeps that cannot be scoped to a single slice module.
 
 ## What is needed to move it to Rust
 
-Author the assertions as slicetest cells in the **owning** slice (`structural.ttl` MUST/MUST-NOT, `competency.ttl` ASK/SELECT) per `docs/SLICE_QA.md`; cross-slice subjects go in the slice that *defines* the term. Confirm `make slicetest`, then delete this file. No new Rust — the harness exists.
+Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.

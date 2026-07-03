@@ -1,32 +1,24 @@
 # Retention: `tests/test_epistemics_belief_revision.py`
 
-**Category:** Domain invariant → slicetest cells (partial; fixture-data competency tests remain)
+**Category:** Domain invariant → slicetest cells
 
 ## What it tests
 
 Competency test for the doxastic belief-revision pattern (#560).
 
-## What has migrated
+Retained dynamic tests:
 
-`test_ontology_constraints_and_functionality` moved to declarative
-`gmeow:StructuralAssertion` cells in
-`slices/core/epistemics/tests/structural.ttl` (#1120, Task 9):
+- `test_old_doxastic_tenure_is_closed` — Verify the original doxastic tenure has a single xsd:dateTime end time.
+- `test_old_doxastic_tenure_is_suppressed` — Verify the superseded original tenure is marked as not displayable.
+- `test_old_doxastic_state_is_retained` — Verify the original belief remains typed and linked to its agent and content.
+- `test_new_doxastic_state_is_present` — Verify the revised belief is present as a DoxasticState for the operator.
+- `test_new_doxastic_tenure_is_open` — Verify the revised tenure interval has started but has not yet ended.
+- `test_qualitative_modality_via_linked_standpoint_claim` — Verify both beliefs link to standpoint claims with the expected modalities.
 
-- `ex:saDoxasticStateAndTenureConstraints`
-- `ex:saCredenceNotFunctional`
+## Why it cannot move to Rust today
 
-## Why the rest cannot move to Rust today
+Abox fixture instance checks; python-only file or value inspections.
 
-The remaining functions assert over the fixture data in
-`slices/core/epistemics/tests/fixtures/coverage/epistemics-belief-revision.ttl`
-(instance existence, literal values, intervals, linked claims). These are
-ABox competency checks over a worked example; they can later become
-`gmeow:CompetencyQuestion` cells with `cqDataFile`, but they currently remain in
-pytest as the slice's example-conformance / competency migration backlog.
+## What is needed to move it to Rust
 
-## What is needed to move the rest to Rust
-
-Author the remaining fixture-data assertions as `gmeow:CompetencyQuestion` cells
-in `slices/core/epistemics/tests/competency.ttl` per `docs/SLICE_QA.md`, with the
-fixture referenced via `cqDataFile`. Confirm `make slicetest`, then delete this
-file and this dossier. No new Rust — the harness exists.
+Move each retained assertion to a Rust home: extend the slicetest DSL with merged-graph scopes, cover projections/SHACL/mappings with Rust crate tests, or retire the Python surface once equivalent coverage exists. When every retained test above has a Rust home, delete this file and its dossier.
