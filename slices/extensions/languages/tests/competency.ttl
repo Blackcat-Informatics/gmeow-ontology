@@ -11,6 +11,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/languages/tests/> .
+@prefix langex: <https://example.org/lang/> .
 
 # ── Language origins ──────────────────────────────────────────────────────────
 ex:cqLanguageOrigins a gmeow:CompetencyQuestion ;
@@ -74,3 +75,40 @@ ex:plNative a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:levelNative ] .
 ex:plHeritage a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "level" ; gmeow:cellValueIri gmeow:levelHeritage ] .
+
+# ── LanguageState bitemporal query (#1120) ───────────────────────────────────
+ex:cqLanguageStateBitemporal a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX langex: <https://example.org/lang/>
+SELECT ?state WHERE {
+    BIND("1200-01-01T00:00:00Z"^^xsd:dateTime AS ?validAt)
+    BIND("2100-01-01T00:00:00Z"^^xsd:dateTime AS ?asOf)
+    ?state a gmeow:LanguageState .
+    ?ax a owl:Axiom ;
+        owl:annotatedSource   ?state ;
+        owl:annotatedProperty gmeow:stateStatusValue ;
+        owl:annotatedTarget   ?status .
+    OPTIONAL { ?ax gmeow:validFrom           ?vf . }
+    OPTIONAL { ?ax gmeow:validUntil          ?vu . }
+    OPTIONAL { ?ax gmeow:assertedAt          ?aa . }
+    OPTIONAL { ?ax gmeow:recordedNoLaterThan ?rnlt . }
+    BIND(COALESCE(?aa, ?rnlt) AS ?observed)
+    FILTER(!BOUND(?vf) || ?vf <= ?validAt)
+    FILTER(!BOUND(?vu) || ?vu >= ?validAt)
+    FILTER(!BOUND(?observed) || ?observed <= ?asOf)
+}""" ;
+    gmeow:cqDataFile "tests/fixtures/language-state-bitemporal.ttl" ;
+    gmeow:cqRationale "The four-clocks bitemporal machinery must work out of the box for LanguageState status claims: Middle English (valid 1150–1500) must be retrievable when querying at 1200 CE with an as-of cutoff of 2100 CE. Mirrors test_language_state_bitemporal_query." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLanguageStateBitemporalShape ;
+    gmeow:cqExpectRow ex:rowMiddleEnglishState .
+
+ex:cqLanguageStateBitemporalShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "state" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowMiddleEnglishState a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri langex:middleEnglishState ] .
