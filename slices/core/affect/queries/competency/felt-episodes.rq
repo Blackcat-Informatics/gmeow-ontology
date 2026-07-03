@@ -1,0 +1,13 @@
+# Competency question (Stage 2): "Which felt episodes realized which affective mode?"
+# The occurrent felt episode (gmeow:AffectiveExperience) realizes the enduring
+# affective mode (gmeow:Emotion ⊑ gmeow:AffectiveMoment) via gmeow:feltAffect —
+# the feeling bridge. Asserted lane; the gmeow:cqDataFile overlay supplies the
+# felt-anger scene.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?episode ?mode WHERE {
+    ?episode a gmeow:AffectiveExperience ;
+        gmeow:feltAffect ?mode .
+}
+ORDER BY ?episode ?mode
