@@ -929,37 +929,45 @@ fn slash_path(path: &Path) -> String {
 /// last-committed bytes forever (the post-pipeline fanout rewrites those files from the
 /// bundle), so `make regenerate` reports "unchanged" while `check-generated` reds
 /// permanently — the stale-disk-fold bug class. This gate scans every Rust source
-/// under `crates/pipeline/src/stages/` and flags any DISK-PATH construction under
+/// under `crates/pipeline/src/` (recursively — no produce helper outside `stages/`
+/// can silently escape the gate) and flags any DISK-PATH construction under
 /// `generated/`: a literal `.join("generated"…)` or a `.join(NAME)` where `NAME` is a
 /// `const … = "generated/…"` path constant. A read from a stage PRODUCT (`.artifact(NAME)`)
 /// is not a disk read and is never flagged.
 ///
 /// Exemptions (both fail the class OPEN unless justified): `#[cfg(test)] mod …` blocks (test
 /// fixtures may mirror committed files) and a read carrying an inline `// GENERATED-READ-OK:
-/// <reason>` marker in the contiguous comment block directly above it — reserved for the
-/// dev-CLI AUDIT lane, whose job is to lint committed output and whose findings never fold
-/// into `gmeow.gts`. The textual gate catches literal + traceable const-indirected reads; the
-/// pipeline's regenerate→check-generated fixed-point test is the semantic backstop for the rest.
+/// <reason>` marker in the contiguous comment block directly above it (or trailing on the line
+/// itself) — reserved for any read whose result NEVER folds into `gmeow.gts`: dev-CLI audit
+/// lanes (lint committed output), verification oracles, the monotonic-changelog prior-state
+/// read, and the gitignored `.pipeline-cache` scratch dir. The textual gate catches literal +
+/// traceable const-indirected reads; the pipeline's regenerate→check-generated fixed-point test
+/// is the semantic backstop for the rest.
 fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStaticReport) {
-    let stages = root
-        .join("crates")
-        .join("pipeline")
-        .join("src")
-        .join("stages");
-    // Nothing to scan when the pipeline crate is absent (e.g. a synthetic minimal-repo test
-    // fixture). The real repo always carries it, and `live_repo_static_passes` scans it on-gate.
-    if !stages.is_dir() {
+    let src = root.join("crates").join("pipeline").join("src");
+    // Nothing to scan when the pipeline crate is absent (synthetic minimal-repo fixtures).
+    // The real repo always carries it; `live_repo_static_passes` scans it on-gate.
+    if !src.is_dir() {
         return;
     }
     let mut files = Vec::new();
-    collect_rust_files(&stages, report, &mut files);
+    collect_rust_files(&src, report, &mut files);
     files.sort();
 
     // Pass 1: collect path constants whose value is under `generated/` (emit targets), across
     // ALL scanned files. Reading one of these via `.join(NAME)` builds a disk path; a product
     // read (`.artifact(NAME)`) does not, so only `.join(NAME)` is flagged in pass 2.
-    let const_re =
-        Regex::new(r#"const\s+([A-Z0-9_]+)\s*:\s*&(?:'static\s+)?str\s*=\s*"generated/"#).unwrap();
+    let const_re = match Regex::new(
+        r#"const\s+([A-Z0-9_]+)\s*:\s*&(?:'static\s+)?str\s*=\s*"generated(?:/|")"#,
+    ) {
+        Ok(re) => re,
+        Err(err) => {
+            report.error(format!(
+                "generated-read guard: const regex failed to compile: {err}"
+            ));
+            return;
+        }
+    };
     let mut generated_consts: BTreeSet<String> = BTreeSet::new();
     for path in &files {
         let Ok(text) = fs::read_to_string(path) else {
@@ -969,6 +977,19 @@ fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStat
             generated_consts.insert(cap[1].to_string());
         }
     }
+
+    // A literal `.join("generated"…)` disk read: tolerant of whitespace after `(`, a
+    // `format!(` wrapper, and raw strings — so a re-encoding cannot slip past a naive
+    // single-form `contains` check.
+    let literal_re = match Regex::new(r#"\.join\(\s*(?:format!\s*\(\s*)?r?#*"generated"#) {
+        Ok(re) => re,
+        Err(err) => {
+            report.error(format!(
+                "generated-read guard: literal regex failed to compile: {err}"
+            ));
+            return;
+        }
+    };
 
     // Pass 2: flag disk-path construction under `generated/` in produce code.
     for path in &files {
@@ -987,7 +1008,7 @@ fn check_no_generated_read_in_pipeline_stages(root: &Path, report: &mut RepoStat
         let detect = blank_comments_and_cfg_test_modules(&text);
         let orig_lines: Vec<&str> = text.lines().collect();
         for (idx, line) in detect.lines().enumerate() {
-            let literal = line.contains(r#".join("generated"#);
+            let literal = literal_re.is_match(line);
             let const_indirect = generated_consts
                 .iter()
                 .any(|name| line.contains(&format!(".join({name})")));
@@ -1790,5 +1811,69 @@ mod tests {
             "fn run() {\n    // this fold used to read generated/queries off disk; now product-sourced.\n    let _ = 1;\n}\n",
         );
         assert!(ban_errors(temp.path()).is_empty());
+    }
+
+    // ── bypass-coverage: hardened literal regex + widened scan scope ─────
+
+    fn pipeline_src_file(root: &Path, name: &str, body: &str) {
+        write(&root.join(format!("crates/pipeline/src/{name}")), body);
+    }
+
+    #[test]
+    fn ban_flags_a_whitespace_join_generated_read() {
+        // A space after `.join(` — a naive `.contains(".join(\"generated")` misses it.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "fn run(root: &std::path::Path) {\n    let _ = list_files(&root.join( \"generated/queries\"), \"rq\");\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("stale-disk-fold"), "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_format_join_generated_read() {
+        // A `.join(format!("generated/{p}.rq"))` wrapper — must still be flagged.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "fn run(root: &std::path::Path, p: &str) {\n    let _ = std::fs::read(root.join(format!(\"generated/{p}.rq\")));\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("stale-disk-fold"), "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_slashless_const_generated_read() {
+        // A slash-less `const … = "generated";` used via `.join(G)` — the relaxed const regex
+        // must catch the bare directory name, not only `"generated/…"`.
+        let temp = tempfile::tempdir().unwrap();
+        stage_file(
+            temp.path(),
+            "foo.rs",
+            "const G: &str = \"generated\";\n\
+             fn run(root: &std::path::Path) {\n    let _ = std::fs::read(root.join(G));\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+    }
+
+    #[test]
+    fn ban_flags_a_produce_read_outside_stages_dir() {
+        // A produce read in a helper OUTSIDE stages/ — the old stages/-only scan would have
+        // missed it; the widened recursive scan of crates/pipeline/src/ catches it.
+        let temp = tempfile::tempdir().unwrap();
+        pipeline_src_file(
+            temp.path(),
+            "helper.rs",
+            "fn run(root: &std::path::Path) {\n    let _ = list_files(&root.join(\"generated/queries\"), \"rq\");\n}\n",
+        );
+        let errs = ban_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("stale-disk-fold"), "{errs:?}");
     }
 }
