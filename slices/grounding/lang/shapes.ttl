@@ -1,0 +1,295 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# =========================================================================== #
+# Hard-rule gates for the lang: form AST. Each shape names the typed failure
+# class it enforces through lang:enforcesFailureClass, cross-referencing the
+# machine-checked gate with the queryable violation vocabulary in module.ttl.
+# =========================================================================== #
+
+lang:FormSituatedShape
+    a sh:NodeShape ;
+    rdfs:label "Form situatedness shape"@x-gmeow-english ;
+    skos:definition "Every lang:Form names exactly one lang:SignSystem through lang:inSignSystem — a form with none or with two is ill-formed. Functionality is expressed as a SHACL cardinality bound rather than an OWL characteristic to keep the term profile EL-clean."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnsituatedForm ;
+    sh:targetClass lang:Form ;
+    sh:property [
+        sh:path lang:inSignSystem ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:SignSystem ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:Form must name exactly one lang:SignSystem through lang:inSignSystem." ;
+    ] .
+
+lang:SurfaceAnalysisShape
+    a sh:NodeShape ;
+    rdfs:label "Surface analysis shape"@x-gmeow-english ;
+    skos:definition "Every lang:SurfaceForm declares exactly one lang:AnalysisLevel, and its structure matches the declared level: a parsed surface realizes a lang:ComposedForm, a raw surface is typed lang:UnanalyzedProse, and no surface both realizes an analyzed form and is typed unanalyzed prose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:MisdeclaredAnalysis ;
+    sh:targetClass lang:SurfaceForm ;
+    sh:property [
+        sh:path lang:analysisLevel ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:AnalysisLevel ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceForm must declare exactly one lang:AnalysisLevel." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceForm's structure must match its declared analysis level (parsed realizes a composed form; raw is unanalyzed prose; never both)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                {
+                    $this <https://blackcatinformatics.ca/lang/analysisLevel> <https://blackcatinformatics.ca/lang/parsedLevel> .
+                    FILTER NOT EXISTS {
+                        $this <https://blackcatinformatics.ca/lang/realizes> ?f .
+                        ?f a <https://blackcatinformatics.ca/lang/ComposedForm> .
+                    }
+                } UNION {
+                    $this <https://blackcatinformatics.ca/lang/analysisLevel> <https://blackcatinformatics.ca/lang/rawLevel> .
+                    FILTER NOT EXISTS { $this a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
+                } UNION {
+                    $this <https://blackcatinformatics.ca/lang/realizes> ?g .
+                    $this a <https://blackcatinformatics.ca/lang/UnanalyzedProse> .
+                }
+            }
+        """ ;
+    ] .
+
+lang:SlotIndexUniqueShape
+    a sh:NodeShape ;
+    rdfs:label "Slot index uniqueness shape"@x-gmeow-english ;
+    skos:definition "Two lang:FormSlot individuals of one lang:ComposedForm never share a lang:slotIndex, so constituent order is unambiguous."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:DuplicateSlotIndex ;
+    sh:targetClass lang:ComposedForm ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "Two form slots of one composed form share a slot index." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/lang/formSlot> ?s1 .
+                $this <https://blackcatinformatics.ca/lang/formSlot> ?s2 .
+                ?s1 <https://blackcatinformatics.ca/lang/slotIndex> ?i .
+                ?s2 <https://blackcatinformatics.ca/lang/slotIndex> ?i .
+                FILTER(?s1 != ?s2)
+            }
+        """ ;
+    ] .
+
+lang:SlotContiguityShape
+    a sh:NodeShape ;
+    rdfs:label "Slot contiguity shape"@x-gmeow-english ;
+    skos:definition "A lang:ComposedForm's slot indexes are zero-based and contiguous in strict canonical mode: the minimum index is 0 and the maximum index is the slot count minus one, so a gap (an index skipped) or a non-zero start is rejected."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:NonContiguousSlots ;
+    sh:targetClass lang:ComposedForm ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A composed form's slot indexes are not zero-based and contiguous." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                {
+                    SELECT $this (COUNT(DISTINCT ?i) AS ?cnt) (MAX(?i) AS ?mx) (MIN(?i) AS ?mn) WHERE {
+                        $this <https://blackcatinformatics.ca/lang/formSlot> ?s .
+                        ?s <https://blackcatinformatics.ca/lang/slotIndex> ?i .
+                    } GROUP BY $this
+                }
+                FILTER( ?mn != 0 || ( ?mx + 1 ) != ?cnt )
+            }
+        """ ;
+    ] .
+
+lang:DependencyIntegrityShape
+    a sh:NodeShape ;
+    rdfs:label "Dependency integrity shape"@x-gmeow-english ;
+    skos:definition "A lang:dependsOn head reference stays within the lang:Analysis its slot belongs to and does not form a self-loop or a two-slot cycle."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:DanglingDependency ;
+    sh:targetClass lang:FormSlot ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A dependency head reference leaves its analysis or forms a cycle." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                {
+                    $this <https://blackcatinformatics.ca/lang/dependsOn> ?h .
+                    $this <https://blackcatinformatics.ca/lang/inAnalysis> ?a .
+                    FILTER NOT EXISTS { ?h <https://blackcatinformatics.ca/lang/inAnalysis> ?a . }
+                } UNION {
+                    $this <https://blackcatinformatics.ca/lang/dependsOn> $this .
+                } UNION {
+                    $this <https://blackcatinformatics.ca/lang/dependsOn> ?h2 .
+                    ?h2 <https://blackcatinformatics.ca/lang/dependsOn> $this .
+                }
+            }
+        """ ;
+    ] .
+
+lang:TypedMorphologyShape
+    a sh:NodeShape ;
+    rdfs:label "Typed morphology shape"@x-gmeow-english ;
+    skos:definition "A lang:MorphFeature draws its key and value from a feature inventory: exactly one lang:featureKey that is a lang:FeatureKey individual, and at least one lang:featureValue that is a lang:FeatureValue individual — never a bare string."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UntypedMorphology ;
+    sh:targetClass lang:MorphFeature ;
+    sh:property [
+        sh:path lang:featureKey ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:FeatureKey ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:MorphFeature must name exactly one lang:FeatureKey individual." ;
+    ] ;
+    sh:property [
+        sh:path lang:featureValue ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:FeatureValue ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:MorphFeature must name at least one lang:FeatureValue individual." ;
+    ] .
+
+lang:SurfaceMaterialShape
+    a sh:NodeShape ;
+    rdfs:label "Surface material identity shape"@x-gmeow-english ;
+    skos:definition "A lang:SurfaceForm declares the material identity a stable hash needs: its text, script, Unicode normalization, and collation locale. A surface with an undeclared normalization is ill-formed for the candidateSourceHash discipline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnhashableSurface ;
+    sh:targetClass lang:SurfaceForm ;
+    sh:property [
+        sh:path lang:surfaceText ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceForm must declare its lang:surfaceText." ;
+    ] ;
+    sh:property [
+        sh:path lang:inScript ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:Script ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceForm must declare its lang:inScript." ;
+    ] ;
+    sh:property [
+        sh:path lang:unicodeNormalization ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceForm must declare its lang:unicodeNormalization." ;
+    ] ;
+    sh:property [
+        sh:path lang:collationLocale ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceForm must declare its lang:collationLocale." ;
+    ] .
+
+lang:AnchorCompleteShape
+    a sh:NodeShape ;
+    rdfs:label "Anchor completeness shape"@x-gmeow-english ;
+    skos:definition "A lang:SurfaceAnchor declares its source, start and end offsets, and offset space — an anchor without a source and a span in a declared offset space locates nothing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnanchoredOffset ;
+    sh:targetClass lang:SurfaceAnchor ;
+    sh:property [
+        sh:path lang:anchorSource ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceAnchor must declare its lang:anchorSource." ;
+    ] ;
+    sh:property [
+        sh:path lang:anchorStart ;
+        sh:minCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceAnchor must declare its lang:anchorStart." ;
+    ] ;
+    sh:property [
+        sh:path lang:anchorEnd ;
+        sh:minCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceAnchor must declare its lang:anchorEnd." ;
+    ] ;
+    sh:property [
+        sh:path lang:offsetSpace ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class lang:OffsetSpace ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:SurfaceAnchor must declare its lang:offsetSpace." ;
+    ] .
+
+lang:SlotFormStructuralShape
+    a sh:NodeShape ;
+    rdfs:label "Slot-form structural shape"@x-gmeow-english ;
+    skos:definition "A lang:slotForm holds a structured form resource, never a bare literal — a form that carries inferential weight is a structured object, not a string."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:StringOnlyForm ;
+    sh:targetSubjectsOf lang:slotForm ;
+    sh:property [
+        sh:path lang:slotForm ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:slotForm must be a form resource, not a literal." ;
+    ] .
+
+lang:RealizesStructuralShape
+    a sh:NodeShape ;
+    rdfs:label "Realizes structural shape"@x-gmeow-english ;
+    skos:definition "A lang:realizes holds a structured form resource, never a bare literal."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:StringOnlyForm ;
+    sh:targetSubjectsOf lang:realizes ;
+    sh:property [
+        sh:path lang:realizes ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:realizes must point at a form resource, not a literal." ;
+    ] .
+
+lang:FormHeadStructuralShape
+    a sh:NodeShape ;
+    rdfs:label "Form-head structural shape"@x-gmeow-english ;
+    skos:definition "A lang:formHead holds a structured form resource, never a bare literal."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:StringOnlyForm ;
+    sh:targetSubjectsOf lang:formHead ;
+    sh:property [
+        sh:path lang:formHead ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:formHead must point at a form resource, not a literal." ;
+    ] .
+
+lang:GraphemeGroundedShape
+    a sh:NodeShape ;
+    rdfs:label "Grapheme grounding shape"@x-gmeow-english ;
+    skos:definition "A lang:Grapheme belongs to the repertoire of the lang:Script it declares: the script lists it through lang:hasGrapheme."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UngroundedGrapheme ;
+    sh:targetClass lang:Grapheme ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A grapheme is not in the repertoire of the script it declares." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/lang/inScript> ?s .
+                FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/hasGrapheme> $this . }
+            }
+        """ ;
+    ] .
