@@ -38,6 +38,7 @@ pub mod graph;
 pub mod loader;
 pub mod mapping_purity;
 pub mod node;
+pub mod projections;
 pub mod provenance;
 pub mod put_executor;
 pub mod registry;
