@@ -164,3 +164,26 @@ ASK {
     math:StringOnlyPreservationLaw  rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "Both homomorphism hard-rule failures MUST be subclasses of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+
+# --- 12. The Weyl group IS an automorphism group IS a group (MUST) ---
+ex:saWeylGroupIsSymmetry a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:WeylGroup rdfs:subClassOf math:AutomorphismGroup .
+    math:AutomorphismGroup rdfs:subClassOf math:Group .
+}""" ;
+    gmeow:saRationale "A root system's symmetry group is its Weyl group, which MUST be a math:AutomorphismGroup and hence a math:Group — the identity that makes E8's symmetry expressible with the same machinery as det and homomorphic encryption." .
+
+# --- 13. IncompleteLieStructure subclasses MathConformanceFailure (MUST) ---
+ex:saLieFailure a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:IncompleteLieStructure rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The Lie hard-rule failure math:IncompleteLieStructure MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .

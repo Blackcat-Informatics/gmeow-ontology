@@ -340,3 +340,171 @@ gmeow:eqMathQuotient a gmeow:TermEquivalence ;
     gmeow:objectLabel "quotient group" ;
     gmeow:comment "math:Quotient is the general quotient of a structure by a compatible substructure; wd:Q1138961 (quotient group) is its canonical group instance. closeMatch, not identity: math:Quotient is broader (ring and module quotients too), so the map to the group-specific concept is a close but non-invertible counterpart." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Algebra classes → Lean mathlib (structural formalization, by reference) #
+# The typeclass hierarchy and the root-system / Lie formalizations aligned to their
+# mathlib4 declarations. mathlib is Apache-2.0 but not RDF-projectable, so this is
+# structural-by-reference (skos:relatedMatch), NOT identity: the Lean formalization is
+# a related resource, not an invertible identity. All URLs curl-validated (HTTP 200).
+
+gmeow:eqMathMonoidMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Monoid ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Group/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Group.Defs (Monoid)" ;
+    gmeow:comment "math:Monoid is formalized by the Monoid typeclass in mathlib's Algebra.Group.Defs. Structural formalization by reference (mathlib is Apache-2.0 but not RDF), so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathGroupMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Group ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Group/Basic.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Group.Basic (Group)" ;
+    gmeow:comment "math:Group is formalized by the Group typeclass in mathlib's Algebra.Group. Structural formalization by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathRingMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Ring ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Ring/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Ring.Defs (Ring)" ;
+    gmeow:comment "math:Ring is formalized by the Ring typeclass in mathlib's Algebra.Ring.Defs. Structural formalization by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathFieldMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Field ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Field/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Field.Defs (Field)" ;
+    gmeow:comment "math:Field is formalized by the Field typeclass in mathlib's Algebra.Field.Defs. Structural formalization by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathModuleMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Module ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Module/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Module.Defs (Module)" ;
+    gmeow:comment "math:Module is formalized by the Module typeclass in mathlib's Algebra.Module.Defs. Structural formalization by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathRootSystemMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:RootSystem ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/LinearAlgebra/RootSystem/Defs.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.LinearAlgebra.RootSystem.Defs" ;
+    gmeow:comment "math:RootSystem is formalized by mathlib's RootSystem/RootPairing in LinearAlgebra.RootSystem.Defs — the formalization the E8 flagship aligns to. Structural by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+gmeow:eqMathLieAlgebraMathlib a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LieAlgebra ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject <https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Lie/Basic.html> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "Mathlib.Algebra.Lie.Basic (LieAlgebra)" ;
+    gmeow:comment "math:LieAlgebra is formalized by the LieAlgebra/LieRing typeclasses in mathlib's Algebra.Lie.Basic. Structural by reference, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-mathlib.sssom.tsv" .
+
+# --- Lie theory & group actions → Wikidata (concept identity) -------------- #
+
+gmeow:eqMathGroupAction a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:GroupAction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q288465 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "group action" ;
+    gmeow:comment "math:GroupAction is the action of a group on a set compatible with the group operation; wd:Q288465 (group action) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLieGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LieGroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q622679 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Lie group" ;
+    gmeow:comment "math:LieGroup is a group that is also a smooth manifold; wd:Q622679 (Lie group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLieAlgebra a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LieAlgebra ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q664495 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Lie algebra" ;
+    gmeow:comment "math:LieAlgebra is the infinitesimal structure of a Lie group — a vector space with an alternating bracket; wd:Q664495 (Lie algebra) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRootSystem a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:RootSystem ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q534131 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "root system" ;
+    gmeow:comment "math:RootSystem is the finite root configuration of a semisimple Lie group; wd:Q534131 (root system) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathWeylGroup a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:WeylGroup ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q768074 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Weyl group" ;
+    gmeow:comment "math:WeylGroup is the reflection symmetry group of a root system; wd:Q768074 (Weyl group) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathCartanMatrix a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:CartanMatrix ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q2004951 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Cartan matrix" ;
+    gmeow:comment "math:CartanMatrix is the integer matrix of Cartan integers of a root system's simple roots; wd:Q2004951 (Cartan matrix) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDynkinDiagram a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:DynkinDiagram ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q5319218 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Dynkin diagram" ;
+    gmeow:comment "math:DynkinDiagram is the graph classifying a root system's simple roots; wd:Q5319218 (Dynkin diagram) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathGroupRepresentation a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:GroupRepresentation ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1055807 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "group representation" ;
+    gmeow:comment "math:GroupRepresentation is a homomorphism of a group into a general linear group; wd:Q1055807 (group representation) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathLattice a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Lattice ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q1096885 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "lattice" ;
+    gmeow:comment "math:Lattice is a discrete subgroup of a real vector space that spans it; wd:Q1096885 (lattice, the discrete-subgroup sense) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

@@ -173,3 +173,26 @@ ex:rowWeylMap a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "map" ; gmeow:cellValueIri exf:weylAction ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operation" ; gmeow:cellValueIri exf:rootReflection ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "law" ; gmeow:cellValueIri exf:weylLaw ] .
+
+# === Q7 — the validated E8 root system (240 / rank 8 / Weyl order) ========== #
+
+ex:cqE8RootSystem a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/e8-root-system.rq" ;
+    gmeow:cqDataFile "tests/fixtures/algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The E8 flagship's invariants made validatable: over the fixture the answer is exactly {rootCount 240, rank 8, Weyl order 696729600}. A mistyped number would fail this exact-match gate." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqE8Shape ;
+    gmeow:cqExpectRow ex:rowE8 .
+
+ex:cqE8Shape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "rootCount" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "rank" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "weylOrder" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowE8 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rootCount" ; gmeow:cellValueLiteral "240" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rank" ; gmeow:cellValueLiteral "8" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "weylOrder" ; gmeow:cellValueLiteral "696729600" ] .

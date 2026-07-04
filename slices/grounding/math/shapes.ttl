@@ -244,3 +244,51 @@ math:PreservationLawShape
         sh:severity sh:Violation ;
         sh:message "A math:Homomorphism must name its math:preservationLaw as a resource denoting a logic: formula, not an opaque literal string." ;
     ] .
+
+# Rule 11 — a Lie group declares its root system.
+math:LieStructureShape
+    a sh:NodeShape ;
+    rdfs:label "Lie structure shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:LieGroup: it declares its math:hasRootSystem. The root system is what makes a semisimple Lie group expressible; a Lie group without one is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompleteLieStructure ;
+    sh:targetClass math:LieGroup ;
+    sh:property [
+        sh:path math:hasRootSystem ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:RootSystem ;
+        sh:severity sh:Violation ;
+        sh:message "A math:LieGroup must declare at least one math:hasRootSystem; a semisimple Lie group without a root system is ill-formed." ;
+    ] .
+
+# Rule 12 — a root system declares its Cartan matrix, Weyl group, and rank.
+math:RootSystemShape
+    a sh:NodeShape ;
+    rdfs:label "Root system completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:RootSystem: it declares its math:cartanMatrix, math:weylGroup, and math:rootSystemRank. These are what make E8's symmetry an automorphism group; a root system without them is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:IncompleteLieStructure ;
+    sh:targetClass math:RootSystem ;
+    sh:property [
+        sh:path math:cartanMatrix ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:CartanMatrix ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem must declare its math:cartanMatrix; a root system without one is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:weylGroup ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:WeylGroup ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem must declare its math:weylGroup — the symmetry group of the roots; a root system without one is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:rootSystemRank ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem must declare its math:rootSystemRank; a root system without a rank is ill-formed." ;
+    ] .
