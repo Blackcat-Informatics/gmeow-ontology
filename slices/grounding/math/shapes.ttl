@@ -426,8 +426,9 @@ math:ProbabilityMeasureShape
     sh:property [
         sh:path math:totalMass ;
         sh:hasValue 1 ;
+        sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A math:ProbabilityMeasure must have math:totalMass 1 — a probability measure is exactly a measure of total mass one." ;
+        sh:message "A math:ProbabilityMeasure must have exactly one math:totalMass and it must be 1 — a probability measure is exactly a measure of total mass one." ;
     ] .
 
 # Rule 17 — an integral names its integrand, domain, and measure.
@@ -443,8 +444,9 @@ math:IntegralShape
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
+        sh:class math:MeasurableFunction ;
         sh:severity sh:Violation ;
-        sh:message "A math:Integral must name exactly one math:integrand — the math:MeasurableFunction it integrates." ;
+        sh:message "A math:Integral must name exactly one math:integrand, and it must be a math:MeasurableFunction — the function it integrates." ;
     ] ;
     sh:property [
         sh:path math:integrationDomain ;
