@@ -164,43 +164,11 @@ pub(crate) struct ChaseRowWithProvenance {
 
 // ── Typed adapter surface ─────────────────────────────────────────────────────
 
-/// A single materialized row with decoded, native-term arguments.
-///
-/// This is the typed twin of [`ChaseRow`]: the predicate stays a relation-name
-/// `String` (it is a name, not a term — see [`crate::facts::TypedFact`]), and
-/// every argument is a decoded [`TermValue`].  Arity-generic: callers coerce
-/// positions (e.g. subject/object/world for ternary reasoning rows).
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) struct TypedRow {
-    /// The relation name (a full predicate IRI, un-bracketed, or a bare
-    /// program-local predicate symbol).
-    pub predicate: String,
-    /// One decoded native term per column in the row.
-    pub args: Vec<TermValue>,
-}
-
-/// Provenance metadata for a typed row — the typed twin of [`ChaseProvenance`].
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) struct TypedProvenance {
-    /// Whether this fact is an EDB (asserted input) fact.
-    pub is_edb: bool,
-    /// Name of the rule that derived this fact, as set via `#[name("...")]`.
-    pub rule_name: Option<String>,
-    /// Immediate antecedent facts (premises) that the rule consumed, decoded.
-    pub antecedents: Vec<TypedRow>,
-    /// Structured slice attributions (§9 / S5) — carried through unchanged.
-    /// Populated at the validation boundary when slice context is available;
-    /// no in-crate consumer reads it yet.
-    #[allow(dead_code)]
-    pub attributions: Vec<Attribution>,
-}
-
-/// The full result of a typed chase: every materialized row with provenance.
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) struct TypedChaseResult {
-    /// All materialized rows, each paired with its provenance.
-    pub rows: Vec<(TypedRow, TypedProvenance)>,
-}
+// The neutral closure vocabulary (`TypedRow`, `TypedProvenance`,
+// `TypedChaseResult`) lives at the oracle boundary, not in this adapter, so the
+// `ForwardOracle` trait does not depend on the Nemo bridge.  This adapter both
+// produces and re-exports them.
+pub(crate) use crate::oracle::{TypedChaseResult, TypedProvenance, TypedRow};
 
 /// Render a relation name as a Nemo predicate token: full IRIs are wrapped in
 /// angle brackets; bare program-local symbols pass through unchanged.  Inverse
