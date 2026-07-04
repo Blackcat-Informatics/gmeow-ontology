@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ProbabilityMeasureShape: a math:ProbabilityMeasure whose
+# math:totalMass is not one (sh:hasValue 1), so validation MUST emit
+# shacl.HasValueConstraintComponent (and no other finding). It carries math:measureOn
+# so math:MeasureShape stays satisfied.
+# Bound by tests/example-conformance.ttl (ex:ecProbabilityMassNotOne).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:badProbability a math:ProbabilityMeasure ;
+    math:measureOn ex:space ;
+    math:totalMass 2 .
+
+ex:space a math:MeasurableSpace .
