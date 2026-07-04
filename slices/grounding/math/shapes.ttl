@@ -270,15 +270,17 @@ math:QuantityDimensionShape
 math:DerivedDimensionShape
     a sh:NodeShape ;
     rdfs:label "Derived-dimension structure shape"@x-gmeow-english ;
-    skos:definition "SHACL constraint for math:DerivedDimension: it declares a non-empty math:baseDimensionExponent list giving its product over the base dimensions. A derived dimension with no exponent structure is ill-formed."@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:DerivedDimension: it declares at least one math:baseDimensionExponent cell giving its product over the base dimensions. A derived dimension with no exponent structure is ill-formed."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     math:enforcesFailureClass math:MalformedDimension ;
     sh:targetClass math:DerivedDimension ;
     sh:property [
         sh:path math:baseDimensionExponent ;
         sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:DimensionExponent ;
         sh:severity sh:Violation ;
-        sh:message "A math:DerivedDimension must declare a non-empty math:baseDimensionExponent list of math:DimensionExponent cells; a derived dimension without its exponent structure is ill-formed." ;
+        sh:message "A math:DerivedDimension must declare at least one math:baseDimensionExponent naming a math:DimensionExponent cell; a derived dimension without its exponent structure is ill-formed." ;
     ] .
 
 # Rule 13 — a dimension exponent cell names a base dimension and an exact-rational power.

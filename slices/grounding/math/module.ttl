@@ -772,7 +772,7 @@ math:DerivedDimension
     rdfs:subClassOf math:Dimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Derived Dimension"@x-gmeow-english ;
-    skos:definition "A dimension expressed as a product of powers of the base dimensions — velocity L·T⁻¹, energy M·L²·T⁻², and so on. It records that product as a list of math:DimensionExponent cells through math:baseDimensionExponent, each naming a math:BaseDimension (math:exponentOfDimension) and an exact-rational power (math:exponentNumerator over math:exponentDenominator). Its human-readable math:dimensionVector string is a computed projection of that structured list, never an independent source."@x-gmeow-english ;
+    skos:definition "A dimension expressed as a product of powers of the base dimensions — velocity L·T⁻¹, energy M·L²·T⁻², and so on. It records that product as a set of math:DimensionExponent cells through math:baseDimensionExponent (one edge per base dimension it involves), each naming a math:BaseDimension (math:exponentOfDimension) and an exact-rational power (math:exponentNumerator over math:exponentDenominator). The cells are an unordered set — a product commutes — so no list order is imposed. Its human-readable math:dimensionVector string is a computed projection of that structured set, never an independent source."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Dimensionless
@@ -802,7 +802,7 @@ math:DimensionExponent
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Dimension Exponent"@x-gmeow-english ;
-    skos:definition "One (base dimension, exact-rational power) cell of a derived dimension's product form: it names the math:BaseDimension it raises (math:exponentOfDimension) and the power, as an exact rational, through math:exponentNumerator over math:exponentDenominator (denominator non-zero). The cells of a math:DerivedDimension's math:baseDimensionExponent list together give its exponent vector over the seven base dimensions. Rational, not decimal, so equality of dimensions is exact."@x-gmeow-english ;
+    skos:definition "One (base dimension, exact-rational power) cell of a derived dimension's product form: it names the math:BaseDimension it raises (math:exponentOfDimension) and the power, as an exact rational, through math:exponentNumerator over math:exponentDenominator (denominator non-zero). The cells named by a math:DerivedDimension's math:baseDimensionExponent edges together give its exponent vector over the seven base dimensions. Rational, not decimal, so equality of dimensions is exact."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Base-dimension individuals (the ℚ⁷ generators) ------------------------- #
@@ -902,7 +902,7 @@ math:DimensionalInhomogeneity
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Dimensional Inhomogeneity"@x-gmeow-english ;
-    skos:definition "The failure raised when an expression is dimensionally inhomogeneous: the operands of a math:DimensionalExpression do not all share one dimension, or a math:Integral's declared result dimension does not equal its integrand's dimension combined with its measure's. This is the no-optionality posture applied to dimensions — a dimensionally inhomogeneous expression is ill-formed. It is a reasoned gate, computed from the exact-rational exponent vectors, not asserted data: its canonical statement is a logic: rule (math:dimensionalHomogeneityLaw) of which the native validator is the declared, exact-preservation lowering."@x-gmeow-english ;
+    skos:definition "The failure raised when an expression is dimensionally inhomogeneous: the operands of a math:DimensionalExpression do not all share one dimension, or a math:Integral's declared result dimension does not equal its integrand's dimension combined with its measure's. This is the no-optionality posture applied to dimensions — a dimensionally inhomogeneous expression is ill-formed. It is a reasoned gate, computed exactly from the rational exponent vectors of the ℚ-vector space of dimensions, not asserted data — this is GMEOW's differentiator over unit vocabularies that record conversions as data rather than deriving homogeneity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Measure properties ----------------------------------------------------- #
@@ -969,7 +969,7 @@ math:baseDimensionExponent
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "base dimension exponent"@x-gmeow-english ;
-    skos:definition "Relates a math:DerivedDimension to the rdf:List of math:DimensionExponent cells that give its product form over the base dimensions. Domain math:DerivedDimension, range an rdf:List of math:DimensionExponent (stated in prose). A base dimension carries no such list — it is a generator, not a product."@x-gmeow-english ;
+    skos:definition "Relates a math:DerivedDimension to one math:DimensionExponent cell of its product form over the base dimensions — one such edge per base dimension involved (an unordered set, since a product commutes). Domain math:DerivedDimension, range math:DimensionExponent (stated in prose). A base dimension carries no such edge — it is a generator, not a product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:exponentOfDimension
