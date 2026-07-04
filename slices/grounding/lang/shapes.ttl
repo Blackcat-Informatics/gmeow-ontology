@@ -623,29 +623,41 @@ lang:TranslationUnitShape
 lang:UnmarkedSurfaceTranslationShape
     a sh:NodeShape ;
     rdfs:label "Unmarked surface translation shape"@x-gmeow-english ;
-    skos:definition "A lang:TranslationUnit whose lang:translationSource or lang:translationTarget is a lang:SurfaceForm that realizes no analyzed form (no lang:realizes) is honest only if that surface is typed lang:UnanalyzedProse AND its carried logic:Correspondence carries the weakest preservation judgment (logic:Unsupported or logic:ValidationOnly). A surface-only side that is NEITHER typed unanalyzed NOR weakest-judgment claims a strong crossing over unanalyzed prose — the real fabrication risk this gate flags."@x-gmeow-english ;
+    skos:definition "A lang:TranslationUnit whose lang:translationSource or lang:translationTarget is a lang:SurfaceForm that realizes no analyzed form (no lang:realizes) is honest only if that surface is typed lang:UnanalyzedProse AND its carried logic:Correspondence carries the weakest preservation judgment (logic:Unsupported or logic:ValidationOnly). The gate fires when EITHER conjunct is absent: a surface-only side that is not typed lang:UnanalyzedProse, OR one whose logic:Correspondence claims a stronger-than-weakest preservation over that surface. Either way a strong crossing is claimed over an unmarked or unanalyzed surface — the fabrication risk this gate flags."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     lang:enforcesFailureClass lang:UnmarkedSurfaceTranslation ;
     sh:targetClass lang:TranslationUnit ;
     sh:sparql [
         sh:severity sh:Violation ;
-        sh:message "A surface-only translation side realizes no analyzed form yet is neither typed lang:UnanalyzedProse nor carries the weakest preservation judgment on its logic:Correspondence." ;
+        sh:message "A surface-only translation side realizes no analyzed form yet is not typed lang:UnanalyzedProse, or carries a stronger-than-weakest preservation judgment on its logic:Correspondence." ;
         sh:select """
             SELECT DISTINCT $this WHERE {
                 {
+                    # source surface realizes nothing yet is not typed unanalyzed prose
+                    $this <https://blackcatinformatics.ca/lang/translationSource> ?s .
+                    ?s a <https://blackcatinformatics.ca/lang/SurfaceForm> .
+                    FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/realizes> ?rf . }
+                    FILTER NOT EXISTS { ?s a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
+                } UNION {
+                    # source surface realizes nothing yet claims a stronger-than-weakest crossing
                     $this <https://blackcatinformatics.ca/lang/translationSource> ?s .
                     ?s a <https://blackcatinformatics.ca/lang/SurfaceForm> .
                     $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c .
                     FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/realizes> ?rf . }
-                    FILTER NOT EXISTS { ?s a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
                     FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/Unsupported> . }
                     FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> . }
                 } UNION {
+                    # target surface realizes nothing yet is not typed unanalyzed prose
+                    $this <https://blackcatinformatics.ca/lang/translationTarget> ?t .
+                    ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> .
+                    FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . }
+                    FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
+                } UNION {
+                    # target surface realizes nothing yet claims a stronger-than-weakest crossing
                     $this <https://blackcatinformatics.ca/lang/translationTarget> ?t .
                     ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> .
                     $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c .
                     FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . }
-                    FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . }
                     FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/Unsupported> . }
                     FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> . }
                 }
