@@ -124,18 +124,6 @@ pub(crate) struct TermInterner {
 
 impl TermInterner {
     /// A fresh, empty interner.
-    ///
-    /// Production consumers so far build interners through [`TypedFactSet`];
-    /// the direct constructor (like `lookup`/`display_of`/`len` below) is the
-    /// surface the columnar physical store adopts when it moves onto TermId
-    /// interning — until then it is exercised by the unit tests only.
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "interner surface for the columnar store's TermId adoption"
-        )
-    )]
     pub(crate) fn new() -> Self {
         Self::default()
     }
@@ -154,16 +142,14 @@ impl TermInterner {
         id
     }
 
-    /// The id of `term` if it is already interned; never inserts.
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "interner surface for the columnar store's TermId adoption"
-        )
-    )]
-    pub(crate) fn lookup(&self, term: &TermValue) -> Option<TermId> {
-        self.by_display.get(&term_display(term)).copied()
+    /// The id of the term with this [`term_display`] surface, if already
+    /// interned; never inserts.
+    ///
+    /// The display surface IS the interner key (see the module doctrine), so a
+    /// surface-keyed lookup is the primitive — probes that hold a `TermValue`
+    /// pass `&term_display(term)`.
+    pub(crate) fn lookup(&self, display: &str) -> Option<TermId> {
+        self.by_display.get(display).copied()
     }
 
     /// The first-seen `TermValue` for `id`.
@@ -183,13 +169,10 @@ impl TermInterner {
     }
 
     /// The cached display surface for `id` (same panic contract as [`Self::resolve`]).
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "interner surface for the columnar store's TermId adoption"
-        )
-    )]
+    ///
+    /// Test-only introspection: production consumers resolve values
+    /// ([`Self::resolve`]) or key on surfaces ([`Self::lookup`]).
+    #[cfg(test)]
     pub(crate) fn display_of(&self, id: TermId) -> &str {
         self.displays.get(id.index()).unwrap_or_else(|| {
             panic!(
@@ -200,14 +183,8 @@ impl TermInterner {
         })
     }
 
-    /// The number of distinct terms interned.
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "interner surface for the columnar store's TermId adoption"
-        )
-    )]
+    /// The number of distinct terms interned (test-only introspection).
+    #[cfg(test)]
     pub(crate) fn len(&self) -> usize {
         self.terms.len()
     }
@@ -393,10 +370,11 @@ mod tests {
     fn facts_lookup_never_inserts() {
         let mut interner = TermInterner::new();
         let a = term("http://ex/a");
-        assert_eq!(interner.lookup(&a), None);
+        let a_display = term_display(&a);
+        assert_eq!(interner.lookup(&a_display), None);
         assert_eq!(interner.len(), 0, "lookup must not insert");
         let id = interner.intern(&a);
-        assert_eq!(interner.lookup(&a), Some(id));
+        assert_eq!(interner.lookup(&a_display), Some(id));
         assert_eq!(interner.len(), 1);
     }
 
