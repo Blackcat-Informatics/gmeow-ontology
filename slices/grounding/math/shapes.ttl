@@ -292,3 +292,35 @@ math:RootSystemShape
         sh:severity sh:Violation ;
         sh:message "A math:RootSystem must declare its math:rootSystemRank; a root system without a rank is ill-formed." ;
     ] .
+
+# Rule 13 — a homomorphic-encryption scheme declares its homomorphic operation,
+# hardness assumption, and noise model.
+math:HomomorphicEncryptionSchemeShape
+    a sh:NodeShape ;
+    rdfs:label "Homomorphic-encryption scheme completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:HomomorphicEncryptionScheme: it declares the operation it is math:homomorphicOver, its math:securityAssumption (a lattice-hardness assumption), and its math:noiseModel. These make the homomorphic claim meaningful and its security stateable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UnderspecifiedEncryptionScheme ;
+    sh:targetClass math:HomomorphicEncryptionScheme ;
+    sh:property [
+        sh:path math:homomorphicOver ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Operation ;
+        sh:severity sh:Violation ;
+        sh:message "A math:HomomorphicEncryptionScheme must declare the math:homomorphicOver operation it carries; a homomorphic scheme without a homomorphic operation is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:securityAssumption ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:LatticeHardnessAssumption ;
+        sh:severity sh:Violation ;
+        sh:message "A math:HomomorphicEncryptionScheme must declare its math:securityAssumption naming a math:LatticeHardnessAssumption; a scheme without a stated hardness assumption is ill-formed." ;
+    ] ;
+    sh:property [
+        sh:path math:noiseModel ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:HomomorphicEncryptionScheme must declare its math:noiseModel; a lattice-based scheme without a noise model is ill-formed." ;
+    ] .

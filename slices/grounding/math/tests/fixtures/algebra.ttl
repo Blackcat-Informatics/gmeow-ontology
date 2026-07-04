@@ -13,15 +13,36 @@
 
 exf:detHom a math:GroupHomomorphism ;
     math:preservedOperation exf:matrixMultiplication ;
-    math:preservationLaw exf:detLaw .
+    math:preservationLaw exf:detLaw ;
+    math:kernel exf:sl2 .
 
-exf:heScheme a math:RingHomomorphism ;
+exf:heScheme a math:HomomorphicEncryptionScheme ;
     math:preservedOperation exf:ringMultiplication ;
-    math:preservationLaw exf:heLaw .
+    math:preservationLaw exf:heLaw ;
+    math:homomorphicOver exf:ringMultiplication ;
+    math:securityAssumption math:ringLearningWithErrors ;
+    math:noiseModel exf:gaussianNoise .
 
 exf:weylAction a math:Automorphism ;
     math:preservedOperation exf:rootReflection ;
     math:preservationLaw exf:weylLaw .
+
+exf:sl2 a math:Group .
+exf:gaussianNoise a math:Operation .
+
+# --- A structure (for the structure-operation-axioms question) ------------- #
+exf:exampleGroup a math:Group ;
+    math:structureOperation exf:groupOp ;
+    math:satisfiesAxiom exf:assocAxiom .
+exf:groupOp a math:Operation .
+exf:assocAxiom a math:Axiom .
+
+# --- An isomorphism (for the isomorphic-structures question) --------------- #
+exf:sampleIso a math:Isomorphism ;
+    math:domain exf:structA ;
+    math:codomain exf:structB .
+exf:structA a math:Group .
+exf:structB a math:Group .
 
 exf:matrixMultiplication a math:Operation .
 exf:ringMultiplication a math:Operation .
