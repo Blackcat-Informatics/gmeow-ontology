@@ -417,22 +417,21 @@ lang:DenotationKindMatchShape
         sh:message "A denotation kind does not match its target's type." ;
         sh:select """
             SELECT DISTINCT $this WHERE {
-                $this <https://blackcatinformatics.ca/lang/denotationKind> ?k .
                 $this <https://blackcatinformatics.ca/lang/denotationTarget> ?t .
                 {
-                    FILTER( ?k = <https://blackcatinformatics.ca/lang/denotesLogicFormula> )
+                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesLogicFormula> .
                     FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/logic/Formula> . }
                 } UNION {
-                    FILTER( ?k = <https://blackcatinformatics.ca/lang/denotesLogicType> )
+                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesLogicType> .
                     FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/logic/Type> . }
                 } UNION {
-                    FILTER( ?k = <https://blackcatinformatics.ca/lang/denotesLogicTerm> )
+                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesLogicTerm> .
                     FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/logic/Individual> . }
                 } UNION {
-                    FILTER( ?k = <https://blackcatinformatics.ca/lang/denotesClass> )
+                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesClass> .
                     FILTER NOT EXISTS { ?t a <http://www.w3.org/2002/07/owl#Class> . }
                 } UNION {
-                    FILTER( ?k = <https://blackcatinformatics.ca/lang/denotesByDescription> )
+                    $this <https://blackcatinformatics.ca/lang/denotationKind> <https://blackcatinformatics.ca/lang/denotesByDescription> .
                     FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/lang/Intension> . }
                 }
             }

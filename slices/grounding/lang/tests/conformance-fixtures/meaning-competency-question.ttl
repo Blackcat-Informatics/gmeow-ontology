@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Flagship 2 (dogfooding): a GMEOW competency question's own English prose is a
+# lang:SurfaceForm realizing a parsed lang:ComposedForm; its use is a lang:CommunicativeAct
+# with interrogative force whose content denotes a query (lang:denotesQuery). GMEOW reads
+# its own prose — more than label matching.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+
+ex:qSurface a lang:SurfaceForm ;
+    lang:inSignSystem ex:english ;
+    lang:analysisLevel lang:parsedLevel ;
+    lang:surfaceText "Which surfaces are explicitly unanalyzed?" ;
+    lang:inScript lang:latinScript ;
+    lang:unicodeNormalization "NFC" ;
+    lang:collationLocale "en" ;
+    lang:realizes ex:qForm .
+ex:qForm a lang:ComposedForm ; lang:inSignSystem ex:english .
+
+ex:comAct a lang:CommunicativeAct ;
+    lang:communicativeForce lang:askForce ;
+    lang:isPerformative false .
+
+ex:act a lang:InterpretationAct ;
+    lang:interpretedForm ex:qForm ;
+    lang:producedReading ex:r .
+ex:r a lang:Reading ; lang:readingOf ex:qForm ; lang:denotation ex:denQuery .
+
+# The interrogative's content denotes the query it asks.
+ex:theQuery a gmeow:CompetencyQuestion .
+ex:denQuery a lang:Denotation ;
+    lang:denotedForm ex:qForm ;
+    lang:denotationKind lang:denotesQuery ;
+    lang:denotationTarget ex:theQuery ;
+    lang:denotationContext ex:ctxInterrogative ;
+    logic:preservationKind logic:ExactPreservation .

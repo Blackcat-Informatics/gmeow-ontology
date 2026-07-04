@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Flagship 1: the declarative sentence "cats chase mice" denotes a logic:Formula
+# through a compositional lowering (lang:composedBy / lang:composedFrom), each step
+# carrying a logic:preservationKind. Conforms to every meaning gate.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+
+# The head verb, its lexeme, and the pursue sense (chase = pursue, not engrave).
+ex:lexChase a lang:Lexeme ; lang:inSignSystem ex:english .
+ex:senseChase a lang:Sense ; lang:senseOf ex:lexChase .
+ex:wfChase a lang:WordForm ; lang:inSignSystem ex:english ; lang:lexemeOf ex:lexChase .
+
+# The predicate denotation of the verb (a logic:Type — the HiLog reflection).
+ex:typeChase a logic:Type .
+ex:denChase a lang:Denotation ;
+    lang:denotedForm ex:wfChase ;
+    lang:denotationKind lang:denotesLogicType ;
+    lang:denotationTarget ex:typeChase ;
+    lang:denotationContext ex:ctxPlainAssertion ;
+    lang:viaSense ex:senseChase ;
+    logic:preservationKind logic:ExactPreservation .
+
+# The whole sentence denotes a logic:Formula, composed from its constituents.
+ex:sentCatsChaseMice a lang:ComposedForm ; lang:inSignSystem ex:english .
+ex:formulaCatsChaseMice a logic:Formula .
+ex:ruleSubjVerbObj a lang:CompositionRule .
+ex:denSent a lang:Denotation ;
+    lang:denotedForm ex:sentCatsChaseMice ;
+    lang:denotationKind lang:denotesLogicFormula ;
+    lang:denotationTarget ex:formulaCatsChaseMice ;
+    lang:denotationContext ex:ctxPlainAssertion ;
+    lang:composedBy ex:ruleSubjVerbObj ;
+    lang:composedFrom ex:denChase ;
+    logic:preservationKind logic:ExactPreservation .

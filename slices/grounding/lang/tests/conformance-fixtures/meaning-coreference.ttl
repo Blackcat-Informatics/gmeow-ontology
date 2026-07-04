@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Reference depth: two referring expressions ("Alice" and "she") introduce and co-refer
+# with one lang:DiscourseReferent — the anaphora primitive. lang: holds only the
+# discourse-level identity later reference reuses.
+
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:refAlice a lang:WordForm ; lang:inSignSystem ex:english .
+ex:refShe a lang:WordForm ; lang:inSignSystem ex:english .
+
+ex:drAlice a lang:DiscourseReferent .
+ex:refAlice lang:introducesReferent ex:drAlice .
+ex:refAlice lang:corefersWith ex:refShe .
